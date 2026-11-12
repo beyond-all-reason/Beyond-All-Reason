@@ -1,0 +1,19 @@
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+
+local function applyStatusEffect(effectType, effectName, area, duration, strength)
+	GG['MissionAPI'].Modules.Effects.ApplyEffect(effectType, effectName, area, duration, strength or 1)
+end
+
+return {
+	{
+		type = 'ApplyStatusEffect',
+		parameters = {
+			{ name = 'effectType', required = true,  type = ParameterTypes.EffectType },
+			{ name = 'effectName', required = true,  type = ParameterTypes.EffectName },
+			{ name = 'area',       required = true,  type = ParameterTypes.Area },
+			{ name = 'duration',   required = false, type = ParameterTypes.Quantity }, -- default := until cleared
+			{ name = 'strength',   required = false, type = ParameterTypes.PositiveInteger }, -- default := 1
+		},
+		actionFunction = applyStatusEffect,
+	}
+}

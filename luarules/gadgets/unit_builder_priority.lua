@@ -89,6 +89,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local simSpeed = Game.gameSpeed
 
 local mathMax = math.max
+local mathMin = math.min
 local mathFloor = math.floor
 
 local updateFrame = {}
@@ -325,13 +326,11 @@ local function UpdatePassiveBuilders(
 	mStor,
 	mInc,
 	mShare,
-	mSent,
 	mRec,
 	eCur,
 	eStor,
 	eInc,
 	eShare,
-	eSent,
 	eRec,
 	ePull
 )
@@ -419,22 +418,24 @@ local function UpdatePassiveBuilders(
 	--   that residual. Reserve non-builder pull plus theoretical full-speed
 	--   non-passive con energy. Leave passive measured pull out so the
 	--   allocation loop can re-test each passive at full realBuildSpeed.
+	--
+	-- Sent resources are not reserved. Overflows and shares are gone.
 	local durationSeconds = interval / simSpeed
 
 	local mStorEff = mStor * mShare
 	local teamStallingMetal = mCur
 		- mathMax(mInc * stallMarginIncMetal, mStorEff * stallMarginSto)
 		- 1
-		+ durationSeconds * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
+		+ durationSeconds * (mInc + mRec - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
-	local eMargin = mathMax(eInc * stallMarginIncEnergy, eStorEff * stallMarginSto)
+	local eMargin = mathMin(mathMax(eInc * stallMarginIncEnergy, eStorEff * stallMarginSto), eStorEff)
 	local converterEnergyUse = spGetTeamRulesParam(teamID, converterEnergyUsageParamName) or 0
 	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
 	local teamStallingEnergy = eCur
 		- eMargin
 		- 1
-		+ durationSeconds * (eInc + eRec - eSent - nonConverterEnergyPull - nonPassiveConsTotalExpenseEnergy)
+		+ durationSeconds * (eInc + eRec - nonConverterEnergyPull - nonPassiveConsTotalExpenseEnergy)
 
 	-- Peeling builder draw out of ePull only raises the budget: skip measuring it if every passive con fits anyway
 	if anyPassiveBuilding and teamStallingEnergy - durationSeconds * passiveConsTotalExpenseEnergy <= 1 then
@@ -446,7 +447,7 @@ local function UpdatePassiveBuilders(
 		teamStallingEnergy = eCur
 			- eMargin
 			- 1
-			+ durationSeconds * (eInc + eRec - eSent - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
+			+ durationSeconds * (eInc + eRec - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
 	end
 
 	-- work through passive cons allocating as much expense as we have left
@@ -521,8 +522,8 @@ function gadget:GameFrame(n)
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
 				if n >= updateFrame[teamID] then
 					-- Read resource data once for both interval calc and UpdatePassiveBuilders
-					local mCur, mStor, _, mInc, _, mShare, mSent, mRec = spGetTeamResources(teamID, "metal")
-					local eCur, eStor, ePull, eInc, _, eShare, eSent, eRec = spGetTeamResources(teamID, "energy")
+					local mCur, mStor, _, mInc, _, mShare, _, mRec = spGetTeamResources(teamID, "metal")
+					local eCur, eStor, ePull, eInc, _, eShare, _, eRec = spGetTeamResources(teamID, "energy")
 					-- Inlined GetUpdateInterval: find max frames to fill storage for metal/energy (capped at 6)
 					local interval = 1
 					if mInc > 0 then
@@ -548,13 +549,11 @@ function gadget:GameFrame(n)
 						mStor,
 						mInc,
 						mShare,
-						mSent,
 						mRec,
 						eCur,
 						eStor,
 						eInc,
 						eShare,
-						eSent,
 						eRec,
 						ePull
 					)

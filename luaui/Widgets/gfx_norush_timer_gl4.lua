@@ -236,7 +236,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 end
 
 function widget:Shutdown()

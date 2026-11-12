@@ -130,6 +130,8 @@ local function createBuffers(chunks)
 	p:Define(chunks * PARAM_VEC4S, { { id = 0, name = "params", size = 1 } })
 	gv:AttachVertexBuffer(g)
 	ev:AttachVertexBuffer(e)
+	gl.InstanceVBOTable.fillVAOSlots(gv)
+	gl.InstanceVBOTable.fillVAOSlots(ev)
 	return g, e, p, gv, ev
 end
 

@@ -3,7 +3,7 @@
 
 piece  base, turrbase, turret, barrels, flare, lida, lidb, aimfrom, aimpoint;
 
-static-var  restore_delay, isOpen, shotcount;
+static-var  restore_delay, shotcount;
 static-var  Stunned;
 
 // Signal definitions
@@ -16,12 +16,11 @@ static-var  Stunned;
 #define MAXTILT 0
 
 #include "../unit_hitbyweaponid_and_smoke.h"
+#include "../popup_openclose.h"
 
-Close()
+CloseAnim()
 {
-	set-signal-mask SIGNAL_AIM1;
-	isOpen = FALSE;
-	turn turret to y-axis 0 speed <100.0>;
+	turn turret to y-axis 0 speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	move turrbase to y-axis [-16] speed [69];
 	wait-for-move turrbase along y-axis;
@@ -31,7 +30,7 @@ Close()
 	set ARMORED to 1;
 }
 
-Open()
+OpenAnim()
 {
 	set ARMORED to 0;
 	turn lida to z-axis <-179> speed <250>;
@@ -39,7 +38,6 @@ Open()
 	wait-for-turn lidb around z-axis;
 	move turrbase to y-axis [12] speed [69.0];
 	wait-for-move turrbase along y-axis;
-	isOpen = TRUE;
 }
 
 ExecuteRestoreAfterDelay()
@@ -47,7 +45,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script Close();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -68,7 +66,6 @@ Create()
 	shotcount = 1;
 	hide flare;
 	restore_delay = 3000;
-	isOpen = FALSE;
 	move turrbase to y-axis [-12] now;
 	move turret to y-axis [5] now;
 
@@ -76,22 +73,19 @@ Create()
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;
-	if (!isOpen)
-	{
-		start-script Close();
-	}
+	start-script CloseBuildPose();
 }
 
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	if (!isOpen)
+	if ( isOpen == 0 )
 	{
-		start-script Open();
+		start-script RequestOpen();
 		start-script RestoreAfterDelay();
 	}
-	while (!isOpen)
+	while( isOpen == 0 )
 	{
 		sleep 150;
 	}
@@ -99,6 +93,11 @@ AimWeapon1(heading, pitch)
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FireWeapon1()

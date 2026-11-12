@@ -11,17 +11,21 @@ table.pack = table.pack or function(...)
 end
 
 if not table.copy then
-	function table.copy(tbl)
-		local copy = {}
+	local pairs, type = pairs, type
+
+	local function copy(tbl)
+		local result = {}
 		for key, value in pairs(tbl) do
 			if type(value) == "table" then
-				copy[key] = table.copy(value)
+				result[key] = copy(value)
 			else
-				copy[key] = value
+				result[key] = value
 			end
 		end
-		return copy
+		return result
 	end
+
+	table.copy = copy
 end
 
 if not table.merge then
@@ -123,6 +127,10 @@ if not table.toString then
 
 	local function tableToString(tbl, options, _seen, _depth) end
 
+	-- table.toString of each non-number key in the sort in progress
+	local NO_KEY_STRINGS = {}
+	local keyStrings = NO_KEY_STRINGS
+
 	local function keyCmp(a, b)
 		local ta = type(a)
 		local tb = type(b)
@@ -137,7 +145,7 @@ if not table.toString then
 		elseif tb == "number" and ta ~= "number" then
 			return false
 		else
-			return tableToString(a) < tableToString(b)
+			return keyStrings[a] < keyStrings[b]
 		end
 	end
 
@@ -159,9 +167,6 @@ if not table.toString then
 	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
 	---@return string
 	tableToString = function(tbl, options, _seen, _depth)
-		_seen = _seen or {}
-		_depth = _depth or 0
-
 		local inputType = type(tbl)
 
 		if inputType == "string" then
@@ -171,6 +176,9 @@ if not table.toString then
 		elseif inputType ~= "table" then
 			return tostring(tbl)
 		end
+
+		_seen = _seen or {}
+		_depth = _depth or 0
 
 		if _seen[tbl] then
 			return "<recursive_reference>"
@@ -184,7 +192,22 @@ if not table.toString then
 			keyCount = keyCount + 1
 			keys[keyCount] = key
 		end
-		tableSort(keys, (options and options.keyCmp) or keyCmp)
+		if options and options.keyCmp then
+			tableSort(keys, options.keyCmp)
+		else
+			-- converted once per key instead of in every comparison
+			local strings
+			for i = 1, keyCount do
+				local key = keys[i]
+				if type(key) ~= "number" then
+					strings = strings or {}
+					strings[key] = tableToString(key)
+				end
+			end
+			keyStrings = strings or NO_KEY_STRINGS
+			tableSort(keys, keyCmp)
+			keyStrings = NO_KEY_STRINGS
+		end
 
 		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
 		local pretty = options and options.pretty

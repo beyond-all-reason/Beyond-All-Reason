@@ -329,16 +329,6 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromWeapon1(pieceIndex)
-{
-	pieceIndex = torso;
-}
-
-QueryWeapon1(pieceIndex)
-{
-	pieceIndex = rflare + gun_3;;
-}
-
 Open(){
 		turn lturret to z-axis <-45> speed <360>;
 		turn rturret to z-axis <45> speed <360>;
@@ -351,7 +341,7 @@ Close(){
 		wait-for-turn rturret around z-axis;
 }
 
-AimWeapon2(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM2;
@@ -373,7 +363,7 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
+FireWeapon1()
 {
 	if( gun_3 )
 	{
@@ -392,12 +382,12 @@ FireWeapon2()
 	gun_3 = !gun_3;
 }
 
-AimFromWeapon2(pieceIndex)
+AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = torso;
 }
 
-QueryWeapon2(pieceIndex)
+QueryWeapon1(pieceIndex)
 {
 	pieceIndex = rflare + gun_3;
 }

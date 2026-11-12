@@ -414,9 +414,8 @@ Create()
 	hide lfirept;
 	isMoving = FALSE;
 	wpnheading = 0;
-	animSpeed = 2;
+	animSpeed = 4; // what UnitSpeed sets at rest; it only runs while moving
 	gun_1 = 0;
-	start-script UnitSpeed();
 }
 
 StartMoving(reversing)
@@ -433,6 +432,7 @@ StopMoving()
 	signal SIGNAL_MOVE;
 	isMoving = FALSE;
 	call-script StopWalking();
+	animSpeed = 4; // what UnitSpeed sets at rest; it only runs while moving
 }
 
 

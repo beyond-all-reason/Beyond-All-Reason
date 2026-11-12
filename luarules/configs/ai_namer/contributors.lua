@@ -55,6 +55,7 @@ local ContributorAINames = {
 	"Harkenn",
 	"Hectate",
 	"hihoman23",
+	"HMSIndeconstructable",
 	"Hobo Joe",
 	"hokomoko",
 	"Honkwaddle",

@@ -823,7 +823,7 @@ end
 local function createTextures()
 	local textureProperties = {
 		target = GL.TEXTURE_2D,
-		format = GL.RGBA,
+		format = GL.RGBA8,
 		fbo = true,
 	}
 
@@ -2067,23 +2067,15 @@ function widget:GameFrame(frameNum)
 	end
 end
 
-local sec = 0
 local topbarShowButtons = true
 function widget:Update(dt)
-	sec = sec + dt
-	if sec > 0.05 then
-		sec = 0
-		if WG.topbar then
-			local prevShowButtons = topbarShowButtons
-			if WG.topbar.getShowButtons() ~= prevShowButtons then
-				topbarShowButtons = WG.topbar.getShowButtons()
-				if haveFullView then
-					-- release the current textures, VAO and display lists before rebuilding
-					reInit()
-				else
-					deInit()
-				end
-			end
+	if WG.topbar and WG.topbar.getShowButtons() ~= topbarShowButtons then
+		topbarShowButtons = WG.topbar.getShowButtons()
+		if haveFullView then
+			-- release the current textures, VAO and display lists before rebuilding
+			reInit()
+		else
+			deInit()
 		end
 	end
 	if checkAndUpdateHaveFullView() then

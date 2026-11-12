@@ -43,6 +43,11 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !(get ACTIVATION);
+}
+
 FireWeapon1()
 {
 	spin leftBarrel around z-axis speed <-1080.0>;

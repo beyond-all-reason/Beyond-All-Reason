@@ -10,57 +10,64 @@ static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, fireTi
 #define SIGNAL_LIGHT 4
 #define SIGNAL_IDLE 8
 
+#include "../popup_openclose.h"
 
-Activate()
+
+OpenAnim()
 {
+
 	set ARMORED to 0;
-	if( !state )
-	{
-		move armature1 to z-axis [0] speed [2];
-		move armature1 to y-axis [0] speed [28];
-		turn armature1 to x-axis <0> speed <13>;
 
-		move armature2 to z-axis [0] speed [2];
-		move armature2 to y-axis [0] speed [28];
-		turn armature2 to x-axis <0> speed <13>;
+	move armature1 to z-axis [0] speed [2];
+	move armature1 to y-axis [0] speed [28];
+	turn armature1 to x-axis <0> speed <13>;
 
-		move armature3 to z-axis [0] speed [2];
-		move armature3 to y-axis [0] speed [28];
-		turn armature3 to x-axis <0> speed <13>;
+	move armature2 to z-axis [0] speed [2];
+	move armature2 to y-axis [0] speed [28];
+	turn armature2 to x-axis <0> speed <13>;
 
-		move piston1 to y-axis [2] speed [40];
-		move rail1 to y-axis [0] speed [20];
-		move rail2 to y-axis [0] speed [20];
-		move rail3 to y-axis [0] speed [20];
-		wait-for-move piston1 along y-axis;
-		move piston2 to y-axis [2] speed [24];
-		wait-for-move piston2 along y-axis;
-		move turret to y-axis [6] speed [32];
-		turn topArmsPivot to x-axis <0> speed <100>;
-		turn leftAimingArm to z-axis <45> speed <45>;
-		turn rightAimingArm to z-axis <-45> speed <45>;
-		turn bottomAimingArm to x-axis <0> speed <85>;
+	move armature3 to z-axis [0] speed [2];
+	move armature3 to y-axis [0] speed [28];
+	turn armature3 to x-axis <0> speed <13>;
 
-		wait-for-turn rightAimingArm around z-axis;
+	move piston1 to y-axis [2] speed [40];
+	move rail1 to y-axis [0] speed [20];
+	move rail2 to y-axis [0] speed [20];
+	move rail3 to y-axis [0] speed [20];
+	wait-for-move piston1 along y-axis;
+	move piston2 to y-axis [2] speed [24];
+	wait-for-move piston2 along y-axis;
+	move turret to y-axis [6] speed [32];
+	turn topArmsPivot to x-axis <0> speed <100>;
+	//turn aiming_arm to x-axis <0> speed <40>;
+	turn leftAimingArm to z-axis <45> speed <45>;
+	turn rightAimingArm to z-axis <-45> speed <45>;
+	turn bottomAimingArm to x-axis <0> speed <85>;
 
-		show flare;
-		show fireline;
-		show lineflare;
-		show lightpoint;
-		show ambienttop;
+	wait-for-turn rightAimingArm around z-axis;
+	wait-for-turn leftAimingArm around z-axis;
+	wait-for-turn bottomAimingArm around x-axis;
+
+	show flare;
+	show fireline;
+	show lineflare;
+	show lightpoint;
+	show ambienttop;
 
 
-
-		start-script SpinIdle();
-		state = 1;
-	}
-	state = 1;
+	start-script SpinIdle();
 }
 
-Deactivate()
+CloseAnim()
 {
-	signal SIGNAL_AIM1;
-	state = 0;
+	
+	// turn armature1 to x-axis <-0.0872664626> speed <85>;
+	// move piston1 to y-axis [-20] speed [20];
+	// move piston2 to y-axis [-32] speed [20];
+	// move turret to y-axis [-40] speed [20];
+	// wait-for-move piston1 along y-axis;
+	// wait-for-move piston2 along y-axis;
+	// wait-for-move turret along y-axis;
 
 	turn turret to y-axis <0> speed <100>;
 	turn topArmsPivot to x-axis <0> speed <100>;
@@ -116,7 +123,28 @@ Deactivate()
 	hide lightpoint;
 	hide ambienttop;
 	set ARMORED to 1;
+	set ARMORED to 1;
+	wait-for-move piston1 along y-axis;
+	wait-for-turn ring around y-axis;
+	wait-for-turn ring2 around x-axis;
+	wait-for-turn ring3 around x-axis;
+	wait-for-turn ring4 around z-axis;
 }
+
+
+
+Activate()
+{
+	start-script RequestOpen();
+}
+
+Deactivate()
+{
+	signal SIGNAL_AIM1;
+	start-script RequestClose();
+}
+
+
 
 
 
@@ -129,7 +157,8 @@ Create()
 	fireTime = 75;
 	oldhead = 0;
 	targetswap = 0;
-	state = 1;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	isfiring = 0;
 
 	turn armPivot2 to y-axis <120> now;
@@ -167,8 +196,8 @@ ExecuteRestoreAfterDelay()
 	timer = 0;
 	targetswap = 0;
 
-	if(state==1) {
-		turn aiming_arm to x-axis <0.0> speed <5>;
+	if(isOpen) {
+		turn aiming_arm to x-axis <0.000000> speed <5>;
 		turn turret to y-axis <0> speed <35>;
 		start-script SpinIdle();
 	}
@@ -205,7 +234,7 @@ SpinFiring() {
 //using incinerator code now, might be too laggy as it has waitforturns
 AimWeapon1(heading, pitch)
 {
-	if (state==0) return 0;
+	if (!isOpen) return 0;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <25>;
@@ -243,7 +272,9 @@ SweepFire()
 	while (TRUE)
 	{
 		gameframe = get(GAME_FRAME);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+fireTime>gameframe)
+		//get PRINT(123, lastfired, gameframe, gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND isOpen AND lastfired+fireTime>gameframe)
 		{
 			emit-sfx 2048 from fireline;
 			timer = timer + 1;
@@ -269,6 +300,11 @@ FireWeapon1()
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot1() {

@@ -57,17 +57,11 @@ local PlayerCosmeticList = {
 	[641] = { -- ZLO
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
-	[694] = { -- Raghna
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[915] = { -- PRO_rANDY
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
 	},
 	[975] = { -- StarDoM
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
-	},
-	[1172] = { -- PtaQ
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[1332] = { -- Flash
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
@@ -83,21 +77,20 @@ local PlayerCosmeticList = {
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 	},
-	[3913] = { -- [teh]Teddy
-		"VikingHat", -- Omega Series 4 Winner
-	},
-	[5467] = { -- HelsHound
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[8069] = { -- BRRRRRRRRRRRRRRRRRRR
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
+	[9133] = { -- TM_DDDDDDDD
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[42178] = { -- [pretor]
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
+	[49494] = { -- TM_Spodie99
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[50820] = { -- Emre
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[52043] = { -- scag
@@ -107,12 +100,10 @@ local PlayerCosmeticList = {
 	[53682] = { -- PROt_Fiddler112
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
-	[59340] = { -- TM_MightySheep
+	[59340] = { -- TM_MightySheep, TM_Austin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
 		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
-	},
-	[59916] = { -- Kuchy
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[64215] = { -- PRO_RevanXFL
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
@@ -123,11 +114,13 @@ local PlayerCosmeticList = {
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82263] = { -- TM_autopilot
+		"VikingHat", -- Omega Series 5 Winner
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 		"KingCrownHat",
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82811] = { -- TM_SlickLikeVik
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -151,6 +144,7 @@ local PlayerCosmeticList = {
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 	},
 	[139750] = { -- TM_Sashkorin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -161,7 +155,6 @@ local PlayerCosmeticList = {
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
 	[151863] = { -- Blodir
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[168232] = { -- Leohvm
@@ -190,7 +183,14 @@ local PlayerCosmeticList = {
 	},
 
 	[9999999999] = { -- Debug
-		"HalloweenHat",
+		"HalloweenPumpkinHat",
+		"HalloweenWitchHat",
+		"HalloweenWitchBroom",
+		"HalloweenFredMask",
+		"HalloweenLegMask",
+		"XmasSantaHat",
+		"XmasReindeerHat",
+		"XmasSantaBag",
 		"FightNightHat",
 		"LegionChampionHat",
 		"VikingHat",
@@ -201,7 +201,24 @@ local PlayerCosmeticList = {
 		"CortexNationWarsGERLeftShoulder",
 		"CortexNationWarsEECLeftShoulder",
 		"CortexNationWarsUSLeftShoulder",
+		"BronzeMedalNecklace",
+		"SilverMedalNecklace",
+		"GoldMedalNecklace",
 	},
+}
+
+local HalloweenCosmeticList = {
+	"HalloweenPumpkinHat",
+	"HalloweenWitchHat",
+	"HalloweenWitchBroom",
+	"HalloweenFredMask",
+	"HalloweenLegMask",
+}
+
+local XmasCosmeticList = {
+	"XmasSantaHat",
+	"XmasReindeerHat",
+	"XmasSantaBag",
 }
 
 -- Cosmetic Defs
@@ -222,15 +239,62 @@ local CosmeticDefinitions = {
 	-- Hats
 	------------------------------------------
 
-	HalloweenHat = {
+	HalloweenPumpkinHat = {
+		name = "HalloweenPumpkinHat",
 		slot = "hat",
 		implementation = "unit",
-		unitDefID = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id,
+		unitDefID = UnitDefNames.cor_hat_halloween_pumpkin and UnitDefNames.cor_hat_halloween_pumpkin.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	HalloweenWitchHat = {
+		name = "HalloweenWitchHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_hat_halloween_witch and UnitDefNames.arm_hat_halloween_witch.id,
 		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
+	HalloweenFredMask = {
+		name = "HalloweenFredMask",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_halloween_mask and UnitDefNames.cor_hat_halloween_mask.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	HalloweenLegMask = {
+		name = "HalloweenLegMask",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.leg_hat_halloween_mask and UnitDefNames.leg_hat_halloween_mask.id,
+		faction = { arm = true, cor = false, leg = true },
+		conflictsWith = { "HalloweenWitchBroom" },
+	},
+
+	XmasSantaHat = {
+		name = "XmasSantaHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_hat_xmas_santa and UnitDefNames.arm_hat_xmas_santa.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = {},
+	},
+
+	XmasReindeerHat = {
+		name = "XmasReindeerHat",
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_xmas_reindeer and UnitDefNames.cor_hat_xmas_reindeer.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "XmasSantaBag" },
+	},
+
 	FightNightHat = {
+		name = "FightNightHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id,
@@ -239,6 +303,7 @@ local CosmeticDefinitions = {
 	},
 
 	LegionChampionHat = {
+		name = "LegionChampionHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id,
@@ -247,6 +312,7 @@ local CosmeticDefinitions = {
 	},
 
 	VikingHat = {
+		name = "VikingHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
@@ -255,6 +321,7 @@ local CosmeticDefinitions = {
 	},
 
 	PirateHat = {
+		name = "PirateHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_pirate and UnitDefNames.cor_hat_pirate.id,
@@ -263,6 +330,7 @@ local CosmeticDefinitions = {
 	},
 
 	GnomeHat = {
+		name = "GnomeHat",
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_gnome and UnitDefNames.cor_hat_gnome.id,
@@ -271,6 +339,7 @@ local CosmeticDefinitions = {
 	},
 
 	KingCrownHat = {
+		name = "KingCrownHat",
 		slot = "hat",
 		implementation = "baked",
 		scriptCall = "ShowCrown",
@@ -287,6 +356,7 @@ local CosmeticDefinitions = {
 	------------------------------------------
 
 	ArmadaNationWarsGERLeftShoulder = {
+		name = "ArmadaNationWarsGERLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_ger and UnitDefNames.arm_leftshoulder_nationwars_ger.id,
@@ -295,6 +365,7 @@ local CosmeticDefinitions = {
 	},
 
 	ArmadaNationWarsEECLeftShoulder = {
+		name = "ArmadaNationWarsEECLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_eec and UnitDefNames.arm_leftshoulder_nationwars_eec.id,
@@ -303,6 +374,7 @@ local CosmeticDefinitions = {
 	},
 
 	ArmadaNationWarsUSLeftShoulder = {
+		name = "ArmadaNationWarsUSLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_us and UnitDefNames.arm_leftshoulder_nationwars_us.id,
@@ -311,6 +383,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsGERLeftShoulder = {
+		name = "CortexNationWarsGERLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_ger and UnitDefNames.cor_leftshoulder_nationwars_ger.id,
@@ -319,6 +392,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsEECLeftShoulder = {
+		name = "CortexNationWarsEECLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_eec and UnitDefNames.cor_leftshoulder_nationwars_eec.id,
@@ -327,6 +401,7 @@ local CosmeticDefinitions = {
 	},
 
 	CortexNationWarsUSLeftShoulder = {
+		name = "CortexNationWarsUSLeftShoulder",
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_us and UnitDefNames.cor_leftshoulder_nationwars_us.id,
@@ -338,7 +413,26 @@ local CosmeticDefinitions = {
 	-- Necklaces
 	------------------------------------------
 
+	HalloweenWitchBroom = {
+		name = "HalloweenWitchBroom",
+		slot = "necklace",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_necklace_halloween_broom and UnitDefNames.arm_necklace_halloween_broom.id,
+		faction = { arm = true, cor = true, leg = true },
+		conflictsWith = { "HalloweenPumpkinHat", "HalloweenFredMask", "HalloweenLegMask" },
+	},
+
+	XmasSantaBag = {
+		name = "XmasSantaBag",
+		slot = "necklace",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_necklace_xmas_santabag and UnitDefNames.arm_necklace_xmas_santabag.id,
+		faction = { arm = true, cor = false, leg = false },
+		conflictsWith = { "XmasReindeerHat" },
+	},
+
 	BronzeMedalNecklace = {
+		name = "BronzeMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalBronze",
@@ -347,6 +441,7 @@ local CosmeticDefinitions = {
 	},
 
 	SilverMedalNecklace = {
+		name = "SilverMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalSilver",
@@ -355,6 +450,7 @@ local CosmeticDefinitions = {
 	},
 
 	GoldMedalNecklace = {
+		name = "GoldMedalNecklace",
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalGold",
@@ -476,58 +572,94 @@ function gadget:GameFrame(gf)
 			if DEBUG then
 				accountID = 9999999999
 			end
-			if not spec and PlayerCosmeticList[accountID] then
+			local teamUnits = spGetTeamUnits(teamID)
+			if not spec and teamUnits and teamUnits[1] then
 				-- Process Player
 				local playerCosmeticOptions =
 					{ hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
-				local playerFaction = ""
-				if true then
-					local units = spGetTeamUnits(teamID) or {}
-					local unitDefID = spGetUnitDefID(units[1])
-					playerFaction = stringSub(UnitDefs[unitDefID].name, 1, 3)
-				end
+				local playerFaction = stringSub(UnitDefs[spGetUnitDefID(teamUnits[1])].name, 1, 3)
+				local createdCosmetics = {}
 
 				-- Collect all possible cosmetics for this player
-				for i = 1, #PlayerCosmeticList[accountID] do
-					local cosmetic = PlayerCosmeticList[accountID][i]
-					if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
-						playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
-							CosmeticDefinitions[cosmetic]
+				if PlayerCosmeticList[accountID] then
+					for i = 1, #PlayerCosmeticList[accountID] do
+						local cosmetic = PlayerCosmeticList[accountID][i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
+					end
+				end
+
+				if BAR.Utilities.Gametype.GetCurrentHolidays().halloween then
+					for i = 1, #HalloweenCosmeticList do
+						local cosmetic = HalloweenCosmeticList[i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
+					end
+				end
+
+				if BAR.Utilities.Gametype.GetCurrentHolidays().xmas then
+					for i = 1, #XmasCosmeticList do
+						local cosmetic = XmasCosmeticList[i]
+						if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+							playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+								CosmeticDefinitions[cosmetic]
+						end
 					end
 				end
 
 				-- Randomly pick the cosmetics from available options
+				table.shuffle(playerCosmeticOptions)
 				for _, list in pairs(playerCosmeticOptions) do
 					if #list > 0 then
-						math.random()
-						math.random()
-						math.random()
-						local pick = math.random(1, #list)
-
-						if list[pick].implementation == "unit" then
-							local units = spGetTeamUnits(teamID) or {}
-							for k = 1, #units do
-								if not unitDefHat[spGetUnitDefID(units[k])] then
-									local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
-									CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+						local candidates = {}
+						for c = 1, #list do
+							local cosmetic = list[c]
+							local blocked = false
+							for k = 1, #cosmetic.conflictsWith do
+								if createdCosmetics[cosmetic.conflictsWith[k]] then
+									blocked = true
+									break
 								end
 							end
-						elseif list[pick].implementation == "baked" then
-							local units = spGetTeamUnits(teamID) or {}
-							for k = 1, #units do
-								local unitID = units[k]
-								local unitDefID = spGetUnitDefID(unitID)
-								if not unitDefHat[unitDefID] then
-									if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
-										local scriptEnv = spGetUnitScriptEnv(unitID)
-										if scriptEnv then
-											if scriptEnv[list[pick].scriptCall] then
-												spCallAsUnit(unitID, scriptEnv[list[pick].scriptCall], true)
+							if not blocked then
+								candidates[#candidates + 1] = cosmetic
+							end
+						end
+
+						if #candidates > 0 then
+							local cosmetic = candidates[math.random(1, #candidates)]
+
+							if cosmetic.implementation == "unit" then
+								local units = spGetTeamUnits(teamID) or {}
+								for k = 1, #units do
+									if not unitDefHat[spGetUnitDefID(units[k])] then
+										local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
+										CreateAndGiveHat(cosmetic.unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
+										createdCosmetics[cosmetic.name] = true
+									end
+								end
+							elseif cosmetic.implementation == "baked" then
+								local units = spGetTeamUnits(teamID) or {}
+								for k = 1, #units do
+									local unitID = units[k]
+									local unitDefID = spGetUnitDefID(unitID)
+									if not unitDefHat[unitDefID] then
+										if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
+											local scriptEnv = spGetUnitScriptEnv(unitID)
+											if scriptEnv then
+												if scriptEnv[cosmetic.scriptCall] then
+													spCallAsUnit(unitID, scriptEnv[cosmetic.scriptCall], true)
+												end
 											end
-										end
-									else
-										if spGetCOBScriptID(unitID, list[pick].scriptCall) then
-											spCallCOBScript(unitID, list[pick].scriptCall, 0)
+										else
+											if spGetCOBScriptID(unitID, cosmetic.scriptCall) then
+												spCallCOBScript(unitID, cosmetic.scriptCall, 0)
+												createdCosmetics[cosmetic.name] = true
+											end
 										end
 									end
 								end
@@ -543,13 +675,15 @@ function gadget:GameFrame(gf)
 
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 and next(unitsWearingHats) ~= nil then
-		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = spGetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
-			if health and maxHealth and hatMaxHealth then
-				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
-			else
-				unitsWearingHats[unitID] = nil
+		for unitID, _ in pairs(unitsWearingHats) do
+			for _, hatID in pairs(unitsWearingHats[unitID]) do
+				local health, maxHealth = spGetUnitHealth(unitID)
+				local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
+				if health and maxHealth and hatMaxHealth then
+					Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+				else
+					unitsWearingHats[unitID] = nil
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
@@ -575,6 +709,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)
 	end
+
+	if unitDefCanWearHats[unitDefID] then
+		unitsWearingHats[unitID] = {}
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -585,49 +723,46 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		Hats[unitID] = nil
 	end
 	if unitsWearingHats[unitID] ~= nil then
-		local hatID = unitsWearingHats[unitID]
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was destroyed, freeing hat",
-				unitID,
-				unitDefID,
-				teamID,
-				attackerID,
-				attackerDefID,
-				attackerTeamID
-			)
-		end
-		unitsWearingHats[unitID] = nil
-		if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
-			Spring.DestroyUnit(hatID)
-		else
-			Spring.UnitDetachFromAir(hatID)
-			Spring.UnitDetach(hatID)
-			Hats[hatID] = -1
-			Spring.SetUnitNoSelect(hatID, false)
-			SendToUnsynced("setUnitNoGroup", hatID, false)
-			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-			local px, py, pz = Spring.GetUnitPosition(unitID)
-			if px and pz then
-				Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(
+					"A hat wearing unit was destroyed, freeing hat",
+					unitID,
+					unitDefID,
+					teamID,
+					attackerID,
+					attackerDefID,
+					attackerTeamID
+				)
+			end
+			if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
+				Spring.DestroyUnit(hatID)
+			else
+				Spring.UnitDetachFromAir(hatID)
+				Spring.UnitDetach(hatID)
+				Hats[hatID] = -1
+				Spring.SetUnitNoSelect(hatID, false)
+				SendToUnsynced("setUnitNoGroup", hatID, false)
+				Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				if px and pz then
+					Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
+		unitsWearingHats[unitID] = nil
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was given, destroying hat",
-				unitID,
-				unitDefID,
-				unitTeam,
-				unitsWearingHats[unitID]
-			)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, hatID)
+			end
+			Spring.DestroyUnit(hatID)
 		end
-		Spring.DestroyUnit(unitsWearingHats[unitID])
 		unitsWearingHats[unitID] = nil
 	end
 	if Hats[unitID] then
@@ -677,7 +812,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					SendToUnsynced("setUnitNoGroup", hatID, true)
 					--Spring.MoveCtrl.Disable(unitID)
 					--Spring.SetUnitLoadingTransport(unitID, nearunitID)
-					unitsWearingHats[nearunitID] = hatID
+
+					unitsWearingHats[nearunitID][hatID] = hatID
 					Hats[hatID] = nearunitID
 					UpdateGameFrameCallIn()
 					return
@@ -695,9 +831,11 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
 		local health, maxHealth = spGetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
-		if hatHealth and health and maxHealth and hatMaxHealth then
-			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
+			if hatHealth and health and maxHealth and hatMaxHealth then
+				Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+			end
 		end
 	end
 end
@@ -705,12 +843,25 @@ end
 -- also cloak hat
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 1)
+		if DEBUG then
+			Spring.Echo(unitsWearingHats[unitID])
+		end
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
+			Spring.SetUnitCloak(hatID, 1)
+		end
 	end
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 0)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
+			Spring.SetUnitCloak(hatID, 0)
+		end
 	end
 end

@@ -788,6 +788,13 @@ local function goodbye(reason)
 end
 
 local function initGL4()
+	-- load the textures now, the first draw's lazy load stalled that frame by ~15 ms
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(0, muzzleTexture)
+		glTexture(0, glowTexture)
+		glTexture(0, false)
+	end))
+
 	-- Flame shader
 	local flameShaderCache = {
 		vsSrc = flameVsSrc,
@@ -885,6 +892,7 @@ local function initGL4()
 		return false
 	end
 	flameVAO = flameVBO:makeVAOandAttach(quadVBO, flameVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(flameVAO, false, true)
 
 	return true
 end
@@ -906,6 +914,7 @@ local function resizeFlameVBO(needed)
 	end
 	flameVAO:Delete()
 	flameVAO = flameVBO:makeVAOandAttach(flameVBO.vertexVBO, flameVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(flameVAO, false, true)
 end
 
 local function cleanupGL4()

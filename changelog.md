@@ -1,11 +1,70 @@
+# November
+- [Controls]
+  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
+- [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
+- [Legion]
+  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
+  - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
+  - Amphibious Complex buildpower 150 -> 300, Experimental Aircraft Plant buildpower 600 -> 1800
+  - Aegis health 3650 -> 3300, Lupara range 1125 -> 1200, Legion Vehicle Plant energy cost 1650 -> 1550
+  - Decoy commander and Stronghold now fully EMP immune, Cetus EMP resist reduced 87.5% -> 80%
+  - Constructor LoS raised: T1 bot 299 -> 380, T1 vehicle and Otter 260 -> 330, T1 aircraft 351 -> 430, T2 bot 318 -> 380, T2 vehicle 295 -> 330, T2 aircraft 383 -> 430
+  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380
+  - Glaucus damage to aircraft 60 -> 12, Ketea autoheal removed
+  - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
+  - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
+  - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
+  - Faster reaim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
+  - T2 ships now use heavy ship armor, and Scylla counts as a ship
+  - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
+- [Fixed]
+  - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
+  - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
+  - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
+  - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
+
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
+- [Zombies]
+  - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
+  - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
+  - Overkill no longer always leaves a full corpse in Akumu. A death can leave a wreck, a heap, or nothing, and any of those can still return through a Wraith.
+  - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
+  - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
+  - Wraith health 500 -> 100
+- [Controls]
+  - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
+  - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+  - Clicking an idle builder icon now selects the builder closest to the center of your view. Repeated clicks cycle through them, nearest first.
+- [Zombies]
+  - Added a limited time Spidergeddon mode
+  - Difficulty levels have been replaced with modes you can mix and match:
+    - Basic: the dead come back to life once
+    - Draugr: all dead always create a corpse
+    - Wraith: destroyed corpses leave Wraiths that respawn 2/3rds of the dead with a 3x zombie resurrection time delay
+    - Hydra: spawn 2-6 zombies from each corpse
+    - Akumu: all of the above
+    - Spidergeddon: Akumu, but zombies are converted into an equivalent value of spider-like units
+  - Zombies are no longer given bonus XP
+  - Aircraft zombies are now supported
+  - Zombie factories have even more buildpower
+- [Minelayers] 3x faster deceleration
+- [LLTs] Will turn to aim at enemies before they enter range
+- [Laser turrets] LoS varied between 455-494 before. Now set to 500 for all. Notably Beamers and Twin Guards now have LoS > range
+- [AA missiles] Missiles will switch targets when the current target becomes invalid, making them waste fewer shots against swarms of air units
+- [T2 flak trucks] Now will swap targets immediately, instead of only every 0.5 seconds
+- [Archangel] Shorter-range missiles velocity increased
 - [Blitz] Better at avoiding friendly fire
+- [Rampart] Now leaves a wreck
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
-  - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
-  - Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.
+  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. Missile launcher buildings keep the new flight path.
+  - ~~Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.~~
+  - ~~Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.~~
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
@@ -28,15 +87,23 @@
   - Railguns never skip a collision, before they sometimes could.
   - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
   - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
+  - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
+  - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Naval Balance Tweaks] No longer removes the floating HLT units from T1 constructors.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
+  - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
+  - Turtle and other mixed ground/air units no longer stop outside their ground-weapon range when attacking ground or ghost buildings.
   - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
-  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
   - Advanced Fusion health was increased by 5% last month by mistake, reverted.
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
+  - Defenses that open and close cannot fire during their open or close animations.
+  - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  - `select` filters and their inverses can be used together without one being wrong.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

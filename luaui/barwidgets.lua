@@ -24,6 +24,15 @@ do
 	widgetDependencies = ok and module or nil
 end
 
+-- Watches what user widgets allocate and hold, and LuaUI's share of the engine's Lua memory pool.
+-- Optional for the same reason. The instance is made once the sandbox it looks through exists.
+local MemoryGuard
+do
+	local ok, module = pcall(VFS.Include, LUAUI_DIRNAME .. "Include/memory_guard.lua", nil, VFS.ZIP)
+	MemoryGuard = ok and module or nil
+end
+local memoryGuard
+
 -- Avoid deep copies and cycles.
 local function copyTable(source)
 	local copy = {}
@@ -39,6 +48,8 @@ local getfenv = getfenv
 local setfenv = setfenv
 local pcall = pcall
 local select = select
+local tracyZoneBeginN = tracy.ZoneBeginN
+local tracyZoneEnd = tracy.ZoneEnd
 
 -- Widgets share these tables and can replace their functions for everyone.
 local stringByte = string.byte
@@ -73,6 +84,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spIsReplay = Spring.IsReplay
 local LOG = copyTable(LOG)
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
+local getAccountID = BAR.Utilities.GetAccountID
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -141,6 +153,10 @@ local widgetHandler = {
 	-- And how many in all, so a panel can notice a new one with a single comparison.
 	errorCount = 0,
 	orderList = {},
+	-- Widgets switched off because another took their place (GetInfo `replaces`), each by that
+	-- one's name. Saved with the order: they come back once it is gone, e.g. played on a version
+	-- of the game without it (see restoreReplaced).
+	replacedList = {},
 
 	knownWidgets = {},
 	knownCount = 0,
@@ -156,6 +172,7 @@ local widgetHandler = {
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
+	widgetsRevision = 0,
 
 	globals = {}, -- global vars/funcs
 
@@ -327,6 +344,7 @@ local callInLists = {
 	"UnitScriptLight",
 	"UnitScriptDistortion",
 	"UnitScriptDecal",
+	"UnitScriptDecalBatch",
 	"GadgetRemoveGrass",
 	"GadgetCoopStartPoint",
 	"NotificationEvent",
@@ -345,6 +363,7 @@ local callInLists = {
 	"SelectedUnitsAdd",
 	"LavaRenderState",
 	"ClearMapMarks",
+	"RecvSkirmishAIMessage",
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -430,6 +449,7 @@ function widgetHandler:LoadConfigData()
 	self.orderList = config.order
 	self.configData = config.data
 	self.allowUserWidgets = config.allowUserWidgets
+	self.replacedList = type(config.replaced) == "table" and config.replaced or {}
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -464,6 +484,7 @@ function widgetHandler:SaveConfigData()
 	-- them has saved is kept.
 	if not self.__blankOutOrder then
 		filetable.order = self.orderList
+		filetable.replaced = self.replacedList
 	end
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
@@ -482,6 +503,8 @@ end
 
 --------------------------------------------------------------------------------
 local unsortedWidgets ---@type table
+-- While Initialize inserts the startup widgets, each insert updates only the call-ins its widget has.
+local insertingStartupWidgets = false
 local springYield = Spring.Yield
 local doMoreYield = (springYield ~= nil)
 
@@ -519,6 +542,52 @@ local function loadWidgetFiles(folder, vfsMode)
 			if widget then
 				tableInsert(unsortedWidgets, widget)
 				Yield()
+			end
+		end
+	end
+end
+
+-- Whether a known widget takes the place of widget `name` (GetInfo `replaces`: a name or a list).
+local function takesPlaceOf(ki, name)
+	local replaces = ki.replaces
+	if type(replaces) == "table" then
+		for i = 1, #replaces do
+			if replaces[i] == name then
+				return true
+			end
+		end
+		return false
+	end
+	return replaces == name
+end
+
+-- The running widget that takes the place of widget `name`, if any.
+local function replacerOf(name)
+	for byName, ki in pairs(widgetHandler.knownWidgets) do
+		if ki.active and byName ~= name and takesPlaceOf(ki, name) then
+			return byName
+		end
+	end
+	return nil
+end
+
+-- A widget switched off for one that took its place comes back once that one is not running: its
+-- file is gone (a version of the game without it, a removed user widget), it is off, or it no
+-- longer replaces it. Runs once the widget files are read, before any of them starts.
+local function restoreReplaced()
+	local wh = widgetHandler
+	for name, by in pairs(wh.replacedList) do
+		local replacer = wh.knownWidgets[by]
+		if not (replacer and replacer.active and takesPlaceOf(replacer, name)) then
+			wh.replacedList[name] = nil
+			local ki = wh.knownWidgets[name]
+			if ki and not ki.active and (wh.orderList[name] or 0) <= 0 then
+				wh.orderList[name] = 1
+				local w = wh:LoadWidget(ki.filename, ki.fromZip)
+				if w then
+					tableInsert(unsortedWidgets, w)
+					spEcho("Switched " .. name .. " back on: " .. by .. " took its place and is not running")
+				end
 			end
 		end
 	end
@@ -657,6 +726,22 @@ local function refuseUserPath(path, reason)
 end
 
 local function unavailableFunction() end
+
+local function grantUserRmlUi()
+	local ok, powerUsers = pcall(vfsInclude, "luarules/configs/powerusers.lua", {}, vfsZip)
+	if not ok or type(powerUsers) ~= "table" then
+		return false
+	end
+	local accountID = getAccountID(Spring.GetMyPlayerID())
+	local permissions = accountID and accountID > 0 and powerUsers[accountID]
+	if type(permissions) ~= "table" then
+		return false
+	end
+	if spGetSpectatingState() and not Spring.GetGameRulesParam("IsPlayerAccount" .. accountID) then
+		return permissions.userrmlui_spectator == true
+	end
+	return permissions.userrmlui_player == true
+end
 
 local function CreateSandboxedSystem()
 	local sandboxedTable = copyTable(table)
@@ -948,7 +1033,7 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.debug = sandboxedDebug
 	SandboxedSystem.socket = nil
 	-- TODO: restore once rmlui security assessment finishes
-	SandboxedSystem.RmlUi = nil
+	SandboxedSystem.RmlUi = grantUserRmlUi() and RmlUi or nil
 end
 
 function widgetHandler:Initialize()
@@ -956,7 +1041,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-	self:InitWindowPause()
+	self:InitPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -986,6 +1071,7 @@ function widgetHandler:Initialize()
 	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(vfsZip)) do
 		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
+	restoreReplaced()
 
 	tableSort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
@@ -1004,14 +1090,47 @@ function widgetHandler:Initialize()
 		end
 	end)
 
+	-- A widget that takes the place of others (GetInfo `replaces`: a name or a list) keeps them from
+	-- loading while it is on: they are switched off, and told which widget took their place so it
+	-- can hand it back. Switching one off once it has started would still run its Initialize and
+	-- Shutdown, which can undo what the new one set up.
+	local replacedBy = {} ---@type table<string, string>
+	for _, w in ipairs(unsortedWidgets) do
+		local replaces = w.whInfo.replaces
+		for _, name in ipairs(type(replaces) == "table" and replaces or { replaces }) do
+			-- (a player's own widget cannot stand in for one only the game may provide)
+			if name ~= w.whInfo.name and (not zipOnly[name] or self.knownWidgets[w.whInfo.name].fromZip) then
+				replacedBy[name] = w.whInfo.name
+				-- remembered, also when it was off already: it comes back if this one goes
+				if self.knownWidgets[name] then
+					self.replacedList[name] = w.whInfo.name
+				end
+			end
+		end
+	end
+
+	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
+	self:UpdateCallIns()
+	insertingStartupWidgets = true
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
-		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-		Yield()
-		widgetHandler:InsertWidgetRaw(w)
+		local by = replacedBy[name]
+		if by then
+			local ki = self.knownWidgets[name]
+			ki.active, ki.replacedBy = false, by
+			self.orderList[name] = 0
+			spEcho(string.format("Not loading widget %-18s  <%s>  (replaced by %s)", name, basename, by))
+		else
+			local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
+			spEcho(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+			Yield()
+			widgetHandler:InsertWidgetRaw(w)
+		end
 	end
+	insertingStartupWidgets = false
+	-- Kept, the list would hold every startup widget in memory after it is switched off.
+	unsortedWidgets = {}
 
 	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
@@ -1111,11 +1230,59 @@ local function loadFailed(basename, reason)
 	widgetHandler:RecordError(basename, nil, reason, true)
 end
 
+-- A user widget's file runs under the memory guard like its call-ins do, and the WG entries it
+-- makes count as its own.
+local function runWidgetChunk(chunk, widget, fromZip, basename)
+	if fromZip or not memoryGuard then
+		return pcall(chunk)
+	end
+	memoryGuard.register(widget)
+	local wgKeys = memoryGuard.snapshotWG()
+	memoryGuard.enter(widget)
+	local success, err = pcall(chunk)
+	local tripped = memoryGuard.leave()
+	memoryGuard.claimWG(widget, wgKeys)
+	if tripped then
+		return false, memoryGuard.takeTrip(widget, basename)
+	end
+	return success, err
+end
+
+-- Whether a source reaches for the RmlUi API (`RmlUi.x`, `RmlUi[x]`, `not RmlUi`), not just names it.
+-- Plain finds first: two pattern searches over every widget's source cost ~60 ms per LuaUI load.
+local function usesRmlUi(text)
+	local init = 1
+	while true do
+		local s = stringFind(text, "RmlUi", init, true)
+		if not s then
+			return false
+		end
+		local e = s + 4
+		if stringFind(text, "^%s*[%.%[]", e + 1) then
+			return true
+		end
+		local runStart = s -- of the %s run in front of it
+		for i = s - 1, 1, -1 do
+			local b = stringByte(text, i)
+			if b ~= 32 and (b < 9 or b > 13) then
+				break
+			end
+			runStart = i
+		end
+		if runStart < s and runStart > 3 and stringSub(text, runStart - 3, runStart - 1) == "not" then
+			return true
+		end
+		init = e + 1
+	end
+end
+
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
-local ownedEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
+-- while its value is, which kept every widget ever loaded in memory.
+local ownedEnvs = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function userEnv(widget, env)
 	return ownedEnvs[env] == widget and env or widget
@@ -1139,8 +1306,6 @@ end
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
--- TODO: Remove once community widgets call keypress actions on WG, e.g. WG.cmd_blueprint.
-local bridgedKeyActions = { blueprint_next = true, blueprint_prev = true, buildfacing = true }
 
 local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1211,7 +1376,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			widget.debug.getlocal = getLocalName -- the detector needs getlocal -- ! do not give to user widgets
 		end
 		setfenv(chunk, widget)
-		local success, err = pcall(chunk)
+		local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -1231,7 +1396,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local widget, canControlUnits = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
-	local success, err = pcall(chunk)
+	local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 	if not success then
 		return loadFailed(basename, err)
 	end
@@ -1288,12 +1453,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
 		-- a widget that is off has no instance.
 		knownInfo.enabled = widget.whInfo.enabled
+		-- What it takes the place of (GetInfo `replaces`), for the widgets it switches off.
+		knownInfo.replaces = widget.whInfo.replaces
 		-- And whether it draws through RmlUi, which nothing else records. Read out of the
 		-- source, because where the file sits does not answer it: most RmlUi widgets live
 		-- under LuaUI/RmlWidgets but a player's own can sit anywhere and still use the API.
 		-- Matched on the API being reached for rather than the word appearing, so a widget
 		-- that only mentions RmlUi in a comment is not mistaken for one.
-		knownInfo.rml = stringFind(text, "RmlUi%s*[%.%[]") ~= nil or stringFind(text, "not%s+RmlUi") ~= nil
+		knownInfo.rml = usesRmlUi(text)
 		-- And what it shares with other widgets through WG. The source is in hand here, and a source
 		-- the reading trips over must not stop the widget from loading.
 		if widgetDependencies then
@@ -1368,8 +1535,73 @@ local SandboxedWidgetMeta = {
 	__metatable = true,
 }
 
+-- Turned off for its memory: it stays off next game, and the selector says why.
+local function disableForMemory(w, reason)
+	local info = w.whInfo
+	local entry = widgetHandler:RecordError(info.basename, nil, reason, true)
+	entry.memory = true
+	widgetHandler:DisableWidget(info.name)
+end
+
+if MemoryGuard then
+	local spGetTimer, spGetTimerMicros, spDiffTimers = Spring.GetTimer, Spring.GetTimerMicros, Spring.DiffTimers
+	local spGetLuaMemUsage = Spring.GetLuaMemUsage
+	local startTimer = spGetTimer()
+	memoryGuard = MemoryGuard.new({
+		now = function()
+			return spDiffTimers(spGetTimer(), startTimer)
+		end,
+		startTimer = spGetTimerMicros,
+		elapsedMs = function(timer)
+			return spDiffTimers(spGetTimerMicros(), timer, true, true)
+		end,
+		poolUsage = function()
+			local _, _, globalKB = spGetLuaMemUsage()
+			return globalKB
+		end,
+		gameFrame = Spring.GetGameFrame,
+		setCollectorBudget = function(ms)
+			Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, ms)
+		end,
+		activeWidgets = function()
+			return widgetHandler.widgets
+		end,
+		isActive = function(w)
+			return table.getKeyOf(widgetHandler.widgets, w) ~= nil
+		end,
+		ownsEnv = function(env, w)
+			return ownedEnvs[env] == w
+		end,
+		stopRoots = function()
+			return {
+				{ System, 1 },
+				{ SandboxedSystem, 1 },
+				{ _G, 1 },
+				{ widgetHandler, 1 },
+				{ widgetHandler.WG, 2 },
+				{ UnitDefs, 1 },
+				{ WeaponDefs, 1 },
+				{ FeatureDefs, 1 },
+				{ WidgetMeta, 0 },
+				{ SandboxedWidgetMeta, 0 },
+			}
+		end,
+		WG = widgetHandler.WG,
+		disable = disableForMemory,
+		notify = function(text)
+			spEcho("\255\255\170\100" .. text)
+		end,
+		log = spEcho,
+		translate = function(key, vars)
+			return BAR.I18N("ui.widgetMemory." .. key, vars)
+		end,
+		-- 0 for widget authors who want to see their numbers without anything being stopped
+		enforce = Spring.GetConfigInt("UserWidgetMemoryLimits", 1) ~= 0,
+	})
+end
+
 newWidget = function(self, enableLocalsAccess, fromZip, filename)
-	tracy.ZoneBeginN("W:NewWidget")
+	tracyZoneBeginN("W:NewWidget")
 	local widget = {}
 	local canControlUnits = fromZip or allowunitcontrolwidgets
 
@@ -1555,17 +1787,18 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		RemoveSyncAction = function(_, _, cmd)
 			return self.actionHandler:RemoveSyncAction(widget, cmd)
 		end,
-		-- TODO: Key actions must work through WG later. `bridgedKeyActions` is an allow-list for just a few.
 		KeyAction = function(_, press, key, mods, isRepeat, _, actions)
 			local bridged = {}
 			if type(actions) == "table" then
+				-- Key actions reuse the same command filters as Spring.SendCommands.
 				for _, action in ipairs(actions) do
 					local command = type(action) == "table" and action.command
-					if bridgedKeyActions[command] then
-						local extra = type(action.extra) == "string" and action.extra or ""
+					local extra = type(action) == "table" and type(action.extra) == "string" and action.extra or ""
+					local text = type(command) == "string" and command .. " " .. extra
+					if text and not isPrivilegedCommand(text) and not isHiddenStateCommand(text) then
 						bridged[#bridged + 1] = { command = command, extra = extra }
 					else
-						warnOnce("User widgets can only fire the blueprint keypress actions: " .. tostring(command))
+						warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. (text or tostring(command)))
 					end
 				end
 			end
@@ -1603,21 +1836,47 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.GetModalRevision = function(_)
 		return self:GetModalRevision()
 	end
+	wh.GetWidgetsRevision = function(_)
+		return self:GetWidgetsRevision()
+	end
+	wh.GetActiveWidgetFiles = function(_)
+		return self:GetActiveWidgetFiles()
+	end
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
 	end
 	wh.SetWindowsPauseGame = function(_, enabled)
 		return self:SetWindowsPauseGame(enabled)
 	end
-	wh.HideInterface = function(_, reason, keep)
-		return self:HideInterface(reason, keep)
-	end
-	wh.ShowInterface = function(_, reason)
-		return self:ShowInterface(reason)
-	end
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
 	end
+	wh.IsAnyWindowOpen = function(_)
+		return self:IsAnyWindowOpen()
+	end
+	-- user widgets cannot hide other widgets or stop keybinds, nor release what a game widget asked for
+	if fromZip then
+		wh.HideInterface = function(_, reason, keep)
+			return self:HideInterface(widget, reason, keep)
+		end
+		wh.ShowInterface = function(_, reason)
+			return self:ShowInterface(reason)
+		end
+		wh.LockKeyboard = function(_, reason, pass)
+			return self:LockKeyboard(widget, reason, pass)
+		end
+		wh.UnlockKeyboard = function(_, reason)
+			return self:UnlockKeyboard(reason)
+		end
+	end
+	-- see widgetHandler:Pause
+	wh.Pause = function(_, source)
+		return self:Pause(source)
+	end
+	wh.Unpause = function(_, source)
+		return self:Unpause(source)
+	end
+
 	if not fromZip then
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
 		local warned = {}
@@ -1662,7 +1921,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			end,
 		})
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return widget, canControlUnits
 end
 
@@ -1684,6 +1943,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.replaces = info.replaces
 		wi.unsafe = info.unsafe or false
 		wi.depends = info.depends
 		wi.control = info.control or false
@@ -1714,6 +1974,13 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyVisibleUnitAddedName = "W:VisibleUnitAdded:" .. wi.name
+		widget._tracyVisibleUnitRemovedName = "W:VisibleUnitRemoved:" .. wi.name
+		widget._tracyUnitFinishedName = "W:UnitFinished:" .. wi.name
+		widget._tracyUnitDestroyedName = "W:UnitDestroyed:" .. wi.name
+		widget._tracyFeatureCreatedName = "W:FeatureCreated:" .. wi.name
+		widget._tracyFeatureDestroyedName = "W:FeatureDestroyed:" .. wi.name
+		widget._tracyVisibleExplosionName = "W:VisibleExplosion:" .. wi.name
 		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
 		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
@@ -1730,6 +1997,10 @@ end
 --------------------------------------------------------------------------------
 
 local function widgetFailure(w, funcName, errorMsg)
+	local memory = memoryGuard and memoryGuard.failure(w, funcName, errorMsg)
+	if memory == "handled" then
+		return nil
+	end
 	local name = w.whInfo.name
 	-- Kept against the widget as well as said, and before anything below can reload it: the
 	-- log is how the widget selector shows what went wrong once the line has scrolled out of
@@ -1747,6 +2018,10 @@ local function widgetFailure(w, funcName, errorMsg)
 	end
 	spEcho(errorBase .. " in " .. funcName .. "(): " .. tostring(errorMsg))
 	spEcho("Removed widget: " .. name)
+	if memory == "reload" then
+		-- Ran out of memory that a user widget most likely filled, and was freed since.
+		widgetHandler:EnableWidget(name)
+	end
 	return nil
 end
 
@@ -1775,6 +2050,26 @@ local function SafeWrapFuncGL(func, funcName)
 	end
 end
 
+-- What a user widget's call-in allocates is counted, and one that allocates far too much is stopped.
+local function SafeWrapFuncUser(func, funcName)
+	local guard = memoryGuard --[[@as table]]
+	local guardEnter, guardLeave, tripError = guard.enter, guard.leave, guard.TRIP_ERROR
+	local function wrapper(w, ...)
+		guardEnter(w)
+		local r1, r2, r3 = pcall(func, w, ...)
+		if guardLeave() then
+			r1, r2 = false, tripError -- also when the widget caught it itself
+		end
+		if r1 then
+			return r2, r3
+		else
+			return widgetFailure(w, funcName, r2)
+		end
+	end
+	guard.addWrapper(wrapper)
+	return wrapper
+end
+
 local function SafeWrapFunc(func, funcName)
 	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
@@ -1788,23 +2083,26 @@ local function SafeWrapFunc(func, funcName)
 end
 
 local function SafeWrapWidget(widget)
+	-- User widgets cannot opt out: the memory guard sits in the wrapper.
+	local user = memoryGuard ~= nil and memoryGuard.isUser(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.whInfo.unsafe then
+		if widget.whInfo.unsafe and not user then
 			spEcho("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
 	end
 
+	local wrap = user and SafeWrapFuncUser or SafeWrapFunc
 	for _, ciName in ipairs(callInLists) do
 		if widget[ciName] then
-			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
+			widget[ciName] = wrap(widget[ciName], ciName)
 		end
 	end
 
 	if widget.Initialize then
-		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
+		widget.Initialize = wrap(widget.Initialize, "Initialize")
 	end
 end
 
@@ -1993,12 +2291,26 @@ function widgetHandler:InsertWidgetRaw(widget)
 		local func = widget[listname]
 		if type(func) == "function" then
 			ArrayInsert(self[listname .. "List"], func, widget)
+			if insertingStartupWidgets then
+				self:UpdateCallIn(listname)
+			end
 		end
 	end
-	self:UpdateCallIns()
+	if not insertingStartupWidgets then
+		self:UpdateCallIns()
+	end
+
+	self.widgetsRevision = self.widgetsRevision + 1
 
 	if widget.Initialize then
+		local wgKeys = memoryGuard and memoryGuard.isUser(widget) and memoryGuard.snapshotWG()
 		widget:Initialize()
+		if wgKeys then
+			memoryGuard.claimWG(widget, wgKeys)
+		end
+	end
+	if memoryGuard then
+		memoryGuard.settle(widget)
 	end
 end
 
@@ -2008,10 +2320,6 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	end
 	if not platformCheck(widget.whInfo.depends) then
 		return
-	end
-
-	if self.textOwner == widget then
-		self.textOwner = nil
 	end
 
 	-- A refused widget can have queued its own removal and would write over a running one.
@@ -2026,13 +2334,14 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		end
 	end
 	ArrayRemove(self.widgets, widget)
-	self:ForgetModalWidget(widget)
+	self:ForgetWidgetState(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
+	self.widgetsRevision = self.widgetsRevision + 1
 end
 
 --------------------------------------------------------------------------------
@@ -2135,6 +2444,8 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 		spEcho("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
+	ki.replacedBy = nil
+	self.replacedList[name] = nil
 	if not ki.active then
 		spEcho("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
@@ -2159,6 +2470,12 @@ function widgetHandler:DisableWidgetRaw(name)
 	end
 	if ki.hidden then
 		return false -- hidden widgets back other widgets; disabling one breaks them with no way back
+	end
+	ki.replacedBy = nil
+	-- off while a widget that takes its place runs: it comes back once that one is gone
+	local by = replacerOf(name)
+	if by then
+		self.replacedList[name] = by
 	end
 	if ki.active then
 		local w = self:FindWidget(name)
@@ -2356,7 +2673,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
-	self:SaveWindowPause()
+	self:SavePause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -2382,6 +2699,12 @@ end
 --  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
 --  pause the player made or lifted themselves in the meantime is left alone.
 --
+--  Widgets pause the game under a source, as gadgets do (api_game_pause.lua), and the
+--  game resumes once the last source on either side unpauses:
+--      widgetHandler:Pause("modals")
+--      widgetHandler:Unpause("modals")
+--  Unpause also takes a gadget's source, when that gadget publishes it to widgets.
+--
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
 --  (widgets with handler = true get the real handler, so they pass themselves first:
@@ -2403,11 +2726,25 @@ end
 --  The same hiding can also be asked for outright, with no window involved and
 --  regardless of the springsetting, for a cutscene or a tool:
 --      widgetHandler:HideInterface("cutscene")             -- keeps the menu buttons
---      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps only chat
---      widgetHandler:HideInterface("cutscene", {})         -- keeps nothing
+--      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps chat as well
 --      widgetHandler:ShowInterface("cutscene")
+--  The menu buttons stay through every hide, so the player always has the quit dialog,
+--  and a drag a now-hidden widget had going is dropped, so its release acts on nothing.
 --  Requests are named so two callers cannot switch each other off, and the
 --  interface returns once the last one is released.
+--
+--  Hiding leaves keybinds working. A scripted sequence that must also keep them from
+--  firing locks the keyboard, naming the keys, and the bound actions, that still pass
+--  besides Esc and the quit menu, which always do:
+--      widgetHandler:LockKeyboard("cutscene", { KEYSYMS.SPACE })
+--      widgetHandler:UnlockKeyboard("cutscene")
+--  A locked key reaches nothing, not even an open chat line, unless a window is showing:
+--  then it still reaches the widgets (never the keybinds), so the window can answer it.
+--  The lock lifts once the last reason is released.
+--
+--  Hiding and locking are for game widgets only. Both are released when the widget that
+--  asked goes away, and at game over.
+--  (widgets with handler = true pass themselves first, as with RegisterModalWindow)
 --
 local modalWindows = {} -- widget -> is-open predicate
 local modalExempt = {} -- widget -> true
@@ -2418,28 +2755,57 @@ local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
 
--- pausing while a window is open, see UpdateWindowPause
-local windowPauseEnabled = true
-local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
-local windowPauseHeld = false -- the open windows have paused the game, or found it paused
-local windowPauseOwned = false -- they paused it, so closing them resumes it
+-- pausing under a source, see widgetHandler:Pause
+local PAUSESOURCE_MODALS = "modals"
+local RULESPARAM_GADGET_PAUSE = "gamePaused"
+local RULESPARAM_GADGET_PAUSE_GENERATION = "gamePauseGeneration"
+local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
+local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
+local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused:"
+local pauseSources = {}
+local widgetPaused = false
+-- pausing while a modal window is open, see UpdatePause
+local modalPauseEnabled = true
+local modalPauseAllowed = false -- only in singleplayer and replays
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
 -- switch each other off, and each names the widgets it wants kept. Unlike the window
 -- case this ignores the springsetting: a caller that asks for it means it.
-local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
+local interfaceHiddenReasons = {} -- reason -> { owner = widget that asked, keep = set of widget names }
 local interfaceHidden = false
 local interfaceAllowedNames = {} -- union of the names every active reason keeps
--- what a caller gets when it names nothing: the menu buttons, so there is always a
--- way back out. Pass an explicit (possibly empty) list to keep something else.
-local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
+-- kept through every hide, so there is always a way back out
+local INTERFACE_ALWAYS_KEEP = { "Top Bar Buttons" }
+
+-- Keyboard lock, checked in KeyPress before the text owner and the action handler.
+local keyboardLockReasons = {} -- reason -> { owner, keys = set of key codes, actions = set of action names }
+local keyboardLocked = false
+local keyboardPassKeys = {} -- union of every active reason's pass-through key codes
+local keyboardPassActions = {} -- union of every active reason's pass-through action names
+local keyboardSwallowed = {} -- scanCode -> what the lock kept the press from: "all", or "binds" only
+-- added to every lock, so the player always has the quit dialog
+local KEYBOARD_ALWAYS_PASS = { KEYSYMS.ESCAPE, "quitmenu" }
 
 -- The single question every filtered call-in asks. Kept cheap: two upvalue reads
 -- when nothing is hiding anything.
 local function allowedWidget(widget)
 	if interfaceHidden then
-		return interfaceAllowedNames[widget.whInfo.name] == true
+		local info = widget.whInfo
+		if interfaceAllowedNames[info.name] then
+			return true
+		end
+		-- a widget taking another's place (GetInfo replaces) is kept where that one would be
+		local replaces = info.replaces
+		if type(replaces) == "table" then
+			for i = 1, #replaces do
+				if interfaceAllowedNames[replaces[i]] then
+					return true
+				end
+			end
+			return false
+		end
+		return replaces ~= nil and interfaceAllowedNames[replaces] == true
 	end
 	return (not modalActive) or (modalAllowed[widget] == true)
 end
@@ -2475,12 +2841,6 @@ function widgetHandler:ApplyModalExempt(widget)
 	end
 end
 
-function widgetHandler:ForgetModalWidget(widget)
-	modalWindows[widget] = nil
-	modalExempt[widget] = nil
-	ModalAllowWidget(widget, false)
-end
-
 function widgetHandler:IsModalActive()
 	return modalActive
 end
@@ -2488,9 +2848,9 @@ end
 local function rebuildInterfaceAllowed()
 	local hidden = false
 	local names = {}
-	for _, allow in pairs(interfaceHiddenReasons) do
+	for _, request in pairs(interfaceHiddenReasons) do
 		hidden = true
-		for name in pairs(allow) do
+		for name in pairs(request.keep) do
 			names[name] = true
 		end
 	end
@@ -2501,20 +2861,27 @@ local function rebuildInterfaceAllowed()
 end
 
 ---Hide every widget except the ones named, until the same reason is released.
+---@param owner table? the widget asking; its removal releases the reason
 ---@param reason string caller-chosen key; pass the same one to ShowInterface
----@param keep string[]? widget names to keep drawing and clickable.
----Defaults to the menu buttons; pass {} to keep nothing at all.
-function widgetHandler:HideInterface(reason, keep)
+---@param keep string[]? widget names to keep drawing and clickable, besides the menu buttons
+function widgetHandler:HideInterface(owner, reason, keep)
 	if type(reason) ~= "string" then
 		spLog("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
 		return false
 	end
 	local names = {}
-	for _, name in ipairs(keep or DEFAULT_INTERFACE_ALLOW) do
-		names[name] = true
+	for _, list in ipairs({ INTERFACE_ALWAYS_KEEP, keep or {} }) do
+		for _, name in ipairs(list) do
+			names[name] = true
+		end
 	end
-	interfaceHiddenReasons[reason] = names
+	interfaceHiddenReasons[reason] = { owner = owner, keep = names }
 	rebuildInterfaceAllowed()
+	-- a drag a now-hidden widget had going ends here, or its release could still give orders
+	local mouseOwner = self.mouseOwner ---@type table?
+	if mouseOwner and not allowedWidget(mouseOwner) then
+		self.mouseOwner = nil
+	end
 	return true
 end
 
@@ -2533,10 +2900,138 @@ function widgetHandler:IsInterfaceHidden()
 	return interfaceHidden
 end
 
+local function rebuildKeyboardLock()
+	local locked = false
+	local passKeys, passActions = {}, {}
+	for _, pass in pairs(keyboardLockReasons) do
+		locked = true
+		for key in pairs(pass.keys) do
+			passKeys[key] = true
+		end
+		for action in pairs(pass.actions) do
+			passActions[action] = true
+		end
+	end
+	keyboardPassKeys = passKeys
+	keyboardPassActions = passActions
+	keyboardLocked = locked
+end
+
+-- Whether the lock lets a press through: by its key code, or by an action it is bound to.
+local function keyboardLockPasses(key, actions)
+	if keyboardPassKeys[key] then
+		return true
+	end
+	for _, bound in ipairs(actions or {}) do
+		if keyboardPassActions[bound.command] then
+			return true
+		end
+	end
+	return false
+end
+
+---Drop every key press, keybinds included, until the same reason is released. While a window
+---is showing, presses still reach the widgets so the window can answer them.
+---@param owner table? the widget asking; its removal releases the reason
+---@param reason string caller-chosen key; pass the same one to UnlockKeyboard
+---@param pass (integer|string)[]? key codes, and names of bound actions, that still reach keybinds and
+---widgets, besides Esc and the quit menu
+function widgetHandler:LockKeyboard(owner, reason, pass)
+	if type(reason) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "LockKeyboard: expected a reason name")
+		return false
+	end
+	local keys, actions = {}, {}
+	for _, list in ipairs({ KEYBOARD_ALWAYS_PASS, pass or {} }) do
+		for _, entry in ipairs(list) do
+			if type(entry) == "string" then
+				actions[entry] = true
+			else
+				keys[entry] = true
+			end
+		end
+	end
+	keyboardLockReasons[reason] = { owner = owner, keys = keys, actions = actions }
+	rebuildKeyboardLock()
+	return true
+end
+
+---Release one reason. Keys come back once no reason is left.
+---@param reason string
+function widgetHandler:UnlockKeyboard(reason)
+	if keyboardLockReasons[reason] == nil then
+		return false
+	end
+	keyboardLockReasons[reason] = nil
+	rebuildKeyboardLock()
+	return true
+end
+
+-- Drop what a removed widget still holds, whether or not its Shutdown let go of it.
+function widgetHandler:ForgetWidgetState(widget)
+	if self.textOwner == widget then
+		self.textOwner = nil
+	end
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
+	end
+	modalWindows[widget] = nil
+	modalExempt[widget] = nil
+	ModalAllowWidget(widget, false)
+
+	-- its hide and lock reasons go with it, or the player would stay locked out
+	local hid, locked = false, false
+	for reason, request in pairs(interfaceHiddenReasons) do
+		if request.owner == widget then
+			interfaceHiddenReasons[reason] = nil
+			hid = true
+		end
+	end
+	for reason, request in pairs(keyboardLockReasons) do
+		if request.owner == widget then
+			keyboardLockReasons[reason] = nil
+			locked = true
+		end
+	end
+	if hid then
+		rebuildInterfaceAllowed()
+	end
+	if locked then
+		rebuildKeyboardLock()
+	end
+end
+
+-- At game over the interface and the keys come back whoever holds them: the end screen needs both.
+local function releaseInputLocks()
+	if next(interfaceHiddenReasons) ~= nil then
+		interfaceHiddenReasons = {}
+		rebuildInterfaceAllowed()
+	end
+	if next(keyboardLockReasons) ~= nil then
+		keyboardLockReasons = {}
+		rebuildKeyboardLock()
+	end
+end
+
 -- Bumped whenever the allowed set changes, so cached state elsewhere (the guishader's
 -- stencil) can tell it needs rebuilding.
 function widgetHandler:GetModalRevision()
 	return modalRevision
+end
+
+-- Bumped whenever a widget goes in or comes out, so state derived from the running set can tell
+-- it moved.
+function widgetHandler:GetWidgetsRevision()
+	return self.widgetsRevision
+end
+
+function widgetHandler:GetActiveWidgetFiles()
+	local files = {}
+	for i, w in ipairs(self.widgets) do
+		files[i] = w.whInfo.filename
+	end
+
+	return files
 end
 
 -- Whether a widget is drawing and taking input right now, whether it is a window
@@ -2544,7 +3039,7 @@ end
 -- region) counts as not allowed, which is the wanted default.
 function widgetHandler:ModalAllows(widget)
 	if widget == nil then
-		return (not modalActive) and (not interfaceHidden)
+		return (not modalActive) and not interfaceHidden
 	end
 	return allowedWidget(widget)
 end
@@ -2556,11 +3051,13 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 end
 
 function widgetHandler:SetWindowsPauseGame(enabled)
-	windowPauseEnabled = enabled and true or false
+	modalPauseEnabled = enabled and true or false
 	modalConfigTimer = 0
 end
 
-local function anyWindowOpen()
+-- visibleOnly skips the windows HideInterface is hiding: they still report themselves open,
+-- but nothing of them is there to take a key or a click.
+local function anyWindowOpen(visibleOnly)
 	for w, isOpen in pairs(modalWindows) do
 		local ok, open = pcall(isOpen)
 		if not ok then
@@ -2571,11 +3068,17 @@ local function anyWindowOpen()
 			)
 			modalWindows[w] = nil -- removing the current key mid-traversal is allowed
 			ModalAllowWidget(w, modalExempt[w] == true)
-		elseif open then
+		elseif open and (not visibleOnly or allowedWidget(w)) then
 			return true
 		end
 	end
 	return false
+end
+
+-- Whether one of the registered windows is open and showing right now, whatever the springsetting
+-- says.
+function widgetHandler:IsAnyWindowOpen()
+	return anyWindowOpen(true)
 end
 
 function widgetHandler:UpdateModalState(deltaTime)
@@ -2584,7 +3087,7 @@ function widgetHandler:UpdateModalState(deltaTime)
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+			modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
@@ -2596,127 +3099,116 @@ local function isClientPaused()
 	return paused
 end
 
--- Once per frame, after the widgets' Update: a window closing as another opens, or one
--- reopening itself after a reload, never lets the game run in between.
-function widgetHandler:UpdateWindowPause()
-	if not windowPauseAllowed then
-		return
+local function inGadgetPause()
+	return (Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE) or 0) == 1
+end
+
+local function getPauseReleaseKey(source)
+	local publishedRule = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_PUBLISH) or "[]"
+	if publishedRule == "[]" then
+		return nil
 	end
-	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
-	if wanted == windowPauseHeld then
-		if windowPauseOwned and not isClientPaused() then
-			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
-		end
-		return
+	local published = Json.decode(publishedRule)
+	if type(published) ~= "table" then
+		return nil
 	end
-	if wanted then
-		if Spring.GetGameFrame() == 0 then
-			return -- the engine refuses to pause before the game has started
+	for _, entry in ipairs(published) do
+		if type(entry) == "table" and entry[1] == source then
+			return entry[2]
 		end
-		windowPauseHeld = true
-		windowPauseOwned = not isClientPaused()
-		if windowPauseOwned then
+	end
+end
+
+---Pause and resume the game using basic claims and releases on claims.
+---@param source string key set by caller; pass the same key to Unpause
+function widgetHandler:Pause(source)
+	if type(source) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Pause: expected a source name")
+		return false
+	end
+	if Spring.GetGameFrame() == 0 then
+		return false -- cannot pause until the game starts
+	end
+	if next(pauseSources) == nil and not widgetPaused then
+		widgetPaused = not isClientPaused()
+		if widgetPaused then
 			Spring.SendCommands("pause 1")
 		end
-	else
-		windowPauseHeld = false
-		if windowPauseOwned and isClientPaused() then
-			Spring.SendCommands("pause 0")
+	end
+	pauseSources[source] = true
+	return true
+end
+
+---Unpause one source. The game resumes once no source on either side is left.
+---@param source string # a widget's source, or a gadget's published source
+function widgetHandler:Unpause(source)
+	if pauseSources[source] then
+		pauseSources[source] = nil
+		if next(pauseSources) == nil then
+			if widgetPaused and isClientPaused() then
+				if inGadgetPause() then
+					local generation = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_GENERATION) or 0
+					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED .. generation) -- the gadgets resume the game
+				else
+					Spring.SendCommands("pause 0")
+				end
+			end
+			widgetPaused = false
 		end
-		windowPauseOwned = false
+		return true
+	end
+	local release = getPauseReleaseKey(source)
+	if release then
+		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. release .. ":" .. source)
+		return true
+	end
+	return false
+end
+
+local function gameUnpausing()
+	if next(pauseSources) == nil then
+		return false
+	end
+	widgetPaused = true
+	return true
+end
+
+-- This runs after the widgets update, so the game stays paused when:
+-- one modal closes -and- another opens, or a modal reopens after a reload.
+function widgetHandler:UpdatePause()
+	if widgetPaused and not isClientPaused() then
+		widgetPaused = false -- the player unpaused during another pause, so the pause remains
+	end
+	local wanted = modalPauseAllowed and modalPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted ~= (pauseSources[PAUSESOURCE_MODALS] == true) then
+		if wanted then
+			self:Pause(PAUSESOURCE_MODALS)
+		else
+			self:Unpause(PAUSESOURCE_MODALS)
+		end
 	end
 end
 
--- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
--- that reopens after the reload keeps it and closing that window still resumes the game.
-function widgetHandler:SaveWindowPause()
-	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so widgets
+-- that pause again after the reload, like a modal reopening, still resume the game.
+function widgetHandler:SavePause()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", widgetPaused and Spring.GetGameFrame() or 0, true)
 end
 
-function widgetHandler:InitWindowPause()
-	-- headless, nobody would ever close a window that opened by itself
-	windowPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
-	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+function widgetHandler:InitPause()
+	-- headless, nobody would ever close a modal that opened by itself
+	modalPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
+	modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
-	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
-		windowPauseHeld = true
-		windowPauseOwned = true
-	end
-	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
-end
-
--- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
--- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
--- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
-local gcCheckCounter = 0
-local gcGradualLimit = 1000000 -- kB
-local gcEmergencyLimit = 1300000 -- kB
-local gcStepKB = 1024 -- about 1 ms of collector stepping per update
-local gcStepping = false
--- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
-local gcCapMin, gcCapMax, gcCap = 1, 4, 1
-local gcTrendWindow = 1800 -- frames
-local gcGrowthStepKB = 20000
-local gcTrendFrame, gcTrendMem
-
-local function gcAdaptCap(count)
-	local n = Spring.GetGameFrame()
-	if not gcTrendFrame then
-		gcTrendFrame, gcTrendMem = n, count
-		return
-	end
-	if n - gcTrendFrame < gcTrendWindow then
-		return
-	end
-	local growth = count - gcTrendMem
-	gcTrendFrame, gcTrendMem = n, count
-	local newCap = gcCap
-	if growth > gcGrowthStepKB then
-		newCap = math.min(gcCapMax, gcCap + 1)
-	elseif growth < gcGrowthStepKB / 4 then
-		newCap = math.max(gcCapMin, gcCap - 1)
-	end
-	if newCap ~= gcCap then
-		gcCap = newCap
-		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
-		spEcho(
-			string.format(
-				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
-				growth >= 0 and "grew" or "shrank",
-				math.floor(math.abs(growth) / 1000),
-				gcCap
-			)
-		)
-	end
+	widgetPaused = frame > 0 and Spring.GetConfigInt("WidgetsPausedAtFrame", 0) == frame and isClientPaused()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", 0, true)
+	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
 function widgetHandler:Update()
-	if gcStepping then
-		if collectgarbage("step", gcStepKB) then
-			gcStepping = false
-			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
-			spEcho(
-				"Gradual garbage collection done, LuaUI now uses "
-					.. math.floor(collectgarbage("count") / 1000)
-					.. " MB"
-			)
-		end
-	else
-		gcCheckCounter = gcCheckCounter + 1
-		if gcCheckCounter >= 30 then
-			gcCheckCounter = 0
-			local count = collectgarbage("count")
-			gcAdaptCap(count)
-			if count > gcEmergencyLimit then
-				spEcho("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
-				collectgarbage("collect")
-			elseif count > gcGradualLimit then
-				spEcho(
-					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
-				)
-				gcStepping = true
-			end
-		end
+	-- Collects LuaUI's garbage when the shared Lua memory pool runs high, and watches user widgets.
+	if memoryGuard then
+		memoryGuard.update()
 	end
 
 	local deltaTime = Spring.GetLastUpdateSeconds()
@@ -2727,15 +3219,15 @@ function widgetHandler:Update()
 	-- window that was opened by the input events just handled
 	self:UpdateModalState(deltaTime)
 
-	tracy.ZoneBeginN("W:Update")
+	tracyZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN(w._tracyUpdateName)
+		tracyZoneBeginN(w._tracyUpdateName)
 		w:Update(deltaTime)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 
-	self:UpdateWindowPause()
+	self:UpdatePause()
 	return
 end
 
@@ -2747,7 +3239,8 @@ end
 function widgetHandler:RecoverWidgetSelector()
 	for name, ki in pairs(self.knownWidgets) do
 		if ki.basename == "widget_selector.lua" then
-			if ki.active then
+			-- (a widget taking its place answers the same action and WG.widgetselector)
+			if ki.active or replacerOf(name) then
 				return false
 			end
 			if type(self.configData[name]) ~= "table" then
@@ -2782,6 +3275,9 @@ function widgetHandler:ConfigureLayout(command)
 	elseif stringFind(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(stringSub(command, 15))
 		return true
+	elseif command == "widgetmemory" and memoryGuard then
+		memoryGuard.report()
+		return true
 	end
 
 	-- Answered by the widget selector's own action while it runs.
@@ -2802,41 +3298,41 @@ function widgetHandler:ConfigureLayout(command)
 end
 
 function widgetHandler:ActiveCommandChanged(id, cmdType)
-	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	tracyZoneBeginN("W:ActiveCommandChanged")
 	for _, w in ipairs(self.ActiveCommandChangedList) do
 		w:ActiveCommandChanged(id, cmdType)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
-	tracy.ZoneBeginN("W:CameraRotationChanged")
+	tracyZoneBeginN("W:CameraRotationChanged")
 	for _, w in ipairs(self.CameraRotationChangedList) do
 		w:CameraRotationChanged(rotx, roty, rotz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CameraPositionChanged(posx, posy, posz)
-	tracy.ZoneBeginN("W:CameraPositionChanged")
+	tracyZoneBeginN("W:CameraPositionChanged")
 	for _, w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(posx, posy, posz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CommandNotify(id, params, options)
-	tracy.ZoneBeginN("W:CommandNotify")
+	tracyZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		tracy.ZoneBeginN(w._tracyCommandNotifyName)
+		tracyZoneBeginN(w._tracyCommandNotifyName)
 		local consumed = w:CommandNotify(id, params, options)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		if consumed then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -2855,28 +3351,28 @@ function widgetHandler:AllowQuit()
 end
 
 function widgetHandler:AddConsoleLine(msg, priority)
-	tracy.ZoneBeginN("W:AddConsoleLine")
+	tracyZoneBeginN("W:AddConsoleLine")
 	for _, w in ipairs(self.AddConsoleLineList) do
 		w:AddConsoleLine(msg, priority)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GroupChanged(groupID)
-	tracy.ZoneBeginN("W:GroupChanged")
+	tracyZoneBeginN("W:GroupChanged")
 	for _, w in ipairs(self.GroupChangedList) do
 		w:GroupChanged(groupID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:CommandsChanged()
-	tracy.ZoneBeginN("W:CommandsChanged")
+	tracyZoneBeginN("W:CommandsChanged")
 	if widgetHandler:UpdateSelection() then
 		-- for selectionchanged
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return -- selection updated, don't call commands changed.
 	end
 	self.inCommandsChanged = true
@@ -2889,7 +3385,7 @@ function widgetHandler:CommandsChanged()
 		end
 	end
 	self.inCommandsChanged = false
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2900,7 +3396,7 @@ end
 
 -- generates ViewResize() calls for the widgets
 function widgetHandler:SetViewSize(vsx, vsy)
-	tracy.ZoneBeginN("W:SetViewSize")
+	tracyZoneBeginN("W:SetViewSize")
 	self.xViewSize = vsx
 	self.yViewSize = vsy
 	if self.xViewSizeOld ~= vsx or self.yViewSizeOld ~= vsy then
@@ -2908,7 +3404,7 @@ function widgetHandler:SetViewSize(vsx, vsy)
 		self.xViewSizeOld = vsx
 		self.yViewSizeOld = vsy
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2919,23 +3415,23 @@ function widgetHandler:ViewResize(vsx, vsy)
 		print("real ViewResize") -- FIXME
 	end
 
-	tracy.ZoneBeginN("W:ViewResize")
+	tracyZoneBeginN("W:ViewResize")
 	if widgetHandler.WG.FlowUI then
-		tracy.ZoneBeginN("W:ViewResize:FlowUI")
+		tracyZoneBeginN("W:ViewResize:FlowUI")
 		widgetHandler.WG.FlowUI.Callin.ViewResize1(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN(w._tracyViewResizeName)
+		tracyZoneBeginN(w._tracyViewResizeName)
 		w:ViewResize(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreen()
-	tracy.ZoneBeginN("W:DrawScreen")
+	tracyZoneBeginN("W:DrawScreen")
 	-- catches a window opened from another widget's Update, which ran after the
 	-- recompute at the top of widgetHandler:Update
 	self:UpdateModalState()
@@ -2944,182 +3440,182 @@ function widgetHandler:DrawScreen()
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				if allowedWidget(w) then
-					tracy.ZoneBeginN(w._tracyDrawScreenName)
+				if not (modalActive or interfaceHidden) or allowedWidget(w) then
+					tracyZoneBeginN(w._tracyDrawScreenName)
 					w:DrawScreen()
-					tracy.ZoneEnd()
+					tracyZoneEnd()
 				end
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
-			tracy.ZoneBeginN("W:DrawScreen:guishader")
+			tracyZoneBeginN("W:DrawScreen:guishader")
 			widgetHandler.WG.guishader.DrawScreen()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGenesis()
-	tracy.ZoneBeginN("W:DrawGenesis")
+	tracyZoneBeginN("W:DrawGenesis")
 	local list = self.DrawGenesisList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawGenesisName)
+		tracyZoneBeginN(w._tracyDrawGenesisName)
 		w:DrawGenesis()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPreForward()
-	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	tracyZoneBeginN("W:DrawGroundPreForward")
 	local list = self.DrawGroundPreForwardList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPreForward()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPostForward()
-	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	tracyZoneBeginN("W:DrawGroundPostForward")
 	local list = self.DrawGroundPostForwardList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPostForward()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPreDeferred()
-	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	tracyZoneBeginN("W:DrawGroundPreDeferred")
 	local list = self.DrawGroundPreDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPreDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPostDeferred()
-	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	tracyZoneBeginN("W:DrawGroundPostDeferred")
 	local list = self.DrawGroundPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundDeferred()
-	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	tracyZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorld()
-	tracy.ZoneBeginN("W:DrawWorld")
+	tracyZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldName)
+			tracyZoneBeginN(w._tracyDrawWorldName)
 			w:DrawWorld()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldPreUnit()
-	tracy.ZoneBeginN("W:DrawWorldPreUnit")
+	tracyZoneBeginN("W:DrawWorldPreUnit")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldPreUnitList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldPreUnitName)
+			tracyZoneBeginN(w._tracyDrawWorldPreUnitName)
 			w:DrawWorldPreUnit()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawOpaqueUnitsLua")
+	tracyZoneBeginN("W:DrawOpaqueUnitsLua")
 	local list = self.DrawOpaqueUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawOpaqueFeaturesLua")
+	tracyZoneBeginN("W:DrawOpaqueFeaturesLua")
 	local list = self.DrawOpaqueFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawAlphaUnitsLua(drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawAlphaUnitsLua")
+	tracyZoneBeginN("W:DrawAlphaUnitsLua")
 	local list = self.DrawAlphaUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawAlphaFeaturesLua")
+	tracyZoneBeginN("W:DrawAlphaFeaturesLua")
 	local list = self.DrawAlphaFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawShadowUnitsLua()
-	tracy.ZoneBeginN("W:DrawShadowUnitsLua")
+	tracyZoneBeginN("W:DrawShadowUnitsLua")
 	local list = self.DrawShadowUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawShadowUnitsLua()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawShadowFeaturesLua()
-	tracy.ZoneBeginN("W:DrawShadowFeaturesLua")
+	tracyZoneBeginN("W:DrawShadowFeaturesLua")
 	local list = self.DrawShadowFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawShadowFeaturesLua()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawPreDecals()
-	tracy.ZoneBeginN("W:DrawPreDecals")
+	tracyZoneBeginN("W:DrawPreDecals")
 	local list = self.DrawPreDecalsList
 	for i = #list, 1, -1 do
 		list[i]:DrawPreDecals()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3135,93 +3631,93 @@ function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, dra
 	-- false, true, false, true
 	-- true, false, true, false
 	-- true, false, false, false
-	tracy.ZoneBeginN("W:DrawWorldPreParticles")
+	tracyZoneBeginN("W:DrawWorldPreParticles")
 	local list = self.DrawWorldPreParticlesList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldShadow()
-	tracy.ZoneBeginN("W:DrawWorldShadow")
+	tracyZoneBeginN("W:DrawWorldShadow")
 	local list = self.DrawWorldShadowList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldShadow()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldReflection()
-	tracy.ZoneBeginN("W:DrawWorldReflection")
+	tracyZoneBeginN("W:DrawWorldReflection")
 	local list = self.DrawWorldReflectionList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldReflection()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldRefraction()
-	tracy.ZoneBeginN("W:DrawWorldRefraction")
+	tracyZoneBeginN("W:DrawWorldRefraction")
 	local list = self.DrawWorldRefractionList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldRefraction()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawUnitsPostDeferred()
-	tracy.ZoneBeginN("W:DrawUnitsPostDeferred")
+	tracyZoneBeginN("W:DrawUnitsPostDeferred")
 	local list = self.DrawUnitsPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawUnitsPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawFeaturesPostDeferred()
-	tracy.ZoneBeginN("W:DrawFeaturesPostDeferred")
+	tracyZoneBeginN("W:DrawFeaturesPostDeferred")
 	local list = self.DrawFeaturesPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawFeaturesPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
-	tracy.ZoneBeginN("W:DrawScreenEffects")
+	tracyZoneBeginN("W:DrawScreenEffects")
 	local list = self.DrawScreenEffectsList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawScreenEffectsName)
+		tracyZoneBeginN(w._tracyDrawScreenEffectsName)
 		w:DrawScreenEffects(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenPost()
-	tracy.ZoneBeginN("W:DrawScreenPost")
+	tracyZoneBeginN("W:DrawScreenPost")
 	local list = self.DrawScreenPostList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawScreenPostName)
+		tracyZoneBeginN(w._tracyDrawScreenPostName)
 		w:DrawScreenPost()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawInMiniMap(xSize, ySize)
-	tracy.ZoneBeginN("W:DrawInMiniMap")
+	tracyZoneBeginN("W:DrawInMiniMap")
 	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
 	-- The PIP widget will call these functions itself with proper coordinate transformations
 	-- during its render-to-texture pass in RenderPipContents()
@@ -3230,45 +3726,45 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 		and widgetHandler.minimap.isPipMinimapActive
 		and widgetHandler.minimap.isPipMinimapActive()
 	then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return
 	end
 	local list = self.DrawInMiniMapList
 	for i = #list, 1, -1 do
 		list[i]:DrawInMiniMap(xSize, ySize)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-	tracy.ZoneBeginN("W:DrawBuildSquare")
+	tracyZoneBeginN("W:DrawBuildSquare")
 	local list = self.DrawBuildSquareList
 	for i = #list, 1, -1 do
 		list[i]:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SunChanged()
-	tracy.ZoneBeginN("W:SunChanged")
+	tracyZoneBeginN("W:SunChanged")
 	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FontsChanged()
-	tracy.ZoneBeginN("FontsChanged")
+	tracyZoneBeginN("FontsChanged")
 	local list = self.FontsChangedList
 	for i = #list, 1, -1 do
 		list[i]:FontsChanged()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3278,26 +3774,36 @@ end
 --
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
-	tracy.ZoneBeginN("W:KeyPress")
-	local textOwner = self.textOwner
+	tracyZoneBeginN("W:KeyPress")
+	-- A locked key goes nowhere at all, not even to an open chat line, unless a window is
+	-- showing: then it still reaches the widgets, never the keybinds, so the window can answer it.
+	local keyLocked = keyboardLocked and not keyboardLockPasses(key, actions)
+	if keyLocked and not anyWindowOpen(true) then
+		keyboardSwallowed[scanCode] = "all"
+		tracyZoneEnd()
+		return true
+	end
 
+	local textOwner = self.textOwner
 	if textOwner then
 		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
-		tracy.ZoneEnd()
+	if keyLocked then
+		keyboardSwallowed[scanCode] = "binds"
+	elseif self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
+		tracyZoneEnd()
 		return true
 	end
 
 	-- A key bound to /widgetselector - F11 - with no selector running to answer it.
-	if actions and not isRepeat then
+	if actions and not isRepeat and not keyLocked then
 		for _, bound in ipairs(actions) do
 			if bound.command == "widgetselector" and self:RecoverWidgetSelector() then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
@@ -3306,45 +3812,57 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	for _, w in ipairs(self.KeyPressList) do
 		if allowedWidget(w) then
 			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
-	tracy.ZoneBeginN("W:KeyRelease")
-	local textOwner = self.textOwner
+	tracyZoneBeginN("W:KeyRelease")
+	-- The release of a press nothing saw ends here; one the lock kept from the keybinds only
+	-- is kept from them too.
+	local swallowed = keyboardSwallowed[scanCode]
+	keyboardSwallowed[scanCode] = nil
+	if swallowed == "all" then
+		tracyZoneEnd()
+		return true
+	end
 
+	local textOwner = self.textOwner
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
 			self.actionHandler:ClearPressedKey(scanCode)
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
-		tracy.ZoneEnd()
+	if not swallowed and self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
+		tracyZoneEnd()
 		return true
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
 		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:TextInput(utf8, ...)
-	tracy.ZoneBeginN("W:TextInput")
+	tracyZoneBeginN("W:TextInput")
+	if keyboardLocked and not anyWindowOpen(true) then
+		tracyZoneEnd()
+		return true -- locked, as the key press that made it
+	end
 	local textOwner = self.textOwner
 
 	if textOwner then
@@ -3352,7 +3870,7 @@ function widgetHandler:TextInput(utf8, ...)
 			textOwner:TextInput(utf8, ...)
 		end
 
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return true
 	end
 
@@ -3360,12 +3878,12 @@ function widgetHandler:TextInput(utf8, ...)
 	for i = #list, 1, -1 do
 		if allowedWidget(list[i]) then
 			if list[i]:TextInput(utf8, ...) then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3376,19 +3894,19 @@ end
 
 -- local helper (not a real call-in)
 function widgetHandler:WidgetAt(x, y)
-	tracy.ZoneBeginN("W:WidgetAt")
+	tracyZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
-			tracy.ZoneEnd()
+		if (not (modalActive or interfaceHidden) or allowedWidget(w)) and w:IsAbove(x, y) then
+			tracyZoneEnd()
 			return w
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return nil
 end
 
 function widgetHandler:MousePress(x, y, button)
-	tracy.ZoneBeginN("W:MousePress")
+	tracyZoneBeginN("W:MousePress")
 	if self.mouseOwner then
 		-- unfiltered: a drag that started before the window opened has to finish
 		self.mouseOwner:MousePress(x, y, button)
@@ -3411,22 +3929,22 @@ function widgetHandler:MousePress(x, y, button)
 		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, consumed)
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return consumed
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
-	tracy.ZoneBeginN("W:MouseMove")
+	tracyZoneBeginN("W:MouseMove")
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseMove(x, y, dx, dy, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:MouseRelease(x, y, button)
-	tracy.ZoneBeginN("W:MouseRelease")
+	tracyZoneBeginN("W:MouseRelease")
 	local mo = self.mouseOwner
 	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
@@ -3434,10 +3952,10 @@ function widgetHandler:MouseRelease(x, y, button)
 	end
 
 	if mo and mo.MouseRelease then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseRelease(x, y, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3445,111 +3963,111 @@ function widgetHandler:MouseWheel(up, value)
 	if value == 0 then
 		return false -- fix for touchpads: after any scroll it somehow adds an up=false, value=0
 	end
-	tracy.ZoneBeginN("W:MouseWheel")
+	tracyZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
 		if allowedWidget(w) and w:MouseWheel(up, value) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerAdded(deviceIndex)
-	tracy.ZoneBeginN("W:ControllerAdded")
+	tracyZoneBeginN("W:ControllerAdded")
 	for _, w in ipairs(self.ControllerAddedList) do
 		if w:ControllerAdded(deviceIndex) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerRemoved(instanceId)
-	tracy.ZoneBeginN("W:ControllerRemoved")
+	tracyZoneBeginN("W:ControllerRemoved")
 	for _, w in ipairs(self.ControllerRemovedList) do
 		if w:ControllerRemoved(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerConnected(instanceId)
-	tracy.ZoneBeginN("W:ControllerConnected")
+	tracyZoneBeginN("W:ControllerConnected")
 	for _, w in ipairs(self.ControllerConnectedList) do
 		if w:ControllerConnected(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerDisconnected(instanceId)
-	tracy.ZoneBeginN("W:ControllerDisconnected")
+	tracyZoneBeginN("W:ControllerDisconnected")
 	for _, w in ipairs(self.ControllerDisconnectedList) do
 		if w:ControllerDisconnected(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerRemapped(instanceId)
-	tracy.ZoneBeginN("W:ControllerRemapped")
+	tracyZoneBeginN("W:ControllerRemapped")
 	for _, w in ipairs(self.ControllerRemappedList) do
 		if w:ControllerRemapped(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerButtonUp(instanceId, button, state, name)
-	tracy.ZoneBeginN("W:ControllerButtonUp")
+	tracyZoneBeginN("W:ControllerButtonUp")
 	for _, w in ipairs(self.ControllerButtonUpList) do
 		if w:ControllerButtonUp(instanceId, button, state, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerButtonDown(instanceId, button, state, name)
-	tracy.ZoneBeginN("W:ControllerButtonDown")
+	tracyZoneBeginN("W:ControllerButtonDown")
 	for _, w in ipairs(self.ControllerButtonDownList) do
 		if w:ControllerButtonDown(instanceId, button, state, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerAxisMotion(instanceId, axis, value, name)
-	tracy.ZoneBeginN("W:ControllerAxisMotion")
+	tracyZoneBeginN("W:ControllerAxisMotion")
 	for _, w in ipairs(self.ControllerAxisMotionList) do
 		if w:ControllerAxisMotion(instanceId, axis, value, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3558,17 +4076,17 @@ function widgetHandler:IsAbove(x, y)
 end
 
 function widgetHandler:GetTooltip(x, y)
-	tracy.ZoneBeginN("W:GetTooltip")
+	tracyZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
+		if (not (modalActive or interfaceHidden) or allowedWidget(w)) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == "string" and #tip > 0 then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return tip
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return ""
 end
 
@@ -3578,76 +4096,77 @@ end
 --
 
 function widgetHandler:GamePreload()
-	tracy.ZoneBeginN("W:GamePreload")
+	tracyZoneBeginN("W:GamePreload")
 	for _, w in ipairs(self.GamePreloadList) do
 		w:GamePreload()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameStart()
-	tracy.ZoneBeginN("W:GameStart")
+	tracyZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
-		tracy.ZoneBeginN(w._tracyGameStartName)
+		tracyZoneBeginN(w._tracyGameStartName)
 		w:GameStart()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameOver(winningAllyTeams)
-	tracy.ZoneBeginN("W:GameOver")
+	tracyZoneBeginN("W:GameOver")
 	for _, w in ipairs(self.GameOverList) do
 		w:GameOver(winningAllyTeams)
 	end
-	tracy.ZoneEnd()
+	releaseInputLocks()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GamePaused(playerID, paused)
-	tracy.ZoneBeginN("W:GamePaused")
+	tracyZoneBeginN("W:GamePaused")
 	for _, w in ipairs(self.GamePausedList) do
 		w:GamePaused(playerID, paused)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:TeamDied(teamID)
-	tracy.ZoneBeginN("W:TeamDied")
+	tracyZoneBeginN("W:TeamDied")
 	for _, w in ipairs(self.TeamDiedList) do
 		w:TeamDied(teamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:TeamChanged(teamID)
-	tracy.ZoneBeginN("W:TeamChanged")
+	tracyZoneBeginN("W:TeamChanged")
 	for _, w in ipairs(self.TeamChangedList) do
 		w:TeamChanged(teamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:PlayerAdded(playerID)
-	tracy.ZoneBeginN("W:PlayerAdded")
+	tracyZoneBeginN("W:PlayerAdded")
 	for _, w in ipairs(self.PlayerAddedList) do
 		w:PlayerAdded(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:PlayerRemoved(playerID, reason)
-	tracy.ZoneBeginN("W:PlayerRemoved")
+	tracyZoneBeginN("W:PlayerRemoved")
 	for _, w in ipairs(self.PlayerRemovedList) do
 		w:PlayerRemoved(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3655,42 +4174,42 @@ function widgetHandler:PlayerChanged(playerID)
 	if anonymousMode ~= "disabled" and not spGetSpectatingState() then
 		Spring.SendCommands("info 0")
 	end
-	tracy.ZoneBeginN("W:PlayerChanged")
+	tracyZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(w._tracyPlayerChangedName)
+		tracyZoneBeginN(w._tracyPlayerChangedName)
 		w:PlayerChanged(playerID)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameFrame(frameNum)
-	tracy.ZoneBeginN("W:GameFrame")
+	tracyZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(w._tracyGameFrameName)
+		tracyZoneBeginN(w._tracyGameFrameName)
 		w:GameFrame(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameFramePost(frameNum)
-	tracy.ZoneBeginN("W:GameFramePost")
+	tracyZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN(w._tracyGameFramePostName)
+		tracyZoneBeginN(w._tracyGameFramePostName)
 		w:GameFramePost(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 -- local helper (not a real call-in)
 local oldSelection = {}
 function widgetHandler:UpdateSelection()
-	tracy.ZoneBeginN("W:UpdateSelection")
+	tracyZoneBeginN("W:UpdateSelection")
 	local changed
 	local newSelection = Spring.GetSelectedUnits()
 	if #newSelection == #oldSelection then
@@ -3722,73 +4241,73 @@ function widgetHandler:UpdateSelection()
 		end
 		if widgetHandler:SelectionChanged(newSelection, subselection) then
 			-- selection changed, don't set old selection to new selection as it is soon to change.
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 	oldSelection = newSelection
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
-	tracy.ZoneBeginN("W:SelectionChanged")
+	tracyZoneBeginN("W:SelectionChanged")
 	for _, w in ipairs(self.SelectionChangedList) do
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
 		if unitArray then
 			Spring.SelectUnitArray(unitArray)
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:GameProgress(serverFrameNum)
-	tracy.ZoneBeginN("W:GameProgress")
+	tracyZoneBeginN("W:GameProgress")
 	for _, w in ipairs(self.GameProgressList) do
 		w:GameProgress(serverFrameNum)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	tracy.ZoneBeginN("W:UnsyncedHeightMapUpdate")
+	tracyZoneBeginN("W:UnsyncedHeightMapUpdate")
 	local list = self.UnsyncedHeightMapUpdateList
 	for i = #list, 1, -1 do
 		list[i]:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ShockFront(power, dx, dy, dz)
-	tracy.ZoneBeginN("W:ShockFront")
+	tracyZoneBeginN("W:ShockFront")
 	for _, w in ipairs(self.ShockFrontList) do
 		w:ShockFront(power, dx, dy, dz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:WorldTooltip(ttType, ...)
-	tracy.ZoneBeginN("W:WorldTooltip")
+	tracyZoneBeginN("W:WorldTooltip")
 	for _, w in ipairs(self.WorldTooltipList) do
 		local tt = w:WorldTooltip(ttType, ...)
 		if type(tt) == "string" and #tt > 0 then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return tt
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
-	tracy.ZoneBeginN("W:MapDrawCmd")
+	tracyZoneBeginN("W:MapDrawCmd")
 	local retval = false
 	for _, w in ipairs(self.MapDrawCmdList) do
 		local takeEvent = w:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
@@ -3796,69 +4315,82 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 			retval = true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return retval
 end
 
 function widgetHandler:ClearMapMarks()
-	tracy.ZoneBeginN("W:ClearMapMarks")
+	tracyZoneBeginN("W:ClearMapMarks")
 	for _, w in ipairs(self.ClearMapMarksList) do
 		w:ClearMapMarks()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
+	return
+end
+
+function widgetHandler:RecvSkirmishAIMessage(aiTeam, dataStr)
+	tracyZoneBeginN("W:RecvSkirmishAIMessage")
+	for _, w in ipairs(self.RecvSkirmishAIMessageList) do
+		local dataRet = w:RecvSkirmishAIMessage(aiTeam, dataStr)
+		if dataRet then
+			tracyZoneEnd()
+			return dataRet
+		end
+	end
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameSetup(state, ready, playerStates)
-	tracy.ZoneBeginN("W:GameSetup")
+	tracyZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
 		local success, newReady = w:GameSetup(state, ready, playerStates)
 		if success then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true, newReady
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:DefaultCommand(...)
-	tracy.ZoneBeginN("W:DefaultCommand")
+	tracyZoneBeginN("W:DefaultCommand")
 	local list = self.DefaultCommandList
 	for i = #list, 1, -1 do
 		local result = list[i]:DefaultCommand(...)
 		if type(result) == "number" then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return result
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return nil --  not a number, use the default engine command
 end
 
 function widgetHandler:LanguageChanged()
-	tracy.ZoneBeginN("W:LanguageChanged")
+	tracyZoneBeginN("W:LanguageChanged")
 	for _, w in ipairs(self.LanguageChangedList) do
 		w:LanguageChanged()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
-	tracy.ZoneBeginN("W:UnitBlocked")
+	tracyZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
 		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
----A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
-function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
-	tracy.ZoneBeginN("W:BuildOptionsChanged")
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua), for one team when teamID is set.
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	tracyZoneBeginN("W:BuildOptionsChanged")
 	for _, w in ipairs(self.BuildOptionsChangedList) do
-		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 --------------------------------------------------------------------------------
@@ -3867,117 +4399,121 @@ end
 --
 
 function widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:MetaUnitAdded")
+	tracyZoneBeginN("W:MetaUnitAdded")
 	for _, w in ipairs(self.MetaUnitAddedList) do
 		w:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:MetaUnitRemoved")
+	tracyZoneBeginN("W:MetaUnitRemoved")
 	for _, w in ipairs(self.MetaUnitRemovedList) do
 		w:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitCreated")
+	tracyZoneBeginN("W:UnitCreated")
 	for _, w in ipairs(self.UnitCreatedList) do
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitFinished")
+	tracyZoneBeginN("W:UnitFinished")
 	for _, w in ipairs(self.UnitFinishedList) do
+		tracyZoneBeginN(w._tracyUnitFinishedName)
 		w:UnitFinished(unitID, unitDefID, unitTeam)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	tracy.ZoneBeginN("W:UnitFromFactory")
+	tracyZoneBeginN("W:UnitFromFactory")
 	for _, w in ipairs(self.UnitFromFactoryList) do
 		w:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDestroyed")
+	tracyZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
+		tracyZoneBeginN(w._tracyUnitDestroyedName)
 		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
-	tracy.ZoneBeginN("W:UnitDestroyedByTeam")
+	tracyZoneBeginN("W:UnitDestroyedByTeam")
 	for _, w in ipairs(self.UnitDestroyedByTeamList) do
 		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:RenderUnitDestroyed")
+	tracyZoneBeginN("W:RenderUnitDestroyed")
 	-- at the time of committing, this does not get called by the widgethandler
 	for _, w in ipairs(self.RenderUnitDestroyedList) do
 		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
-	tracy.ZoneBeginN("W:UnitExperience")
+	tracyZoneBeginN("W:UnitExperience")
 	for _, w in ipairs(self.UnitExperienceList) do
 		w:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
-	tracy.ZoneBeginN("W:UnitTaken")
+	tracyZoneBeginN("W:UnitTaken")
 	for _, w in ipairs(self.UnitTakenList) do
 		w:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
-	tracy.ZoneBeginN("W:UnitGiven")
+	tracyZoneBeginN("W:UnitGiven")
 	for _, w in ipairs(self.UnitGivenList) do
 		w:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitIdle")
+	tracyZoneBeginN("W:UnitIdle")
 	for _, w in ipairs(self.UnitIdleList) do
 		w:UnitIdle(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -4002,7 +4538,7 @@ function widgetHandler:UnitCommand(
 	fromSynced,
 	fromLua
 )
-	tracy.ZoneBeginN("W:UnitCommand")
+	tracyZoneBeginN("W:UnitCommand")
 	local list = self.UnitCommandList
 	for i = 1, #list do
 		local w = list[i]
@@ -4011,244 +4547,248 @@ function widgetHandler:UnitCommand(
 			w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	tracy.ZoneBeginN("W:UnitCmdDone")
+	tracyZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
 		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	tracy.ZoneBeginN("W:UnitDamaged")
+	tracyZoneBeginN("W:UnitDamaged")
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
-	tracy.ZoneBeginN("W:UnitStunned")
+	tracyZoneBeginN("W:UnitStunned")
 	for _, w in ipairs(self.UnitStunnedList) do
 		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredRadar(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredRadar")
+	tracyZoneBeginN("W:UnitEnteredRadar")
 	for _, w in ipairs(self.UnitEnteredRadarList) do
 		w:UnitEnteredRadar(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredLos(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredLos")
+	tracyZoneBeginN("W:UnitEnteredLos")
 	for _, w in ipairs(self.UnitEnteredLosList) do
 		w:UnitEnteredLos(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftRadar(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftRadar")
+	tracyZoneBeginN("W:UnitLeftRadar")
 	for _, w in ipairs(self.UnitLeftRadarList) do
 		w:UnitLeftRadar(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftLos(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftLos")
+	tracyZoneBeginN("W:UnitLeftLos")
 	for _, w in ipairs(self.UnitLeftLosList) do
 		w:UnitLeftLos(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredWater")
+	tracyZoneBeginN("W:UnitEnteredWater")
 	for _, w in ipairs(self.UnitEnteredWaterList) do
 		w:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredAir(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredAir")
+	tracyZoneBeginN("W:UnitEnteredAir")
 	for _, w in ipairs(self.UnitEnteredAirList) do
 		w:UnitEnteredAir(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftWater(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftWater")
+	tracyZoneBeginN("W:UnitLeftWater")
 	for _, w in ipairs(self.UnitLeftWaterList) do
 		w:UnitLeftWater(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftAir")
+	tracyZoneBeginN("W:UnitLeftAir")
 	for _, w in ipairs(self.UnitLeftAirList) do
 		w:UnitLeftAir(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-	tracy.ZoneBeginN("W:UnitSeismicPing")
+	tracyZoneBeginN("W:UnitSeismicPing")
 	for _, w in ipairs(self.UnitSeismicPingList) do
 		w:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	tracy.ZoneBeginN("W:UnitLoaded")
+	tracyZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
 		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	tracy.ZoneBeginN("W:UnitUnloaded")
+	tracyZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
 		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCloaked(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitCloaked")
+	tracyZoneBeginN("W:UnitCloaked")
 	for _, w in ipairs(self.UnitCloakedList) do
 		w:UnitCloaked(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDecloaked(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDecloaked")
+	tracyZoneBeginN("W:UnitDecloaked")
 	for _, w in ipairs(self.UnitDecloakedList) do
 		w:UnitDecloaked(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitMoveFailed")
+	tracyZoneBeginN("W:UnitMoveFailed")
 	for _, w in ipairs(self.UnitMoveFailedList) do
 		w:UnitMoveFailed(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
+	tracyZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
 	if msg:find("LobbyOverlayActive", 1, true) == 1 then
 		-- LuaMenu delivers these as player 0. From any other player they are spoofed.
 		-- ! FIXME: We cannot distinguish LuaMenu from an actual player 0.
 		if playerID ~= 0 then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		tracy.ZoneBeginN(w._tracyRecvLuaMsgName)
+		tracyZoneBeginN(w._tracyRecvLuaMsgName)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return retval --  FIXME  --  another actionHandler type?
 end
 
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	tracy.ZoneBeginN("W:StockpileChanged")
+	tracyZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
 		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
-	tracy.ZoneBeginN("W:VisibleUnitAdded")
+	tracyZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitAddedName)
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
-	tracy.ZoneBeginN("W:VisibleUnitRemoved")
+	tracyZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitRemovedName)
 		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
-	tracy.ZoneBeginN("W:VisibleUnitsChanged")
+	tracyZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
-		tracy.ZoneBeginN(w._tracyVisibleUnitsChangedName)
+		tracyZoneBeginN(w._tracyVisibleUnitsChangedName)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:AlliedUnitAdded")
+	tracyZoneBeginN("W:AlliedUnitAdded")
 	for _, w in ipairs(self.AlliedUnitAddedList) do
 		w:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:AlliedUnitRemoved")
+	tracyZoneBeginN("W:AlliedUnitRemoved")
 	for _, w in ipairs(self.AlliedUnitRemovedList) do
 		w:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
-	tracy.ZoneBeginN("W:AlliedUnitsChanged")
+	tracyZoneBeginN("W:AlliedUnitsChanged")
 	for _, w in ipairs(self.AlliedUnitsChangedList) do
 		w:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 --------------------------------------------------------------------------------
@@ -4267,20 +4807,24 @@ end
 -- a sim frame's events as px, py, pz, weaponID, ownerID runs: batch widgets get the array,
 -- the others one call per event
 function widgetHandler:VisibleExplosionBatch(events, count)
-	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	tracyZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		w:VisibleExplosionBatch(events, count)
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.VisibleExplosionList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		for i = 1, count, 5 do
 			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:BarrelfireBatch(events, count)
-	tracy.ZoneBeginN("W:BarrelfireBatch")
+	tracyZoneBeginN("W:BarrelfireBatch")
 	for _, w in ipairs(self.BarrelfireBatchList) do
 		w:BarrelfireBatch(events, count)
 	end
@@ -4289,348 +4833,358 @@ function widgetHandler:BarrelfireBatch(events, count)
 			w:Barrelfire(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:CrashingAircraft")
+	tracyZoneBeginN("W:CrashingAircraft")
 	for _, w in ipairs(self.CrashingAircraftList) do
 		w:CrashingAircraft(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
-	tracy.ZoneBeginN("W:SendStats")
+	tracyZoneBeginN("W:SendStats")
 	for _, w in ipairs(self.SendStatsList) do
 		w:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SendStats_GameMode(mode)
-	tracy.ZoneBeginN("W:SendStats_GameMode")
+	tracyZoneBeginN("W:SendStats_GameMode")
 	for _, w in ipairs(self.SendStats_GameModeList) do
 		w:SendStats_GameMode(mode)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ActivityEvent(playerID)
-	tracy.ZoneBeginN("W:ActivityEvent")
+	tracyZoneBeginN("W:ActivityEvent")
 	for _, w in ipairs(self.ActivityEventList) do
 		w:ActivityEvent(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FpsEvent(playerID, fps)
-	tracy.ZoneBeginN("W:FpsEvent")
+	tracyZoneBeginN("W:FpsEvent")
 	for _, w in ipairs(self.FpsEventList) do
 		w:FpsEvent(playerID, fps)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ApmEvent(teamID, apm)
-	tracy.ZoneBeginN("W:ApmEvent")
+	tracyZoneBeginN("W:ApmEvent")
 	for _, w in ipairs(self.ApmEventList) do
 		w:ApmEvent(teamID, apm)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GpuMemEvent(playerID, mem)
-	tracy.ZoneBeginN("W:GpuMemEvent")
+	tracyZoneBeginN("W:GpuMemEvent")
 	for _, w in ipairs(self.GpuMemEventList) do
 		w:GpuMemEvent(playerID, mem)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:LuaMemEvent(playerID, mem)
-	tracy.ZoneBeginN("W:LuaMemEvent")
+	tracyZoneBeginN("W:LuaMemEvent")
 	for _, w in ipairs(self.LuaMemEventList) do
 		w:LuaMemEvent(playerID, mem)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SystemEvent(playerID, systemData)
-	tracy.ZoneBeginN("W:SystemEvent")
+	tracyZoneBeginN("W:SystemEvent")
 	for _, w in ipairs(self.SystemEventList) do
 		w:SystemEvent(playerID, systemData)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RankingEvent(ranking)
-	tracy.ZoneBeginN("W:RankingEvent")
+	tracyZoneBeginN("W:RankingEvent")
 	for _, w in ipairs(self.RankingEventList) do
 		w:RankingEvent(ranking)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
-	tracy.ZoneBeginN("W:MouseCursorEvent")
+	tracyZoneBeginN("W:MouseCursorEvent")
 	for _, w in ipairs(self.MouseCursorEventList) do
 		w:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:CameraBroadcastEvent(playerID, cameraState)
-	tracy.ZoneBeginN("W:CameraBroadcastEvent")
+	tracyZoneBeginN("W:CameraBroadcastEvent")
 	for _, w in ipairs(self.CameraBroadcastEventList) do
 		w:CameraBroadcastEvent(playerID, cameraState)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureReclaimStartedETA(featureID, step)
-	tracy.ZoneBeginN("W:FeatureReclaimStartedETA")
+	tracyZoneBeginN("W:FeatureReclaimStartedETA")
 	for _, w in ipairs(self.FeatureReclaimStartedETAList) do
 		w:FeatureReclaimStartedETA(featureID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
-	tracy.ZoneBeginN("W:UnitBuildspeedDebuffHealthbars")
+	tracyZoneBeginN("W:UnitBuildspeedDebuffHealthbars")
 	for _, w in ipairs(self.UnitBuildspeedDebuffHealthbarsList) do
 		w:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitBuildspeedDebuffEndHealthbars(unitID)
-	tracy.ZoneBeginN("W:UnitBuildspeedDebuffEndHealthbars")
+	tracyZoneBeginN("W:UnitBuildspeedDebuffEndHealthbars")
 	for _, w in ipairs(self.UnitBuildspeedDebuffEndHealthbarsList) do
 		w:UnitBuildspeedDebuffEndHealthbars(unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetAddMessage(msg)
-	tracy.ZoneBeginN("W:GadgetAddMessage")
+	tracyZoneBeginN("W:GadgetAddMessage")
 	for _, w in ipairs(self.GadgetAddMessageList) do
 		w:GadgetAddMessage(msg)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetReceiveAwards(awards)
-	tracy.ZoneBeginN("W:GadgetReceiveAwards")
+	tracyZoneBeginN("W:GadgetReceiveAwards")
 	for _, w in ipairs(self.GadgetReceiveAwardsList) do
 		w:GadgetReceiveAwards(awards)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
-	tracy.ZoneBeginN("W:UnitScriptLight")
+	tracyZoneBeginN("W:UnitScriptLight")
 	for _, w in ipairs(self.UnitScriptLightList) do
 		w:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
-	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	tracyZoneBeginN("W:NanoParticleUpdate")
 	local list = self.NanoParticleUpdateList
 	for i = #list, 1, -1 do
 		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
-	tracy.ZoneBeginN("W:UnitScriptDistortion")
+	tracyZoneBeginN("W:UnitScriptDistortion")
 	for _, w in ipairs(self.UnitScriptDistortionList) do
 		w:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	tracy.ZoneBeginN("W:UnitScriptDecal")
-	for _, w in ipairs(self.UnitScriptDecalList) do
-		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	self:UnitScriptDecalBatch({ unitID, unitDefID, decalIndex, posx, posz, heading }, 6)
+end
+
+-- a sim frame's decals as unitID, unitDefID, decalIndex, posx, posz, heading runs: batch widgets get the
+-- array, the others one call per decal
+function widgetHandler:UnitScriptDecalBatch(decals, count)
+	tracyZoneBeginN("W:UnitScriptDecalBatch")
+	for _, w in ipairs(self.UnitScriptDecalBatchList) do
+		w:UnitScriptDecalBatch(decals, count)
 	end
-	tracy.ZoneEnd()
-	return
+	for _, w in ipairs(self.UnitScriptDecalList) do
+		for i = 1, count, 6 do
+			w:UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+		end
+	end
+	tracyZoneEnd()
 end
 
 function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
-	tracy.ZoneBeginN("W:GadgetRemoveGrass")
+	tracyZoneBeginN("W:GadgetRemoveGrass")
 	for _, w in ipairs(self.GadgetRemoveGrassList) do
 		w:GadgetRemoveGrass(posx, posz, radius)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetCoopStartPoint(playerID, x, y, z)
-	tracy.ZoneBeginN("W:GadgetCoopStartPoint")
+	tracyZoneBeginN("W:GadgetCoopStartPoint")
 	for _, w in ipairs(self.GadgetCoopStartPointList) do
 		w:GadgetCoopStartPoint(playerID, x, y, z)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NotificationEvent(msg)
-	tracy.ZoneBeginN("W:NotificationEvent")
+	tracyZoneBeginN("W:NotificationEvent")
 	for _, w in ipairs(self.NotificationEventList) do
 		w:NotificationEvent(msg)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NightFactorChanged(red, green, blue, shadow, altitude)
-	tracy.ZoneBeginN("W:NightFactorChanged")
+	tracyZoneBeginN("W:NightFactorChanged")
 	for _, w in ipairs(self.NightFactorChangedList) do
 		w:NightFactorChanged(red, green, blue, shadow, altitude)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ScavEvent(args)
-	tracy.ZoneBeginN("W:ScavEvent")
+	tracyZoneBeginN("W:ScavEvent")
 	for _, w in ipairs(self.ScavEventList) do
 		w:ScavEvent(args)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RaptorEvent(args)
-	tracy.ZoneBeginN("W:RaptorEvent")
+	tracyZoneBeginN("W:RaptorEvent")
 	for _, w in ipairs(self.RaptorEventList) do
 		w:RaptorEvent(args)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureReclaimStartedHealthbars(featureID, step)
-	tracy.ZoneBeginN("W:FeatureReclaimStartedHealthbars")
+	tracyZoneBeginN("W:FeatureReclaimStartedHealthbars")
 	for _, w in ipairs(self.FeatureReclaimStartedHealthbarsList) do
 		w:FeatureReclaimStartedHealthbars(featureID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCaptureStartedHealthbars(unitID, step)
-	tracy.ZoneBeginN("W:UnitCaptureStartedHealthbars")
+	tracyZoneBeginN("W:UnitCaptureStartedHealthbars")
 	for _, w in ipairs(self.UnitCaptureStartedHealthbarsList) do
 		w:UnitCaptureStartedHealthbars(unitID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
-	tracy.ZoneBeginN("W:ProjectileCreatedReloadHB")
+	tracyZoneBeginN("W:ProjectileCreatedReloadHB")
 	for _, w in ipairs(self.ProjectileCreatedReloadHBList) do
 		w:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
-	tracy.ZoneBeginN("W:UnitParalyzeDamageHealthbars")
+	tracyZoneBeginN("W:UnitParalyzeDamageHealthbars")
 	for _, w in ipairs(self.UnitParalyzeDamageHealthbarsList) do
 		w:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
-	tracy.ZoneBeginN("W:UnitParalyzeDamageEffect")
+	tracyZoneBeginN("W:UnitParalyzeDamageEffect")
 	for _, w in ipairs(self.UnitParalyzeDamageEffectList) do
 		w:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsClear(playerID)
-	tracy.ZoneBeginN("W:SelectedUnitsClear")
+	tracyZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
-	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	tracyZoneBeginN("W:SelectedUnitsSet")
 	for _, w in ipairs(self.SelectedUnitsSetList) do
 		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
-	tracy.ZoneBeginN("W:SelectedUnitsBatchUpdate")
+	tracyZoneBeginN("W:SelectedUnitsBatchUpdate")
 	for _, w in ipairs(self.SelectedUnitsBatchUpdateList) do
 		w:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsRemove(playerID, unitID)
-	tracy.ZoneBeginN("W:SelectedUnitsRemove")
+	tracyZoneBeginN("W:SelectedUnitsRemove")
 	for _, w in ipairs(self.SelectedUnitsRemoveList) do
 		w:SelectedUnitsRemove(playerID, unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsAdd(playerID, unitID)
-	tracy.ZoneBeginN("W:SelectedUnitsAdd")
+	tracyZoneBeginN("W:SelectedUnitsAdd")
 	for _, w in ipairs(self.SelectedUnitsAddList) do
 		w:SelectedUnitsAdd(playerID, unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
-	tracy.ZoneBeginN("W:LavaRenderState")
+	tracyZoneBeginN("W:LavaRenderState")
 	for _, w in ipairs(self.LavaRenderStateList) do
 		w:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -4640,20 +5194,24 @@ end
 --
 
 function widgetHandler:FeatureCreated(featureID, allyTeam)
-	tracy.ZoneBeginN("W:FeatureCreated")
+	tracyZoneBeginN("W:FeatureCreated")
 	for _, w in ipairs(self.FeatureCreatedList) do
+		tracyZoneBeginN(w._tracyFeatureCreatedName)
 		w:FeatureCreated(featureID, allyTeam)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureDestroyed(featureID, allyTeam)
-	tracy.ZoneBeginN("W:FeatureDestroyed")
+	tracyZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
+		tracyZoneBeginN(w._tracyFeatureDestroyedName)
 		w:FeatureDestroyed(featureID, allyTeam)
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 

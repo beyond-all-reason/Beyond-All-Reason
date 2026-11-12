@@ -2,7 +2,12 @@
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
-static-var restore_delay, oldHeading, Stunned;
+static-var  restore_delay, oldHeading, Stunned, curHead1, curPitch1;
+
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
+
 
 #define BASEPIECE body
 #define HITSPEED <55.0>
@@ -19,6 +24,8 @@ static-var restore_delay, oldHeading, Stunned;
 
 Create()
 {
+	Weapon1TurretX = <300.0>;
+	Weapon1TurretY = <300.0>;
 	hide flare;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
@@ -87,6 +94,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }

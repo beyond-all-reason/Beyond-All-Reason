@@ -21,7 +21,6 @@ in DataVS {
 	vec4 worldPos;
 	vec4 worldUV;
 	float inboundsness;
-	vec4 randpervertex;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -94,11 +93,12 @@ void main() {
 	vec2 diffuseNormalUVs =  worldUV.xy * WORLDUVSCALE + distortion.xy + rotatearoundvertices;
 	vec4 normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
 
+	vec3 viewDir = normalize(worldtocam);
+
 	// Perform optional parallax mapping
 	#if (PARALLAXDEPTH > 0 )
-		vec3 viewvec = normalize(worldtocam * -1.0);
 		float pdepth = PARALLAXDEPTH * (PARALLAXOFFSET - normalHeight.a ) * (1.0 - coastfactor);
-		diffuseNormalUVs += pdepth * viewvec.xz * 0.002;
+		diffuseNormalUVs -= pdepth * viewDir.xz * 0.002;
 		normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
 	#endif
 
@@ -118,7 +118,7 @@ void main() {
 
 	// Specular Color
 	vec3 reflvect = reflect(-sunDirN, fragNormal); // both unit length, so is the reflection
-	float specular = clamp(pow(dot(normalize(worldtocam), reflvect), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;
+	float specular = clamp(pow(dot(viewDir, reflvect), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;
 	fragColor.rgb += fragColor.rgb * specular;
 
 	fragColor.rgb += fragColor.rgb * (diffuseEmit.a * distortion.y * 700.0);
@@ -132,7 +132,6 @@ void main() {
 	//fragColor.rgb = distortionTexture.rgb ;
 	//fragColor.rg = worldUV.zw  ;
 	//fragColor.rgba *= vec4(fract(hmap*0.05));
-	//fragColor.rgb = vec3(randpervertex.w * 0.5 + 0.5);
 	//fragColor.rgb = fract(4*vec3(coastfactor));
 	fragColor.a = 1.0;
 	fragColor.a = clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);

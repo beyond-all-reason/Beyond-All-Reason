@@ -59,22 +59,14 @@ function M.new(widgetState, model, dependencies)
 	local labels = {
 		"title",
 		"pull",
-		"upload",
 		"publish",
 		"confirmPublish",
-		"download",
-		"stage",
 		"saveFirst",
 		"cancel",
 		"open",
-		"delete",
 		"confirmDelete",
 		"search",
 		"name",
-		"size",
-		"openWarning",
-		"moveLater",
-		"moveConfirm",
 		"downloadAll",
 		"deleteFolderWarning",
 		"removeTeam",
@@ -87,19 +79,16 @@ function M.new(widgetState, model, dependencies)
 		"detailsEmpty",
 		"previewMap",
 		"previewHeight",
-		"saveDetailsEmpty",
 		"startHelper",
 		"startHelperHint",
 		"legacyBadge",
 		"currentBadge",
 		"openListHint",
 		"saveListHint",
-		"filterLabel",
 		"searchLabel",
 		"newFolder",
 		"newFolderHint",
 		"create",
-		"noStages",
 		-- Team-view drag plan: the confirm bar and the two buttons that end it.
 		"confirmMoves",
 		"discardMoves",
@@ -157,8 +146,6 @@ function M.new(widgetState, model, dependencies)
 	model.libraryUploadOpen = false
 	model.libraryTrayMode = "upload" -- what the stage tray commits: upload | move
 	model.libraryTrayTitle = ""
-	model.libraryMoveOpen = false
-	model.libraryMoveQuestion = ""
 	model.libraryQueue = "" -- progress while the whole library is downloading
 	model.libraryRemoveConfirming = false
 	model.libraryGetConfirming = false
@@ -171,10 +158,8 @@ function M.new(widgetState, model, dependencies)
 	model.libraryStatusError = false
 	model.libraryStatusSuccess = false
 	model.libraryStatusTime = ""
-	model.libraryConnection = translate("offlineBadge")
 	model.libraryRepository = ""
 	model.libraryRemoteURL = ""
-	model.libraryBranch = ""
 	-- The strip: one dot, one line.
 	model.libraryStripDot = "unset" -- unset | off | starting | on | busy
 	model.libraryStripText = translate("stripUnset")
@@ -199,7 +184,6 @@ function M.new(widgetState, model, dependencies)
 		local dm = widgetState.dmHandle
 		if dm then
 			dm.projectOpenSelected = ""
-			dm.projectOpenIsFolder = false
 			dm.projectInfoFolder = false
 			dm.projectOpenHint = ""
 			dm.projectOpenConfirming = false
@@ -409,17 +393,6 @@ function M.new(widgetState, model, dependencies)
 			dm.libraryCardCopied = true
 		end
 	end
-	model.libraryStageStep = function(_, direction)
-		if widgetState.dmHandle.projectSavePending then
-			return
-		end
-		stageIndex = stageIndex + direction
-		armed = nil
-		ui.sync()
-		if widgetState.projectSaveUi then
-			widgetState.projectSaveUi.changed()
-		end
-	end
 	model.libraryPublish = function()
 		local dm = widgetState.dmHandle
 		local client = library()
@@ -445,27 +418,9 @@ function M.new(widgetState, model, dependencies)
 			dm.libraryStatus = translate("publishQuestion", { source = source, stage = dm.libraryStage })
 		end
 	end
-	-- After a project has been moved between folders on this disk, the same
-	-- move can be made in the team library. It is offered, never automatic.
-	model.libraryMoveConfirm = function()
-		local dm = widgetState.dmHandle
-		local pending = widgetState.projectPendingMove
-		if not pending or not dm.libraryWritable or dm.libraryBusy then
-			return
-		end
-		widgetState.projectPendingMove = nil
-		dm.libraryMoveOpen = false
-		send("move", pending.source, pending.stage)
-	end
-	model.libraryMoveDismiss = function()
-		widgetState.projectPendingMove = nil
-		widgetState.dmHandle.libraryMoveOpen = false
-		widgetState.dmHandle.libraryMoveQuestion = ""
-	end
-	-- Fetch everything in the catalogue that is not on this disk yet, one
-	-- project at a time through the same request path a single download uses.
-	-- Projects already here are left alone rather than re-fetched over local
-	-- edits.
+	-- Fetch everything in the catalogue not on this disk yet, one project at a
+	-- time through the single-download path. Local projects are not re-fetched
+	-- over local edits.
 	model.libraryDownloadAll = function()
 		local dm = widgetState.dmHandle
 		local client = library()
@@ -571,7 +526,6 @@ function M.new(widgetState, model, dependencies)
 			dm.libraryWritable = false
 			dm.libraryBusy = (project and project.isBusy()) or false
 			dm.libraryUploadOpen = false
-			dm.libraryMoveOpen = false
 			dm.libraryMovesOpen = false
 			dm.libraryMovesPending = ""
 			dm.libraryCardOpen = false
@@ -613,10 +567,6 @@ function M.new(widgetState, model, dependencies)
 		dm.libraryBusy = (client and client.isBusy()) or (project and project.isBusy()) or false
 		dm.libraryWritable = state.online == true and state.allow_push == true
 		dm.libraryConfigured = state.version == 1 or #(catalog.projects or {}) > 0 or #(catalog.stages or {}) > 0
-		dm.libraryConnection = translate(
-			not dm.libraryOnline and "offlineBadge"
-				or (dm.libraryBusy and "workingBadge" or (dm.libraryWritable and "onlineBadge" or "readOnlyBadge"))
-		)
 		local remote = tostring(state.remote or catalog.remote or "")
 		if remote ~= lastRemote then
 			lastRemote = remote
@@ -624,13 +574,8 @@ function M.new(widgetState, model, dependencies)
 			dm.libraryRepository =
 				remote:gsub("^https://github.com/", ""):gsub("^git@github.com:", ""):gsub("%.git$", "")
 		end
-		dm.libraryBranch = tostring(state.branch or "")
 		if not dm.libraryWritable or dm.libraryBusy or not widgetState.projectOpenSelectedSlug then
 			dm.libraryUploadOpen = false
-		end
-		-- The offer only stands while the companion could still act on it.
-		if not dm.libraryWritable or dm.libraryBusy or not widgetState.projectPendingMove then
-			dm.libraryMoveOpen = false
 		end
 		-- A drag plan only stands while the companion could still carry it out.
 		local staged = ui.pendingMoveCount()
@@ -1229,8 +1174,7 @@ function M.newSave(widgetState, model, dependencies)
 			message("saveRejected", nil, true)
 		else
 			-- The window closes either way: progress and the outcome live in
-			-- the editor's status strip, which is where a save has always been
-			-- watched from.
+			-- the editor's status strip.
 			dm.projectSaveOpen = false
 			if upload then
 				-- Never infer completion from a previous lastSave() or an existing file.

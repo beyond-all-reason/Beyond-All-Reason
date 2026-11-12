@@ -4,14 +4,15 @@
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  gun_3, isOpen;
+static-var  gun_3, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
-#include "../opencloseanim.h"
+#include "../popup_openclose.h"
+
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -63,64 +64,73 @@ Open()
 	move boreg to z-axis [0] speed [24];
 	move barrelg to z-axis [0] speed [10];
 
-		turn turretb to x-axis <0> speed <180>;
+	turn turretb to x-axis <0> speed <180>;
+	move boreb to z-axis [0] speed [14];
+	move barrelb to z-axis [0] speed [10];
 
-		move boreb to z-axis [0] speed [14];
-		move barrelb to z-axis [0] speed [10];
-		wait-for-turn turretb around x-axis;
-		wait-for-move borer along y-axis;
-		wait-for-turn turretg around x-axis;
+	wait-for-turn turretb around x-axis;
+	wait-for-move borer along y-axis;
+	wait-for-turn turretg around x-axis;
+	wait-for-move barrelb along z-axis;
 
 	sleep 22;
-	isOpen = TRUE;
 }
 
 Close()
 {
-	isOpen = FALSE;
+	turn turretb to x-axis <0> speed <180>;
+	turn turretg to x-axis <0> speed <180>;
+	turn turretr to y-axis <0> speed <180>;	
+	turn body1 to y-axis <0> speed <180>;	
+	turn body2 to y-axis <0> speed <180>;	
+	wait-for-turn turretb around x-axis;
+	wait-for-turn turretg around x-axis;
+	wait-for-turn turretr around x-axis;
+
+	turn turretb to x-axis <180> speed <180>;
 	
-		turn turretb to x-axis <0> speed <180>;
-		turn turretg to x-axis <0> speed <180>;
-		turn turretr to y-axis <0> speed <180>;	
-		turn body1 to y-axis <0> speed <180>;	
-		turn body2 to y-axis <0> speed <180>;	
-		wait-for-turn turretb around x-axis;
-		wait-for-turn turretg around x-axis;
-		wait-for-turn turretr around x-axis;
+	move boreb to z-axis [-9] speed [14];
+	move barrelb to z-axis [-10] speed [10];
 
-		turn turretb to x-axis <180> speed <180>;
-		
-		move boreb to z-axis [-9] speed [14];
-		move barrelb to z-axis [-10] speed [10];
+	turn turretg to x-axis <180> speed <180>;
+	
+	move boreg to z-axis [-12] speed [24];
+	move barrelg to z-axis [-4] speed [10];
 
-		turn turretg to x-axis <180> speed <180>;
-		
-		move boreg to z-axis [-12] speed [24];
-		move barrelg to z-axis [-4] speed [10];
+	move borer to z-axis [-15] speed [30];
+	move barrelr to z-axis [-10] speed [20];
+	wait-for-turn turretb around x-axis;
+	wait-for-move borer along y-axis;
+	wait-for-turn turretg around x-axis;
 
-		move borer to z-axis [-15] speed [30];
-		move barrelr to z-axis [-10] speed [20];
-		wait-for-turn turretb around x-axis;
-		wait-for-move borer along y-axis;
-		wait-for-turn turretg around x-axis;
+	move body2 to y-axis [-7] speed [90];
+	wait-for-move body2 along y-axis;
 
-		move body2 to y-axis [-7] speed [90];
-		wait-for-move body2 along y-axis;
-
-		move body1 to y-axis [-14] speed [90];
-		move body2 to y-axis [-24] speed [90];
-		wait-for-move body1 along y-axis;
+	move body1 to y-axis [-14] speed [90];
+	move body2 to y-axis [-24] speed [90];
+	wait-for-move body1 along y-axis;
+	wait-for-move body2 along y-axis;	
 	
 	wait-for-turn body1 around x-axis;
 	wait-for-turn body2 around x-axis;
 	sleep 22;
+}
 
+OpenAnim()
+{
+
+	set ARMORED to 0;
+	call-script Open();
+}
+
+CloseAnim()
+{
+	call-script Close();
 	set ARMORED to 1;
 	
 	start-script CATT1_Init();
 	start-script CATT2_Init();
 }
-
 
 Create()
 {
@@ -131,8 +141,9 @@ Create()
 	hide flarer1;
 	gun_3 = 0;
 	isOpen = TRUE;
+	wantOpen = TRUE;
+	restore_delay = 2000;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script OpenCloseAnim(1);
 	start-script CATT1_Init();
 	start-script CATT2_Init();
 }
@@ -144,7 +155,7 @@ Create()
 
 Activate()
 {
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 }
 
 Deactivate()
@@ -152,8 +163,7 @@ Deactivate()
 	signal SIGNAL_AIM1;
 	signal SIGNAL_AIM2;
 	signal SIGNAL_AIM3;
-	
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -196,11 +206,11 @@ AimWeapon3(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn turretr to y-axis heading speed <500.0>;
+	turn turretr to y-axis heading speed <500.000000>;
 	wait-for-turn turretr around y-axis;
-
 	return (1);
 }
+
 
 FireWeapon1()
 {
@@ -215,6 +225,21 @@ FireWeapon2()
 FireWeapon3()
 {
 	gun_3 = !gun_3;
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromWeapon1(pieceIndex)

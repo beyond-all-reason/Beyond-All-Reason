@@ -20,6 +20,9 @@ local mathMax = math.max
 local spGetGroundHeight = Spring.GetGroundHeight
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetGameRulesParam = Spring.GetGameRulesParam
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
 
 local draftMode = Spring.GetModOptions().draft_mode
 
@@ -29,7 +32,7 @@ local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetLocalPlayerID()
-local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+local myPlayerName, _, mySpec, myTeamID = spGetPlayerInfo(myPlayerID, false)
 myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID))
 	or myPlayerName
 local isFFA = BAR.Utilities.Gametype.IsFFA()
@@ -39,6 +42,15 @@ local readyButtonColor = { 0.05, 0.28, 0 }
 local unreadyButtonColor = { 0.28, 0.05, 0 }
 local subButtonColor = { 0.08, 0.22, 0 }
 local unsubButtonColor = { 0.22, 0.08, 0 }
+local blinkMult = 1.33
+local blinkButtonColorBottom = {
+	readyButtonColor[1] * 0.55 * blinkMult,
+	readyButtonColor[2] * 0.55 * blinkMult,
+	readyButtonColor[3] * 0.55 * blinkMult,
+	1,
+}
+local blinkButtonColorTop =
+	{ readyButtonColor[1] * blinkMult, readyButtonColor[2] * blinkMult, readyButtonColor[3] * blinkMult, 1 }
 
 local readied = false -- send readystate (in widget:GameSetup)
 local pressedReady -- pressed button
@@ -48,7 +60,6 @@ local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the
 local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get hosts traffic from
 local gameStarting = false
 local timer = 0
-local timer2 = 0
 local auto_ready_timer = 120
 local auto_ready = not BAR.Utilities.Gametype.IsSinglePlayer()
 
@@ -63,6 +74,7 @@ local orgbuttonW = 115
 local buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
 local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
+local font ---@type LuaFont
 local buttonList, buttonHoverList
 local buttonText = ""
 local buttonDrawn = false
@@ -72,20 +84,36 @@ local readyBlockedConditions = {}
 local cachedTooltipText = ""
 
 local function updateReadyTooltip()
-	if not next(readyBlockedConditions) then
-		isReadyBlocked = false
-		cachedTooltipText = ""
-		for conditionKey, description in pairs(readyBlockedConditions) do
-			if description ~= nil then
-				if cachedTooltipText ~= "" then
-					cachedTooltipText = cachedTooltipText .. "\n"
-				end
-				cachedTooltipText = cachedTooltipText .. BAR.I18N(description)
-			end
+	isReadyBlocked = next(readyBlockedConditions) ~= nil
+	cachedTooltipText = ""
+	for _, description in pairs(readyBlockedConditions) do
+		if cachedTooltipText ~= "" then
+			cachedTooltipText = cachedTooltipText .. "\n"
 		end
-	else
-		cachedTooltipText = ""
+		cachedTooltipText = cachedTooltipText .. BAR.I18N(description)
 	end
+end
+
+-- BAR.I18N results, cleared on LanguageChanged
+local countdownTexts = {}
+
+local function countdownText(seconds)
+	local text = countdownTexts[seconds]
+	if not text then
+		text = BAR.I18N("ui.initialSpawn.startCountdown", { time = seconds })
+		countdownTexts[seconds] = text
+	end
+	return text
+end
+
+local readyStateKeys = {} ---@type table<number, string?>
+local function getReadyState(playerID)
+	local key = readyStateKeys[playerID]
+	if not key then
+		key = "player_" .. playerID .. "_readyState"
+		readyStateKeys[playerID] = key
+	end
+	return spGetGameRulesParam(key)
 end
 
 local UiElement, UiButton, elementPadding, uiPadding
@@ -98,9 +126,7 @@ local showLockButton = true
 
 local numPlayers = BAR.Utilities.GetPlayerCount()
 
-local shapeOpacity = 0.6
-local unitshapes = {}
-local teamStartPositions = {}
+local teamStartShapes = {} -- teamID -> { unitDefID, x, y, z, shape }
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
@@ -220,7 +246,7 @@ function widget:GameSetup(state, ready, playerStates)
 	if
 		not spec
 		and not ihavejoined
-		and Spring.GetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil
+		and spGetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil
 	then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true
@@ -241,7 +267,7 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- starts game after a specified amount of time after all players have joined
-	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+	if spGetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		auto_ready_timer = auto_ready_timer - Spring.GetLastUpdateSeconds()
 	end
 	if auto_ready_timer <= 0 and auto_ready == true then
@@ -252,12 +278,12 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
+		local _, _, spectator_flag = spGetPlayerInfo(playerID, false)
 		if spectator_flag == false then
-			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-			--spEcho(#playerList, playerID, is_player_ready)
+			local is_player_ready = getReadyState(playerID)
 			if is_player_ready == 0 or is_player_ready == 4 then
 				ready = false
+				break
 			end
 		end
 	end
@@ -331,6 +357,8 @@ local function checkStartPointChosen()
 end
 
 function widget:LanguageChanged()
+	countdownTexts = {}
+	updateReadyTooltip()
 	widget:ViewResize()
 end
 
@@ -363,12 +391,17 @@ function widget:Initialize()
 		end
 	end
 
+	if isStartUnitSpawnDisabled then
+		widgetHandler:RemoveCallIn("DrawWorld")
+	end
+
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
 
 	WG.pregameui = {}
+	-- gui_quick_start re-adds its condition every 0.15s
 	WG.pregameui.addReadyCondition = function(conditionKey, description)
-		if conditionKey and description then
+		if conditionKey and description and readyBlockedConditions[conditionKey] ~= description then
 			readyBlockedConditions[conditionKey] = description
 			isReadyBlocked = true
 			updateReadyTooltip()
@@ -395,17 +428,12 @@ function widget:DrawScreen()
 		checkStartPointChosen()
 	end
 
-	if WG.guishader then
-		WG.guishader.RemoveRect("pregameui")
-	end
-
 	buttonDrawn = false
 
 	-- display autoready timer
-	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+	if spGetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString
-			.. BAR.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, mathFloor(auto_ready_timer)) })
+		local text = colorString .. countdownText(mathMax(1, mathFloor(auto_ready_timer)))
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -428,23 +456,14 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString
-			.. BAR.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, 3 - mathFloor(timer)) })
+		local text = colorString .. countdownText(mathMax(1, 3 - mathFloor(timer)))
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 	elseif showbutton == true then
-		local playerList = Spring.GetPlayerList()
-		local numPlayers = #playerList
-		local numPlayersReady = 0
-		if numPlayers > 3 then
-			for _, playerID in pairs(playerList) do
-				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
-				if readystate == -1 or readystate == 1 or readystate == 2 then
-					numPlayersReady = numPlayersReady + 1
-				end
-			end
-			blinkButton = (numPlayers / numPlayersReady > 0.75)
+		-- blink with more than 3 players, the player list only grows
+		if not blinkButton then
+			blinkButton = #Spring.GetPlayerList() > 3
 		end
 
 		buttonDrawn = true
@@ -464,7 +483,6 @@ function widget:DrawScreen()
 			end
 		else
 			gl.CallList(buttonList)
-			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
@@ -478,13 +496,23 @@ function widget:DrawScreen()
 				colorString = "\255\222\222\222"
 			end
 			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
-				local mult = 1.33
-				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, {
-					readyButtonColor[1] * 0.55 * mult,
-					readyButtonColor[2] * 0.55 * mult,
-					readyButtonColor[3] * 0.55 * mult,
+				UiButton(
+					buttonRect[1],
+					buttonRect[2],
+					buttonRect[3],
+					buttonRect[4],
 					1,
-				}, { readyButtonColor[1] * mult, readyButtonColor[2] * mult, readyButtonColor[3] * mult, 1 })
+					1,
+					1,
+					1,
+					1,
+					1,
+					1,
+					1,
+					nil,
+					blinkButtonColorBottom,
+					blinkButtonColorTop
+				)
 			end
 		end
 		font:Begin()
@@ -498,22 +526,10 @@ function widget:DrawScreen()
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
-end
 
-local function removeUnitShape(id)
-	if unitshapes[id] then
-		WG.StopDrawUnitShapeGL4(unitshapes[id])
-		unitshapes[id] = nil
+	if not buttonDrawn and WG.guishader then
+		WG.guishader.RemoveRect("pregameui")
 	end
-end
-
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacity)
-	opacity = opacity or shapeOpacity
-	if unitshapes[id] then
-		removeUnitShape(id)
-	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, opacity, teamID, nil, nil)
-	return unitshapes[id]
 end
 
 function widget:DrawWorld()
@@ -521,28 +537,27 @@ function widget:DrawWorld()
 		return
 	end
 
-	if isStartUnitSpawnDisabled then
-		return
-	end
-
 	-- draw pregamestart commander models at start positions
-	local id
+	local getStartPosition = WG.map_startbox and WG.map_startbox.GetEffectiveStartPosition
+		or Spring.GetTeamStartPosition
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local tsx, tsy, tsz
-		if WG.map_startbox and WG.map_startbox.GetEffectiveStartPosition then
-			tsx, tsy, tsz = WG.map_startbox.GetEffectiveStartPosition(teamID)
-		else
-			tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
-		end
+		local tsx, _, tsz = getStartPosition(teamID)
 		if tsx and tsx > 0 then
-			local startUnitDefID = Spring.GetTeamRulesParam(teamID, "startUnit")
+			local startUnitDefID = spGetTeamRulesParam(teamID, "startUnit")
 			if startUnitDefID then
-				id = startUnitDefID .. "_" .. tsx .. "_" .. spGetGroundHeight(tsx, tsz) .. "_" .. tsz
-				if teamStartPositions[teamID] ~= id then
-					removeUnitShape(teamStartPositions[teamID])
-					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, spGetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+				local tsy = spGetGroundHeight(tsx, tsz)
+				local shape = teamStartShapes[teamID]
+				if not shape then
+					shape = {}
+					teamStartShapes[teamID] = shape
+				end
+				if shape[1] ~= startUnitDefID or shape[2] ~= tsx or shape[3] ~= tsy or shape[4] ~= tsz then
+					if shape[5] then
+						WG.StopDrawUnitShapeGL4(shape[5])
+					end
+					shape[1], shape[2], shape[3], shape[4] = startUnitDefID, tsx, tsy, tsz
+					shape[5] = WG.DrawUnitShapeGL4(startUnitDefID, tsx, tsy, tsz, 0, 1, teamID, nil, nil)
 				end
 			end
 		end
@@ -556,8 +571,10 @@ function widget:Shutdown()
 		WG.guishader.RemoveRect("pregameui")
 	end
 	if WG.StopDrawUnitShapeGL4 then
-		for id, _ in pairs(unitshapes) do
-			removeUnitShape(id)
+		for _, shape in pairs(teamStartShapes) do
+			if shape[5] then
+				WG.StopDrawUnitShapeGL4(shape[5])
+			end
 		end
 	end
 	WG.pregameui = nil

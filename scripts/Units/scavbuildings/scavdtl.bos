@@ -3,45 +3,57 @@
 
 piece  base, post, turret, flare, aimpoint;
 
-static-var  isOpen, restore_delay;
+static-var  restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
 #include "../../damagedsmoke.h"
+#include "../../popup_openclose.h"
+
 
 Create()
 {
 	hide aimpoint;
 	hide flare;
+	hide flare;
 	restore_delay = 2000;
-	isOpen = 0;
-	start-script Activate();
+	start-script RequestOpen();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
-	start-script Deactivate();
+	start-script RequestClose();
 }
 
-Activate()
+
+OpenAnim()
 {
 	set ARMORED to 0;
 	move post to y-axis [0] speed [50];
 	wait-for-move post along y-axis;
 	turn turret to x-axis <0> speed <300>;
 	wait-for-turn turret around x-axis;
-	isOpen = 1;
 }
 
-Deactivate()
+CloseAnim()
 {
 	set ARMORED to 1;
-	isOpen = 0;
-	turn post to y-axis <0.0> speed <300.0>;
+	turn post to y-axis <0.000000> speed <300.000000>;
 	turn turret to x-axis <90> speed <300>;
 	wait-for-turn post around y-axis;
 	wait-for-turn turret around x-axis;
 	move post to y-axis [-29] speed [50];
 	wait-for-move post along y-axis;
+}
+
+
+Activate()
+{
+	start-script RequestOpen();
+}
+
+Deactivate()
+{
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -55,8 +67,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script Deactivate();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -73,7 +84,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	if (!isOpen) start-script Activate();
+	start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
@@ -84,6 +95,11 @@ AimWeapon1(heading, pitch)
 	wait-for-turn post around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot1()

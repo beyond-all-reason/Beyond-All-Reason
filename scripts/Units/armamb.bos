@@ -4,9 +4,11 @@
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, stunned, lastHeading;
+static-var  restoreDelay, stunned, lastHeading;
 
 #define SIGNAL_AIM2			1
+
+#include "../popup_openclose.h"
 
 openTurret()
 {
@@ -74,20 +76,15 @@ closeTurret()
 }
 
 
-Go()
+OpenAnim()
 {
-	if(!turretOpen)
-	{
-		call-script openTurret();
-	}
-	turretOpen = 1;
+	call-script openTurret();
 	set ARMORED to 0;
 }
 
-Stop()
+CloseAnim()
 {
 	set ARMORED to 1;
-	turretOpen = 0;
 	call-script closeTurret();
 }
 
@@ -103,7 +100,7 @@ ExecuteRestoreAfterDelay()
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 
-	start-script Stop();
+	start-script RequestClose();
 }
 
 SetStunned(state)
@@ -127,7 +124,8 @@ Create()
 	hide aimpoint;
 	hide flare;
 	hide flare;
-	turretOpen = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restoreDelay = 10000;
 
 	SLEEP_UNTIL_UNITFINISHED;
@@ -141,7 +139,7 @@ Create()
 
 aimCommon(heading, pitch)
 {
-	while(!turretOpen)
+	while(!isOpen)
 	{
 		sleep 250;
 	}
@@ -158,7 +156,7 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	start-script Go();
+	start-script RequestOpen();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -183,7 +181,7 @@ AimWeapon2(heading, pitch)
 	{
 		return(0);
 	}
-	start-script Go();
+	start-script RequestOpen();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -204,6 +202,21 @@ AimWeapon2(heading, pitch)
 AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 

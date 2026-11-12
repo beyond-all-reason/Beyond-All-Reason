@@ -17,11 +17,13 @@ door5,
 door6,
 mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop, turretmidpoint;
 
-static-var  turretOpen, nextBarrel, stunned, restoreDelay;
+static-var  nextBarrel, stunned, restoreDelay;
 
 #define SIGNAL_AIM1		1
 
 #include "../damagedsmoke.h"
+
+#include "../popup_openclose.h"
 
 Create()
 {
@@ -49,7 +51,8 @@ Create()
 
 	nextBarrel = 0;
 
-	turretOpen = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restoreDelay = 10000;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
@@ -79,6 +82,8 @@ openTurret(){
 	turn housingStrut to x-axis <0> speed <140>;
 	turn sleeveHousing to x-axis <0> speed <300>;
 	wait-for-turn sleeveHousing around x-axis;
+	wait-for-turn supportStrut around x-axis;
+	wait-for-turn housingStrut around x-axis;
 
 }
 
@@ -100,20 +105,16 @@ closeTurret(){
 	turn door5 to x-axis <0> speed <250>;
 	sleep 10;
 	turn door6 to x-axis <0> speed <250>;
+	wait-for-turn door6 around x-axis;
 }
 
-Go(){
-	if( !turretOpen )
-	{
-		call-script openTurret();
-	}
-	turretOpen = 1;
+OpenAnim(){
+	call-script openTurret();
 	set ARMORED to 0;
 }
 
-Stop(){
+CloseAnim(){
 	set ARMORED to 1;
-	turretOpen = 0;
 	call-script closeTurret();
 }
 
@@ -121,15 +122,14 @@ ExecuteRestoreAfterDelay()
 {
 	if (stunned)
 	{
-		return (1);
-	}
-	set-signal-mask 0;
-	turn mainStrut to y-axis <0.0> speed <100.016484>;
-	turn sleeveHousing to x-axis <0.0> speed <50.005495>;
+        return (1);
+    }
+	turn mainStrut to y-axis <0.000000> speed <100.016484>;
+	turn sleeveHousing to x-axis <0.000000> speed <50.005495>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
-
-	start-script Stop();
+	
+	start-script RequestClose();
 }
 
 SetStunned(State)
@@ -150,7 +150,7 @@ RestoreAfterDelay()
 
 aimCommon(heading, pitch)
 {
-	while( !turretOpen )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -164,7 +164,7 @@ aimCommon(heading, pitch)
 
 aimCommonHigh(heading, pitch)
 {
-	while( !turretOpen )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -179,11 +179,12 @@ aimCommonHigh(heading, pitch)
 
 AimWeapon1(heading, pitch)
 {
+	start-script RequestOpen();
+	
 	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
 	}
-	start-script Go();
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
@@ -203,11 +204,12 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
+	start-script RequestOpen();
+
 	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
-	start-script Go();
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
@@ -229,6 +231,21 @@ AimWeapon2(heading, pitch)
 AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromWeapon1(pieceIndex)

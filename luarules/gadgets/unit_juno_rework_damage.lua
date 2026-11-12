@@ -142,25 +142,17 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		Spring.SetGameRulesParam("juno_area_denial_radius", radius) -- read by gui_attack_aoe.lua
-		if WeaponDefNames.armjuno_juno_pulse then
-			Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
-		end
-		if WeaponDefNames.corjuno_juno_pulse then
-			Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)
-		end
-		if WeaponDefNames.legjuno_juno_pulse then
-			Script.SetWatchExplosion(WeaponDefNames.legjuno_juno_pulse.id, true)
+		for weaponDefID in pairs(junoWeapons) do
+			gadgetHandler:RegisterExplosion(weaponDefID)
 		end
 	end
 
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
-		if junoWeapons[weaponID] then
-			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
-			centers[counter] = junoExpl
-			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
-			counter = counter + 1
-		end
+		local curtime = SpGetGameSeconds()
+		local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
+		centers[counter] = junoExpl
+		--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
+		counter = counter + 1
 	end
 
 	local lastupdate = -1

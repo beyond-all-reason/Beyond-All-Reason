@@ -777,6 +777,7 @@ local function initGL4()
 		return false
 	end
 	plasmaVAO = plasmaVBO:makeVAOandAttach(quadVBO, plasmaVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(plasmaVAO, false, true)
 
 	return true
 end
@@ -798,6 +799,7 @@ local function resizePlasmaVBO(needed)
 	end
 	plasmaVAO:Delete()
 	plasmaVAO = plasmaVBO:makeVAOandAttach(plasmaVBO.vertexVBO, plasmaVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(plasmaVAO, false, true)
 end
 
 local function cleanupGL4()

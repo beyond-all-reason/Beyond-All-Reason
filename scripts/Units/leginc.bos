@@ -538,6 +538,7 @@ StopMoving()
 	isMoving = FALSE;
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
+	animSpeed = 6; // what UnitSpeed sets at rest; it only runs while moving
 }
 
 RestoreAfterDelay()
@@ -575,7 +576,6 @@ Create()
 	aimAdj = 0;
 	start-script Steering();
 	start-script StopMoving();
-	start-script UnitSpeed();
 }
 
 AimFromWeapon1(pieceIndex)

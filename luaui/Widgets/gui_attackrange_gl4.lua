@@ -1,5 +1,3 @@
-include("keysym.h.lua")
-
 local versionNumber = "1.2"
 
 local widget = widget ---@type Widget
@@ -984,7 +982,7 @@ local function makeShaders()
 	-- The coverage mask shaders are optional: without them the stencil path is used.
 	maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache, 0) or maskShader
 	compositeShader = LuaShader.CheckShaderUpdates(compositeShaderSourceCache, 0) or compositeShader
-	fullScreenQuadVAO = fullScreenQuadVAO or InstanceVBOTable.MakeTexRectVAO()
+	fullScreenQuadVAO = fullScreenQuadVAO or InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 	if not (maskShader and compositeShader and fullScreenQuadVAO) then
 		spEcho("Attack Range GL4: range coverage mask unavailable, using the stencil path")
 	elseif not maskAcquired then
@@ -1011,7 +1009,7 @@ local function initGL4()
 			attackRangeVAOs[atkRangeClass].vertexVBO,
 			attackRangeVAOs[atkRangeClass].instanceVBO
 		)
-		attackRangeVAOs[atkRangeClass].VAO = newVAO
+		attackRangeVAOs[atkRangeClass].VAO = InstanceVBOTable.fillVAOSlots(newVAO, false, true)
 	end
 	return makeShaders()
 end
@@ -1314,12 +1312,14 @@ function widget:Update(dt)
 			return
 		end
 
-		local desc, args = spTraceScreenRay(mx, my, false)
 		local mUnitID
-		if desc and desc == "unit" then
-			mUnitID = args
-		else
-			mUnitID = nil
+		if widgetHandler:ModalAllows(widget) then
+			local desc, args = spTraceScreenRay(mx, my, false)
+			if desc == "unit" then
+				mUnitID = args
+			end
+		end
+		if not mUnitID then
 			RemoveSelectedUnit(mouseUnit, true)
 			mouseUnit = nil
 		end
