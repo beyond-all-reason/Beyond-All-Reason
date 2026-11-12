@@ -3,7 +3,7 @@
 
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 
-static-var  restore_delay, oldHeading, dishturn, wpn1_lasthead;
+static-var  restore_delay, oldHeading, dishturn, curHead1, curPitch1;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
@@ -17,7 +17,7 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (heading - oldheading)*3;
+		steery = WRAPDELTA(heading - oldheading)*3;
 		turn steer to y-axis steery speed <120>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
@@ -102,9 +102,37 @@ ExecuteRestoreAfterDelay()
    if (Stunned) {
        return (1);
     }
-	turn turret to y-axis <0.0> speed <90.0>;
-	turn gun to x-axis <0.0> speed <50.0>;
-	wpn1_lasthead = 0xbadface;
+	set-signal-mask SIGNAL_AIM1;
+
+	var done;
+	var delta;
+	var nextHead;
+	var nextPitch;
+
+	while (!done){
+		done = TRUE;
+		delta = WRAPDELTA(0 - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(<90.0> / 30))) {
+			nextHead = curHead1 + SIGN(delta) * (<90.0> / 30);
+			done = FALSE;
+		}else{
+			nextHead = 0;
+		}
+		delta = WRAPDELTA(0 - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(<50.0> / 30))) {
+			nextPitch = curPitch1 + SIGN(delta) * (<50.0> / 30);
+			done = FALSE;
+		}else{
+			nextPitch = 0;
+		}
+		turn turret to y-axis nextHead speed <90.0>;
+		turn gun to x-axis <0.0> - nextPitch speed <50.0>;
+		if (!done) {
+			sleep 1;
+		}
+		curHead1 = nextHead;
+		curPitch1 = nextPitch;
+	}
  }
 SetStunned(State)
 {
@@ -123,14 +151,38 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed Weapon1TurretY;
-	turn gun to x-axis <0.0> - pitch speed Weapon1TurretX;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
-	{
-		wpn1_lasthead = 0xbadface;
-		wait-for-turn turret around y-axis;
+	set-signal-mask SIGNAL_AIM1;
+
+	var canShoot;
+	var delta;
+	var nextHead;
+	var nextPitch;
+
+	while (!canShoot){
+		canShoot = TRUE;
+		delta = WRAPDELTA(heading - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			nextHead = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
+			canShoot = FALSE;
+		}else{
+			nextHead = heading;
+		}
+		delta = WRAPDELTA(pitch - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			nextPitch = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
+			canShoot = FALSE;
+		}else{
+			nextPitch = pitch;
+		}
+		turn turret to y-axis nextHead speed Weapon1TurretY;
+		turn gun to x-axis <0.0> - nextPitch speed Weapon1TurretX;
+		if (!canShoot) {
+			sleep 1;
+		}
+		curHead1 = nextHead;
+		curPitch1 = nextPitch;
 	}
-	wpn1_lasthead = heading;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
