@@ -455,7 +455,7 @@ local function registerValueValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Spatial validators: Position, Positions, Area and Direction
+-- Spatial validators: Position, Positions, Area, Direction and FacingOrDirection
 --------------------------------------------------------------------------------
 
 -- Height is optional, so a position without y is only checked for x and z.
@@ -567,6 +567,17 @@ local function registerSpatialValidators(parameterValidators, context)
 
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
+	end
+
+	parameterValidators[Types.FacingOrDirection] = function(value)
+		local valueType = type(value)
+		if valueType == "table" then
+			return parameterValidators[Types.Direction](value)
+		end
+		if valueType ~= "string" and valueType ~= "number" then
+			return { { message = "Unexpected parameter type, expected string, number or table, got " .. valueType } }
+		end
+		return parameterValidators[Types.Facing](value)
 	end
 end
 
