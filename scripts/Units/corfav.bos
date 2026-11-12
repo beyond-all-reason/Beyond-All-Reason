@@ -17,7 +17,7 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = WRAPDELTA(heading - oldheading)*3;
+		steery = (heading - oldheading)*3;
 		turn steer to y-axis steery speed <120>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;

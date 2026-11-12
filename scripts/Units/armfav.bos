@@ -25,7 +25,7 @@ Steering(heading, steer, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steer = WRAPDELTA(heading - oldheading)*3;
+		steer = (heading - oldheading)*3;
 		turn rfwheel to y-axis steer speed <180>;	
 		turn lfwheel to y-axis steer speed <180>;	
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
