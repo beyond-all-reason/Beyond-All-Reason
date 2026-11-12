@@ -4,6 +4,9 @@ name: Find Pull Request For Push
 # triggered by both events calls this to skip the push run. A fork's pull
 # request is in the repository it was forked from, and a lookup that fails
 # reports no pull request, so that the checks run rather than go missing.
+#
+# A push to the default branch always runs. Its open pull request is a release,
+# whose run tests the merge into stable rather than the pushed commit.
 
 on:
   workflow_call:
@@ -15,6 +18,7 @@ permissions: {}
 
 jobs:
   find:
+    if: github.event.repository.fork || github.ref_name != github.event.repository.default_branch
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read

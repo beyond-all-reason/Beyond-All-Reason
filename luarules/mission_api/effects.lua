@@ -1,7 +1,7 @@
 ---
 --- Status effects, which deal damage, modify unit attributes, and apply other state changes.
 ---
---- Each effect in luarules/mission_api/effects/ implements Create(area, strength):id and Remove(id).
+--- Each effect in luarules/mission_api/effects/ has a type and implements Create(area, strength):id and Remove(id).
 --- A nil area resolves to the whole map. Each effect determines what its "strength" value does.
 ---
 

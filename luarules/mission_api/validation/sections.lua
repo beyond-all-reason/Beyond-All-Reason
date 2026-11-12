@@ -562,6 +562,22 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+-- a menu slot needs a builder type
+local function validateAddBuildOptionAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.AddBuildOption or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.buildMenuPosition ~= nil and parameters.builderDefName == nil then
+		actionReport.Error(
+			actionID,
+			"Parameter 'buildMenuPosition' needs builderDefName",
+			"Parameter: buildMenuPosition"
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -571,6 +587,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateAddBuildOptionAction(context, actionReport, actionID, action)
 		end
 	end
 end
@@ -616,7 +633,8 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 
 	for _, loadout in ipairs(loadouts) do
 		for _, result in ipairs(parameterValidators[loadout.type](loadout.value) or {}) do
-			loadoutReport.Error(loadout.name .. (result.parameterNameSuffix or ""), result.message)
+			local reportResult = result.isWarning and loadoutReport.Warn or loadoutReport.Error
+			reportResult(loadout.name .. (result.parameterNameSuffix or ""), result.message)
 		end
 	end
 end
