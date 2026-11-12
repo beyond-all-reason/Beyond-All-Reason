@@ -1,71 +1,71 @@
 * Terraform Brush - Widget-specific styles */
 /* Layout utilities, palette colors, and theme classes come from shared style guide files */
 
-/* ═══════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — Standard values for visual consistency across all
-   sub-panels (Terrain, Metal, Features, Splat, Decals, Weather,
-   Environment, Lights). Update these comments when changing values.
-   ═══════════════════════════════════════════════════════════════════════
+/* === DESIGN TOKENS ===
+   Standard values for visual consistency across all sub-panels (Terrain, Metal,
+   Features, Splat, Decals, Weather, Environment, Lights). Update this list when
+   changing values.
+
    SURFACES
-     Panel bg:       #1d1d1d  (bg-darkest)
-     Input bg:       #161620
-     Button bg (primary): #393942  — top-level mode, shape buttons
-     Button bg (secondary): #32323c — action, compact, env launcher, dist
-     Button hover:   #484858  (secondary), #4c4c58 (primary)
-     Inset bg:       #141418  (grouped toggles, dropdown interiors)
+     Panel bg:              #1d1d1d  (bg-darkest)
+     Input bg:              #161620
+     Button bg (primary):   #393942  top-level mode, shape buttons
+     Button bg (secondary): #32323c  action, compact, env launcher, dist
+     Button hover:          #484858 (secondary), #4c4c58 (primary)
+     Inset bg:              #141418  (grouped toggles, dropdown interiors)
 
    BORDERS
-     Default (primary):  #50505a50
-     Default (secondary): #55556040
-     Hover:          #8a8aa0bb (primary), #7878909a (secondary)
-     Focus:          #6a6a80cc
-     Divider:        #34343e  (section separators)
+     Default (primary):     #50505a50
+     Default (secondary):   #55556040
+     Hover:                 #8a8aa0bb (primary), #7878909a (secondary)
+     Focus:                 #6a6a80cc
+     Divider:               #34343e  (section separators)
 
    TEXT
-     Primary:        #e5e7eb  (text-light)  — headings, titles
-     Secondary:      #d8dce4  (text-medium) — button labels, body
-     Muted:          #9ca3af               — hints, keybinds
-     Keybind:        #d9c28a               — shortcut hints (on pill bg)
+     Primary:    #e5e7eb (text-light)   headings, titles
+     Secondary:  #d8dce4 (text-medium)  button labels, body
+     Muted:      #9ca3af                hints, keybinds
+     Keybind:    #d9c28a                shortcut hints (on pill bg)
 
-   ACCENTS (BAR brand palette — beyondallreason.info)
-     Gold (primary):   #fdc04c  — SELECTION: active mode / shape / radio option
-       hover border:   #ffd47a
-       active bg:      #2b2113   active bg hover: #3b2d17
-       dim border:     #fdc04c66
-     Teal (toggles):   #40e0c0  — on/off TOGGLES & overlays (sampled from the
-       hover border:   #7cecd6    editions infographic teal, brightened)
-       active bg:      #0d2c24   active bg hover: #133a30
-       bright label:   #a2f2e2
-     Blue (secondary): #2ba5ea  — informational (badges, load, water, min-cap)
-       hover border:   #5cc0f4
-       active bg:      #0e2637   active bg hover: #14364d
-     Red (destructive):#ef4444  — remove / erase / confirm-delete ONLY
-       hover border:   #f87171
-       active bg:      #3a1616   active bg hover: #55201f
+   ACCENTS (BAR brand palette, beyondallreason.info)
+     Gold (primary):    #fdc04c  SELECTION: active mode / shape / radio option
+       hover border:    #ffd47a
+       active bg:       #2b2113   active bg hover: #3b2d17
+       dim border:      #fdc04c66
+     Teal (toggles):    #40e0c0  on/off TOGGLES and overlays (the editions
+       hover border:    #7cecd6  infographic teal, brightened)
+       active bg:       #0d2c24   active bg hover: #133a30
+       bright label:    #a2f2e2
+     Blue (secondary):  #2ba5ea  informational (badges, load, water, min-cap)
+       hover border:    #5cc0f4
+       active bg:       #0e2637   active bg hover: #14364d
+     Red (destructive): #ef4444  remove / erase / confirm-delete ONLY
+       hover border:    #f87171
+       active bg:       #3a1616   active bg hover: #55201f
 
    BUTTON HIERARCHY (height / border-radius)
-     Mode:           54dp / 8dp   — top-level mode buttons (Raise, Metal…)
-     Sub-mode:       40dp / 8dp   — tool sub-modes (Scatter, Point…)
-     Compact:        28dp / 6dp   — text-only toggles (Point/Cone/Beam)
-     Distribution:   32dp / 7dp   — distribution selectors
-     Action:         36dp / 7dp   — Save, Load, Clear, Reset, Undo…
-     Env launcher:   36dp / 7dp   — environment category buttons (with icon)
-     Small (±):      22dp / 5dp   — increment/decrement
-     History (⏪⏩): 24dp / 5dp   — undo/redo arrows
+     Mode:          54dp / 8dp  top-level mode buttons (Raise, Metal...)
+     Sub-mode:      40dp / 8dp  tool sub-modes (Scatter, Point...)
+     Compact:       28dp / 6dp  text-only toggles (Point/Cone/Beam)
+     Distribution:  32dp / 7dp  distribution selectors
+     Action:        36dp / 7dp  Save, Load, Clear, Reset, Undo...
+     Env launcher:  36dp / 7dp  environment category buttons (with icon)
+     Small (+/-):   22dp / 5dp  increment/decrement
+     History:       24dp / 5dp  undo/redo arrows
 
    SLIDERS
-     Track height:   8dp,  bg #262630,  radius 4dp
-     Thumb:          16Ă—16dp,  bg #b0b4be,  radius 8dp
-     Compact thumb:  12Ă—12dp  (material/color sliders in Lights)
-     Numbox:         32dp wide,  height 24dp,  bg #161620
+     Track height:  8dp, bg #262630, radius 4dp
+     Thumb:         16x16dp, bg #b0b4be, radius 8dp
+     Compact thumb: 12x12dp (material/color sliders in Lights)
+     Numbox:        32dp wide, height 24dp, bg #161620
 
    FONT SIZES (preferred stops)
      xs:  0.75rem    sm:  0.9rem    base: 1.0rem
      lg:  1.15rem    xl:  1.3rem    2xl:  1.5rem
 
    TRANSITIONS
-     Standard:       0.15s
-   ═══════════════════════════════════════════════════════════════════════ */
+     Standard:      0.15s
+*/
 
 .text-keybind { color: #d9c28a; }
 
@@ -130,11 +130,7 @@ body {
 }
 
 /* === Root Positioning === */
-/*
- * Width uses `vw` so the panel scales with viewport width (same visual
- * proportion across 1080p / 1440p / 4k). `min-width` in `px` keeps it
- * readable on small windows where 15vw collapses.
- */
+/* Fixed 290dp wide; left/top in vw/vh place it at the same spot on any window size. */
 .tf-root {
 	pointer-events: auto;
 	position: absolute;
@@ -178,7 +174,7 @@ body {
 
 /* Slider row title cell (left column of every label + slider + value row).
    The slider sets the row height, so the label has vertical headroom: run it
-   one size over text-base. Column widened 96 -> 100dp for the larger glyphs. */
+   one size over text-base. */
 .tf-slider-label {
 	font-size: 1.125rem;
 	flex: 0 0 100dp;
@@ -355,12 +351,12 @@ body {
 }
 
 /* Save-progress segments in the status summary (FILE > Save): one box per
-   saver step — done = bright green, current pulses, rest stay dark.
-   The strip itself is a space-evenly flex row, so the segments sit inside
-   their own flex wrapper (one compact bar, not 18 spread-out items). Divs,
-   not inline-block spans: RmlUi has no inline-block, empty spans collapse. */
+   saver step; done is bright green, the current one pulses, the rest stay dark.
+   The strip is a space-evenly flex row, so the segments sit in their own flex
+   wrapper (one compact bar). Divs, not inline-block spans: RmlUi has no
+   inline-block, and empty spans collapse. */
 /* The bar gives way before the label does: twenty saver steps at 9dp each
-   did not fit the strip, and the step name was what got clipped. */
+   do not fit the strip, and the step name is what would get clipped. */
 .tf-ss-segwrap {
 	display: flex;
 	flex-direction: row;
@@ -431,7 +427,6 @@ body {
 	color: #e5e7eb;
 }
 
-/* (metal button is now active - see .tf-btn-metal.active below) */
 
 /* Environment button */
 .tf-btn-environment.active {
@@ -656,7 +651,7 @@ body {
 	margin-top: 1dp;
 }
 
-/* Mode active states — standardized BAR gold; destructive modes use red */
+/* Mode active states: BAR gold; destructive modes use red */
 .tf-btn-raise.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
@@ -803,7 +798,7 @@ body {
 	background-color: #2b2113;
 }
 
-/* Clone tool — layer chip grid (legacy, retained for compatibility) */
+/* Clone tool: layer chip grid */
 .tf-cl-layer-grid {
 	display: flex;
 	flex-direction: row;
@@ -1038,7 +1033,7 @@ body {
 	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff35;
 }
 
-/* === Transport toggle pill — click to reveal the 3 transport buttons === */
+/* === Transport toggle pill: click to reveal the 3 transport buttons === */
 .tf-transport-toggle {
 	padding: 2dp 6dp;
 	border-radius: 4dp;
@@ -1065,7 +1060,7 @@ body {
 	color: #a2f2e2;
 }
 
-/* === Transport (auto-scroll) button group — shown/hidden by toggle pill === */
+/* === Transport (auto-scroll) button group: shown/hidden by the toggle pill === */
 .tf-transport-group {
 	display: flex;
 	align-items: center;
@@ -1076,18 +1071,18 @@ body {
 	display: none;
 }
 
-/* === Slider label rows — prevent wrapping when value is a single character === */
+/* === Slider label rows: no wrapping when the value is a single character === */
 .tf-root .text-lg.text-light {
 	white-space: nowrap;
 }
 
-/* === Slider value span — fixed min-width prevents pill buttons from wiggling as number changes === */
+/* === Slider value span: a fixed min-width keeps the pill buttons still as the number changes === */
 .tf-slider-val {
 	display: inline-block;
 	min-width: 8dp;
 }
 
-/* === Transport (auto-scroll) buttons — icon pill-shaped, teal highlights === */
+/* === Transport (auto-scroll) buttons: icon pill-shaped, teal highlights === */
 .tf-transport-btn {
 	padding: 3dp 5dp;
 	border-radius: 4dp;
@@ -1163,13 +1158,11 @@ body {
 	color: #40e0c0;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   HEADER — the crown jewel. Two tiers: a full-width wordmark on top (its
-   own line, so it never wraps), and a sleek full-width "control rail"
-   beneath it — FILE on the left, the icon cluster on the right. The icon
-   buttons stay flat until hovered/active so the rail reads as one polished
-   unit. The gold gem + accent word tie it to the tool's amber identity.
-   ═══════════════════════════════════════════════════════════════════════ */
+/* === HEADER ===
+   Two tiers: a full-width wordmark on top (its own line, so it never wraps)
+   and a full-width control rail beneath it, FILE on the left and the icon
+   cluster on the right. The icon buttons stay flat until hovered or active so
+   the rail reads as one unit; the gold gem and accent word give the amber identity. */
 
 /* Two-tier header stack */
 .tf-header {
@@ -1178,9 +1171,9 @@ body {
 	align-items: stretch;
 	gap: 5dp;
 	/* RmlUi scopes z-index to siblings within the nearest stacking context, so
-	   the FILE menu's z-index:1000 only orders it inside its wrap — the header
-	   subtree as a whole still painted under later flow siblings (the status
-	   summary strip drew over the open dropdown). Lift the whole header. */
+	   the FILE menu's z-index:1000 only orders it inside its wrap, and later flow
+	   siblings (the status summary strip) paint over the open dropdown. Lift the
+	   whole header. */
 	z-index: 10;
 }
 
@@ -1214,7 +1207,7 @@ body {
 	overflow: hidden;
 }
 
-/* Faceted accent "gem" — vertical gold bar with a soft glow */
+/* Faceted accent "gem": vertical gold bar with a soft glow */
 .tf-title-gem {
 	width: 4dp;
 	height: 18dp;
@@ -1251,7 +1244,7 @@ body {
 	color: #8a8f9a;
 }
 
-/* === Control rail (bottom tier) — full-width inset capsule === */
+/* === Control rail (bottom tier): full-width inset capsule === */
 .tf-header-rail {
 	display: flex;
 	flex-direction: row;
@@ -1269,7 +1262,7 @@ body {
 	flex: 1;
 }
 
-/* === Header Buttons (shared base) — flat until interacted with === */
+/* === Header Buttons (shared base): flat until interacted with === */
 .tf-header-btn {
 	width: 22dp;
 	height: 22dp;
@@ -1326,7 +1319,7 @@ body {
 	color: #ffffff;
 }
 
-/* FILE button (folder icon) — gold highlight while the menu is open */
+/* FILE button (folder icon): gold highlight while the menu is open */
 .tf-file-btn.active {
 	border-color: #fdc04caa;
 	background-color: #2b2113;
@@ -1557,14 +1550,14 @@ body {
 
 /* Splat tool disabled while the tileset shader owns $ssmf_splat_distr.
    The shared .disabled rule sets pointer-events: none, which would also kill
-   the hover explainer telling the user WHERE that painting moved — so keep
+   the hover explainer telling the user where that painting moved, so keep
    hit-testing alive here (the click handler already early-returns). */
 .tf-btn-splat.disabled {
 	pointer-events: auto;
 	cursor: default;
 }
 
-/* UNITS: the shared unit placer (a live tool now, styled like its neighbours). */
+/* UNITS: the shared unit placer, styled like its neighbours. */
 .tf-units-note {
 	font-size: 1.05rem;
 	color: #9ca3af;
@@ -1738,7 +1731,7 @@ body {
 	color: #b9bfca;
 }
 
-/* ---- MAP TRANSFORM (Dimensions window) ---- */
+/* === MAP TRANSFORM (Dimensions window) === */
 /* Orientation row: four equal buttons, shorter than a tool button. */
 .tf-xform-btn {
 	height: 34dp;
@@ -1892,7 +1885,7 @@ body {
 	margin-bottom: 4dp;
 }
 
-/* Scrollbar styling is shared — see the `scrollbarvertical` rules up top. */
+/* Scrollbar styling is shared: see terraform_shared/styles.rcss. */
 
 .tf-preset-row {
 	display: flex;
@@ -2112,7 +2105,7 @@ body {
 
 /* Save and Open share one frame: a header, a body that grows with the window
    and a footer pinned outside the scroll, so the button that commits the
-   operation is always on screen. Widths follow desktop file dialogs -- the
+   operation is always on screen. Widths follow desktop file dialogs: the
    list is the content, so it gets the space and everything else is chrome. */
 .tf-project-window {
 	display: flex;
@@ -2121,8 +2114,7 @@ body {
 }
 
 /* Both windows carry the same two-pane browser, so both are the same width.
-   The list column lost about a third of its width with it: at 550dp it was
-   holding a 180dp name and a lot of air. */
+   The list column stays narrow: a 180dp name needs no more. */
 .tf-project-save-window {
 	width: 820dp;
 	height: 70vh;
@@ -2271,7 +2263,7 @@ body {
 }
 
 /* Header cells are blocks: this RmlUi build draws no bare text inside a
-   flex container, which is why NAME and SYNC used to come out blank. */
+   flex container, so NAME and SYNC would come out blank. */
 .tf-proj-colhead .tf-proj-c-name {
 	display: block;
 }
@@ -2434,7 +2426,7 @@ body {
 
 /* The saved heightmap doubles as the thumbnail: it is the only image every
    project has, and relief alone is enough to recognise a map by. Loaded for
-   the selected row only -- RmlUi decompresses an <img> in full, so a wall of
+   the selected row only: RmlUi decompresses an <img> in full, so a wall of
    per-row thumbnails would be hundreds of MB of TexMemPool. */
 .tf-proj-preview {
 	display: flex;
@@ -2553,8 +2545,8 @@ body {
 	padding: 3dp;
 }
 
-/* Name field lives beside the action, desktop Save As style, instead of at
-   the top where the list pushed it out of the eye's path to the button. */
+/* Name field beside the action, desktop Save As style, so it sits on the
+   eye's path to the button. */
 .tf-project-namerow {
 	display: flex;
 	flex-direction: row;
@@ -2827,18 +2819,15 @@ body {
 	background-color: #5d4917;
 }
 
-/* Project rows are one line, in the header's columns. The old two-line card
-   (name+badge over date) halved how many projects fitted on screen and left
-   nothing vertically aligned to scan down. */
+/* Project rows are one line, in the header's columns: twice as many fit on
+   screen, and the columns line up to scan down. */
 /* No vertical padding and no gap between rows: the guide lines are stretched
    children, so anything between two rows breaks the line into dashes. Height
    comes from min-height instead. */
 /* No row gap: a gap between the last tick and the row's content would leave
    the elbow pointing at nothing. The columns carry their own spacing instead.
-   No border either, on any state: a 1dp frame insets the row's content box top
-   and bottom, which chopped every guide line into one dash per row, and its
-   left edge read as an extra tree line down the side of the selected row.
-   Hover and selection are a fill, which is what a file browser uses anyway. */
+   No border either, on any state: a 1dp frame insets the row's content box and
+   chops every guide line into one dash per row. Hover and selection are a fill. */
 .tf-proj-row {
 	flex-direction: row;
 	align-items: center;
@@ -2872,9 +2861,8 @@ body {
 	background-color: #2a5876;
 }
 
-/* 1.14 set the project name large on PtaQ's and MrBob's ask, so the single
-   line keeps the size that made names readable and buys the density from the
-   second line instead. */
+/* The project name stays large so names read at a glance; the density comes
+   from dropping the second line instead. */
 .tf-proj-row .tf-proj-name-text {
 	flex: 0 1 auto;
 	color: #e5e7eb;
@@ -2897,7 +2885,7 @@ body {
 /* Sync dot: where a team project stands against the copy on this disk.
    Colour alone would be a poor signal, so each dot carries a title and the
    two states that mean 'you do not have this' differ in fill as well as
-   shade -- new is a filled pale dot, missing a hollow grey one. */
+   shade: new is a filled pale dot, missing a hollow grey one. */
 .tf-proj-dot {
 	flex: 0 0 auto;
 	width: 10dp;
@@ -3061,8 +3049,8 @@ body {
 }
 
 /* The fold control: a plain + or -, sized so it reads, in a 20dp column the
-   guide lines are measured against. No frame -- the boxed version was a large
-   empty square around a character too thin to see inside it. */
+   guide lines are measured against. No frame: a box around a character this
+   thin reads as an empty square. */
 .tf-proj-folder-glyph {
 	flex: 0 0 20dp;
 	width: 20dp;
@@ -3087,8 +3075,7 @@ body {
 }
 
 /* Everything after the count is empty space: the count belongs to the folder,
-   not to the MODIFIED column it used to right-align into, where it read as a
-   date that had lost its label. */
+   not to the MODIFIED column, where it would read as a date without its label. */
 .tf-proj-folder-fill {
 	flex: 1;
 }
@@ -3105,9 +3092,9 @@ body {
 /* One tick per level, emitted in front of the row's content, so the whole row
    (disclosure glyph, folder icon and name alike) steps in together. The step is
    the glyph column's own advance (20dp glyph + 6dp) and the rule sits 10dp in,
-   which is the glyph's centre line -- so a child's line drops out of the middle
-   of its parent's +/- rather than from some unrelated column. SIZE and MODIFIED
-   are fixed-width columns at the right, so they hold one column at every depth. */
+   on the glyph's centre line, so a child's line drops out of the middle of its
+   parent's +/-. SIZE and MODIFIED are fixed-width columns at the right, so they
+   hold one column at every depth. */
 .tf-proj-tick {
 	flex: 0 0 16dp;
 	align-self: stretch;
@@ -3145,9 +3132,8 @@ body {
 	border-left-color: transparent;
 }
 
-/* The lines keep one colour in every row state. Brightening them on hover and
-   selection also overrode `.blank`, which lit the empty columns and drew tree
-   lines where the tree has none. */
+/* The lines keep one colour in every row state: brightening them on hover or
+   selection would also override `.blank` and draw lines in the empty columns. */
 
 /* A project's folder path, shown after the name while a search filter is on
    (the tree is flattened then, so the folder must travel with the row). */
@@ -3535,20 +3521,11 @@ body {
 	height: 44dp;
 }
 
-/* Six tiles to a row in a 290dp panel leaves about 41dp for a label, and at
-   0.9rem the longest of them, FEATURES, did not fit at every scale: the layout
-   audit caught it clipping by 2px at 2560x1440, where the rounding goes against
-   it, while 1080p and 4K fitted by luck.
-   Tracking rather than font size, deliberately. rem is 10dp here, so 0.9rem is
-   already 9dp and renders barely over the audit's 9px floor; taking the size
-   down to fit would put every tool label under it and trade one finding for
-   twelve. Tightening the tracking shortens the word without touching the
-   glyphs: -0.5dp over eight characters is 4dp, comfortably more than the 2px
-   that was over, and the rest of this file already tracks text by a few
-   tenths of a dp.
-   Scoped to the tool rows: .tf-btn-text is on 133 labels panel-wide, including
-   wide buttons with room to spare, and the TERRAIN tiles are a different size
-   (54dp against these 44dp), so nothing above is made inconsistent. */
+/* Tracking, not font size, fits FEATURES into a six-tile row (about 41dp per
+   label in the 290dp panel). 0.9rem is already 9dp, at the layout audit's 9px
+   floor, so shrinking the font would put every tool label under it; -0.5dp over
+   eight characters frees 4dp. Scoped to the tool rows: .tf-btn-text is on many
+   wider labels, and the TERRAIN tiles are a different size (54dp, not 44dp). */
 #tf-tools-rows .tf-btn-text,
 #tf-tools-rows2 .tf-btn-text {
 	letter-spacing: -0.5dp;
@@ -3763,7 +3740,7 @@ body {
 	border-color: #f87171;
 }
 
-/* --- Grass Texture Filter Color Swatch --- */
+/* === Grass Texture Filter Color Swatch === */
 #gb-tex-color-swatch {
 	width: 100%;
 	height: 20dp;
@@ -3772,7 +3749,7 @@ body {
 	background-color: #3f7326;
 }
 
-/* --- Grass Exclude Color Swatch --- */
+/* === Grass Exclude Color Swatch === */
 #gb-tex-exclude-swatch {
 	width: 100%;
 	height: 20dp;
@@ -3781,7 +3758,7 @@ body {
 	background-color: #a65919;
 }
 
-/* --- Grass Pipette Button --- */
+/* === Grass Pipette Button === */
 .tf-gb-pipette-btn {
 	padding: 2dp 8dp;
 	height: 22dp;
@@ -3808,7 +3785,7 @@ body {
 }
 
 /* === Slider Wheel-Lock (double middle click to lock) === */
-/* Locked — teal tint fill + teal outline (toggle-state accent) */
+/* Locked: teal tint fill + teal outline (toggle-state accent) */
 .slider-locked sliderbar {
 	background-color: #1a4438;
 	border: 2dp #40e0c0bb;
@@ -3819,7 +3796,7 @@ body {
 	background-color: #215446;
 	border-color: #40e0c0ee;
 }
-/* Pulse phase — border fades to dim; fill stays constant */
+/* Pulse phase: border fades to dim; fill stays constant */
 .slider-locked.slider-pulse sliderbar {
 	background-color: #1a4438;
 	border: 2dp #40e0c040;
@@ -3829,7 +3806,7 @@ body {
 	border-color: #40e0c088;
 }
 /* The same look on every slider family: two classes outrank the colour-channel thumbs
-   (.tf-slider.lp-slider-channel-r sliderbar and friends), which used to hide the lock. */
+   (.tf-slider.lp-slider-channel-r sliderbar and friends), which would otherwise hide the lock. */
 .tf-slider.slider-locked sliderbar {
 	background-color: #1a4438;
 	border: 2dp #40e0c0bb;
@@ -3857,17 +3834,15 @@ body {
 	color: #9fd9cb;
 }
 
-/* Keybind-scroll flash — brief teal highlight that fades back via base transition */
+/* Keybind-scroll flash: brief teal highlight that fades back via the base transition */
 .slider-flash sliderbar {
 	background-color: #40e0c0;
 	border: 2dp #7cecd6aa;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   PHASE 4: Section grouping & visual hierarchy
-   ═══════════════════════════════════════════════════════════════════════ */
+/* === Section grouping and visual hierarchy === */
 
-/* === Section Frame (fieldset/legend style — all collapsible sections) ===
+/* === Section Frame (fieldset/legend style, all collapsible sections) ===
  * The frame wraps each toggle-row + section-body pair.
  * margin-top: 10dp creates space above for the title row to float.
  * The title row (position: absolute, top: -10dp) straddles the top border
@@ -3882,7 +3857,7 @@ body {
 	border-radius: 4dp;
 }
 
-/* Collapsed: only top border edge visible (replaces old divider-horizontal-dark) */
+/* Collapsed: only the top border edge visible */
 .tf-section-frame.tf-collapsed {
 	border-left-width: 0;
 	border-right-width: 0;
@@ -3912,8 +3887,8 @@ body {
 /* === Data-if wrapper divs (tool-section containers) ===
  * These block divs wrap per-tool sections via data-if. They carry the leading
  * margin (same 14dp as .tf-section-frame) so the first frame child inside
- * doesn't need to — preventing any first-child margin interaction at wrapper
- * boundaries that could cause uneven spacing across tool modes. */
+ * does not need it, which keeps first-child margins from interacting at wrapper
+ * boundaries and spacing sections unevenly across tool modes. */
 #tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
 #tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
 #tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes, #tf-units-controls,
@@ -3950,9 +3925,9 @@ body {
 }
 
 /* frame-shape sits inside the tf-shape-row wrapper and precedes tf-terraform-controls.
- * When expanded, the default margin-bottom of 10dp creates a 24dp visual gap to the
- * DISPLAY section (10 + 14dp wrapper mt), while collapsed→collapsed gaps are only 18dp.
- * Lock it to 4dp so the SHAPE→DISPLAY gap is consistent with all other section gaps. */
+ * Expanded, its default 10dp margin-bottom makes a 24dp gap to the DISPLAY section
+ * (10 + the 14dp wrapper margin), while collapsed-to-collapsed gaps are 18dp.
+ * Lock it to 4dp so the SHAPE to DISPLAY gap matches all other section gaps. */
 #frame-shape {
 	margin-bottom: 4dp;
 }
@@ -3970,7 +3945,7 @@ body {
 	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
 /* Chip rows (DISPLAY, INSTRUMENTS) wrap onto a second line instead of
-   squeezing: five chips in one row crushed their labels onto two lines each. */
+   squeezing: five chips in one row would crush their labels onto two lines each. */
 .tf-chip-row {
 	flex-wrap: wrap;
 }
@@ -4226,9 +4201,7 @@ body {
 	background-color: #24242c;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   SETTINGS WINDOW
-   ═══════════════════════════════════════════════════════════════════════ */
+/* === SETTINGS WINDOW === */
 
 .tf-settings-window {
 	pointer-events: auto;
@@ -4419,15 +4392,10 @@ body {
 	white-space: nowrap;
 }
 
-/* Compact chip for section title rows.
- *
- * .tf-section-title-row is absolutely positioned at top: -10dp and masks the
- * frame border with its own background, so it only has room for a short chip.
- * A full-size .tf-overlay-chip (3dp 8dp padding, 1.0rem label) grows the row
- * past that band and collides with the border and the first content row.
- *
- * Geometry only — colour and state still come from .tf-overlay-chip and its
- * .active rule, so this stays in step with the palette. */
+/* Compact chip for section title rows. The title row sits at top: -10dp and
+ * masks the frame border, so it only has room for a short chip; a full-size
+ * .tf-overlay-chip grows the row into the border and the first content row.
+ * Geometry only: colour and state still come from .tf-overlay-chip. */
 .tf-overlay-chip-sm {
 	padding: 2dp 6dp;
 	border-radius: 4dp;
@@ -4436,7 +4404,7 @@ body {
 	font-size: 0.78rem;
 }
 
-/* Warning chip — shown in the toggle header when section is collapsed but items within are active */
+/* Warning chip: shown in the toggle header when the section is collapsed but items within are active */
 .tf-overlay-chip-warn {
 	padding: 2dp 6dp;
 	border-radius: 4dp;
@@ -4452,7 +4420,7 @@ body {
 	color: #ff9999;
 }
 
-/* Instrument sub-panel — outlined box for each tool's controls */
+/* Instrument sub-panel: outlined box for each tool's controls */
 .tf-instrument-sub {
 padding: 5dp 8dp;
 border: 1dp #3a3a5060;
@@ -4601,10 +4569,10 @@ margin-top: 3dp;
 	cursor: default;
 }
 
-/* === Phase 3 generic grayout ============================================== */
-/* Applied via ctx.setDisabled(doc, id, on) from per-tool M.sync when a        */
-/* control is irrelevant to the current sub-mode/shape/submode. Visible but    */
-/* non-interactive. More-specific .tf-shape-btn.disabled etc. still override.  */
+/* === Generic grayout ===
+   Applied via ctx.setDisabled(doc, id, on) from per-tool M.sync when a
+   control is irrelevant to the current sub-mode or shape: visible but
+   non-interactive. More specific .tf-shape-btn.disabled etc. still override. */
 .disabled {
 	opacity: 0.35;
 	pointer-events: none;
@@ -4614,7 +4582,7 @@ margin-top: 3dp;
 	opacity: 0.35;
 }
 
-/* === TILESET window head row: SHADER toggle + PAINT SURFACES launcher ===== */
+/* === TILESET window head row: SHADER toggle + PAINT SURFACES launcher === */
 /* Text-only mode buttons (metal-submode look). SHADER lights up while the
    tileset shader renders the ground; PAINT SURFACES picks up the shared
    .disabled gray whenever the shader is off (data-class-disabled). */
@@ -4632,9 +4600,9 @@ margin-top: 3dp;
 	border-color: #ffd47a;
 }
 
-/* === EXTRA LAYER (slot 4) ================================================ */
-/* One-row segmented mode switch: compact buttons, text sized up from the    */
-/* stock 0.9rem tf-btn-text so the labels carry the row, not the chrome.     */
+/* === EXTRA LAYER (slot 4) ===
+   One-row segmented mode switch: compact buttons, text sized up from the
+   stock 0.9rem tf-btn-text so the labels carry the row, not the chrome. */
 .tf-s4-btn {
 	height: 30dp;
 	justify-content: center;
@@ -4652,15 +4620,16 @@ margin-top: 3dp;
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
-/* Per-mode explanation under the switch: full-strength text, no opacity dim
-   (the old text-base + 0.7 opacity combo was the unreadable part).          */
+/* Per-mode explanation under the switch: full-strength text, no opacity dim,
+   so it stays readable. */
 .tf-s4-desc {
 	font-size: 1.05rem;
 	color: #b9bfca;
 }
-/* === BIOME LIBRARY picker (TILESET tool) ================================== */
-/* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
-/* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
+/* === BIOME LIBRARY picker (TILESET tool) ===
+   Clickable thumbnail tiles; the active tile is driven by
+   data-class-active="tsBiome == '<key>'". Thumbnails at
+   /luaui/images/terraform_brush/biome_<key>.png. */
 .tf-biome-tile {
 	flex: 1 1 0;
 	display: flex;
@@ -4700,10 +4669,10 @@ margin-top: 3dp;
 	color: #fdc04c;
 }
 
-/* === SURFACE tool (tileset variant paint) ================================= */
-/* Palette tiles reuse .tf-biome-tile; the thumb is an EMPTY rect that the     */
-/* widget overdraws with the variant's albedo via gl.TexRect (DrawScreenPost)  */
-/* — an RmlUi <img> would decode the full 4K bitmap into the TexMemPool.      */
+/* === SURFACE tool (tileset variant paint) ===
+   Palette tiles reuse .tf-biome-tile; the thumb is an EMPTY rect that the
+   widget overdraws with the variant's albedo via gl.TexRect (DrawScreenPost):
+   an RmlUi <img> would decode the full 4K bitmap into the TexMemPool. */
 .tf-surf-thumb {
 	width: 52dp;
 	height: 52dp;
@@ -4745,9 +4714,9 @@ margin-top: 3dp;
 .surf-now-text { flex: 1 1 0; }
 
 /* SURFACE brush modes: the stock mode-button body, with the amber active state
-   the terrain modes and the EXTRA LAYER row already use. ERASE lights orange
-   instead — it is a toggle over whichever preset is selected, not a fifth
-   preset, and the brush ring is orange while it is on. */
+   the terrain modes and the EXTRA LAYER row use. ERASE lights orange instead:
+   it is a toggle over whichever preset is selected, not a fifth preset, and the
+   brush ring is orange while it is on. */
 .tf-surf-mode-btn.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
@@ -4765,9 +4734,8 @@ margin-top: 3dp;
 	border-color: #ffa563;
 }
 
-/* Slot rail tiles. Thumbnail-first: a 26dp square told you nothing about the
-   material, so the texture now takes the full tile width and the caption sits
-   under it. */
+/* Slot rail tiles, thumbnail first: the material is what the artist picks by,
+   so the texture takes the full tile width and the caption sits under it. */
 .surf-slot-chip {
 	flex: 1 1 0;
 	display: flex;
@@ -4798,18 +4766,17 @@ margin-top: 3dp;
 	background-color: #26263699;
 	flex-shrink: 0;
 }
-/* caption + action row under the thumb — NOT floating over it, which the GL
-   thumbnail pass paints after RmlUi and would cover */
+/* caption + action row under the thumb, not floating over it: the GL
+   thumbnail pass paints after RmlUi and would cover it */
 .surf-slot-cap {
 	font-size: 1.0rem;
 	font-weight: bold;
 	white-space: nowrap;
 	overflow: hidden;
 }
-/* PICK / X: real buttons, because a grey glyph beside the name was invisible
-   and because selecting a slot and choosing its texture are different actions.
-   (FLIP is NOT per tile: a third button here clipped into its neighbours, so
-   it lives in the NOW PAINTING strip and acts on the selected slot.) */
+/* PICK / X are real buttons: selecting a slot and choosing its texture are
+   different actions. FLIP is not per tile (a third button clips into its
+   neighbours); it lives in the NOW PAINTING strip and acts on the selected slot. */
 .surf-slot-actions {
 	display: flex;
 	flex-direction: row;
@@ -4834,7 +4801,7 @@ margin-top: 3dp;
 	background-color: #3a3320;
 	color: #fdc04c;
 }
-/* the slot whose library is open — so PICK reads as a toggle, not a one-shot */
+/* the slot whose library is open, so PICK reads as a toggle, not a one-shot */
 .surf-slot-btn.active {
 	border-color: #fdc04c;
 	background-color: #4a3f21;
@@ -4886,8 +4853,7 @@ margin-top: 3dp;
 .surf-preview-text { flex: 1 1 0; overflow: hidden; }
 
 /* No scroller of its own: the picker sizes to its content and the panel body
-   scrolls if the window runs out of room. A nested scroll box meant two
-   scrollbars in one column and a grid you had to sweep twice. */
+   scrolls, so one column never shows two scrollbars. */
 .surf-picker {
 	margin-bottom: 6dp;
 	padding: 5dp;
@@ -4903,7 +4869,7 @@ margin-top: 3dp;
    positioned, so an absolute child would anchor to the panel instead). */
 .tf-biome-tile.surf-tile { position: relative; }
 
-/* Selected tile ring in the CHANNEL color — matches rail, bar, brush ring */
+/* Selected tile ring in the CHANNEL color: matches rail, bar, brush ring */
 .tf-biome-tile.surf-sel-c1.active { border-color: #38bdf8; }
 .tf-biome-tile.surf-sel-c2.active { border-color: #e879f9; }
 .tf-biome-tile.surf-sel-c3.active { border-color: #a3e635; }
@@ -5019,7 +4985,7 @@ margin-top: 3dp;
 	color: #40e0c0;
 }
 
-/* Size / file count riding on the header line — present, not shouting. */
+/* Size / file count riding on the header line: present, not shouting. */
 .tf-capture-result-meta {
 	font-weight: normal;
 	letter-spacing: 0;
@@ -5045,7 +5011,7 @@ margin-top: 3dp;
    file list in the IMAGE OVERLAY window. */
 /* The gear is a chip too (same gradient, border and active state as its
    neighbours) and stretches to the row's chip height instead of the fixed
-   18dp of tf-sm-btn, which sat visibly shorter than the labelled chips. */
+   18dp of tf-sm-btn, which sits shorter than the labelled chips. */
 .tf-imgov-cfg {
 	align-self: stretch;
 	display: flex;
@@ -5064,7 +5030,7 @@ margin-top: 3dp;
 	border: 1dp #2ba5eaa0;
 }
 
-/* ===== Projects window: Team Sync strip, start card, chips, TEAM block ===== */
+/* === Projects window: Team Sync strip, start card, chips, TEAM block === */
 
 /* One line at the top of the browser: a dot, the name, what it is doing. */
 .tf-project-window .tf-project-strip {
@@ -5410,7 +5376,7 @@ margin-top: 3dp;
 	image-color: #ffffff;
 }
 
-/* ===== Quit guard: unsaved changes stand between the user and a quit ===== */
+/* === Quit guard: unsaved changes stand between the user and a quit === */
 /* The body ignores the pointer, so the catcher takes it back over the whole
    screen: nothing behind the card (the top bar's quit screen included) gets
    the click while the question is open. */

@@ -297,7 +297,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmstor', x = 1900, z = 1800, teamName = 'player' },
+				{ unitDefName = 'armmstor', position = { x = 1900, z = 1800 }, teamName = 'player' },
 			},
 		},
 	},
@@ -306,7 +306,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armestor', x = 1900, z = 1900, teamName = 'player' },
+				{ unitDefName = 'armestor', position = { x = 1900, z = 1900 }, teamName = 'player' },
 			},
 		},
 	},
@@ -315,7 +315,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmex', x = 2220, z = 2210, teamName = 'player' },
+				{ unitDefName = 'armmex', position = { x = 2220, z = 2210 }, teamName = 'player' },
 			},
 		},
 	},
@@ -324,7 +324,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1900, teamName = 'player' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 1900 }, teamName = 'player' },
 			},
 		},
 	},
@@ -333,7 +333,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmmkr', x = 1800, z = 2000, teamName = 'player' },
+				{ unitDefName = 'armmmkr', position = { x = 1800, z = 2000 }, teamName = 'player' },
 			},
 		},
 	},
@@ -342,7 +342,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corsilo', x = 2000, z = 2110, teamName = 'player' },
+				{ unitDefName = 'corsilo', position = { x = 2000, z = 2110 }, teamName = 'player' },
 			},
 		},
 	},
@@ -351,7 +351,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2100, z = 2000, facing = 's' },
+				{ featureDefName = 'armllt_dead', position = { x = 2100, z = 2000 }, orientation = 's' },
 			},
 		},
 	},
@@ -360,7 +360,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 2100, z = 2100, teamName = 'player', unitName = 'incomeReclaimer' },
+				{ unitDefName = 'armrectr', position = { x = 2100, z = 2100 }, teamName = 'player', unitName = 'incomeReclaimer' },
 			},
 		},
 	},
@@ -369,7 +369,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 2200, z = 2100, teamName = 'player', unitName = 'unitReclaimTarget' },
+				{ unitDefName = 'armllt', position = { x = 2200, z = 2100 }, teamName = 'player', unitName = 'unitReclaimTarget' },
 			},
 		},
 	},

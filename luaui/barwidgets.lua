@@ -363,6 +363,7 @@ local callInLists = {
 	"SelectedUnitsAdd",
 	"LavaRenderState",
 	"ClearMapMarks",
+	"RecvSkirmishAIMessage",
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1097,7 +1098,8 @@ function widgetHandler:Initialize()
 	for _, w in ipairs(unsortedWidgets) do
 		local replaces = w.whInfo.replaces
 		for _, name in ipairs(type(replaces) == "table" and replaces or { replaces }) do
-			if name ~= w.whInfo.name then
+			-- (a player's own widget cannot stand in for one only the game may provide)
+			if name ~= w.whInfo.name and (not zipOnly[name] or self.knownWidgets[w.whInfo.name].fromZip) then
 				replacedBy[name] = w.whInfo.name
 				-- remembered, also when it was off already: it comes back if this one goes
 				if self.knownWidgets[name] then
@@ -3237,7 +3239,8 @@ end
 function widgetHandler:RecoverWidgetSelector()
 	for name, ki in pairs(self.knownWidgets) do
 		if ki.basename == "widget_selector.lua" then
-			if ki.active then
+			-- (a widget taking its place answers the same action and WG.widgetselector)
+			if ki.active or replacerOf(name) then
 				return false
 			end
 			if type(self.configData[name]) ~= "table" then
@@ -4325,6 +4328,19 @@ function widgetHandler:ClearMapMarks()
 	return
 end
 
+function widgetHandler:RecvSkirmishAIMessage(aiTeam, dataStr)
+	tracyZoneBeginN("W:RecvSkirmishAIMessage")
+	for _, w in ipairs(self.RecvSkirmishAIMessageList) do
+		local dataRet = w:RecvSkirmishAIMessage(aiTeam, dataStr)
+		if dataRet then
+			tracyZoneEnd()
+			return dataRet
+		end
+	end
+	tracyZoneEnd()
+	return
+end
+
 function widgetHandler:GameSetup(state, ready, playerStates)
 	tracyZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
@@ -4368,11 +4384,11 @@ function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracyZoneEnd()
 end
 
----A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
-function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua), for one team when teamID is set.
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 	tracyZoneBeginN("W:BuildOptionsChanged")
 	for _, w in ipairs(self.BuildOptionsChangedList) do
-		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
 	end
 	tracyZoneEnd()
 end

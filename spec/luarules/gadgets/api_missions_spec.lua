@@ -85,8 +85,16 @@ local function loadGadget(options, world)
 			}
 		end,
 		["luarules/mission_api/objectives.lua"] = { ActivateStage = noop },
+		["luarules/mission_api/orders.lua"] = { UpdateWaits = noop, OnUnitFromFactory = noop },
 		["luarules/mission_api/sounds.lua"] = { ProcessSoundQueue = noop },
 		["luarules/mission_api/area_tracking.lua"] = { UpdateTrackedAreas = noop },
+		["luarules/mission_api/parameter_types.lua"] = { Types = { EffectType = "EffectType" }, Enums = {} },
+		["luarules/mission_api/effects.lua"] = { ClearExpiredEffects = noop },
+		["luarules/mission_api/effects_loader.lua"] = {
+			LoadEffectDefinitions = function()
+				return { Types = {} }
+			end,
+		},
 	}
 
 	local env = setmetatable({
