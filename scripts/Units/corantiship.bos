@@ -10,6 +10,8 @@ static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
 
 #define SIGNAL_AIM2 512
 
+#include "../popup_openclose.h"
+
 
 
 #define RB_MASS 40
@@ -48,17 +50,30 @@ Stop()
 	return (0);
 }
 
-ExecuteRestoreAfterDelay()
+OpenAnim()
 {
-    if (Stunned) {
-        return (1);
-    }
-	set-signal-mask 0;
+	move dtl to x-axis [-10] speed [5];
+	move dbl to x-axis [-10] speed [5];
+	move dtr to x-axis [10] speed [5];
+	move dbr to x-axis [10] speed [5];
+	wait-for-move dtl along x-axis;
+}
+
+CloseAnim()
+{
 	move dtl to x-axis [0] speed [5];
 	move dbl to x-axis [0] speed [5];
 	move dtr to x-axis [0] speed [5];
 	move dbr to x-axis [0] speed [5];
 	wait-for-move dtl along x-axis;
+}
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -126,18 +141,24 @@ StopMoving()
 AimWeapon1(heading, pitch)
 {
 
+	start-script RequestOpen();
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	move dtl to x-axis [-10] speed [5];
-	move dbl to x-axis [-10] speed [5];
-	move dtr to x-axis [10] speed [5];
-	move dbr to x-axis [10] speed [5];
-	wait-for-move dtl along x-axis;
+	// poll every frame so the interception is not delayed
+	while( !isOpen )
+	{
+		sleep 1;
+	}
 	start-script RestoreAfterDelay();
 	return(1);
 }
 
 
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
 
 FireWeapon1()
 {

@@ -11,6 +11,8 @@ static-var  Stunned;
 
 #define SIGNAL_AIM2 512
 
+#include "../popup_openclose.h"
+
 
 #define RB_MASS 40
 #define RB_LENGTH 8
@@ -35,15 +37,26 @@ Lights()
 	}
 }
 
+OpenAnim()
+{
+	turn door1 to x-axis <40> speed <70>;
+	turn door2 to x-axis <-40> speed <70>;
+	wait-for-turn door1 around x-axis;
+}
+
+CloseAnim()
+{
+	turn door1 to x-axis <0> speed <70>;
+	turn door2 to x-axis <0> speed <70>;
+	wait-for-turn door1 around x-axis;
+}
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	turn door1 to x-axis <0> speed <70>;
-	turn door2 to x-axis <0> speed <70>;
-	wait-for-turn door1 around x-axis;
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -98,13 +111,21 @@ StopMoving()
 AimWeapon1(heading, pitch)
 {
 
+	start-script RequestOpen();
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn door1 to x-axis <40> speed <70>;
-	turn door2 to x-axis <-40> speed <70>;
-	wait-for-turn door1 around x-axis;
+	// poll every frame so the interception is not delayed
+	while( !isOpen )
+	{
+		sleep 1;
+	}
 	start-script RestoreAfterDelay();
 	return(1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FireWeapon1()
