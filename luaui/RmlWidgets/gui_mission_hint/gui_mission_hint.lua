@@ -16,11 +16,12 @@ end
 local HINT_PARAM = "missionHint"
 local MODEL_NAME = "mission_hint"
 
-local context, document, dataModel
-local hint -- the decoded entry on screen, nil when none
+local ui = {} -- context, document, dataModel
+---@type table? the decoded entry on screen
+local hint
 
 local function show()
-	dataModel.text = hint and BAR.I18N(hint.messageKey, hint.messageData) or ""
+	ui.dataModel.text = hint and BAR.I18N(hint.messageKey, hint.messageData) or ""
 end
 
 local function readHint()
@@ -45,18 +46,22 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	context = RmlUi.GetContext("shared")
-	dataModel = context:OpenDataModel(MODEL_NAME, { text = "" }, self)
-	document = context:LoadDocument("luaui/RmlWidgets/gui_mission_hint/gui_mission_hint.rml", self)
-	document:Show()
+	local context = RmlUi.GetContext("shared")
+	if not context then
+		return
+	end
+	ui.context = context
+	ui.dataModel = context:OpenDataModel(MODEL_NAME, { text = "" }, self)
+	ui.document = context:LoadDocument("luaui/RmlWidgets/gui_mission_hint/gui_mission_hint.rml", self)
+	ui.document:Show()
 	widgetHandler:RegisterGlobal("MissionHintChanged", readHint)
 	readHint()
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("MissionHintChanged")
-	if document then
-		document:Close()
-		context:RemoveDataModel(MODEL_NAME)
+	if ui.document then
+		ui.document:Close()
+		ui.context:RemoveDataModel(MODEL_NAME)
 	end
 end

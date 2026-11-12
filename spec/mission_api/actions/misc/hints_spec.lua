@@ -7,8 +7,10 @@ local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/misc/h
 local showHint, hideHint = actions[1], actions[2]
 
 describe("mission_api.actions.hints", function()
+	---@type table, table
 	local rulesParams, syncActions
 
+	---@return table
 	local function published()
 		return rulesParams.missionHint and Json.decode(rulesParams.missionHint)
 	end
