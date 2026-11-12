@@ -20,6 +20,7 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
+	Color = "Color",
 
 	-- String Validators:
 	String = "String",
@@ -40,6 +41,7 @@ local types = {
 	SoundFile = "SoundFile",
 	Resource = "Resource",
 	VideoFile = "VideoFile",
+	SkyboxFile = "SkyboxFile",
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
@@ -52,6 +54,9 @@ local types = {
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
+	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle",
+	Elevation = "Elevation",
 	MessageType = "MessageType",
 
 	-- Boolean Validators:
