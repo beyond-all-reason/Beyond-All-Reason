@@ -1,6 +1,6 @@
 # November
 - [Controls]
-  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on built units, instead of sharing the factory.
+  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
 - [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
