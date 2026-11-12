@@ -180,14 +180,18 @@ end
 
 function actionHandler:RemoveWidgetActions(widget)
 	local function clearActionList(actionMap)
-		for _, callInfoList in pairs(actionMap) do
+		for cmd, callInfoList in pairs(actionMap) do
 			RemoveCallInfo(callInfoList, widget)
+			if #callInfoList <= 0 then
+				actionMap[cmd] = nil
+			end
 		end
 	end
 	clearActionList(self.textActions)
 	clearActionList(self.keyPressActions)
 	clearActionList(self.keyRepeatActions)
 	clearActionList(self.keyReleaseActions)
+	clearActionList(self.syncActions)
 end
 
 --------------------------------------------------------------------------------
