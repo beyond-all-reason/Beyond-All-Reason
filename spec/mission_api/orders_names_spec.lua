@@ -1,14 +1,31 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
+local givenOrders ---@type table
+
 local env = MissionSpecEnv.new({
 	Game = { maxUnits = 32000, squareSize = 8, footprintScale = 2 },
 	Engine = { FeatureSupport = { noOffsetForFeatureID = true } },
+	Spring = {
+		GetUnitAllyTeam = function()
+			return 0
+		end,
+		GetUnitDefID = function() end,
+		GiveOrderArrayToUnitMap = function(_, orders)
+			givenOrders = orders
+		end,
+	},
 })
 
--- loadout.lua keeps the tracking tables it finds at load, and every Install() refills those same tables.
+-- orders.lua keeps the tracking tables it finds at load, and every Install() refills those same tables.
 MissionApiBuilder.new():Install()
-local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
+local missionOrders = MissionSpecEnv.include(env, "luarules/mission_api/orders.lua")
+
+-- The orders one unit is given for the mission's orders.
+local function convertOrders(orders)
+	missionOrders.GiveOrders({ [1] = true }, orders)
+	return givenOrders
+end
 
 local function trackUnits(name, ...)
 	local builder = MissionApiBuilder.new()
@@ -18,7 +35,7 @@ local function trackUnits(name, ...)
 	return builder:Install()
 end
 
-describe("mission_api.loadout orders targeting names", function()
+describe("mission_api.orders orders targeting names", function()
 	before_each(function()
 		MissionApiBuilder.new():Install()
 	end)
@@ -26,13 +43,13 @@ describe("mission_api.loadout orders targeting names", function()
 	it("gives no orders for a name no unit carries any more", function()
 		trackUnits("squad", 5).Modules.Tracking.UntrackUnitID(5)
 
-		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "squad" }, {} } })
+		local converted = convertOrders({ { env.CMD.ATTACK, { unitName = "squad" }, {} } })
 
 		assert.are.same({}, converted)
 	end)
 
 	it("gives no orders for a feature name with nothing behind it", function()
-		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.RECLAIM, { featureName = "wreck" }, {} } })
+		local converted = convertOrders({ { env.CMD.RECLAIM, { featureName = "wreck" }, {} } })
 
 		assert.are.same({}, converted)
 	end)
@@ -40,7 +57,7 @@ describe("mission_api.loadout orders targeting names", function()
 	it("gives the next order as written when the skipped order was queued", function()
 		local move = { env.CMD.MOVE, { 1, 0, 2 }, {} }
 
-		local converted = loadout.ConvertOrdersTargetingNames({
+		local converted = convertOrders({
 			{ env.CMD.ATTACK, { unitName = "squad" }, { "shift" } },
 			move,
 		})
@@ -51,7 +68,7 @@ describe("mission_api.loadout orders targeting names", function()
 	it("gives the next order as written when the skipped order would have replaced the queue", function()
 		local move = { env.CMD.MOVE, { 1, 0, 2 }, { "shift" } }
 
-		local converted = loadout.ConvertOrdersTargetingNames({
+		local converted = convertOrders({
 			{ env.CMD.ATTACK, { unitName = "squad" }, {} },
 			move,
 		})
@@ -62,7 +79,7 @@ describe("mission_api.loadout orders targeting names", function()
 	it("leaves a skipped order out the same way in the middle and at the end", function()
 		trackUnits("target", 5)
 
-		local converted = loadout.ConvertOrdersTargetingNames({
+		local converted = convertOrders({
 			{ env.CMD.MOVE, { 1, 0, 2 }, {} },
 			{ env.CMD.ATTACK, { unitName = "squad" }, {} },
 			{ env.CMD.ATTACK, { unitName = "target" }, { "shift" } },
@@ -78,7 +95,7 @@ describe("mission_api.loadout orders targeting names", function()
 	it("queues the order on every unit of the name after the first", function()
 		trackUnits("pair", 5, 6)
 
-		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "pair" }, {} } })
+		local converted = convertOrders({ { env.CMD.ATTACK, { unitName = "pair" }, {} } })
 
 		assert.are.equal(2, #converted)
 		assert.are.same({}, converted[1][3])
@@ -88,8 +105,7 @@ describe("mission_api.loadout orders targeting names", function()
 	it("queues an order already given with shift without adding a second one", function()
 		trackUnits("pair", 5, 6)
 
-		local converted =
-			loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "pair" }, { "shift" } } })
+		local converted = convertOrders({ { env.CMD.ATTACK, { unitName = "pair" }, { "shift" } } })
 
 		assert.are.same({ "shift" }, converted[1][3])
 		assert.are.same({ "shift" }, converted[2][3])
@@ -99,7 +115,7 @@ describe("mission_api.loadout orders targeting names", function()
 		trackUnits("target", 5)
 		local options = { "alt" }
 
-		local converted = loadout.ConvertOrdersTargetingNames({ { env.CMD.ATTACK, { unitName = "target" }, options } })
+		local converted = convertOrders({ { env.CMD.ATTACK, { unitName = "target" }, options } })
 
 		assert.are.same({ "alt" }, converted[1][3])
 		assert.are_not.equal(options, converted[1][3])
@@ -109,9 +125,43 @@ describe("mission_api.loadout orders targeting names", function()
 		trackUnits("target", 5)
 		local orders = { { env.CMD.ATTACK, { unitName = "target" }, {} } }
 
-		loadout.ConvertOrdersTargetingNames(orders)
-		local converted = loadout.ConvertOrdersTargetingNames(orders)
+		convertOrders(orders)
+		local converted = convertOrders(orders)
 
 		assert.are.same({ { env.CMD.ATTACK, 5, {} } }, converted)
+	end)
+
+	it("gives an inserted order once for every unit of the name, each with the order's options", function()
+		trackUnits("pair", 5, 6)
+
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, { unitName = "pair" } }, { "alt" } },
+		})
+
+		table.sort(converted, function(a, b)
+			return a[2][4] < b[2][4]
+		end)
+		assert.are.same({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, 5 }, { "alt" } },
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, 6 }, { "alt" } },
+		}, converted)
+	end)
+
+	it("gives an inserted order on the features of a feature name", function()
+		MissionApiBuilder.new():WithTrackedFeature("wreck", 40):Install()
+
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.RECLAIM, 0, { featureName = "wreck" } } },
+		})
+
+		assert.are.same({ { env.CMD.INSERT, { 0, env.CMD.RECLAIM, 0, 40 } } }, converted)
+	end)
+
+	it("gives no inserted order for a name no unit carries", function()
+		local converted = convertOrders({
+			{ env.CMD.INSERT, { 0, env.CMD.ATTACK, 0, { unitName = "squad" } } },
+		})
+
+		assert.are.same({}, converted)
 	end)
 end)

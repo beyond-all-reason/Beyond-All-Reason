@@ -566,6 +566,33 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("build option actions with a team", function()
+		local function validateBuildOption(actionType, parameters)
+			parameters.builtDefName = "armsolar"
+			return V.validateAction({ type = V.actionTypes[actionType], parameters = parameters })
+		end
+
+		it("passes a team without a builder", function()
+			local result = validateBuildOption("RemoveBuildOption", { teamName = "player" })
+			V.assertNoMessageContaining(result, "builderDefName")
+		end)
+
+		it("passes a builder and a team together", function()
+			local result = validateBuildOption(
+				"AddBuildOption",
+				{ builderDefName = "armck", teamName = "player", buildMenuPosition = 2 }
+			)
+			V.assertNoMessageContaining(result, "needs builderDefName")
+		end)
+
+		it("reports a build menu position with a team and no builder", function()
+			V.assertMessage(
+				validateBuildOption("AddBuildOption", { teamName = "player", buildMenuPosition = 2 }),
+				"Parameter 'buildMenuPosition' needs builderDefName. Action: a, Parameter: buildMenuPosition"
+			)
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 
@@ -822,6 +849,20 @@ describe("mission_api.validation.sections", function()
 			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
+		end)
+
+		it("reports a SetMapLighting action without any lighting value", function()
+			local result =
+				V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { transitionDuration = 2 } })
+			local names = V.definitions.ActionDefinitions.Parameters[V.actionTypes.SetMapLighting].requiresOneOf
+
+			assert.are.equal(12, #names)
+			V.assertMessage(
+				result,
+				'Action is missing required parameter, at least one of {"'
+					.. table.concat(names, '","')
+					.. '"} is required. Action: a'
+			)
 		end)
 	end)
 

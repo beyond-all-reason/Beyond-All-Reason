@@ -35,7 +35,6 @@ local env = MissionSpecEnv.new({
 			created[#created + 1] = { unitDefName = unitDefName, x = x, z = z, facing = facing, team = team }
 			return #created
 		end,
-		GiveOrderArrayToUnit = function() end,
 	},
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
