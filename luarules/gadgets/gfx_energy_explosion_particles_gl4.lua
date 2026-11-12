@@ -826,7 +826,7 @@ local function initGL4()
 
 	if useGeometryShader then
 		-- The particle VBO is the vertex buffer: one point per particle, which the GS expands.
-		particleVBO.VAO = particleVBO:makeVAOandAttach(nil, particleVBO.instanceVBO)
+		particleVBO.VAO = gl.InstanceVBOTable.fillVAOSlots(particleVBO:makeVAOandAttach(nil, particleVBO.instanceVBO))
 	else
 		-- No-GS fallback: build a template indexed mesh with one vertex per
 		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.

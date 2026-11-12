@@ -86,6 +86,13 @@ local function CommCount(unitTeam)
 	return count
 end
 
+function gadget:Initialize()
+	for weaponDefID in pairs(fallingDamageTypes) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
+	gadgetHandler:RegisterUnitPreDamagedWeapon(COM_BLAST)
+end
+
 function gadget:UnitPreDamaged(
 	unitID,
 	unitDefID,

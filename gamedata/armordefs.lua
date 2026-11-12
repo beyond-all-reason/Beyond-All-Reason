@@ -201,6 +201,7 @@ local armorDefs = {
 		"corfdrag",
 		"corfgate",
 		"corfhlt",
+		"corhltfus",
 		"legfmg",
 		"corfhp",
 		"corfmkr",
@@ -653,6 +654,12 @@ local armorDefs = {
 
 		"legnavydestro",
 		"legnavyartyship",
+		"leganavyaaship",
+		"leganavyartyship",
+		"leganavybattleship",
+		"leganavycruiser",
+		"leganavyflagship",
+		"leganavymissileship",
 	},
 
 	subs = {

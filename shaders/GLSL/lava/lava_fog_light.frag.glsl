@@ -18,7 +18,7 @@ uniform sampler2D lavaDistortion;
 
 in DataVS {
 	vec4 worldPos;
-	vec4 worldUV;
+	vec2 worldUV;
 	float inboundsness;
 	noperspective vec2 v_screenUV;
 };

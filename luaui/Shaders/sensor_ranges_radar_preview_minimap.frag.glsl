@@ -158,7 +158,7 @@ void main() {
 		float ownMask = clamp(ownSdf / pixelCells + 0.5, 0.0, 1.0);
 		float alliedMask = clamp(alliedSdf / pixelCells + 0.5, 0.0, 1.0);
 		// Concave rounding borrows the neighboring cells' fade rather than appearing fully opaque.
-		float ownStrength = smoothed > 0.0 ? smoothed : max(smoothedAt(nx), max(smoothedAt(nz), smoothedAt(nd)));
+		float ownStrength = own > 0.5 ? smoothed : max(smoothedAt(nx), max(smoothedAt(nz), smoothedAt(nd)));
 		smoothed = ownStrength * ownMask;
 		allied = max(allied, max(alliedN.x, max(alliedN.y, alliedN.z))) * alliedMask;
 		fill = max(smoothed * mix(1.0, inactiveParams.y, inactive), allied * alliedAlpha);

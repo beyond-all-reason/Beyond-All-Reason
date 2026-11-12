@@ -1680,6 +1680,10 @@ local icontypes = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991,
 	},
+	corhltfus = {
+		bitmap = "icons/fusion.png",
+		size = 1.46999991,
+	},
 	corgant = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998,
@@ -3788,6 +3792,10 @@ local icontypes = {
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996,
+	},
+	scavwraith = {
+		bitmap = "icons/blank.png",
+		size = 1.04999995,
 	},
 	scavmist = {
 		bitmap = "icons/blank.png",

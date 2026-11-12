@@ -194,7 +194,143 @@ local commandTextCache = {}
 -- Cached WAIT command state (computed once per refresh, not per drawCell call)
 local cachedWaitState = nil
 local hasWaitCommand = false
-local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
+local cachedFirstUnit = nil ---@type integer? first selected unit, avoids spGetSelectedUnits() table alloc
+
+-- Tooltip lines the FlowUI2 order menu shows too (their strings in commands.json): what a launch fires (its own
+-- tooltip), the self-destruct's countdown and EMP blast, what a stockpiled shot costs, cloaking's energy cost.
+-- Made once per selection and command (SelectionChanged clears them)
+---@class OrderMenuTipExtras
+---@field lines table<string, [string, string?]> per command action: its lines, its launch tooltip key
+---@field launchOf table<integer, string|false> per unit type: what its launch fires
+---@field rank table<string, integer> the launches, the most telling highest
+local tipExtras = { lines = {}, launchOf = {}, rank = { juno = 1, emp = 2, nuke = 3 } } ---@type OrderMenuTipExtras
+
+-- a unit type's launch: what its manual-fire weapon fires (false: none, or a commander's D-gun)
+---@return string|false
+function tipExtras.launch(unitDefID)
+	local kind = tipExtras.launchOf[unitDefID] ---@type string|false|nil
+	if kind == nil then
+		kind = false
+		local ud = UnitDefs[unitDefID] ---@type table?
+		local weapons = ud and ud.weapons or {} ---@type table[]
+		for _, w in ipairs(weapons) do
+			local wd = WeaponDefs[w.weaponDef] ---@type table?
+			if wd and wd.manualFire then
+				if wd.type ~= "DGun" then
+					if wd.customParams and wd.customParams.junotype then
+						kind = "juno"
+					elseif wd.paralyzer then
+						kind = "emp"
+					elseif (wd.targetable or 0) > 0 then
+						kind = "nuke" -- (what anti-nukes intercept)
+					end
+				end
+				break
+			end
+		end
+		tipExtras.launchOf[unitDefID] = kind
+	end
+	return kind
+end
+
+-- a stockpiled shot's cost and time (the selection's first stockpiling type), nil without one
+function tipExtras.stockpile(counts)
+	local ids = {}
+	for unitDefID in pairs(counts) do
+		if UnitDefs[unitDefID] then -- (the counts' "n" is none)
+			ids[#ids + 1] = unitDefID
+		end
+	end
+	table.sort(ids)
+	for _, unitDefID in ipairs(ids) do
+		local weapons = UnitDefs[unitDefID].weapons or {} ---@type table[]
+		for _, w in ipairs(weapons) do
+			local wd = WeaponDefs[w.weaponDef] ---@type table?
+			if wd and wd.stockpile then
+				local parts = {}
+				if (wd.metalCost or 0) > 0 then
+					parts[#parts + 1] =
+						getCachedTranslation("commands.stockpile_metal", { amount = mathFloor(wd.metalCost + 0.5) })
+				end
+				if (wd.energyCost or 0) > 0 then
+					parts[#parts + 1] =
+						getCachedTranslation("commands.stockpile_energy", { amount = mathFloor(wd.energyCost + 0.5) })
+				end
+				local t = (wd.stockpileTime or 0) / Game.gameSpeed -- (frames)
+				local time = tostring(t >= 10 and mathFloor(t + 0.5) or mathFloor(t * 10 + 0.5) / 10)
+				if #parts > 0 then
+					return getCachedTranslation(
+						"commands.stockpile_cost",
+						{ cost = table.concat(parts, ", "), time = time }
+					)
+				end
+				return getCachedTranslation("commands.stockpile_time", { time = time })
+			end
+		end
+	end
+	return nil
+end
+
+-- a command's extra tooltip lines ("" for none), and for a launch the tooltip key that replaces its own
+function tipExtras.of(cmd)
+	local cached = tipExtras.lines[cmd.action] ---@type [string, string?]?
+	if cached then
+		return cached[1], cached[2]
+	end
+	local lines, key = {}, nil
+	if cmd.action == "manuallaunch" then
+		local best, rank = nil, tipExtras.rank ---@type string?, table<string, integer>
+		for unitDefID in pairs(Spring.GetSelectedUnitsCounts()) do
+			local ud = UnitDefs[unitDefID] ---@type table? (the counts' "n" is none)
+			local kind = ud and tipExtras.launch(unitDefID) or false
+			if kind and (not best or rank[kind] > rank[best]) then
+				best = kind
+			end
+		end
+		key = best and ("commands.manuallaunch_" .. best .. "_tooltip") or nil
+	elseif cmd.id == CMD.SELFD then
+		local least, most, emp = nil, nil, false ---@type number?, number?, boolean
+		for unitDefID in pairs(Spring.GetSelectedUnitsCounts()) do
+			local ud = UnitDefs[unitDefID] ---@type table? (the counts' "n" is none)
+			if ud then
+				local seconds = ud.selfDCountdown or 0
+				least = least and math.min(least, seconds) or seconds
+				most = most and math.max(most, seconds) or seconds
+				local wd = ud.selfDExplosion and WeaponDefNames[ud.selfDExplosion] ---@type table?
+				emp = emp or (wd ~= nil and wd.paralyzer == true)
+			end
+		end
+		if most then
+			lines[#lines + 1] = most == 0 and getCachedTranslation("commands.selfd_time_instant")
+				or getCachedTranslation(
+					"commands.selfd_time",
+					{ seconds = least == most and tostring(most) or (least .. "-" .. most) }
+				)
+		end
+		if emp then
+			lines[#lines + 1] = getCachedTranslation("commands.selfd_emp")
+		end
+	elseif cmd.action == "stockpile" then
+		lines[#lines + 1] = tipExtras.stockpile(Spring.GetSelectedUnitsCounts())
+	elseif cmd.action == "wantcloak" then
+		local unitDefID = cachedFirstUnit and Spring.GetUnitDefID(cachedFirstUnit)
+		local ud = unitDefID and UnitDefs[unitDefID] ---@type table?
+		if ud and (ud.cloakCost or 0) > 0 then
+			local standing = mathFloor(ud.cloakCost + 0.5)
+			if (ud.cloakCostMoving or 0) > ud.cloakCost then
+				lines[#lines + 1] = getCachedTranslation(
+					"commands.wantcloak_cost",
+					{ standing = standing, moving = mathFloor(ud.cloakCostMoving + 0.5) }
+				)
+			else
+				lines[#lines + 1] = getCachedTranslation("commands.wantcloak_cost_standing", { standing = standing })
+			end
+		end
+	end
+	local text = table.concat(lines, "\n")
+	tipExtras.lines[cmd.action] = { text, key }
+	return text, key
+end
 
 -- Cancel target button visibility tracking
 ---@type number
@@ -282,6 +418,8 @@ local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
 ---@type table<string, string>
 local actionHotkeys
+local tapHotkeys
+local tapHotkeyLines = {}
 
 local function clearStateLightDisplayLists()
 	for cell, cache in pairs(stateLightDisplayLists) do
@@ -455,6 +593,11 @@ local function refreshCommands()
 
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
+
+	-- the blueprint commands, unless the blueprint UI is off (ShowBlueprintUI: settings, dev)
+	local hideBlueprints = Spring.GetConfigInt("ShowBlueprintUI", 1) == 0 or nil
+	hiddenCommands[GameCMD.BLUEPRINT_PLACE] = hideBlueprints
+	hiddenCommands[GameCMD.BLUEPRINT_CREATE] = hideBlueprints
 
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
@@ -710,6 +853,66 @@ end
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = require("luaui/Include/action_hotkeys")
+	tapHotkeys = require("luaui/Include/action_tap_hotkeys")
+	tapHotkeyLines = {}
+end
+
+-- "Tap L quickly: 1x Fire at will, 2x Hold fire, 3x Return fire" for a state set by the number of taps;
+-- "Press Z Z for area mex" when it needs the extractor picked first: its key bound to an extractor too
+-- (Legacy presets), or the grid layout's keys (the build menu's WG.gridmenu.getAreaMexKeys)
+local function tapHotkeyLine(cmd)
+	if cmd.action == "areamex" then
+		local keys
+		local key = actionHotkeys.areamex
+		if key then
+			if tapHotkeyLines.areamex == nil then
+				tapHotkeyLines.areamex = false
+				for _, keybinding in ipairs(Spring.GetKeyBindings()) do
+					if keybinding.boundWith == key and keybinding.command:find("buildunit_", 1, true) == 1 then
+						local label = keyConfig.sanitizeKey(key, currentLayout):upper()
+						tapHotkeyLines.areamex = label .. " " .. label
+						break
+					end
+				end
+			end
+			keys = tapHotkeyLines.areamex or nil
+		elseif WG.gridmenu and WG.gridmenu.getAreaMexKeys then
+			local grid = WG.gridmenu.getAreaMexKeys()
+			keys = grid and table.concat(grid, " ")
+		end
+		return keys
+				and getCachedTranslation("ui.orderMenu.areamexHotkey", {
+					keys = keys,
+					highlightColor = "\255\255\215\100",
+					textColor = "\255\240\240\240",
+				})
+			or nil
+	end
+	local line = tapHotkeyLines[cmd.action]
+	if line == nil then
+		line = false
+		local chain = tapHotkeys[cmd.action]
+		if chain then
+			local taps = {}
+			for count = 1, #chain do
+				local state = cmd.params[chain[count] + 2]
+				if state then
+					taps[#taps + 1] = getCachedTranslation("ui.orderMenu.tapCount", {
+						count = count,
+						state = getCachedTranslation("commands." .. state),
+					})
+				end
+			end
+			line = getCachedTranslation("ui.orderMenu.tapHotkeys", {
+				hotkey = keyConfig.sanitizeKey(chain.key, currentLayout):upper(),
+				taps = table.concat(taps, ", "),
+				highlightColor = "\255\255\215\100",
+				textColor = "\255\240\240\240",
+			})
+		end
+		tapHotkeyLines[cmd.action] = line
+	end
+	return line or nil
 end
 
 function widget:Initialize()
@@ -1430,14 +1633,15 @@ function widget:DrawScreen()
 					then
 						local cmd = commands[cell]
 						if WG.tooltip then
-							local tooltipKey = cmd.action .. "_tooltip"
-							local tooltip = getCachedTranslation("commands." .. tooltipKey)
+							local extra, launchKey = tipExtras.of(cmd)
+							local tooltip = getCachedTranslation(launchKey or ("commands." .. cmd.action .. "_tooltip"))
 
 							if not hotkeyCache[cmd.action] then
 								hotkeyCache[cmd.action] =
 									keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
-							local hotkey = hotkeyCache[cmd.action]
+							local tapLine = tapHotkeyLine(cmd)
+							local hotkey = tapLine and "" or hotkeyCache[cmd.action]
 							local hotkeyApplied = false
 
 							if cmd.id == CMD.FIRE_STATE then
@@ -1473,6 +1677,17 @@ function widget:DrawScreen()
 									textColor = "\255\240\240\240",
 								})
 							end
+							if tapLine then
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. tapLine) or tapLine
+							end
+							if cmd.action == "stockpile" and cmd.params[1] then
+								local limit =
+									getCachedTranslation("commands.stockpile_limit", { limit = cmd.params[1] })
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. limit) or limit
+							end
+							if extra ~= "" then
+								tooltip = tooltip ~= "" and (tooltip .. "\n" .. extra) or extra
+							end
 							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
@@ -1483,7 +1698,7 @@ function widget:DrawScreen()
 										title = getCachedTranslation("commands." .. commandState)
 									end
 								else
-									title = getCachedTranslation("commands." .. cmd.action)
+									title = cmd.cachedText
 								end
 								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
@@ -1548,7 +1763,7 @@ function widget:DrawScreen()
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateBackgroundTexture")
 			ordermenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			if ordermenuBgTex then
@@ -1566,15 +1781,12 @@ function widget:DrawScreen()
 		end
 		if not ordermenuTex then
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateOrdersTexture")
-			ordermenuTex = gl.CreateTexture(
-				math_floor(width * vsx) * (vsy < 1400 and 2 or 1),
-				math_floor(height * vsy) * (vsy < 1400 and 2 or 1),
-				{ --*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.ALPHA,
-					fbo = true,
-				}
-			)
+			local ss = WG.FlowUI.supersample or 2
+			ordermenuTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA8,
+				fbo = true,
+			})
 			tracy.ZoneEnd()
 		end
 		if ordermenuTex and doUpdate then
@@ -1855,8 +2067,17 @@ function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
 
+	-- units picked from none, or all let go: this frame, not after the throttle
+	if (cachedFirstUnit == nil) ~= (sel[1] == nil) then
+		doUpdate = true
+		lastCommandRefreshTime = 0
+	end
+
 	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
 	cachedFirstUnit = sel[1] or nil
+	for action in pairs(tipExtras.lines) do -- (made again for this selection)
+		tipExtras.lines[action] = nil
+	end
 
 	-- Update cancel target state using the selection already provided here
 	cancelTargetLastState = selectionHasPriorityTarget(sel)
@@ -1886,6 +2107,7 @@ end
 function widget:LanguageChanged()
 	commandTextCache = {}
 	translationCache = {}
+	tapHotkeyLines = {}
 	widget:ViewResize()
 end
 

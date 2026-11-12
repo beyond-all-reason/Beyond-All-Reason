@@ -8,9 +8,9 @@ static-var  shooting, shotcount, restore_delay;
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-#include "../opencloseanim.h"
+#include "../popup_openclose.h"
 
-Open()
+OpenAnim()
 {	
 	set ARMORED to 0;
 	turn doorl to z-axis <0> speed <90>;
@@ -30,7 +30,7 @@ Open()
 	wait-for-turn antenna around x-axis;
 }
 
-Close()
+CloseAnim()
 {
 	stop-spin dish around y-axis;
 
@@ -62,7 +62,8 @@ Create()
 
 	shooting = 0;
 	shotcount = 0;
-	start-script OpenCloseAnim(1);
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	SLEEP_UNTIL_UNITFINISHED;
 	spin dish around y-axis speed <90>;
 }
@@ -79,13 +80,13 @@ lua_UnitScriptLight(lightIndex, count)
 
 Activate()
 {
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 }
 
 Deactivate()
 {
 	signal SIGNAL_AIM1;
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -99,7 +100,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	
-	while (!IsOpen){
+	while (!isOpen){
 		sleep 150;
 	}
 	turn turret to y-axis heading speed <50.0>;
@@ -117,6 +118,11 @@ FireWeapon1()
     call-script lua_UnitScriptLight(1, shotcount);
 	sleep 1400;
 	shooting=0;
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromWeapon1(pieceIndex)

@@ -19,11 +19,23 @@ end
 local MODEL_NAME = "weather_brush_model"
 local RML_PATH = "luaui/RmlWidgets/gui_weather_brush/gui_weather_brush.rml"
 
+---@type table<string, any>
 local WG = WG
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 25
 
+---@class WeatherBrushPanelState
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field libraryBuilt boolean
+---@field cegListFilter string
+---@field cegListBuilt boolean
+---@field dragHandle table?
+---@field selectedCegsLabelEl table?
+---@field lastSelectedCegsRml string?
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
@@ -39,13 +51,12 @@ local lastActive = false
 local userDragged = false -- once user drags, stop auto-positioning
 
 local function buildRootStyle()
-	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio and stays
-	-- readable via `min-width: Npx`. We only emit position here.
+	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio; only the position is set here.
 	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local initialModel = {
-	-- Root panel visibility — driven by data-class-hidden on #wb-root
+	-- Root panel visibility (data-class-hidden on #wb-root)
 	hidden = true,
 	-- Two-way-bound CEG name filter (data-value on #wb-ceg-filter)
 	filter = "",
@@ -54,7 +65,7 @@ local initialModel = {
 }
 
 -- ===========================================================================
--- Declarative event handlers (called from RML via onclick="widget:Foo()")
+-- Event handlers called from the RML (onclick="widget:Foo()")
 -- ===========================================================================
 function widget:OnQuit()
 	manuallyHidden = true
@@ -64,19 +75,15 @@ function widget:OnQuit()
 end
 
 function widget:OnFilterFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnFilterBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
--- data-value="filter" only writes dm.filter AFTER the change event fires
--- (RmlUi quirk), so read the input element's value directly here. Without
--- this the per-frame poll of dm.filter never saw typed text, so the CEG
--- browser search appeared to do nothing.
+-- RmlUi writes data-value="filter" only after the change event fires, so read
+-- the input element directly; the per-frame poll of dm.filter would miss typing.
 function widget:OnFilterChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("wb-ceg-filter")
@@ -141,12 +148,10 @@ function widget:OnAltitudeStep(delta)
 end
 
 function widget:OnAltitudeFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnAltitudeBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
@@ -190,21 +195,20 @@ local iconMap = {
 	meteor = "&#x2604;",
 }
 
--- Category groups: { label, startIndex, endIndex }
--- These insert visual headers into the library grid to organize presets
+-- Category groups { label, startIndex, endIndex }: headers inserted into the library grid
 local categoryGroups = {
 	{ label = "PRECIPITATION", startIdx = 1 },
 	{ label = "WIND &amp; SAND", startIdx = 8 },
 	{ label = "FOG &amp; ATMOSPHERE", startIdx = 10 },
 	{ label = "FIRE &amp; VOLCANIC", startIdx = 15 },
 	{ label = "AMBIENT &amp; MAGICAL", startIdx = 19 },
-	{ label = "STORM &amp; ENERGY", startIdx = 25 },
-	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 27 },
-	{ label = "SPECIAL", startIdx = 29 },
+	{ label = "STORM &amp; ENERGY", startIdx = 24 },
+	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 26 },
+	{ label = "SPECIAL", startIdx = 28 },
 }
 
 -- ===========================================================================
--- Event Listeners (imperative — drag handle only; click/focus/blur live in RML)
+-- Event listeners: the drag handle only; click/focus/blur live in the RML
 -- ===========================================================================
 local function attachEventListeners()
 	local doc = widgetState.document
@@ -250,7 +254,9 @@ function widget:Initialize()
 	end
 
 	widgetState.rootElement = document:GetElementById("wb-root")
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	if widgetState.rootElement then
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	end
 
 	attachEventListeners()
 end
@@ -259,7 +265,7 @@ end
 -- Update: sync widget state to UI
 -- ===========================================================================
 function widget:Update()
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
+	-- Poll-based window drag (position only; mouseup ends the drag via a doc listener)
 	if widgetState.dragHandle then
 		widgetState.dragHandle.tick()
 	end
@@ -267,7 +273,7 @@ function widget:Update()
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 	local wbActive = wbState and wbState.active
 
-	-- Show/hide entire panel (driven via data-class-hidden on #wb-root)
+	-- Show/hide the whole panel (data-class-hidden on #wb-root)
 	if wbActive and not lastActive then
 		manuallyHidden = false
 	end
@@ -307,7 +313,7 @@ function widget:Update()
 		return
 	end
 
-	-- Selected CEGs label (cached element + dirty-check: runs every Update tick)
+	-- Selected CEGs label: cached element and dirty check, since this runs every Update
 	local selectedLabel = widgetState.selectedCegsLabelEl
 	if not selectedLabel then
 		selectedLabel = doc:GetElementById("wb-selected-cegs-label")
@@ -388,7 +394,7 @@ function widget:Update()
 		end
 	end
 
-	-- CEG list: rebuild when filter changes (filter is two-way bound via data-value)
+	-- CEG list: rebuild when dm.filter changes (OnFilterChange keeps it current)
 	local filter = (widgetState.dmHandle and widgetState.dmHandle.filter) or ""
 	if filter ~= widgetState.cegListFilter or not widgetState.cegListBuilt then
 		widgetState.cegListFilter = filter
@@ -443,8 +449,6 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG.WeatherBrushInputFocused = nil
-
 	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
 		WG.TerraformerShared.unregisterDocument("weather_brush")
 	end

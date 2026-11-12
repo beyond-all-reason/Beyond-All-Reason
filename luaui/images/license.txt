@@ -53,3 +53,11 @@ All textures in this folder were made for Beyond All Reason by IceXuick, all rig
 
 -- in leaderboard.png
 This icon was made by ZephyrSkies under the WTFPL license, no rights reserved.
+
+--in subfolder /keybinds/
+duplicate.png
+edit.png
+export.png
+import.png
+
+All above textures in this folder were made by Robert Burnham under the WTFPL license, no rights reserved.

@@ -33,6 +33,7 @@ local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
 local spGetGameFrame = Spring.GetGameFrame
@@ -196,7 +197,8 @@ local function drainQueue()
 	for index = checkQueueHead, last do
 		local unitID = checkQueue[index] ---@as UnitID
 		checkQueue[index] = nil
-		if edgeJammed[unitID] ~= nil or buildingDefs[spGetUnitDefID(unitID) or 0] then
+		-- Dying units stay valid until their death script ends, but UnitDestroyed has removed them.
+		if spGetUnitIsDead(unitID) == false and buildingDefs[spGetUnitDefID(unitID)] then
 			updateEdgeJammed(unitID)
 		end
 	end
@@ -233,7 +235,11 @@ local function buildEdgeBand(jammerID)
 	local z = (jammerCellZ[jammerID] + 0.5) * radarCellSize
 	local cover = (cells + 2) * radarCellSize -- extra cells for the mipping and the line rule
 	for _, unitID in ipairs(spGetUnitsInRectangle(x - cover, z - cover, x + cover, z + cover)) do
-		if buildingDefs[spGetUnitDefID(unitID)] and spGetUnitAllyTeam(unitID) == allyTeamID then
+		if
+			buildingDefs[spGetUnitDefID(unitID)]
+			and spGetUnitAllyTeam(unitID) == allyTeamID
+			and not spGetUnitIsDead(unitID)
+		then
 			local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 				addToEdgeBand(jammerID, unitID)
@@ -243,12 +249,13 @@ local function buildEdgeBand(jammerID)
 	end
 end
 
----@return number cellX, number cellZ
+---@return number? cellX, number? cellZ nil when the unit no longer exists
 local function getJammerCell(jammerID)
 	local _, _, _, x, _, z = spGetUnitPosition(jammerID, true)
-	---@cast x number
-	---@cast z number
-	return math_floor(x / radarCellSize), math_floor(z / radarCellSize)
+	if x then
+		---@cast z number
+		return math_floor(x / radarCellSize), math_floor(z / radarCellSize)
+	end
 end
 
 local function addJammer(jammerID, isMobile)
@@ -264,9 +271,13 @@ local function addJammer(jammerID, isMobile)
 end
 
 local function removeJammer(jammerID)
+	local allyTeamID = jammerAllyTeams[jammerID]
+	if not allyTeamID then
+		return -- never added, e.g. destroyed inside an earlier gadget's UnitCreated
+	end
 	jamming[jammerID] = nil
 	clearEdgeBand(jammerID)
-	jammerCells[jammerAllyTeams[jammerID]][jammerID] = nil
+	jammerCells[allyTeamID][jammerID] = nil
 	jammerAllyTeams[jammerID], jammerCellX[jammerID], jammerCellZ[jammerID] = nil, nil, nil
 	mobileJammers[jammerID] = nil
 	jammerTurns[jammerID % BACKSTOP_INTERVAL][jammerID] = nil
@@ -277,7 +288,7 @@ end
 ---A mobile jammer moves its band along only while it is on; it catches up when switched on.
 local function moveJammer(jammerID)
 	local cellX, cellZ = getJammerCell(jammerID)
-	if cellX ~= jammerCellX[jammerID] or cellZ ~= jammerCellZ[jammerID] then
+	if cellX and (cellX ~= jammerCellX[jammerID] or cellZ ~= jammerCellZ[jammerID]) then
 		clearEdgeBand(jammerID)
 		jammerCellX[jammerID], jammerCellZ[jammerID] = cellX, cellZ
 		buildEdgeBand(jammerID)
@@ -348,6 +359,7 @@ local function removeBuilding(unitID, allyTeamID)
 end
 
 local function addUnit(unitID, unitDefID)
+	removeJammer(unitID) -- in case a reused unitID's UnitDestroyed was skipped
 	local isMobileJammer = jammerDefs[unitDefID]
 	if isMobileJammer ~= nil then
 		addJammer(unitID, isMobileJammer)
@@ -377,13 +389,22 @@ function gadget:GameFrame(frame)
 	drainQueue()
 	updateWatchedJammers(frame)
 	for jammerID in pairs(jammerTurns[frame % BACKSTOP_INTERVAL]) do
-		updateJammerRadius(jammerID)
-		updateJammerState(jammerID)
+		-- The handler skips our UnitDestroyed when an earlier gadget errors in its own.
+		if spGetUnitIsDead(jammerID) ~= false then
+			removeJammer(jammerID)
+		else
+			updateJammerRadius(jammerID)
+			updateJammerState(jammerID)
+		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	addUnit(unitID, unitDefID)
+	edgeJammed[unitID] = nil -- left over if this unitID's UnitDestroyed was skipped
+	-- An earlier gadget can destroy the unit in its UnitCreated, which runs our UnitDestroyed first.
+	if spGetUnitIsDead(unitID) == false then
+		addUnit(unitID, unitDefID)
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID)
@@ -421,7 +442,9 @@ function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD_ONOFF)
 
 	for _, unitID in ipairs(spGetAllUnits()) do
-		addUnit(unitID, spGetUnitDefID(unitID))
+		if not spGetUnitIsDead(unitID) then
+			addUnit(unitID, spGetUnitDefID(unitID))
+		end
 	end
 end
 

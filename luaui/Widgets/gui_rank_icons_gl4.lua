@@ -360,6 +360,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	WG.rankicons = nil
 	for _, rankTexture in ipairs(rankTextures) do
 		gl.DeleteTexture(rankTexture)
 	end

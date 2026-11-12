@@ -358,7 +358,6 @@ Create()
 	lastTargetID = -4;
 	deploy_state = NOT_DEPLOYED;
 	aimReady = FALSE;
-	// turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
 	restore_delay = 3000;

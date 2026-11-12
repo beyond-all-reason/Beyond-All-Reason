@@ -4,7 +4,7 @@
 piece  base, base2, base3, flarer1, flarer2, body1, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var_8,
+static-var  gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var_8,
 				aimdir;
 
 // Signal definitions
@@ -12,7 +12,7 @@ static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var
 #define SIGNAL_AIM2 512
 #define SIGNAL_AIM3 1024
 
-#include "../opencloseanim.h"
+#include "../popup_openclose.h"
 
 #define WATER_ROCK_UNITSIZE 17
 #include "../floatmotion.h"
@@ -57,7 +57,7 @@ static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var
 
 
 
-Open()
+OpenAnim()
 {
 	set ARMORED to 0;
 
@@ -81,18 +81,17 @@ Open()
 		wait-for-turn turretg around x-axis;
 
 	sleep 22;
-	isOpen = TRUE;
 }
 
-Close()
+CloseAnim()
 {
-	isOpen = FALSE;
-
 	turn turretb to x-axis <0> speed <180>;
 	turn turretg to x-axis <0> speed <180>;
 	turn turretr to y-axis <0> speed <180>;	
 	turn body1 to y-axis <0> speed <180>;	
 	turn turretb to y-axis <0> speed <180>;	
+	start-script CATT1_Init();
+	start-script CATT2_Init();
 	move turretb to y-axis [-14] speed [90];
 	wait-for-turn turretb around x-axis;
 	wait-for-turn turretg around x-axis;
@@ -117,9 +116,6 @@ Close()
 	wait-for-turn body1 around x-axis;
 	wait-for-turn turretb around x-axis;
 	set ARMORED to 1;
-	
-	start-script CATT1_Init();
-	start-script CATT2_Init();
 }
 
 Create()
@@ -135,11 +131,11 @@ Create()
     hide flareg;
 	gun_3 = 0;
 	isOpen = TRUE;
+	wantOpen = TRUE;
 	Static_Var_3 = 0;
 	restore_delay = 2000;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion(1);
-	start-script OpenCloseAnim(1);
 	start-script CATT1_Init();
 	start-script CATT2_Init();
 }
@@ -150,7 +146,7 @@ Create()
 Activate()
 {
 
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 }
 
 Deactivate()
@@ -158,7 +154,7 @@ Deactivate()
 	signal SIGNAL_AIM1;
 	signal SIGNAL_AIM2;
 	signal SIGNAL_AIM3;
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -228,6 +224,21 @@ FireWeapon2()
 FireWeapon3()
 {
 	gun_3 = !gun_3;
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromWeapon1(pieceIndex)

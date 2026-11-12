@@ -24,7 +24,7 @@ return {
 		script = "Units/scavbuildings/CORHLLLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -129,9 +129,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true,
-				},
 			},
 			hllt_2 = {
 				areaofeffect = 12,
@@ -169,7 +166,6 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
 				},
 			},
@@ -209,7 +205,6 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
 				},
 			},
@@ -249,7 +244,6 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
 				},
 			},

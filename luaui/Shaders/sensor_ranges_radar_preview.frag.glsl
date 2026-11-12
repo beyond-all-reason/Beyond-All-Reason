@@ -6,8 +6,9 @@
 // This shader is part of the Beyond All Reason repository.
 
 // Radar preview sheet, projected onto the terrain: drawn over the screen area of the coverage, each pixel rebuilds
-// its world position from the map g-buffer depth and takes the coverage of its radar cell (the smoothed engine-cell
-// coverage, see sensor_ranges_radar_preview_coverage.frag.glsl / _smooth.frag.glsl), with the rings and the sweep as
+// its world position from the map g-buffer depth and takes the coverage of its radar cell (the engine-cell coverage,
+// see sensor_ranges_radar_preview_coverage.frag.glsl: the rounded cells follow the exact coverage, the fill fades with
+// the smoothed one from _smooth.frag.glsl), with the rings and the sweep as
 // smooth per-pixel gradients, outlined along the border with uncovered radar cells. Being the rendered terrain
 // itself, it covers steep cliffs a sheet of per-cell quads cuts through. Over water it lies on the water surface;
 // units and features in front of the terrain stay untinted.
@@ -20,7 +21,8 @@ uniform sampler2D mapDepths;   // $map_gbuffer_zvaltex
 #if MODEL_DEPTH_TEST
 uniform sampler2D modelDepths; // $model_gbuffer_zvaltex
 #endif
-uniform sampler2D coverageTex;
+uniform sampler2D coverageTex;  // smoothed coverage of the previewed radar, one texel per radar cell of its disc
+uniform sampler2D targetTex;    // its exact engine coverage (0/1), same layout
 uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when lookupParams.w = 1)
 // Circle mode with allied coverage: per radar cell, the allied radar whose range circle reaches farthest past the cell
 // among those covering its terrain, and the runner-up (level * ALLIED_CIRCLE_SLOTS + circle index, 0 = none;
@@ -66,24 +68,24 @@ const float sweepTrail = max(float(SWEEP_TRAIL), 0.01); // degrees
 const float sweepBeam = max(float(SWEEP_BEAM), 0.01);   // degrees
 const float sweepStrength = float(SWEEP_STRENGTH);
 
-// smoothed coverage of the previewed radar at a radar cell, -1 outside its disc
-float previewCoverageAt(ivec2 radarCell) {
+// coverage of the previewed radar at a radar cell, x exact (0/1) and y smoothed, -1 outside its disc
+vec2 previewCoverageAt(ivec2 radarCell) {
 	ivec2 texel = radarCell - ivec2(lookupParams.xy) + ivec2(int(lookupParams.z));
 	if (any(lessThan(texel, ivec2(0))) || any(greaterThanEqual(texel, textureSize(coverageTex, 0)))) {
-		return -1.0;
+		return vec2(-1.0);
 	}
-	return texelFetch(coverageTex, texel, 0).r;
+	return vec2(texelFetch(targetTex, texel, 0).r, texelFetch(coverageTex, texel, 0).r);
 }
 
 // Circle mode: the previewed radar's coverage at a radar cell, with the cells past its disc (between the engine's
 // staircase and the range circle) taking the coverage of the cell further in on the line from the emitter, so terrain
 // shadows carry on to the circle. The coverage is 0 both off the disc and in shadow, so every empty cell farther out
 // than the disc's radius counts as off it; shadowed cells there take their inner neighbour's shadow anyway.
-float circleCoverageAt(ivec2 radarCell) {
-	float coverage = previewCoverageAt(radarCell);
+vec2 circleCoverageAt(ivec2 radarCell) {
+	vec2 coverage = previewCoverageAt(radarCell);
 	vec2 offset = vec2(radarCell - ivec2(lookupParams.xy));
 	float dist = length(offset);
-	if (coverage <= 0.0 && dist > lookupParams.z) {
+	if (coverage.x <= 0.0 && dist > lookupParams.z) {
 		ivec2 inner = ivec2(lookupParams.xy) + ivec2(floor(offset * ((lookupParams.z - 0.75) / dist) + 0.5));
 		coverage = previewCoverageAt(inner);
 	}
@@ -161,24 +163,31 @@ float roundedBoundary(float covered, vec3 neighbours, vec2 edgeDist) {
 	return sdf;
 }
 
-float boundaryCoverageAt(ivec2 cell, bool allied) {
-	return allied ? alliedAt(cell) : max(circleParams.x > 0.5 ? circleCoverageAt(cell) : previewCoverageAt(cell), 0.0);
+// x exact (0/1), y smoothed
+vec2 boundaryCoverageAt(ivec2 cell, bool allied) {
+	if (allied) {
+		return vec2(alliedAt(cell));
+	}
+	return max(circleParams.x > 0.5 ? circleCoverageAt(cell) : previewCoverageAt(cell), 0.0);
 }
 
-// The rounded cells of the previewed radar's or the allied coverage at a pixel: returns the coverage of its cell (in an
-// uncovered cell, that of its covered neighbours, which a filled concave corner borrows), with sdf the signed distance
-// to their boundary in cells (> 0 inside)
+// The rounded cells of the previewed radar's or the allied coverage at a pixel, shaped by the exact coverage so they move
+// with the preview at once: returns the smoothed coverage of its cell (in an uncovered cell, that of its covered
+// neighbours, which a filled concave corner borrows), with sdf the signed distance to their boundary in cells (> 0 inside)
 float roundedCells(vec2 coord, bool allied, out float sdf) {
 	ivec2 cell = ivec2(floor(coord));
 	vec2 inCell = fract(coord);
 	ivec2 direction = ivec2(step(vec2(0.5), inCell)) * 2 - 1;
-	float center = boundaryCoverageAt(cell, allied);
-	vec3 neighbours = vec3(
-		boundaryCoverageAt(cell + ivec2(direction.x, 0), allied),
-		boundaryCoverageAt(cell + ivec2(0, direction.y), allied),
-		boundaryCoverageAt(cell + direction, allied));
-	sdf = roundedBoundary(step(0.5, center), step(vec3(0.5), neighbours), 0.5 - abs(inCell - 0.5));
-	return center > 0.0 ? center : max(neighbours.x, max(neighbours.y, neighbours.z));
+	vec2 center = boundaryCoverageAt(cell, allied);
+	vec2 nx = boundaryCoverageAt(cell + ivec2(direction.x, 0), allied);
+	vec2 nz = boundaryCoverageAt(cell + ivec2(0, direction.y), allied);
+	vec2 nd = boundaryCoverageAt(cell + direction, allied);
+	vec3 neighbours = step(vec3(0.5), vec3(nx.x, nz.x, nd.x));
+	sdf = roundedBoundary(step(0.5, center.x), neighbours, 0.5 - abs(inCell - 0.5));
+	if (center.x > 0.5) {
+		return center.y;
+	}
+	return max(nx.y * neighbours.x, max(nz.y * neighbours.y, nd.y * neighbours.z));
 }
 
 // Circle mode: signed distance (cells, > 0 inside) to the boundary of the allied coverage at a pixel. Cells near a range
@@ -246,7 +255,7 @@ void main() {
 	float pixelCells = max(max(cellPixels.x, cellPixels.y), 1e-5);
 	// circle mode: the previewed radar's coverage ends at a circle at its range around it
 	float circleSdf = circleParams.y - distance(worldPos.xz, radarcenter_range.xz);
-	if (lookupParams.w < 0.5 && (circles ? circleSdf < -pixelCells * cellSize : previewCoverageAt(cell) < 0.0)) {
+	if (lookupParams.w < 0.5 && (circles ? circleSdf < -pixelCells * cellSize : previewCoverageAt(cell).x < 0.0)) {
 		discard;
 	}
 

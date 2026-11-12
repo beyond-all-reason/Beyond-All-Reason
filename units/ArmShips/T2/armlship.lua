@@ -34,6 +34,7 @@ return {
 		turnrate = 450,
 		waterline = 0,
 		customparams = {
+			maxrange = 400,
 			model_author = "mightyodin01",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",

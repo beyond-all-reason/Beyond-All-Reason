@@ -114,6 +114,7 @@ local shipList = {
 	BOAT5 = true,
 	BOAT9 = true,
 	EPICSHIP = true,
+	HOVER7 = true,
 }
 
 local subList = {
@@ -224,6 +225,30 @@ local function unitDef_Post(name, uDef)
 	local buildoptions = uDef.buildoptions
 	local weapondefs = uDef.weapondefs
 	local weapons = uDef.weapons
+
+	local ZOMBIE_WRAITH_RESPAWN_POOL_UNITS = {
+		legsrail = true,
+		corkarg = true,
+		cortermite = true,
+		armsptk = true,
+		armspid = true,
+		corkarganetht4 = true,
+		corthermite = true,
+		armvang = true,
+		armsptkt4 = true,
+		legpede = true,
+		corsktl = true,
+		armflea = true,
+		leganavybattleship = true,
+		legkark = true,
+	}
+	if modOptions.zombies == "spidergeddon" and ZOMBIE_WRAITH_RESPAWN_POOL_UNITS[basename] then
+		customparams.zombie_wraith_respawn_pool = true
+		customparams.zombie_wraith_respawn_delay_multiplier = 3
+		customparams.zombie_wraith_respawn_chance = 1
+		customparams.zombie_rez_power_speed_multiplier = 1.2
+		customparams.zombie_wraith_spawn_max_units_per_spawn_multiplier = 1.8
+	end
 
 	if not uDef.icontype then
 		uDef.icontype = name
@@ -1199,8 +1224,8 @@ local function weaponDef_Post(name, wDef)
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
 			if
-				Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser"
-				or wDef.weapontype == "LightningCannon"
+				Engine.FeatureSupport.targetBorderBug
+				and (wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon")
 			then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
@@ -1208,14 +1233,11 @@ local function weaponDef_Post(name, wDef)
 
 		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 		if wDef.proximitypriority then
-			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(
-				range
-					+ ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))),
-				range
-			) -- see unit_preaim
-			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
-			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
+			local range = math.max(wDef.range or 10, 0) -- todo: account for multiplier_weaponrange
+			local boosted = customparams.exclude_preaim and range
+				or range + math.max(20, range * 0.1, (customparams.preaim_range or 0) - range) -- see preaim_range
+			local proximity = math.max(wDef.proximitypriority, (-0.4 * boosted - 100) / boosted) -- see CGameHelper::GenerateWeaponTargets
+			wDef.proximitypriority = math.clamp(proximity, -1, 10)
 		end
 
 		if wDef.craterareaofeffect then

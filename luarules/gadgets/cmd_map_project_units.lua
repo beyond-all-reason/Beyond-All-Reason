@@ -59,6 +59,7 @@ local END_HEADER = "$mpunits_end$"
 
 local isSingleplayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
+---@type table[]?
 local pending = nil -- entries accumulated between $mpunits_begin$ and $mpunits_end$
 local pendingBad = 0 -- entries dropped at parse time (unknown unit def)
 local ackCounter = 0 -- incremented per completed replace; mirrored to mpu_ack
@@ -85,17 +86,23 @@ local function exportAllUnits()
 	for i = 1, #ids do
 		local uid = ids[i]
 		local defID = Spring.GetUnitDefID(uid)
+		---@type table?
 		local def = defID and UnitDefs[defID]
+		---@type number?, number?, number?
 		local x, _, z = Spring.GetUnitPosition(uid)
 		if def and x then
+			-- a MISSION unit (Unit Placer, "mission_team" >= 0) keeps its mission team number as
+			-- a 7th field, so a load freezes it again and the mission editor can take it
+			local missionTeam = Spring.GetUnitRulesParam(uid, "mission_team")
 			data[#data + 1] = format(
-				"%s %.1f %.1f %d %d %d",
+				"%s %.1f %.1f %d %d %d%s",
 				def.name,
 				x,
 				z,
 				Spring.GetUnitHeading(uid) or 0,
 				Spring.GetUnitTeam(uid) or 0,
-				Spring.GetUnitNeutral(uid) and 1 or 0
+				Spring.GetUnitNeutral(uid) and 1 or 0,
+				(missionTeam and missionTeam >= 0) and (" " .. math.floor(missionTeam)) or ""
 			)
 		end
 	end
@@ -112,10 +119,15 @@ local function replaceAllUnits()
 	local gaia = Spring.GetGaiaTeamID()
 	local spawned, failed, remapped = 0, pendingBad, 0
 	local max, min = math.max, math.min
+	---@cast pending table[]
 	for _, u in ipairs(pending) do
 		local team = u.team
+		---@type integer?, integer?, any
 		local tid, _, isDead = Spring.GetTeamInfo(team, false)
-		if not tid or isDead then
+		if u.mission then
+			-- mission units stand on their mission team when it exists, else Gaia; never "remapped"
+			team = GG.UnitPlacer and GG.UnitPlacer.realTeamFor(u.mission) or (tid and not isDead and team or gaia)
+		elseif not tid or isDead then
 			-- Invalid or dead team in this session: keep the unit on the map
 			-- under Gaia rather than dropping it.
 			team = gaia
@@ -127,7 +139,9 @@ local function replaceAllUnits()
 		if uid then
 			spawned = spawned + 1
 			Spring.GiveOrderToUnit(uid, CMD.STOP, {}, 0)
-			if u.neutral then
+			if u.mission and GG.UnitPlacer then
+				GG.UnitPlacer.freeze(uid, u.mission)
+			elseif u.neutral then
 				Spring.SetUnitNeutral(uid, true)
 			end
 		else
@@ -145,7 +159,6 @@ local function replaceAllUnits()
 	ackCounter = ackCounter + 1
 	Spring.SetGameRulesParam("mpu_spawned", spawned)
 	Spring.SetGameRulesParam("mpu_failed", failed)
-	Spring.SetGameRulesParam("mpu_removed", removed)
 	Spring.SetGameRulesParam("mpu_remapped", remapped)
 	Spring.SetGameRulesParam("mpu_ack", ackCounter)
 	Spring.Echo(
@@ -159,7 +172,8 @@ local function replaceAllUnits()
 	)
 end
 
-function gadget:RecvLuaMsg(msg, playerID)
+---@return boolean?
+function gadget:RecvLuaMsg(msg)
 	if msg == EXPORT_HEADER then
 		-- Read-only, but it reveals every unit's position: refuse when it could
 		-- serve as a maphack (multiplayer without cheats).
@@ -190,7 +204,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		end
 		local payload = msg:sub(#DATA_HEADER + 1)
 		for entry in payload:gmatch("[^|]+") do
-			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
+			local name, x, z, rot, team, neutral, mission = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+) ?(%S*)$")
 			x, z = tonumber(x), tonumber(z)
 			if name and x and z and UnitDefNames[name] then
 				pending[#pending + 1] = {
@@ -200,6 +214,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 					rot = tonumber(rot) or 0,
 					team = tonumber(team) or 0,
 					neutral = neutral == "1",
+					mission = tonumber(mission),
 				}
 			else
 				pendingBad = pendingBad + 1

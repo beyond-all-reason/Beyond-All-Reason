@@ -1,17 +1,19 @@
--- tf_tileset.lua: Tileset Terrain tuning UI module for gui_terraform_brush.
--- Folds the /tileset prototype's knob panel into the TF brush as the TILESET
--- floating window, opened from the SCENE menu and independent of the active
--- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
--- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
--- generated from the same spec below, so this list and the .rml stay in step.
+-- tf_tileset.lua: the TILESET floating window (opened from the SCENE menu,
+-- independent of the active tool), which tunes the tileset terrain shader.
+-- The shader is NOT in this repo: it is the write-dir widget
+-- dev_tileset_terrain.lua, driven through WG.TilesetTerrain (getKnobs /
+-- setKnob / reset and friends). It may be missing or an older build, so every
+-- call is nil-guarded and newer features hide when their API is absent.
 local tfStrings = require("luaui/RmlWidgets/gui_terraform_brush/tf_strings")
 local M = {}
 
--- Capture WG as an upvalue: RmlUi-dispatched event closures can run outside the
--- host widget's global env, where the global `WG` reads as nil.
+-- RmlUi listener closures can run outside the widget env, where global WG is
+-- nil; capture it as an upvalue.
+---@type table<string, any>
 local WG = WG
 
--- { knob key, numbox display format }. Order is irrelevant here (lookup by key).
+-- { knob key, numbox format }. Each key pairs with a ts-slider-<key> row in the
+-- .rml; keep the two in step. Order does not matter (lookup by key).
 local KNOBS = {
 	{ "scaleBase", "%.0f" },
 	{ "scaleIntermediate", "%.0f" },
@@ -19,7 +21,7 @@ local KNOBS = {
 	{ "scalePlat", "%.0f" },
 	{ "scaleFoot", "%.0f" },
 	-- albedo tiling per flat layer, as a multiple of that layer's shape scale
-	-- (albDecouple is the checkbox below, not a slider — same as debugView)
+	-- (albDecouple is a checkbox, mirrored by hand in M.sync)
 	{ "albTileBase", "%.2f" },
 	{ "albTileIntermediate", "%.2f" },
 	{ "albTilePlat", "%.2f" },
@@ -50,9 +52,30 @@ local KNOBS = {
 	{ "intermediateScatter", "%.2f" },
 	{ "intermediateStartDeg", "%.1f" },
 	{ "intermediateFullDeg", "%.1f" },
-	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
-	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
-	-- 0/1 slider.
+	-- NEW SORT (3-band sort, shader build 19+): the two intermediary bands in
+	-- dot space (1 flat, 0 vertical) and the two shared colour sets. The flip
+	-- knobs are checkboxes, synced by hand in syncSortModel.
+	{ "nLowerStart", "%.3f" },
+	{ "nLowerFade", "%.3f" },
+	{ "nUpperStart", "%.3f" },
+	{ "nUpperFade", "%.3f" },
+	{ "aLowerStart", "%.3f" },
+	{ "aLowerFade", "%.3f" },
+	{ "aUpperStart", "%.3f" },
+	{ "aUpperFade", "%.3f" },
+	{ "rockHue", "%.3f" },
+	{ "rockSat", "%.2f" },
+	{ "rockVal", "%.2f" },
+	{ "rockTintR", "%.2f" },
+	{ "rockTintG", "%.2f" },
+	{ "rockTintB", "%.2f" },
+	{ "topsHue", "%.3f" },
+	{ "topsSat", "%.2f" },
+	{ "topsVal", "%.2f" },
+	{ "topsTintR", "%.2f" },
+	{ "topsTintG", "%.2f" },
+	{ "topsTintB", "%.2f" },
+	-- cliffProtect is the PROTECT CLIFFS button (dm.tsCliffProtectOn), not a row.
 	{ "splatInfluence", "%.2f" },
 	{ "surfClaim", "%.2f" },
 	{ "splatPunchIntermediate", "%.2f" },
@@ -83,13 +106,11 @@ local KNOBS = {
 	{ "curvHighlight", "%.2f" },
 	{ "curvShadow", "%.2f" },
 	{ "curvRadius", "%.0f" },
-	{ "specStrength", "%.2f" },
 	{ "specAA", "%.2f" },
-	{ "hemiAmbient", "%.2f" },
-	{ "exposure", "%.2f" },
-	{ "aoStrength", "%.2f" },
 	{ "wetBand", "%.0f" },
 	{ "wetGloss", "%.2f" },
+	{ "wetStrength", "%.2f" },
+	{ "wetSlope", "%.2f" },
 	-- terrain-driven water opacity (WATER section)
 	{ "maxWalkDepth", "%.0f" },
 	{ "shallowsTint", "%.2f" },
@@ -100,7 +121,6 @@ local KNOBS = {
 	{ "shallowsIntensity", "%.2f" },
 	{ "deepsIntensity", "%.2f" },
 	{ "shadowMode", "%d" },
-	{ "shadowBias", "%.4f" },
 	{ "smtBlend", "%.2f" },
 	{ "oldCliffBlend", "%.2f" },
 	{ "tintR", "%.2f" },
@@ -120,7 +140,6 @@ local KNOBS = {
 	{ "platTintB", "%.2f" },
 	{ "metalInfluence", "%.2f" },
 	{ "metalness", "%.2f" },
-	{ "metalReflect", "%.2f" },
 	{ "metalRoughMul", "%.2f" },
 	{ "metalScale", "%.0f" },
 	{ "metalRelief", "%.2f" },
@@ -133,17 +152,17 @@ local KNOBS = {
 	{ "metalTintR", "%.2f" },
 	{ "metalTintG", "%.2f" },
 	{ "metalTintB", "%.2f" },
-	-- GLOW LIGHT rows (the LIGHTS tool's point-light controls on every spot's
-	-- light); the on/off knob is a checkbox, mirrored by hand in M.sync below
+	-- GLOW LIGHT rows (point-light controls for every spot's light); the on/off
+	-- switch is a checkbox, mirrored by hand in M.sync
 	{ "metalGlowBright", "%.2f" },
 	{ "metalGlowRadius", "%.0f" },
 	{ "metalGlowHeight", "%.0f" },
 	{ "metalGlowR", "%.2f" },
 	{ "metalGlowG", "%.2f" },
 	{ "metalGlowB", "%.2f" },
-	-- HEIGHT TINT (tileset shader 0.27). The colour scalars (gradeLow*,
-	-- strataColorN*, snow*) have no rows of their own: the selected chip edits
-	-- them through the shared ts-hg-slider-r/g/b trio (stampHgEditor below).
+	-- HEIGHT TINT. The colour knobs (gradeLow*, strataColorN*, snow*, stop*)
+	-- have no rows of their own: the selected chip edits them through the shared
+	-- ts-hg-slider-* sliders (syncHeightTint below).
 	{ "hgRefMin", "%.0f" },
 	{ "hgRefSpan", "%.0f" },
 	{ "hgTiltDeg", "%.1f" },
@@ -173,15 +192,13 @@ local KNOBS = {
 	{ "snowLine", "%.0f" },
 	{ "snowBand", "%.0f" },
 	{ "snowSlopeDeg", "%.0f" },
-	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
-	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
+	-- debugView is the DEBUG multi-toggle (dm.tsDebugView), not a row.
 }
 
--- The AUTOMATIC DEPOSIT rows live in the SURFACE panel (FILL AND SEED), not in
--- the TILESET window, so M.syncDeposit stamps just these keys from the SURFACE
--- sync (M.sync early-outs while the TILESET window is closed). A separate set
--- rather than a flag on the KNOBS rows: the analyzer types every row from the
--- first one, so a tagged row reads as a type mismatch.
+-- The AUTOMATIC DEPOSIT rows live in the SURFACE panel (FILL AND SEED), so
+-- M.syncDeposit stamps just these from the SURFACE sync while the TILESET
+-- window is closed. A separate set rather than a flag on the KNOBS rows: the
+-- type analyzer types every row from the first, so a tagged row is a mismatch.
 local DEPOSIT_KNOBS = {
 	depositSlot = true,
 	depositStrength = true,
@@ -191,12 +208,10 @@ local DEPOSIT_KNOBS = {
 	depositSlopeDeg = true,
 }
 
--- HEIGHT TINT colour chips -> the three knobs behind them. Grade stops, strata
--- beds and snow are stored as R/G/B; the GRADIENT STOPS are stored as H/S/V
--- (MrBob's struct), so a chip carries its key list and a storage flag, and
--- the shared editor converts either way (hgGet / hgSet below). Shared with the
--- gui handlers through widgetState.tsHgGet / tsHgSet (set in M.attach), the
--- same cross-file bridge tf_lights uses for its palette.
+-- HEIGHT TINT colour chips -> the three knobs behind each. Grade, strata beds
+-- and snow are stored as R/G/B, the gradient stops as H/S/V, so a chip carries
+-- its keys and a storage flag and hgGet / hgSet convert either way. The panel
+-- handlers reach them through widgetState.tsHgGet / tsHgSet (set in M.attach).
 local function hgTarget(hsv, k1, k2, k3)
 	return { hsv = hsv, keys = { k1, k2, k3 } }
 end
@@ -266,15 +281,14 @@ local function rgbToHsv(r, g, b)
 	return h, s, maxc
 end
 
--- Hue does not survive RGB storage: any gray reads back as h = 0, so dragging
--- SAT down to 0 and back up used to snap the chip to red (Moose, 2026-09-09).
--- Value 0 loses the saturation the same way. Remember the last well-defined
--- H/S per chip and hand those back while the colour is degenerate, so a round
--- trip through the sliders returns the colour the user picked.
+-- Hue does not survive RGB storage (any gray reads back as h = 0, so SAT to 0
+-- and back would snap to red), and value 0 loses saturation the same way.
+-- Remember the last well-defined H/S per chip and return it while the colour
+-- is degenerate.
 local hgHsvMem = {}
 
--- forced: an explicit edit (a slider drag, a stored H/S/V chip), which always
--- wins; otherwise the pair is only worth keeping while the colour carries it
+-- forced: an explicit edit (a slider drag, a stored H/S/V chip) always wins;
+-- otherwise H/S are kept only while the colour actually carries them.
 local function hgMemo(target, h, s, v, forced)
 	if not target then
 		return
@@ -365,6 +379,11 @@ local TUNING_FRAMES = {
 	"frame-ts-metal",
 	"frame-ts-scale",
 	"frame-ts-normals",
+	"frame-ts-rocknorm",
+	"frame-ts-rockcol",
+	"frame-ts-sortn",
+	"frame-ts-sorta",
+	"frame-ts-topscol",
 	"frame-ts-cliffs",
 	"frame-ts-place",
 	"frame-ts-slot4",
@@ -380,34 +399,203 @@ local TUNING_FRAMES = {
 	"frame-ts-presets",
 }
 
+-- Tileset presets as files: one file per saved preset in
+-- Terraform Brush/TilesetPresets/, written on SAVE, in the format of the
+-- shader's shipped tileset_dev/presets/*.lua. The brush does the file work
+-- because the shader is a user widget and the sandbox lets it write only under
+-- LuaUI/. The shader keeps presets in memory and drops filed ones from its
+-- BYAR.lua entry. Needs shader build 21+ (addUserPreset); older builds keep
+-- presets in their widget config.
+local PRESET_DIR = "Terraform Brush/TilesetPresets/"
+---@type table<string, string|nil>
+local presetFile = {} -- preset name -> its file
+
+local function presetPath(name)
+	if presetFile[name] then
+		return presetFile[name]
+	end
+	local base = name:gsub("[^%w%-_ ]", "_"):gsub("%s+", "_")
+	if base == "" then
+		base = "preset"
+	end
+	local path, n = PRESET_DIR .. base .. ".lua", 1
+	while VFS.FileExists(path, VFS.RAW) do
+		n = n + 1
+		path = PRESET_DIR .. base .. "_" .. n .. ".lua"
+	end
+	return path
+end
+
+local function writePresetFile(name, knobs, biome)
+	local keys = {}
+	for k, v in pairs(knobs) do
+		if type(v) == "number" then
+			keys[#keys + 1] = k
+		end
+	end
+	table.sort(keys)
+	local out = {
+		"-- Tileset preset, saved from the TILESET window. One preset per file: copy it to",
+		"-- share it, or into LuaUI/Widgets/tileset_dev/presets/ to ship it with the shader.",
+		"return {",
+		string.format("\tname = %q,", name),
+	}
+	if type(biome) == "string" and biome ~= "" then
+		out[#out + 1] = string.format("\tbiome = %q,", biome)
+	end
+	out[#out + 1] = "\tknobs = {"
+	for _, k in ipairs(keys) do
+		out[#out + 1] = string.format("\t\t%s = %s,", k, tostring(knobs[k]))
+	end
+	out[#out + 1] = "\t},"
+	out[#out + 1] = "}"
+	Spring.CreateDir(PRESET_DIR)
+	local path = presetPath(name)
+	local f = io.open(path, "w")
+	if not f then
+		Spring.Echo("[TerraformBrush] could not write tileset preset " .. path)
+		return false
+	end
+	f:write(table.concat(out, "\n") .. "\n")
+	f:close()
+	presetFile[name] = path
+	return true
+end
+
+-- SAVE in the panel; the shader has just snapshotted the knobs under `name`.
+function M.savePresetFile(name)
+	local T = WG.TilesetTerrain
+	if not (T and T.setPresetFiled and T.getKnobs and T.getActiveBiome) then
+		-- Shader older than build 21: it keeps the preset in its own widget config.
+		Spring.Echo(
+			"[TerraformBrush] tileset preset '"
+				.. name
+				.. "' saved in the game's config (LuaUI/Config/BYAR.lua, written on quit); tileset shader build 21 saves presets as files"
+		)
+		return false
+	end
+	local _, _, bkey = T.getActiveBiome()
+	if writePresetFile(name, T.getKnobs(), bkey) then
+		T.setPresetFiled(name, true)
+		local path = presetFile[name]
+		local okAbs, abs = pcall(VFS.GetFileAbsolutePath, path, VFS.RAW)
+		Spring.Echo("[TerraformBrush] tileset preset '" .. name .. "' saved to " .. ((okAbs and abs) or path))
+		return true
+	end
+	return false
+end
+
+-- DELETE in the preset list; the shader has already dropped it from memory.
+function M.deletePresetFile(name)
+	local path = presetFile[name]
+	if path then
+		os.remove(path)
+		presetFile[name] = nil
+	end
+end
+
+-- Once per tileset widget instance: hand every preset file to the shader, then
+-- write out any user preset still kept only in its widget config, so every
+-- preset ends up as a file.
+local function loadPresetFiles(T)
+	presetFile = {}
+	local files = VFS.DirList(PRESET_DIR, "*.lua", VFS.RAW) or {}
+	table.sort(files)
+	local n = 0
+	for _, path in ipairs(files) do
+		local chunk = VFS.LoadFile(path, VFS.RAW)
+		local fn = chunk and loadstring(chunk, "=" .. path)
+		local ok, data = false, nil
+		if fn then
+			setfenv(fn, {})
+			ok, data = pcall(fn)
+		end
+		if ok and type(data) == "table" and type(data.name) == "string" and type(data.knobs) == "table" then
+			if T.addUserPreset(data.name, data.knobs, data.biome) then
+				presetFile[data.name] = path
+				n = n + 1
+			end
+		else
+			Spring.Echo("[TerraformBrush] skipped tileset preset file " .. path .. ": not a preset")
+		end
+	end
+	local moved = 0
+	for _, p in ipairs(T.getUnfiledPresets() or {}) do
+		if writePresetFile(p.name, p.knobs, p.biome) then
+			T.setPresetFiled(p.name, true)
+			moved = moved + 1
+		end
+	end
+	if moved > 0 then
+		Spring.Echo(
+			string.format(
+				"[TerraformBrush] moved %d saved tileset preset(s) into %s (one file each)",
+				moved,
+				PRESET_DIR
+			)
+		)
+	end
+	return n
+end
+
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 	ctx.widgetState.tsLastVal = ctx.widgetState.tsLastVal or {}
-	-- fresh document: the section gray-out is back at its markup default, so
-	-- drop the cache and let the next M.sync re-apply it from the widget
+	-- The panel's preset handlers are defined before this module is required,
+	-- so they reach the file side through widgetState.
+	ctx.widgetState.tsSavePresetFile = M.savePresetFile
+	ctx.widgetState.tsDeletePresetFile = M.deletePresetFile
+	-- A fresh document is back at its markup defaults: drop every "last applied"
+	-- cache so the next M.sync re-applies gray-outs, slot 4 labels and the glow bar.
 	ctx.widgetState.tsShaderLast = nil
 	ctx.widgetState.tsAlbDecoupleLast = nil
-	-- SLOT 4 label caches: markup defaults are the plateau-mode texts, so force
-	-- one re-apply from the widget on a fresh document
 	ctx.widgetState.tsSlot4Last = nil
-	-- Drop the material-picker registry: its element handles belong to the old
-	-- document and the GL thumb pass must not touch them
+	-- The material-picker element handles belong to the old document; the GL
+	-- thumb pass must not touch them.
 	ctx.widgetState.ts4PaletteSig = nil
 	ctx.widgetState.ts4PaletteEls = nil
 	ctx.widgetState.ts4SectionEl = nil
-	-- glow colour preview bar: repaint from the knobs on a fresh document
 	ctx.widgetState.tsGlowPrevLast = nil
-	-- same for the METAL SPOTS suite toggle's gray-out
-	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
-	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
+	-- Drag tracking only; section collapse is wired in tf_environment.lua (envSectionToggle).
 	for _, k in ipairs(KNOBS) do
 		local el = doc:GetElementById("ts-slider-" .. k[1])
 		if el and trackSliderDrag then
 			trackSliderDrag(el, "ts-" .. k[1])
 		end
 	end
-	-- HEIGHT TINT: the shared colour trio tracks drags like the knob rows; the
-	-- chip / trio / ramp-list caches restart on a fresh document
+	-- LAYER SORT chips and the rock normal flip checkboxes have no data-model
+	-- fields; syncSortModel mirrors them from the widget.
+	ctx.widgetState.tsSortLast = nil
+	ctx.widgetState.tsFlipLast = nil
+	ctx.widgetState.tsSortSumLast = nil
+	for _, b in ipairs({ { "btn-ts-sort-old", "old" }, { "btn-ts-sort-new", "new" } }) do
+		local el = doc:GetElementById(b[1])
+		if el then
+			el:AddEventListener("mousedown", function(_event)
+				local T = WG.TilesetTerrain
+				if T and T.setSortModel and T.setSortModel(b[2]) and ctx.playSound then
+					ctx.playSound("click")
+				end
+			end, false)
+		end
+	end
+	for _, f in ipairs({ { "btn-ts-flip-inter", "flipIntermediateNormal" }, { "btn-ts-flip-cliff", "flipCliffNormal" } }) do
+		local el = doc:GetElementById(f[1])
+		if el then
+			el:AddEventListener("mousedown", function(_event)
+				local T = WG.TilesetTerrain
+				local k = T and T.getKnobs and T.getKnobs()
+				if k and k[f[2]] ~= nil and T.setKnob then
+					T.setKnob(f[2], (k[f[2]] >= 1) and 0 or 1)
+					if ctx.playSound then
+						ctx.playSound("click")
+					end
+				end
+			end, false)
+		end
+	end
+	-- HEIGHT TINT: the shared colour sliders track drags like the knob rows; the
+	-- chip, slider and ramp-list caches restart on a fresh document.
 	ctx.widgetState.tsHgTargets = HG_TARGETS
 	ctx.widgetState.tsHgGet = hgGet
 	ctx.widgetState.tsHgSet = hgSet
@@ -422,12 +610,10 @@ function M.attach(doc, ctx)
 	end
 end
 
--- EXTRA LAYER material picker: one tile per catalog entry, thumb rects left
--- empty here and GL-overdrawn with the material's albedo in DrawScreenPost
--- (drawTs4PaletteThumbs in gui_terraform_brush.lua) — the same mechanism as
--- the SURFACE palette, because an RmlUi <img> would decode the full 4K bitmap
--- into the TexMemPool. Row 1 is the biome's own plateau pick; clicking it
--- restores the "biome pick" default (material follows biome swaps again).
+-- EXTRA LAYER material picker: one tile per catalog entry. The thumb rects are
+-- GL-overdrawn in DrawScreenPost (drawTs4PaletteThumbs in gui_terraform_brush.lua)
+-- because an RmlUi <img> would decode the full 4K bitmap into the TexMemPool.
+-- Tile 1 is the "biome pick" default: the material follows biome swaps again.
 local function rebuildS4Palette(doc, ctx, list, current)
 	local widgetState = ctx.widgetState
 	local grid = doc:GetElementById("ts-slot4-mat-grid")
@@ -437,6 +623,7 @@ local function rebuildS4Palette(doc, ctx, list, current)
 	end
 	grid.inner_rml = ""
 	widgetState.ts4PaletteEls = {}
+	---@type table?
 	local row
 	for i = 1, #list do
 		local v = list[i]
@@ -476,10 +663,9 @@ local function rebuildS4Palette(doc, ctx, list, current)
 	end
 end
 
--- BIOME LIBRARY tiles: built from WG.TilesetTerrain.getBiomes(), one manifest
--- per biome in tileset_dev/tilesets/, so a biome added on disk shows up without
--- an RML edit. Thumbnails are GL overdraws (gui_terraform_brush.lua's
--- drawTsBiomeThumbs), like the EXTRA LAYER material tiles above.
+-- BIOME LIBRARY tiles, built from WG.TilesetTerrain.getBiomes() (one manifest
+-- per biome in tileset_dev/tilesets/), so a biome added on disk needs no RML
+-- edit. Thumbnails are GL overdraws (drawTsBiomeThumbs in gui_terraform_brush.lua).
 local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 	local widgetState = ctx.widgetState
 	local grid = doc:GetElementById("ts-biome-grid")
@@ -489,6 +675,7 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 	end
 	grid.inner_rml = ""
 	widgetState.tsBiomeTileEls = {}
+	---@type table?
 	local row
 	for i = 1, #rows do
 		local b = rows[i]
@@ -524,7 +711,7 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 		row:AppendChild(tile)
 		widgetState.tsBiomeTileEls[#widgetState.tsBiomeTileEls + 1] = { el = thumb, tex = b.thumb, crop = b.thumbCrop }
 	end
-	-- invisible pads keep a short last row at tile width (flex: 1 1 0)
+	-- Invisible pads keep a short last row at tile width (flex: 1 1 0).
 	local rem = #rows % 3
 	if row and rem > 0 then
 		for _ = 1, 3 - rem do
@@ -546,10 +733,10 @@ local function stampKnobRows(doc, ctx, knobs, only)
 	local ds = uiState.draggingSlider
 	uiState.updatingFromCode = true
 	local stamped = false
+	local stampedKeys = nil -- /tfsliders: which knobs this pass restamped
 	for _, k in ipairs(KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
-		-- Skip the slider the user is dragging so we don't fight the drag.
 		if v ~= nil and ds ~= ("ts-" .. key) and (only == nil or only[key]) then
 			local id = "ts-slider-" .. key
 			local slStr = tostring(v)
@@ -559,6 +746,7 @@ local function stampKnobRows(doc, ctx, knobs, only)
 				if sl then
 					sl:SetAttribute("value", slStr)
 					stamped = true
+					stampedKeys = stampedKeys and (stampedKeys .. "," .. key) or key
 				end
 				local nb = doc:GetElementById(id .. "-numbox")
 				if nb then
@@ -568,21 +756,16 @@ local function stampKnobRows(doc, ctx, knobs, only)
 		end
 	end
 	uiState.updatingFromCode = false
-	-- RmlUi delivers the change events these SetAttribute stamps raise on a
-	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
-	-- this timestamp to drop that deferred echo — otherwise every programmatic
-	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
-	-- values into the knob table, compounding per swap (the "red intermediate area
-	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	-- RmlUi delivers the change events these stamps raise on a LATER frame, when
+	-- updatingFromCode is already false. onTilesetKnob uses this timestamp to drop
+	-- that echo; otherwise each restamp (a biome swap seeds a dozen knobs) writes
+	-- clamped slider values back into the knobs and the drift compounds per swap.
 	if stamped then
 		uiState.tsStampFrame = Spring.GetDrawFrame()
+		widgetState.tsStampKeys = stampedKeys
 	end
 end
 
--- HEIGHT TINT editor sync: paint every colour chip from its knobs, restamp the
--- shared R/G/B trio from the SELECTED chip's knobs (skipping a dragged
--- channel, with the same deferred-echo guard stampKnobRows uses), mirror the
--- chip / mode state into the data model, and keep the RAMP file list honest.
 local function cssColor(r, g, b)
 	local function ch(v)
 		return math.floor(math.max(0, math.min(1, v or 1)) * 255 + 0.5)
@@ -603,6 +786,11 @@ local function rebuildRampList(doc, ctx, T)
 		return
 	end
 	widgetState.tsRampListSig = sig
+	-- The ramp folder belongs to the shader build, so ask it rather than guess.
+	local dirEl = doc:GetElementById("ts-ramp-dir")
+	if dirEl and T.getRampDir then
+		dirEl.inner_rml = tostring(T.getRampDir())
+	end
 	listEl.inner_rml = ""
 	if #files == 0 then
 		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
@@ -623,7 +811,7 @@ local function rebuildRampList(doc, ctx, T)
 			local api = WG.TilesetTerrain
 			if api and api.setRamp then
 				api.setRamp(name)
-				-- a pick with the ramp off would show nothing: switch it on
+				-- A pick with the ramp off would show nothing: switch it on.
 				local k = api.getKnobs and api.getKnobs()
 				if k and (k.rampMode or 0) == 0 and api.setKnob then
 					api.setKnob("rampMode", 1)
@@ -639,6 +827,10 @@ local function rebuildRampList(doc, ctx, T)
 	end
 end
 
+-- HEIGHT TINT editor: paint every chip from its knobs, restamp the shared
+-- sliders from the SELECTED chip (skipping a dragged channel, with the same
+-- echo guard as stampKnobRows), mirror mode state into the data model, and
+-- refresh the RAMP file list.
 local function syncHeightTint(doc, ctx, knobs, dm)
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
@@ -705,7 +897,7 @@ local function syncHeightTint(doc, ctx, knobs, dm)
 		end
 	end
 
-	-- shared editor (R/G/B + H/S/V sliders) + preview bar from the selected chip
+	-- shared editor (R/G/B and H/S/V sliders) and preview bar for the selected chip
 	local r, g, b, h, s, v = hgGet(knobs, target)
 	if r and g and b then
 		local css = cssColor(r, g, b)
@@ -745,7 +937,7 @@ local function syncHeightTint(doc, ctx, knobs, dm)
 		end
 	end
 
-	-- ramp file label + list
+	-- ramp file label and list
 	---@type table?
 	local T = WG.TilesetTerrain
 	if T and T.getRamp then
@@ -762,7 +954,7 @@ local function syncHeightTint(doc, ctx, knobs, dm)
 end
 
 -- SURFACE sync hook: the AUTOMATIC DEPOSIT rows (FILL AND SEED) are tileset
--- knobs by id, so keep them honest while the TILESET window is closed.
+-- knobs, so keep them current while the TILESET window is closed.
 function M.syncDeposit(doc, ctx)
 	if not doc or not WG.TilesetTerrain or not ctx.widgetState.tsLastVal then
 		return
@@ -773,15 +965,15 @@ function M.syncDeposit(doc, ctx)
 	end
 end
 
--- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: the row has
--- to work when the shader widget is missing or stale, which is exactly when it
--- is not loaded. Hidden outright without a companion, like the team library tab.
-local BRUSH_VERSION = "1.15"
+-- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: it must work
+-- when the shader widget is missing or stale. Hidden without Team Sync.
+-- Matched against the shader manifest's brush_versions; patch releases keep the minor.
+local BRUSH_VERSION = "1.19"
 
 local function shaderFitsBrush(shader)
 	local wanted = shader.brush_versions
 	if type(wanted) ~= "table" or #wanted == 0 then
-		return true -- a manifest that names no brush release is treated as universal
+		return true -- a manifest that names no brush release fits every brush
 	end
 	for _, value in ipairs(wanted) do
 		if tostring(value) == BRUSH_VERSION then
@@ -813,9 +1005,8 @@ function M.syncShader(doc, ctx)
 	end
 	dm.tsShaderSyncShown = true
 	if not client.state.online then
-		-- Team Sync is not running. The row stays and says what it needs, so
-		-- the update path is there to be found; clicking it opens the start
-		-- card in the Projects window.
+		-- Team Sync is not running: the row stays and says so, and clicking it
+		-- opens the start card in the Projects window.
 		if dm.tsShaderSyncState ~= "offline" then
 			dm.tsShaderSyncState = "offline"
 		end
@@ -855,22 +1046,159 @@ function M.syncShader(doc, ctx)
 	end
 end
 
+-- LAYER SORT A/B (shader build 19+). The SORT chips switch the look and the
+-- slider set: OLD shows the original sections, NEW shows the 3-band groups and
+-- hides rows that only feed the old sort. Both knob sets persist, so switching
+-- loses nothing. A shader without the switch keeps the chips, flips and NEW
+-- sections hidden.
+local OLD_SORT_FRAMES = { "frame-ts-cliffs", "frame-ts-place", "frame-ts-slot4" }
+local NEW_SORT_FRAMES = { "frame-ts-rockcol", "frame-ts-sortn", "frame-ts-sorta", "frame-ts-topscol" }
+-- single rows (found by their slider) that only feed the old sort
+local OLD_SORT_ROWS = {
+	"footNormStrength",
+	"platNormStrength",
+	"scaleFoot",
+	"scalePlat",
+	"albTilePlat",
+	"albedoSortMode",
+	"staggerAmount",
+	"lumaBlend",
+	"lumaTops",
+	"heightBlend",
+	"heightDepth",
+	"splatPunchPlat",
+	"platTintR",
+	"platTintG",
+	"platTintB",
+}
+
+-- the angle a dot-space value puts on the ground (1 flat = 0 deg, 0 = a wall)
+local function degOf(d)
+	return math.deg(math.acos(math.max(0, math.min(1, tonumber(d) or 1))))
+end
+
+local function bandSummary(ls, lf, us, uf)
+	return string.format(
+		"Top until %.0f deg, full intermediary %.0f to %.0f deg, full cliff from %.0f deg.",
+		degOf((us or 0) + (uf or 0)),
+		degOf(us),
+		degOf(ls),
+		degOf((ls or 0) - (lf or 0))
+	)
+end
+
+local function syncSortModel(doc, ctx, knobs)
+	local widgetState = ctx.widgetState
+	local T = WG.TilesetTerrain
+	local has = T.getSortModel ~= nil and knobs.nLowerStart ~= nil
+	local newOn = has and T.getSortModel() == 1
+	local sig = tostring(has) .. ":" .. tostring(newOn)
+	if widgetState.tsSortLast ~= sig then
+		widgetState.tsSortLast = sig
+		local function hide(id, on)
+			local el = doc:GetElementById(id)
+			if el then
+				el:SetClass("hidden", on)
+			end
+		end
+		-- RmlUi: .flex beats .hidden at equal specificity, so flex rows hide by an
+		-- inline style. None of these rows has a style of its own.
+		local function hideFlex(el, on)
+			if el then
+				el:SetClass("hidden", on)
+				-- Set both ways: RmlUi keeps an inline display after RemoveAttribute.
+				el:SetAttribute("style", on and "display: none;" or "display: flex;")
+			end
+		end
+		hideFlex(doc:GetElementById("ts-sort-row"), not has)
+		hide("ts-sort-desc", not has)
+		for _, id in ipairs(OLD_SORT_FRAMES) do
+			hide(id, newOn)
+		end
+		for _, id in ipairs(NEW_SORT_FRAMES) do
+			hide(id, not newOn)
+		end
+		for _, key in ipairs(OLD_SORT_ROWS) do
+			local el = doc:GetElementById("ts-slider-" .. key)
+			hideFlex(el and el.parent_node, newOn)
+		end
+		-- The flips and the per-pass debug views need shader build 19+; the two
+		-- normal multipliers work on any build.
+		for _, id in ipairs({ "btn-ts-flip-inter", "btn-ts-flip-cliff" }) do
+			local el = doc:GetElementById(id)
+			hideFlex(el and el.parent_node, not has)
+		end
+		hide("ts-rocknorm-note", not has)
+		hide("btn-ts-dbg-sortn", not has)
+		hide("btn-ts-dbg-sorta", not has)
+		local o, n = doc:GetElementById("btn-ts-sort-old"), doc:GetElementById("btn-ts-sort-new")
+		if o then
+			o:SetClass("active", not newOn)
+		end
+		if n then
+			n:SetClass("active", newOn)
+		end
+		local d = doc:GetElementById("ts-sort-desc")
+		if d then
+			d.inner_rml = newOn
+					and "NEW: three layers (top, intermediary, cliff) placed by slope, twice: normal maps by the terrain's slope, colour by the normal-mapped slope. No plateau, no foothills. Each biome opens in the sort its settings were tuned in; this switch compares the two until the next biome pick, and is never saved into a preset or map."
+				or "OLD: the layer sort biomes were tuned with before MrBob's three layers. Each biome opens in the sort its settings were tuned in; this switch compares the two until the next biome pick, and is never saved into a preset or map."
+		end
+	end
+	if not has then
+		return
+	end
+	local fi, fc = (knobs.flipIntermediateNormal or 0) >= 1, (knobs.flipCliffNormal or 0) >= 1
+	local fsig = tostring(fi) .. tostring(fc)
+	if widgetState.tsFlipLast ~= fsig then
+		widgetState.tsFlipLast = fsig
+		for _, f in ipairs({ { "btn-ts-flip-inter", fi }, { "btn-ts-flip-cliff", fc } }) do
+			local el = doc:GetElementById(f[1])
+			if el then
+				el:SetAttribute(
+					"src",
+					f[2] and "/luaui/images/terraform_brush/check_on.png"
+						or "/luaui/images/terraform_brush/check_off.png"
+				)
+			end
+		end
+	end
+	local sn = bandSummary(knobs.nLowerStart, knobs.nLowerFade, knobs.nUpperStart, knobs.nUpperFade)
+	local sa = bandSummary(knobs.aLowerStart, knobs.aLowerFade, knobs.aUpperStart, knobs.aUpperFade)
+	if widgetState.tsSortSumLast ~= sn .. sa then
+		widgetState.tsSortSumLast = sn .. sa
+		local en, ea = doc:GetElementById("ts-sortn-sum"), doc:GetElementById("ts-sorta-sum")
+		if en then
+			en.inner_rml = sn
+		end
+		if ea then
+			ea.inner_rml = sa
+		end
+	end
+end
+
 function M.sync(doc, ctx, setSummary)
 	if not doc or not WG.TilesetTerrain then
 		return
 	end
 	local widgetState = ctx.widgetState
+	-- Preset files load once per shader widget instance, window open or not: a
+	-- shader reload replaces the WG table and drops its in-memory presets.
+	local tsW = WG.TilesetTerrain
+	if tsW.addUserPreset and widgetState.tsPresetFilesFor ~= tsW then
+		widgetState.tsPresetFilesFor = tsW
+		loadPresetFiles(tsW)
+	end
 	local dm = widgetState.dmHandle
-	-- Only push values while the TILESET floating window (SCENE menu) is open.
-	-- It is independent of the active tool by design, so this is the only gate.
+	-- The window is independent of the active tool, so being open is the only gate.
 	if not dm or not dm.envTilesetVisible then
 		return
 	end
 
-	-- Master SHADER button: mirror the widget (covers the persisted-off startup
-	-- state and console-driven /tileset shader). dm.tsShaderOn drives the
-	-- button highlight AND grays the PAINT SURFACES neighbour; with the shader
-	-- off every tuning section below is inert too, so gray those out here.
+	-- The mirrors below follow the widget, so startup state and console
+	-- /tileset commands show up too.
+	-- SHADER switch: dm.tsShaderOn lights the button and grays PAINT SURFACES;
+	-- with the shader off every tuning section is inert, so gray those too.
 	if WG.TilesetTerrain.isActive then
 		local on = WG.TilesetTerrain.isActive() and true or false
 		if dm.tsShaderOn ~= on then
@@ -884,8 +1212,7 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- Keep the BIOME LIBRARY active-tile highlight in sync with the widget
-	-- (covers the initial state + console-driven /tileset biome changes).
+	-- BIOME LIBRARY active tile
 	if WG.TilesetTerrain.getActiveBiome then
 		local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
 		if bkey and dm.tsBiome ~= bkey then
@@ -893,9 +1220,8 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- EXTRA LAYER section (slot 4): mirror the mode buttons, retitle the two
-	-- reused sliders and the description line for the active mode, and gray
-	-- out the rows the mode ignores (covers startup + console /tileset slot4).
+	-- EXTRA LAYER (slot 4): mode buttons, plus the two shared sliders' titles,
+	-- the description and the gray-out for the active mode.
 	if WG.TilesetTerrain.getSlot4Mode then
 		local _, mname = WG.TilesetTerrain.getSlot4Mode()
 		if mname and dm.tsSlot4Mode ~= mname then
@@ -936,6 +1262,7 @@ function M.sync(doc, ctx, setSummary)
 					true,
 				},
 			}
+			---@type table?
 			local m = modes[mname]
 			if m then
 				local e1 = doc:GetElementById("ts-label-platHeight")
@@ -958,7 +1285,7 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 	-- BIOME LIBRARY tiles: rebuild when the manifest list, a thumbnail or the
-	-- active biome changes (covers startup, /tileset biomes reload, console picks).
+	-- active biome changes.
 	---@type table?
 	local tsT = WG.TilesetTerrain
 	if tsT and tsT.getBiomes then
@@ -974,8 +1301,7 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- Material picker tiles: rebuild when the biome catalog or the pick changes
-	-- (covers startup, biome swaps and console /tileset s4).
+	-- Material picker tiles: rebuild when the biome catalog or the pick changes.
 	if WG.TilesetTerrain.getSlot4Materials then
 		local list, bkey, current = WG.TilesetTerrain.getSlot4Materials()
 		local sigParts = { tostring(bkey), tostring(current or "") }
@@ -989,8 +1315,7 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- Same for the METAL SPOTS style tiles + the glow-light checkbox (covers
-	-- /tileset metal + /tileset metallights console changes).
+	-- METAL SPOTS style and the glow-light checkbox
 	if WG.TilesetTerrain.getActiveMetalStyle then
 		local _, _, mkey = WG.TilesetTerrain.getActiveMetalStyle()
 		if mkey and dm.tsMetalStyle ~= mkey then
@@ -1022,9 +1347,21 @@ function M.sync(doc, ctx, setSummary)
 
 	stampKnobRows(doc, ctx, knobs, nil)
 
-	-- GLOW LIGHT: the colour knobs paint the preview bar (borrowed from the
-	-- LIGHTS tool). Knob-driven, so a style swap, a section RESET or a project
-	-- load land here too.
+	syncSortModel(doc, ctx, knobs)
+
+	-- LAYER PLACEMENT: past 1.0 the scatter's noise multiplier goes negative and
+	-- wipes the intermediate layer. Live while dragging: the knob is already written.
+	local scatterOver = (tonumber(knobs.intermediateScatter) or 0) > 1.0
+	if widgetState.tsScatterOver ~= scatterOver or widgetState.tsScatterDoc ~= doc then
+		widgetState.tsScatterOver, widgetState.tsScatterDoc = scatterOver, doc
+		local warn = doc:GetElementById("ts-scatter-warn")
+		if warn then
+			warn:SetClass("hidden", not scatterOver)
+		end
+	end
+
+	-- GLOW LIGHT preview bar, driven by the knobs so a style swap, a section
+	-- RESET or a project load show up too.
 	if knobs.metalGlowR and knobs.metalGlowG and knobs.metalGlowB then
 		local function ch(v)
 			return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5)
@@ -1044,11 +1381,9 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- HEIGHT TINT chips, shared colour trio, mode chips and the ramp list
 	syncHeightTint(doc, ctx, knobs, dm)
 
-	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
-	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).
+	-- On/off knobs drawn as a checkbox or button rather than a slider are mirrored by hand.
 	if knobs.albDecouple ~= nil then
 		local dec = knobs.albDecouple >= 1
 		if widgetState.tsAlbDecoupleLast ~= dec then
@@ -1064,9 +1399,6 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- PROTECT CLIFFS button highlight: a knob, but rendered as a button rather
-	-- than a 0/1 slider, so mirror it by hand (covers startup, biome swaps and
-	-- console /tileset changes).
 	if knobs.cliffProtect ~= nil then
 		local cp = knobs.cliffProtect >= 1
 		if dm.tsCliffProtectOn ~= cp then
@@ -1074,13 +1406,12 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 
-	-- Mirror debugView -> tsDebugView so the DEBUG multi-toggle highlight tracks the
-	-- widget (initial state + console-driven /tileset changes); debugView has no slider.
+	-- debugView drives the DEBUG multi-toggle highlight.
 	if knobs.debugView ~= nil and dm.tsDebugView ~= knobs.debugView then
 		dm.tsDebugView = knobs.debugView
 	end
 
-	-- PERFORMANCE: mirror the active quality tier to the preset buttons
+	-- PERFORMANCE: the active quality tier lights its preset button.
 	if WG.TilesetTerrain.getQuality then
 		local q = WG.TilesetTerrain.getQuality()
 		if q and dm.tsQuality ~= q then

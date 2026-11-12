@@ -3,7 +3,7 @@
 
 piece  base, turret, flare, door1, door2, exhaust, aimpoint, lock1, lock2;
 
-static-var  restore_delay, is_open;
+static-var  restore_delay;
 static-var  Stunned;
 
 // Signal definitions
@@ -17,11 +17,10 @@ static-var  Stunned;
 #define MAXTILT 0
 
 #include "../unit_hitbyweaponid_and_smoke.h"
+#include "../popup_openclose.h"
 
-Close()
+CloseAnim()
 {
-	set-signal-mask SIGNAL_AIM1;
-	is_open = 0;
 	move turret to y-axis [-44.0] speed [69.0];
 	wait-for-move turret along y-axis;
 	move door1 to x-axis [8.54000000] speed [47.600000];
@@ -32,7 +31,7 @@ Close()
 	set ARMORED to 1;
 }
 
-Open()
+OpenAnim()
 {
 	set ARMORED to 0;
 	move door1 to x-axis [-5] speed [47.600000];
@@ -42,7 +41,6 @@ Open()
 	wait-for-move door1 along x-axis;
 	move turret to y-axis [0] speed [69.0];
 	wait-for-move turret along y-axis;
-	is_open = 1;
 }
 
 ExecuteRestoreAfterDelay()
@@ -50,7 +48,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script Close();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -70,27 +68,23 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	is_open = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;
-	if ( is_open == 0 )
-	{
-		start-script Close();
-	}
+	start-script CloseBuildPose();
 }
 
 AimWeapon1(heading, pitch)
 {
+	start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	if ( is_open == 0 )
+	if ( isOpen == 0 )
 	{
-		start-script Open();
 		start-script RestoreAfterDelay();
 	}
-	while( is_open == 0 )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -105,9 +99,14 @@ FireWeapon1()
 	emit-sfx 1024 + 0 from exhaust;
 }
 
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
 QueryWeapon1(pieceIndex)
 {
-	if (is_open == 1)
+	if (isOpen == 1)
 	{
 		pieceIndex = flare;
 	}
