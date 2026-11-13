@@ -57,7 +57,7 @@ local detectionCount = 0
 local capturedUnits = {}
 
 ----------------------------------------------------------------
---- Utility Functions:
+--- Trigger Functions:
 ----------------------------------------------------------------
 
 local function processTriggersOfType(triggerType, func)
@@ -122,6 +122,60 @@ local function activateTrigger(trigger)
 	return true
 end
 
+----------------------------------------------------------------
+--- Trigger Call-in Dispatch:
+----------------------------------------------------------------
+
+-- unpack() does not handle optional parameters, as it cannot pass a value as nil
+local function unpackCallinArgs(args, i)
+	i = i or 1
+
+	if i <= args.n then
+		return args[i], unpackCallinArgs(args, i + 1)
+	end
+end
+
+-- Dispatches a logical call-in to every per-trigger handler registered for it.
+-- Each handler receives (trigger, triggerID, triggerContext, ...call-in args).
+local function dispatchTriggerCallin(callinName, ...)
+	local handlersByType = callins[callinName]
+	if not handlersByType then
+		return
+	end
+	local args = table.pack(...)
+	for triggerType, handler in pairs(handlersByType) do
+		processTriggersOfType(triggerType, function(trigger, triggerID)
+			handler(trigger, triggerID, triggerContext, unpackCallinArgs(args))
+		end)
+	end
+end
+
+-- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
+-- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
+local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
+
+---@param triggerID string
+local function onUnitsEnteredArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsEnteredAreaHandlers[trigger.type]
+	if handler then
+		handler(trigger, triggerID, triggerContext, unitIDs)
+	end
+end
+
+---@param triggerID string
+local function onUnitsLeftArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsLeftAreaHandlers[trigger.type]
+	if handler then
+		handler(trigger, triggerID, triggerContext, unitIDs)
+	end
+end
+
+----------------------------------------------------------------
+--- Utility Functions:
+----------------------------------------------------------------
+
 local function isFeatureInArea(featureID, area)
 	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
 	return math.isPointInArea(featureX, featureZ, area)
@@ -167,34 +221,6 @@ local function hasConstructionStarted(buildeeID, triggerID)
 	return claims and claims[triggerID]
 end
 
-----------------------------------------------------------------
---- Trigger Call-in Dispatch:
-----------------------------------------------------------------
-
--- unpack() does not handle optional parameters, as it cannot pass a value as nil
-local function unpackCallinArgs(args, i)
-	i = i or 1
-
-	if i <= args.n then
-		return args[i], unpackCallinArgs(args, i + 1)
-	end
-end
-
--- Dispatches a logical call-in to every per-trigger handler registered for it.
--- Each handler receives (trigger, triggerID, triggerContext, ...call-in args).
-local function dispatchTriggerCallin(callinName, ...)
-	local handlersByType = callins[callinName]
-	if not handlersByType then
-		return
-	end
-	local args = table.pack(...)
-	for triggerType, handler in pairs(handlersByType) do
-		processTriggersOfType(triggerType, function(trigger, triggerID)
-			handler(trigger, triggerID, triggerContext, unpackCallinArgs(args))
-		end)
-	end
-end
-
 -- Detection events are hot paths with complicated routing at M^2 routing cost.
 -- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
 local function markDetectionDirty(unitID)
@@ -204,28 +230,6 @@ local function markDetectionDirty(unitID)
 	end
 end
 local inactiveSeismicContacts = {}
-
--- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
--- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
-local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
-
----@param triggerID string
-local function onUnitsEnteredArea(unitIDs, triggerID)
-	local trigger = triggers[triggerID]
-	local handler = unitsEnteredAreaHandlers[trigger.type]
-	if handler then
-		handler(trigger, triggerID, triggerContext, unitIDs)
-	end
-end
-
----@param triggerID string
-local function onUnitsLeftArea(unitIDs, triggerID)
-	local trigger = triggers[triggerID]
-	local handler = unitsLeftAreaHandlers[trigger.type]
-	if handler then
-		handler(trigger, triggerID, triggerContext, unitIDs)
-	end
-end
 
 ----------------------------------------------------------------
 --- Call-ins:
