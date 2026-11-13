@@ -561,7 +561,6 @@ function gadget:Initialize()
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
-
 	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
 	GG["MissionAPI"].ActivateTrigger = activateTrigger
 
