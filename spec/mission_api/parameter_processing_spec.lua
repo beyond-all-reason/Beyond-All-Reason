@@ -12,7 +12,7 @@ local parameterProcessing = MissionSpecEnv.include(env, "luarules/mission_api/pa
 GG["MissionAPI"] = nil
 
 local actionTypes = actionDefinitions.Types
-local triggerTypes = conditionDefinitions.Types
+local conditionTypes = conditionDefinitions.Types
 
 local GROUND_HEIGHT = 42
 
@@ -156,7 +156,7 @@ describe("mission_api.parameter_processing", function()
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({
-				type = triggerTypes.ResourceIncome,
+				type = conditionTypes.ResourceIncome,
 				parameters = { teamID = 0, resource = "metal", quantity = 1, sources = { "extractor", "reclaim" } },
 			})
 

@@ -29,7 +29,7 @@ describe("mission_api.conditions.time_elapsed", function()
 		GG["MissionAPI"].Countdowns = {}
 		local fired = {}
 		local frame = 0
-		local context = Builders.TriggerContext.new():Build()
+		local context = Builders.ConditionContext.new():Build()
 		context.ActivateTrigger = function()
 			fired[#fired + 1] = frame
 		end
@@ -83,7 +83,7 @@ describe("mission_api.conditions.time_elapsed", function()
 	it("runs on a hidden countdown named after the trigger", function()
 		GG["MissionAPI"].Countdowns = {}
 		currentFrame = 0
-		onGameStart(trigger({ seconds = 3 }), "ambush", Builders.TriggerContext.new():Build())
+		onGameStart(trigger({ seconds = 3 }), "ambush", Builders.ConditionContext.new():Build())
 		local countdown = assert(GG["MissionAPI"].Countdowns.__timeElapsed_ambush)
 		assert.is_false(countdown.displayed)
 		assert.are.equal(3, countdown.timeRemaining)
@@ -91,7 +91,7 @@ describe("mission_api.conditions.time_elapsed", function()
 
 	it("ignores countdowns that are not its own", function()
 		local fired = 0
-		local context = Builders.TriggerContext.new():Build()
+		local context = Builders.ConditionContext.new():Build()
 		context.ActivateTrigger = function()
 			fired = fired + 1
 		end

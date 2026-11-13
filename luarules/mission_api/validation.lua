@@ -76,9 +76,9 @@ local function createValidationContext(mission, report)
 		HasUnsetVariable = variables.HasUnsetVariable,
 		ResolveValue = variables.ResolveValue,
 
-		-- Trigger definitions:
-		TriggerTypes = conditionDefinitions.Types,
-		TriggerParameters = conditionDefinitions.Parameters,
+		-- Condition definitions:
+		ConditionTypes = conditionDefinitions.Types,
+		ConditionParameters = conditionDefinitions.Parameters,
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,

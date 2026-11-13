@@ -14,25 +14,25 @@ local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/c
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 local schemaUtils = MissionSpecEnv.include(env, "luarules/mission_api/schema_utils.lua")
 
-local triggerTypes = conditionDefinitions.Types
+local conditionTypes = conditionDefinitions.Types
 
 describe("mission_api.schema_utils", function()
 	describe("GetTypesWithParameterType", function()
-		it("returns all trigger types that have a Quantity parameter", function()
+		it("returns all condition types that have a Quantity parameter", function()
 			local result =
 				schemaUtils.GetTypesWithParameterType(conditionDefinitions.Parameters, parameterTypes.Types.Quantity)
-			assert.is_true(result[triggerTypes.UnitsOwned])
-			assert.is_true(result[triggerTypes.TotalUnitsBuilt])
-			assert.is_true(result[triggerTypes.TotalUnitsLost])
-			assert.is_true(result[triggerTypes.TotalUnitsKilled])
-			assert.is_true(result[triggerTypes.TotalUnitsCaptured])
+			assert.is_true(result[conditionTypes.UnitsOwned])
+			assert.is_true(result[conditionTypes.TotalUnitsBuilt])
+			assert.is_true(result[conditionTypes.TotalUnitsLost])
+			assert.is_true(result[conditionTypes.TotalUnitsKilled])
+			assert.is_true(result[conditionTypes.TotalUnitsCaptured])
 		end)
 
-		it("does not include trigger types that lack a Quantity parameter", function()
+		it("does not include condition types that lack a Quantity parameter", function()
 			local result =
 				schemaUtils.GetTypesWithParameterType(conditionDefinitions.Parameters, parameterTypes.Types.Quantity)
-			assert.is_nil(result[triggerTypes.TimeElapsed])
-			assert.is_nil(result[triggerTypes.UnitKilled])
+			assert.is_nil(result[conditionTypes.TimeElapsed])
+			assert.is_nil(result[conditionTypes.UnitKilled])
 		end)
 
 		it("returns an empty table when no types have the given parameter type", function()
@@ -42,21 +42,21 @@ describe("mission_api.schema_utils", function()
 	end)
 
 	describe("GetParameterNamesWithType", function()
-		it("returns every parameter of the given type, per trigger type", function()
+		it("returns every parameter of the given type, per condition type", function()
 			local result =
 				schemaUtils.GetParameterNamesWithType(conditionDefinitions.Parameters, parameterTypes.Types.UnitName)
 
 			-- A trigger can name several units at once, e.g. a passenger and its transport.
-			table.sort(result[triggerTypes.TransportLoaded])
-			assert.are.same({ "passengerName", "transportName" }, result[triggerTypes.TransportLoaded])
-			assert.are.same({ "unitName" }, result[triggerTypes.UnitKilled])
+			table.sort(result[conditionTypes.TransportLoaded])
+			assert.are.same({ "passengerName", "transportName" }, result[conditionTypes.TransportLoaded])
+			assert.are.same({ "unitName" }, result[conditionTypes.UnitKilled])
 		end)
 
-		it("omits trigger types without a parameter of that type", function()
+		it("omits condition types without a parameter of that type", function()
 			local result =
 				schemaUtils.GetParameterNamesWithType(conditionDefinitions.Parameters, parameterTypes.Types.UnitName)
 
-			assert.is_nil(result[triggerTypes.TimeElapsed])
+			assert.is_nil(result[conditionTypes.TimeElapsed])
 		end)
 
 		it("returns an empty table when no types have the given parameter type", function()

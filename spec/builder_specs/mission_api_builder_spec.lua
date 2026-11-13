@@ -92,7 +92,7 @@ describe("MissionApiBuilder", function()
 			assert.are.equal(2, api.Difficulty)
 		end)
 
-		it("seeds action and trigger definitions", function()
+		it("seeds action and condition definitions", function()
 			local api = MissionApiBuilder.new()
 				:WithActionDefinitions({ Victory = {} })
 				:WithConditionDefinitions({ TimeElapsed = {} })

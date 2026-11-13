@@ -3,7 +3,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The real trigger definitions, so event triggers carry the real Event type.
+-- The real condition definitions, so event triggers carry the real Event type.
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 MissionApiBuilder.new():Install()
 MissionSpecEnv.registerModules(env)

@@ -11,8 +11,8 @@ local stages = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
 			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidConditionType',
+			'objectiveWithMissingConditionType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
 			'objectiveWithDifficultiesTrigger',
@@ -45,17 +45,17 @@ local objectives = {
 		},
 	},
 
-	objectiveWithInvalidTriggerType = {
+	objectiveWithInvalidConditionType = {
 		textKey = "trigger_with_invalid_type",
 		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
+			type = 'invalidType',  -- error: invalid condition type
 		},
 	},
 
-	objectiveWithMissingTriggerType = {
+	objectiveWithMissingConditionType = {
 		textKey = "trigger_with_missing_type",
 		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
+			parameters = { seconds = 100000000 },  -- error: missing condition type
 		},
 	},
 

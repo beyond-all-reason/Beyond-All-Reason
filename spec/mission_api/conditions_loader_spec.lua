@@ -5,16 +5,16 @@ local env = MissionSpecEnv.new()
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 local conditionsLoader = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 
--- Load the real trigger definitions once for the integration section below.
+-- Load the real condition definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 MissionSpecEnv.registerModules(env)
 local realDefinitions = conditionsLoader.LoadConditionDefinitions()
-local realTriggerFiles = VFS.DirList("luarules/mission_api/conditions/", "*.lua")
+local realConditionFiles = VFS.DirList("luarules/mission_api/conditions/", "*.lua")
 
 describe("mission_api.conditions_loader", function()
 	before_each(function()
-		-- Real trigger definition files read the parameter types from GG at include time.
+		-- Real condition definition files read the parameter types from GG at include time.
 		GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 		MissionSpecEnv.registerModules(env)
 	end)
@@ -123,10 +123,10 @@ describe("mission_api.conditions_loader", function()
 				typeCount = typeCount + 1
 			end
 
-			assert.are.equal(#realTriggerFiles, typeCount)
+			assert.are.equal(#realConditionFiles, typeCount)
 		end)
 
-		it("maps callins to the correct trigger types", function()
+		it("maps callins to the correct condition types", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 

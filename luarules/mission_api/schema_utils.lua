@@ -1,10 +1,10 @@
 local function getTypesWithParameterType(schemaParameters, parameterType)
 	local typesWithParameter = {}
 
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+	for actionOrConditionType, parameters in pairs(schemaParameters) do
 		for _, parameter in ipairs(parameters) do
 			if parameter.type == parameterType then
-				typesWithParameter[actionOrTriggerType] = true
+				typesWithParameter[actionOrConditionType] = true
 				break
 			end
 		end
@@ -13,11 +13,11 @@ local function getTypesWithParameterType(schemaParameters, parameterType)
 	return typesWithParameter
 end
 
---- @return table<string, string[]> names of the parameters of the given type, per action or trigger type
+--- @return table<string, string[]> names of the parameters of the given type, per action or condition type
 local function getParameterNamesWithType(schemaParameters, parameterType)
 	local parameterNamesByType = {}
 
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+	for actionOrConditionType, parameters in pairs(schemaParameters) do
 		local names = {}
 		for _, parameter in ipairs(parameters) do
 			if parameter.type == parameterType then
@@ -25,7 +25,7 @@ local function getParameterNamesWithType(schemaParameters, parameterType)
 			end
 		end
 		if #names > 0 then
-			parameterNamesByType[actionOrTriggerType] = names
+			parameterNamesByType[actionOrConditionType] = names
 		end
 	end
 
@@ -35,10 +35,10 @@ end
 local function getTypesWithParameterName(schemaParameters, parameterName)
 	local typesWithParameter = {}
 
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
+	for actionOrConditionType, parameters in pairs(schemaParameters) do
 		for _, parameter in ipairs(parameters) do
 			if parameter.name == parameterName then
-				typesWithParameter[actionOrTriggerType] = true
+				typesWithParameter[actionOrConditionType] = true
 				break
 			end
 		end

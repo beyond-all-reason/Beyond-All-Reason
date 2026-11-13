@@ -5,17 +5,17 @@ local CONDITION_FILES_PATTERN = "*.lua"
 -- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
 -- - event-type triggers by whatever owns the trigger (objectives.lua)
 local function loadConditionDefinitions()
-	local triggerFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
+	local conditionFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
 	local types = {}
 	local parameters = {}
 	local callins = {}
 
-	for typeID, filePath in ipairs(triggerFiles) do
+	for typeID, filePath in ipairs(conditionFiles) do
 		local conditionDefinition = VFS.Include(filePath)
-		local triggerType = conditionDefinition.type
+		local conditionType = conditionDefinition.type
 
-		types[triggerType] = typeID
+		types[conditionType] = typeID
 		parameters[typeID] = conditionDefinition.parameters or {}
 
 		for callinName, handler in pairs(conditionDefinition.callins or {}) do

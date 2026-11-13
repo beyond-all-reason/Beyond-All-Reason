@@ -1,13 +1,13 @@
--- Trigger Context Builder
--- Mocks the shared trigger context that api_missions_triggers.lua assembles in
--- gadget:Initialize() and passes to every trigger call-in handler.
+-- Condition Context Builder
+-- Mocks the shared condition context that api_missions_triggers.lua assembles in
+-- gadget:Initialize() and passes to every condition call-in handler.
 --
 -- Defaults model the ordinary case: names match, the build frame belongs to the
 -- asking trigger, the frame is not in a factory, and activation succeeds. A spec
 -- that cares about one of those replaces the function on the built context, which
 -- is also how a test varies an answer part-way through.
 
----@class TriggerContextMock
+---@class ConditionContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
@@ -23,14 +23,14 @@
 ---@field DwellingUnitsInAreas table
 ---@field GatheredUnitsInAreas table
 ---@field GetReclaimIncomeSnapshot fun(teamID: number): table?
----@field calls TriggerContextMockCalls
+---@field calls ConditionContextMockCalls
 ---@field timesFired fun(): number
 
 --- Recorded calls, keyed by the context function that produced them.
----@class TriggerContextMockCalls
+---@class ConditionContextMockCalls
 ---@field activateTrigger table
 
----@class TriggerContextBuilder
+---@class ConditionContextBuilder
 local TCB = {}
 TCB.__index = TCB
 
@@ -45,7 +45,7 @@ local function asFunction(value)
 	end
 end
 
----@return TriggerContextBuilder
+---@return ConditionContextBuilder
 function TCB.new()
 	return setmetatable({
 		inFactory = false,
@@ -53,16 +53,16 @@ function TCB.new()
 end
 
 ---Whether the build frame is a factory's, which separates production from construction.
----@param self TriggerContextBuilder
+---@param self ConditionContextBuilder
 ---@param value boolean|fun(buildeeID: number): boolean
----@return TriggerContextBuilder
+---@return ConditionContextBuilder
 function TCB:WithInFactory(value)
 	self.inFactory = value
 	return self
 end
 
----@param self TriggerContextBuilder
----@return TriggerContextMock
+---@param self ConditionContextBuilder
+---@return ConditionContextMock
 function TCB:Build()
 	local instance = self
 
@@ -72,7 +72,7 @@ function TCB:Build()
 	-- keep both of them in step.
 	local constructionStarts = {}
 
-	---@type TriggerContextMock
+	---@type ConditionContextMock
 	local context = {
 		ActivateTrigger = function(trigger)
 			activateCalls[#activateCalls + 1] = { trigger = trigger }

@@ -46,7 +46,7 @@ local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
-local triggerTypes = conditionDefinitions.Types
+local conditionTypes = conditionDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
 -- Difficulties from luarules/mission_api/difficulties.json.
@@ -119,7 +119,7 @@ describe("mission_api difficulty pipeline", function()
 					textKey = "survive",
 					amount = { difficulties = { Easy = 2, Hard = 4 } },
 					trigger = {
-						type = triggerTypes.TimeElapsed,
+						type = conditionTypes.TimeElapsed,
 						parameters = { seconds = { difficulties = { Easy = 90, Hard = 45 } } },
 					},
 				},
@@ -128,20 +128,20 @@ describe("mission_api difficulty pipeline", function()
 					amount = { difficulties = { Easy = 3, Hard = 6 } },
 					nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
 					trigger = {
-						type = triggerTypes.TotalUnitsKilled,
+						type = conditionTypes.TotalUnitsKilled,
 						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
 			},
 			Triggers = {
 				wave = {
-					type = triggerTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = { difficulties = { Easy = 120, Hard = 60 } } },
 					settings = { difficulties = { "Medium", "Hard" } },
 					actions = { "spawnBots", "announce" },
 				},
 				anyDifficulty = {
-					type = triggerTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = 5 },
 					settings = { difficulties = {} },
 					actions = { "announce" },
@@ -219,7 +219,7 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.equal(45, synthesized.parameters.seconds)
 
 		---@type { amount: number, nextStage: string, parameters: table }
-		local metadata = missionApi.ManagedObjectives[triggerTypes.TotalUnitsKilled][1]
+		local metadata = missionApi.ManagedObjectives[conditionTypes.TotalUnitsKilled][1]
 		assert.are.equal(6, metadata.amount)
 		assert.are.equal("s2", metadata.nextStage)
 		assert.are.equal(missionApi.Objectives.killBots.trigger.parameters, metadata.parameters)
@@ -232,7 +232,7 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.equal(2, missionApi.Objectives.surviveTimer.amount)
 		assert.are.equal(1, missionApi.Triggers.__objective_surviveTimer.settings.maxRepeats)
 		---@type { nextStage: string }
-		local metadata = missionApi.ManagedObjectives[triggerTypes.TotalUnitsKilled][1]
+		local metadata = missionApi.ManagedObjectives[conditionTypes.TotalUnitsKilled][1]
 		assert.are.equal("s1", metadata.nextStage)
 	end)
 
@@ -251,7 +251,7 @@ describe("mission_api difficulty pipeline", function()
 		local _, result = loadMission({
 			Triggers = {
 				wave = {
-					type = triggerTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = { difficulties = { Easy = 120, Hard = "soon" } } },
 					actions = { "announce" },
 				},
