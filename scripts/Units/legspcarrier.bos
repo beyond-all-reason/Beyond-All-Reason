@@ -41,7 +41,6 @@ static-var  restore_delay, whichBarrel, whichPod;
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
-#define SIGNAL_MOVE1 1024
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -96,7 +95,6 @@ Deactivate()
     hide thrust2a;
     hide thrust2b;
     isMoving = 0;
-    // signal SIGNAL_MOVE1;
     turn turbineContainer1 to x-axis <0> speed <150>;
     turn turbineContainer2 to x-axis <0> speed <150>;
     turn turbineContainer3 to x-axis <0> speed <150>;
@@ -136,12 +134,10 @@ RestoreAfterDelay()
 
 StartMoving(reversing)
 {
-	
 }
 
 StopMoving()
-{	
-	
+{
 }
 
 MoveRate3()
@@ -187,9 +183,6 @@ MoveRate1()
         spin turbine3 around y-axis speed <300> accelerate <3>;
         spin turbine4 around y-axis speed <300> accelerate <3>;
     }
-
-
-
 }
 
 MoveRate0()
@@ -199,7 +192,6 @@ MoveRate0()
         turn turbineContainer2 to x-axis <0> speed <150>;
         turn turbineContainer3 to x-axis <0> speed <150>;
         turn turbineContainer4 to x-axis <0> speed <150>;
-
 
         spin turbine1 around y-axis speed <200> accelerate <2>;
         spin turbine2 around y-axis speed <200> accelerate <2>;
@@ -219,7 +211,6 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	
 	return (0);
 }
 
@@ -244,7 +235,6 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-    
 	return (1);
 }
 
@@ -297,7 +287,7 @@ Shot2(zero){
     else{
         whichBarrel = 0;
         whichPod = 0;
-    }   
+    }
 }
 
 QueryWeapon2(pieceIndex)
@@ -332,33 +322,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode armor type BITMAPONLY | NOHEATCLOUD;
-		// explode leftplasmasleeve type BITMAPONLY | NOHEATCLOUD;
-		// explode leftplasmabarrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode armor type BITMAPONLY | NOHEATCLOUD;
-		// explode leftplasmasleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode leftplasmabarrel1 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode armor type BITMAPONLY | NOHEATCLOUD;
-		// explode leftplasmasleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode leftplasmabarrel1 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode armor type BITMAPONLY | NOHEATCLOUD;
-		// explode leftplasmasleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode leftplasmabarrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return(corpsetype);
 }

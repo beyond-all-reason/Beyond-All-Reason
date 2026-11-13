@@ -593,6 +593,59 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("IssueOrders actions", function()
+		local function validateIssueOrders(parameters)
+			parameters.unitName = "squad"
+			parameters.orders = { { V.env.CMD.MOVE, { 0, 0, 0 } } }
+			return V.validateAction({ type = V.actionTypes.IssueOrders, parameters = parameters })
+		end
+
+		it("passes a direction with marching", function()
+			local result = validateIssueOrders({ marching = true, direction = { angle = 90 } })
+			V.assertNoMessageContaining(result, "without marching")
+		end)
+
+		it("warns of a direction without marching, the mission still loads", function()
+			local result = validateIssueOrders({ direction = { angle = 90 } })
+			assert.is_true(result.ok)
+			V.assertMessage(
+				result,
+				"Parameter 'direction' is ignored without marching. Action: a, Parameter: direction"
+			)
+		end)
+	end)
+
+	describe("FollowCamera endings", function()
+		local function validateFollow(parameters)
+			parameters.position = { x = 0, z = 0 }
+			return V.validateAction({ type = V.actionTypes.FollowCamera, parameters = parameters })
+		end
+
+		it("warns that a follow without a duration never runs its ending", function()
+			local result = validateFollow({ ending = "restore", restoreDuration = 2 })
+
+			V.assertMessage(
+				result,
+				"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
+					.. "ending, restoreDuration. Action: a"
+			)
+			assert.is_true(result.ok)
+		end)
+
+		it("takes a duration of 0 as a follow that ends at once", function()
+			V.assertNoMessageContaining(validateFollow({ duration = 0, releaseDuration = 1 }), "FollowCamera")
+			V.assertNoMessageContaining(
+				validateFollow({ duration = { difficulties = { Easy = 5, Hard = 0 } }, ending = "hold" }),
+				"FollowCamera"
+			)
+		end)
+
+		it("does not warn with a duration, or without ending parameters", function()
+			V.assertNoMessageContaining(validateFollow({ duration = 5, ending = "restore" }), "FollowCamera")
+			V.assertNoMessageContaining(validateFollow({}), "FollowCamera")
+		end)
+	end)
+
 	describe("stockpile triggers", function()
 		local originalWeaponDefs
 
@@ -849,6 +902,29 @@ describe("mission_api.validation.sections", function()
 			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
+		end)
+
+		it("reports a SetMapLighting action without any lighting value", function()
+			local result =
+				V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { transitionDuration = 2 } })
+			local names = V.definitions.ActionDefinitions.Parameters[V.actionTypes.SetMapLighting].requiresOneOf
+
+			assert.are.equal(12, #names)
+			V.assertMessage(
+				result,
+				'Action is missing required parameter, at least one of {"'
+					.. table.concat(names, '","')
+					.. '"} is required. Action: a'
+			)
+		end)
+
+		it("requires a camera target", function()
+			local result = V.validateAction({ type = V.actionTypes.FollowCamera, parameters = { distance = 100 } })
+
+			V.assertMessage(
+				result,
+				[[Action is missing required parameter, at least one of {"unitName","position"} is required. Action: a]]
+			)
 		end)
 	end)
 

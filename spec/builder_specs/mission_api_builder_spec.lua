@@ -172,16 +172,12 @@ describe("MissionApiBuilder", function()
 	end)
 
 	describe("module call tracking", function()
-		it("records Loadout calls and passes orders through unchanged", function()
+		it("records Loadout calls", function()
 			local api = MissionApiBuilder.new():Build()
-			local orders = { { 10, {}, {} } }
 
-			local result = api.Modules.Loadout.ConvertOrdersTargetingNames(orders)
 			api.Modules.Loadout.SpawnUnitLoadout({ "a" })
 			api.Modules.Loadout.SpawnFeatureLoadout({ "b" })
 
-			assert.are.same(orders, result)
-			assert.are.equal(1, #api.calls.convertOrdersTargetingNames)
 			assert.are.equal(1, #api.calls.spawnUnitLoadout)
 			assert.are.same({ "a" }, api.calls.spawnUnitLoadout[1].loadout)
 			assert.are.equal(1, #api.calls.spawnFeatureLoadout)
@@ -232,7 +228,6 @@ describe("MissionApiBuilder", function()
 		it("clears every tracked call list via clearCalls", function()
 			local api = MissionApiBuilder.new():Build()
 
-			api.Modules.Loadout.ConvertOrdersTargetingNames({})
 			api.Modules.Loadout.SpawnUnitLoadout({})
 			api.Modules.Loadout.SpawnFeatureLoadout({})
 			api.Modules.Sounds.PlaySound("a.wav")
@@ -245,7 +240,6 @@ describe("MissionApiBuilder", function()
 
 			api.clearCalls()
 
-			assert.are.equal(0, #api.calls.convertOrdersTargetingNames)
 			assert.are.equal(0, #api.calls.spawnUnitLoadout)
 			assert.are.equal(0, #api.calls.spawnFeatureLoadout)
 			assert.are.equal(0, #api.calls.playSound)
@@ -262,13 +256,13 @@ describe("MissionApiBuilder", function()
 		it("overrides individual module functions", function()
 			local api = MissionApiBuilder.new()
 				:WithModule("Loadout", {
-					ConvertOrdersTargetingNames = function()
-						return { "converted" }
+					SpawnFeatureLoadout = function()
+						return { "overridden" }
 					end,
 				})
 				:Build()
 
-			assert.are.same({ "converted" }, api.Modules.Loadout.ConvertOrdersTargetingNames({}))
+			assert.are.same({ "overridden" }, api.Modules.Loadout.SpawnFeatureLoadout({}))
 			-- untouched functions remain available
 			assert.is_function(api.Modules.Loadout.SpawnUnitLoadout)
 		end)

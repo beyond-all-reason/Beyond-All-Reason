@@ -263,6 +263,18 @@ local STRINGS = {
 	renameFailed = "Could not rename '%{name}'. See the console for the reason.",
 	stripUploadFailed = "Upload failed. See Projects.",
 	helper_error = "Helper encountered a filesystem or data error. Local originals were preserved; inspect helper storage before retrying.",
+	-- FILE > EXPORT MAP (tf_export.lua)
+	exportNoWidget = "Map export needs the Map Project widget.",
+	exportNoProject = "Save the map as a project first (FILE > Save As). The export reads the saved project.",
+	exportProject = "Project: %{name}",
+	exportUnsaved = "This project has unsaved changes: EXPORT saves it first.",
+	exportSaving = "Saving… the export runs once the save is written.",
+	exportSaveFailed = "The save failed, so nothing was exported. See the console.",
+	exportBusy = "A save or load is already running; try again in a moment.",
+	exportFailed = "Export failed: %{reason}",
+	exportDone = "Exported %{files} archive files to %{path}. Finish the map outside the game with tools/map_export/compile_map.py on that folder: it writes the .smf and .smt and packs the .sd7.",
+	exportDoneMissing = "Exported to %{path}, but %{missing} file(s) the map needs are missing. The list is in export_report.txt there.",
+	exportDoneErrors = "Export failed with %{errors} error(s). The list is in export_report.txt in %{path}.",
 }
 
 local function text(key, values)

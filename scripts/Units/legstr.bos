@@ -3,19 +3,13 @@
 
 piece  	pelvis, aimy, torso, aimx, lthigh, rthigh, lleg, rleg, lkeel, rkeel, lfoot, rfoot, lsleeve, rsleeve, lbarrel, rbarrel, lflare, rflare;
 
-static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed, maxSpeed, animFramesPerKeyframe;
+static-var  isMoving, restore_delay, wpn1_lasthead, miniguncount, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
-// Signal definitions
-#define SIGNAL_AIM1				2
-#define SIGNAL_FIRE1 			4
-
-
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 
-#define SIGNAL_MOVE 1
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
 	while(isMoving) {
@@ -334,7 +328,7 @@ StopWalking() {
 	turn rfoot to z-axis <-5> speed <1100.0> / animSpeed;
 }
 
-// REMEMBER TO animspeed = 3 in Create() !!
+// REMEMBER TO animSpeed = 3 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
@@ -343,14 +337,13 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
@@ -379,11 +372,10 @@ Create()
 	hide aimy;
 	
 	isMoving = FALSE;
-	isAiming = FALSE;
 	
 	miniguncount = 0;
 	restore_delay = 3000;
-	animspeed = 3;
+	animSpeed = 3;
 	
 	turn rsleeve to y-axis <5> now;
 	turn lsleeve to y-axis <-5> now;
@@ -392,30 +384,24 @@ Create()
 	start-script StopMoving();
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 3000;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn aimy to y-axis <0.0> speed <120.0>;
 	turn aimx to x-axis <0.0> speed <120.0>;
 	stop-spin lbarrel around z-axis decelerate <12>;
 	stop-spin rbarrel around z-axis decelerate <12>;
 	
-	isAiming = FALSE;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -425,17 +411,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	isAiming = TRUE;
 	turn aimy to y-axis heading speed Weapon1TurretY;
 	turn aimx to x-axis 0 - pitch speed Weapon1TurretX;
 	
 	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process
-        wait-for-turn aimy around y-axis;
+		wait-for-turn aimy around y-axis;
 		wait-for-turn aimx around x-axis;
 	}
 	wpn1_lasthead = heading;
@@ -443,7 +428,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin lbarrel around z-axis speed <-1080.0>;
 	spin rbarrel around z-axis speed <1080.0>;
@@ -453,8 +438,8 @@ FirePrimary()
 
 Shot1(zero)
 {
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	
 	if(miniguncount == 0)
 	{
@@ -465,35 +450,25 @@ Shot1(zero)
 		emit-sfx 1024 + 0 from lflare;
 	}
 	sleep 32;
-	++miniguncount;
-	if(miniguncount>=2)
-	{
-		miniguncount=0;
-	}
+	miniguncount = (miniguncount + 1) % 2;
 	return(1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimx;
+	pieceIndex = aimx;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if(miniguncount == 0)
 	{
-		piecenum = rflare;
+		pieceIndex = rflare;
 	}
 	if(miniguncount == 1)
 	{
-		piecenum = lflare;
+		pieceIndex = lflare;
 	}
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = aimx;
 }
 
 Killed(severity, corpsetype)

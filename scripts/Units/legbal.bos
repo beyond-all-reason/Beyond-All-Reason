@@ -4,7 +4,7 @@
 piece  	pelvis, aimy1, torso, armor, aimx1, barrel, flare, backblast,
 		lthigh, lknee, lleg, lfoot, rthigh, rknee, rleg, rfoot;
 
-static-var  notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
+static-var  animSpeed, wpn1_lasthead;
 static-var  maxSpeed, animFramesPerKeyframe, isMoving;
 
 // Signal definitions
@@ -189,7 +189,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -232,9 +231,6 @@ Create()
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	notMoving = TRUE;
-	currentSpeed = 100;
-	moveSpeed = get MAX_SPEED;
 	animSpeed = 6;
 	start-script StopMoving();
 }

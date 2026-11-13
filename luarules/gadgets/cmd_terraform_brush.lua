@@ -252,6 +252,19 @@ end
 -- Game.squareSize stored in snap.ss so cells always map back to the same coords.
 local GetGroundOrigHeight = Spring.GetGroundOrigHeight
 local GetGroundHeight = Spring.GetGroundHeight
+-- Exact vertex reads on the far column and row too (common/vertex_height.lua): GetGroundHeight
+-- clamps there, and whole-map passes that read and write every vertex would drag the far edges in.
+local vertexHeight
+do
+	local edgeHeight = VFS.Include("common/vertex_height.lua")(GetGroundHeight)
+	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+	vertexHeight = function(x, z)
+		if x < mapX and z < mapZ then
+			return GetGroundHeight(x, z)
+		end
+		return edgeHeight(x, z)
+	end
+end
 local SetHeightMap = Spring.SetHeightMap
 local SetHeightMapFunc = Spring.SetHeightMapFunc
 
@@ -360,7 +373,7 @@ local function captureCurrentForSnapshot(srcSnap)
 			local idx = rowBase + ix + 1
 			if srcMask[idx] then
 				local x = minX + ix * ss
-				local cur = GetGroundHeight(x, z)
+				local cur = vertexHeight(x, z)
 				if cur == GetGroundOrigHeight(x, z) then
 					mask[idx] = 2
 				else
@@ -445,7 +458,7 @@ local function snapshotWholeMap()
 			local base = vCount * 3
 			snapFlat[base + 1] = ix
 			snapFlat[base + 2] = iz
-			snapFlat[base + 3] = GetGroundHeight(ix, iz)
+			snapFlat[base + 3] = vertexHeight(ix, iz)
 			vCount = vCount + 1
 		end
 	end
@@ -491,7 +504,7 @@ local function remapMapHeights(newMin, newMax, clampOnly)
 	local curMin, curMax = math.huge, -math.huge
 	for iz = 0, mapSizeZ, squareSize do
 		for ix = 0, mapSizeX, squareSize do
-			local h = GetGroundHeight(ix, iz)
+			local h = vertexHeight(ix, iz)
 			if h < curMin then
 				curMin = h
 			end
@@ -520,7 +533,7 @@ local function remapMapHeights(newMin, newMax, clampOnly)
 	Spring.SetHeightMapFunc(function()
 		for iz = 0, mapSizeZ, squareSize do
 			for ix = 0, mapSizeX, squareSize do
-				local h = GetGroundHeight(ix, iz)
+				local h = vertexHeight(ix, iz)
 				local nh
 				if clampOnly then
 					nh = (h < newMin and newMin) or (h > newMax and newMax) or h
@@ -919,7 +932,7 @@ local function batchRead(xCell, zCell)
 	end
 	v = batchPre[idx]
 	if v == nil then
-		v = GetGroundHeight(xCell * SQUARE_SIZE, zCell * SQUARE_SIZE)
+		v = vertexHeight(xCell * SQUARE_SIZE, zCell * SQUARE_SIZE)
 		batchPre[idx] = v
 		batchReadN = batchReadN + 1
 		batchReadList[batchReadN] = idx
@@ -1023,7 +1036,7 @@ local function clayPlaneFor(centerX, centerZ, radius, rise, stack)
 		zc = max(0, min(maxZc, zc))
 		local h = strokeOrig[zc * batchCols + xc + 1]
 		if h == nil then
-			h = GetGroundHeight(xc * SQUARE_SIZE, zc * SQUARE_SIZE)
+			h = vertexHeight(xc * SQUARE_SIZE, zc * SQUARE_SIZE)
 		end
 		sum = sum + h
 	end
@@ -1274,7 +1287,9 @@ local function applyTerraform(
 							if current == nil then
 								current = bPre[idx]
 								if current == nil then
-									current = GetGroundHeight(xCell * squareSize, zCell * squareSize)
+									local hx, hz = xCell * squareSize, zCell * squareSize
+									current = (xCell < maxXc and zCell < maxZc) and GetGroundHeight(hx, hz)
+										or vertexHeight(hx, hz)
 									bPre[idx] = current
 									batchReadN = batchReadN + 1
 									batchReadList[batchReadN] = idx
@@ -1420,6 +1435,7 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMo
 	local hIdx = 0
 	local sCount = 0
 
+	local readHeight = (maxX >= mapSizeX or maxZ >= mapSizeZ) and vertexHeight or GetGroundHeight
 	for z = minZ, maxZ, squareSize do
 		for x = minX, maxX, squareSize do
 			local px = x - startX
@@ -1436,7 +1452,7 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMo
 					local falloff = 1 - ratio * ratio
 					local t = along / length
 					local targetHeight = startY + (endY - startY) * t
-					local current = Spring.GetGroundHeight(x, z)
+					local current = readHeight(x, z)
 					local newHeight
 					if clayMode then
 						-- Clay: move toward the target, never past it
@@ -1532,6 +1548,7 @@ local function applySplineRamp(waypoints, width, clayMode, snapFull)
 	local hIdx = 0
 	local sCount = 0
 
+	local readHeight = (maxX >= mapSizeX or maxZ >= mapSizeZ) and vertexHeight or GetGroundHeight
 	for z = minZ, maxZ, squareSize do
 		for x = minX, maxX, squareSize do
 			-- Find closest point on the polyline
@@ -1565,7 +1582,7 @@ local function applySplineRamp(waypoints, width, clayMode, snapFull)
 				local falloff = 1 - ratio * ratio
 				local t = bestArc / totalLength
 				local targetHeight = startY + (endY - startY) * t
-				local current = Spring.GetGroundHeight(x, z)
+				local current = readHeight(x, z)
 				local newHeight
 				if clayMode then
 					if targetHeight > current then
@@ -1625,6 +1642,7 @@ local function applyRestore(centerX, centerZ, radius, shape, angleDeg, curve, in
 	local hIdx = 0
 	local sCount = 0
 
+	local readHeight = (maxX >= mapSizeX or maxZ >= mapSizeZ) and vertexHeight or GetGroundHeight
 	for z = minZ, maxZ, squareSize do
 		for x = minX, maxX, squareSize do
 			local dx = x - centerX
@@ -1632,7 +1650,7 @@ local function applyRestore(centerX, centerZ, radius, shape, angleDeg, curve, in
 			local falloff = computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
 
 			if falloff then
-				local current = Spring.GetGroundHeight(x, z)
+				local current = readHeight(x, z)
 				local base = sCount * 3
 				snapFlat[base + 1] = x
 				snapFlat[base + 2] = z
@@ -1901,6 +1919,7 @@ local function applyNoise(
 	local hIdx = 0
 	local sCount = 0
 
+	local readHeight = (maxX >= mapSizeX or maxZ >= mapSizeZ) and vertexHeight or GetGroundHeight
 	for z = minZ, maxZ, squareSize do
 		for x = minX, maxX, squareSize do
 			local dx = x - centerX
@@ -1908,7 +1927,7 @@ local function applyNoise(
 			local falloff = computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
 
 			if falloff then
-				local current = Spring.GetGroundHeight(x, z)
+				local current = readHeight(x, z)
 				local base = sCount * 3
 				snapFlat[base + 1] = x
 				snapFlat[base + 2] = z
@@ -1999,7 +2018,7 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 	local originCellZ = centerCellZ - sCz - 1 -- world cell of window row 0
 
 	---@type table<integer, number?>
-	local heights = {} -- [windowIdx] = lazily cached GetGroundHeight
+	local heights = {} -- [windowIdx] = lazily cached height
 	---@type table<integer, number>
 	local delta = {} -- [windowIdx] = accumulated height change this pass
 	local touched = {} -- windowIdx list in first-touch order (deterministic apply)
@@ -2012,7 +2031,7 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 		end
 		local hn = heights[nIdx]
 		if not hn then
-			hn = GetGroundHeight(nx, nz)
+			hn = vertexHeight(nx, nz)
 			heights[nIdx] = hn
 		end
 		local dh = h - hn
@@ -2051,7 +2070,7 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 						local cIdx = wz * ww + wx + 1
 						local h = heights[cIdx]
 						if not h then
-							h = GetGroundHeight(x, z)
+							h = vertexHeight(x, z)
 							heights[cIdx] = h
 						end
 						local cellRate = rate * falloff
@@ -2140,7 +2159,7 @@ local function applyAutoramp(
 		cellSize = Game.squareSize,
 		mapSizeX = Game.mapSizeX,
 		mapSizeZ = Game.mapSizeZ,
-		getHeight = GetGroundHeight,
+		getHeight = vertexHeight,
 	})
 	if not res then
 		if err == "no_cliff" then
@@ -2399,7 +2418,7 @@ local function applyFill(cx, cz)
 			local rz = floor(cz / ss + ddz * step + 0.5) * ss
 			rx = max(0, min(mapX, rx))
 			rz = max(0, min(mapZ, rz))
-			local h = Spring.GetGroundHeight(rx, rz)
+			local h = vertexHeight(rx, rz)
 
 			if h > peakH then
 				peakX, peakZ, peakH, peakStep = rx, rz, h, step
@@ -2597,7 +2616,7 @@ local function applyFill(cx, cz)
 	for i = 1, bN do
 		local x, z = basinX[i], basinZ[i]
 		local target = basinT[i]
-		local curH = Spring.GetGroundHeight(x, z)
+		local curH = vertexHeight(x, z)
 		if curH < target - 0.1 then
 			local base = sCount * 3
 			snapFlat[base + 1] = x
