@@ -48,12 +48,10 @@ describe("mission_api.triggers.time_elapsed", function()
 		return fired
 	end
 
-	it("declares seconds as required and interval as optional", function()
+	it("declares seconds as required", function()
 		assert.are.equal("TimeElapsed", timeElapsed.type)
 		assert.are.equal("seconds", timeElapsed.parameters[1].name)
 		assert.is_true(timeElapsed.parameters[1].required)
-		assert.are.equal("interval", timeElapsed.parameters[2].name)
-		assert.is_falsy(timeElapsed.parameters[2].required)
 	end)
 
 	it("fires once at seconds * gameSpeed", function()
@@ -74,7 +72,7 @@ describe("mission_api.triggers.time_elapsed", function()
 	end)
 
 	it("fires only once, interval or not", function()
-		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1, interval = 2 }, { repeating = true }), 200))
+		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1 }, { repeating = true }), 200))
 	end)
 
 	it("counts from the frame the mission started on", function()
