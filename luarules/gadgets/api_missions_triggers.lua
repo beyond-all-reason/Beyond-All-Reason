@@ -340,7 +340,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
-	if x and needsBuildPlacements then
+	if x then
 		buildPlacements[builderID] = unitDefID
 	end
 	return true
@@ -633,6 +633,7 @@ function gadget:Initialize()
 			or trigger.type == triggerTypes.StockpileProgress
 	end
 	for callinName, needed in pairs({
+		AllowUnitCreation = needsBuildPlacements,
 		AllowUnitBuildStep = needsReclaimIncome,
 		UnitBuildStepPost = needsConstructionProgress,
 		AllowFeatureBuildStep = needsReclaimIncome or needsFeatureReclaimTracking,
