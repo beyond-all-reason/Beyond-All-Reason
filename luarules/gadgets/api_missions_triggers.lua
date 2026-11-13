@@ -19,10 +19,13 @@ local RECLAIM_UNIT_IS_BAR_STYLE = true
 	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
 	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
 
-local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext ---@type table, table<string, table>, table, table
+
+local actionsDispatcher
 local statistics
 local countdowns
+local detectionLevels
+local seismicContacts
 
 local trackedUnitNames
 local doesUnitHaveName
@@ -36,8 +39,6 @@ local needsBuildStartSet
 local needsStockpiles ---@type boolean
 
 local seismicIntervalFrames ---@type integer
-local seismicContacts
-local detectionLevels
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local constructionState = {}
