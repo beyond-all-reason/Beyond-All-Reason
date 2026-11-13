@@ -33,14 +33,14 @@ local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
 
-local needsBuildPlacements
-local needsBuildOwnerMap
-local needsBuildStartSet
-local needsConstructionProgress
-local needsReclaimIncome
-local needsFeatureReclaimTracking
-local needsStockpiles ---@type boolean
-local needsUnitDamaged
+local needsBuildPlacements = false
+local needsBuildOwnerMap = false
+local needsBuildStartSet = false
+local needsConstructionProgress = false
+local needsReclaimIncome = false
+local needsFeatureReclaimTracking = false
+local needsStockpiles = false
+local needsUnitDamaged = false
 
 local seismicIntervalFrames ---@type integer
 
