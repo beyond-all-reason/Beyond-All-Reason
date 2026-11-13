@@ -1,14 +1,11 @@
 
 #include "../recoil_common_includes.h"
 
-//#define DEBUG
-#include "../debug.h"
-
 piece pelvis, aimy1, torso, aimx1, sleeve, barrel, flare, armor, flap, lthigh, lleg, lfoot, rthigh, rleg, rfoot;
 
-static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe;
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 {
 	return 0;
 }
@@ -16,7 +13,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-#define SIGNAL_RESETDELAY 2
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {
@@ -114,8 +110,7 @@ StopWalking() {
 	turn rthigh to x-axis <0> speed <3788.745992> / animSpeed;
 	turn sleeve to x-axis <0> speed <464.935024> / animSpeed;
 	turn torso to y-axis <0> speed <320.718111> / animSpeed;
-	
-	
+
 	turn lthigh to y-axis <10> speed <600> / animSpeed;
 	turn rthigh to y-axis <-10> speed <600> / animSpeed;
 	turn lleg to y-axis <5> speed <600> / animSpeed;
@@ -130,37 +125,28 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 4) / animSpeed;
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
 	}
 }
 
-#define BASEPIECE pelvis
-#define HITSPEED <55.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 2
-#define MAXTILT 100
-
 RockUnit(anglex, anglez)
 {
-	turn pelvis to x-axis anglex speed <50.000000>;
-	turn pelvis to z-axis <0> - anglez speed <50.000000>;
+	turn pelvis to x-axis anglex speed <50.0>;
+	turn pelvis to z-axis <0> - anglez speed <50.0>;
 	wait-for-turn pelvis around z-axis;
 	wait-for-turn pelvis around x-axis;
-	turn pelvis to z-axis <0.000000> speed <20.000000>;
-	turn pelvis to x-axis <0.000000> speed <20.000000>;
+	turn pelvis to z-axis <0.0> speed <20.0>;
+	turn pelvis to x-axis <0.0> speed <20.0>;
 }
-
 
 Create()
 {
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	animSpeed = 3;
 	isMoving = FALSE;
 	animSpeed = 4;
 }
@@ -169,15 +155,11 @@ StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	
 	isMoving = TRUE;
-	
 	turn lthigh to y-axis <0> speed <600> / animSpeed;
 	turn rthigh to y-axis <0> speed <600> / animSpeed;
 	turn lleg to y-axis <0> speed <600> / animSpeed;
 	turn rleg to y-axis <0> speed <600> / animSpeed;
-	
-	set-signal-mask SIGNAL_MOVE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
@@ -212,30 +194,27 @@ QueryWeapon2(pieceIndex)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-	
-    turn aimy1 to y-axis <0.0> speed <90>;
-    turn aimx1 to x-axis <-5.0> speed <45>;
-	
+	if (Stunned) {
+		return (1);
+	}
+	turn aimy1 to y-axis <0.0> speed <90>;
+	turn aimx1 to x-axis <-5.0> speed <45>;
 	move flap to y-axis [0.0] speed [1];
 	move flap to z-axis [0.0] speed [6];
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
 RestoreAfterDelay()
 {
-
 	set-signal-mask SIGNAL_AIM1;
-    sleep 2750;
+	sleep 2750;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -253,16 +232,16 @@ AimWeapon1(heading, pitch)
 		move flap to y-axis [0.0] speed [1];
 		move flap to z-axis [0.0] speed [6];
 	}
-	
+
 	turn aimy1 to y-axis heading speed <140>;
 	turn aimx1 to x-axis <0.0> - pitch speed <50>;
-	
-	wait-for-turn aimy1 around y-axis; 
+
+	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	
+
 	start-script RestoreAfterDelay();
 
-		var reloading;
+	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
 	{
@@ -274,43 +253,41 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	move barrel to z-axis [-3.000000] speed [60.000000];
+	move barrel to z-axis [-3.0] speed [60.0];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [4.000000];
+	move barrel to z-axis [0.0] speed [4.0];
 	wait-for-move barrel along z-axis;
-	return (0);
 }
 
 //use call-script DeathAnim(); from Killed()
-DeathAnim() 
+DeathAnim()
 {
 	signal SIGNAL_MOVE;
 	signal SIGNAL_AIM1;
 	call-script StopWalking();
 	sleep (100);
-	
+
 	turn aimy1 to y-axis <0> speed <600>;
 	turn aimx1 to x-axis <0> speed <200>;
-	
+
 	turn torso to y-axis <40> speed <200>;
 	turn sleeve to x-axis <-40> speed <200>;
-	
+
 	move pelvis to y-axis [-9] speed [30];
 	turn pelvis to x-axis <75> speed <300>;
-	
+
 	turn lthigh to y-axis <60> speed <200>;
 	turn rthigh to y-axis <-60> speed <200>;
-	
+
 	turn lthigh to x-axis <-25> speed <200>;
 	turn rthigh to x-axis <-25> speed <200>;
-	
+
 	turn lleg to x-axis <15> speed <200>;
 	turn rleg to x-axis <15> speed <200>;
-	
+
 	sleep (300);
 }
-
 
 Killed(severity, corpsetype)
 {

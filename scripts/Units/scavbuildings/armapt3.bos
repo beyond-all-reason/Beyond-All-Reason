@@ -1,129 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
+#include "../../factories_common.h"
 
-piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
+piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-				emit-sfx smoketype from pad;
-			
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-
-Go()
-{
-	//get PRINT(get (GAME_FRAME), 11);
-	
-	turn head1 to y-axis <-25> speed <45>;
-	turn head2 to y-axis <25> speed <45>;
-	turn head3 to y-axis <25> speed <45>;
-	turn head4 to y-axis <-25> speed <45>;
-	wait-for-turn head1 around y-axis;
-	
-	var trycount;
-	trycount = 0;
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		trycount = trycount + 1;
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	
-	//get PRINT(get (GAME_FRAME), 1111, trycount);
-	set BUGGER_OFF to 0;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	//get PRINT(get (GAME_FRAME), 22);
-	set INBUILDSTANCE to 0;
-	
-	
-	turn head1 to y-axis <0> speed <45>;
-	turn head2 to y-axis <0> speed <45>;
-	turn head3 to y-axis <0> speed <45>;
-	turn head4 to y-axis <0> speed <45>;
-	wait-for-turn head1 around y-axis;
-	
-	var trycount;
-	trycount = 0;
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		trycount = trycount + 1;
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	
-	//get PRINT(get (GAME_FRAME), 2222, trycount);
-	set BUGGER_OFF to 0;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging ) //we are still in the state changing process
-	{
-		statechg_DesiredState = requestedstate; //make the requested state the one to be in
-		return (0);
-	}
-	statechg_StateChanging = TRUE; // flad that we are gonna change states
-	currentstate = statechg_DesiredState; //
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -132,84 +17,63 @@ Create()
 	hide nano3;
 	hide nano4;
 	hide pad;
-	spray = nano1;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
-	start-script SmokeUnit();
+	spray = 0;
 }
 
-Activate() // activate first
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
 {
-	//get PRINT(get (GAME_FRAME), 3333);
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	pieceIndex = nano1 + spray;
+	spray = (spray + 1) % 4;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	turn head1 to y-axis <-25> speed <45>;
+	turn head2 to y-axis <25> speed <45>;
+	turn head3 to y-axis <25> speed <45>;
+	turn head4 to y-axis <-25> speed <45>;
+	wait-for-turn head1 around y-axis;
+
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	//get PRINT(get (GAME_FRAME), 4444);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	turn head1 to y-axis <0> speed <45>;
+	turn head2 to y-axis <0> speed <45>;
+	turn head3 to y-axis <0> speed <45>;
+	turn head4 to y-axis <0> speed <45>;
+	wait-for-turn head1 around y-axis;
+
+	FACTORY_CLOSE_BUILD;
 }
 
-StartBuilding() // Is only called once INBUILDSTANCE == 1 !
+StartBuilding()
 {
-	//get PRINT(get (GAME_FRAME), 5555);
-	//spin pad around y-axis speed <30.005495>;
 }
 
 StopBuilding()
 {
-	//get PRINT(get (GAME_FRAME), 6666);
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
-	//stop-spin pad around y-axis;
 	sleep 5000;   // then we wait for 5 sec
 	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
 	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
-}
-
-
-QueryNanoPiece(piecenum)
-{
-
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( spray == 2 )
-	{
-		piecenum = nano3;
-	}	
-
-	if( spray ==3 )
-	{
-		piecenum = nano4;
-	}	
-	spray=spray +1;
-	
-	if( spray >3 )
-	{
-		spray=0;
-	}
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = pad;
 }
 
 Killed(severity, corpsetype)

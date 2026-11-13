@@ -372,6 +372,9 @@ function MB:Build(installed)
 		GiveOrders = function(unitIDs, orders)
 			giveOrdersCalls[#giveOrdersCalls + 1] = { unitIDs = unitIDs, orders = orders }
 		end,
+		GiveUnitOrders = function(unitOrders)
+			giveOrdersCalls[#giveOrdersCalls + 1] = { unitOrders = unitOrders }
+		end,
 	}
 
 	local sounds = {

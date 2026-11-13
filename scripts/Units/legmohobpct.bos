@@ -3,7 +3,7 @@
 
 piece  base, aim, flarel, flarer;
 
-static-var  buildHeading, nano;
+static-var  buildHeading, nano, Stunned;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -21,20 +21,18 @@ Create()
 	buildHeading = 0;
 }
 
-static-var  Stunned;
-
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn aim to y-axis <0.0> speed <100.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -45,12 +43,10 @@ RestoreAfterDelay()
 
 Activate()
 {
-
 }
 
 Deactivate()
 {
-
 }
 
 StartBuilding(heading)
@@ -77,13 +73,11 @@ QueryNanoPiece(pieceIndex)
 }
 
 
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flarel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -91,7 +85,6 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flarel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -99,13 +92,11 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		//explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type SMOKE | FALL | NOHEATCLOUD;
 		explode flarel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		//explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flarel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;

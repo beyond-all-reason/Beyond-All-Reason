@@ -3,7 +3,7 @@
 
 piece  base, cover1, cover2, light;
 
-static-var  mmState, Active;
+static-var  Active;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -30,7 +30,6 @@ MMStatus(State)
 		turn cover1 to x-axis <0.0> speed <60.0>;
 		turn cover2 to x-axis <0.0> speed <60.0>;
 	}
-	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()

@@ -350,9 +350,9 @@ function gadget:Initialize()
 			areaTracking.TrackUnitsInArea(
 				parameters.area,
 				parameters.teamName,
+				triggerID,
 				onUnitsEnteredArea,
-				onUnitsLeftArea,
-				triggerID
+				onUnitsLeftArea
 			)
 		end
 	end

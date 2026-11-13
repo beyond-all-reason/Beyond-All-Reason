@@ -1,36 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  
-    chassis,
-    cells,
-    leftGun,
-    leftBarrel,
-    leftFlare,
-    rightGun,
-    rightBarrel,
-    rightFlare,
-    thrusters,
-    leftAirjet,
-    rightAirjet,
-    mainAirjet,
-    topWing,
-    bottomWing;
+piece  chassis, cells, leftGun, leftBarrel, leftFlare, rightGun, rightBarrel, rightFlare, thrusters, leftAirjet, rightAirjet, mainAirjet, topWing, bottomWing;
 
-static-var gun_1;
-
-#define SIGNAL_FIRE1 			1
-
-
-// activatescr()
-// {
-// 	sleep 15;
-// }
-
-// deactivatescr()
-// {
-// 	sleep 9;
-// }
+static-var  gun_1;
 
 #define BASEPIECE chassis
 #define HITSPEED <105.0>
@@ -38,51 +11,34 @@ static-var gun_1;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn chassis to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn chassis around z-axis;
-			turn chassis to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn chassis around z-axis;
-			turn chassis to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
+#define BARRELROLL_PIECE chassis
+#define BARRELROLLSPEEED <200>
+#include "../air_barrelroll.h"
 
 Create()
 {
 	gun_1 = 1;
-    hide leftAirjet;
-    hide rightAirjet;
-    hide mainAirjet;
+	hide leftAirjet;
+	hide rightAirjet;
+	hide mainAirjet;
 	start-script BarrelRoll();
 }
 
 Activate()
 {
-    show leftAirjet;
-    show rightAirjet;
-    show mainAirjet;
+	show leftAirjet;
+	show rightAirjet;
+	show mainAirjet;
 }
 
 Deactivate()
 {
-    hide leftAirjet;
-    hide rightAirjet;
-    hide mainAirjet;
+	hide leftAirjet;
+	hide rightAirjet;
+	hide mainAirjet;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
@@ -92,21 +48,20 @@ BlockShot1(targetID, block, userTarget)
 	block = !(get ACTIVATION);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin leftBarrel around z-axis speed <-1080.0>;
 	spin rightBarrel around z-axis speed <1080.0>;
 	sleep (500);
 	stop-spin leftBarrel around z-axis decelerate <12>;
 	stop-spin rightBarrel around z-axis decelerate <12>;
-	return(1);
 }
 
-Shot1(zero)
+Shot1()
 {
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
-	
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
+
 	if(gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from rightFlare;
@@ -116,36 +71,24 @@ Shot1(zero)
 		emit-sfx 1024 + 0 from leftFlare;
 	}
 	sleep 32;
-	++gun_1;
-	if(gun_1>=2)
-	{
-		gun_1=0;
-	}
-	return(1);
+	gun_1 = (gun_1 + 1) % 2;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = chassis;
+	pieceIndex = chassis;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if(gun_1 == 0)
 	{
-		piecenum = rightFlare;
+		pieceIndex = rightFlare;
 	}
 	if(gun_1 == 1)
 	{
-		piecenum = leftFlare;
+		pieceIndex = leftFlare;
 	}
-	return (0);
-}
-
-
-SweetSpot(piecenum)
-{
-	piecenum = chassis;
 }
 
 Killed(severity, corpsetype)

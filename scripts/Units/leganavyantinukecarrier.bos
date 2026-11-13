@@ -27,7 +27,7 @@ piece
     bow
 ;
 
-static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
+static-var  Stunned, restore_delay;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -50,28 +50,22 @@ static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
 
 SetStunned(State)
 {
-    Stunned = State;
-	if (Stunned) {
-
-	} else {
-
-	}
+	Stunned = State;
 }
 
 
 Create()
 {
 
-    turn anpanell to y-axis <30> now;
+	turn anpanell to y-axis <30> now;
 	turn anpanelr to y-axis <-30> now;
 
 	restore_delay = 3000;
-	missiles_stockpiled = 0;
 
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
-    start-script Activate();
+	start-script Activate();
 }
 
 Activate()
@@ -79,15 +73,6 @@ Activate()
 	if (Stunned){
 		return (0);
 	}
-	// spin bladesf around z-axis speed <-150> accelerate <5>;
-	// spin bladesl around z-axis speed <-150> accelerate <5>;
-	// spin bladesr around z-axis speed <-150> accelerate <5>;
-	// spin turbineb around x-axis speed <50> accelerate <1>;
-	// spin turbinel around x-axis speed <-50> accelerate <1>;
-	// spin turbiner around x-axis speed <-50> accelerate <1>;
-	
-	// signal SIGNAL_SMOKE;
-	// start-script repeatsmoke();
 }
 
 openAbm()
@@ -164,8 +149,7 @@ AimWeapon1(heading, pitch)
 }
 
 FireWeapon1()
-{	
-	return (0);
+{
 }
 
 RestoreAfterDelay()
@@ -185,25 +169,21 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode ground type BITMAPONLY | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
