@@ -41,7 +41,7 @@ describe("mission_api.triggers.unit_left_location", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitLeftLocation.parameters.requiresOneOf)
+		assert.are.same({ "unitName", "unitDefName", "teamName" }, unitLeftLocation.parameters.requiresOneOf)
 	end)
 
 	it("fires for a unit that left the area", function()

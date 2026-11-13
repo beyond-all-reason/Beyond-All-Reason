@@ -169,6 +169,8 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.UnitDefName] = getLookupValidator(validateString, "unitDefName", function(unitDefName)
 		return UnitDefNames[unitDefName]
 	end)
+	parameterValidators[Types.UnitDefNames] =
+		getListValidator(parameterValidators[Types.UnitDefName], "unitDefNames table is empty")
 	parameterValidators[Types.WeaponDefName] = getLookupValidator(
 		validateString,
 		"weaponDefName",

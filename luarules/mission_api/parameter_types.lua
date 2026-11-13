@@ -9,6 +9,7 @@ local types = {
 	Position = "Position",
 	Positions = "Positions",
 	AllianceNames = "AllianceNames",
+	UnitDefNames = "UnitDefNames",
 	TriggerIDs = "TriggerIDs",
 	StageIDs = "StageIDs",
 	ObjectiveIDs = "ObjectiveIDs",

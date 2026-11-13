@@ -941,6 +941,38 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("UnitDefNames", function()
+		local function validateExcluded(excludedUnitDefNames)
+			return V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
+				area = { x = 0, z = 0, radius = 10 },
+				teamName = "rebels",
+				excludedUnitDefNames = excludedUnitDefNames,
+			}))
+		end
+
+		before_each(function()
+			V.missionAPI().Teams = { rebels = 0, [0] = "rebels" }
+		end)
+
+		it("accepts a team with excluded unit types and no unit filter", function()
+			V.assertNoMessageContaining(validateExcluded({ "armwar" }), "Trigger: t")
+		end)
+
+		it("rejects an empty table", function()
+			V.assertMessage(
+				validateExcluded({}),
+				"unitDefNames table is empty. Trigger: t, Parameter: excludedUnitDefNames"
+			)
+		end)
+
+		it("rejects an unknown unit type", function()
+			V.assertMessage(
+				validateExcluded({ "armwar", "nosuchunit" }),
+				"Invalid unitDefName: nosuchunit. Trigger: t, Parameter: excludedUnitDefNames[2]"
+			)
+		end)
+	end)
+
 	--- Validates the orders parameter of the action under test.
 	local function validateOrders(orders)
 		return V.validateAction({

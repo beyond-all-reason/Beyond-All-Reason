@@ -71,9 +71,13 @@ end
 ---@param unitID UnitID
 ---@param unitName string?
 ---@param unitDefName string?
+---@param excludedUnitDefIDs table<UnitDefID, true>? Unit types that never match.
 ---@return boolean
-local function doesUnitMatch(unitID, unitName, unitDefName)
+local function doesUnitMatch(unitID, unitName, unitDefName, excludedUnitDefIDs)
 	if unitName and not tracking.DoesUnitHaveName(unitID, unitName) then
+		return false
+	end
+	if excludedUnitDefIDs and excludedUnitDefIDs[spGetUnitDefID(unitID)] then
 		return false
 	end
 	if unitDefName then
