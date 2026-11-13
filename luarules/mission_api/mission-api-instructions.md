@@ -68,6 +68,9 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   sending messages to a team's campaign AI. The engine creates the AI after the loadout spawns, so
   a message from before the game starts reaches it when the game starts. The AI's signals come
   back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay.
+- `Modules.Squads` (`squads.lua`) knows each squad by the name a mission gave it and by the ID the
+  team's campaign AI has for it. A squad action asks it for that ID, with the function for the
+  squad states the AI takes its message in, and sends nothing when it gets none.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
   `api_mission_camera.lua` gadget passes them to `luaui/Widgets/api_mission_camera.lua`, which

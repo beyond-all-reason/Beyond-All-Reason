@@ -36,9 +36,14 @@ local function removeSquad(squad)
 	squadsByID[squad.teamID][squad.squadID] = nil
 end
 
+---@return MissionSquad? squad nil for a squad that is not live
+local function findSquad(teamID, squadID)
+	return squadsByID[teamID] and squadsByID[teamID][squadID]
+end
+
 ---@return string? squadName nil for a squad that is not live
 local function assembleSquad(teamID, squadID)
-	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
+	local squad = findSquad(teamID, squadID)
 	if squad then
 		squad.isAssembled = true
 		return squad.squadName
@@ -47,7 +52,7 @@ end
 
 ---@return string? squadName nil for a squad that is not live
 local function endSquad(teamID, squadID)
-	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
+	local squad = findSquad(teamID, squadID)
 	if squad then
 		removeSquad(squad)
 		return squad.squadName
