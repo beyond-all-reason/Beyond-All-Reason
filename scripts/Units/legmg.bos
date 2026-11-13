@@ -1,16 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-// piece  base, pole, flare, turret, sleeve, barrel;
 piece base, turret, strut, sleeve, barrel, flare;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
+static-var  restore_delay, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 
@@ -22,12 +18,11 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
 {
-	hide flare;
 	hide flare;
 	restore_delay = 300;
 }
@@ -38,12 +33,6 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	//spin barrel around z-axis speed <600.0>;
-	//sleep restore_delay;
-	//spin barrel around z-axis speed <300.0>;
-	//sleep (restore_delay / 2);
-	//spin barrel around z-axis speed <150.0>;
-	//sleep (restore_delay / 4);
 	stop-spin barrel around z-axis decelerate <30>;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
@@ -63,10 +52,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret to y-axis heading speed <200.0>;
 	turn strut to x-axis <0.0> - pitch speed <100.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
@@ -80,7 +69,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	spin barrel around z-axis speed <900.0>;
 }
@@ -91,19 +80,14 @@ Shot1(zero)
 	return(1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

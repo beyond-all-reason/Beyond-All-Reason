@@ -28,7 +28,7 @@ local function failMission(reason)
 	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
 end
 
-local objectivesController, stagesController, triggersController, actionsController
+local objectivesController, stagesController, conditionsController, actionsController
 
 local function setUpMissionAPI(gameSetup)
 	missionLoadStep = "loading the Mission API"
@@ -62,12 +62,15 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
+	GG["MissionAPI"].Modules.Orders = VFS.Include("luarules/mission_api/orders.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
+	GG["MissionAPI"].Modules.Marching = VFS.Include("luarules/mission_api/marching.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
 	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
+	GG["MissionAPI"].Modules.Camera = VFS.Include("luarules/mission_api/camera.lua")
 	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
 	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
@@ -81,8 +84,8 @@ local function setUpMissionAPI(gameSetup)
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
-	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
+	conditionsController = VFS.Include("luarules/mission_api/conditions_loader.lua")
+	GG["MissionAPI"].ConditionDefinitions = conditionsController.LoadConditionDefinitions()
 	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
 	-- stays for a release or two to keep those missions loading.
 	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
@@ -132,7 +135,7 @@ local function loadMission(gameSetup)
 	GG["MissionAPI"].Stages = stagesController.ProcessRawStages(stages)
 	GG["MissionAPI"].Objectives =
 		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+	GG["MissionAPI"].Triggers = conditionsController.ProcessRawTriggers(rawTriggers)
 	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
@@ -226,6 +229,11 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
+	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
+end
+
+function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
+	GG["MissionAPI"].Modules.Orders.OnUnitFromFactory(unitID, factoryID)
 end
 
 function gadget:GameOver()

@@ -2,7 +2,7 @@
 
 piece  torso, flare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, ruparm, luparm, lloarm, rloarm, lfoot, gun, head, aimx1, aimy1;
 
-static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
@@ -358,9 +358,8 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>5) animSpeed = 5;
+		if (animSpeed>5) animSpeed = 5;
 		sleep 87;
 	}
 }
@@ -375,8 +374,8 @@ UnitSpeed(){
 
 
 StartMoving(reversing){
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
@@ -395,15 +394,11 @@ Create()
 	hide flare;
 	hide aimx1;
 	hide aimy1;
-	hide flare;
-	//turn flare to z-axis <-45.0> now;
 	turn flare to x-axis <90.0> now;
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 4;
 	restore_delay = 1500;
-	moveSpeed = get MAX_SPEED;
-	currentSpeed = 100;
 }
 
 SetMaxReloadTime(reloadMS)

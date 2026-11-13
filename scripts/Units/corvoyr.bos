@@ -220,7 +220,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
@@ -265,7 +264,6 @@ Create()
 {
 	isMoving = FALSE;
 	animSpeed = 4;
-	return (0);
 }
 
 Activate()
@@ -282,7 +280,6 @@ Activate()
 	
 	move lens1 to z-axis [2] speed [1];
 	move lens3 to z-axis [-3] speed [2];
-	return (0);
 }
 
 Deactivate()
@@ -301,7 +298,6 @@ Deactivate()
 	move lens3 to z-axis [0] speed [7];
 	
 	wait-for-turn belt around y-axis;
-	return (0);
 }
 
 SetStunned(State)
@@ -312,14 +308,11 @@ SetStunned(State)
 	    spin dish1 around x-axis speed <0.0>;
 	    spin dish2 around x-axis speed <0.0>;
 	} else {
-        spin belt around y-axis speed <20.021978> accelerate <5>;
-        spin dish1 around x-axis speed <100.021978> accelerate <50>;
-        spin dish2 around x-axis speed <-100.021978> accelerate <50>;
+	    spin belt around y-axis speed <20.021978> accelerate <5>;
+	    spin dish1 around x-axis speed <100.021978> accelerate <50>;
+	    spin dish2 around x-axis speed <-100.021978> accelerate <50>;
 	}
 }
-
-
-
 
 Killed(severity, corpsetype)
 {

@@ -245,7 +245,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
@@ -279,16 +278,13 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	hide flare;
 	animSpeed = 4;
 	restore_delay = 2000;
-	return (0);
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
 
@@ -346,20 +342,16 @@ FireWeapon1()
 	move barrel to z-axis [0.0] speed [10.0]; //*
 	wait-for-turn aimy1 around x-axis;
 	turn Torso to x-axis <0.0> speed <15.0>;
-//	move Barrel to z-axis [0.0] speed [5.500000];
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = support;
-	return (0);
 }
 
 Killed(severity, corpsetype)

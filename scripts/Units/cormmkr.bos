@@ -11,7 +11,7 @@ MMStatus(State)
 		hide cover;
 	    show light;
 		show converter;
-		move converter to y-axis [6] speed [12.0];	
+		move converter to y-axis [6] speed [12.0];
 	}
 	else
 	{
@@ -21,8 +21,6 @@ MMStatus(State)
 	    hide light;
 		show cover;
 	}
-	//get PRINT(get GAME_FRAME, Active);
-	
 }
 
 Create()

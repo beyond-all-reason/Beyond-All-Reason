@@ -125,9 +125,9 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	processParameterValue = processValue
 
 	local registered = {}
-	local triggerSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
+	local conditionSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
 	for _, trigger in pairs(triggers) do
-		registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
+		registerParameters(trigger.parameters, conditionSchema[trigger.type], registered)
 	end
 	local actionSchema = GG["MissionAPI"].ActionDefinitions.Parameters
 	for _, action in pairs(actions) do
@@ -136,7 +136,7 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	for _, objective in pairs(objectives) do
 		local trigger = objective.trigger
 		if type(trigger) == "table" then
-			registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
+			registerParameters(trigger.parameters, conditionSchema[trigger.type], registered)
 		end
 	end
 

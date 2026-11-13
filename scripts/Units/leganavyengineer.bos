@@ -21,7 +21,7 @@ piece
     conLight1b
 ;
 
-static-var  buildHeading, readyToBuild, whichBarrel;
+static-var  readyToBuild, whichBarrel;
 
 #define RB_MASS 20
 #define RB_LENGTH 5
@@ -48,7 +48,6 @@ Create()
     move nanoBarrels to z-axis [-4] now;
     move turretStrut to y-axis [-4] now;
 
-	buildHeading = 0;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
@@ -125,15 +124,8 @@ StopMoving()
 
 QueryNanoPiece(pieceIndex)
 {
-	if (whichBarrel == 0){
-        pieceIndex = nanoFlare1;
-        whichBarrel = 1;
-    }
-    else if (whichBarrel == 1){
-        pieceIndex =  nanoFlare2;
-        whichBarrel = 0;
-    }
-
+	pieceIndex = nanoFlare1 + whichBarrel;
+	whichBarrel = !whichBarrel;
 }
 
 
@@ -142,36 +134,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode door1 type BITMAPONLY | NOHEATCLOUD;
-		// explode neck type BITMAPONLY | NOHEATCLOUD;
-		// explode nano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode neck type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode boom type SMOKE | FALL | NOHEATCLOUD;
-		// explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode boom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

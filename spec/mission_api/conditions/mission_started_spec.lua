@@ -1,5 +1,5 @@
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 
 local missionStarted = VFS.Include("luarules/mission_api/conditions/mission_started.lua")
 local onGameStart = missionStarted.callins.GameStart
@@ -11,7 +11,7 @@ describe("mission_api.conditions.mission_started", function()
 	end)
 
 	it("fires when the game starts", function()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		onGameStart(TriggerBuilder.new():Build(), "t", context)
 		assert.are.equal(1, context.timesFired())
 	end)

@@ -1,6 +1,6 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
@@ -23,19 +23,19 @@ describe("mission_api.conditions.countdown_reached", function()
 	end)
 
 	it("fires when its countdown ticks down to the watched time", function()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		onCountdownTick(trigger({ countdownID = "evacuate", timeRemaining = 10 }), "t", context, "evacuate", 10)
 		assert.are.equal(1, context.timesFired())
 	end)
 
 	it("ignores ticks of other countdowns", function()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		onCountdownTick(trigger({ countdownID = "evacuate", timeRemaining = 10 }), "t", context, "other", 10)
 		assert.are.equal(0, context.timesFired())
 	end)
 
 	it("ignores ticks to other times", function()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		onCountdownTick(trigger({ countdownID = "evacuate", timeRemaining = 10 }), "t", context, "evacuate", 11)
 		assert.are.equal(0, context.timesFired())
 	end)

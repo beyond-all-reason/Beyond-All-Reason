@@ -34,9 +34,6 @@ backLeftFootPivot,
 backLeftLowerLeg,
 backLeftUpperLeg,
 backLeftLegPivot,
-
-// nanoFlare1,
-// nanoFlare2,
 frontLight,
 buildLightFlareLeft,
 buildLightFlareRight,
@@ -48,9 +45,8 @@ innerChassisBone;
 
 
 
-static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, isOpen;
+static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
-#define SIGNAL_MOVE 1
 Walk() { //Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
@@ -279,17 +275,17 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 5) / animSpeed;
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>11) animSpeed = 11;
 		sleep 193;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-	animSpeed =  2;
+	set-signal-mask SIGNAL_MOVE;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
@@ -318,15 +314,13 @@ Create()
 	hide frontLight;
 	hide buildLightFlareLeft;
 	hide buildLightFlareRight;
-	//hide corhexl;
 	isMoving = FALSE;
-	isOpen = 0;
+	animSpeed = 5;
 	spray = nanoFlare1;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script OpenCloseAnim(0);
 }
 
-//static-var isOpen;
 Open(){
 	move innerChassis to y-axis [0] speed [6];
 	show frontLight;
@@ -339,14 +333,12 @@ Open(){
 	sleep 50;
 	move buildLightL to x-axis [0] speed [3];
 	move buildLightR to x-axis [0] speed [3];
-    isOpen = 1;
 }
 
 Close(){
-    isOpen = 0;
-    move buildLightR to x-axis [-1.2] speed [3];
+	move buildLightR to x-axis [-1.2] speed [3];
 	move buildLightL to x-axis [1.2] speed [3];
-    move buildLightHousingR to x-axis [-1.2] speed [3];
+	move buildLightHousingR to x-axis [-1.2] speed [3];
 	move buildLightHousingL to x-axis [1.2] speed [3];
 	move nano to z-axis [-3] speed [9];
 	move nanoHousing to z-axis [-3] speed [9];
@@ -358,19 +350,13 @@ Close(){
 Activate()
 {
 	start-script OpenCloseAnim(1);
-    signal SIGNAL_AIM3;
-    //wpn2_lasthead = 0xbadface;
-    // last_primary_heading = -1000000;
-    // last_primary_pitch = -1000000;
+	signal SIGNAL_AIM3;
 }
 
 Deactivate()
 {
 	start-script OpenCloseAnim(0);
-    signal SIGNAL_AIM3;
-    //wpn2_lasthead = 0xbadface;
-    // last_primary_heading = -1000000;
-    // last_primary_pitch = -1000000;
+	signal SIGNAL_AIM3;
 }
 
 BuildAnim(){
@@ -407,20 +393,17 @@ StopBuilding()
 {
 	hide nanoFlare1;
 	hide nanoFlare2;
-	signal SIGNAL_BUILD;	
+	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	hide buildLightFlareLeft;
 	hide buildLightFlareRight;
 	sleep 1000;
 	stop-spin buildLightHousingL around x-axis decelerate <4>;
 	stop-spin buildLightHousingR around x-axis decelerate <4>;
-	// hide buildLightFlareLeft;
-	// hide buildLightFlareRight;
 	turn innerChassisBone to y-axis <0.0> speed <160.0>;
 	turn nanoHousing to x-axis <0> speed <5>;
 	wait-for-turn innerChassisBone around y-axis;
 	start-script OpenCloseAnim(0);
-
 }
 
 QueryNanoPiece(pieceIndex)

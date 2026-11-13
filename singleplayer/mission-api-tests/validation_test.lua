@@ -12,8 +12,8 @@ local stages = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
 			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidConditionType',
+			'objectiveWithMissingConditionType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
 			'objectiveWithDifficultiesTrigger',
@@ -48,17 +48,17 @@ local objectives = {
 		},
 	},
 
-	objectiveWithInvalidTriggerType = {
+	objectiveWithInvalidConditionType = {
 		textKey = "trigger_with_invalid_type",
 		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
+			type = 'invalidType',  -- error: invalid condition type
 		},
 	},
 
-	objectiveWithMissingTriggerType = {
+	objectiveWithMissingConditionType = {
 		textKey = "trigger_with_missing_type",
 		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
+			parameters = { seconds = 100000000 },  -- error: missing condition type
 		},
 	},
 
@@ -305,9 +305,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnitDefName', position = { x = 1800, z = 1600 }, teamName = 6, facing = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
-				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', facing = 4 },                           -- invalid facing type (number > 3)
-				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', facing = true },                        -- invalid facing type (boolean)
+				{ unitDefName = 'invalidUnitDefName', position = { x = 1800, z = 1600 }, teamName = 6, orientation = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', orientation = 4 },                           -- invalid facing type (number > 3)
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', orientation = true },                        -- invalid facing type (boolean)
 				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', quantity = 'notANumber' },              -- invalid quantity type
 				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', spacing = 'notANumber' },               -- invalid spacing type
 				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', construction = 'notABoolean' },         -- invalid construction type
@@ -452,7 +452,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'invalidFeatureDefName', position = { x = 1800, z = 1600 }, facing = 'invalidFacing', featureName = 'unusedFeatureName' }, -- invalid name, invalid facing
+				{ featureDefName = 'invalidFeatureDefName', position = { x = 1800, z = 1600 }, orientation = 'invalidFacing', featureName = 'unusedFeatureName' }, -- invalid name, invalid facing
 			},
 		},
 	},
@@ -523,7 +523,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armcom', position = { x = 2000, z = 2000 }, facing = 'n', teamName = 'player', unitName = 'spawnedCom' },
+				{ unitDefName = 'armcom', position = { x = 2000, z = 2000 }, orientation = 'n', teamName = 'player', unitName = 'spawnedCom' },
 			},
 		},
 	},
@@ -533,7 +533,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corak_dead', position = { x = 2100, z = 2000 }, facing = 's', featureName = 'spawnedWreck' },
+				{ featureDefName = 'corak_dead', position = { x = 2100, z = 2000 }, orientation = 's', featureName = 'spawnedWreck' },
 			},
 		},
 	},
@@ -556,9 +556,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnit', position = { x = 100, z = 100 }, facing = 'n', teamName = 'player' },
-				{ unitDefName = 'armcom',      position = { x = 100, z = 100 }, facing = 'n' }, -- missing 'team'
-				{ unitDefName = 'armcom', position = { x = 100, z = 100 }, facing = 'n', teamName = 'player',
+				{ unitDefName = 'invalidUnit', position = { x = 100, z = 100 }, orientation = 'n', teamName = 'player' },
+				{ unitDefName = 'armcom',      position = { x = 100, z = 100 }, orientation = 'n' }, -- missing 'team'
+				{ unitDefName = 'armcom', position = { x = 100, z = 100 }, orientation = 'n', teamName = 'player',
 				  orders = {}, -- empty orders table
 				},
 			},
@@ -569,7 +569,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corcom_dead', position = { x = 100, z = 100 }, facing = 'invalidFacing' },
+				{ featureDefName = 'corcom_dead', position = { x = 100, z = 100 }, orientation = 'invalidFacing' },
 			},
 		},
 	},
@@ -625,28 +625,28 @@ local actions = {
 
 local unitLoadout = {
 	-- #1: valid entry (unitName is referenced by 'actionReferencingLoadoutUnitName')
-	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, facing = 'e', teamName = 'player', unitName = 'loadoutCom' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'e', teamName = 'player', unitName = 'loadoutCom' },
 
 	-- #2: invalid unitDefName
-	{ unitDefName = 'invalidUnit', position = { x = 1200, z = 800 }, facing = 'n', teamName = 'player' },
+	{ unitDefName = 'invalidUnit', position = { x = 1200, z = 800 }, orientation = 'n', teamName = 'player' },
 
 	-- #3: missing required field 'z'
-	{ unitDefName = 'armcom', position = { x = 1200 }, facing = 'n', teamName = 'player' },
+	{ unitDefName = 'armcom', position = { x = 1200 }, orientation = 'n', teamName = 'player' },
 
 	-- #4: missing required field 'team'
-	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, facing = 'n' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'n' },
 
 	-- #5: invalid facing value
-	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, facing = 'q', teamName = 'player' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'q', teamName = 'player' },
 
 	-- #6: invalid type for 'neutral'
-	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, facing = 's', teamName = 'player', neutral = 1 },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 's', teamName = 'player', neutral = 1 },
 
 	-- #7: unitName that is never referenced – should produce an "unreferenced" warning
-	{ unitDefName = 'armcom', position = { x = 1300, z = 900 }, facing = 's', teamName = 'player', unitName = 'unusedLoadoutUnitName' },
+	{ unitDefName = 'armcom', position = { x = 1300, z = 900 }, orientation = 's', teamName = 'player', unitName = 'unusedLoadoutUnitName' },
 
 	-- #8: valid entry with orders (move, then queued patrol)
-	{ unitDefName = 'armcom', position = { x = 1400, z = 900 }, facing = 'n', teamName = 'player',
+	{ unitDefName = 'armcom', position = { x = 1400, z = 900 }, orientation = 'n', teamName = 'player',
 	  orders = {
 	    { CMD.MOVE,   { 1500, 0, 900 },  {}         },  -- valid move
 	    { CMD.PATROL, { 1400, 0, 900 },  { 'shift' } }, -- valid queued patrol
@@ -654,29 +654,29 @@ local unitLoadout = {
 	},
 
 	-- #9: orders table is empty – should produce an "Orders table is empty" error
-	{ unitDefName = 'armcom', position = { x = 1500, z = 900 }, facing = 'n', teamName = 'player',
+	{ unitDefName = 'armcom', position = { x = 1500, z = 900 }, orientation = 'n', teamName = 'player',
 	  orders = {},
 	},
 }
 
 local featureLoadout = {
 	-- #1: valid entry (featureName is referenced by 'actionReferencingLoadoutFeatureName')
-	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, facing = 's', featureName = 'loadoutWreck' },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 's', featureName = 'loadoutWreck' },
 
 	-- #2: invalid featureDefName
-	{ featureDefName = 'invalidFeature', position = { x = 2000, z = 1500 }, facing = 's' },
+	{ featureDefName = 'invalidFeature', position = { x = 2000, z = 1500 }, orientation = 's' },
 
 	-- #3: missing required field 'x'
-	{ featureDefName = 'corcom_dead', position = { z = 1500 }, facing = 's' },
+	{ featureDefName = 'corcom_dead', position = { z = 1500 }, orientation = 's' },
 
 	-- #4: invalid facing value
-	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, facing = 'invalidFacing' },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 'invalidFacing' },
 
 	-- #5: invalid type for 'featureName'
-	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, facing = 's', featureName = 42 },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 's', featureName = 42 },
 
 	-- #6: featureName that is never referenced – should produce an "unreferenced" warning
-	{ featureDefName = 'corcom_dead', position = { x = 2200, z = 1500 }, facing = 's', featureName = 'unusedLoadoutFeatureName' },
+	{ featureDefName = 'corcom_dead', position = { x = 2200, z = 1500 }, orientation = 's', featureName = 'unusedLoadoutFeatureName' },
 }
 
 return {

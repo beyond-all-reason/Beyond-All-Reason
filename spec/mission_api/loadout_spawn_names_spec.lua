@@ -26,6 +26,9 @@ local env = MissionSpecEnv.new({
 		GetGroundHeight = function()
 			return 0
 		end,
+		GetHeadingFromFacing = function(facing)
+			return facing * 16384
+		end,
 		CreateUnit = function()
 			lastUnitID = lastUnitID + 1
 			local unitID = lastUnitID
@@ -38,7 +41,6 @@ local env = MissionSpecEnv.new({
 			end
 			return unitID
 		end,
-		GiveOrderArrayToUnit = function() end,
 	},
 })
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }

@@ -24,12 +24,12 @@ local function init(dependencies)
 	conditionKinds = dependencies.conditionKinds
 end
 
-local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+local function updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, direction)
 	unitNames = unitNames or {}
 
-	local isMetric = conditionKinds[triggerType] == "metric"
+	local isMetric = conditionKinds[conditionType] == "metric"
 
-	processTriggersOfType(triggerType, function(trigger, triggerID)
+	processTriggersOfType(conditionType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamName then
 			return
 		end
@@ -52,12 +52,12 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	end)
 end
 
-local function increment(triggerType, teamID, unitDefName, unitNames)
-	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
+local function increment(conditionType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, 1)
 end
 
-local function decrement(triggerType, teamID, unitDefName, unitNames)
-	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, -1)
+local function decrement(conditionType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, -1)
 end
 
 return {

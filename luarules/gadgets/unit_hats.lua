@@ -57,17 +57,11 @@ local PlayerCosmeticList = {
 	[641] = { -- ZLO
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
-	[694] = { -- Raghna
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[915] = { -- PRO_rANDY
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
 	},
 	[975] = { -- StarDoM
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
-	},
-	[1172] = { -- PtaQ
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[1332] = { -- Flash
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
@@ -83,21 +77,20 @@ local PlayerCosmeticList = {
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 	},
-	[3913] = { -- [teh]Teddy
-		"VikingHat", -- Omega Series 4 Winner
-	},
-	[5467] = { -- HelsHound
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[8069] = { -- BRRRRRRRRRRRRRRRRRRR
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
+	[9133] = { -- TM_DDDDDDDD
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[42178] = { -- [pretor]
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
+	[49494] = { -- TM_Spodie99
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[50820] = { -- Emre
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[52043] = { -- scag
@@ -107,12 +100,10 @@ local PlayerCosmeticList = {
 	[53682] = { -- PROt_Fiddler112
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
-	[59340] = { -- TM_MightySheep
+	[59340] = { -- TM_MightySheep, TM_Austin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
 		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
-	},
-	[59916] = { -- Kuchy
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[64215] = { -- PRO_RevanXFL
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
@@ -123,11 +114,13 @@ local PlayerCosmeticList = {
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82263] = { -- TM_autopilot
+		"VikingHat", -- Omega Series 5 Winner
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 		"KingCrownHat",
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82811] = { -- TM_SlickLikeVik
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -151,6 +144,7 @@ local PlayerCosmeticList = {
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 	},
 	[139750] = { -- TM_Sashkorin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -161,7 +155,6 @@ local PlayerCosmeticList = {
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
 	[151863] = { -- Blodir
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[168232] = { -- Leohvm

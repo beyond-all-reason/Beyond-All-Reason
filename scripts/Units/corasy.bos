@@ -16,7 +16,6 @@ static-var  spray, hasOpened;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
-#define SMOKEPIECE base
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
@@ -34,9 +33,9 @@ Create()
 	hide cagelight_emit3;
 	hide cagelight_emit4;
 	hide pad;
-	
+
 	spray = 0;
-	
+
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script Deactivate();
 	hasOpened = 0;
