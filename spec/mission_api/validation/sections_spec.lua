@@ -615,6 +615,28 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
+	describe("IssueOrders matchSpeed", function()
+		local function validateIssueOrders(parameters)
+			parameters.unitName = "squad"
+			parameters.orders = { { V.env.CMD.MOVE, { 0, 0, 0 } } }
+			return V.validateAction({ type = V.actionTypes.IssueOrders, parameters = parameters })
+		end
+
+		it("passes matchSpeed with marching", function()
+			local result = validateIssueOrders({ marching = true, matchSpeed = true })
+			V.assertNoMessageContaining(result, "without marching")
+		end)
+
+		it("warns of matchSpeed without marching, the mission still loads", function()
+			local result = validateIssueOrders({ matchSpeed = true })
+			assert.is_true(result.ok)
+			V.assertMessage(
+				result,
+				"Parameter 'matchSpeed' is ignored without marching. Action: a, Parameter: matchSpeed"
+			)
+		end)
+	end)
+
 	describe("FollowCamera endings", function()
 		local function validateFollow(parameters)
 			parameters.position = { x = 0, z = 0 }

@@ -229,6 +229,7 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
+	GG["MissionAPI"].Modules.Marching.UpdateSpeeds(frameNumber)
 end
 
 function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)

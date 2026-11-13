@@ -35,6 +35,14 @@ local triggers = {
 		},
 		actions = { 'moveNorth', 'queueMoveEastFacingNorth', 'messageQueue' },
 	},
+
+	matchSpeed = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 150,
+		},
+		actions = { 'moveWestMatchingSpeed', 'messageMatchSpeed' },
+	},
 }
 
 local actions = {
@@ -106,6 +114,23 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Two moves, the second queued and facing a point to the north.",
+		},
+	},
+
+	moveWestMatchingSpeed = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'squad',
+			orders = { { CMD.MOVE, { 2000, 0, 3000 } } },
+			marching = true,
+			matchSpeed = true,
+		},
+	},
+
+	messageMatchSpeed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Marching west with matchSpeed: the fast bots hold the slow one's pace.",
 		},
 	},
 }
