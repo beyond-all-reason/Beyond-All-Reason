@@ -46,6 +46,31 @@ describe("mission_api.sounds.StopSound", function()
 		assert.are.same({ "sounds/voice.wav", "sounds/other.wav" }, played)
 	end)
 
+	it("only drops the queued entries on an engine without StopSoundFile", function()
+		env.Spring.StopSoundFile = nil
+
+		sounds.StopSound("sounds/voice.wav")
+
+		assert.are.equal(1, #missionApi.soundQueue)
+	end)
+
+	it("forgets the playing sound once it is stopped or over", function()
+		sounds.ProcessSoundQueue(0)
+		sounds.StopSound("sounds/voice.wav")
+		sounds.ProcessSoundQueue(1)
+		sounds.StopSound("sounds/voice.wav")
+		sounds.ProcessSoundQueue(2)
+		assert.are.same({ "sounds/voice.wav", "sounds/other.wav" }, played)
+
+		sounds.ProcessSoundQueue(1000)
+		sounds.EnqueueSound("sounds/voice.wav")
+		sounds.ProcessSoundQueue(1001)
+		sounds.EnqueueSound("sounds/voice.wav")
+		sounds.StopSound("sounds/other.wav")
+		sounds.ProcessSoundQueue(1002)
+		assert.are.equal(3, #played)
+	end)
+
 	it("keeps the queue waiting when another sound is stopped", function()
 		sounds.ProcessSoundQueue(0)
 

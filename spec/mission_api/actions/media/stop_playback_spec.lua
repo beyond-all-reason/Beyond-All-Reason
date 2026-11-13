@@ -18,7 +18,7 @@ describe("mission_api.actions.stop_playback", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "StopPlayback",
-			soundfile = "SoundFile!",
+			soundFile = "SoundFile!",
 		}, summarizeSchema(action))
 	end)
 

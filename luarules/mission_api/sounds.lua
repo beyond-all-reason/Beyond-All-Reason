@@ -27,7 +27,11 @@ end
 local function processSoundQueue(frameNumber)
 	local soundQueue = GG["MissionAPI"].soundQueue
 
-	if frameNumber < nextSoundAt or #soundQueue == 0 then
+	if frameNumber < nextSoundAt then
+		return
+	end
+	playingQueuedSoundfile = nil
+	if #soundQueue == 0 then
 		return
 	end
 
@@ -46,8 +50,12 @@ local function stopSound(soundfile)
 		end
 	end
 
-	Spring.StopSoundFile(soundfile)
+	-- Older engines only drop the queued entries.
+	if Spring.StopSoundFile then
+		Spring.StopSoundFile(soundfile)
+	end
 	if playingQueuedSoundfile == soundfile then
+		playingQueuedSoundfile = nil
 		nextSoundAt = 0
 	end
 end

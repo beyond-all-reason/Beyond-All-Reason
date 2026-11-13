@@ -114,7 +114,7 @@ local actions = {
 	stopVoiceQueued1 = {
 		type = actionTypes.StopPlayback,
 		parameters = {
-			soundfile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
+			soundFile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
 		},
 	},
 
