@@ -45,7 +45,7 @@ local stockpileState = {}
 local dwellingUnitsInAreas = {}
 local revealedLocations = {}
 local gatheredUnitsInAreas = {}
-local underConstruction = {}
+local wasUnderConstruction = {}
 
 -- Local bookkeeping for various concerns: build, reclaim, detection, transfer.
 local teamReclaimIncome = {}
@@ -356,7 +356,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
 	if beingBuilt then
 		if needsBuildStartSet then
-			underConstruction[unitID] = true
+			wasUnderConstruction[unitID] = true
 		end
 		if needsBuildOwnerMap and builderID then
 			local builderDefID = Spring.GetUnitDefID(builderID)
@@ -374,7 +374,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
-	underConstruction[unitID] = nil
+	wasUnderConstruction[unitID] = nil
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG["MissionAPI"].spawningUnit then
@@ -414,7 +414,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
-	underConstruction[unitID] = nil
+	wasUnderConstruction[unitID] = nil
 
 	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
 	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
@@ -587,7 +587,7 @@ function gadget:Initialize()
 		InFactory = inFactory,
 		ClaimConstructionStart = claimConstructionStart,
 		HasConstructionStarted = hasConstructionStarted,
-		WasUnderConstruction = underConstruction,
+		WasUnderConstruction = wasUnderConstruction,
 		IsFeatureInArea = isFeatureInArea,
 		ConstructionState = constructionState,
 		StockpileState = stockpileState,
