@@ -17,7 +17,7 @@ return {
 		mass = 749,
 		health = 550,
 		maxslope = 32,
-		speed = 81.0,
+		speed = 72.0,
 		maxwaterdepth = 112,
 		movementclass = "ABOTBOMB2",
 		nochasecategory = "VTOL",
