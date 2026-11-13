@@ -54,7 +54,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Number", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = "bad" }))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = "bad" }))
 
 			V.assertMessage(
 				result,
@@ -101,7 +101,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Fraction", function()
 		local function validateProgress(progress)
-			return V.validateTrigger(V.trigger(V.triggerTypes.ConstructionProgress, {
+			return V.validateTrigger(V.trigger(V.conditionTypes.ConstructionProgress, {
 				teamName = "player",
 				unitDefName = "armwar",
 				progress = progress,
@@ -222,7 +222,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(
-				V.trigger(V.triggerTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
+				V.trigger(V.conditionTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
 			)
 		end
 
@@ -560,7 +560,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the area parameter of the trigger under test.
 	local function validateArea(area)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
 	end
 
 	describe("Position", function()
@@ -877,7 +877,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("AllianceName", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = 0,
 			}))
@@ -889,7 +889,7 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects an unknown alliance name", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = "nobody",
 			}))
@@ -1188,7 +1188,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitOrdered, { command = command, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitOrdered, { command = command, unitName = "x" }))
 	end
 
 	describe("Command", function()
@@ -1409,7 +1409,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("passes well-formed keyframes", function()
 			local hero = { unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = "hero" }
-			local trigger = { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
+			local trigger = { type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
 			local keyframes = {
 				{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", duration = 0 },
 				{ unitName = "hero", offsetZ = -200, offsetY = 100, relativeToHeading = true, path = "spline" },

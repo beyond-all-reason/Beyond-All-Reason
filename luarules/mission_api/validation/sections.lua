@@ -326,8 +326,8 @@ end
 
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
-	local triggerTypes = context.TriggerTypes
-	if trigger.type ~= triggerTypes.StockpileCount and trigger.type ~= triggerTypes.StockpileProgress then
+	local conditionTypes = context.ConditionTypes
+	if trigger.type ~= conditionTypes.StockpileCount and trigger.type ~= conditionTypes.StockpileProgress then
 		return
 	end
 	if type(trigger.parameters) ~= "table" then
@@ -372,7 +372,7 @@ local function validateObjectiveCondition(
 		objectiveReport,
 		objectiveID,
 		"Objective condition",
-		context.TriggerParameters,
+		context.ConditionParameters,
 		objective.type,
 		objective.parameters
 	)
@@ -500,7 +500,7 @@ local function validateTriggersSection(
 				triggerReport,
 				triggerID,
 				"Trigger",
-				context.TriggerParameters,
+				context.ConditionParameters,
 				trigger.type,
 				trigger.parameters
 			)

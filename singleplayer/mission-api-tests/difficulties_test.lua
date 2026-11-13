@@ -31,9 +31,6 @@ local triggers = {
 			seconds = {
 				difficulties = { Easy = 30, Hard = 20 },
 			},
-			interval = {
-				difficulties = { Easy = 30, Hard = 20 },
-			},
 		},
 		actions = { 'surviveTick' },
 	},

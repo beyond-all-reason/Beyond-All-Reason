@@ -2125,6 +2125,31 @@ body {
 	height: 78vh;
 }
 
+/* FILE > EXPORT MAP: a short form, not a browser */
+.tf-export-window {
+	width: 460dp;
+}
+
+.tf-export-intro {
+	font-size: 1.1rem;
+	color: #9ca3af;
+	line-height: 1.35;
+	margin-bottom: 8dp;
+}
+
+.tf-export-project {
+	font-size: 1.2rem;
+	margin-bottom: 8dp;
+}
+
+.tf-export-window .tf-export-label {
+	width: 90dp;
+}
+
+.tf-export-window .tf-export-input {
+	flex: 1;
+}
+
 /* The body flexes and clips; the browser inside it is what scrolls. */
 .tf-project-window .tf-panel-body {
 	display: flex;

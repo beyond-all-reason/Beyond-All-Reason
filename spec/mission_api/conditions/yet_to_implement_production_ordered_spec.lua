@@ -1,7 +1,7 @@
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local CMD = { INSERT = 34, MOVE = 10 }
@@ -28,7 +28,7 @@ describe("mission_api.conditions.yet_to_implement_production_ordered", function(
 	end
 
 	local function newContext()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 

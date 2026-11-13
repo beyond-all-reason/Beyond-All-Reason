@@ -43,7 +43,7 @@ local helper = {
 	env = env,
 	validation = validation,
 	definitions = definitions,
-	triggerTypes = definitions.ConditionDefinitions.Types,
+	conditionTypes = definitions.ConditionDefinitions.Types,
 	actionTypes = definitions.ActionDefinitions.Types,
 }
 
@@ -151,7 +151,7 @@ function helper.validateAction(action)
 	return helper.validate(helper
 		.mission()
 		:WithTrigger("t", {
-			type = helper.triggerTypes.TimeElapsed,
+			type = helper.conditionTypes.TimeElapsed,
 			parameters = { seconds = 1 },
 			actions = { "a" },
 		})
@@ -169,8 +169,8 @@ function helper.validateTrigger(trigger)
 end
 
 --- A valid trigger of the given type, referencing the 'ok' action from validateTrigger.
-function helper.trigger(triggerType, parameters)
-	return { type = triggerType, parameters = parameters, actions = { "ok" } }
+function helper.trigger(conditionType, parameters)
+	return { type = conditionType, parameters = parameters, actions = { "ok" } }
 end
 
 return helper

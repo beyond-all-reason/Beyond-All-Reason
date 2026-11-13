@@ -794,7 +794,7 @@ local function rebuildRampList(doc, ctx, T)
 	listEl.inner_rml = ""
 	if #files == 0 then
 		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
-			.. tostring(T.getRampDir and T.getRampDir() or "Terraform Brush/Ramps/")
+			.. tostring(T.getRampDir and T.getRampDir() or "LuaUI/Config/TilesetRamps/")
 			.. " yet. Drop a gradient PNG in and hit Rescan folder.</div>"
 		return
 	end
@@ -968,7 +968,7 @@ end
 -- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: it must work
 -- when the shader widget is missing or stale. Hidden without Team Sync.
 -- Matched against the shader manifest's brush_versions; patch releases keep the minor.
-local BRUSH_VERSION = "1.19"
+local BRUSH_VERSION = "1.20"
 
 local function shaderFitsBrush(shader)
 	local wanted = shader.brush_versions

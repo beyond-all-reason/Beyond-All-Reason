@@ -10,7 +10,6 @@ return {
 	kind = 'event',
 	parameters = {
 		{ name = 'seconds',  required = true,  type = ParameterTypes.Number },
-		{ name = 'interval', required = false, type = ParameterTypes.Number },
 	},
 	callins = {
 		GameStart = function(trigger, triggerID, context)

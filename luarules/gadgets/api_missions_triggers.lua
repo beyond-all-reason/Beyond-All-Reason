@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local actionsDispatcher
-local triggerTypes, triggers, triggersByType, callins, triggerContext ---@type table, table<string, table>, table, table, table
+local conditionTypes, triggers, triggersByType, callins, conditionContext ---@type table, table<string, table>, table, table, table
 local trackedUnitNames
 local statistics
 local countdowns
@@ -34,7 +34,7 @@ local SEISMIC_INTERVAL_FRAMES
 local seismicContacts
 local detectionLevels
 
--- Shared trigger state (exposed to per-trigger handlers via triggerContext):
+-- Shared trigger state (exposed to per-trigger handlers via conditionContext):
 local constructionState = {}
 local stockpileState = {}
 local dwellingUnitsInAreas = {}
@@ -57,8 +57,8 @@ local capturedUnits = {}
 
 -- Iterates only the triggers of the given type, using the load-time index so
 -- that per-frame call-ins do not scan every trigger in the mission.
-local function processTriggersOfType(triggerType, func)
-	local ofType = triggersByType[triggerType]
+local function processTriggersOfType(conditionType, func)
+	local ofType = triggersByType[conditionType]
 	if not ofType then
 		return
 	end
@@ -233,16 +233,16 @@ local function unpackCallinArgs(args, i)
 end
 
 -- Dispatches a logical call-in to every per-trigger handler registered for it.
--- Each handler receives (trigger, triggerID, triggerContext, ...call-in args).
-local function dispatchTriggerCallin(callinName, ...)
+-- Each handler receives (trigger, triggerID, conditionContext, ...call-in args).
+local function dispatchConditionCallin(callinName, ...)
 	local handlersByType = callins[callinName]
 	if not handlersByType then
 		return
 	end
 	local args = table.pack(...)
-	for triggerType, handler in pairs(handlersByType) do
-		processTriggersOfType(triggerType, function(trigger, triggerID)
-			handler(trigger, triggerID, triggerContext, unpackCallinArgs(args))
+	for conditionType, handler in pairs(handlersByType) do
+		processTriggersOfType(conditionType, function(trigger, triggerID)
+			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
 		end)
 	end
 end
@@ -266,7 +266,7 @@ local function onUnitsEnteredArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
-		handler(trigger, triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, conditionContext, unitIDs)
 	end
 end
 
@@ -275,7 +275,7 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
-		handler(trigger, triggerID, triggerContext, unitIDs)
+		handler(trigger, triggerID, conditionContext, unitIDs)
 	end
 end
 
@@ -289,7 +289,7 @@ function gadget:Initialize()
 		return
 	end
 
-	triggerTypes = GG["MissionAPI"].ConditionDefinitions.Types
+	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
 	callins = GG["MissionAPI"].ConditionDefinitions.Callins
 	triggers = GG["MissionAPI"].Triggers
 	triggersByType = VFS.Include("luarules/mission_api/conditions_loader.lua").IndexTriggersByType(triggers)
@@ -319,7 +319,7 @@ function gadget:Initialize()
 	doesFeatureHaveName = tracking.DoesFeatureHaveName
 	untrackFeatureID = tracking.UntrackFeatureID
 
-	triggerContext = {
+	conditionContext = {
 		ActivateTrigger = activateTrigger,
 		EvaluateMetric = evaluateMetric,
 		DoesUnitHaveName = doesUnitHaveName,
@@ -365,7 +365,7 @@ function gadget:Initialize()
 	--     AND marks reclaimedFeatures, which FeatureReclaimed needs to fire and
 	--     FeatureDestroyed needs to suppress reclaims (avoid firing "destroyed").
 	local needsReclaimIncome = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ResourceIncome
+		return trigger.type == conditionTypes.ResourceIncome
 	end)
 
 	if not needsReclaimIncome then
@@ -374,7 +374,7 @@ function gadget:Initialize()
 
 	-- Summary view over the *BuildStep callins behave similarly so we unhook them.
 	local needsConstructionProgress = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionProgress
+		return trigger.type == conditionTypes.ConstructionProgress
 	end)
 
 	if not needsConstructionProgress then
@@ -382,7 +382,7 @@ function gadget:Initialize()
 	end
 
 	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.FeatureReclaimed or trigger.type == triggerTypes.FeatureDestroyed
+		return trigger.type == conditionTypes.FeatureReclaimed or trigger.type == conditionTypes.FeatureDestroyed
 	end)
 
 	if not needsReclaimIncome and not needsFeatureReclaimTracking then
@@ -391,34 +391,36 @@ function gadget:Initialize()
 
 	-- ConstructionStarted accepts some orders that assist an existing build frame.
 	needsBuildPlacements = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionStarted
+		return trigger.type == conditionTypes.ConstructionStarted
 	end)
 
 	-- ConstructionFinished can't read beingBuilt at UnitFinished (always false).
 	needsBuildStartSet = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionFinished
+		return trigger.type == conditionTypes.ConstructionFinished
 	end)
 
 	-- We tell apart factory and constructor ownership via the build owner map.
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
-		return (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+		return (
+			trigger.type == conditionTypes.ConstructionCanceled or trigger.type == conditionTypes.ProductionCanceled
+		)
 			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
 			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
 	end)
 
 	if not table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.UnitAttacked
+		return trigger.type == conditionTypes.UnitAttacked
 	end) then
 		gadgetHandler:RemoveCallIn("UnitDamaged")
 	end
 
 	needsStockpiles = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.StockpileCount or trigger.type == triggerTypes.StockpileProgress
+		return trigger.type == conditionTypes.StockpileCount or trigger.type == conditionTypes.StockpileProgress
 	end)
 end
 
 function gadget:GameStart()
-	dispatchTriggerCallin("GameStart")
+	dispatchConditionCallin("GameStart")
 end
 
 function gadget:GameFrame(frameNumber)
@@ -432,13 +434,13 @@ function gadget:GameFrame(frameNumber)
 	-- relative to their creation frame (see Decrement() in countdowns.lua):
 	local endedCountdownIDs, countdownTicks = countdowns.Decrement(frameNumber)
 	for i = 1, #countdownTicks do
-		dispatchTriggerCallin("CountdownTick", countdownTicks[i].id, countdownTicks[i].timeRemaining)
+		dispatchConditionCallin("CountdownTick", countdownTicks[i].id, countdownTicks[i].timeRemaining)
 	end
 	for i = 1, #endedCountdownIDs do
-		dispatchTriggerCallin("CountdownEnded", endedCountdownIDs[i])
+		dispatchConditionCallin("CountdownEnded", endedCountdownIDs[i])
 	end
 
-	dispatchTriggerCallin("GameFrame", frameNumber)
+	dispatchConditionCallin("GameFrame", frameNumber)
 
 	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
 		local n = seismicContacts.UpdateContacts(inactiveSeismicContacts)
@@ -451,7 +453,7 @@ end
 function gadget:GameFramePost(frameNumber)
 	if detectionCount > 0 then
 		detectionLevels.BeginUpdate()
-		dispatchTriggerCallin("DetectionUpdate", detections)
+		dispatchConditionCallin("DetectionUpdate", detections)
 		for unitID in pairs(detections) do
 			detections[unitID] = nil
 		end
@@ -465,7 +467,7 @@ function gadget:GameFramePost(frameNumber)
 	for builderID, unitDefID in pairs(buildPlacements) do
 		local buildeeID = Spring.GetUnitIsBuilding(builderID)
 		if buildeeID and Spring.GetUnitIsBeingBuilt(buildeeID) and Spring.GetUnitDefID(buildeeID) == unitDefID then
-			dispatchTriggerCallin("BuildAssisted", buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
+			dispatchConditionCallin("BuildAssisted", buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
 		end
 	end
 
@@ -473,7 +475,7 @@ function gadget:GameFramePost(frameNumber)
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	dispatchTriggerCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
+	dispatchConditionCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
@@ -483,21 +485,21 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	if nameOfUnitBeingSpawned then
 		unitNames[nameOfUnitBeingSpawned] = true
 	end
-	statistics.Increment(triggerTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+	statistics.Increment(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	dispatchTriggerCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
+	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
-	statistics.Decrement(triggerTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+	statistics.Decrement(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
 
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	dispatchTriggerCallin("UnitCreated", unitID, unitDefID, unitTeam, builderID)
+	dispatchConditionCallin("UnitCreated", unitID, unitDefID, unitTeam, builderID)
 
 	if builderID then
 		buildPlacements[builderID] = nil
@@ -520,7 +522,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	dispatchTriggerCallin("UnitFinished", unitID, unitDefID, unitTeam)
+	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
@@ -536,25 +538,25 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	local unitDefName = UnitDefs[unitDefID].name
-	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+	statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-	dispatchTriggerCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	dispatchConditionCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 end
 
 function gadget:UnitIdlePost(unitID, idled)
-	dispatchTriggerCallin("UnitIdlePost", unitID, idled)
+	dispatchConditionCallin("UnitIdlePost", unitID, idled)
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+	dispatchConditionCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+	dispatchConditionCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
 end
 
 function gadget:UnitDamaged(
@@ -569,7 +571,7 @@ function gadget:UnitDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	dispatchTriggerCallin(
+	dispatchConditionCallin(
 		"UnitDamaged",
 		unitID,
 		unitDefID,
@@ -585,7 +587,7 @@ function gadget:UnitDamaged(
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	dispatchTriggerCallin(
+	dispatchConditionCallin(
 		"UnitDestroyed",
 		unitID,
 		unitDefID,
@@ -600,11 +602,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local unitNames = trackedUnitNames[unitID] or {}
 
 	-- The unit's team lost a unit:
-	statistics.Increment(triggerTypes.TotalUnitsLost, unitTeam, unitDefName, unitNames)
+	statistics.Increment(conditionTypes.TotalUnitsLost, unitTeam, unitDefName, unitNames)
 
 	-- The attacker's team kills an enemy unit:
 	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
-		statistics.Increment(triggerTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
+		statistics.Increment(conditionTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
 	buildFrameOwners[unitID] = nil
@@ -623,15 +625,15 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	dispatchTriggerCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
+	dispatchConditionCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
-	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+	statistics.Increment(conditionTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	dispatchTriggerCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
+	dispatchConditionCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
 	capturedUnits[unitID] = nil
 end
 
@@ -658,12 +660,12 @@ end
 
 function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	if needsStockpiles then
-		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+		dispatchConditionCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
 end
 
 function gadget:TeamDied(teamID)
-	dispatchTriggerCallin("TeamDied", teamID)
+	dispatchConditionCallin("TeamDied", teamID)
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
@@ -713,12 +715,12 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 end
 
 function gadget:UnitBuildStepPost(unitID)
-	dispatchTriggerCallin("UnitBuildStepPost", unitID)
+	dispatchConditionCallin("UnitBuildStepPost", unitID)
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	dispatchTriggerCallin("FeatureCreated", featureID, featureDefID)
+	dispatchConditionCallin("FeatureCreated", featureID, featureDefID)
 end
 
 function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
@@ -727,7 +729,14 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	local reclaimerTeamID = reclaimedFeatures[featureID]
 
 	-- FeatureReclaimed / FeatureDestroyed handlers self-guard on reclaimerTeamID + reclaimLeft.
-	dispatchTriggerCallin("FeatureDestroyed", featureID, featureDefID, attackerAllyTeamID, reclaimerTeamID, reclaimLeft)
+	dispatchConditionCallin(
+		"FeatureDestroyed",
+		featureID,
+		featureDefID,
+		attackerAllyTeamID,
+		reclaimerTeamID,
+		reclaimLeft
+	)
 
 	reclaimedFeatures[featureID] = nil
 	untrackFeatureID(featureID)

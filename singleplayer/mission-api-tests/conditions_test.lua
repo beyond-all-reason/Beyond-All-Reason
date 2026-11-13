@@ -71,13 +71,14 @@ local objectives = {
 		},
 
 		nextStage = 'secondStage',
+		onCompleted = 'startSpawningBots',
 	},
 
 	buildBots = {
 		textKey = "build_6_bots",
 
 		-- Event type with a count: completes on the sixth matching occurrence, which
-		-- is the last bot spawnBots produces.
+		-- is the last bot spawnNextBot produces.
 		type = eventTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
@@ -116,21 +117,30 @@ local triggers = {
 		actions = { 'spawnBotDestroyer' },
 	},
 
-	spawnBots = {
-		type = eventTypes.TimeElapsed,
+	-- Fired by the wait3secs objective as secondStage begins: the first bot, and the
+	-- countdown to the next one.
+	startSpawningBots = {
+		type = eventTypes.Event,
+		actions = { 'spawnBot', 'restartBotCountdown' },
+	},
+
+	-- TimeElapsed fires only once, so a bot every two seconds is a countdown that
+	-- restarts itself each time it runs out.
+	spawnNextBot = {
+		type = eventTypes.CountdownFinished,
 		parameters = {
-			seconds = 0,
-			interval = 2,
+			countdownID = 'nextBot',
 		},
 		settings = {
 			repeating = true,
-			-- secondStage only: buildBots ends the stage at the sixth bot, which stops
-			-- spawning. The turrets arrive with thirdStage and kill far faster than one
-			-- bot per two seconds, so spawning past that point would have bots
-			-- appearing after destroyBots had already reported them all destroyed.
+			-- secondStage only: buildBots ends the stage at the sixth bot, and the
+			-- countdown is then not restarted, which stops spawning. The turrets arrive
+			-- with thirdStage and kill far faster than one bot per two seconds, so
+			-- spawning past that point would have bots appearing after destroyBots had
+			-- already reported them all destroyed.
 			stages = { 'secondStage' },
 		},
-		actions = { 'spawnBot' },
+		actions = { 'spawnBot', 'restartBotCountdown' },
 	},
 
 	-- A metric type used by a trigger rather than an objective. Compare with the
@@ -177,6 +187,17 @@ local actions = {
 					},
 				},
 			},
+		},
+	},
+
+	-- Not displayed: the player has no use for this timer, and a hidden countdown
+	-- also runs for exactly the seconds given.
+	restartBotCountdown = {
+		type = actionTypes.AddCountdown,
+		parameters = {
+			countdownID = 'nextBot',
+			seconds = 2,
+			displayed = false,
 		},
 	},
 

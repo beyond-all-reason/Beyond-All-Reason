@@ -108,8 +108,8 @@ return {
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
   synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`); otherwise add the gadget
-  call-in plus its `dispatchTriggerCallin` line.
-- `dispatchTriggerCallin` runs a handler once per trigger of its type, passing
+  call-in plus its `dispatchConditionCallin` line.
+- `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
@@ -123,7 +123,7 @@ return {
 - There is no repeat cap: a repeating trigger fires every time, so stop it with prerequisites,
   stages, or an action.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
-  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `triggerContext` rather than reach
+  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.
 - Statistics conditions (`total_units_*` events, the `UnitsOwned` metric) declare no `callins` and are evaluated
   centrally through `statistics.lua`; follow that pattern for anything needing shared counters.
@@ -268,7 +268,7 @@ return {
   `{ type = ..., param = "Type!" }` so the whole schema is one `assert.are.same`; every condition and
   action spec asserts its schema this way, which catches a reorder breaking the positional dispatch.
 - Test `actionFunction` and `callins.<Name>` directly with a hand-built `trigger` table and a
-  `context` stub (`spec/builders/trigger_context_builder.lua`); never boot the gadgets.
+  `context` stub (`spec/builders/condition_context_builder.lua`); never boot the gadgets.
 - Each call-in a trigger listens to gets an assertion in `conditions_loader_spec.lua`.
 - Each `it` covers one behavior, its description matches its assertions, and a normal case comes
   before any special case.

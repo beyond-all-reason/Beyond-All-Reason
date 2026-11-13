@@ -125,16 +125,16 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	processParameterValue = processValue
 
 	local registered = {}
-	local triggerSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
+	local conditionSchema = GG["MissionAPI"].ConditionDefinitions.Parameters
 	for _, trigger in pairs(triggers) do
-		registerParameters(trigger.parameters, triggerSchema[trigger.type], registered)
+		registerParameters(trigger.parameters, conditionSchema[trigger.type], registered)
 	end
 	local actionSchema = GG["MissionAPI"].ActionDefinitions.Parameters
 	for _, action in pairs(actions) do
 		registerParameters(action.parameters, actionSchema[action.type], registered)
 	end
 	for _, objective in pairs(objectives) do
-		registerParameters(objective.parameters, triggerSchema[objective.type], registered)
+		registerParameters(objective.parameters, conditionSchema[objective.type], registered)
 	end
 
 	resolveTriggerThresholds(triggers)

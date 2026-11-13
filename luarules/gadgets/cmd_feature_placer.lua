@@ -1021,6 +1021,57 @@ function gadget:Initialize()
 	gadgetHandler:RemoveCallIn("GameFrame")
 end
 
+-- A map exported by the Terraform Brush carries its placements in
+-- mapconfig/featureplacer/set.lua: the .smf feature list cannot hold tilt, height
+-- or scale, so the export leaves it empty and they are created here, once, before
+-- the first frame. Only marked sets: legacy maps ship a set.lua of their own for
+-- the old featureplacer gadget, which the game keeps off on purpose.
+local MAP_SET = "mapconfig/featureplacer/set.lua"
+
+function gadget:GamePreload()
+	if Spring.GetGameRulesParam("fpMapSetLoaded") or not VFS.FileExists(MAP_SET, VFS.MAP) then
+		return
+	end
+	local ok, set = pcall(VFS.Include, MAP_SET, nil, VFS.MAP)
+	if not (ok and type(set) == "table" and set.exporter == "terraform-brush") then
+		return
+	end
+	Spring.SetGameRulesParam("fpMapSetLoaded", 1)
+	local made, unknown = 0, 0
+	for _, key in ipairs({ "objectlist", "buildinglist" }) do
+		for _, f in ipairs(type(set[key]) == "table" and set[key] or {}) do
+			local x, z = tonumber(f.x), tonumber(f.z)
+			if type(f.name) == "string" and FeatureDefNames[f.name] and x and z then
+				x = max(0, min(Game.mapSizeX, x))
+				z = max(0, min(Game.mapSizeZ, z))
+				local id = createFromPlacement({
+					defName = f.name,
+					x = x,
+					z = z,
+					heading = (tonumber(f.rot) or 0) % 65536,
+					pitch = tonumber(f.pitch) or 0,
+					roll = tonumber(f.roll) or 0,
+					y = tonumber(f.y) or GetGroundHeight(x, z),
+					scale = tonumber(f.scale),
+				}, false)
+				if id then
+					made = made + 1
+				end
+			else
+				unknown = unknown + 1
+			end
+		end
+	end
+	Spring.Echo(
+		string.format(
+			"[Feature Placer] map placements: %d created from %s%s",
+			made,
+			MAP_SET,
+			unknown > 0 and string.format(", %d with an unknown feature def skipped", unknown) or ""
+		)
+	)
+end
+
 -- Feature ids are recycled by the engine; without this a reclaimed or burned
 -- scaled feature would leave its stale scale behind for whatever feature
 -- inherits the id.

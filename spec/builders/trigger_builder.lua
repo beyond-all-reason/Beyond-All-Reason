@@ -8,7 +8,7 @@
 -- carries the same fields a handler meets in game rather than the sparser table a
 -- mission file declares.
 
-local triggersLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
+local conditionsLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
 
 ---@class TriggerMock
 ---@field parameters table
@@ -72,7 +72,7 @@ end
 ---@param self TriggerBuilder
 ---@return TriggerMock
 function TB:Build()
-	return triggersLoader.ProcessRawTriggers({ trigger = self:BuildRaw() }).trigger
+	return conditionsLoader.ProcessRawTriggers({ trigger = self:BuildRaw() }).trigger
 end
 
 return TB

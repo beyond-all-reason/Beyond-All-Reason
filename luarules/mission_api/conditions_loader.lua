@@ -11,7 +11,7 @@ local KINDS = { event = true, metric = true }
 -- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
 local function loadConditionDefinitions()
 
-	local triggerFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
+	local conditionFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
 	local types = {}
 	local eventTypes = {}
@@ -20,36 +20,36 @@ local function loadConditionDefinitions()
 	local parameters = {}
 	local callins = {}
 
-	for typeID, filePath in ipairs(triggerFiles) do
-		local triggerDefinition = VFS.Include(filePath)
-		local triggerType = triggerDefinition.type
-		local kind = triggerDefinition.kind
+	for typeID, filePath in ipairs(conditionFiles) do
+		local conditionDefinition = VFS.Include(filePath)
+		local conditionType = conditionDefinition.type
+		local kind = conditionDefinition.kind
 
 		if not KINDS[kind] then
 			Spring.Log(
 				"conditions_loader",
 				LOG.ERROR,
 				"[Mission API] Condition '"
-					.. tostring(triggerType)
+					.. tostring(conditionType)
 					.. "' has invalid kind: "
 					.. tostring(kind)
 					.. ". Must be 'event' or 'metric'."
 			)
 		end
 
-		types[triggerType] = typeID
+		types[conditionType] = typeID
 		kinds[typeID] = kind
-		parameters[typeID] = triggerDefinition.parameters or {}
+		parameters[typeID] = conditionDefinition.parameters or {}
 
 		-- Author-facing views over the same registry, so a mission picking from
 		-- metricTypes already knows to write atLeast/atMost rather than count.
 		if kind == "metric" then
-			metricTypes[triggerType] = typeID
+			metricTypes[conditionType] = typeID
 		else
-			eventTypes[triggerType] = typeID
+			eventTypes[conditionType] = typeID
 		end
 
-		for callinName, handler in pairs(triggerDefinition.callins or {}) do
+		for callinName, handler in pairs(conditionDefinition.callins or {}) do
 			callins[callinName] = callins[callinName] or {}
 			callins[callinName][typeID] = handler
 		end
