@@ -417,6 +417,16 @@ RestoreAfterDelay()
 	lastWorldHeading = -1000000;
 	lastTargetID = -4;
 
+	if (DEPLOYED)
+	{
+		sleep 500;
+		turn sleeve to x-axis <-200> speed <225.0>;
+		wait-for-turn sleeve around x-axis;
+		
+		aimReady = 1;
+	}
+
+	turn barrel to y-axis <0.0> speed <100.0>;
 	turn turret to y-axis <0.0> speed <300.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
 	move turret to y-axis [0.0] speed [20.0];
@@ -437,6 +447,25 @@ AimWeapon1(heading, pitch)
 	// Cancel the old restore timer, but do not block on any piece animation.
 	signal SIGNAL_AIM1;
 	start-script BarrelSpin();
+
+	//SleeveDeploy animation
+
+	if (DEPLOYING)
+	{
+	
+	turn sleeve to x-axis <160> speed <225.0>;
+
+	}
+
+	if (!aimReady)
+	{
+		
+		wait-for-turn sleeve around x-axis;
+		
+		aimReady = 1;
+	}
+
+	// if(aimReady)
 
 	turretHeading = heading - torsoRotation;
 	sleevePitch = <270.0> - pitch;
@@ -487,7 +516,7 @@ AimWeapon1(heading, pitch)
 
 	if (targetChanged)
 	{
-		aimReady = FALSE;
+		// aimReady = FALSE;
 
 		signal SIGNAL_AIM_TRACKER;
 		start-script AimReadyAfterDelay();
@@ -518,9 +547,9 @@ BarrelSpin()
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-    move barrel to y-axis [-0.5] speed [3.750000];
+    // move barrel to y-axis [-0.5] speed [3.750000];
 	sleep 50;
-	move barrel to y-axis [0] now;
+	// move barrel to y-axis [0] now;
 }
 
 QueryNanoPiece(pieceIndex)
