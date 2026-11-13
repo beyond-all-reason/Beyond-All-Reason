@@ -36,7 +36,11 @@ local untrackFeatureID
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
+local needsConstructionProgress
+local needsReclaimIncome
+local needsFeatureReclaimTracking
 local needsStockpiles ---@type boolean
+local needsUnitDamaged
 
 local seismicIntervalFrames ---@type integer
 
@@ -501,9 +505,7 @@ function gadget:UnitDamaged(
 end
 
 function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	if needsStockpiles then
-		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	end
+	dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
@@ -611,62 +613,34 @@ function gadget:Initialize()
 		end
 	end
 
-	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
-	-- reclaim step (among the hottest call-ins in the game), so only stay subscribed
-	-- to them when the loaded mission actually needs the reclaim bookkeeping they do:
-	--   * AllowUnitBuildStep accumulates unit reclaim income -> only ResourceIncome.
-	--   * AllowFeatureBuildStep accumulates feature reclaim income (ResourceIncome)
-	--     AND marks reclaimedFeatures, which FeatureReclaimed needs to fire and
-	--     FeatureDestroyed needs to suppress reclaims (avoid firing "destroyed").
-	local needsReclaimIncome = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ResourceIncome
-	end)
-
-	if not needsReclaimIncome then
-		gadgetHandler:RemoveCallIn("AllowUnitBuildStep")
-	end
-
-	-- Summary view over the *BuildStep callins behave similarly so we unhook them.
-	local needsConstructionProgress = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionProgress
-	end)
-
-	if not needsConstructionProgress then
-		gadgetHandler:RemoveCallIn("UnitBuildStepPost")
-	end
-
-	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.FeatureReclaimed or trigger.type == triggerTypes.FeatureDestroyed
-	end)
-
-	if not needsReclaimIncome and not needsFeatureReclaimTracking then
-		gadgetHandler:RemoveCallIn("AllowFeatureBuildStep")
-	end
-
-	-- ConstructionStarted accepts some orders that assist an existing build frame.
-	needsBuildPlacements = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionStarted
-	end)
-
-	-- ConstructionFinished can't read beingBuilt at UnitFinished (always false).
-	needsBuildStartSet = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionFinished
-	end)
-
-	-- We tell apart factory and constructor ownership via the build owner map.
-	needsBuildOwnerMap = table.any(triggers, function(trigger)
-		return (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+	-- Support flags for hot callins. These tend to be heavy in bursts not on average.
+	-- Only remain subscribed to these when the loaded mission actually requires them.
+	for _, trigger in pairs(triggers) do
+		needsBuildPlacements = needsBuildPlacements or trigger.type == triggerTypes.ConstructionStarted
+		needsBuildStartSet = needsBuildStartSet or trigger.type == triggerTypes.ConstructionFinished
+		needsBuildOwnerMap = needsBuildOwnerMap
+			or (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
 			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
 			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
-	end)
-
-	if not table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.UnitAttacked
-	end) then
-		gadgetHandler:RemoveCallIn("UnitDamaged")
+		needsConstructionProgress = needsConstructionProgress or trigger.type == triggerTypes.ConstructionProgress
+		needsReclaimIncome = needsReclaimIncome or trigger.type == triggerTypes.ResourceIncome
+		needsFeatureReclaimTracking = needsFeatureReclaimTracking
+			or trigger.type == triggerTypes.FeatureReclaimed
+			or trigger.type == triggerTypes.FeatureDestroyed
+		needsUnitDamaged = needsUnitDamaged or trigger.type == triggerTypes.UnitAttacked
+		needsStockpiles = needsStockpiles
+			or trigger.type == triggerTypes.StockpileCount
+			or trigger.type == triggerTypes.StockpileProgress
 	end
-
-	needsStockpiles = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.StockpileCount or trigger.type == triggerTypes.StockpileProgress
-	end)
+	for callinName, needed in pairs({
+		AllowUnitBuildStep = needsReclaimIncome,
+		UnitBuildStepPost = needsConstructionProgress,
+		AllowFeatureBuildStep = needsReclaimIncome or needsFeatureReclaimTracking,
+		UnitDamaged = needsUnitDamaged,
+		StockpileChanged = needsStockpiles,
+	}) do
+		if not needed then
+			gadgetHandler:RemoveCallIn(callinName)
+		end
+	end
 end
