@@ -18,7 +18,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 1,
-			interval = 7,
 		},
 		actions = { 'playSoundPosition', 'messageSoundPosition' },
 	},
@@ -30,7 +29,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 3,
-			interval = 7,
 		},
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
@@ -42,7 +40,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 3,
-			interval = 7,
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
 	},
