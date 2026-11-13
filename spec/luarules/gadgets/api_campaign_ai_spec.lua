@@ -191,6 +191,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|212:5" } }, world.sent)
 		end)
 
+		it("has a squad repeat", function()
+			campaignAI.SetSquadRepeat(5, true, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:4=1" } }, world.sent)
+		end)
+
+		it("has a squad stop repeating", function()
+			campaignAI.SetSquadRepeat(5, false, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:4=0" } }, world.sent)
+		end)
+
 		it("sets a gathering squad's retreat threshold in its definition", function()
 			campaignAI.SetSquadRetreat(5, 0.3, false, TEAM_ID)
 			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:5=0.3" } }, world.sent)

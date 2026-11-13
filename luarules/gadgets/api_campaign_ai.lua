@@ -20,6 +20,7 @@ end
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.CancelSquad(squadID, teamID)
 --   GG.CampaignAI.DisbandSquad(squadID, teamID)
+--   GG.CampaignAI.SetSquadRepeat(squadID, isRepeating, teamID)
 --   GG.CampaignAI.SetSquadRetreat(squadID, retreat, isAssembled, teamID)
 --   GG.CampaignAI.SetSquadTarget(squadID, unitID, teamID)
 --   GG.CampaignAI.SetSquadEscort(squadID, unitID, teamID)
@@ -112,6 +113,13 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SQUAD_DISBAND, squadID):toString())
 	end
 
+	local function setSquadRepeat(squadID, isRepeating, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.REBUILD, { isRepeating and 1 or 0 })
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
 	local function setSquadRetreat(squadID, retreat, isAssembled, teamID)
 		-- The squad's definition holds what its next task starts with; its units take a change only directly.
 		local message = MsgBuilder.new()
@@ -184,6 +192,7 @@ if gadgetHandler:IsSyncedCode() then
 		RunSquad = runSquad,
 		CancelSquad = cancelSquad,
 		DisbandSquad = disbandSquad,
+		SetSquadRepeat = setSquadRepeat,
 		SetSquadRetreat = setSquadRetreat,
 		SetSquadTarget = setSquadTarget,
 		SetSquadEscort = setSquadEscort,

@@ -7,6 +7,7 @@
 ---@field squadID integer
 ---@field teamID integer
 ---@field isAssembled boolean
+---@field isRepeating boolean
 
 local squadsByName = {} ---@type table<string, MissionSquad?>
 local squadsByID = {} ---@type table<integer, table<integer, MissionSquad?>> by teamID, then squadID
@@ -23,7 +24,8 @@ local function defineSquad(squadName, teamID)
 	local squadID = (squadCounts[teamID] or 0) + 1
 	squadCounts[teamID] = squadID
 
-	local squad = { squadName = squadName, squadID = squadID, teamID = teamID, isAssembled = false }
+	local squad =
+		{ squadName = squadName, squadID = squadID, teamID = teamID, isAssembled = false, isRepeating = false }
 	squadsByName[squadName] = squad
 	table.ensureTable(squadsByID, teamID)[squadID] = squad
 
@@ -56,13 +58,21 @@ local function assembleSquad(teamID, squadID)
 	end
 end
 
+--- The AI recruits a repeating squad again under its ID, so that squad stays, gathering.
 ---@return string? squadName nil for a squad that is not live
 local function endSquad(teamID, squadID)
 	local squad = findSquad(teamID, squadID)
-	if squad then
-		removeSquad(squad)
-		return squad.squadName
+	if not squad then
+		return
 	end
+
+	if squad.isRepeating then
+		squad.isAssembled = false
+	else
+		removeSquad(squad)
+	end
+
+	return squad.squadName
 end
 
 ---@return integer? squadID nil for a squad that is not live
@@ -72,6 +82,16 @@ local function getSquad(squadName)
 	local squad = squadsByName[squadName]
 	if squad then
 		return squad.squadID, squad.teamID, squad.isAssembled
+	end
+end
+
+---@return integer? squadID nil for a squad that is not live
+---@return integer? teamID
+local function setSquadRepeating(squadName, isRepeating)
+	local squad = squadsByName[squadName]
+	if squad then
+		squad.isRepeating = isRepeating
+		return squad.squadID, squad.teamID
 	end
 end
 
@@ -110,5 +130,6 @@ return {
 	Get = getSquad,
 	GetName = getSquadName,
 	GetAssembled = getAssembledSquad,
+	SetRepeating = setSquadRepeating,
 	Cancel = cancelSquad,
 }
