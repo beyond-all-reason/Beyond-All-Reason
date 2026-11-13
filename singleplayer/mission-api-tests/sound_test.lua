@@ -1,10 +1,10 @@
-local triggerTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnEye = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -12,7 +12,7 @@ local triggers = {
 	},
 
 	soundPosition = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
@@ -23,7 +23,7 @@ local triggers = {
 	},
 
 	soundsQueued = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	soundNotification = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
@@ -45,7 +45,7 @@ local triggers = {
 	},
 
 	playMusic = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},

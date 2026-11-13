@@ -122,7 +122,7 @@ function MB.new()
 		unitLoadout = {},
 		featureLoadout = {},
 		actionDefinitions = {},
-		triggerDefinitions = {},
+		conditionDefinitions = {},
 		objectiveTriggers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
@@ -280,7 +280,7 @@ end
 ---@param definitions table
 ---@return MissionApiBuilder
 function MB:WithConditionDefinitions(definitions)
-	self.triggerDefinitions = definitions or {}
+	self.conditionDefinitions = definitions or {}
 	return self
 end
 
@@ -491,7 +491,7 @@ function MB:Build(installed)
 		ObjectiveTriggers = self.objectiveTriggers,
 		ObjectiveStages = objectiveStages,
 		ActionDefinitions = self.actionDefinitions,
-		ConditionDefinitions = self.triggerDefinitions,
+		ConditionDefinitions = self.conditionDefinitions,
 		Modules = modules,
 		ActivateTrigger = function(trigger)
 			activateTriggerCalls[#activateTriggerCalls + 1] =

@@ -7,9 +7,9 @@ local env = MissionSpecEnv.new()
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 MissionApiBuilder.new():Install()
 MissionSpecEnv.registerModules(env)
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 	.LoadConditionDefinitions()
-local T = triggerDefinitions.Types
+local T = conditionDefinitions.Types
 
 local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
 
@@ -19,7 +19,7 @@ describe("mission_api.objectives", function()
 
 	-- A mission to build up with the mock's With* methods.
 	local function mission()
-		return MissionApiBuilder.new():WithConditionDefinitions(triggerDefinitions)
+		return MissionApiBuilder.new():WithConditionDefinitions(conditionDefinitions)
 	end
 
 	local function install(builder)

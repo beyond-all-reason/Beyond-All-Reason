@@ -12,13 +12,13 @@ local function loadConditionDefinitions()
 	local callins = {}
 
 	for typeID, filePath in ipairs(triggerFiles) do
-		local triggerDefinition = VFS.Include(filePath)
-		local triggerType = triggerDefinition.type
+		local conditionDefinition = VFS.Include(filePath)
+		local triggerType = conditionDefinition.type
 
 		types[triggerType] = typeID
-		parameters[typeID] = triggerDefinition.parameters or {}
+		parameters[typeID] = conditionDefinition.parameters or {}
 
-		for callinName, handler in pairs(triggerDefinition.callins or {}) do
+		for callinName, handler in pairs(conditionDefinition.callins or {}) do
 			callins[callinName] = callins[callinName] or {}
 			callins[callinName][typeID] = handler
 		end

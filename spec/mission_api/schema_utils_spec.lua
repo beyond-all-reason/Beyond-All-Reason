@@ -9,18 +9,18 @@ GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 MissionSpecEnv.registerModules(env)
 
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 	.LoadConditionDefinitions()
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
 local schemaUtils = MissionSpecEnv.include(env, "luarules/mission_api/schema_utils.lua")
 
-local triggerTypes = triggerDefinitions.Types
+local triggerTypes = conditionDefinitions.Types
 
 describe("mission_api.schema_utils", function()
 	describe("GetTypesWithParameterType", function()
 		it("returns all trigger types that have a Quantity parameter", function()
 			local result =
-				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity)
+				schemaUtils.GetTypesWithParameterType(conditionDefinitions.Parameters, parameterTypes.Types.Quantity)
 			assert.is_true(result[triggerTypes.UnitsOwned])
 			assert.is_true(result[triggerTypes.TotalUnitsBuilt])
 			assert.is_true(result[triggerTypes.TotalUnitsLost])
@@ -30,13 +30,13 @@ describe("mission_api.schema_utils", function()
 
 		it("does not include trigger types that lack a Quantity parameter", function()
 			local result =
-				schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity)
+				schemaUtils.GetTypesWithParameterType(conditionDefinitions.Parameters, parameterTypes.Types.Quantity)
 			assert.is_nil(result[triggerTypes.TimeElapsed])
 			assert.is_nil(result[triggerTypes.UnitKilled])
 		end)
 
 		it("returns an empty table when no types have the given parameter type", function()
-			local result = schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, "NonExistentType")
+			local result = schemaUtils.GetTypesWithParameterType(conditionDefinitions.Parameters, "NonExistentType")
 			assert.are.same({}, result)
 		end)
 	end)
@@ -44,7 +44,7 @@ describe("mission_api.schema_utils", function()
 	describe("GetParameterNamesWithType", function()
 		it("returns every parameter of the given type, per trigger type", function()
 			local result =
-				schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
+				schemaUtils.GetParameterNamesWithType(conditionDefinitions.Parameters, parameterTypes.Types.UnitName)
 
 			-- A trigger can name several units at once, e.g. a passenger and its transport.
 			table.sort(result[triggerTypes.TransportLoaded])
@@ -54,20 +54,20 @@ describe("mission_api.schema_utils", function()
 
 		it("omits trigger types without a parameter of that type", function()
 			local result =
-				schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
+				schemaUtils.GetParameterNamesWithType(conditionDefinitions.Parameters, parameterTypes.Types.UnitName)
 
 			assert.is_nil(result[triggerTypes.TimeElapsed])
 		end)
 
 		it("returns an empty table when no types have the given parameter type", function()
-			local result = schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, "NonExistentType")
+			local result = schemaUtils.GetParameterNamesWithType(conditionDefinitions.Parameters, "NonExistentType")
 			assert.are.same({}, result)
 		end)
 	end)
 
 	describe("CollateSchemas", function()
 		it("includes the settings every trigger shares", function()
-			GG["MissionAPI"].ConditionDefinitions = triggerDefinitions
+			GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
 			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
 
 			local schemas = schemaUtils.CollateSchemas()
@@ -76,7 +76,7 @@ describe("mission_api.schema_utils", function()
 				MissionSpecEnv.include(env, "luarules/mission_api/triggers_schema.lua").Settings,
 				schemas.triggerSettings
 			)
-			assert.is_not_nil(schemas.triggers.UnitKilled)
+			assert.is_not_nil(schemas.conditions.UnitKilled)
 		end)
 	end)
 end)

@@ -40,13 +40,13 @@ local originalLog = env.Spring.Log
 
 local stagesController = MissionSpecEnv.include(env, "luarules/mission_api/stages_loader.lua")
 local objectivesController = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
-local triggersController = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+local conditionsController = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 local actionsController = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
 local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
-local triggerDefinitions = GG["MissionAPI"].ConditionDefinitions
-local triggerTypes = triggerDefinitions.Types
+local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
+local triggerTypes = conditionDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
 -- Difficulties from luarules/mission_api/difficulties.json.
@@ -77,7 +77,7 @@ describe("mission_api difficulty pipeline", function()
 			Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" },
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
-			ConditionDefinitions = triggerDefinitions,
+			ConditionDefinitions = conditionDefinitions,
 			ManagedObjectives = {},
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
@@ -95,7 +95,7 @@ describe("mission_api difficulty pipeline", function()
 		GG["MissionAPI"].Stages = stagesController.ProcessRawStages(mission.Stages or {})
 		GG["MissionAPI"].Objectives =
 			objectivesController.ProcessRawObjectives(mission.Objectives or {}, rawTriggers, rawActions, mission.Stages)
-		GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+		GG["MissionAPI"].Triggers = conditionsController.ProcessRawTriggers(rawTriggers)
 		GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 		GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 

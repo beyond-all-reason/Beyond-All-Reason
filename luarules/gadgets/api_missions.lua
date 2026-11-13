@@ -28,7 +28,7 @@ local function failMission(reason)
 	missionLoadError = "[Mission API] Mission not loaded: " .. reason .. " (see infolog)"
 end
 
-local objectivesController, stagesController, triggersController, actionsController
+local objectivesController, stagesController, conditionsController, actionsController
 
 local function setUpMissionAPI(gameSetup)
 	missionLoadStep = "loading the Mission API"
@@ -85,8 +85,8 @@ local function setUpMissionAPI(gameSetup)
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	triggersController = VFS.Include("luarules/mission_api/conditions_loader.lua")
-	GG["MissionAPI"].ConditionDefinitions = triggersController.LoadConditionDefinitions()
+	conditionsController = VFS.Include("luarules/mission_api/conditions_loader.lua")
+	GG["MissionAPI"].ConditionDefinitions = conditionsController.LoadConditionDefinitions()
 	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
 	-- stays for a release or two to keep those missions loading.
 	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
@@ -136,7 +136,7 @@ local function loadMission(gameSetup)
 	GG["MissionAPI"].Stages = stagesController.ProcessRawStages(stages)
 	GG["MissionAPI"].Objectives =
 		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+	GG["MissionAPI"].Triggers = conditionsController.ProcessRawTriggers(rawTriggers)
 	GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
