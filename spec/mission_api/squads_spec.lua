@@ -49,6 +49,23 @@ describe("mission_api.squads", function()
 		assert.is_nil(squads.GetAssembled("first"))
 	end)
 
+	it("gets a gathering squad's ID and team by its name", function()
+		local squadID = squads.Define("first", 3)
+		assert.are.same({ squadID, 3 }, { squads.Get("first") })
+	end)
+
+	it("cancels a squad, returning its ID and team", function()
+		local squadID = squads.Define("first", 3)
+		assert.are.same({ squadID, 3 }, { squads.Cancel("first") })
+	end)
+
+	it("forgets a cancelled squad", function()
+		local squadID = squads.Define("first", 3)
+		squads.Cancel("first")
+		assert.is_nil(squads.Get("first"))
+		assert.is_nil(squads.End(3, squadID))
+	end)
+
 	it("ends a squad, returning its name", function()
 		local squadID = squads.Define("first", 3)
 		assert.are.equal("first", squads.End(3, squadID))

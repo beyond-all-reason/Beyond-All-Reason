@@ -6,9 +6,11 @@
 --- eyJlbnRyeVBvaW50Ijoic2luZ2xlcGxheWVyL21pc3Npb24tYXBpLXRlc3RzL3NxdWFkc190ZXN0Lmx1YSJ9
 ---
 --- Expected timeline, watching the enemy team:
----   5 s   the enemy bot lab starts on three grunts for the squad
----   later the three grunts stand together east of the lab, and a message says the squad has assembled
----         the squad then walks west past the lab and stays near the west end of the enemy plateau
+---   5 s   the enemy bot lab starts on three grunts for the raiders, with four thugs for the reserves queued
+---   15 s  the reserves are cancelled: the lab builds no thugs, and no message says a squad has disbanded
+---   later the three grunts stand together east of the lab, and a message says the raiders have assembled
+---         the raiders then walk west past the lab and stay near the west end of the enemy plateau
+---   30 s after they assembled, the raiders are disbanded, and a message says a squad has disbanded
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -16,12 +18,20 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
-	defineRaiders = {
+	defineSquads = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'defineRaiders', 'messageDefineRaiders' },
+		actions = { 'defineRaiders', 'defineReserves', 'messageDefineSquads' },
+	},
+
+	cancelReserves = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 15,
+		},
+		actions = { 'cancelReserves', 'messageCancelReserves' },
 	},
 
 	raidersAssembled = {
@@ -29,7 +39,23 @@ local triggers = {
 		parameters = {
 			squadName = 'raiders',
 		},
-		actions = { 'messageRaidersAssembled', 'runRaiders' },
+		actions = { 'messageRaidersAssembled', 'runRaiders', 'startRaidersCountdown' },
+	},
+
+	raidersCountdownFinished = {
+		type = triggerTypes.CountdownFinished,
+		parameters = {
+			countdownID = 'raidersCountdown',
+		},
+		actions = { 'disbandRaiders' },
+	},
+
+	enemySquadDisbanded = {
+		type = triggerTypes.SquadDisbanded,
+		parameters = {
+			teamName = 'enemy',
+		},
+		actions = { 'messageSquadDisbanded' },
 	},
 }
 
@@ -46,10 +72,35 @@ local actions = {
 		},
 	},
 
-	messageDefineRaiders = {
+	defineReserves = {
+		type = actionTypes.DefineSquad,
+		parameters = {
+			squadName = 'reserves',
+			teamName = 'enemy',
+			position = { x = 5000, z = 1500 },
+			gatherRange = 700,
+			composition = { corthud = 4 },
+		},
+	},
+
+	messageDefineSquads = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Squads test: the enemy bot lab builds three grunts, which gather east of it.",
+		},
+	},
+
+	cancelReserves = {
+		type = actionTypes.CancelSquad,
+		parameters = {
+			squadName = 'reserves',
+		},
+	},
+
+	messageCancelReserves = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Squads test: the reserves are cancelled, so the lab builds no thugs.",
 		},
 	},
 
@@ -66,6 +117,28 @@ local actions = {
 			squadName = 'raiders',
 			task = 'DEFEND',
 			position = { x = 4150, z = 1500 },
+		},
+	},
+
+	startRaidersCountdown = {
+		type = actionTypes.AddCountdown,
+		parameters = {
+			countdownID = 'raidersCountdown',
+			seconds = 30,
+		},
+	},
+
+	disbandRaiders = {
+		type = actionTypes.DisbandSquad,
+		parameters = {
+			squadName = 'raiders',
+		},
+	},
+
+	messageSquadDisbanded = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Squads test: a squad of the enemy has disbanded.",
 		},
 	},
 }

@@ -171,6 +171,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|211:5|213:4|214:1=4300,1600" } }, world.sent)
 		end)
 
+		it("cancels a squad", function()
+			campaignAI.CancelSquad(5, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|203:5" } }, world.sent)
+		end)
+
+		it("disbands a squad", function()
+			campaignAI.DisbandSquad(5, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|212:5" } }, world.sent)
+		end)
+
 		it("uses one sync action for messages and one for signals", function()
 			local names = table.keys(world.syncActions)
 			table.sort(names)

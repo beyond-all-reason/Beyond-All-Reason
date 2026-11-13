@@ -17,6 +17,8 @@ end
 --   GG.CampaignAI.SetAiState(state, teamID)
 --   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
+--   GG.CampaignAI.CancelSquad(squadID, teamID)
+--   GG.CampaignAI.DisbandSquad(squadID, teamID)
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
 -- unitDefID to a count.
@@ -88,6 +90,15 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
+	local function cancelSquad(squadID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.SQUAD_REQUEST_CANCEL, squadID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function disbandSquad(squadID, teamID)
+		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SQUAD_DISBAND, squadID):toString())
+	end
+
 	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
 	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
 
@@ -113,6 +124,8 @@ if gadgetHandler:IsSyncedCode() then
 		SetAiState = setAiState,
 		DefineSquad = defineSquad,
 		RunSquad = runSquad,
+		CancelSquad = cancelSquad,
+		DisbandSquad = disbandSquad,
 		ReadSignal = readSignal,
 	}
 

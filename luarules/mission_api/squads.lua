@@ -30,6 +30,12 @@ local function defineSquad(squadName, teamID)
 	return squadID
 end
 
+---@param squad MissionSquad
+local function removeSquad(squad)
+	squadsByName[squad.squadName] = nil
+	squadsByID[squad.teamID][squad.squadID] = nil
+end
+
 ---@return string? squadName nil for a squad that is not live
 local function assembleSquad(teamID, squadID)
 	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
@@ -43,9 +49,17 @@ end
 local function endSquad(teamID, squadID)
 	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
 	if squad then
-		squadsByName[squad.squadName] = nil
-		squadsByID[teamID][squadID] = nil
+		removeSquad(squad)
 		return squad.squadName
+	end
+end
+
+---@return integer? squadID nil for a squad that is not live
+---@return integer? teamID
+local function getSquad(squadName)
+	local squad = squadsByName[squadName]
+	if squad then
+		return squad.squadID, squad.teamID
 	end
 end
 
@@ -66,9 +80,22 @@ local function getAssembledSquad(squadName)
 	return squad.squadID, squad.teamID
 end
 
+--- Forgets the squad at once, so the AI's signal that it removed the squad finds none to end.
+---@return integer? squadID nil for a squad that is not live
+---@return integer? teamID
+local function cancelSquad(squadName)
+	local squad = squadsByName[squadName]
+	if squad then
+		removeSquad(squad)
+		return squad.squadID, squad.teamID
+	end
+end
+
 return {
 	Define = defineSquad,
 	Assemble = assembleSquad,
 	End = endSquad,
+	Get = getSquad,
 	GetAssembled = getAssembledSquad,
+	Cancel = cancelSquad,
 }
