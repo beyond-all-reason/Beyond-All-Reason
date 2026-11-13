@@ -277,7 +277,10 @@ describe("map_export", function()
 				["p/splat.png"] = "SPLAT",
 			})
 			local manifest = fs.files["p/project.lua"]
-				:gsub('skybox = "sky.dds",', 'skybox = "sky.dds",\n\t\tdnts = { textures = { "rock.dds" }, detail = "noise.png" },')
+				:gsub(
+					'skybox = "sky.dds",',
+					'skybox = "sky.dds",\n\t\tdnts = { textures = { "rock.dds" }, detail = "noise.png" },'
+				)
 				:gsub("sections = {", 'sections = {\n\t\tsplat = { file = "splat.png" },')
 			if not tileset then
 				manifest = manifest:gsub('tileset = { file = "tileset.lua" },', "")
