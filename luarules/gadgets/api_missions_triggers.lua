@@ -19,6 +19,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy.
+local RECLAIM_UNIT_IS_BAR_STYLE = true
+	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
+	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
+
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext ---@type table, table<string, table>, table, table
 local trackedUnitNames
@@ -281,6 +286,10 @@ function gadget:GameFramePost(frameNumber)
 	buildPlacements = {}
 end
 
+function gadget:TeamDied(teamID)
+	dispatchTriggerCallin("TeamDied", teamID)
+end
+
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
@@ -303,6 +312,32 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	statistics.Decrement(triggerTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
 
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
+end
+
+-- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	capturedUnits[unitID] = capture or nil
+	return true
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	dispatchTriggerCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	dispatchTriggerCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
+	capturedUnits[unitID] = nil
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	if x and needsBuildPlacements then
+		buildPlacements[builderID] = unitDefID
+	end
+	return true
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -348,33 +383,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
-function gadget:UnitDamaged(
-	unitID,
-	unitDefID,
-	unitTeam,
-	damage,
-	paralyzer,
-	weaponDefID,
-	projectileID,
-	attackerID,
-	attackerDefID,
-	attackerTeam
-)
-	dispatchTriggerCallin(
-		"UnitDamaged",
-		unitID,
-		unitDefID,
-		unitTeam,
-		damage,
-		paralyzer,
-		weaponDefID,
-		projectileID,
-		attackerID,
-		attackerDefID,
-		attackerTeam
-	)
-end
-
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	dispatchTriggerCallin(
 		"UnitDestroyed",
@@ -407,25 +415,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	untrackUnitID(unitID)
 end
 
--- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	capturedUnits[unitID] = capture or nil
-	return true
-end
-
-function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	dispatchTriggerCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
-
-	local unitDefName = UnitDefs[unitDefID].name
-	local unitNames = trackedUnitNames[unitID] or {}
-	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
-end
-
-function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	dispatchTriggerCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
-	capturedUnits[unitID] = nil
-end
-
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	dispatchTriggerCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 end
@@ -433,59 +422,6 @@ end
 function gadget:UnitIdlePost(unitID, idled)
 	dispatchTriggerCallin("UnitIdlePost", unitID, idled)
 end
-
-function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
-end
-
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
-end
-
-function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	markDetectionDirty(unitID)
-end
-
-function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	markDetectionDirty(unitID)
-end
-
-function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
-	markDetectionDirty(unitID)
-end
-
-function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
-	markDetectionDirty(unitID)
-end
-
-function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
-	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
-	markDetectionDirty(unitID)
-end
-
-function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	if needsStockpiles then
-		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	end
-end
-
-function gadget:TeamDied(teamID)
-	dispatchTriggerCallin("TeamDied", teamID)
-end
-
-function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
-	if x and needsBuildPlacements then
-		buildPlacements[builderID] = unitDefID
-	end
-	return true
-end
-
-local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy.
-local RECLAIM_UNIT_IS_BAR_STYLE = true
-	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
-	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
 
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
 	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
@@ -523,6 +459,70 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 		t.energy = (t.energy or 0) + math.abs(buildStep) * featureDef.energy
 	end
 	return true
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	dispatchTriggerCallin(
+		"UnitDamaged",
+		unitID,
+		unitDefID,
+		unitTeam,
+		damage,
+		paralyzer,
+		weaponDefID,
+		projectileID,
+		attackerID,
+		attackerDefID,
+		attackerTeam
+	)
+end
+
+function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	if needsStockpiles then
+		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	end
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
+	markDetectionDirty(unitID)
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
