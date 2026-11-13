@@ -167,7 +167,8 @@ void main()
 		//if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
 		// disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn. 
 		// This is good because the tolerance for distant shadows is much greater
-		if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0); 
+		// A negative selfshadowing value is the showWhenCloaked flag: keep the light while the unit is not drawn.
+		if ((otherparams.w >= 0.0) && ((uni[instData.y].composite & 0x00001fu) == 0u))  placeInWorldMatrix = mat4(0.0); 
 
 
         uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
