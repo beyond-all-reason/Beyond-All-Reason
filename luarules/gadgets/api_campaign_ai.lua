@@ -16,6 +16,9 @@ end
 --   GG.CampaignAI.SetAiActive(isActive, teamID)
 --   GG.CampaignAI.SetAiState(state, teamID)
 --   GG.CampaignAI.SetProductionEnabled(unitIDs, isEnabled, teamID)
+--   GG.CampaignAI.SetMexCap(share, countsAllies, teamID)
+--   GG.CampaignAI.SetMilitaryQuota(scouts, attackPower, raidPower, teamID), each quota optional
+--   GG.CampaignAI.SetUnitDefRetreat(unitDefID, retreat, teamID)
 --   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.CancelSquad(squadID, teamID)
@@ -42,6 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 	local Topic = aiMsg.Topic
 	local MsgBuilder = aiMsg.MsgBuilder
 	local Squad = aiMsg.Squad
+	local Military = aiMsg.Military
 
 	local function setUnitDefsEnabled(unitDefIDs, isEnabled, teamID)
 		local topic = isEnabled and Topic.ENABLE_UNITDEFS or Topic.DISABLE_UNITDEFS
@@ -65,6 +69,36 @@ if gadgetHandler:IsSyncedCode() then
 	local function setProductionEnabled(unitIDs, isEnabled, teamID)
 		local message =
 			MsgBuilder.new():cmdDictArray(Topic.SET_FACTORY_ACTIVE, isEnabled and 1 or 0, unitIDs):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function setMexCap(share, countsAllies, teamID)
+		local message = MsgBuilder.new():cmdArray(Topic.SET_MEX_CAP, { share, countsAllies and 1 or 0 }):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function setMilitaryQuota(scouts, attackPower, raidPower, teamID)
+		local quotas = {} ---@type table
+		if scouts then
+			quotas[#quotas + 1] = { Military.SCOUTS_COUNT, scouts }
+		end
+		if attackPower then
+			quotas[#quotas + 1] = { Military.ATTACK_POWER, attackPower }
+		end
+		if raidPower then
+			quotas[#quotas + 1] = { Military.RAID_POWER, raidPower }
+		end
+
+		local message = MsgBuilder.new():cmdDictArray(Topic.AI_MILITARY_PARAMS, quotas[1][1], { quotas[1][2] })
+		for i = 2, #quotas do
+			message:paramValue(quotas[i][1], quotas[i][2])
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setUnitDefRetreat(unitDefID, retreat, teamID)
+		local message = MsgBuilder.new():cmdDictArray(Topic.SET_UNITDEF_RETREAT_HP, unitDefID, { retreat }):toString()
 		SendToUnsynced(SYNC_ACTION, teamID, message)
 	end
 
@@ -188,6 +222,9 @@ if gadgetHandler:IsSyncedCode() then
 		SetAiActive = setAiActive,
 		SetAiState = setAiState,
 		SetProductionEnabled = setProductionEnabled,
+		SetMexCap = setMexCap,
+		SetMilitaryQuota = setMilitaryQuota,
+		SetUnitDefRetreat = setUnitDefRetreat,
 		DefineSquad = defineSquad,
 		RunSquad = runSquad,
 		CancelSquad = cancelSquad,

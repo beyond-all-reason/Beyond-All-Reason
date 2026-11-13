@@ -148,6 +148,31 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|6:4" } }, world.sent)
 		end)
 
+		it("caps the AI's share of the map's metal spots", function()
+			campaignAI.SetMexCap(0.25, false, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|13:0.25;0" } }, world.sent)
+		end)
+
+		it("caps the metal spots of the AI and its allies together", function()
+			campaignAI.SetMexCap(0.5, true, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|13:0.5;1" } }, world.sent)
+		end)
+
+		it("sets every military quota: scouts, attack power, raid power", function()
+			campaignAI.SetMilitaryQuota(0, 120, 20, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|17:1=0;2=120;3=20" } }, world.sent)
+		end)
+
+		it("sets only the military quotas that are given", function()
+			campaignAI.SetMilitaryQuota(nil, 120, nil, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|17:2=120" } }, world.sent)
+		end)
+
+		it("sets the health a unit def retreats at", function()
+			campaignAI.SetUnitDefRetreat(279, 0.4, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|11:279=0.4" } }, world.sent)
+		end)
+
 		it("stops the AI's production at factories", function()
 			campaignAI.SetProductionEnabled({ 101, 102 }, false, TEAM_ID)
 			assert.same({ { teamID = TEAM_ID, message = "1|12:0=101,102" } }, world.sent)
