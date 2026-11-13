@@ -2,7 +2,7 @@ return {
 	legmine3 = {
 		blocking = false,
 		buildpic = "legmine3.DDS",
-		buildtime = 700,
+		buildtime = 500,
 		canattack = false,
 		canguard = false,
 		canpatrol = false,
@@ -12,7 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "15 10 15",
 		collisionvolumetype = "cyly",
-		energycost = 2800,
+		energycost = 2500,
 		explodeas = "MINE_HEAVY",
 		firestate = 2,
 		footprintx = 1,
@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "MINE_HEAVY",
 		selfdestructcountdown = 0,
-		sightdistance = 83.2,
+		sightdistance = 83,
 		stealth = true,
 		customparams = {
 			cannot_capture_territory = true,
