@@ -183,11 +183,15 @@ function gadget:UnitDestroyed(unitID)
 	builders[unitID] = nil
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
+local function trackBuilder(unitID, unitDefID)
 	local def = UnitDefs[unitDefID]
 	if def and def.isBuilder then
 		builders[unitID] = true
 	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID)
+	trackBuilder(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID)
@@ -210,7 +214,7 @@ end
 function gadget:Initialize()
 	GG.IsProtectedResurrecter = protectedResurrecter
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		self:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		trackBuilder(unitID, Spring.GetUnitDefID(unitID))
 	end
 end
 
