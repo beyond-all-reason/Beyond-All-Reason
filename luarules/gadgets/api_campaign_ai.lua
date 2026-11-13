@@ -20,6 +20,9 @@ end
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.CancelSquad(squadID, teamID)
 --   GG.CampaignAI.DisbandSquad(squadID, teamID)
+--   GG.CampaignAI.SetSquadRetreat(squadID, retreat, isAssembled, teamID)
+--   GG.CampaignAI.SetSquadTarget(squadID, unitID, teamID)
+--   GG.CampaignAI.SetSquadEscort(squadID, unitID, teamID)
 --   GG.CampaignAI.DefineAiRegion(regionID, polygon, teamID)
 --   GG.CampaignAI.ClearAiRegion(regionID, teamID)
 --   GG.CampaignAI.DefineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
@@ -109,6 +112,31 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SQUAD_DISBAND, squadID):toString())
 	end
 
+	local function setSquadRetreat(squadID, retreat, isAssembled, teamID)
+		-- The squad's definition holds what its next task starts with; its units take a change only directly.
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.RETREAT, { retreat })
+
+		if isAssembled then
+			message:cmdValue(Topic.SQUAD_ID, squadID):cmdDictArray(Topic.SQUAD_PARAMS, Squad.RETREAT, { retreat })
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setSquadTarget(squadID, unitID, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_PARAMS, Squad.PRIO_TARGET, { unitID })
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setSquadEscort(squadID, unitID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.SQUAD_ID, squadID):cmdValue(Topic.SQUAD_ESCORT, unitID)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
 	local function defineAiRegion(regionID, polygon, teamID)
 		local message = MsgBuilder.new():cmdDictArray(Topic.TRIGGER_REGION_ID, regionID, polygon):toString()
 		SendToUnsynced(SYNC_ACTION, teamID, message)
@@ -156,6 +184,9 @@ if gadgetHandler:IsSyncedCode() then
 		RunSquad = runSquad,
 		CancelSquad = cancelSquad,
 		DisbandSquad = disbandSquad,
+		SetSquadRetreat = setSquadRetreat,
+		SetSquadTarget = setSquadTarget,
+		SetSquadEscort = setSquadEscort,
 		DefineAiRegion = defineAiRegion,
 		ClearAiRegion = clearAiRegion,
 		DefineBuildArea = defineBuildArea,

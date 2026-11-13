@@ -67,10 +67,11 @@ end
 
 ---@return integer? squadID nil for a squad that is not live
 ---@return integer? teamID
+---@return boolean? isAssembled
 local function getSquad(squadName)
 	local squad = squadsByName[squadName]
 	if squad then
-		return squad.squadID, squad.teamID
+		return squad.squadID, squad.teamID, squad.isAssembled
 	end
 end
 

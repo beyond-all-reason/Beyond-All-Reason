@@ -55,9 +55,15 @@ describe("mission_api.squads", function()
 		assert.is_nil(squads.GetName(4, squadID))
 	end)
 
-	it("gets a gathering squad's ID and team by its name", function()
+	it("gets a gathering squad's ID and team by its name, and that it is not assembled", function()
 		local squadID = squads.Define("first", 3)
-		assert.are.same({ squadID, 3 }, { squads.Get("first") })
+		assert.are.same({ squadID, 3, false }, { squads.Get("first") })
+	end)
+
+	it("gets that a squad is assembled", function()
+		local squadID = squads.Define("first", 3)
+		squads.Assemble(3, squadID)
+		assert.are.same({ squadID, 3, true }, { squads.Get("first") })
 	end)
 
 	it("cancels a squad, returning its ID and team", function()

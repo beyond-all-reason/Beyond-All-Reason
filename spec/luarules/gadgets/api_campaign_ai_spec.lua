@@ -191,6 +191,26 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|212:5" } }, world.sent)
 		end)
 
+		it("sets a gathering squad's retreat threshold in its definition", function()
+			campaignAI.SetSquadRetreat(5, 0.3, false, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:5=0.3" } }, world.sent)
+		end)
+
+		it("sets an assembled squad's retreat threshold in its definition and for its units", function()
+			campaignAI.SetSquadRetreat(5, 0, true, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:5=0|211:5|214:5=0" } }, world.sent)
+		end)
+
+		it("sets a squad's target", function()
+			campaignAI.SetSquadTarget(5, 201, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|211:5|214:6=201" } }, world.sent)
+		end)
+
+		it("sets the unit a squad escorts", function()
+			campaignAI.SetSquadEscort(5, 201, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|211:5|216:201" } }, world.sent)
+		end)
+
 		it("defines a region: its ID with its polygon", function()
 			campaignAI.DefineAiRegion(5, { 0, 0, 128, 0, 128, 128, 0, 128 }, TEAM_ID)
 			assert.same({ { teamID = TEAM_ID, message = "1|321:5=0,0,128,0,128,128,0,128" } }, world.sent)
