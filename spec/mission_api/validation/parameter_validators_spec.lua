@@ -323,6 +323,43 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("UnitDefCounts", function()
+		local function validateComposition(composition)
+			return V.validateAction({
+				type = V.actionTypes.DefineSquad,
+				parameters = {
+					squadName = "raiders",
+					teamName = "player",
+					position = { x = 0, z = 0 },
+					gatherRange = 600,
+					composition = composition,
+				},
+			})
+		end
+
+		it("rejects an empty table", function()
+			V.assertMessage(validateComposition({}), "unitDefCounts table is empty. Action: a, Parameter: composition")
+		end)
+
+		it("rejects a unit def that does not exist", function()
+			V.assertMessage(
+				validateComposition({ noSuch = 2 }),
+				"Invalid unitDefName: noSuch. Action: a, Parameter: composition[noSuch]"
+			)
+		end)
+
+		it("rejects a count that is not a whole number above zero", function()
+			V.assertMessage(
+				validateComposition({ armwar = 0 }),
+				"PositiveInteger must be a whole number > 0, got 0. Action: a, Parameter: composition[armwar]"
+			)
+		end)
+
+		it("accepts unit def names with their counts", function()
+			V.assertValid(validateComposition({ armwar = 3 }))
+		end)
+	end)
+
 	describe("FeatureDefName", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({

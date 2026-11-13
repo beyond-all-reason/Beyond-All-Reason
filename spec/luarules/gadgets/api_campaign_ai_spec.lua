@@ -132,6 +132,19 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|6:4" } }, world.sent)
 		end)
 
+		it("defines a squad: its ID, where it gathers, then its units in unit def order", function()
+			campaignAI.DefineSquad(5, { [9] = 2, [7] = 3 }, 4300, 1600, 600, 400, TEAM_ID)
+			assert.same(
+				{ { teamID = TEAM_ID, message = "1|201:5|204:1=4300,1600;2=600;3=400|202:7=3;9=2" } },
+				world.sent
+			)
+		end)
+
+		it("leaves a squad's attack range to the AI when none is given", function()
+			campaignAI.DefineSquad(5, { [7] = 3 }, 4300, 1600, 600, nil, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:1=4300,1600;2=600|202:7=3" } }, world.sent)
+		end)
+
 		it("sends every message through one sync action", function()
 			assert.same({ "CampaignAI" }, table.keys(world.syncActions))
 		end)

@@ -189,6 +189,7 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
 	parameterValidators[Types.EffectName] = validateString
+	parameterValidators[Types.SquadName] = validateString
 	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
 	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
 		return countdownID:sub(1, 2) ~= "__"
@@ -210,6 +211,25 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
+
+	parameterValidators[Types.UnitDefCounts] = function(unitDefCounts)
+		local luaTypeResult = validateTableType(unitDefCounts)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if next(unitDefCounts) == nil then
+			return { { message = "unitDefCounts table is empty" } }
+		end
+
+		local results = {}
+		for unitDefName, count in pairs(unitDefCounts) do
+			local suffix = "[" .. tostring(unitDefName) .. "]"
+			appendResults(results, parameterValidators[Types.UnitDefName](unitDefName), suffix)
+			appendResults(results, parameterValidators[Types.PositiveInteger](count), suffix)
+		end
+		return results
+	end
 
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]

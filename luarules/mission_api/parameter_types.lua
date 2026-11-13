@@ -18,6 +18,7 @@ local types = {
 	Direction = "Direction",
 	UnitLoadout = "UnitLoadout",
 	FeatureLoadout = "FeatureLoadout",
+	UnitDefCounts = "UnitDefCounts",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
 	Color = "Color",
@@ -51,6 +52,7 @@ local types = {
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
 	EffectName = "EffectName",
+	SquadName = "SquadName",
 	AiState = "AiState",
 
 	-- Number Validators:

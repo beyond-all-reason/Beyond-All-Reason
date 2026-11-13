@@ -15,7 +15,8 @@ end
 --   GG.CampaignAI.SetUnitsCtrlEnabled(unitIDs, isEnabled, teamID)
 --   GG.CampaignAI.SetAiActive(isActive, teamID)
 --   GG.CampaignAI.SetAiState(state, teamID)
--- state is a value of AiState in campaign_ai_msg.lua.
+--   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+-- state is a value of AiState in campaign_ai_msg.lua. unitCounts maps unitDefID to a count.
 
 local SYNC_ACTION = "CampaignAI"
 
@@ -23,6 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/Utilities/campaign_ai_msg.lua")
 	local Topic = aiMsg.Topic
 	local MsgBuilder = aiMsg.MsgBuilder
+	local Squad = aiMsg.Squad
 
 	local function setUnitDefsEnabled(unitDefIDs, isEnabled, teamID)
 		local topic = isEnabled and Topic.ENABLE_UNITDEFS or Topic.DISABLE_UNITDEFS
@@ -43,11 +45,34 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SET_AI_STATE, state):toString())
 	end
 
+	local function defineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.POSITION, { x, z })
+			:paramValue(Squad.GATHER_RANGE, gatherRange)
+
+		if attackRange then
+			message:paramValue(Squad.ATTACK_RANGE, attackRange)
+		end
+
+		-- Sorted, so the message does not depend on the order pairs walks unitCounts in.
+		local unitDefIDs = table.keys(unitCounts)
+		table.sort(unitDefIDs)
+		message:cmdDictArray(Topic.SQUAD_REQUEST_COMPOSE, unitDefIDs[1], { unitCounts[unitDefIDs[1]] })
+
+		for i = 2, #unitDefIDs do
+			message:paramValue(unitDefIDs[i], unitCounts[unitDefIDs[i]])
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
 	GG.CampaignAI = {
 		SetUnitDefsEnabled = setUnitDefsEnabled,
 		SetUnitsCtrlEnabled = setUnitsCtrlEnabled,
 		SetAiActive = setAiActive,
 		SetAiState = setAiState,
+		DefineSquad = defineSquad,
 	}
 
 	function gadget:Initialize()
