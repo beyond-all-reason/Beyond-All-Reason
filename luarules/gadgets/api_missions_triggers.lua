@@ -35,7 +35,7 @@ local needsBuildOwnerMap
 local needsBuildStartSet
 local needsStockpiles ---@type boolean
 
-local SEISMIC_INTERVAL_FRAMES
+local seismicIntervalFrames ---@type integer
 local seismicContacts
 local detectionLevels
 
@@ -260,7 +260,7 @@ function gadget:GameFrame(frameNumber)
 
 	dispatchTriggerCallin("GameFrame", frameNumber)
 
-	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
+	if frameNumber % seismicIntervalFrames == 0 then
 		local n = seismicContacts.UpdateContacts(undetected)
 		for i = 1, n do
 			markDetectionDirty(undetected[i])
@@ -562,7 +562,7 @@ function gadget:Initialize()
 	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
 
 	seismicContacts = GG["MissionAPI"].Modules.SeismicContacts
-	SEISMIC_INTERVAL_FRAMES = seismicContacts.UpdateInterval
+	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
 
