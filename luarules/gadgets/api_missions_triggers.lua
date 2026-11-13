@@ -1,10 +1,5 @@
 local gadget = gadget ---@type Gadget
 
-local doesUnitHaveName
-local untrackUnitID
-local doesFeatureHaveName
-local untrackFeatureID
-
 function gadget:GetInfo()
 	return {
 		name = "Mission API triggers",
@@ -26,9 +21,14 @@ local RECLAIM_UNIT_IS_BAR_STYLE = true
 
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext ---@type table, table<string, table>, table, table
-local trackedUnitNames
 local statistics
 local countdowns
+
+local trackedUnitNames
+local doesUnitHaveName
+local untrackUnitID
+local doesFeatureHaveName
+local untrackFeatureID
 
 local needsBuildPlacements
 local needsBuildOwnerMap
