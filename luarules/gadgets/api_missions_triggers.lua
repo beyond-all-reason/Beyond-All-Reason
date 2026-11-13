@@ -30,14 +30,13 @@ local statistics
 local countdowns
 local detectionLevels
 local seismicContacts
+local seismicIntervalFrames ---@type integer
 
 local trackedUnitNames
 local doesUnitHaveName
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
-
-local seismicIntervalFrames ---@type integer
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local constructionState = {}
@@ -56,6 +55,7 @@ local buildFrameOwners = {}
 local constructionStarts = {}
 local detections = {}
 local detectionCount = 0
+local undetected = {}
 local capturedUnits = {}
 
 ----------------------------------------------------------------
@@ -226,7 +226,6 @@ local function markDetectionDirty(unitID)
 		detectionCount = detectionCount + 1
 	end
 end
-local undetected = {}
 
 ----------------------------------------------------------------
 --- Call-ins:
