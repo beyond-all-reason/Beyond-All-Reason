@@ -61,8 +61,26 @@ if gadgetHandler:IsSyncedCode() then
 		GG.CampaignAI = nil
 	end
 else
+	-- The engine creates the AIs after GamePreload, so a message from before the game starts has to wait.
+	local aisExist = false
+	local heldMessages = {}
+
 	local function sendToAI(_, teamID, message)
-		Spring.SendSkirmishAIMessage(teamID, message)
+		if aisExist then
+			Spring.SendSkirmishAIMessage(teamID, message)
+		else
+			heldMessages[#heldMessages + 1] = { teamID, message }
+		end
+	end
+
+	function gadget:GameStart()
+		aisExist = true
+
+		for _, held in ipairs(heldMessages) do
+			Spring.SendSkirmishAIMessage(held[1], held[2])
+		end
+
+		heldMessages = {}
 	end
 
 	function gadget:Initialize()
@@ -70,6 +88,7 @@ else
 			gadgetHandler:RemoveGadget()
 			return
 		end
+		aisExist = Spring.GetGameFrame() > 0
 		gadgetHandler:AddSyncAction(SYNC_ACTION, sendToAI)
 	end
 

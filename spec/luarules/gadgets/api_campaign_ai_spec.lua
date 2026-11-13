@@ -29,6 +29,9 @@ local function loadHalf(synced, world)
 			GetGameRulesParam = function(name)
 				return world.rulesParams[name]
 			end,
+			GetGameFrame = function()
+				return world.gameFrame, 0
+			end,
 			SendSkirmishAIMessage = function(teamID, message)
 				world.sent[#world.sent + 1] = { teamID = teamID, message = message }
 			end,
@@ -43,14 +46,53 @@ describe("api_campaign_ai", function()
 	local world ---@type table
 
 	before_each(function()
-		world = { rulesParams = { inMission = true }, syncActions = {}, sent = {}, removed = {} }
+		world = { rulesParams = { inMission = true }, gameFrame = 0, syncActions = {}, sent = {}, removed = {} }
 	end)
 
-	describe("in a mission", function()
+	describe("before the game starts", function()
+		local campaignAI ---@type table
+		local unsyncedHalf ---@type table
+
+		before_each(function()
+			unsyncedHalf = loadHalf(false, world)
+			local _, env = loadHalf(true, world)
+			campaignAI = env.GG.CampaignAI
+		end)
+
+		it("holds a message, because the AI does not exist yet", function()
+			campaignAI.SetAiState(1, TEAM_ID)
+			assert.same({}, world.sent)
+		end)
+
+		it("sends the held messages in their order when the game starts", function()
+			campaignAI.SetAiState(1, TEAM_ID)
+			campaignAI.SetAiActive(false, TEAM_ID)
+
+			unsyncedHalf:GameStart()
+
+			assert.same({
+				{ teamID = TEAM_ID, message = "1|6:1" },
+				{ teamID = TEAM_ID, message = "1|1:0" },
+			}, world.sent)
+		end)
+	end)
+
+	it("sends at once when it loads into a running game", function()
+		world.gameFrame = 90
+		loadHalf(false, world)
+		local _, env = loadHalf(true, world)
+
+		env.GG.CampaignAI.SetAiState(1, TEAM_ID)
+
+		assert.same({ { teamID = TEAM_ID, message = "1|6:1" } }, world.sent)
+	end)
+
+	describe("once the game has started", function()
 		local campaignAI ---@type table
 
 		before_each(function()
-			loadHalf(false, world)
+			local unsyncedHalf = loadHalf(false, world)
+			unsyncedHalf:GameStart()
 			local _, env = loadHalf(true, world)
 			campaignAI = env.GG.CampaignAI
 		end)
