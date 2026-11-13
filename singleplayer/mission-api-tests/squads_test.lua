@@ -7,7 +7,7 @@
 ---
 --- Expected timeline, watching the enemy team:
 ---   5 s   the enemy bot lab starts on three grunts for the squad
----   later the three grunts stand together west of the lab
+---   later the three grunts stand together west of the lab, and a message says the squad has assembled
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -21,6 +21,14 @@ local triggers = {
 			seconds = 5,
 		},
 		actions = { 'defineRaiders', 'messageDefineRaiders' },
+	},
+
+	raidersAssembled = {
+		type = triggerTypes.SquadAssembled,
+		parameters = {
+			squadName = 'raiders',
+		},
+		actions = { 'messageRaidersAssembled' },
 	},
 }
 
@@ -41,6 +49,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Squads test: the enemy bot lab builds three grunts, which gather west of it.",
+		},
+	},
+
+	messageRaidersAssembled = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Squads test: the raiders have assembled.",
 		},
 	},
 }

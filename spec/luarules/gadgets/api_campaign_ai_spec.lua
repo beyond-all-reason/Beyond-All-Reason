@@ -2,6 +2,8 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
 local GADGET_PATH = "luarules/gadgets/api_campaign_ai.lua"
 local TEAM_ID = 3
+local AI_HOST_PLAYER_ID = 0
+local OTHER_PLAYER_ID = 1
 
 -- One half of the gadget. What the synced half sends reaches the unsynced half's sync actions through world.
 local function loadHalf(synced, world)
@@ -35,6 +37,12 @@ local function loadHalf(synced, world)
 			SendSkirmishAIMessage = function(teamID, message)
 				world.sent[#world.sent + 1] = { teamID = teamID, message = message }
 			end,
+			SendLuaRulesMsg = function(message)
+				world.luaRulesMessages[#world.luaRulesMessages + 1] = message
+			end,
+			GetAIInfo = function(teamID)
+				return 0, "Campaign AI", world.aiHostPlayerIDs[teamID]
+			end,
 		},
 	})
 	SpecEnv.include(env, GADGET_PATH)
@@ -46,7 +54,15 @@ describe("api_campaign_ai", function()
 	local world ---@type table
 
 	before_each(function()
-		world = { rulesParams = { inMission = true }, gameFrame = 0, syncActions = {}, sent = {}, removed = {} }
+		world = {
+			rulesParams = { inMission = true },
+			gameFrame = 0,
+			syncActions = {},
+			sent = {},
+			removed = {},
+			luaRulesMessages = {},
+			aiHostPlayerIDs = { [TEAM_ID] = AI_HOST_PLAYER_ID },
+		}
 	end)
 
 	describe("before the game starts", function()
@@ -145,8 +161,55 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:1=4300,1600;2=600|202:7=3" } }, world.sent)
 		end)
 
-		it("sends every message through one sync action", function()
-			assert.same({ "CampaignAI" }, table.keys(world.syncActions))
+		it("uses one sync action for messages and one for signals", function()
+			local names = table.keys(world.syncActions)
+			table.sort(names)
+			assert.same({ "CampaignAI", "CampaignAISignal" }, names)
+		end)
+	end)
+
+	describe("a signal from the AI", function()
+		local syncedHalf ---@type table
+		local campaignAI ---@type table
+
+		before_each(function()
+			loadHalf(false, world)
+			local env
+			syncedHalf, env = loadHalf(true, world)
+			campaignAI = env.GG.CampaignAI
+		end)
+
+		it("goes out through the net with its team", function()
+			syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_201:5")
+			assert.same({ "CampaignAISignal:3:201:5" }, world.luaRulesMessages)
+		end)
+
+		it("gets no answer, which the AI would take as its own", function()
+			assert.is_nil(syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_201:5"))
+		end)
+
+		it("is the only kind of AI message that goes out", function()
+			syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_super_fire:12/100/200")
+			assert.same({}, world.luaRulesMessages)
+		end)
+
+		it("is read back as its team, code and ID when the AI's host sent it", function()
+			assert.same({ TEAM_ID, 201, 5 }, { campaignAI.ReadSignal("CampaignAISignal:3:201:5", AI_HOST_PLAYER_ID) })
+		end)
+
+		it("is read back with its second ID", function()
+			assert.same(
+				{ TEAM_ID, 301, 2, 5 },
+				{ campaignAI.ReadSignal("CampaignAISignal:3:301:2;5", AI_HOST_PLAYER_ID) }
+			)
+		end)
+
+		it("is not read when another player sent it", function()
+			assert.is_nil(campaignAI.ReadSignal("CampaignAISignal:3:201:5", OTHER_PLAYER_ID))
+		end)
+
+		it("is not read from any other message", function()
+			assert.is_nil(campaignAI.ReadSignal("VideoPlaybackFinished:1", AI_HOST_PLAYER_ID))
 		end)
 	end)
 

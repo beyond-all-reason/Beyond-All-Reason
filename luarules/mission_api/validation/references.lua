@@ -1,5 +1,5 @@
 ---
---- Checks references: objective events, actions, unit, feature, marker and line names,
+--- Checks references: objective events, actions, unit, feature, marker, line and squad names,
 --- countdown IDs, cutscene IDs and variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
@@ -383,57 +383,58 @@ local function validateNameReferences(context, report, nameKind)
 end
 
 --------------------------------------------------------------------------------
--- Countdown ID references
+-- Countdown ID and squad name references
 --------------------------------------------------------------------------------
 
---- A countdown that is added and then simply left to run out is fine, so unlike the
---- names above there is no warning for one that is added but never referenced.
-local function validateCountdownIDReferences(context, report)
-	local addedIDs = {}
-	local referencedIDs = {}
+--- For a name that one action creates and others refer to. A countdown that is added and then
+--- simply left to run out is fine, as is a squad that is defined and left alone, so unlike the
+--- names above there is no warning for one that is created but never referenced.
+local function validateCreatedNameReferences(context, report, label, parameterName, parameterType, creatingActionType)
+	local createdNames = {}
+	local referencedNames = {}
 
-	-- AddCountdown takes a countdownID too, but it creates the countdown rather than referring to one.
-	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, context.Types.CountdownID)
-	referencingActionTypes[context.ActionTypes.AddCountdown] = nil
+	-- The creating action takes the name too, but it creates rather than refers to one.
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, parameterType)
+	referencingActionTypes[creatingActionType] = nil
 
-	local function countdownIDsOf(parameters)
-		local countdownIDs = {}
-		for _, countdownID in ipairs(context.PossibleValues(parameters and parameters.countdownID)) do
-			if type(countdownID) == "string" then
-				countdownIDs[#countdownIDs + 1] = countdownID
+	local function namesOf(parameters)
+		local names = {}
+		for _, name in ipairs(context.PossibleValues(parameters and parameters[parameterName])) do
+			if type(name) == "string" then
+				names[#names + 1] = name
 			end
 		end
-		return countdownIDs
+		return names
 	end
 
 	for actionID, action in pairs(context.Actions) do
-		for _, countdownID in ipairs(countdownIDsOf(parametersOf(action))) do
-			if action.type == context.ActionTypes.AddCountdown then
-				addedIDs[countdownID] = true
+		for _, name in ipairs(namesOf(parametersOf(action))) do
+			if action.type == creatingActionType then
+				createdNames[name] = true
 			elseif referencingActionTypes[action.type] then
-				recordSource(referencedIDs, countdownID, "action " .. actionID)
+				recordSource(referencedNames, name, "action " .. actionID)
 			end
 		end
 	end
 
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CountdownID)
+	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, parameterType)
 	for triggerID, trigger in pairs(context.Triggers) do
 		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
-			for _, countdownID in ipairs(countdownIDsOf(parametersOf(trigger))) do
-				recordSource(referencedIDs, countdownID, "trigger " .. triggerID)
+			for _, name in ipairs(namesOf(parametersOf(trigger))) do
+				recordSource(referencedNames, name, "trigger " .. triggerID)
 			end
 		end
 	end
 
-	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
+	-- Objectives can hold a trigger inline, which refers to a name as any other trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
 		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		for _, countdownID in ipairs(countdownIDsOf(parameters)) do
-			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (trigger)")
+		for _, name in ipairs(namesOf(parameters)) do
+			recordSource(referencedNames, name, "objective " .. objectiveID .. " (trigger)")
 		end
 	end
 
-	reportUncreatedNames(report, "Countdown", addedIDs, referencedIDs)
+	reportUncreatedNames(report, label, createdNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
@@ -587,7 +588,15 @@ local function validate(context, report)
 		creatingActionTypes = { [actionTypes.CreateFeatures] = true },
 	})
 
-	validateCountdownIDReferences(context, report)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Countdown",
+		"countdownID",
+		Types.CountdownID,
+		actionTypes.AddCountdown
+	)
+	validateCreatedNameReferences(context, report, "Squad", "squadName", Types.SquadName, actionTypes.DefineSquad)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
 end

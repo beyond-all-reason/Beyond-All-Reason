@@ -16,9 +16,14 @@ end
 --   GG.CampaignAI.SetAiActive(isActive, teamID)
 --   GG.CampaignAI.SetAiState(state, teamID)
 --   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+--   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua. unitCounts maps unitDefID to a count.
+-- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two IDs
+-- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
 local SYNC_ACTION = "CampaignAI"
+local SYNC_ACTION_SIGNAL = SYNC_ACTION .. "Signal"
+local MESSAGE_SIGNAL = SYNC_ACTION_SIGNAL .. ":"
 
 if gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/Utilities/campaign_ai_msg.lua")
@@ -67,13 +72,41 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
+	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
+	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
+
+	local function readSignal(message, playerID)
+		local team, signal, id, detailID = message:match(SIGNAL_MESSAGE)
+		local teamID = tonumber(team) --[[@as integer?]]
+		if not teamID then
+			return
+		end
+
+		local _, _, hostPlayerID = Spring.GetAIInfo(teamID)
+		if playerID ~= hostPlayerID then
+			return
+		end
+
+		return teamID, tonumber(signal), tonumber(id), tonumber(detailID)
+	end
+
 	GG.CampaignAI = {
 		SetUnitDefsEnabled = setUnitDefsEnabled,
 		SetUnitsCtrlEnabled = setUnitsCtrlEnabled,
 		SetAiActive = setAiActive,
 		SetAiState = setAiState,
 		DefineSquad = defineSquad,
+		ReadSignal = readSignal,
 	}
+
+	-- The AI calls this outside the simulation and only on the machine that hosts it, so the
+	-- signal takes the way round through the net to reach synced code on every client.
+	function gadget:RecvSkirmishAIMessage(teamID, message)
+		local signal = message:match(SIGNAL_FROM_AI)
+		if signal then
+			SendToUnsynced(SYNC_ACTION_SIGNAL, teamID, signal)
+		end
+	end
 
 	function gadget:Initialize()
 		if not Spring.GetGameRulesParam("inMission") then
@@ -108,6 +141,10 @@ else
 		heldMessages = {}
 	end
 
+	local function relaySignal(_, teamID, signal)
+		Spring.SendLuaRulesMsg(MESSAGE_SIGNAL .. teamID .. ":" .. signal)
+	end
+
 	function gadget:Initialize()
 		if not Spring.GetGameRulesParam("inMission") then
 			gadgetHandler:RemoveGadget()
@@ -115,9 +152,11 @@ else
 		end
 		aisExist = Spring.GetGameFrame() > 0
 		gadgetHandler:AddSyncAction(SYNC_ACTION, sendToAI)
+		gadgetHandler:AddSyncAction(SYNC_ACTION_SIGNAL, relaySignal)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction(SYNC_ACTION)
+		gadgetHandler:RemoveSyncAction(SYNC_ACTION_SIGNAL)
 	end
 end

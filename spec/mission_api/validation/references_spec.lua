@@ -488,6 +488,48 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 
+	describe("squad names", function()
+		it("passes a squad that is defined, with a trigger waiting for it", function()
+			V.assertValid(V.validate(V.mission()
+				:WithTrigger("start", {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "defineRaiders" },
+				})
+				:WithTrigger("raidersReady", {
+					type = V.triggerTypes.SquadAssembled,
+					parameters = { squadName = "raiders" },
+					actions = { "ok" },
+				})
+				:WithAction("defineRaiders", {
+					type = V.actionTypes.DefineSquad,
+					parameters = {
+						squadName = "raiders",
+						teamName = "player",
+						position = { x = 100, z = 100 },
+						gatherRange = 500,
+						composition = { armwar = 2 },
+					},
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })))
+		end)
+
+		it("warns about a squad a trigger refers to, but no action defines", function()
+			local result = V.validate(V.mission()
+				:WithTrigger("watchGhost", {
+					type = V.triggerTypes.SquadDisbanded,
+					parameters = { squadName = "ghost" },
+					actions = { "ok" },
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
+
+			V.assertMessage(
+				result,
+				"Squad is referenced, but never created. Squad: ghost, Referenced in: trigger watchGhost"
+			)
+		end)
+	end)
+
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.
 	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
 	describe("objective events", function()
