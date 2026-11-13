@@ -92,7 +92,7 @@ return {
 		},
 		weapondefs = {
 			adv_rocket = {
-				areaofeffect = 90,
+				areaofeffect = 100,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.3,
@@ -101,7 +101,7 @@ return {
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.65,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				firestarter = 70,
 				flighttime = 3,
@@ -110,7 +110,7 @@ return {
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
 				range = 575,
-				reloadtime = 3.75,
+				reloadtime = 3.9,
 				smokecolor = 0.5,
 				smokeperiod = 7,
 				smokesize = 6.5,
