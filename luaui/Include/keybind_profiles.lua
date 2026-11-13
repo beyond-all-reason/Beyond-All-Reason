@@ -14,19 +14,23 @@ local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_SUFFIX = ".bak"
-local STORE_VERSION = 2
+local STORE_VERSION = 3
 -- A profile name is an id inside the keymaps too, so a rename or delete has to follow it there.
 local SWITCH_COMMAND = "keybindprofile"
 
 -- Shipped profiles carry binds rather than a file path, so every surface reads one shape.
 local builtins = {}
 local emitPriority = {}
+local movedToWidgets = {}
 do
 	local decoded = keybindConfig.load(DEFAULTS_PATH)
 	if decoded and type(decoded.profiles) == "table" then
 		builtins = decoded.profiles
 		if type(decoded.priority) == "table" then
 			emitPriority = decoded.priority
+		end
+		if type(decoded.movedToWidgets) == "table" then
+			movedToWidgets = decoded.movedToWidgets
 		end
 	else
 		Spring.Echo("[keybind_profiles] Error: " .. DEFAULTS_PATH .. " has no profiles; none shipped")
@@ -178,27 +182,69 @@ local function chainTaps(keyset)
 	return keybindModel.splitChain(keybindModel.canonicalKeyset(keyset))
 end
 
--- Moves every bind whose keyset chain is a strict suffix of another's to just after it,
--- preserving byPriority's order otherwise. The dependency graph is sparse (most binds share no
--- key at all), so a few hundred binds cost this pass nothing worth measuring.
+-- Orders that wait for a target, which CGuiHandler::KeyPressed picks by cycling: each repeat
+-- of the key starts its search one past where the last order sat in the matched list. Engine
+-- ones from CommandAI and its subclasses, the rest from BAR's own command descriptions.
+local CYCLED_ORDERS = {
+	attack = true,
+	areaattack = true,
+	manualfire = true,
+	deathwait = true,
+	move = true,
+	patrol = true,
+	fight = true,
+	guard = true,
+	loadonto = true,
+	loadunits = true,
+	unloadunits = true,
+	repair = true,
+	assist = true,
+	reclaim = true,
+	restore = true,
+	resurrect = true,
+	capture = true,
+	manuallaunch = true,
+	settarget = true,
+	settargetnoground = true,
+	quicksharetotarget = true,
+	areamex = true,
+	blueprint_place = true,
+}
+
+local function isCycledOrder(action)
+	local command = (action:match("^%S+") or ""):lower()
+
+	return CYCLED_ORDERS[command] or command:sub(1, 10) == "buildunit_"
+end
+
+-- Moves every bind whose keyset chain is a strict suffix of another's to just after it, or
+-- just before it when the suffix is a cycled order, whose repeat tap searches from one past it.
+-- byPriority's order holds otherwise. The dependency graph is sparse (most binds share no key
+-- at all), so a few hundred binds cost this pass nothing worth measuring.
 local function byChainSpecificity(ordered)
 	local n = #ordered
-	local taps = {}
+	local taps, cycled = {}, {}
 	for i = 1, n do
 		taps[i] = chainTaps(ordered[i].keyset)
+		cycled[i] = isCycledOrder(ordered[i].action)
 	end
 
-	local mustFollow = {}
+	local mustFollow, placed = {}, {}
 	for i = 1, n do
 		for j = 1, n do
 			if i ~= j and chainFitsAsTail(taps[i], taps[j]) then
-				mustFollow[i] = mustFollow[i] or {}
-				mustFollow[i][j] = true
+				local later, earlier = i, j
+				if cycled[i] then
+					later, earlier = j, i
+				end
+
+				mustFollow[later] = mustFollow[later] or {}
+				mustFollow[later][earlier] = true
 			end
 		end
 	end
 
-	local placed, out = {}, {}
+	local out = {}
 	while #out < n do
 		for i = 1, n do
 			if not placed[i] then
@@ -275,9 +321,46 @@ local function actionKey(action)
 	return command and (command:lower() .. args) or action
 end
 
+local function isLayout(id)
+	for _, b in ipairs(builtins) do
+		if type(b.id) == "string" and b.id == id then
+			return true
+		end
+	end
+
+	return false
+end
+
+-- Pinned in `layout`, since the editor can repoint `basedOn`.
+local function layoutOf(profile)
+	local start = profile
+	local seen = {}
+	while profile and not seen[profile] do
+		local builtin = M.isBuiltin(profile.name)
+		if builtin then
+			return builtin.id
+		end
+		if isLayout(profile.layout) then
+			return profile.layout
+		end
+		seen[profile] = true
+		local base = profile.basedOn
+		profile = type(base) == "string" and (M.isBuiltin(base) or M.get(base)) or nil
+	end
+
+	local closest = start and M.inferBase(start)
+	local inferred = closest and M.isBuiltin(closest)
+
+	return inferred and inferred.id or nil
+end
+
 -- Applied even where the key is taken; the editor shows the clash.
-local function widgetDefaults()
-	return WidgetActions.defaults((WidgetActions.manifests()))
+local function widgetDefaults(layout)
+	return WidgetActions.defaults((WidgetActions.manifests()), layout)
+end
+
+function M.widgetDefaultsOf(name)
+	return widgetDefaults(layoutOf(M.isBuiltin(name) or M.get(name)))
 end
 
 local function seededSet(profile)
@@ -289,7 +372,18 @@ local function seededSet(profile)
 	return set
 end
 
-local function missingDefaults(binds, skip)
+-- Older stores already hold these or had them removed.
+local function seedMovedActions(profile)
+	local seeded = seededSet(profile)
+	for _, action in ipairs(movedToWidgets) do
+		if not seeded[action] then
+			profile.seeded = profile.seeded or {}
+			profile.seeded[#profile.seeded + 1] = action
+		end
+	end
+end
+
+local function missingDefaults(binds, skip, layout)
 	local bound = {}
 	for _, b in ipairs(binds) do
 		if type(b) == "table" and type(b.action) == "string" then
@@ -298,7 +392,7 @@ local function missingDefaults(binds, skip)
 	end
 
 	local missing = {}
-	for _, default in ipairs(widgetDefaults()) do
+	for _, default in ipairs(widgetDefaults(layout)) do
 		if not bound[default.action] and not skip[default.action] then
 			for _, keyset in ipairs(default.keysets) do
 				missing[#missing + 1] = { keyset = keyset, action = default.action }
@@ -309,12 +403,12 @@ local function missingDefaults(binds, skip)
 	return missing
 end
 
-local function withWidgetDefaults(binds, skip)
+local function withWidgetDefaults(binds, skip, layout)
 	local out = {}
 	for i, b in ipairs(binds) do
 		out[i] = b
 	end
-	for _, b in ipairs(missingDefaults(binds, skip)) do
+	for _, b in ipairs(missingDefaults(binds, skip, layout)) do
 		out[#out + 1] = b
 	end
 
@@ -323,17 +417,21 @@ end
 
 -- What a profile binds once written out, the loaded widgets' defaults it takes included.
 function M.effectiveBinds(profile)
-	return withWidgetDefaults(profile.binds or {}, M.isBuiltin(profile.name) and {} or seededSet(profile))
+	local skip = M.isBuiltin(profile.name) and {} or seededSet(profile)
+
+	return withWidgetDefaults(profile.binds or {}, skip, layoutOf(profile))
 end
 
 -- Once per action, so a default the player removes stays removed.
 local function seedWidgetDefaults(profile)
+	local layout = layoutOf(profile)
+	profile.layout = layout
 	local seeded = seededSet(profile)
-	for _, b in ipairs(missingDefaults(profile.binds, seeded)) do
+	for _, b in ipairs(missingDefaults(profile.binds, seeded, layout)) do
 		profile.binds[#profile.binds + 1] = b
 	end
 
-	for _, default in ipairs(widgetDefaults()) do
+	for _, default in ipairs(widgetDefaults(layout)) do
 		if not seeded[default.action] then
 			profile.seeded = profile.seeded or {}
 			profile.seeded[#profile.seeded + 1] = default.action
@@ -341,9 +439,9 @@ local function seedWidgetDefaults(profile)
 	end
 end
 
-local function allDefaultActions()
+local function allDefaultActions(layout)
 	local names = {}
-	for i, default in ipairs(widgetDefaults()) do
+	for i, default in ipairs(widgetDefaults(layout)) do
 		names[i] = default.action
 	end
 
@@ -377,7 +475,7 @@ local function toBindFile(profile)
 
 	-- A shipped profile is read-only, so the widget defaults it lacks ride along on the way out.
 	if M.isBuiltin(profile.name) then
-		binds = withWidgetDefaults(binds, {})
+		binds = withWidgetDefaults(binds, {}, layoutOf(profile))
 	end
 
 	for _, b in ipairs(byChainSpecificity(byPriority(binds))) do
@@ -775,6 +873,7 @@ local function migrate()
 		if own and #own > 0 then
 			local name = written or "Custom"
 			store.profiles[1] = { name = name, binds = own, fakeMeta = fakeMetaOf(ownText) }
+			seedMovedActions(store.profiles[1])
 			store.active = preset or name
 		else
 			store.active = preset
@@ -831,7 +930,9 @@ function M.load()
 	end
 
 	store = decoded
-	storePredatesMeta = (tonumber(store.version) or 1) < 2
+	local storeVersion = tonumber(store.version) or 1
+	storePredatesMeta = storeVersion < 2
+	local storePredatesMoves = storeVersion < 3
 	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
 	local seen, kept, changed = {}, {}, false
@@ -840,6 +941,9 @@ function M.load()
 			p.binds = type(p.binds) == "table" and p.binds or {}
 			if type(p.seeded) ~= "table" then
 				p.seeded = nil
+			end
+			if storePredatesMoves then
+				seedMovedActions(p)
 			end
 			-- A shipped profile is not the store to define.
 			if M.isBuiltin(p.name) then
@@ -888,7 +992,7 @@ function M.load()
 		end
 	end
 	store.profiles = kept
-	if changed or storePredatesMeta then
+	if changed or storePredatesMoves then
 		M.save()
 	end
 
@@ -1136,12 +1240,13 @@ function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
+	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
+	profile.layout = layoutOf(profile)
 	-- Made from a keymap that already holds what the player kept of the defaults.
-	local seeded = allDefaultActions()
+	local seeded = allDefaultActions(profile.layout)
 	if #seeded > 0 then
 		profile.seeded = seeded
 	end
-	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
 		Spring.Echo(
@@ -1337,7 +1442,7 @@ function M.materialize(name)
 	-- What the keymap held the last time it was ours. A file still holding this has not been
 	-- edited since, so the profile behind it can be rewritten over the top; one that does not
 	-- is the player's own work and is kept.
-	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions() }
+	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions(layoutOf(profile)) }
 	M.save()
 
 	return ACTIVE_FILE

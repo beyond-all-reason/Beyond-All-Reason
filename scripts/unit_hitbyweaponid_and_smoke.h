@@ -19,9 +19,8 @@
 #endif
 
 // How much tilt is allowed, set to 0 for no movement
-#define MAXTILT 100
 #ifndef MAXTILT
-	#define MAXTILT 200
+	#define MAXTILT 100
 #endif
 
 // How fast the unit should tilt when hit

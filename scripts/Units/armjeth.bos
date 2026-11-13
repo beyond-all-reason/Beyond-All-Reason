@@ -4,7 +4,7 @@
 piece  torso, rflare, lflare, pelvis, lleg, rleg, rthigh, lthigh,
        lturret, lbarrel, rbarrel, rturret, lexhaust, rexhaust, lfoot, rfoot, aimx1, aimy1;
 
-static-var  isMoving, gun_3, restore_delay,  moveSpeed, currentSpeed, wpn2_lasthead;
+static-var  isMoving, gun_3, restore_delay, wpn2_lasthead;
 
 // Generated for N:\animations\armjeth_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 

@@ -4,7 +4,7 @@
 piece  flare1, flare2, torso, lthigh, rthigh, rleg, rfoot, lleg,
        lfoot, pelvis, launcher, rbvent,lbvent,lfvent,rfvent, aimx1, aimy1;
 
-static-var  gun_1, isOpen, isMoving, isAiming, restore_delay, wpn1_lasthead;
+static-var  gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -20,7 +20,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corhrk_anim_walk.blend 
-	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:5
 			turn lfoot to x-axis <-43.438135> speed <1502.214769> / animSpeed; //delta=50.07 
 			turn lfoot to z-axis <4.911848> speed <171.148067> / animSpeed; //delta=5.70 
@@ -189,23 +188,24 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
 	}
 }
-StartMoving(reversing){
+StartMoving(reversing)
+{
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
-	isMoving=TRUE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
 	start-script UnitSpeed();
-  start-script Walk();
+	start-script Walk();
 }
-StopMoving(){
+StopMoving()
+{
 	signal SIGNAL_MOVE;
-	isMoving=FALSE;
-	 call-script StopWalking();
+	isMoving = FALSE;
+	call-script StopWalking();
 }
 
 
@@ -228,10 +228,9 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	gun_1 = flare2;
+	gun_1 = 0;
 	hide flare1;
 	hide flare2;
-	isOpen = 0;
 	restore_delay = 200;
 	animSpeed = 5;
 }
@@ -302,36 +301,17 @@ FireWeapon1()
 	
 	turn aimx1 to x-axis <6> now;
 	turn aimx1 to x-axis <0> speed <9>;
-	if( gun_1 == 1 )
-	{
-		gun_1 = 2;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		isOpen = 0;
-		gun_1 = 1;
-		return (0);
-	}
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = launcher;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		pieceIndex = flare1;
-	}
-	if( gun_1 == 2 )
-	{
-		pieceIndex = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
 

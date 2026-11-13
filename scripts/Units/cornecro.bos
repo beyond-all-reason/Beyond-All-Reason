@@ -131,7 +131,6 @@ UnitSpeed(){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
   animSpeed = 1 + (maxSpeed * 3) / animSpeed; // add 1 to slow it down :)
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<2) animSpeed=2;
   if (animspeed>8) animSpeed = 8;
   sleep 132;
@@ -170,12 +169,12 @@ BuildAnim(){
 	}
 }
 
-StartBuilding(torsoing, pitch)
+StartBuilding(heading, pitch)
 {
 	show flare2;
 	show flare1;
 	signal SIGNAL_BUILD;
-	turn aimy1 to y-axis torsoing speed <240.0>;
+	turn aimy1 to y-axis heading speed <240.0>;
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;

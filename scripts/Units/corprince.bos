@@ -643,6 +643,7 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
+
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
@@ -714,7 +715,7 @@ Killed(severity, corpsetype)
 	}
 	if( severity <= 99 )
 	{
-	corpsetype = 3 ;
+		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode radar type BITMAPONLY | NOHEATCLOUD;
 		explode artyturret type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
@@ -746,7 +747,7 @@ Killed(severity, corpsetype)
 		explode recoiltube6 type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	//corpsetype = 3 ;
+	corpsetype = 3 ;
 	//	explode hull type BITMAPONLY | NOHEATCLOUD;
 	//	explode radar type BITMAPONLY | NOHEATCLOUD;
 	//	explode artyturret type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
@@ -778,5 +779,5 @@ Killed(severity, corpsetype)
 	//	explode recoiltube4 type FIRE | SMOKE | NOHEATCLOUD;
 	//	explode recoiltube5 type FIRE | SMOKE | NOHEATCLOUD;
 	//	explode recoiltube6 type FIRE | SMOKE | NOHEATCLOUD;
-	//	return corpsetype;
+	return corpsetype;
 }

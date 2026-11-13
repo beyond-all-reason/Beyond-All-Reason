@@ -1,9 +1,6 @@
 
 #include "../recoil_common_includes.h"
 
-//#define DEBUG
-#include "../debug.h"
-
 piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel,  luparm, lblimb, lflimb, lcannon, lbarrel, lflare, rflare;
 
 static-var  gun_1, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, shotcount, isAiming; 
@@ -14,7 +11,6 @@ static-var  gun_1, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, shotcou
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-#define SIGNAL_AIM3 1024
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -22,7 +18,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }// For C:\Users\logst\Downloads\BAR\armraz_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-#define SIGNAL_MOVE 1
 Walk() {// For C:\Users\logst\Downloads\BAR\armraz_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	turn lthigh to y-axis <0.0> speed <2000.0> / animSpeed;
 	turn rthigh to y-axis <0.0> speed <2000.0> / animSpeed;
@@ -336,14 +331,13 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();

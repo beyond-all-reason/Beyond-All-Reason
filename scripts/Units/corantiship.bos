@@ -3,7 +3,7 @@
 
 piece  ground, base, anti, antiflare, dbl, dbr, dtl, dtr, radar, blink, wake1, wake2, greendbl, greendbr, orangelight;
 
-static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
+static-var  Stunned, restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -28,8 +28,8 @@ Lights()
 {
 	while( TRUE )
 	{
-	    if (!Stunned) {
-		    emit-sfx 1024 + 0 from blink;
+		if (!Stunned) {
+			emit-sfx 1024 + 0 from blink;
 		}
 		sleep 2500;
 	}
@@ -39,20 +39,18 @@ Lights()
 Go()
 {
 	spin radar around y-axis speed <-50.043956> accelerate <2>;
-	return (0);
 }
 
 Stop()
 {
 	spin radar around y-axis speed <0.0>;
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	set-signal-mask 0;
 	move dtl to x-axis [0] speed [5];
 	move dbl to x-axis [0] speed [5];
@@ -62,12 +60,12 @@ ExecuteRestoreAfterDelay()
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script Stop();
 	} else {
-	    call-script Go();
-	    start-script ExecuteRestoreAfterDelay();
+		call-script Go();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
