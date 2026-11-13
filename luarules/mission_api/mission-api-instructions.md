@@ -72,7 +72,8 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   team's campaign AI has for it. A squad action asks it for that ID, with the function for the
   squad states the AI takes its message in, and sends nothing when it gets none.
 - `Modules.AiRegions` (`ai_regions.lua`) does the same for the regions the AI watches its squads in,
-  and refuses one that shares a cell of the AI's grid with a live region. `Modules.AreaPolygons`
+  and refuses one that shares a cell of the AI's grid with a live region. `Modules.BuildAreas`
+  (`build_areas.lua`) holds the areas the AI fills with a structure. `Modules.AreaPolygons`
   (`area_polygons.lua`) turns an `Area` into the polygon the AI takes.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced

@@ -191,6 +191,11 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|322:5" } }, world.sent)
 		end)
 
+		it("defines a build area: its ID with its polygon, then structure, facing and builds at once", function()
+			campaignAI.DefineBuildArea(5, { 0, 0, 128, 0, 128, 128, 0, 128 }, 279, 2, 3, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|301:5=0,0,128,0,128,128,0,128;279;2;3" } }, world.sent)
+		end)
+
 		it("uses one sync action for messages and one for signals", function()
 			local names = table.keys(world.syncActions)
 			table.sort(names)

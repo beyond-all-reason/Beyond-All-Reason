@@ -21,9 +21,10 @@ end
 --   GG.CampaignAI.DisbandSquad(squadID, teamID)
 --   GG.CampaignAI.DefineAiRegion(regionID, polygon, teamID)
 --   GG.CampaignAI.ClearAiRegion(regionID, teamID)
+--   GG.CampaignAI.DefineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
--- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map.
+-- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map. facing is 0 to 3, from south.
 -- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two IDs
 -- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
@@ -111,6 +112,15 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message)
 	end
 
+	local function defineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
+		local message = MsgBuilder.new()
+			:cmdDictArray(Topic.BUILD_REGION_ID, buildAreaID, polygon)
+			:addValue(unitDefID)
+			:addValue(facing)
+			:addValue(buildsAtOnce)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
 	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
 	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
 
@@ -140,6 +150,7 @@ if gadgetHandler:IsSyncedCode() then
 		DisbandSquad = disbandSquad,
 		DefineAiRegion = defineAiRegion,
 		ClearAiRegion = clearAiRegion,
+		DefineBuildArea = defineBuildArea,
 		ReadSignal = readSignal,
 	}
 
