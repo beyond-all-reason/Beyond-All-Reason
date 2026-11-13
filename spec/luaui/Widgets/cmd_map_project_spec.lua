@@ -63,6 +63,16 @@ local function fixture()
 				if path == "luaui/Include/map_transform.lua" then
 					return _G.VFS.Include(path)
 				end
+				-- The map export translator is pure Lua too (it also runs without the game).
+				if path == "common/map_export.lua" then
+					return _G.VFS.Include(path)
+				end
+				-- edge-exact height reads: spec/common/vertex_height_spec.lua covers the maths
+				if path == "common/vertex_height.lua" then
+					return function(getHeight)
+						return getHeight
+					end
+				end
 				if path == "luaui/Include/map_library.lua" then
 					return {
 						new = function()
@@ -80,6 +90,14 @@ local function fixture()
 			end,
 			DirList = function()
 				return {}
+			end,
+			-- the test map is a blank canvas: no map archive files (the helper's require asks
+			-- this for module paths too, so everything else goes to the real check)
+			FileExists = function(path, mode)
+				if tostring(path):find("^mapconfig/") then
+					return false
+				end
+				return _G.VFS.FileExists(path, mode)
 			end,
 		},
 		io = {
