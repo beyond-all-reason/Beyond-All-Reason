@@ -148,6 +148,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|6:4" } }, world.sent)
 		end)
 
+		it("stops the AI's production at factories", function()
+			campaignAI.SetProductionEnabled({ 101, 102 }, false, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|12:0=101,102" } }, world.sent)
+		end)
+
+		it("lets the AI produce at factories again", function()
+			campaignAI.SetProductionEnabled({ 101 }, true, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|12:1=101" } }, world.sent)
+		end)
+
 		it("defines a squad: its ID, where it gathers, then its units in unit def order", function()
 			campaignAI.DefineSquad(5, { [9] = 2, [7] = 3 }, 4300, 1600, 600, 400, TEAM_ID)
 			assert.same(

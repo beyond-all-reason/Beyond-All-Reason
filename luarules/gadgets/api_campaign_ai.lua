@@ -15,6 +15,7 @@ end
 --   GG.CampaignAI.SetUnitsCtrlEnabled(unitIDs, isEnabled, teamID)
 --   GG.CampaignAI.SetAiActive(isActive, teamID)
 --   GG.CampaignAI.SetAiState(state, teamID)
+--   GG.CampaignAI.SetProductionEnabled(unitIDs, isEnabled, teamID)
 --   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.CancelSquad(squadID, teamID)
@@ -55,6 +56,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function setAiState(state, teamID)
 		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SET_AI_STATE, state):toString())
+	end
+
+	local function setProductionEnabled(unitIDs, isEnabled, teamID)
+		local message =
+			MsgBuilder.new():cmdDictArray(Topic.SET_FACTORY_ACTIVE, isEnabled and 1 or 0, unitIDs):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
 	end
 
 	local function defineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
@@ -144,6 +151,7 @@ if gadgetHandler:IsSyncedCode() then
 		SetUnitsCtrlEnabled = setUnitsCtrlEnabled,
 		SetAiActive = setAiActive,
 		SetAiState = setAiState,
+		SetProductionEnabled = setProductionEnabled,
 		DefineSquad = defineSquad,
 		RunSquad = runSquad,
 		CancelSquad = cancelSquad,
