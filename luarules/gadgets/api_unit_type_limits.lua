@@ -13,19 +13,15 @@ function gadget:GetInfo()
 end
 
 -- Finished units and frames count for the team that has them. At the limit the type is blocked and
--- new or shared ones refused; spawned and captured units are counted, never refused.
+-- new or shared ones refused; spawned, captured and mission-transferred units are counted, never refused.
 
 if gadgetHandler:IsSyncedCode() then
 	local REASON_KEY = "mission_limit"
 
 	local unitBlocking = require("common/unitBlocking")
+	local getAssistableFrame = VFS.Include("common/springUtilities/buildFunctions.lua").GetAssistableFrame
 
 	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spGetFeatureResurrect = Spring.GetFeatureResurrect
 
@@ -65,31 +61,6 @@ if gadgetHandler:IsSyncedCode() then
 			teamCounts[unitDefID] = teamCounts[unitDefID] + delta
 			refresh(teamID, unitDefID)
 		end
-	end
-
-	-- As the engine does: a blueprint on the footprint of an allied frame of its type assists it, no new unit.
-	local function assistsPlacedFrame(unitDefID, teamID, x, z, facing)
-		if not x then
-			return false
-		end
-		local def = UnitDefs[unitDefID]
-		local width, depth = def.xsize * 8, def.zsize * 8
-		if facing == 1 or facing == 3 then
-			width, depth = depth, width
-		end
-		for _, unitID in ipairs(spGetUnitsInCylinder(x, z, math.diag(width, depth))) do
-			local ux, _, uz = spGetUnitPosition(unitID)
-			if
-				spGetUnitDefID(unitID) == unitDefID
-				and spAreTeamsAllied(spGetUnitTeam(unitID), teamID)
-				and spGetUnitIsBeingBuilt(unitID)
-				and math.abs(ux - x) < width
-				and math.abs(uz - z) < depth
-			then
-				return true
-			end
-		end
-		return false
 	end
 
 	function gadget:Initialize()
@@ -161,12 +132,17 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
 		-- The second value drops a refused order.
-		return not atLimit(builderTeam, unitDefID) or assistsPlacedFrame(unitDefID, builderTeam, x, z, facing), true
+		if not atLimit(builderTeam, unitDefID) then
+			return true, true
+		end
+		-- A blueprint on an allied frame of its type assists it, no new unit.
+		return x ~= nil and getAssistableFrame(unitDefID, builderTeam, x, z, facing) ~= nil, true
 	end
 
-	-- Captures go through so capture objectives still work.
+	-- Captures and the mission's own TransferUnits go through.
 	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-		return capture or not atLimit(newTeam, unitDefID)
+		local byMission = GG.MissionAPI ~= nil and GG.MissionAPI.transferringUnits == true
+		return capture or byMission or not atLimit(newTeam, unitDefID)
 	end
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)

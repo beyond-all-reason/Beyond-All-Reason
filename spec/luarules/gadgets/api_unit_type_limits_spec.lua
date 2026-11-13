@@ -3,10 +3,10 @@
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
 local GADGET_PATH = "luarules/gadgets/api_unit_type_limits.lua"
-local TOWER, SOLAR = 50, 51
+local TOWER, SOLAR, WALL = 50, 51, 52
 
--- A world of units { id = { team, def, building, x, z } } and the engine calls the gadget reads.
--- opts: outsideMission, frame at load, published = { [team] = { [def] = reasons } } build blocking holds.
+-- A world of units { id = { team, def, building, x, z, facing } } and the engine calls the gadget reads.
+-- opts: outsideMission, frame at load, missionAPI, published = { [team] = { [def] = reasons } } build blocking holds.
 local function loadGadget(units, opts)
 	opts = opts or {}
 	local blocked, destroyed, removed, lifted = {}, {}, false, {}
@@ -32,7 +32,11 @@ local function loadGadget(units, opts)
 				removed = true
 			end,
 		},
-		UnitDefs = { [TOWER] = { xsize = 2, zsize = 2 }, [SOLAR] = { xsize = 4, zsize = 4 } },
+		UnitDefs = {
+			[TOWER] = { xsize = 2, zsize = 2 },
+			[SOLAR] = { xsize = 4, zsize = 4 },
+			[WALL] = { xsize = 2, zsize = 6 },
+		},
 		UnitDefNames = { armllt = { id = TOWER } },
 		Spring = {
 			GetTeamUnitDefCount = function(teamID, unitDefID)
@@ -70,11 +74,14 @@ local function loadGadget(units, opts)
 			AreTeamsAllied = function(a, b)
 				return (a == 2) == (b == 2)
 			end,
+			GetUnitBuildFacing = function(id)
+				return units[id].facing or 0
+			end,
 			GetUnitIsBeingBuilt = function(id)
 				return units[id] ~= nil and units[id].building == true
 			end,
 			GetFeatureResurrect = function(featureID)
-				return featureID == 7 and "armllt" or ""
+				return (featureID == 7 or featureID == 17) and "armllt" or ""
 			end,
 			GetTeamList = function()
 				return { 0, 1 }
@@ -84,6 +91,7 @@ local function loadGadget(units, opts)
 			end,
 		},
 	})
+	env.GG.MissionAPI = opts.missionAPI
 	env.GG.BuildBlocking = {
 		AddBlockedUnit = function(unitDefID, teamID, reason)
 			blocked[teamID .. ":" .. unitDefID .. ":" .. reason] = (
@@ -156,6 +164,15 @@ describe("api_unit_type_limits", function()
 		assert.is_true(gadget:AllowUnitCreation(TOWER, 9, 1, 114, 0, 114))
 	end)
 
+	it("sizes the overlap from the blueprint's facing and the frame's own", function()
+		units[2] = { team = 1, def = WALL, building = true, x = 300, z = 300, facing = 1 }
+		limits.Set(1, WALL, 1)
+		assert.is_true(gadget:AllowUnitCreation(WALL, 9, 1, 330, 0, 300, 0), "32 wide along x between them")
+		assert.is_false(gadget:AllowUnitCreation(WALL, 9, 1, 334, 0, 300, 0))
+		assert.is_true(gadget:AllowUnitCreation(WALL, 9, 1, 300, 0, 330, 0), "32 deep along z between them")
+		assert.is_true(gadget:AllowUnitCreation(WALL, 9, 1, 340, 0, 300, 1), "48 wide when both face east")
+	end)
+
 	it("lets a builder assist an ally's frame at the limit, not an enemy's", function()
 		limits.Set(1, TOWER, 1)
 		units[2] = { team = 0, def = TOWER, building = true, x = 300, z = 300 }
@@ -207,6 +224,24 @@ describe("api_unit_type_limits", function()
 		assert.is_true(gadget:AllowUnitTransfer(5, SOLAR, 0, 1, false), "a type without a limit")
 		limits.Set(1, TOWER, 2)
 		assert.is_true(gadget:AllowUnitTransfer(5, TOWER, 0, 1, false), "below the limit")
+	end)
+
+	it("lets the mission's own TransferUnits through at the limit", function()
+		local missionAPI = { transferringUnits = true }
+		local inMission, missionLimits = loadGadget(units, { missionAPI = missionAPI })
+		missionLimits.Set(1, TOWER, 1)
+		assert.is_true(inMission:AllowUnitTransfer(5, TOWER, 0, 1, false))
+		missionAPI.transferringUnits = nil
+		assert.is_false(inMission:AllowUnitTransfer(5, TOWER, 0, 1, false))
+	end)
+
+	-- The engine runs builders one after another: the first one's unit exists before the second is asked.
+	it("stops the second of two resurrections finishing on the same frame", function()
+		limits.Set(1, TOWER, 2)
+		assert.is_true(gadget:AllowFeatureBuildStep(9, 1, 7, 3, 0.1))
+		units[2] = { team = 1, def = TOWER }
+		gadget:UnitCreated(2, TOWER, 1, 9)
+		assert.is_false(gadget:AllowFeatureBuildStep(10, 1, 17, 3, 0.1))
 	end)
 
 	it("stops a resurrection of a limited type at the limit", function()
