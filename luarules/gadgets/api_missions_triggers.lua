@@ -606,40 +606,42 @@ function gadget:Initialize()
 		end
 	end
 
-	-- Support flags for hot callins. These tend to be heavy in bursts not on average.
-	-- Only remain subscribed to these when the loaded mission actually requires them.
-	local needsBuildPlacements = false
-	local needsConstructionProgress = false
-	local needsReclaimIncome = false
-	local needsFeatureReclaimTracking = false
-	local needsStockpiles = false
-	local needsUnitDamaged = false
-	for _, trigger in pairs(triggers) do
-		needsBuildPlacements = needsBuildPlacements or trigger.type == triggerTypes.ConstructionStarted
-		needsBuildStartSet = needsBuildStartSet or trigger.type == triggerTypes.ConstructionFinished
-		needsBuildOwnerMap = needsBuildOwnerMap
-			or not not (
-				(trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
-				or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
-				or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
-			)
-		needsConstructionProgress = needsConstructionProgress or trigger.type == triggerTypes.ConstructionProgress
-		needsReclaimIncome = needsReclaimIncome or trigger.type == triggerTypes.ResourceIncome
-		needsFeatureReclaimTracking = needsFeatureReclaimTracking
-			or trigger.type == triggerTypes.FeatureReclaimed
-			or trigger.type == triggerTypes.FeatureDestroyed
-		needsUnitDamaged = needsUnitDamaged or trigger.type == triggerTypes.UnitAttacked
-		needsStockpiles = needsStockpiles
-			or trigger.type == triggerTypes.StockpileCount
-			or trigger.type == triggerTypes.StockpileProgress
+	local needsType = {}
+	for _, typeID in pairs(triggerTypes) do
+		needsType[typeID] = false
 	end
+	for _, trigger in pairs(triggers) do
+		needsType[trigger.type] = true
+		local parameters = trigger.parameters
+		if
+			parameters ~= nil
+			and (
+				parameters.builderName
+				or parameters.builderDefName
+				or parameters.factoryName
+				or parameters.factoryDefName
+			)
+		then
+			needsBuildOwnerMap = true
+		end
+	end
+
+	needsBuildOwnerMap = needsBuildOwnerMap
+		or needsType[triggerTypes.ConstructionCanceled]
+		or needsType[triggerTypes.ProductionCanceled]
+	needsBuildStartSet = needsType[triggerTypes.ConstructionFinished]
+
+	-- Check support for hot callins. These tend to be heavy in bursts not on average.
+	-- Only remain subscribed to these when the loaded mission actually requires them.
 	for callinName, needed in pairs({
-		AllowUnitCreation = needsBuildPlacements,
-		AllowUnitBuildStep = needsReclaimIncome,
-		UnitBuildStepPost = needsConstructionProgress,
-		AllowFeatureBuildStep = needsReclaimIncome or needsFeatureReclaimTracking,
-		UnitDamaged = needsUnitDamaged,
-		StockpileChanged = needsStockpiles,
+		AllowUnitCreation = needsType[triggerTypes.ConstructionStarted],
+		AllowUnitBuildStep = needsType[triggerTypes.ResourceIncome],
+		AllowFeatureBuildStep = needsType[triggerTypes.ResourceIncome]
+			or needsType[triggerTypes.FeatureReclaimed]
+			or needsType[triggerTypes.FeatureDestroyed],
+		UnitBuildStepPost = needsType[triggerTypes.ConstructionProgress],
+		UnitDamaged = needsType[triggerTypes.UnitAttacked],
+		StockpileChanged = needsType[triggerTypes.StockpileCount] or needsType[triggerTypes.StockpileProgress],
 	}) do
 		if not needed then
 			gadgetHandler:RemoveCallIn(callinName)
