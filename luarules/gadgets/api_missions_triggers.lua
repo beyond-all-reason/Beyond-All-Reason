@@ -606,12 +606,12 @@ function gadget:Initialize()
 		end
 	end
 
-	local needsType = {}
+	local hasTriggerType = {}
 	for _, typeID in pairs(triggerTypes) do
-		needsType[typeID] = false
+		hasTriggerType[typeID] = false
 	end
 	for _, trigger in pairs(triggers) do
-		needsType[trigger.type] = true
+		hasTriggerType[trigger.type] = true
 		local parameters = trigger.parameters
 		if
 			parameters ~= nil
@@ -627,21 +627,21 @@ function gadget:Initialize()
 	end
 
 	needsBuildOwnerMap = needsBuildOwnerMap
-		or needsType[triggerTypes.ConstructionCanceled]
-		or needsType[triggerTypes.ProductionCanceled]
-	needsBuildStartSet = needsType[triggerTypes.ConstructionFinished]
+		or hasTriggerType[triggerTypes.ConstructionCanceled]
+		or hasTriggerType[triggerTypes.ProductionCanceled]
+	needsBuildStartSet = hasTriggerType[triggerTypes.ConstructionFinished]
 
 	-- Check support for hot callins. These tend to be heavy in bursts not on average.
 	-- Only remain subscribed to these when the loaded mission actually requires them.
 	for callinName, needed in pairs({
-		AllowUnitCreation = needsType[triggerTypes.ConstructionStarted],
-		AllowUnitBuildStep = needsType[triggerTypes.ResourceIncome],
-		AllowFeatureBuildStep = needsType[triggerTypes.ResourceIncome]
-			or needsType[triggerTypes.FeatureReclaimed]
-			or needsType[triggerTypes.FeatureDestroyed],
-		UnitBuildStepPost = needsType[triggerTypes.ConstructionProgress],
-		UnitDamaged = needsType[triggerTypes.UnitAttacked],
-		StockpileChanged = needsType[triggerTypes.StockpileCount] or needsType[triggerTypes.StockpileProgress],
+		AllowUnitCreation = hasTriggerType[triggerTypes.ConstructionStarted],
+		AllowUnitBuildStep = hasTriggerType[triggerTypes.ResourceIncome],
+		AllowFeatureBuildStep = hasTriggerType[triggerTypes.ResourceIncome]
+			or hasTriggerType[triggerTypes.FeatureReclaimed]
+			or hasTriggerType[triggerTypes.FeatureDestroyed],
+		UnitBuildStepPost = hasTriggerType[triggerTypes.ConstructionProgress],
+		UnitDamaged = hasTriggerType[triggerTypes.UnitAttacked],
+		StockpileChanged = hasTriggerType[triggerTypes.StockpileCount] or hasTriggerType[triggerTypes.StockpileProgress],
 	}) do
 		if not needed then
 			gadgetHandler:RemoveCallIn(callinName)
