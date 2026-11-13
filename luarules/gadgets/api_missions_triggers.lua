@@ -231,7 +231,7 @@ local function markDetectionDirty(unitID)
 		detectionCount = detectionCount + 1
 	end
 end
-local inactiveSeismicContacts = {}
+local undetected = {}
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -261,9 +261,9 @@ function gadget:GameFrame(frameNumber)
 	dispatchTriggerCallin("GameFrame", frameNumber)
 
 	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
-		local n = seismicContacts.UpdateContacts(inactiveSeismicContacts)
+		local n = seismicContacts.UpdateContacts(undetected)
 		for i = 1, n do
-			markDetectionDirty(inactiveSeismicContacts[i])
+			markDetectionDirty(undetected[i])
 		end
 	end
 end
