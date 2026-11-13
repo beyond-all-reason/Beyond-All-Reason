@@ -10,6 +10,23 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+---@class ReclaimFightCase
+---@field name string
+---@field unit string
+---@field cmd integer
+---@field here? boolean
+---@field area? boolean
+---@field enemy? boolean
+---@field norez? boolean
+---@field x number
+---@field z number
+---@field steps integer
+---@field after integer
+---@field repair integer
+---@field feature FeatureID
+---@field builder UnitID
+---@field rez UnitID
+
 local cases = {
 	{ name = "fight", unit = "corcom", cmd = CMD.FIGHT },
 	{ name = "fight_here", unit = "corcom", cmd = CMD.FIGHT, here = true },
@@ -20,6 +37,9 @@ local cases = {
 	{ name = "enemy_rez", unit = "corcom", cmd = CMD.FIGHT, enemy = true },
 	{ name = "normal_fight", unit = "corcom", cmd = CMD.FIGHT, norez = true },
 }
+-- Runtime fields are populated at frame 30 before the later test phases use them.
+---@cast cases ReclaimFightCase[]
+
 local function log(...)
 	local a = { ... }
 	for i = 1, #a do
@@ -90,7 +110,7 @@ function gadget:GameFrame(f)
 			local q = Spring.GetUnitCommands(c.builder, -1)
 			local seq = {}
 			for _, v in ipairs(q) do
-				seq[#seq + 1] = v.id .. ":" .. v.options.coded
+				seq[#seq + 1] = v.id .. ":" .. (v.options and v.options.coded or 0)
 			end
 			local task, target = Spring.GetUnitWorkerTask(c.builder)
 			local rt, rp = Spring.GetUnitWorkerTask(c.rez)

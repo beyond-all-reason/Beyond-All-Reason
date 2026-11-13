@@ -10,6 +10,25 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+---@class ReclaimPolicyCase
+---@field name string
+---@field rezFirst? boolean
+---@field same? boolean
+---@field enemy? boolean
+---@field abandon? boolean
+---@field build? boolean
+---@field two? boolean
+---@field x number
+---@field z number
+---@field counts integer[]
+---@field simultaneous integer
+---@field feature FeatureID
+---@field builder UnitID
+---@field rez UnitID
+---@field extra? UnitID
+---@field lastFrame? integer
+---@field lastDir? integer
+
 local cases = {
 	{ name = "reclaim_first" },
 	{ name = "rez_first", rezFirst = true },
@@ -20,6 +39,9 @@ local cases = {
 	{ name = "rez_before_build", build = true, rezFirst = true },
 	{ name = "two_rezzers", rezFirst = true, two = true },
 }
+-- Runtime fields are populated at frame 30 before the later test phases use them.
+---@cast cases ReclaimPolicyCase[]
+
 local function log(...)
 	local a = { ... }
 	for i = 1, #a do
@@ -30,6 +52,7 @@ end
 local function order(u, c, p)
 	Spring.GiveOrderToUnit(u, c, p or {}, 0)
 end
+---@param c ReclaimPolicyCase
 local function reclaim(c)
 	if c.build then
 		order(c.builder, -UnitDefNames.armllt.id, { c.x, 100, c.z, 0 })
@@ -37,6 +60,7 @@ local function reclaim(c)
 		order(c.builder, CMD.RECLAIM, { Game.maxUnits + c.feature })
 	end
 end
+---@param c ReclaimPolicyCase
 local function rez(c)
 	order(c.rez, CMD.RESURRECT, { Game.maxUnits + c.feature })
 	if c.extra then
@@ -170,7 +194,7 @@ function gadget:AllowFeatureBuildStep(u, t, id, d, part)
 			c.lastDir = dir
 			local index = (f >= 390 and 2 or 0) + (part > 0 and 2 or 1)
 			if f >= 210 and (f < 350 or f >= 390) then
-				c.counts[index] = c.counts[index] + 1
+				c.counts[index] = assert(c.counts[index]) + 1
 			end
 		end
 	end
