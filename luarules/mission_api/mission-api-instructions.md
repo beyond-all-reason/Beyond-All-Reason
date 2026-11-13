@@ -64,6 +64,9 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   `Spring.Echo` in `AddMessage` is a placeholder until a widget displays the log.
 - `GG.MapLighting` (`luarules/gadgets/api_map_lighting.lua`) runs the `actions/environment/` actions:
   lighting, time of day, and skybox, blended on game time and lost on a `/luarules reload`.
+- `GG.CampaignAI` (`luarules/gadgets/api_campaign_ai.lua`) runs the `actions/campaign_ai/` actions by
+  sending messages to a team's campaign AI. The engine creates the AI after the loadout spawns, so
+  a message from before the game starts reaches it when the game starts.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
   `api_mission_camera.lua` gadget passes them to `luaui/Widgets/api_mission_camera.lua`, which
