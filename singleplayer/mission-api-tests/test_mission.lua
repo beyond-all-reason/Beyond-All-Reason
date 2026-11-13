@@ -11,7 +11,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 0,
-			interval = 9,
 		},
 		actions = { 'spawnCons1' },
 	},
