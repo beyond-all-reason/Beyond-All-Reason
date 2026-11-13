@@ -194,6 +194,7 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.FeatureName] = validateString
 	parameterValidators[Types.EffectName] = validateString
 	parameterValidators[Types.SquadName] = validateString
+	parameterValidators[Types.RegionName] = validateString
 	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
 	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
 		return countdownID:sub(1, 2) ~= "__"

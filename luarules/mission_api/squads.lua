@@ -42,6 +42,12 @@ local function findSquad(teamID, squadID)
 end
 
 ---@return string? squadName nil for a squad that is not live
+local function getSquadName(teamID, squadID)
+	local squad = findSquad(teamID, squadID)
+	return squad and squad.squadName
+end
+
+---@return string? squadName nil for a squad that is not live
 local function assembleSquad(teamID, squadID)
 	local squad = findSquad(teamID, squadID)
 	if squad then
@@ -101,6 +107,7 @@ return {
 	Assemble = assembleSquad,
 	End = endSquad,
 	Get = getSquad,
+	GetName = getSquadName,
 	GetAssembled = getAssembledSquad,
 	Cancel = cancelSquad,
 }

@@ -24,7 +24,7 @@ local triggerTypes, triggers, callins, triggerContext ---@type table, table<stri
 local trackedUnitNames
 local statistics
 local countdowns
-local squads, aiSignals ---@type table, table
+local squads, aiRegions, aiSignals ---@type table, table, table
 local unknownAISignals = {}
 
 local needsBuildPlacements
@@ -246,6 +246,7 @@ function gadget:Initialize()
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
 	squads = GG["MissionAPI"].Modules.Squads
+	aiRegions = GG["MissionAPI"].Modules.AiRegions
 	aiSignals = VFS.Include("luarules/Utilities/campaign_ai_msg.lua").Signal
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
@@ -362,22 +363,29 @@ function gadget:GameStart()
 end
 
 function gadget:RecvLuaMsg(message, playerID)
-	local teamID, signal, squadID = GG.CampaignAI.ReadSignal(message, playerID)
+	local teamID, signal, id, squadID = GG.CampaignAI.ReadSignal(message, playerID)
 	if not teamID then
 		return
 	end
 
 	if signal == aiSignals.SQUAD_FINISHED then
-		local squadName = squads.Assemble(teamID, squadID)
+		local squadName = squads.Assemble(teamID, id)
 		if squadName then
 			dispatchTriggerCallin("SquadAssembled", squadName, teamID)
 		end
 	elseif signal == aiSignals.SQUAD_DESTROYED then
-		local squadName = squads.End(teamID, squadID)
+		local squadName = squads.End(teamID, id)
 		if squadName then
 			dispatchTriggerCallin("SquadDisbanded", squadName, teamID)
 		end
-	elseif signal ~= aiSignals.REGION_ENTER and signal ~= aiSignals.REGION_EXIT and not unknownAISignals[signal] then
+	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
+		local regionName = aiRegions.GetName(teamID, id)
+		local squadName = squads.GetName(teamID, squadID)
+		if regionName and squadName then
+			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
+			dispatchTriggerCallin(callin, regionName, squadName, teamID)
+		end
+	elseif not unknownAISignals[signal] then
 		unknownAISignals[signal] = true
 		Spring.Log("Mission API triggers", LOG.WARNING, "Unknown campaign AI signal: " .. signal)
 	end

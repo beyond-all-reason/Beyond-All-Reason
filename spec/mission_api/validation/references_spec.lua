@@ -542,6 +542,23 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 
+	describe("region names", function()
+		it("warns about a region an action refers to, but no action defines", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction(
+						"clearGhost",
+						{ type = V.actionTypes.ClearAiRegion, parameters = { regionName = "ghost" } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Region is referenced, but never created. Region: ghost, Referenced in: action clearGhost"
+			)
+		end)
+	end)
+
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.
 	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
 	describe("objective events", function()

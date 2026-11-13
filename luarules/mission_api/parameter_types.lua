@@ -53,6 +53,7 @@ local types = {
 	EffectType = "EffectType",
 	EffectName = "EffectName",
 	SquadName = "SquadName",
+	RegionName = "RegionName",
 	AiState = "AiState",
 	SquadTask = "SquadTask",
 

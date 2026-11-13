@@ -19,9 +19,11 @@ end
 --   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.CancelSquad(squadID, teamID)
 --   GG.CampaignAI.DisbandSquad(squadID, teamID)
+--   GG.CampaignAI.DefineAiRegion(regionID, polygon, teamID)
+--   GG.CampaignAI.ClearAiRegion(regionID, teamID)
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
--- unitDefID to a count.
+-- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map.
 -- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two IDs
 -- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
@@ -99,6 +101,16 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SQUAD_DISBAND, squadID):toString())
 	end
 
+	local function defineAiRegion(regionID, polygon, teamID)
+		local message = MsgBuilder.new():cmdDictArray(Topic.TRIGGER_REGION_ID, regionID, polygon):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function clearAiRegion(regionID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.TRIGGER_REGION_CLEAR, regionID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
 	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
 	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
 
@@ -126,6 +138,8 @@ if gadgetHandler:IsSyncedCode() then
 		RunSquad = runSquad,
 		CancelSquad = cancelSquad,
 		DisbandSquad = disbandSquad,
+		DefineAiRegion = defineAiRegion,
+		ClearAiRegion = clearAiRegion,
 		ReadSignal = readSignal,
 	}
 

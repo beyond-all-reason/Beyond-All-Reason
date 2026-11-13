@@ -138,6 +138,8 @@ describe("mission_api.triggers_loader", function()
 			-- Campaign AI signals drive the squad triggers:
 			assert.is_function(C.SquadAssembled[T.SquadAssembled])
 			assert.is_function(C.SquadDisbanded[T.SquadDisbanded])
+			assert.is_function(C.SquadEnteredRegion[T.SquadEnteredRegion])
+			assert.is_function(C.SquadLeftRegion[T.SquadLeftRegion])
 
 			-- GameFrame drives resource triggers:
 			assert.is_function(C.GameFrame[T.ResourceStored])

@@ -49,6 +49,12 @@ describe("mission_api.squads", function()
 		assert.is_nil(squads.GetAssembled("first"))
 	end)
 
+	it("gets a live squad's name by its team and ID", function()
+		local squadID = squads.Define("first", 3)
+		assert.are.equal("first", squads.GetName(3, squadID))
+		assert.is_nil(squads.GetName(4, squadID))
+	end)
+
 	it("gets a gathering squad's ID and team by its name", function()
 		local squadID = squads.Define("first", 3)
 		assert.are.same({ squadID, 3 }, { squads.Get("first") })

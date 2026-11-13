@@ -181,6 +181,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|212:5" } }, world.sent)
 		end)
 
+		it("defines a region: its ID with its polygon", function()
+			campaignAI.DefineAiRegion(5, { 0, 0, 128, 0, 128, 128, 0, 128 }, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|321:5=0,0,128,0,128,128,0,128" } }, world.sent)
+		end)
+
+		it("clears a region", function()
+			campaignAI.ClearAiRegion(5, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|322:5" } }, world.sent)
+		end)
+
 		it("uses one sync action for messages and one for signals", function()
 			local names = table.keys(world.syncActions)
 			table.sort(names)
