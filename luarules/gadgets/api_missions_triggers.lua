@@ -618,9 +618,11 @@ function gadget:Initialize()
 		needsBuildPlacements = needsBuildPlacements or trigger.type == triggerTypes.ConstructionStarted
 		needsBuildStartSet = needsBuildStartSet or trigger.type == triggerTypes.ConstructionFinished
 		needsBuildOwnerMap = needsBuildOwnerMap
-			or (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
-			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
-			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
+			or not not (
+				(trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+				or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
+				or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
+			)
 		needsConstructionProgress = needsConstructionProgress or trigger.type == triggerTypes.ConstructionProgress
 		needsReclaimIncome = needsReclaimIncome or trigger.type == triggerTypes.ResourceIncome
 		needsFeatureReclaimTracking = needsFeatureReclaimTracking
