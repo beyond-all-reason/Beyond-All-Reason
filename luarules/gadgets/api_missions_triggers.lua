@@ -45,13 +45,15 @@ local stockpileState = {}
 local dwellingUnitsInAreas = {}
 local revealedLocations = {}
 local gatheredUnitsInAreas = {}
+local underConstruction = {}
+
+-- Local bookkeeping for various concerns: build, reclaim, detection, transfer.
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures = {}
 local buildPlacements = {}
 local buildFrameOwners = {}
 local constructionStarts = {}
-local underConstruction = {}
 local detections = {}
 local detectionCount = 0
 local capturedUnits = {}
