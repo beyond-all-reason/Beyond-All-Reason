@@ -65,6 +65,14 @@ local triggers = {
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},
+
+	gatherThenMoveOn = {
+		type = eventTypes.TimeElapsed,
+		parameters = {
+			seconds = 60,
+		},
+		actions = { 'spawnGatherers', 'gatherThenMoveOn', 'messageGatherThenMoveOn' },
+	},
 }
 
 local actions = {
@@ -322,6 +330,35 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Stop all that.",
+		},
+	},
+
+	spawnGatherers = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', position = { x = 2000, z = 1100 }, teamName = 'player', unitName = 'gatherers' },
+				{ unitDefName = 'armpw', position = { x = 1700, z = 1100 }, teamName = 'player', unitName = 'gatherers' },
+			},
+		},
+	},
+
+	gatherThenMoveOn = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'gatherers',
+			orders = {
+				{ CMD.MOVE, { 2050, 0, 1100 } },
+				{ CMD.GATHERWAIT, {}, { 'shift' } },
+				{ CMD.MOVE, { 2050, 0, 900 }, { 'shift' } },
+			},
+		},
+	},
+
+	messageGatherThenMoveOn = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Two Pawns meet at one spot, and the nearer waits for the other before they both head north.",
 		},
 	},
 }

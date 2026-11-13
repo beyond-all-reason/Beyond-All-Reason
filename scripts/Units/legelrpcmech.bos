@@ -1,3 +1,4 @@
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 #include "../recoil_common_includes.h"
 #include "../opencloseanim.h"
@@ -65,20 +66,13 @@ lefttopbarrelfirepoint,
 rightbottombarrelfirepoint,
 righttopbarrelfirepoint;
 
-static-var  isMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode, whichBarrel;
+static-var isMoving, last_primary_heading, last_primary_pitch, whichBarrel, animSpeed, isOpen, Stunned, isSmoking;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
 
-// #define LOW_TRAJECTORY		0
-// #define HIGH_TRAJECTORY		1
-
-// Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
-// Using https://github.com/Beherith/Skeletor_S3O
-// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
-
-static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+#define SMOKE_PIECE chassis
+#include "../damagedsmoke.h"
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -88,12 +82,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 lua_UnitScriptLight(lightIndex) {
 	return 0;
 }
-
-
-
-#define SMOKEPIECE chassis
-// #include "../unit_hitbyweaponid_and_smoke.h"
-#include "smokeunit_thread_nohit.h"
 
 SmokeItUp()
 {	
@@ -129,11 +117,8 @@ SmokeItUp()
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-
-#define SIGNAL_MOVE 1
+// Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
+// Using https://github.com/Beherith/Skeletor_S3O
 Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\Tier 3\legelrpcmech10SKELETOREXPORT.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
@@ -748,25 +733,10 @@ StopWalking() {
 	turn rightRearLegPivot to z-axis <0> speed <692.503681> / animSpeed;
 	turn turretHeadingPivot to x-axis <0> speed <82.209240> / animSpeed;
 }
-// REMEMBER TO animspeed = 6 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 6) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<3) animSpeed=3;
-		if (animspeed>12) animSpeed = 12;
-		sleep 197;
-	}
-}
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 8;
+	animSpeed = 8;
 	start-script Walk();
 }
 StopMoving(){
@@ -775,234 +745,166 @@ StopMoving(){
 	call-script StopWalking();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static-var isOpen;
 Open(){
-    // if(isDeployed == 0){
-        //turret
-        move turretHeadingPivot to y-axis [0] speed [8];
-        //turn turretPitchPivot to x-axis <0> speed <50>;
+	//turret
+	move turretHeadingPivot to y-axis [0] speed [8];
 
-        //plates
-        move rightTurretPlate to z-axis [0] speed [40];
-        move leftTurretPlate to z-axis [0] speed [40];
-        move rightTurretPlate to x-axis [0] speed [40];
-        move leftTurretPlate to x-axis [0] speed [40];
-        wait-for-move leftTurretPlate along x-axis;
+	//plates
+	move rightTurretPlate to z-axis [0] speed [40];
+	move leftTurretPlate to z-axis [0] speed [40];
+	move rightTurretPlate to x-axis [0] speed [40];
+	move leftTurretPlate to x-axis [0] speed [40];
+	wait-for-move leftTurretPlate along x-axis;
 
-        turn rightTurretPlate to z-axis <0> speed <20>;
-        turn leftTurretPlate to z-axis <0> speed <20>;
-        move rightTurretPlate to y-axis [0] speed [6];
-        move leftTurretPlate to y-axis [0] speed [6];
+	turn rightTurretPlate to z-axis <0> speed <20>;
+	turn leftTurretPlate to z-axis <0> speed <20>;
+	move rightTurretPlate to y-axis [0] speed [6];
+	move leftTurretPlate to y-axis [0] speed [6];
 
-        //barrel and chamber
-        move rightTopChamber to z-axis [0] speed [80];
-        sleep 100;
-        move leftTopChamber to z-axis [0] speed [80];
-        sleep 100;
-        move rightBottomChamber to z-axis [0] speed [80];
-        sleep 100;
-        move leftBottomChamber to z-axis [0] speed [80];
-        sleep 100;
+	//barrel and chamber
+	move rightTopChamber to z-axis [0] speed [80];
+	sleep 100;
+	move leftTopChamber to z-axis [0] speed [80];
+	sleep 100;
+	move rightBottomChamber to z-axis [0] speed [80];
+	sleep 100;
+	move leftBottomChamber to z-axis [0] speed [80];
+	sleep 100;
 
-        move rightTopBarrel to z-axis [0] speed [88];
-        sleep 100;
-        move leftTopBarrel to z-axis [0] speed [88];
-        sleep 100;
-        move rightBottomBarrel to z-axis [0] speed [88];
-        sleep 100;
-        move leftBottomBarrel to z-axis [0] speed [88];
-        sleep 100;
-        isOpen = 1;
-    // }
+	move rightTopBarrel to z-axis [0] speed [88];
+	sleep 100;
+	move leftTopBarrel to z-axis [0] speed [88];
+	sleep 100;
+	move rightBottomBarrel to z-axis [0] speed [88];
+	sleep 100;
+	move leftBottomBarrel to z-axis [0] speed [88];
+	sleep 100;
+	isOpen = 1;
 }
 
 Close(){
-    // if(isDeployed == 1){
-        isOpen = 0;
-        //barrel and chamber
-        move rightTopBarrel to z-axis [-22] speed [22];
-        sleep 250;
-        move leftTopBarrel to z-axis [-22] speed [22];
-        sleep 250;
-        move rightBottomBarrel to z-axis [-22] speed [22];
-        sleep 250;
-        move leftBottomBarrel to z-axis [-22] speed [22];
-        sleep 250;
+	isOpen = 0;
+	//barrel and chamber
+	move rightTopBarrel to z-axis [-22] speed [22];
+	sleep 250;
+	move leftTopBarrel to z-axis [-22] speed [22];
+	sleep 250;
+	move rightBottomBarrel to z-axis [-22] speed [22];
+	sleep 250;
+	move leftBottomBarrel to z-axis [-22] speed [22];
+	sleep 250;
 
-        move rightTopChamber to z-axis [-20] speed [20];
-        sleep 250;
-        move leftTopChamber to z-axis [-20] speed [20];
-        sleep 250;
-        move rightBottomChamber to z-axis [-20] speed [20];
-        sleep 250;
-        move leftBottomChamber to z-axis [-20] speed [20];
-        sleep 250;
+	move rightTopChamber to z-axis [-20] speed [20];
+	sleep 250;
+	move leftTopChamber to z-axis [-20] speed [20];
+	sleep 250;
+	move rightBottomChamber to z-axis [-20] speed [20];
+	sleep 250;
+	move leftBottomChamber to z-axis [-20] speed [20];
+	sleep 250;
 
-        //plates
-        turn rightTurretPlate to z-axis <10> speed <50>;
-        turn leftTurretPlate to z-axis <-10> speed <50>;
-        move rightTurretPlate to y-axis [3] speed [1.5];
-        move leftTurretPlate to y-axis [3] speed [1.5];
-        wait-for-turn rightTurretPlate around z-axis;
+	//plates
+	turn rightTurretPlate to z-axis <10> speed <50>;
+	turn leftTurretPlate to z-axis <-10> speed <50>;
+	move rightTurretPlate to y-axis [3] speed [1.5];
+	move leftTurretPlate to y-axis [3] speed [1.5];
+	wait-for-turn rightTurretPlate around z-axis;
 
-        move rightTurretPlate to z-axis [20] speed [10];
-        move leftTurretPlate to z-axis [20] speed [10];
-        move rightTurretPlate to x-axis [-5] speed [2.5];
-        move leftTurretPlate to x-axis [5] speed [2.5];
+	move rightTurretPlate to z-axis [20] speed [10];
+	move leftTurretPlate to z-axis [20] speed [10];
+	move rightTurretPlate to x-axis [-5] speed [2.5];
+	move leftTurretPlate to x-axis [5] speed [2.5];
 
-        //turret
-        turn turretHeadingPivot to y-axis <0.0> speed <36.0>;
-        wait-for-turn turretHeadingPivot around y-axis;
-        move turretHeadingPivot to y-axis [-4] speed [2];
-        turn turretPitchPivot to x-axis <24> speed <20>;
-
-
-        
-
-    // }
+	//turret
+	turn turretHeadingPivot to y-axis <0.0> speed <36.0>;
+	wait-for-turn turretHeadingPivot around y-axis;
+	move turretHeadingPivot to y-axis [-4] speed [2];
+	turn turretPitchPivot to x-axis <24> speed <20>;
 }
-
-
-Steering(heading)
-{
-	while( 1 )
-	{
-		heading = get HEADING;
-
-		if ( heading < oldheading )	bSteering=TRUE;
-		if ( heading > oldheading )	bSteering=TRUE;
-		if (heading == oldheading ) bSteering=FALSE;
-
-		sleep 66;
-		oldheading = heading;
-	}
-}
-
-#define BASEPIECE chassis
-#define HITSPEED <35.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 10
-#define MAXTILT 100
-
-// #include "../unit_hitbyweaponid_and_smoke.h"
-
-RockUnit(anglex, anglez)
-{
-
-}
-
 Create()
 {
 	isMoving = FALSE;
-	bSteering = FALSE;
-	oldHeading = get HEADING;
-	start-script Steering();
 	turn leftFrontLegPivot to y-axis <-60> now;
-    turn leftRearLegPivot to y-axis <0> now;
+	turn leftRearLegPivot to y-axis <0> now;
 	turn rightFrontLegPivot to y-axis <60> now;
 	turn rightRearLegPivot to y-axis <-0> now;
-    
-    turn coolingCellPivotA to x-axis <-42> now;
-    turn coolingCellPivotB to x-axis <-42> now;
-    turn coolingCellPivotC to x-axis <-42> now;
 
-    ///////////////// undeployed state
-    //barrel and chamber
-    move rightTopBarrel to z-axis [-22] now;
-    move leftTopBarrel to z-axis [-22] now;
-    move rightBottomBarrel to z-axis [-22] now;
-    move leftBottomBarrel to z-axis [-22] now;
+	turn coolingCellPivotA to x-axis <-42> now;
+	turn coolingCellPivotB to x-axis <-42> now;
+	turn coolingCellPivotC to x-axis <-42> now;
 
-    move rightTopChamber to z-axis [-20] now;
-    move leftTopChamber to z-axis [-20] now;
-    move rightBottomChamber to z-axis [-20] now;
-    move leftBottomChamber to z-axis [-20] now;
+	///////////////// undeployed state
+	//barrel and chamber
+	move rightTopBarrel to z-axis [-22] now;
+	move leftTopBarrel to z-axis [-22] now;
+	move rightBottomBarrel to z-axis [-22] now;
+	move leftBottomBarrel to z-axis [-22] now;
 
-    //plates
-    turn rightTurretPlate to z-axis <10> now;
-    turn leftTurretPlate to z-axis <-10> now;
-    move rightTurretPlate to y-axis [3] now;
-    move leftTurretPlate to y-axis [3] now;
+	move rightTopChamber to z-axis [-20] now;
+	move leftTopChamber to z-axis [-20] now;
+	move rightBottomChamber to z-axis [-20] now;
+	move leftBottomChamber to z-axis [-20] now;
 
-    move rightTurretPlate to z-axis [20] now;
-    move leftTurretPlate to z-axis [20] now;
-    move rightTurretPlate to x-axis [-5] now;
-    move leftTurretPlate to x-axis [5] now;
+	//plates
+	turn rightTurretPlate to z-axis <10> now;
+	turn leftTurretPlate to z-axis <-10> now;
+	move rightTurretPlate to y-axis [3] now;
+	move leftTurretPlate to y-axis [3] now;
 
-    //turret
-    move turretHeadingPivot to y-axis [-4] now;
-    turn turretPitchPivot to x-axis <24> now;
-    isOpen = 0;
+	move rightTurretPlate to z-axis [20] now;
+	move leftTurretPlate to z-axis [20] now;
+	move rightTurretPlate to x-axis [-5] now;
+	move leftTurretPlate to x-axis [5] now;
 
-	speedmult = 70;
+	//turret
+	move turretHeadingPivot to y-axis [-4] now;
+	turn turretPitchPivot to x-axis <24> now;
+	isOpen = 0;
+
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	// trajectoryMode = LOW_TRAJECTORY;
-    whichBarrel = 0;
+	whichBarrel = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 }
-
-// Activate()
-// {
-// 	signal SIGNAL_AIM1;
-// 	// trajectoryMode = HIGH_TRAJECTORY;
-// 	// set last heading values to large negative, ensure first aim waits for the turn
-// 	last_primary_heading = -1000000;
-// 	last_primary_pitch = -1000000;
-// }
-
-// Deactivate()
-// {
-// 	signal SIGNAL_AIM1;
-// 	// trajectoryMode = LOW_TRAJECTORY;
-// 	// set last heading values to large negative, ensure first aim waits for the turn
-// 	last_primary_heading = -1000000;
-// 	last_primary_pitch = -1000000;
-// }
 
 Activate()
 {
 	start-script OpenCloseAnim(1);
-    signal SIGNAL_AIM1;
-    last_primary_heading = -1000000;
-    last_primary_pitch = -1000000;
+	signal SIGNAL_AIM1;
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 }
 
 Deactivate()
 {
 	start-script OpenCloseAnim(0);
-    signal SIGNAL_AIM1;
-    last_primary_heading = -1000000;
-    last_primary_pitch = -1000000;
+	signal SIGNAL_AIM1;
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 }
 
-
-
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned)
+	if (Stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 	set-signal-mask 0;
-	// turn turretHeadingPivot to y-axis <0.0> speed <36.0>;
-	// turn turretPitchPivot to x-axis <0.0> speed <30.0>;
 	start-script OpenCloseAnim(0);
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
 	wait-for-turn turretHeadingPivot around y-axis;
 	wait-for-turn turretPitchPivot around x-axis;
-	wpn1_lasthead = 0xbadface;
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -1015,74 +917,68 @@ RestoreAfterDelay()
 
 fireCommon()
 {
-    if (whichBarrel == 0){
-        sleep 1;
-        move rightTopBarrel to z-axis [-20] speed [50];
-        move rightTopChamber to z-axis [-4] speed [12];
-        call-script lua_UnitScriptLight(1);
-        call-script lua_UnitScriptLight(1);
-        //sleep 751;
-
-        whichBarrel = 1;
-    }
-    if (whichBarrel == 1){
-        sleep 1;
-        move leftTopBarrel to z-axis [-20] speed [50];
-        move leftTopChamber to z-axis [-4] speed [12];
-        call-script lua_UnitScriptLight(2);
-        call-script lua_UnitScriptLight(2);
-        //sleep 751;
-        whichBarrel = 2;
-    }
-    if (whichBarrel == 2){
-        sleep 1;
-        move leftBottomBarrel to z-axis [-20] speed [50];
-        move leftBottomChamber to z-axis [-4] speed [12];
-        call-script lua_UnitScriptLight(3);
-        call-script lua_UnitScriptLight(3);
-        //sleep 751;
-        whichBarrel = 3;
-    }
-    if (whichBarrel == 3){
-        sleep 1;
-        move rightBottomBarrel to z-axis [-20] speed [50];
-        move rightBottomChamber to z-axis [-4] speed [12];
-        call-script lua_UnitScriptLight(4);
-        call-script lua_UnitScriptLight(4);
-        // ancillary glows
-        call-script lua_UnitScriptLight(5);
-        call-script lua_UnitScriptLight(6);
-        call-script lua_UnitScriptLight(7);
-        call-script lua_UnitScriptLight(8);
-        call-script lua_UnitScriptLight(9);
-        call-script lua_UnitScriptLight(10);
-        call-script lua_UnitScriptLight(11);
-        call-script lua_UnitScriptLight(12);
-        call-script lua_UnitScriptLight(13);
-        //sleep 751;
+	if (whichBarrel == 0){
+		sleep 1;
+		move rightTopBarrel to z-axis [-20] speed [50];
+		move rightTopChamber to z-axis [-4] speed [12];
+		call-script lua_UnitScriptLight(1);
+		call-script lua_UnitScriptLight(1);
+		whichBarrel = 1;
+	}
+	if (whichBarrel == 1){
+		sleep 1;
+		move leftTopBarrel to z-axis [-20] speed [50];
+		move leftTopChamber to z-axis [-4] speed [12];
+		call-script lua_UnitScriptLight(2);
+		call-script lua_UnitScriptLight(2);
+		whichBarrel = 2;
+	}
+	if (whichBarrel == 2){
+		sleep 1;
+		move leftBottomBarrel to z-axis [-20] speed [50];
+		move leftBottomChamber to z-axis [-4] speed [12];
+		call-script lua_UnitScriptLight(3);
+		call-script lua_UnitScriptLight(3);
+		whichBarrel = 3;
+	}
+	if (whichBarrel == 3){
+		sleep 1;
+		move rightBottomBarrel to z-axis [-20] speed [50];
+		move rightBottomChamber to z-axis [-4] speed [12];
+		call-script lua_UnitScriptLight(4);
+		call-script lua_UnitScriptLight(4);
+		// ancillary glows
+		call-script lua_UnitScriptLight(5);
+		call-script lua_UnitScriptLight(6);
+		call-script lua_UnitScriptLight(7);
+		call-script lua_UnitScriptLight(8);
+		call-script lua_UnitScriptLight(9);
+		call-script lua_UnitScriptLight(10);
+		call-script lua_UnitScriptLight(11);
+		call-script lua_UnitScriptLight(12);
+		call-script lua_UnitScriptLight(13);
 		turn ventDoorA to x-axis <45> speed <300>;
-        turn ventDoorB to x-axis <45> speed <300>;
-        turn ventDoorC to x-axis <45> speed <300>;
+		turn ventDoorB to x-axis <45> speed <300>;
+		turn ventDoorC to x-axis <45> speed <300>;
 		start-script SmokeItUp();
 		sleep 100;
-        move coolingCellA to y-axis [15] speed [100];
-        move coolingCellB to y-axis [15] speed [100];
-        move coolingCellC to y-axis [15] speed [100];
-        whichBarrel = 0;
-    }
-    sleep 500;
-    move rightTopBarrel to z-axis [0] speed [6];
-    move rightTopChamber to z-axis [0.0] speed [8];
-    sleep 150;
-    move leftTopBarrel to z-axis [0] speed [6];
-    move leftTopChamber to z-axis [0.0] speed [8];
-    sleep 150;
-    move leftBottomBarrel to z-axis [0] speed [6];
-    move leftBottomChamber to z-axis [0.0] speed [8];
-    sleep 150;
-    move rightBottomBarrel to z-axis [0] speed [6];
-    move rightBottomChamber to z-axis [0.0] speed [8];
-
+		move coolingCellA to y-axis [15] speed [100];
+		move coolingCellB to y-axis [15] speed [100];
+		move coolingCellC to y-axis [15] speed [100];
+		whichBarrel = 0;
+	}
+	sleep 500;
+	move rightTopBarrel to z-axis [0] speed [6];
+	move rightTopChamber to z-axis [0.0] speed [8];
+	sleep 150;
+	move leftTopBarrel to z-axis [0] speed [6];
+	move leftTopChamber to z-axis [0.0] speed [8];
+	sleep 150;
+	move leftBottomBarrel to z-axis [0] speed [6];
+	move leftBottomChamber to z-axis [0.0] speed [8];
+	sleep 150;
+	move rightBottomBarrel to z-axis [0] speed [6];
+	move rightBottomChamber to z-axis [0.0] speed [8];
 }
 
 AimFromWeapon1(pieceIndex)
@@ -1092,30 +988,29 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-    if (whichBarrel == 0){
-        pieceIndex = righttopbarrelfirepoint;
-    }
-    if (whichBarrel == 1){
-        pieceIndex = lefttopbarrelfirepoint;
-    }
-    if (whichBarrel == 2){
-        pieceIndex = leftbottombarrelfirepoint;
-    }
-    if (whichBarrel == 3){
-        pieceIndex = rightbottombarrelfirepoint;
-    }
+	if (whichBarrel == 0){
+		pieceIndex = righttopbarrelfirepoint;
+	}
+	if (whichBarrel == 1){
+		pieceIndex = lefttopbarrelfirepoint;
+	}
+	if (whichBarrel == 2){
+		pieceIndex = leftbottombarrelfirepoint;
+	}
+	if (whichBarrel == 3){
+		pieceIndex = rightbottombarrelfirepoint;
+	}
 }
 
 AimWeapon1(heading, pitch)
 {
-    if (!isOpen){
-        turn turretHeadingPivot to y-axis heading speed <30.0>;
-        turn turretPitchPivot to x-axis <0.0> - pitch speed <45.0>;
-    }
+	if (!isOpen){
+		turn turretHeadingPivot to y-axis heading speed <30.0>;
+		turn turretPitchPivot to x-axis <0.0> - pitch speed <45.0>;
+	}
 
-    start-script OpenCloseAnim(1);
-    
-    signal SIGNAL_AIM1;
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
 	while( !isOpen )
@@ -1151,123 +1046,41 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-
 	call-script fireCommon();
-    sleep 4500;
-    move coolingCellA to y-axis [0] speed [10];
-    sleep 100;
-    move coolingCellB to y-axis [0] speed [10];
-    sleep 100;
-    move coolingCellC to y-axis [0] speed [10];
-    sleep 100;
-    wait-for-move coolingCellC along y-axis;
-    turn ventDoorA to x-axis <0> speed <50>;
-    sleep 100;
-    turn ventDoorB to x-axis <0> speed <50>;
-    sleep 100;
-    turn ventDoorC to x-axis <0> speed <50>;
+	sleep 4500;
+	move coolingCellA to y-axis [0] speed [10];
+	sleep 100;
+	move coolingCellB to y-axis [0] speed [10];
+	sleep 100;
+	move coolingCellC to y-axis [0] speed [10];
+	sleep 100;
+	wait-for-move coolingCellC along y-axis;
+	turn ventDoorA to x-axis <0> speed <50>;
+	sleep 100;
+	turn ventDoorB to x-axis <0> speed <50>;
+	sleep 100;
+	turn ventDoorC to x-axis <0> speed <50>;
 }
 
 Shot1(heading, pitch) {
-    if (whichBarrel == 0){
-        emit-sfx 1024 + 0 from righttopbarrelfirepoint;
-        whichBarrel = 1;
-    }
-    if (whichBarrel == 1){
-        emit-sfx 1024 + 0 from lefttopbarrelfirepoint;
-        whichBarrel = 2;
-    }
-    if (whichBarrel == 2){
-        emit-sfx 1024 + 0 from leftbottombarrelfirepoint;
-        whichBarrel = 3;
-    }
-    if (whichBarrel == 3){
-        emit-sfx 1024 + 0 from rightbottombarrelfirepoint;
-        whichBarrel = 0;
-    }
-    if (whichBarrel >= 4) whichBarrel = 0;
+	if (whichBarrel == 0){
+		emit-sfx 1024 + 0 from righttopbarrelfirepoint;
+		whichBarrel = 1;
+	}
+	if (whichBarrel == 1){
+		emit-sfx 1024 + 0 from lefttopbarrelfirepoint;
+		whichBarrel = 2;
+	}
+	if (whichBarrel == 2){
+		emit-sfx 1024 + 0 from leftbottombarrelfirepoint;
+		whichBarrel = 3;
+	}
+	if (whichBarrel == 3){
+		emit-sfx 1024 + 0 from rightbottombarrelfirepoint;
+		whichBarrel = 0;
+	}
+	if (whichBarrel >= 4) whichBarrel = 0;
 }
-
-// AimFromWeapon2(pieceIndex)
-// {
-// 	pieceIndex = turretMain;
-// }
-
-// QueryWeapon2(pieceIndex)
-// {
-//     if (whichBarrel == 0){
-//         pieceIndex = rightTopBarrel;
-//     }
-//     if (whichBarrel == 1){
-//         pieceIndex = leftTopBarrel;
-//     }
-//     if (whichBarrel == 2){
-//         pieceIndex = leftBottomBarrel;
-//     }
-//     if (whichBarrel == 3){
-//         pieceIndex = rightBottomBarrel;
-//     }
-// }
-
-// AimWeapon2(heading, pitch)
-// {
-// 	if (trajectoryMode == LOW_TRAJECTORY)
-// 	{
-// 		return(0);
-// 	}
-
-// 	signal SIGNAL_AIM1;
-// 	set-signal-mask SIGNAL_AIM1;
-// 	// values in <> are degrees per second
-// 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
-// 	// In general, 6 cau per frame ~= 1 degree per second
-// 	turn turretHeadingPivot to y-axis heading speed <30.0>;
-// 	turn turretPitchPivot to x-axis <0.0> - pitch speed <45.0>;
-// 	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
-// 	{
-// 		// seems to take 3 frames for wait-for-turn to process
-// 		wait-for-turn turretHeadingPivot around y-axis;
-// 		wait-for-turn turretPitchPivot around x-axis;
-// 	}
-// 	last_primary_heading=heading;
-// 	last_primary_pitch=pitch;
-// 	start-script RestoreAfterDelay();
-
-// 	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
-// 	var reloading;
-// 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-// 	if( reloading )
-// 	{
-// 		return(0);
-// 	}
-
-// 	return (1);
-// }
-
-// FireWeapon2()
-// {	
-// 	call-script fireCommon();
-// }
-
-// Shot2(heading, pitch) {
-//     if (whichBarrel == 0){
-//         emit-sfx 1024 + 0 from rightTopBarrel;
-//         whichBarrel = 1;
-//     }
-//     if (whichBarrel == 1){
-//         emit-sfx 1024 + 0 from leftTopBarrel;
-//         whichBarrel = 2;
-//     }
-//     if (whichBarrel == 2){
-//         emit-sfx 1024 + 0 from leftBottomBarrel;
-//         whichBarrel = 3;
-//     }
-//     if (whichBarrel == 3){
-//         emit-sfx 1024 + 0 from rightBottomBarrel;
-//         whichBarrel = 0;
-//     }
-//     if (whichBarrel >= 4) whichBarrel = 0;
-// }
 
 Killed(severity, corpsetype)
 {

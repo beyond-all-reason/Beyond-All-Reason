@@ -17,9 +17,9 @@ describe("mission_api.statistics", function()
 	local measured -- ordered list of { trigger, value } handed to EvaluateMetric
 
 	-- Fakes injected in place of the gadget's trigger core:
-	local function processTriggersOfType(triggerType, func)
+	local function processTriggersOfType(conditionType, func)
 		for triggerID, trigger in pairs(triggers) do
-			if trigger.type == triggerType then
+			if trigger.type == conditionType then
 				func(trigger, triggerID)
 			end
 		end
@@ -37,8 +37,8 @@ describe("mission_api.statistics", function()
 		return true
 	end
 
-	local function makeTrigger(triggerType, parameters)
-		return { type = triggerType, parameters = parameters, triggered = false, repeatCount = 0 }
+	local function makeTrigger(conditionType, parameters)
+		return { type = conditionType, parameters = parameters, triggered = false, repeatCount = 0 }
 	end
 
 	before_each(function()

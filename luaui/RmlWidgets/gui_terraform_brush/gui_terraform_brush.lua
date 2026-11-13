@@ -2542,7 +2542,10 @@ widgetState.applyEnvConfig = function(d)
 		end
 	end
 	local atmosParams = {}
-	-- Env-preset fog is not applied (placeholder fog, see FOG_OFF): force it off.
+	-- Env-preset fog is not applied (placeholder fog, see FOG_OFF): force it off,
+	-- but hold what the config carried so a save writes it back.
+	local fs, fe = tonumber(d.fogStart), tonumber(d.fogEnd)
+	widgetState.envHeldFog = (fs and fe) and { fs, fe } or nil
 	atmosParams.fogStart = FOG_OFF.fogStart
 	atmosParams.fogEnd = FOG_OFF.fogEnd
 	if d.fogColor then
@@ -2839,6 +2842,11 @@ widgetState.buildEnvConfigContent = function(opts)
 	local uShadow = gl.GetSun("shadowDensity", "unit")
 	local fgS = gl.GetAtmosphere("fogStart")
 	local fgE = gl.GetAtmosphere("fogEnd")
+	-- Fog still off (the engine nudges 1.99/2 to about 2/2.03) is the editor hiding it: keep the loaded fog.
+	local heldFog = widgetState.envHeldFog
+	if heldFog and math.abs(fgS - FOG_OFF.fogStart) < 0.05 and math.abs(fgE - FOG_OFF.fogEnd) < 0.05 then
+		fgS, fgE = heldFog[1], heldFog[2]
+	end
 	local fgC = { gl.GetAtmosphere("fogColor") }
 	local snC = { gl.GetAtmosphere("sunColor") }
 	local skC = { gl.GetAtmosphere("skyColor") }
@@ -17352,6 +17360,7 @@ local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environme
 widgetState.tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
+widgetState.tfExport = require("luaui/RmlWidgets/gui_terraform_brush/tf_export")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
 local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
 local tfLights = require("luaui/RmlWidgets/gui_terraform_brush/tf_lights")
@@ -18510,6 +18519,7 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	widgetState.tfBlockout.attach(doc, ctx)
+	widgetState.tfExport.attach(doc, ctx)
 	widgetState.attachWheelLockGesture(doc)
 	tfTileset.attach(doc, ctx)
 	if tfSurface then
@@ -18971,6 +18981,26 @@ function widget:Initialize()
 		end
 	end
 
+	-- A real map (compiled or legacy) names its sky and its sun intensity in mapinfo.lua, and the
+	-- engine has no getter for either: seed both, or a save records no sky and intensity 1, and the
+	-- first sun slider nudge writes 1 back. A generated canvas declares neither; a project load
+	-- applies its own environment later and wins.
+	do
+		local mapinfo = VFS.Include("common/mapinfo_read.lua")()
+		local sky = mapinfo and mapinfo.atmosphere and mapinfo.atmosphere.skybox
+		if not widgetState.envCurrentSkybox and type(sky) == "string" and sky ~= "" then
+			-- the library copy when there is one (what a project names), else the map's own file
+			local libPath = "Terraform Brush/SkyBoxes/" .. (sky:match("([^/\\]+)$") or sky)
+			widgetState.envCurrentSkybox = VFS.FileExists(libPath, VFS.RAW_FIRST) and libPath or ("maps/" .. sky)
+		end
+		local sunDir = mapinfo and mapinfo.lighting and mapinfo.lighting.sundir
+		local intensity = type(sunDir) == "table" and tonumber(sunDir[4]) or nil
+		if intensity and intensity > 0 and intensity <= 10 then
+			widgetState.envSunIntensity = intensity
+			widgetState.refreshEnvSunSliders()
+		end
+	end
+
 	widgetState.installQuitGuard()
 
 	-- Expose UI-side API for key capture and badge refresh
@@ -19012,6 +19042,11 @@ function widget:Initialize()
 		---@return string? skyboxPath
 		getCurrentSkybox = function()
 			return widgetState.envCurrentSkybox
+		end,
+		-- The project save moves a sky the map ships (maps/...) into the library and repoints
+		-- the pick there; same texture, so nothing is re-applied.
+		setCurrentSkybox = function(path)
+			widgetState.envCurrentSkybox = path
 		end,
 		-- Start script for opening a map project (see widgetState.buildProjectStartScript).
 		---@param manifest MapProjectManifest
@@ -20198,6 +20233,11 @@ function widget:Update()
 		end
 		if not widgetState.autosavePrefsPushed and WG.MapProject and WG.MapProject.setAutosave then
 			widgetState.pushPerfPrefs()
+		end
+
+		-- FILE > EXPORT MAP: the export waits for the save it started.
+		if widgetState.exportUi then
+			widgetState.exportUi.update()
 		end
 
 		-- Quit guard: the save started from the popup finished; carry on, or keep the popup

@@ -3,6 +3,68 @@ local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
 local priorityUnits = configs.PriorityUnits or {}
 
+local USER_LAYOUTS_PATH = "LuaUI/Config/gridmenu_layouts.json"
+local UNIT_GRID_SIZES = { 4, 3, 4 }
+local LAB_GRID_SIZES = { 12 }
+
+local function isGrid(value, sizes, depth)
+	depth = depth or 1
+	if depth > #sizes then
+		return type(value) == "string"
+	end
+
+	if type(value) ~= "table" then
+		return false
+	end
+
+	for index, child in pairs(value) do
+		local inBounds = type(index) == "number" and index % 1 == 0 and index >= 1 and index <= sizes[depth]
+		if not inBounds or not isGrid(child, sizes, depth + 1) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function mergeUserGrids(target, userGrids, sizes)
+	if type(userGrids) ~= "table" then
+		return
+	end
+
+	for builderName, grid in pairs(userGrids) do
+		if type(builderName) == "string" and isGrid(grid, sizes) then
+			target[builderName] = grid
+		else
+			Spring.Echo(
+				"gridmenu config: ignoring malformed layout for "
+					.. tostring(builderName)
+					.. " in "
+					.. USER_LAYOUTS_PATH
+			)
+		end
+	end
+end
+
+local function loadUserLayouts()
+	local content = VFS.LoadFile(USER_LAYOUTS_PATH, VFS.RAW)
+	if not content then
+		return
+	end
+
+	local ok, decoded = pcall(Json.decode, content)
+	if not ok or type(decoded) ~= "table" then
+		Spring.Echo("gridmenu config: could not decode " .. USER_LAYOUTS_PATH)
+
+		return
+	end
+
+	mergeUserGrids(unitGrids, decoded.unitGrids, UNIT_GRID_SIZES)
+	mergeUserGrids(labGrids, decoded.labGrids, LAB_GRID_SIZES)
+end
+
+loadUserLayouts()
+
 local unitGridPos = {}
 local gridPosUnit = {}
 local hasUnitGrid = {}

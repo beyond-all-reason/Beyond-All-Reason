@@ -32,7 +32,7 @@ describe("mission_api.validation.references", function()
 		it("warns about an action that no trigger references", function()
 			local result = V.validate(
 				V.mission()
-					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithTrigger("t", V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 }))
 					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { messageKey = "unused" } })
 			)
@@ -44,7 +44,7 @@ describe("mission_api.validation.references", function()
 		it("reports every unreferenced action, in sorted order", function()
 			local result = V.validate(
 				V.mission()
-					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithTrigger("t", V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 }))
 					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { messageKey = "zzz" } })
 					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { messageKey = "aaa" } })
@@ -57,7 +57,7 @@ describe("mission_api.validation.references", function()
 	it("passes when every name is both created and referenced", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TotalUnitsKilled,
+				type = V.conditionTypes.TotalUnitsKilled,
 				parameters = { teamName = "player", unitName = "bot" },
 				count = 1,
 				actions = { "spawn", "create", "delete", "add", "remove" },
@@ -75,7 +75,7 @@ describe("mission_api.validation.references", function()
 	it("counts mission loadout entries as creating names", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "destroyUnit", "destroyFeature" },
 			})
@@ -101,14 +101,14 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithObjective("watchBot", {
 				textKey = "watch bot",
-				trigger = { type = V.triggerTypes.UnitsOwned, parameters = { teamName = "player", unitName = "bot" } },
+				trigger = { type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player", unitName = "bot" } },
 			})
 			:WithObjective("watchRock", {
 				textKey = "watch rock",
-				trigger = { type = V.triggerTypes.FeatureDestroyed, parameters = { featureName = "rock" } },
+				trigger = { type = V.conditionTypes.FeatureDestroyed, parameters = { featureName = "rock" } },
 			})
 			:WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "spawn", "create" },
 			})
@@ -121,7 +121,7 @@ describe("mission_api.validation.references", function()
 
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "spawn", "order" },
 			})
@@ -134,12 +134,44 @@ describe("mission_api.validation.references", function()
 		V.env.CMD = {}
 	end)
 
+	it("treats the units of camera keyframes as name references", function()
+		local result = V.validate(V.mission()
+			:WithTrigger("t", {
+				type = V.conditionTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				actions = { "spawn", "shot", "chase", "circle" },
+			})
+			:WithAction("spawn", spawnUnits("hero"))
+			:WithAction("shot", {
+				type = V.actionTypes.PlayCameraSequence,
+				parameters = {
+					keyframes = {
+						{ unitName = "hero", lookAtUnitName = "raiders" },
+						{ position = { x = 0, z = 0 }, lookAtUnitName = "raiders" },
+					},
+				},
+			})
+			:WithAction("chase", { type = V.actionTypes.FollowCamera, parameters = { unitName = "ghosts" } })
+			:WithAction("circle", { type = V.actionTypes.OrbitCamera, parameters = { unitName = "hero" } }))
+
+		-- Named by two keyframes, listed once.
+		V.assertMessage(
+			result,
+			"Unit name is referenced, but never created. Unit name: raiders, Referenced in: action shot (keyframes)"
+		)
+		V.assertMessage(
+			result,
+			"Unit name is referenced, but never created. Unit name: ghosts, Referenced in: action chase"
+		)
+		V.assertNoMessageContaining(result, "Unit name: hero")
+	end)
+
 	-- Referencing action types come from the action schema, so actions like
 	-- DestroyUnits and ReclaimUnits count without being listed by hand.
 	it("counts every action taking a unitName as referencing it", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "name", "destroy", "reclaim" },
 			})
@@ -156,12 +188,12 @@ describe("mission_api.validation.references", function()
 	it("counts every parameter taking a unitName as referencing it", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TransportLoaded,
+				type = V.conditionTypes.TransportLoaded,
 				parameters = { transportName = "dropship", passengerName = "bot" },
 				actions = { "ok" },
 			})
 			:WithTrigger("start", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "spawnDropship", "spawnBot" },
 			})
@@ -226,7 +258,7 @@ describe("mission_api.validation.references", function()
 		it("passes a marker that is added and never removed", function()
 			V.assertValid(V.validate(V.mission()
 				:WithTrigger("t", {
-					type = V.triggerTypes.TimeElapsed,
+					type = V.conditionTypes.TimeElapsed,
 					parameters = { seconds = 1 },
 					actions = { "addPermanent" },
 				})
@@ -261,7 +293,7 @@ describe("mission_api.validation.references", function()
 		it("passes a line that is drawn and never removed", function()
 			V.assertValid(V.validate(V.mission()
 				:WithTrigger("t", {
-					type = V.triggerTypes.TimeElapsed,
+					type = V.conditionTypes.TimeElapsed,
 					parameters = { seconds = 1 },
 					actions = { "drawWall" },
 				})
@@ -303,7 +335,7 @@ describe("mission_api.validation.references", function()
 			end
 			return mission:WithTrigger(
 				"t",
-				{ type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = actionIDs }
+				{ type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, actions = actionIDs }
 			)
 		end
 
@@ -354,15 +386,18 @@ describe("mission_api.validation.references", function()
 					V.mission()
 						:WithObjective("surviveBomb", {
 							textKey = "survive",
-							trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "bomb" } },
+							trigger = {
+								type = V.conditionTypes.CountdownFinished,
+								parameters = { countdownID = "bomb" },
+							},
 						})
 						:WithTrigger("start", {
-							type = V.triggerTypes.TimeElapsed,
+							type = V.conditionTypes.TimeElapsed,
 							parameters = { seconds = 1 },
 							actions = { "addBomb", "addLone" },
 						})
 						:WithTrigger("bombDone", {
-							type = V.triggerTypes.CountdownFinished,
+							type = V.conditionTypes.CountdownFinished,
 							parameters = { countdownID = "bomb" },
 							actions = { "pauseBomb" },
 						})
@@ -431,7 +466,7 @@ describe("mission_api.validation.references", function()
 		it("warns about a countdown a trigger refers to, but no action adds", function()
 			local result = V.validate(V.mission()
 				:WithTrigger("watchGhost", {
-					type = V.triggerTypes.CountdownReached,
+					type = V.conditionTypes.CountdownReached,
 					parameters = { countdownID = "ghost", timeRemaining = 10 },
 					actions = { "ok" },
 				})
@@ -446,7 +481,7 @@ describe("mission_api.validation.references", function()
 		it("warns about a countdown an inline objective trigger refers to, but no action adds", function()
 			local result = V.validate(V.mission():WithObjective("surviveGhost", {
 				textKey = "survive",
-				trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
+				trigger = { type = V.conditionTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
 			}))
 
 			V.assertMessage(
@@ -473,7 +508,7 @@ describe("mission_api.validation.references", function()
 				local result = V.validate(
 					V.mission()
 						:WithObjective("obj", { textKey = "ok", [fieldName] = "raised" })
-						:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+						:WithTrigger("raised", { type = V.conditionTypes.Event, actions = { "act" } })
 						:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 						:WithInitialStageDefinition("stage", { objectives = { "obj" } })
 				)
@@ -485,7 +520,7 @@ describe("mission_api.validation.references", function()
 				local result = V.validate(V.mission()
 					:WithObjective("obj", { textKey = "ok", [fieldName] = "timer" })
 					:WithTrigger("timer", {
-						type = V.triggerTypes.TimeElapsed,
+						type = V.conditionTypes.TimeElapsed,
 						parameters = { seconds = 1 },
 						actions = { "act" },
 					})
@@ -505,7 +540,7 @@ describe("mission_api.validation.references", function()
 		it("warns about an Event trigger no objective names", function()
 			local result = V.validate(
 				V.mission()
-					:WithTrigger("orphan", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithTrigger("orphan", { type = V.conditionTypes.Event, actions = { "act" } })
 					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 			)
 
@@ -516,7 +551,7 @@ describe("mission_api.validation.references", function()
 			local result = V.validate(
 				V.mission()
 					:WithObjective("obj", { textKey = "ok", onCompleted = "raised" })
-					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithTrigger("raised", { type = V.conditionTypes.Event, actions = { "act" } })
 					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
 			)
@@ -531,9 +566,9 @@ describe("mission_api.validation.references", function()
 					textKey = "ok",
 					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "timer" } },
 				})
-				:WithTrigger("doneEasy", { type = V.triggerTypes.Event, actions = { "act" } })
+				:WithTrigger("doneEasy", { type = V.conditionTypes.Event, actions = { "act" } })
 				:WithTrigger("timer", {
-					type = V.triggerTypes.TimeElapsed,
+					type = V.conditionTypes.TimeElapsed,
 					parameters = { seconds = 1 },
 					actions = { "act" },
 				})
@@ -552,8 +587,8 @@ describe("mission_api.validation.references", function()
 					textKey = "ok",
 					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "doneHard" } },
 				})
-				:WithTrigger("doneEasy", { type = V.triggerTypes.Event, actions = { "act" } })
-				:WithTrigger("doneHard", { type = V.triggerTypes.Event, actions = { "act" } })
+				:WithTrigger("doneEasy", { type = V.conditionTypes.Event, actions = { "act" } })
+				:WithTrigger("doneHard", { type = V.conditionTypes.Event, actions = { "act" } })
 				:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 				:WithInitialStageDefinition("stage", { objectives = { "obj" } }))
 
@@ -564,7 +599,7 @@ describe("mission_api.validation.references", function()
 			local result = V.validate(
 				V.mission()
 					:WithObjective("obj", { textKey = "ok", onCompleted = { difficulties = { Easy = "raised" } } })
-					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithTrigger("raised", { type = V.conditionTypes.Event, actions = { "act" } })
 					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
 			)
@@ -589,7 +624,7 @@ describe("mission_api.validation.references", function()
 			V.missionAPI().Variables = { waveSize = 3 }
 			local result = V.validate(V.mission()
 				:WithTrigger("t", {
-					type = V.triggerTypes.TimeElapsed,
+					type = V.conditionTypes.TimeElapsed,
 					parameters = { seconds = { variable = "delay" } },
 					actions = { "a" },
 				})

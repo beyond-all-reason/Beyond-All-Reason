@@ -26,7 +26,7 @@ describe("mission_api.conditions.location_revealed", function()
 
 	-- The builder has no RevealedLocations yet, so each context gets its own.
 	local function newContext()
-		local context = Builders.TriggerContext.new():Build()
+		local context = Builders.ConditionContext.new():Build()
 		context.RevealedLocations = {}
 		return context, context.timesFired
 	end

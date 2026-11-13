@@ -139,7 +139,7 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'bots', quantity = 2 },
 				{ unitDefName = 'armck', position = { x = 1700, z = 2000 }, teamName = 'player', unitName = 'cons' },
-				{ unitDefName = 'armlab', position = { x = 2100, z = 2000 }, facing = 's', teamName = 'player', unitName = 'lab' },
+				{ unitDefName = 'armlab', position = { x = 2100, z = 2000 }, orientation = 's', teamName = 'player', unitName = 'lab' },
 			},
 		},
 	},

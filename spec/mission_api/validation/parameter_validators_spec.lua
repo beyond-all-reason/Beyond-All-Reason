@@ -54,7 +54,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Number", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = "bad" }))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = "bad" }))
 
 			V.assertMessage(
 				result,
@@ -101,7 +101,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Fraction", function()
 		local function validateProgress(progress)
-			return V.validateTrigger(V.trigger(V.triggerTypes.ConstructionProgress, {
+			return V.validateTrigger(V.trigger(V.conditionTypes.ConstructionProgress, {
 				teamName = "player",
 				unitDefName = "armwar",
 				progress = progress,
@@ -135,6 +135,78 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("TimeOfDay", function()
+		local function validateHour(hour)
+			return V.validateAction({ type = V.actionTypes.SetMapTimeOfDay, parameters = { hour = hour } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateHour("noon"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("rejects an hour outside 0 to 24", function()
+			V.assertMessage(
+				validateHour(25),
+				"TimeOfDay must be an hour from 0 to 24, got 25. Action: a, Parameter: hour"
+			)
+		end)
+
+		it("accepts midnight as 0 and as 24", function()
+			V.assertNoMessageContaining(validateHour(0), "Parameter: hour")
+			V.assertNoMessageContaining(validateHour(24), "Parameter: hour")
+		end)
+	end)
+
+	describe("CompassAngle", function()
+		local function validateAzimuth(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunAzimuth = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateAzimuth("east"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunAzimuth"
+			)
+		end)
+
+		it("accepts any number of degrees", function()
+			V.assertNoMessageContaining(validateAzimuth(-90), "Parameter: sunAzimuth")
+			V.assertNoMessageContaining(validateAzimuth(450), "Parameter: sunAzimuth")
+		end)
+	end)
+
+	describe("Elevation", function()
+		local function validateElevation(degrees)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = { sunElevation = degrees } })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateElevation("high"),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("rejects an elevation past straight up or down", function()
+			V.assertMessage(
+				validateElevation(91),
+				"Elevation must be between -90 and 90 degrees, got 91. Action: a, Parameter: sunElevation"
+			)
+			V.assertMessage(
+				validateElevation(-91),
+				"Elevation must be between -90 and 90 degrees, got -91. Action: a, Parameter: sunElevation"
+			)
+		end)
+
+		it("accepts straight up and straight down", function()
+			V.assertNoMessageContaining(validateElevation(90), "Parameter: sunElevation")
+			V.assertNoMessageContaining(validateElevation(-90), "Parameter: sunElevation")
+		end)
+	end)
+
 	describe("CountdownID", function()
 		it("rejects an ID starting with __, which the Mission API keeps for its own countdowns", function()
 			V.assertMessage(
@@ -150,7 +222,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(
-				V.trigger(V.triggerTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
+				V.trigger(V.conditionTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
 			)
 		end
 
@@ -370,25 +442,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
-	describe("Facing", function()
-		it("rejects a type that is neither string nor number", function()
-			local result = V.validateAction({
-				type = V.actionTypes.SpawnUnits,
-				parameters = {
-					unitLoadout = {
-						{ unitDefName = "armwar", teamName = "player", position = { x = 0, z = 0 }, facing = {} },
-					},
-				},
-			})
-
-			V.assertMessage(
-				result,
-				"Unexpected parameter type, expected string or number, got table. Action: a, Parameter: unitLoadout[1].facing"
-			)
-		end)
-
-		it("rejects a facing that is not a compass direction", function()
-			local result = V.validateAction({
+	describe("A unit entry's orientation", function()
+		local function validateUnitOrientation(orientation)
+			return V.validateAction({
 				type = V.actionTypes.SpawnUnits,
 				parameters = {
 					unitLoadout = {
@@ -396,15 +452,30 @@ describe("mission_api.validation.parameter_validators", function()
 							unitDefName = "armwar",
 							teamName = "player",
 							position = { x = 0, z = 0 },
-							facing = "diagonal",
+							orientation = orientation,
 						},
 					},
 				},
 			})
+		end
 
+		it("passes for one of the four facings and for a direction", function()
+			V.assertNoMessageContaining(validateUnitOrientation("e"), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ angle = 45 }), "unitLoadout")
+			V.assertNoMessageContaining(validateUnitOrientation({ x = 10, z = 0 }), "unitLoadout")
+		end)
+
+		it("validates a table as a Direction", function()
 			V.assertMessage(
-				result,
-				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].facing"
+				validateUnitOrientation({}),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: unitLoadout[1].orientation"
+			)
+		end)
+
+		it("rejects a facing that is not a compass direction", function()
+			V.assertMessage(
+				validateUnitOrientation("diagonal"),
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: unitLoadout[1].orientation"
 			)
 		end)
 	end)
@@ -454,9 +525,42 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("SkyboxFile", function()
+		local function validateTexture(texture)
+			return V.validateAction({ type = V.actionTypes.SetMapSkybox, parameters = { texture = texture } })
+		end
+
+		it("rejects a file that is not a .dds", function()
+			V.assertMessage(
+				validateTexture("maps/sky.png"),
+				"Invalid skyboxFile: maps/sky.png. Expected a .dds cubemap. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("rejects a file that does not exist", function()
+			V.assertMessage(
+				validateTexture("maps/missing.dds"),
+				"Invalid skyboxFile: maps/missing.dds. File does not exist. Action: a, Parameter: texture"
+			)
+		end)
+
+		it("accepts an existing .dds file", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "maps/Sky.DDS"
+			end
+
+			local result = validateTexture("maps/Sky.DDS")
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertNoMessageContaining(result, "Parameter: texture")
+		end)
+	end)
+
 	--- Validates the area parameter of the trigger under test.
 	local function validateArea(area)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
 	end
 
 	describe("Position", function()
@@ -650,6 +754,40 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Color", function()
+		local function validateLighting(parameters)
+			return V.validateAction({ type = V.actionTypes.SetMapLighting, parameters = parameters })
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateLighting({ tint = "red" }),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: tint"
+			)
+		end)
+
+		it("rejects a missing channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = 1, g = 1 } }),
+				"Missing required parameter. Action: a, Parameter: tint.b"
+			)
+		end)
+
+		it("rejects a negative channel", function()
+			V.assertMessage(
+				validateLighting({ tint = { r = -1, g = 1, b = 1 } }),
+				"Color channel must be >= 0, got -1. Action: a, Parameter: tint.r"
+			)
+		end)
+
+		it("accepts channels above 1", function()
+			V.assertNoMessageContaining(
+				validateLighting({ groundDiffuseColor = { r = 1.2, g = 1, b = 0 } }),
+				"groundDiffuseColor"
+			)
+		end)
+	end)
+
 	--- Validates the allianceNames parameter of the action under test.
 	local function validateAllianceNames(allianceNames)
 		return V.validateAction({ type = V.actionTypes.Victory, parameters = { allianceNames = allianceNames } })
@@ -739,7 +877,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("AllianceName", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = 0,
 			}))
@@ -751,7 +889,7 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects an unknown alliance name", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = "nobody",
 			}))
@@ -923,6 +1061,43 @@ describe("mission_api.validation.parameter_validators", function()
 		assert.is_true(result.ok)
 	end)
 
+	it("warns about a queued wait right after another wait, which can cancel both", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		assert.is_true(result.ok)
+	end)
+
+	it("keeps a third queued wait, after the first two cancel", function()
+		local result = validateOrders({
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertMessage(
+			result,
+			"A queued wait right after another wait can cancel both, so neither is kept. Action: a, Parameter: orders[2]"
+		)
+		V.assertNoMessageContaining(result, "Parameter: orders[3]")
+	end)
+
+	it("keeps a queued wait after a wait that went to the front of the queue", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE, { 0, 0, 0 } },
+			{ V.env.CMD.GATHERWAIT },
+			{ V.env.CMD.TIMEWAIT, { 5 }, { "shift" } },
+		})
+
+		V.assertNoMessageContaining(result, "can cancel both")
+	end)
+
 	it("reports every invalid order, named after its position in the list", function()
 		local result = validateOrders({ { V.env.CMD.MOVE, { 0, 0, 0 } }, { V.env.CMD.MOVE, {} }, { 99999 } })
 
@@ -954,23 +1129,17 @@ describe("mission_api.validation.parameter_validators", function()
 		)
 	end)
 
-	it("rejects the wait commands that only work for a player's selected units", function()
-		local result = validateOrders({
-			{ V.env.CMD.TIMEWAIT, { 5 } },
-			{ V.env.CMD.DEATHWAIT },
-			{ V.env.CMD.SQUADWAIT, { 2 } },
-			{ V.env.CMD.GATHERWAIT },
-		})
-
-		for index, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
-			local message = "Command "
-				.. commandName
-				.. " is dropped when a mission gives it, it only works for a player's selected units."
-				.. " Action: a, Parameter: orders["
-				.. index
-				.. "][1]"
-			assert.is_true(table.contains(result.errors, message), "expected error: " .. message)
-		end
+	it("accepts the coded wait commands with their parameters", function()
+		V.assertNoMessageContaining(
+			validateOrders({
+				{ V.env.CMD.TIMEWAIT, { 5 } },
+				{ V.env.CMD.DEATHWAIT, { x1 = 0, z1 = 0, x2 = 100, z2 = 100 } },
+				{ V.env.CMD.DEATHWAIT, { unitName = "bosses" } },
+				{ V.env.CMD.SQUADWAIT, { 2 } },
+				{ V.env.CMD.GATHERWAIT },
+			}),
+			"Parameter: orders"
+		)
 	end)
 
 	for _, commandName in ipairs({ "CLOAK", "ONOFF", "REPEAT" }) do
@@ -1019,7 +1188,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitOrdered, { command = command, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitOrdered, { command = command, unitName = "x" }))
 	end
 
 	describe("Command", function()
@@ -1145,6 +1314,202 @@ describe("mission_api.validation.parameter_validators", function()
 			local result = validateFeatureLoadout({ { featureDefName = "rockdef", position = { z = 0 } } })
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: featureLoadout[1].position.x")
+		end)
+
+		it("passes for an orientation that is a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = { angle = 45 } },
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = { x = 10, z = 0 } },
+			})
+
+			V.assertNoMessageContaining(result, "featureLoadout")
+		end)
+
+		it("validates an orientation table as a Direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = {} },
+			})
+
+			V.assertMessage(
+				result,
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("validates any other orientation as a Facing", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = "diagonal" },
+			})
+
+			V.assertMessage(
+				result,
+				"Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+
+		it("rejects an orientation that is neither a facing nor a direction", function()
+			local result = validateFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, orientation = true },
+			})
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, number or table, got boolean. Action: a, Parameter: featureLoadout[1].orientation"
+			)
+		end)
+	end)
+
+	local EASINGS = "'cut', 'inCubic', 'inOutCubic', 'inOutQuad', 'inOutSine', 'inQuad', 'inSine', 'linear', "
+		.. "'outCubic', 'outQuad', 'outSine', 'smoothstep'"
+
+	describe("camera enums", function()
+		local function validateFollowCamera(parameters)
+			parameters.position = { x = 0, z = 0 }
+			return V.validateAction({ type = V.actionTypes.FollowCamera, parameters = parameters })
+		end
+
+		it("accepts a known easing", function()
+			V.assertNoMessageContaining(validateFollowCamera({ easing = "inOutSine" }), "easing")
+		end)
+
+		it("lists the choices for an unknown easing", function()
+			V.assertMessage(
+				validateFollowCamera({ easing = "bouncy" }),
+				"Invalid easing: 'bouncy'. Must be one of: " .. EASINGS .. ". Action: a, Parameter: easing"
+			)
+		end)
+
+		it("rejects an easing that is not a string", function()
+			V.assertMessage(
+				validateFollowCamera({ easing = 3 }),
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: easing"
+			)
+		end)
+
+		it("rejects an unknown sequence end", function()
+			V.assertMessage(
+				validateFollowCamera({ ending = "stay" }),
+				"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: ending"
+			)
+		end)
+
+		it("accepts the game clock and rejects an unknown one", function()
+			V.assertNoMessageContaining(validateFollowCamera({ clock = "game" }), "clock")
+			V.assertMessage(
+				validateFollowCamera({ clock = "sim" }),
+				"Invalid camera clock: 'sim'. Must be one of: 'game', 'real'. Action: a, Parameter: clock"
+			)
+		end)
+	end)
+
+	describe("CameraKeyframes", function()
+		local function validateKeyframes(keyframes)
+			return V.validateAction({ type = V.actionTypes.PlayCameraSequence, parameters = { keyframes = keyframes } })
+		end
+
+		it("passes well-formed keyframes", function()
+			local hero = { unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = "hero" }
+			local trigger = { type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
+			local keyframes = {
+				{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", duration = 0 },
+				{ unitName = "hero", offsetZ = -200, offsetY = 100, relativeToHeading = true, path = "spline" },
+				{ position = { x = 100, y = 50, z = 100 }, pitch = 45, yaw = 90, roll = 5, fov = 60, hold = 2 },
+			}
+			local mission = V.mission():WithUnitLoadout({ hero }):WithTrigger("t", trigger):WithAction(
+				"a",
+				{ type = V.actionTypes.PlayCameraSequence, parameters = { keyframes = keyframes } }
+			)
+
+			V.assertValid(V.validate(mission))
+		end)
+
+		it("rejects the wrong type and an empty list", function()
+			V.assertMessage(
+				validateKeyframes("bad"),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes"
+			)
+			V.assertMessage(validateKeyframes({}), "Keyframes table is empty. Action: a, Parameter: keyframes")
+		end)
+
+		it("rejects a keyframe that is not a table", function()
+			V.assertMessage(
+				validateKeyframes({ "bad" }),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("requires a position or a unit to ride along with", function()
+			V.assertMessage(
+				validateKeyframes({ { duration = 1 } }),
+				"Keyframe needs one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("rejects unknown fields", function()
+			V.assertMessage(
+				validateKeyframes({ { position = { x = 0, z = 0 }, speed = 3 } }),
+				"Unknown keyframe field 'speed'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("checks each field against its type, naming the keyframe and field", function()
+			local result = validateKeyframes({
+				{ position = { z = 0 }, path = "curve", lookAtUnitName = 7 },
+				{ position = { x = 0, z = 0 }, easing = "nope", duration = -1 },
+			})
+
+			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: keyframes[1].position.x")
+			V.assertMessage(
+				result,
+				"Invalid camera path: 'curve'. Must be one of: 'linear', 'spline'. Action: a, Parameter: keyframes[1].path"
+			)
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: keyframes[1].lookAtUnitName"
+			)
+			V.assertMessage(
+				result,
+				"Invalid easing: 'nope'. Must be one of: " .. EASINGS .. ". Action: a, Parameter: keyframes[2].easing"
+			)
+			V.assertMessage(result, "Quantity must be >= 0, got -1. Action: a, Parameter: keyframes[2].duration")
+		end)
+
+		it("places the eye once per keyframe", function()
+			V.assertMessage(
+				validateKeyframes({ { position = { x = 0, z = 0 }, unitName = "hero" } }),
+				"Keyframe places the eye twice, use one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("warns when relativeToHeading has no unit to follow", function()
+			local result =
+				validateKeyframes({ { position = { x = 0, z = 0 }, offsetX = 10, relativeToHeading = true } })
+
+			V.assertMessage(
+				result,
+				"Keyframe relativeToHeading needs a unitName to take the heading from. Action: a, Parameter: keyframes[1]"
+			)
+			assert.is_true(result.ok) -- a warning, not an error
+		end)
+
+		it("allows one look-at target per keyframe", function()
+			V.assertMessage(
+				validateKeyframes({
+					{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", lookAtPosition = { x = 1, z = 1 } },
+				}),
+				"Keyframe has more than one look-at target, use one of: 'lookAtPosition', 'lookAtUnitName'. Action: a, Parameter: keyframes[1]"
+			)
+		end)
+
+		it("warns when pitch or yaw accompany a look-at target", function()
+			local result =
+				validateKeyframes({ { position = { x = 0, z = 0 }, lookAtPosition = { x = 1, z = 1 }, pitch = 30 } })
+
+			V.assertMessage(
+				result,
+				"Keyframe pitch and yaw are ignored while it looks at a target. Action: a, Parameter: keyframes[1]"
+			)
+			assert.is_true(result.ok)
 		end)
 	end)
 end)

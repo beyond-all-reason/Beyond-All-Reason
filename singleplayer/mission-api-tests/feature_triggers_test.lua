@@ -91,7 +91,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', position = { x = 1800, z = 1800 }, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1800, z = 1800 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -100,7 +100,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', position = { x = 1900, z = 1900 }, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1900, z = 1900 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -109,7 +109,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', position = { x = 2000, z = 2100 }, facing = 'w', featureName = 'wreck-to-destroy' },
+				{ featureDefName = 'armllt_dead', position = { x = 2000, z = 2100 }, orientation = 'w', featureName = 'wreck-to-destroy' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armpw_dead', position = { x = 1900, z = 2000 }, facing = 'w', featureName = 'wreck-to-resurrect' },
+				{ featureDefName = 'armpw_dead', position = { x = 1900, z = 2000 }, orientation = 'w', featureName = 'wreck-to-resurrect' },
 			},
 		},
 	},

@@ -65,7 +65,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(isMoving) {
 		if (isMoving) { //Frame:15
-			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rbfoot) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lffoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <-28.549668> speed <481.755423> / animSpeed; //delta=16.06 
 			turn lbfoot to z-axis <0.166343> speed <3.296388> / animSpeed; //delta=0.11 
@@ -96,7 +95,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 		if (isMoving) { //Frame:20
 			emit-sfx 4096 + 4 from rfootstepf;
-			//call-script lua_UnitScriptDistortion(2, (get PIECE_XZ(rfootstepf) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepf) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDistortion(2, stepcount);
 			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <-40.396259> speed <355.397726> / animSpeed; //delta=11.85 
@@ -128,7 +126,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 		if (isMoving) { //Frame:25
 			emit-sfx 4096 + 4 from lfootstepb;
-			//call-script lua_UnitScriptDistortion(3, (get PIECE_XZ(lfootstepb) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepb) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDistortion(3, stepcount);
 			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <-38.214478> speed <65.453430> / animSpeed; //delta=-2.18 
@@ -304,7 +301,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 		if (isMoving) { //Frame:55
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rffoot) & 0x0000ffff),   get HEADING(0));
-			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lbfoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <25.002258> speed <507.596155> / animSpeed; //delta=-16.92 
 			turn lbfoot to z-axis <-1.250724> speed <8.140342> / animSpeed; //delta=0.27 
 			turn lbleg to x-axis <8.685261> speed <23.756610> / animSpeed; //delta=0.79 
@@ -338,7 +334,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 		if (isMoving) { //Frame:60
 			emit-sfx 4096 + 4 from lfootstepf;
-			//call-script lua_UnitScriptDistortion(1, (get PIECE_XZ(lfootstepf) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstepf) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDistortion(1, stepcount);
 			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <39.275179> speed <428.187650> / animSpeed; //delta=-14.27 
@@ -374,7 +369,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		}
 		if (isMoving) { //Frame:65
 			emit-sfx 4096 + 4 from rfootstepb;
-			//call-script lua_UnitScriptDistortion(4, (get PIECE_XZ(rfootstepb) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfootstepb) & 0x0000ffff),   get HEADING(0));
 			call-script lua_UnitScriptDistortion(4, stepcount);
 			stepcount = stepcount + 1;
 			turn lbfoot to x-axis <39.119150> speed <4.680865> / animSpeed; //delta=0.16 
@@ -621,7 +615,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<3) animSpeed=3;
 		if (animspeed>12) animSpeed = 12;
 		sleep 164;
@@ -629,9 +622,9 @@ UnitSpeed(){
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
-  start-script Walk();
+	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
@@ -672,7 +665,7 @@ SetMaxReloadTime(reloadMS)
 
 RestoreAfterDelay()
 {
-	set-signal-mask 4 | 8 | 16 | 32;
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2 | SIGNAL_AIM3 | SIGNAL_AIM4;
 	sleep restore_delay;
 	turn aimy1 to y-axis <0.0> speed <50.0>;
 	turn sleeve to x-axis <0.0> speed <30.0>;
@@ -696,8 +689,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal 4;
-	set-signal-mask 4;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	mainturretheading = heading;
 	turn aimy1 to y-axis heading speed <90.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <50.0>;
@@ -717,8 +710,8 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	signal 8;
-	set-signal-mask 8;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn llaser to y-axis heading speed <300.071429>;
 	wait-for-turn llaser around y-axis;
 	return (1);
@@ -741,8 +734,8 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
-	signal 16;
-	set-signal-mask 16;
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
 	turn rlaser to y-axis heading speed <300.071429>;
 	wait-for-turn rlaser around y-axis;
 	return (1);
@@ -765,8 +758,8 @@ QueryWeapon3(pieceIndex)
 
 AimWeapon4(heading, pitch)
 {
-	signal 32;
-	set-signal-mask 32;
+	signal SIGNAL_AIM4;
+	set-signal-mask SIGNAL_AIM4;
 	turn toplaser to y-axis heading - mainturretheading speed <300.071429>;
 	turn toplaser to x-axis <0.0> - pitch speed <200.038462>;
 	wait-for-turn toplaser around y-axis;

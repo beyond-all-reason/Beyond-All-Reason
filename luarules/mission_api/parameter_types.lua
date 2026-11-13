@@ -20,6 +20,8 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
+	Color = "Color",
+	CameraKeyframes = "CameraKeyframes",
 
 	-- String Validators:
 	String = "String",
@@ -40,7 +42,12 @@ local types = {
 	SoundFile = "SoundFile",
 	Resource = "Resource",
 	VideoFile = "VideoFile",
+	SkyboxFile = "SkyboxFile",
 	Difficulty = "Difficulty",
+	CameraEasing = "CameraEasing",
+	CameraSequenceEnd = "CameraSequenceEnd",
+	CameraPath = "CameraPath",
+	CameraClock = "CameraClock",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
@@ -52,6 +59,9 @@ local types = {
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
+	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle",
+	Elevation = "Elevation",
 	MessageType = "MessageType",
 
 	-- Boolean Validators:
@@ -63,6 +73,9 @@ local types = {
 	-- Number-or-String Validators:
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
+
+	-- Number-or-String-or-Table Validators:
+	FacingOrDirection = "FacingOrDirection",
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
@@ -112,6 +125,39 @@ local enums = {
 		Objective = 3,
 		Notification = 4,
 		Dialogue = 5,
+	},
+
+	-- The Easings of common/camera_math.lua
+	[types.CameraEasing] = {
+		linear = true,
+		inSine = true,
+		outSine = true,
+		inOutSine = true,
+		inQuad = true,
+		outQuad = true,
+		inOutQuad = true,
+		inCubic = true,
+		outCubic = true,
+		inOutCubic = true,
+		smoothstep = true,
+		cut = true,
+	},
+
+	[types.CameraSequenceEnd] = {
+		release = true,
+		restore = true,
+		hold = true,
+	},
+
+	[types.CameraPath] = {
+		linear = true,
+		spline = true,
+	},
+
+	-- real: seconds of real time, also while the game is paused; game: game seconds
+	[types.CameraClock] = {
+		real = true,
+		game = true,
 	},
 
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,

@@ -1,7 +1,6 @@
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
-		amount = 3,
 		trigger = {
 			type = conditionTypes.ConstructionFinished,
 			parameters = { unitDefName = 'corak', teamName = 'player' },

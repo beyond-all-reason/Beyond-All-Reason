@@ -3,18 +3,18 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 local env = MissionSpecEnv.new()
 
 local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
-local triggersLoader = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+local conditionsLoader = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
 
--- Load the real trigger definitions once for the integration section below.
+-- Load the real condition definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 MissionSpecEnv.registerModules(env)
-local realDefinitions = triggersLoader.LoadConditionDefinitions()
-local realTriggerFiles = VFS.DirList("luarules/mission_api/conditions/", "*.lua")
+local realDefinitions = conditionsLoader.LoadConditionDefinitions()
+local realConditionFiles = VFS.DirList("luarules/mission_api/conditions/", "*.lua")
 
 describe("mission_api.conditions_loader", function()
 	before_each(function()
-		-- Real trigger definition files read the parameter types from GG at include time.
+		-- Real condition definition files read the parameter types from GG at include time.
 		GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 		MissionSpecEnv.registerModules(env)
 	end)
@@ -42,7 +42,7 @@ describe("mission_api.conditions_loader", function()
 				return origInclude(path, ...)
 			end
 
-			local ok, result = pcall(triggersLoader.LoadConditionDefinitions)
+			local ok, result = pcall(conditionsLoader.LoadConditionDefinitions)
 
 			env.VFS.DirList, env.VFS.Include = origDirList, origInclude
 			assert(ok, result)
@@ -177,10 +177,10 @@ describe("mission_api.conditions_loader", function()
 				typeCount = typeCount + 1
 			end
 
-			assert.are.equal(#realTriggerFiles, typeCount)
+			assert.are.equal(#realConditionFiles, typeCount)
 		end)
 
-		it("maps callins to the correct trigger types", function()
+		it("maps callins to the correct condition types", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
@@ -262,7 +262,7 @@ describe("mission_api.conditions_loader", function()
 
 	describe("ProcessRawTriggers", function()
 		it("applies default settings when a trigger has none", function()
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				t = { type = "Alpha" },
 			})
 
@@ -277,7 +277,7 @@ describe("mission_api.conditions_loader", function()
 
 		it("preserves settings that are already specified", function()
 			local difficulties = { "Hard" }
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				t = {
 					type = "Alpha",
 					settings = {
@@ -299,7 +299,7 @@ describe("mission_api.conditions_loader", function()
 		end)
 
 		it("(re)initializes triggered=false and repeatCount=0", function()
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				t = { type = "Alpha", triggered = true, repeatCount = 7 },
 			})
 
@@ -308,7 +308,7 @@ describe("mission_api.conditions_loader", function()
 		end)
 
 		it("processes every trigger in the input map", function()
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				a = { type = "Alpha" },
 				b = { type = "Beta" },
 			})
@@ -319,7 +319,7 @@ describe("mission_api.conditions_loader", function()
 
 		it("returns deep copies independent of the input tables", function()
 			local raw = { t = { type = "Alpha", parameters = { quantity = 1 } } }
-			local triggers = triggersLoader.ProcessRawTriggers(raw)
+			local triggers = conditionsLoader.ProcessRawTriggers(raw)
 
 			assert.are_not.equal(raw.t, triggers.t) -- top-level copy
 			assert.are_not.equal(raw.t.parameters, triggers.t.parameters) -- nested deep copy
@@ -327,7 +327,7 @@ describe("mission_api.conditions_loader", function()
 		end)
 
 		it("preserves an explicit active = false", function()
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				t = { type = "Alpha", settings = { active = false } },
 			})
 
@@ -335,7 +335,7 @@ describe("mission_api.conditions_loader", function()
 		end)
 
 		it("defaults active to true when settings omit it", function()
-			local triggers = triggersLoader.ProcessRawTriggers({
+			local triggers = conditionsLoader.ProcessRawTriggers({
 				t = { type = "Alpha", settings = { repeating = true } },
 			})
 

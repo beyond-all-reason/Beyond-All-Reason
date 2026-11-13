@@ -1,7 +1,7 @@
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -83,18 +83,18 @@ describe("mission_api.conditions.unit_detected", function()
 	end
 
 	local function newContext()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
 	---Runs one detection sweep over the given units, which is what the gadget raises per frame.
-	local function update(triggerType, triggerID, context, unitIDs)
+	local function update(conditionType, triggerID, context, unitIDs)
 		DetectionLevels.BeginUpdate()
 		local dirtyUnits = {}
 		for _, unitID in ipairs(unitIDs) do
 			dirtyUnits[unitID] = true
 		end
-		onDetectionUpdate(triggerType, triggerID, context, dirtyUnits)
+		onDetectionUpdate(conditionType, triggerID, context, dirtyUnits)
 	end
 
 	local function seeUnit(unitID, allyTeamID)

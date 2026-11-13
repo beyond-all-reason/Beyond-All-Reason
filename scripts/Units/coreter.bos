@@ -12,9 +12,9 @@ static-var recently_damaged, desired_activation;
 
 
 #define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.18>
-#define TB_BANK_Z <0.18> // Do not define this if you dont want banking
+#define TB_TURNRATE <18.0> 
+#define TB_TILT_X <0.12>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 
@@ -62,13 +62,10 @@ Activate()
 	spin turret around y-axis speed <25> accelerate <0.5>;
 	spin jam2 around x-axis speed <150> accelerate <1>;
 	spin jam1 around x-axis speed <-150> accelerate <1>;
-	
-	return (0);
 }
 
 Deactivate()
 {
-	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
 	// no easy way to tell if an on-off action is 
 	// script/gadget controlled or user controlled
 	// assume a deactivate command is a user command 
@@ -90,30 +87,28 @@ Deactivate()
 	stop-spin turret around y-axis decelerate <1>;
 	stop-spin jam2 around x-axis decelerate <6>;
 	stop-spin jam1 around x-axis decelerate <6>;
-	
-	return (0);
 }
 
-static-var  Stunned;
+static-var Stunned;
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    start-script Deactivate();
+		start-script Deactivate();
 	} else {
-	    set ACTIVATION to desired_activation;
+		set ACTIVATION to desired_activation;
 	}
 }
 
 OffOnHit()
 {
-signal SIGNAL_OFF;
-set-signal-mask SIGNAL_OFF;
-recently_damaged = 1;
-set ACTIVATION to 0; // turn off unit
-sleep deactivateTime;
-recently_damaged = 0;
-set ACTIVATION to desired_activation;
+	signal SIGNAL_OFF;
+	set-signal-mask SIGNAL_OFF;
+	recently_damaged = 1;
+	set ACTIVATION to 0; // turn off unit
+	sleep deactivateTime;
+	recently_damaged = 0;
+	set ACTIVATION to desired_activation;
 }
 
 HitByWeapon(anglex, anglez)
@@ -125,7 +120,6 @@ HitByWeapon(anglex, anglez)
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.0> speed <30.0>;
 	turn base to x-axis <0.0> speed <30.0>;
-	return (0);
 }
 
 

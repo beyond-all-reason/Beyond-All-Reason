@@ -31,7 +31,6 @@ Create()
 	hide flare1;
 	hide aftflare;
 	hide foreflare;
-	//hide ground;
 	hide flare1;
 	hide flare2;
 	hide foreflare;
@@ -117,12 +116,31 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
+	if( gun_2 )
+	{
+		show aftflare;
+		sleep 150;
+		hide aftflare;
+	}
+	else
+	{
+		show foreflare;
+		sleep 150;
+		hide foreflare;
+	}
 	gun_2 = !gun_2;
 }
 
 AimFromWeapon2(pieceIndex)
 {
-	pieceIndex = foregun + gun_2;
+	if( gun_2 )
+	{
+		pieceIndex = aftgun;
+	}
+	else
+	{
+		pieceIndex = foregun;
+	}
 }
 
 QueryWeapon2(pieceIndex)
@@ -139,8 +157,6 @@ AimWeapon3(heading, pitch)
 FireWeapon3()
 {
 	sleep 150;
-	
-	//call-script RecoilRockBoat(aimDir3, RB_RECOIL_ENERGY_3);
 	RB_RECOILBOAT(aimDir3, RB_RECOIL_ENERGY_3);
 }
 
@@ -164,6 +180,7 @@ AimWeapon1(heading, pitch)
 	turn sleeve to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
 	
 	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
 
 	start-script RestoreAfterDelay();
 	return (1);
@@ -171,7 +188,6 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	//start-script RockZ(-7, aimDir);
 	if( gun_1 ==0)
 	{
 	    emit-sfx 1024 + 0 from flare1;
@@ -192,7 +208,6 @@ FireWeapon1()
 	gun_1= ( gun_1 + 1 ) % 3;
 	
 	sleep 65 - 32 * RB_FRAMES;
-	//call-script RecoilRockBoat(aimDir, RB_RECOIL_ENERGY_1);
 	RB_RECOILBOAT(aimDir, RB_RECOIL_ENERGY_1);
 }
 
