@@ -360,6 +360,23 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("SquadTask", function()
+		local function validateTask(task)
+			return V.validateAction({
+				type = V.actionTypes.RunSquad,
+				parameters = { squadName = "raiders", task = task, position = { x = 0, z = 0 } },
+			})
+		end
+
+		it("rejects a task the campaign AI's squads do not have", function()
+			V.assertMessage(validateTask("PATROL"), "Invalid task: PATROL. Action: a, Parameter: task")
+		end)
+
+		it("accepts a task by its name", function()
+			V.assertNoMessageContaining(validateTask("DEFEND"), "Parameter: task")
+		end)
+	end)
+
 	describe("FeatureDefName", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({

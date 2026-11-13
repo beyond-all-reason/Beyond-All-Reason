@@ -368,7 +368,7 @@ function gadget:RecvLuaMsg(message, playerID)
 	end
 
 	if signal == aiSignals.SQUAD_FINISHED then
-		local squadName = squads.Find(teamID, squadID)
+		local squadName = squads.Assemble(teamID, squadID)
 		if squadName then
 			dispatchTriggerCallin("SquadAssembled", squadName, teamID)
 		end

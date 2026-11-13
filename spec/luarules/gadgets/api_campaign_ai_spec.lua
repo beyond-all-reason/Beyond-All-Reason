@@ -161,6 +161,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:1=4300,1600;2=600|202:7=3" } }, world.sent)
 		end)
 
+		it("runs a squad: its ID, its task, then where it goes", function()
+			campaignAI.RunSquad(5, 1, 4300, 1600, 400, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|211:5|213:1|214:1=4300,1600;3=400" } }, world.sent)
+		end)
+
+		it("leaves a running squad's attack range as it was defined when none is given", function()
+			campaignAI.RunSquad(5, 4, 4300, 1600, nil, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|211:5|213:4|214:1=4300,1600" } }, world.sent)
+		end)
+
 		it("uses one sync action for messages and one for signals", function()
 			local names = table.keys(world.syncActions)
 			table.sort(names)

@@ -6,6 +6,7 @@
 ---@field squadName string
 ---@field squadID integer
 ---@field teamID integer
+---@field isAssembled boolean
 
 local squadsByName = {} ---@type table<string, MissionSquad?>
 local squadsByID = {} ---@type table<integer, table<integer, MissionSquad?>> by teamID, then squadID
@@ -22,7 +23,7 @@ local function defineSquad(squadName, teamID)
 	local squadID = (squadCounts[teamID] or 0) + 1
 	squadCounts[teamID] = squadID
 
-	local squad = { squadName = squadName, squadID = squadID, teamID = teamID }
+	local squad = { squadName = squadName, squadID = squadID, teamID = teamID, isAssembled = false }
 	squadsByName[squadName] = squad
 	table.ensureTable(squadsByID, teamID)[squadID] = squad
 
@@ -30,24 +31,44 @@ local function defineSquad(squadName, teamID)
 end
 
 ---@return string? squadName nil for a squad that is not live
-local function findSquad(teamID, squadID)
+local function assembleSquad(teamID, squadID)
 	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
-	return squad and squad.squadName
+	if squad then
+		squad.isAssembled = true
+		return squad.squadName
+	end
 end
 
 ---@return string? squadName nil for a squad that is not live
 local function endSquad(teamID, squadID)
-	local squadName = findSquad(teamID, squadID)
-	if squadName then
-		squadsByName[squadName] = nil
+	local squad = squadsByID[teamID] and squadsByID[teamID][squadID]
+	if squad then
+		squadsByName[squad.squadName] = nil
 		squadsByID[teamID][squadID] = nil
+		return squad.squadName
+	end
+end
+
+--- The AI takes a task only for a squad that has its units.
+---@return integer? squadID nil for a squad that is not assembled
+---@return integer? teamID
+local function getAssembledSquad(squadName)
+	local squad = squadsByName[squadName]
+	if not squad then
+		return
 	end
 
-	return squadName
+	if not squad.isAssembled then
+		Spring.Log("squads.lua", LOG.WARNING, "[Mission API] Squad is still gathering: " .. squadName)
+		return
+	end
+
+	return squad.squadID, squad.teamID
 end
 
 return {
 	Define = defineSquad,
-	Find = findSquad,
+	Assemble = assembleSquad,
 	End = endSquad,
+	GetAssembled = getAssembledSquad,
 }

@@ -7,7 +7,8 @@
 ---
 --- Expected timeline, watching the enemy team:
 ---   5 s   the enemy bot lab starts on three grunts for the squad
----   later the three grunts stand together west of the lab, and a message says the squad has assembled
+---   later the three grunts stand together east of the lab, and a message says the squad has assembled
+---         the squad then walks west past the lab and stays near the west end of the enemy plateau
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -28,7 +29,7 @@ local triggers = {
 		parameters = {
 			squadName = 'raiders',
 		},
-		actions = { 'messageRaidersAssembled' },
+		actions = { 'messageRaidersAssembled', 'runRaiders' },
 	},
 }
 
@@ -39,7 +40,7 @@ local actions = {
 		parameters = {
 			squadName = 'raiders',
 			teamName = 'enemy',
-			position = { x = 4400, z = 1500 },
+			position = { x = 5000, z = 1500 },
 			gatherRange = 700,
 			composition = { corak = 3 },
 		},
@@ -48,14 +49,23 @@ local actions = {
 	messageDefineRaiders = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Squads test: the enemy bot lab builds three grunts, which gather west of it.",
+			messageKey = "Squads test: the enemy bot lab builds three grunts, which gather east of it.",
 		},
 	},
 
 	messageRaidersAssembled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Squads test: the raiders have assembled.",
+			messageKey = "Squads test: the raiders have assembled, and go to defend the west end of the plateau.",
+		},
+	},
+
+	runRaiders = {
+		type = actionTypes.RunSquad,
+		parameters = {
+			squadName = 'raiders',
+			task = 'DEFEND',
+			position = { x = 4150, z = 1500 },
 		},
 	},
 }

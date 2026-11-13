@@ -528,6 +528,18 @@ describe("mission_api.validation.references", function()
 				"Squad is referenced, but never created. Squad: ghost, Referenced in: trigger watchGhost"
 			)
 		end)
+
+		it("warns about a squad an action refers to, but no action defines", function()
+			local result = V.validate(V.mission():WithAction("runGhost", {
+				type = V.actionTypes.RunSquad,
+				parameters = { squadName = "ghost", task = "DEFEND", position = { x = 100, z = 100 } },
+			}))
+
+			V.assertMessage(
+				result,
+				"Squad is referenced, but never created. Squad: ghost, Referenced in: action runGhost"
+			)
+		end)
 	end)
 
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.

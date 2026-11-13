@@ -16,8 +16,10 @@ end
 --   GG.CampaignAI.SetAiActive(isActive, teamID)
 --   GG.CampaignAI.SetAiState(state, teamID)
 --   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+--   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
--- state is a value of AiState in campaign_ai_msg.lua. unitCounts maps unitDefID to a count.
+-- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
+-- unitDefID to a count.
 -- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two IDs
 -- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
@@ -72,6 +74,20 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
+	local function runSquad(squadID, task, x, z, attackRange, teamID)
+		-- The position follows the task, which resets where the squad goes.
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_ID, squadID)
+			:cmdValue(Topic.SQUAD_TASK, task)
+			:cmdDictArray(Topic.SQUAD_PARAMS, Squad.POSITION, { x, z })
+
+		if attackRange then
+			message:paramValue(Squad.ATTACK_RANGE, attackRange)
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
 	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
 	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
 
@@ -96,6 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 		SetAiActive = setAiActive,
 		SetAiState = setAiState,
 		DefineSquad = defineSquad,
+		RunSquad = runSquad,
 		ReadSignal = readSignal,
 	}
 

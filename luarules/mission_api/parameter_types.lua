@@ -54,6 +54,7 @@ local types = {
 	EffectName = "EffectName",
 	SquadName = "SquadName",
 	AiState = "AiState",
+	SquadTask = "SquadTask",
 
 	-- Number Validators:
 	Number = "Number",
@@ -165,6 +166,11 @@ local enums = {
 		DEFENSIVE = 2,
 		NORMAL = 3,
 		AGGRESSIVE = 4,
+	},
+
+	[types.SquadTask] = {
+		DEFEND = 1,
+		ATTACK = 4,
 	},
 }
 

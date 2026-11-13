@@ -156,6 +156,10 @@ local function registerValueValidators(parameterValidators, context)
 		return enums[Types.AiState][state]
 	end)
 
+	parameterValidators[Types.SquadTask] = getLookupValidator(validateString, "task", function(task)
+		return enums[Types.SquadTask][task]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
