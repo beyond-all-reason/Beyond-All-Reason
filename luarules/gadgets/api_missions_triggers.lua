@@ -475,24 +475,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-	dispatchTriggerCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-end
-
-function gadget:UnitIdlePost(unitID, idled)
-	dispatchTriggerCallin("UnitIdlePost", unitID, idled)
-end
-
-function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
-end
-
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
-end
-
 function gadget:UnitDamaged(
 	unitID,
 	unitDefID,
@@ -571,6 +553,24 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	capturedUnits[unitID] = nil
 end
 
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	dispatchTriggerCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+end
+
+function gadget:UnitIdlePost(unitID, idled)
+	dispatchTriggerCallin("UnitIdlePost", unitID, idled)
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
@@ -583,12 +583,12 @@ function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
-function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
-	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
-function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
 	markDetectionDirty(unitID)
 end
 
@@ -605,24 +605,6 @@ end
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
 	if x and needsBuildPlacements then
 		buildPlacements[builderID] = unitDefID
-	end
-	return true
-end
-
-function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
-	-- Negative buildStep means reclaim
-	if buildStep < 0 then
-		local featureDef = FeatureDefs[featureDefID]
-		if not featureDef then
-			return true
-		end
-
-		reclaimedFeatures[featureID] = builderTeamID
-
-		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
-		local t = table.ensureTable(teamReclaimIncome, builderTeamID)
-		t.metal = (t.metal or 0) + math.abs(buildStep) * featureDef.metal
-		t.energy = (t.energy or 0) + math.abs(buildStep) * featureDef.energy
 	end
 	return true
 end
@@ -650,6 +632,24 @@ end
 
 function gadget:UnitBuildStepPost(unitID)
 	dispatchTriggerCallin("UnitBuildStepPost", unitID)
+end
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
+	-- Negative buildStep means reclaim
+	if buildStep < 0 then
+		local featureDef = FeatureDefs[featureDefID]
+		if not featureDef then
+			return true
+		end
+
+		reclaimedFeatures[featureID] = builderTeamID
+
+		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
+		local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+		t.metal = (t.metal or 0) + math.abs(buildStep) * featureDef.metal
+		t.energy = (t.energy or 0) + math.abs(buildStep) * featureDef.energy
+	end
+	return true
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
