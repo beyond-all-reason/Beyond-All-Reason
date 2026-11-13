@@ -19,7 +19,11 @@ local RECLAIM_UNIT_IS_BAR_STYLE = true
 	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
 	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
 
-local triggerTypes, triggers, callins, triggerContext ---@type table, table<string, table>, table, table
+local triggerTypes, triggers, triggerContext ---@type table, table<string, table>, table
+
+local callins ---@type table
+local needsBuildOwnerMap = false
+local needsBuildStartSet = false
 
 local actionsDispatcher
 local statistics
@@ -32,15 +36,6 @@ local doesUnitHaveName
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
-
-local needsBuildPlacements = false
-local needsBuildOwnerMap = false
-local needsBuildStartSet = false
-local needsConstructionProgress = false
-local needsReclaimIncome = false
-local needsFeatureReclaimTracking = false
-local needsStockpiles = false
-local needsUnitDamaged = false
 
 local seismicIntervalFrames ---@type integer
 
@@ -615,6 +610,12 @@ function gadget:Initialize()
 
 	-- Support flags for hot callins. These tend to be heavy in bursts not on average.
 	-- Only remain subscribed to these when the loaded mission actually requires them.
+	local needsBuildPlacements = false
+	local needsConstructionProgress = false
+	local needsReclaimIncome = false
+	local needsFeatureReclaimTracking = false
+	local needsStockpiles = false
+	local needsUnitDamaged = false
 	for _, trigger in pairs(triggers) do
 		needsBuildPlacements = needsBuildPlacements or trigger.type == triggerTypes.ConstructionStarted
 		needsBuildStartSet = needsBuildStartSet or trigger.type == triggerTypes.ConstructionFinished
