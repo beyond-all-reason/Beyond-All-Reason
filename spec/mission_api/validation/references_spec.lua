@@ -559,6 +559,22 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 
+	describe("base plan names", function()
+		it("warns about a base plan an action cancels, but no action adds to", function()
+			local result = V.validate(
+				V.mission():WithAction(
+					"cancelGhost",
+					{ type = V.actionTypes.CancelBasePlan, parameters = { basePlanName = "ghost" } }
+				)
+			)
+
+			V.assertMessage(
+				result,
+				"Base plan is referenced, but never created. Base plan: ghost, Referenced in: action cancelGhost"
+			)
+		end)
+	end)
+
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.
 	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
 	describe("objective events", function()

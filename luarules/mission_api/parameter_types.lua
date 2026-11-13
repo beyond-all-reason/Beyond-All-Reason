@@ -55,6 +55,7 @@ local types = {
 	SquadName = "SquadName",
 	RegionName = "RegionName",
 	BuildAreaName = "BuildAreaName",
+	BasePlanName = "BasePlanName",
 	AiState = "AiState",
 	SquadTask = "SquadTask",
 

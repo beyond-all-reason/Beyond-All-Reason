@@ -73,7 +73,8 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   squad states the AI takes its message in, and sends nothing when it gets none.
 - `Modules.AiRegions` (`ai_regions.lua`) does the same for the regions the AI watches its squads in,
   and refuses one that shares a cell of the AI's grid with a live region. `Modules.BuildAreas`
-  (`build_areas.lua`) holds the areas the AI fills with a structure. `Modules.AreaPolygons`
+  (`build_areas.lua`) holds the areas the AI fills with a structure, `Modules.BasePlans`
+  (`base_plans.lua`) its build orders. `Modules.AreaPolygons`
   (`area_polygons.lua`) turns an `Area` into the polygon the AI takes.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
@@ -206,7 +207,8 @@ return {
   one parameter taking both forms.
 - A list of records declares the record's fields in a schema file, as
   `camera_keyframe_schema.lua` does for camera keyframes, so the editor reads those too.
-- `validation/references.lua` cross-checks unit, feature, marker, line, effect, squad, and region names and
+- `validation/references.lua` cross-checks unit, feature, marker, line, effect, squad, region, and
+  base plan names and
   countdown and cutscene IDs between creator and consumer; it reads the consuming types from the
   schemas, so a new parameter of one of those types needs no listing, and neither does a
   `UnitName` field of `camera_keyframe_schema.lua`.

@@ -261,6 +261,16 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|301:5=0,0,128,0,128,128,0,128;279;2;3" } }, world.sent)
 		end)
 
+		it("adds a structure to a base plan: the plan, then unit def, position and whether it is rebuilt", function()
+			campaignAI.AddToBasePlan(5, 279, 4300, 1400, true, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|101:5|102:1=279;2=4300,1400;3=1" } }, world.sent)
+		end)
+
+		it("cancels a base plan", function()
+			campaignAI.CancelBasePlan(5, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|104:5" } }, world.sent)
+		end)
+
 		it("uses one sync action for messages and one for signals", function()
 			local names = table.keys(world.syncActions)
 			table.sort(names)

@@ -30,6 +30,8 @@ end
 --   GG.CampaignAI.DefineAiRegion(regionID, polygon, teamID)
 --   GG.CampaignAI.ClearAiRegion(regionID, teamID)
 --   GG.CampaignAI.DefineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
+--   GG.CampaignAI.AddToBasePlan(basePlanID, unitDefID, x, z, isRebuilt, teamID)
+--   GG.CampaignAI.CancelBasePlan(basePlanID, teamID)
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
 -- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map. facing is 0 to 3, from south.
@@ -46,6 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 	local MsgBuilder = aiMsg.MsgBuilder
 	local Squad = aiMsg.Squad
 	local Military = aiMsg.Military
+	local Plan = aiMsg.Plan
 
 	local function setUnitDefsEnabled(unitDefIDs, isEnabled, teamID)
 		local topic = isEnabled and Topic.ENABLE_UNITDEFS or Topic.DISABLE_UNITDEFS
@@ -198,6 +201,20 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
+	local function addToBasePlan(basePlanID, unitDefID, x, z, isRebuilt, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.BASE_PLAN_ID, basePlanID)
+			:cmdDictArray(Topic.BASE_ADD_BUILDTASK, Plan.UNITDEF, { unitDefID })
+			:paramArray(Plan.POSITION, { x, z })
+			:paramValue(Plan.REBUILD, isRebuilt and 1 or 0)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function cancelBasePlan(basePlanID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.BASE_PLAN_CANCEL, basePlanID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
 	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
 	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
 
@@ -236,6 +253,8 @@ if gadgetHandler:IsSyncedCode() then
 		DefineAiRegion = defineAiRegion,
 		ClearAiRegion = clearAiRegion,
 		DefineBuildArea = defineBuildArea,
+		AddToBasePlan = addToBasePlan,
+		CancelBasePlan = cancelBasePlan,
 		ReadSignal = readSignal,
 	}
 

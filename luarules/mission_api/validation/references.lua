@@ -1,6 +1,6 @@
 ---
---- Checks references: objective events, actions, unit, feature, marker, line, squad and region names,
---- countdown IDs, cutscene IDs and variables.
+--- Checks references: objective events, actions, unit, feature, marker, line, squad, region and
+--- base plan names, countdown IDs, cutscene IDs and variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -383,7 +383,7 @@ local function validateNameReferences(context, report, nameKind)
 end
 
 --------------------------------------------------------------------------------
--- Countdown ID, squad name and region name references
+-- Countdown ID and squad, region and base plan name references
 --------------------------------------------------------------------------------
 
 --- For a name that one action creates and others refer to. A countdown that is added and then
@@ -598,6 +598,14 @@ local function validate(context, report)
 	)
 	validateCreatedNameReferences(context, report, "Squad", "squadName", Types.SquadName, actionTypes.DefineSquad)
 	validateCreatedNameReferences(context, report, "Region", "regionName", Types.RegionName, actionTypes.DefineAiRegion)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Base plan",
+		"basePlanName",
+		Types.BasePlanName,
+		actionTypes.AddToBasePlan
+	)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
 end
