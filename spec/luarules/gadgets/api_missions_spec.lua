@@ -84,7 +84,7 @@ local function loadGadget(options, world)
 				SpawnFeatureLoadout = noop,
 			}
 		end,
-		["luarules/mission_api/objectives.lua"] = { ActivateStage = noop },
+		["luarules/mission_api/stages.lua"] = { SetInitialStage = noop, ActivateStage = noop },
 		["luarules/mission_api/orders.lua"] = { UpdateWaits = noop, OnUnitFromFactory = noop },
 		["luarules/mission_api/sounds.lua"] = { ProcessSoundQueue = noop },
 		["luarules/mission_api/area_tracking.lua"] = { UpdateTrackedAreas = noop },
