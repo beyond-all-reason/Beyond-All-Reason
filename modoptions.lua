@@ -71,6 +71,15 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "variablespeed",
+		name = "Variable Game Speed",
+		desc = "Allow players to change game speed during the match. When disabled, speed stays at 1x.",
+		type = "bool",
+		section = "options_main",
+		def = false,
+	},
+
+	{
 		key = "allowuserwidgets",
 		name = "Allow Custom Widgets",
 		desc = "Allow custom user widgets or disallow them",
