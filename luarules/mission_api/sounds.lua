@@ -3,6 +3,7 @@
 ---
 
 local nextSoundAt = 0
+local playingQueuedSoundfile
 
 local function enqueueSound(soundfile, volume, position)
 	local soundQueue = GG["MissionAPI"].soundQueue
@@ -26,18 +27,42 @@ end
 local function processSoundQueue(frameNumber)
 	local soundQueue = GG["MissionAPI"].soundQueue
 
-	if frameNumber < nextSoundAt or #soundQueue == 0 then
+	if frameNumber < nextSoundAt then
+		return
+	end
+	playingQueuedSoundfile = nil
+	if #soundQueue == 0 then
 		return
 	end
 
 	local sound = table.remove(soundQueue, 1)
 	Spring.SendLuaUIMsg("suspendNotifications " .. sound.length)
 	nextSoundAt = frameNumber + (sound.length * Game.gameSpeed)
+	playingQueuedSoundfile = sound.soundfile
 	playSound(sound.soundfile, sound.volume, sound.position)
+end
+
+local function stopSound(soundfile)
+	local soundQueue = GG["MissionAPI"].soundQueue
+	for i = #soundQueue, 1, -1 do
+		if soundQueue[i].soundfile == soundfile then
+			table.remove(soundQueue, i)
+		end
+	end
+
+	-- Older engines only drop the queued entries.
+	if Spring.StopSoundFile then
+		Spring.StopSoundFile(soundfile)
+	end
+	if playingQueuedSoundfile == soundfile then
+		playingQueuedSoundfile = nil
+		nextSoundAt = 0
+	end
 end
 
 return {
 	EnqueueSound = enqueueSound,
 	PlaySound = playSound,
 	ProcessSoundQueue = processSoundQueue,
+	StopSound = stopSound,
 }
