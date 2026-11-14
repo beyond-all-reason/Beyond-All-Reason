@@ -57,9 +57,11 @@ local BUCKET_COLORS = {
 local MARKS = {
 	-- Flow
 	metalIncome = { "moho", "converter", "advConverter", "ecoStrike", "commanderLost", "peak" },
+	metalReclaimIncome = { "peak" },
 	metalExpense = { "tech2" },
 	metalLevel = { "full" },
 	energyIncome = { "fusion", "afus", "geo", "ecoStrike", "peak" },
+	energyReclaimIncome = { "peak" },
 	energyExpense = { "converter", "advConverter", "nuke", "antinuke", "dry" },
 	energyLevel = { "dry", "full" },
 	conversion = { "converter", "advConverter", "ecoStrike", "dry" },
