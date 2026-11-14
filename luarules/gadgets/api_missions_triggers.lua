@@ -272,18 +272,15 @@ function gadget:GameFramePost(frameNumber)
 		detectionCount = 0
 	end
 
-	if not next(buildPlacements) then
-		return
-	end
-
-	for builderID, unitDefID in pairs(buildPlacements) do
-		local buildeeID = Spring.GetUnitIsBuilding(builderID)
-		if buildeeID and Spring.GetUnitIsBeingBuilt(buildeeID) and Spring.GetUnitDefID(buildeeID) == unitDefID then
-			dispatchTriggerCallin("BuildAssisted", buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
+	if next(buildPlacements) ~= nil then
+		for builderID, unitDefID in pairs(buildPlacements) do
+			local buildeeID = Spring.GetUnitIsBuilding(builderID)
+			if buildeeID and Spring.GetUnitIsBeingBuilt(buildeeID) and Spring.GetUnitDefID(buildeeID) == unitDefID then
+				dispatchTriggerCallin("BuildAssisted", buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
+			end
 		end
+		buildPlacements = {}
 	end
-
-	buildPlacements = {}
 end
 
 function gadget:TeamDied(teamID)
@@ -641,7 +638,8 @@ function gadget:Initialize()
 			or hasTriggerType[triggerTypes.FeatureDestroyed],
 		UnitBuildStepPost = hasTriggerType[triggerTypes.ConstructionProgress],
 		UnitDamaged = hasTriggerType[triggerTypes.UnitAttacked],
-		StockpileChanged = hasTriggerType[triggerTypes.StockpileCount] or hasTriggerType[triggerTypes.StockpileProgress],
+		StockpileChanged = hasTriggerType[triggerTypes.StockpileCount]
+			or hasTriggerType[triggerTypes.StockpileProgress],
 	}) do
 		if not needed then
 			gadgetHandler:RemoveCallIn(callinName)
