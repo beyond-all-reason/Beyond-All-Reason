@@ -195,6 +195,14 @@ local function DrawLOSStencil() -- about 0.025 ms
 
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 		losStencilShader:Activate()
+		local regionRect = WG.MapRegionView and WG.MapRegionView.rect
+		losStencilShader:SetUniform(
+			"regionBounds",
+			regionRect and regionRect.x0 or 0,
+			regionRect and regionRect.z0 or 0,
+			regionRect and regionRect.x1 or 0,
+			regionRect and regionRect.z1 or 0
+		)
 		circleInstanceVBO.VAO:DrawArrays(
 			GL.TRIANGLE_FAN,
 			circleInstanceVBO.numVertices,
@@ -393,6 +401,14 @@ function widget:DrawWorld()
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
 
 	losCircleShader:Activate()
+	local regionRect = WG.MapRegionView and WG.MapRegionView.rect
+	losCircleShader:SetUniform(
+		"regionBounds",
+		regionRect and regionRect.x0 or 0,
+		regionRect and regionRect.z0 or 0,
+		regionRect and regionRect.x1 or 0,
+		regionRect and regionRect.z1 or 0
+	)
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 
