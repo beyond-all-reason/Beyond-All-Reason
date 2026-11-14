@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy.
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0
 local INCOME_ON_FULL_UNIT_RECLAIM = true
 	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
 	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
