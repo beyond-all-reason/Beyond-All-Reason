@@ -23,7 +23,7 @@ local triggerTypes, triggers, triggerContext ---@type table, table<string, table
 
 local callins ---@type table
 local unitsEnteredAreaHandlers ---@type table<string, function?>
-local unitsLeftAreaHandlers ---@table<string, function?>
+local unitsLeftAreaHandlers ---@type table<string, function?>
 local needsBuildOwnerMap = false
 local needsBuildStartSet = false
 
