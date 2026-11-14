@@ -209,7 +209,8 @@ local function inFactory(buildeeID)
 	return builder and builder.isFactory
 end
 
--- ConstructionStarted gets buildees from two call-ins. Only one can claim.
+-- ConstructionStarted sees a buildee from both UnitCreated and BuildAssisted.
+-- Each trigger fires once per buildee from the callin the first activates it.
 local function claimConstructionStart(buildeeID, triggerID)
 	local claims = constructionStarts[buildeeID]
 	if claims then
