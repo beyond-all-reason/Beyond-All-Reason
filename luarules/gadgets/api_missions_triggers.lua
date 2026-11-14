@@ -149,8 +149,8 @@ local function dispatchTriggerCallin(callinName, ...)
 	end
 end
 
--- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
--- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
+-- Location triggers share area tracking's per-frame poll, one per distinct area and team,
+-- and handlers receive only the units that crossed a tracking boundary.
 
 ---@param triggerID string
 local function onUnitsEnteredArea(unitIDs, triggerID)
