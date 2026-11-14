@@ -991,6 +991,8 @@ describe("mission_api.validation.parameter_validators", function()
 			[100] = "AREA_ATTACK_GROUND",
 			SMART_TOGGLE = 101,
 			[101] = "SMART_TOGGLE",
+			USER_FIRESTATE = 102,
+			[102] = "USER_FIRESTATE",
 		}
 	end)
 
@@ -1194,6 +1196,9 @@ describe("mission_api.validation.parameter_validators", function()
 		for trajectory = 0, 2 do
 			orders[#orders + 1] = { V.env.GameCMD.SMART_TOGGLE, { trajectory } }
 		end
+		for userFireState = 0, 4 do
+			orders[#orders + 1] = { V.env.GameCMD.USER_FIRESTATE, { userFireState } }
+		end
 
 		V.assertNoMessageContaining(validateOrders(orders), "Parameter: orders")
 	end)
@@ -1203,6 +1208,7 @@ describe("mission_api.validation.parameter_validators", function()
 			{ V.env.CMD.MOVE_STATE, { 3 } },
 			{ V.env.CMD.FIRE_STATE, -1 },
 			{ V.env.GameCMD.SMART_TOGGLE, { 3 } },
+			{ V.env.GameCMD.USER_FIRESTATE, { 5 } },
 		})
 
 		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[1][2]")
@@ -1211,6 +1217,10 @@ describe("mission_api.validation.parameter_validators", function()
 			"Parameter must be 0, 1, 2 or 3, as a number or {n}. Action: a, Parameter: orders[2][2]"
 		)
 		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[3][2]")
+		V.assertMessage(
+			result,
+			"Parameter must be 0, 1, 2, 3 or 4, as a number or {n}. Action: a, Parameter: orders[4][2]"
+		)
 	end)
 
 	it("rejects AREA_ATTACK without a radius", function()

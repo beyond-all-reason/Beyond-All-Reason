@@ -654,18 +654,11 @@ end
 -- A state command takes one of its values, bare or as {value}.
 local function getStateValidator(states)
 	local allowed, values = {}, {}
-	for _, state in ipairs(states) do
-		-- A name this engine's CMD lacks is no state here.
-		local value = type(state) == "string" and CMD[state] or state
-		if type(value) == "number" then
-			values[#values + 1] = value
-			allowed[value] = true
-		end
+	for _, value in pairs(states) do
+		values[#values + 1] = value
+		allowed[value] = true
 	end
 	table.sort(values)
-	if #values == 0 then
-		return function() end
-	end
 	local message = "Parameter must be "
 		.. table.concat(values, ", ", 1, #values - 1)
 		.. " or "
