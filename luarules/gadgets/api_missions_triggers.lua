@@ -36,6 +36,7 @@ local seismicIntervalFrames ---@type integer
 
 local trackedUnitNames
 local doesUnitHaveName
+local doesUnitMatch ---@type function
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
@@ -191,17 +192,8 @@ local function isBuildFrameOwner(buildeeID, builderName, builderDefName)
 	if not builderName and not builderDefName then
 		return true
 	end
-	local builder = buildFrameOwners[buildeeID]
-	if not builder then
-		return false
-	end
-	if builderDefName and builderDefName ~= UnitDefs[builder.defID].name then
-		return false
-	end
-	if builderName and not doesUnitHaveName(builder.id, builderName) then
-		return false
-	end
-	return true
+	local builder = buildFrameOwners[buildeeID] ---@as table?
+	return builder ~= nil and doesUnitMatch(builder.id, builderName, builderDefName)
 end
 
 local function inFactory(buildeeID)
@@ -558,10 +550,12 @@ function gadget:Initialize()
 	doesFeatureHaveName = tracking.DoesFeatureHaveName
 	untrackFeatureID = tracking.UntrackFeatureID
 
+	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
+
 	triggerContext = {
 		ActivateTrigger = activateTrigger,
 		DoesUnitHaveName = doesUnitHaveName,
-		DoesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch,
+		DoesUnitMatch = doesUnitMatch,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,
 		InFactory = inFactory,
