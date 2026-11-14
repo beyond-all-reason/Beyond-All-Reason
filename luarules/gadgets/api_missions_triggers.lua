@@ -441,11 +441,7 @@ end
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
 	-- Negative buildStep means reclaim
 	if buildStep < 0 then
-		local featureDef = FeatureDefs[featureDefID]
-		if not featureDef then
-			return true
-		end
-
+		local featureDef = FeatureDefs[featureDefID] ---@as table
 		reclaimedFeatures[featureID] = builderTeamID
 
 		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
