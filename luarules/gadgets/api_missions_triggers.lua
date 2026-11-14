@@ -424,13 +424,11 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 	if buildStep < 0 then
 		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
-			local unitDef = UnitDefs[unitDefID]
-			if unitDef then
-				local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
+			local unitDef = UnitDefs[unitDefID] ---@as table
+			local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
 
-				local t = table.ensureTable(teamReclaimIncome, builderTeamID)
-				t.metal = (t.metal or 0) + reclaimMetal
-			end
+			local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+			t.metal = (t.metal or 0) + reclaimMetal
 		end
 	end
 	return true
