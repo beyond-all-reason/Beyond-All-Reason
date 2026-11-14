@@ -533,7 +533,7 @@ describe("mission_api.validation.references", function()
 		end
 
 		-- An unowned Event trigger is inert: nothing declares a callin that can fire it.
-		it("warns about an Event trigger no objective names", function()
+		it("warns about an Event trigger nothing names", function()
 			local result = V.validate(
 				V.mission()
 					:WithTrigger("orphan", { type = V.triggerTypes.Event, actions = { "act" } })
@@ -553,6 +553,31 @@ describe("mission_api.validation.references", function()
 			)
 
 			V.assertNoMessageContaining(result, "Event trigger has no owners")
+		end)
+
+		it("does not warn about an Event trigger a RaiseEvent action names", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("missionStart", { type = V.triggerTypes.MissionStarted, actions = { "raise" } })
+					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithAction("raise", { type = V.actionTypes.RaiseEvent, parameters = { triggerID = "raised" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+			)
+
+			V.assertNoMessageContaining(result, "Event trigger has no owners")
+		end)
+
+		it("reports a RaiseEvent action naming a trigger that is not an Event", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("missionStart", { type = V.triggerTypes.MissionStarted, actions = { "raise" } })
+					:WithAction("raise", {
+						type = V.actionTypes.RaiseEvent,
+						parameters = { triggerID = "missionStart" },
+					})
+			)
+
+			V.assertMessage(result, "RaiseEvent must name an Event trigger. Action: raise, Trigger: missionStart")
 		end)
 
 		-- Any difficulty's trigger may be the one raised, so each is checked.
