@@ -186,9 +186,7 @@ local function isFeatureInArea(featureID, area)
 	return math.isPointInArea(featureX, featureZ, area)
 end
 
--- Attempt at single-assigning a construction task owner to each buildee.
--- When multiple constructors place the same buildDefID, any can become an
--- "owner" in some technical sense, since only factories own build frames.
+-- The owner is the builder that created the frame. Assisting builders never own it.
 local function isBuildFrameOwner(buildeeID, builderName, builderDefName)
 	if not builderName and not builderDefName then
 		return true
