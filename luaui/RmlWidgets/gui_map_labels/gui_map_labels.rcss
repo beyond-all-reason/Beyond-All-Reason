@@ -316,8 +316,8 @@ body {
 	border-color: #ffffff;
 }
 
-/* Inline expanding swatch row — normal flow, no absolute positioning, so it
-   cannot be clipped or mispositioned inside the popup */
+/* Inline swatch row in normal flow (no absolute positioning), so it cannot be clipped or
+   misplaced inside the popup */
 .ml-color-pop {
 	display: flex;
 	flex-direction: row;
@@ -329,8 +329,8 @@ body {
 	border-radius: 6dp;
 }
 
-/* .ml-color-pop sets display:flex with the same specificity as the shared
-   .hidden rule, and this sheet loads later — restate the hide explicitly */
+/* .ml-color-pop sets display:flex at the same specificity as the shared .hidden rule and
+   this sheet loads later: restate the hide explicitly */
 .ml-color-pop.hidden {
 	display: none;
 }
@@ -373,9 +373,8 @@ body {
 	padding: 2dp 6dp;
 }
 
-/* .ml-ghost sets display:flex at the same specificity as the shared .hidden
-   rule and this sheet loads later, which kept the ghost permanently visible —
-   restate the hide with higher specificity */
+/* .ml-ghost sets display:flex at the same specificity as the shared .hidden rule and this
+   sheet loads later: restate the hide with higher specificity */
 .ml-ghost.hidden {
 	display: none;
 }

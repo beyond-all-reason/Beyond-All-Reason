@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "55 37 67",
-		collisionvolumetype = "Box",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
 		footprintx = 4,
@@ -48,7 +48,7 @@ return {
 			restrictions_inclusion = "_noair_",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 		},
 		featuredefs = {
 			dead = {

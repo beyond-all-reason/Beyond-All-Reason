@@ -23,9 +23,6 @@ local objectives = {
 				seconds = {
 					difficulties = { Easy = 30, Hard = 20 },
 				},
-				interval = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
 			},
 		},
 	},
@@ -93,10 +90,10 @@ local actions = {
 			unitLoadout = {
 				difficulties = {
 					Easy = {
-						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', teamName = 'player', unitName = 'wave', quantity = 2, spacing = 32 },
+						{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, orientation = 's', teamName = 'player', unitName = 'wave', quantity = 2, spacing = 32 },
 					},
 					Hard = {
-						{ unitDefName = 'armpw', x = 1800, z = 1600, facing = 's', teamName = 'player', unitName = 'wave', quantity = 8, spacing = 32 },
+						{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, orientation = 's', teamName = 'player', unitName = 'wave', quantity = 8, spacing = 32 },
 					},
 				},
 			},

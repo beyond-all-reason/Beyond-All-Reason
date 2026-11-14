@@ -354,17 +354,16 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 5) / animSpeed;
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>11) animSpeed = 11;
 		sleep 193;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 3;
+	animSpeed = 3;
 	start-script Walk();
 }
 StopMoving(){
@@ -378,15 +377,20 @@ Create()
 {
 	animSpeed = 3;
 	isMoving = FALSE;
-    turn radarFlare to x-axis <17> now;
-    turn railgun to x-axis <-70> now;
-    turn gunBase to x-axis <-35> now;
-    SLEEP_UNTIL_UNITFINISHED;
-    spin radarDish around y-axis speed <100> accelerate <5>;
+	turn radarFlare to x-axis <17> now;
+	turn railgun to x-axis <-70> now;
+	turn gunBase to x-axis <-35> now;
+	SLEEP_UNTIL_UNITFINISHED;
+	spin radarDish around y-axis speed <100> accelerate <5>;
 }
 
 
 #define BASEPIECE pelvis
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 100
+
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 RestoreAfterDelay()
@@ -394,24 +398,24 @@ RestoreAfterDelay()
 	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2;
 	sleep 5000;
 	set-signal-mask 0;
-	turn torso to y-axis <0.000000> speed <90>;
+	turn torso to y-axis <0.0> speed <90>;
 
 	turn gunBase to x-axis <-35> speed <50>;
-    turn railarmbase to x-axis <0> speed <225>;
-    turn railarm to x-axis <0> speed <225>;
-    turn railgun to x-axis <-70> speed <225>;
+	turn railarmbase to x-axis <0> speed <225>;
+	turn railarm to x-axis <0> speed <225>;
+	turn railgun to x-axis <-70> speed <225>;
 }
 
 AimWeapon1(heading, pitch){
-    signal SIGNAL_AIM1;
+	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-    turn torso to y-axis heading speed <225>;
+	turn torso to y-axis heading speed <225>;
 	turn gunBase to x-axis <0> - pitch speed <225>;
 
-    turn railarmbase to x-axis <45> speed <225>;
-    turn railarm to x-axis <-45> speed <225>;
+	turn railarmbase to x-axis <45> speed <225>;
+	turn railarm to x-axis <-45> speed <225>;
 	turn railgun to x-axis (<0> - pitch) speed <225>;
-    return (1);
+	return (1);
 }
 
 QueryWeapon1(pieceIndex)
@@ -425,11 +429,10 @@ AimFromWeapon1(pieceIndex)
 }
 
 FireWeapon1(){
-    spin gunBarrel around z-axis speed <1200>;
-    
-    emit-sfx 1024 from gunFlare;
-    //wait-for-turn gunBarrel around z-axis;
-    stop-spin gunBarrel around z-axis decelerate <60>;
+	spin gunBarrel around z-axis speed <1200>;
+
+	emit-sfx 1024 from gunFlare;
+	stop-spin gunBarrel around z-axis decelerate <60>;
 }
 
 QueryWeapon2(pieceIndex)
@@ -450,8 +453,8 @@ AimWeapon2(heading, pitch)
 	turn torso to y-axis heading speed <225>;
 	turn gunBase to x-axis <0> - pitch speed <225>;
 
-    turn railarmbase to x-axis <45> speed <225>;
-    turn railarm to x-axis <-45> speed <225>;
+	turn railarmbase to x-axis <45> speed <225>;
+	turn railarm to x-axis <-45> speed <225>;
 	turn railgun to x-axis (<0> - pitch) speed <225>;
 	wait-for-turn torsoFlare around y-axis;
 	start-script RestoreAfterDelay();
@@ -460,15 +463,12 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-    move railtop to y-axis [1] speed [200];
-    move railbot to y-axis [-1] speed [200];
-    //move railgun to z-axis [-5] speed [200];
-    emit-sfx 1024 + 1 from railFlare;
-    wait-for-move railtop along y-axis;
-    move railtop to y-axis [0] speed [2];
-    move railbot to y-axis [0] speed [2];
-    //move railgun to z-axis [0] speed [5];
-
+	move railtop to y-axis [1] speed [200];
+	move railbot to y-axis [-1] speed [200];
+	emit-sfx 1024 + 1 from railFlare;
+	wait-for-move railtop along y-axis;
+	move railtop to y-axis [0] speed [2];
+	move railbot to y-axis [0] speed [2];
 }
 
 Killed(severity, corpsetype)

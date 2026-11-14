@@ -3,15 +3,15 @@
 
 #define SIGNAL_BUILD 2
 
-piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1, armhexl, armhexl_emit; 
+piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1, armhexl, armhexl_emit;
 
-static-var  isMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
 static-var animAmplitude; //Higher values are bigger, 100 is default
 
 #define SIGNAL_MOVE 1
-Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
+Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:4
 			turn head to x-axis ((<-3.0> *animAmplitude)/100) speed ((<90.0> *animAmplitude)/100) / animSpeed; //delta=3.00
@@ -221,7 +221,7 @@ StopWalking() {
 	turn rleg to y-axis <0.0> speed <75.347520> / animSpeed;
 	turn rleg to z-axis <0.0> speed <126.287879> / animSpeed;
 }
-// REMEMBER TO animspeed = 3 in Create() !!
+// REMEMBER TO animSpeed = 3 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
@@ -229,16 +229,15 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		animSpeed = (maxSpeed * 3) / animSpeed;
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
@@ -264,8 +263,7 @@ Create()
 	hide aimy1;
 	hide armhexl_emit;
 	isMoving = FALSE;
-	animspeed = 3;
-	moveSpeed = get MAX_SPEED;
+	animSpeed = 3;
 	animSpeed = 60;
 	animAmplitude = 100;
 }
@@ -292,7 +290,7 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide nano;
-	signal SIGNAL_BUILD;	
+	signal SIGNAL_BUILD;
 	set INBUILDSTANCE to 0;
 	hide armhexl_emit;
 	turn aimy1 to y-axis <0> speed <260.0>;

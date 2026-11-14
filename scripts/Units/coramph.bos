@@ -4,7 +4,7 @@
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
-static-var  isMoving, isAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
+static-var  isMoving, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
 
 static-var  Stunned;
 
@@ -341,7 +341,6 @@ UnitSpeed(){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
   animSpeed = (maxSpeed * 5) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<2) animSpeed=2;
   if (animspeed>10) animSpeed = 10;
   sleep 164;
@@ -360,7 +359,6 @@ Create()
 	isMoving = FALSE;
 	animSpeed = 4;
 	restore_delay = 3000;
-	hide pelvis;
 	gun_1 = 0;
 	// Initializing with large negative values, to ensure first aim does wait-for-turn
 	gun_lasthead = -1000000;
@@ -491,9 +489,9 @@ RestoreAfterDelayTorp()
 AimWeapon1(heading, pitch)
 {
 	if ( get IN_WATER(0) == 0 )
-    {
-     return (0);
-    }	
+	{
+		return (0);
+	}
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	// checks if the torpedo launcher is deployed
@@ -514,7 +512,7 @@ AimWeapon1(heading, pitch)
 	{
 		torp_lasthead = heading;
 		// start the restore to neutral script
-		start-script RestoreAfterDelayTorp();	
+		start-script RestoreAfterDelayTorp();
 		return (1);
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
@@ -538,7 +536,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	
+
 	pieceIndex = tflare;
 
 }

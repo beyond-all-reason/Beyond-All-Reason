@@ -24,6 +24,8 @@ local definitions = {
 	TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
 		.LoadTriggerDefinitions(),
 }
+definitions.ParameterTypes.Enums[definitions.ParameterTypes.Types.EffectType] =
+	MissionSpecEnv.include(env, "luarules/mission_api/effects_loader.lua").LoadEffectDefinitions().Types
 GG["MissionAPI"] = previousMissionAPI
 
 -- Validation reads its definitions from GG, the way the rest of the API does, so a stand-in
@@ -52,6 +54,7 @@ function helper.mockEngineGlobals()
 	missionAPI.Teams = { player = 0, [0] = "player" }
 	missionAPI.Alliances = { players = 0, [0] = "players" }
 	missionAPI.Variables = {}
+	missionAPI.GameSetupErrors = nil
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end

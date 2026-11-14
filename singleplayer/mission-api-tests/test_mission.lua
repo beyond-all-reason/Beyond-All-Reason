@@ -11,7 +11,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 0,
-			interval = 9,
 		},
 		actions = { 'spawnCons1' },
 	},
@@ -102,7 +101,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corck', x = 1800, z = 1600, facing = 'n', teamName = 'player', unitName = 'con-bots', quantity = 9, spacing = 32 },
+				{ unitDefName = 'corck', position = { x = 1800, z = 1600 }, orientation = 'n', teamName = 'player', unitName = 'con-bots', quantity = 9, spacing = 32 },
 			},
 		},
 	},
@@ -111,7 +110,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1900, z = 2200, facing = 'e', teamName = 'player', quantity = 18 },
+				{ unitDefName = 'armfus', position = { x = 1900, z = 2200 }, orientation = 'e', teamName = 'player', quantity = 18 },
 			},
 		},
 	},

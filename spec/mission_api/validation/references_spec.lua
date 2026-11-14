@@ -9,7 +9,9 @@ local function spawnUnits(unitName)
 	return {
 		type = V.actionTypes.SpawnUnits,
 		parameters = {
-			unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = unitName } },
+			unitLoadout = {
+				{ unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = unitName },
+			},
 		},
 	}
 end
@@ -17,7 +19,9 @@ end
 local function createFeatures(featureName)
 	return {
 		type = V.actionTypes.CreateFeatures,
-		parameters = { featureLoadout = { { featureDefName = "rockdef", x = 0, z = 0, featureName = featureName } } },
+		parameters = {
+			featureLoadout = { { featureDefName = "rockdef", position = { x = 0, z = 0 }, featureName = featureName } },
+		},
 	}
 end
 
@@ -79,8 +83,17 @@ describe("mission_api.validation.references", function()
 				"destroyFeature",
 				{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "loadoutRock" } }
 			)
-			:WithUnitLoadout({ { unitDefName = "armwar", x = 0, z = 0, teamName = "player", unitName = "loadoutBot" } })
-			:WithFeatureLoadout({ { featureDefName = "rockdef", x = 0, z = 0, featureName = "loadoutRock" } })))
+			:WithUnitLoadout({
+				{
+					unitDefName = "armwar",
+					position = { x = 0, z = 0 },
+					teamName = "player",
+					unitName = "loadoutBot",
+				},
+			})
+			:WithFeatureLoadout({
+				{ featureDefName = "rockdef", position = { x = 0, z = 0 }, featureName = "loadoutRock" },
+			})))
 	end)
 
 	it("treats inline objective triggers as name references", function()
@@ -118,6 +131,38 @@ describe("mission_api.validation.references", function()
 			})))
 
 		V.env.CMD = {}
+	end)
+
+	it("treats the units of camera keyframes as name references", function()
+		local result = V.validate(V.mission()
+			:WithTrigger("t", {
+				type = V.triggerTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				actions = { "spawn", "shot", "chase", "circle" },
+			})
+			:WithAction("spawn", spawnUnits("hero"))
+			:WithAction("shot", {
+				type = V.actionTypes.PlayCameraSequence,
+				parameters = {
+					keyframes = {
+						{ unitName = "hero", lookAtUnitName = "raiders" },
+						{ position = { x = 0, z = 0 }, lookAtUnitName = "raiders" },
+					},
+				},
+			})
+			:WithAction("chase", { type = V.actionTypes.FollowCamera, parameters = { unitName = "ghosts" } })
+			:WithAction("circle", { type = V.actionTypes.OrbitCamera, parameters = { unitName = "hero" } }))
+
+		-- Named by two keyframes, listed once.
+		V.assertMessage(
+			result,
+			"Unit name is referenced, but never created. Unit name: raiders, Referenced in: action shot (keyframes)"
+		)
+		V.assertMessage(
+			result,
+			"Unit name is referenced, but never created. Unit name: ghosts, Referenced in: action chase"
+		)
+		V.assertNoMessageContaining(result, "Unit name: hero")
 	end)
 
 	-- Referencing action types come from the action schema, so actions like

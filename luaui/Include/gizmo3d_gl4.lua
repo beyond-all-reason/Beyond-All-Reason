@@ -69,9 +69,14 @@ local OBJECT_CLEARANCE = 1.35
 -- point on the visible part. This only stops the truly absurd.
 local GIZMO_MAX_VIEWPORT_FRAC = 1.0
 
-local ARROW_GRAB_PX = 16
-local RING_GRAB_PX = 12
+-- Generous on purpose (a thin ring is hard to hit): the slim handles draw thin,
+-- but they take the pointer from well around them.
+local ARROW_GRAB_PX = 20
+local RING_GRAB_PX = 22
 local CENTRE_GRAB_PX = 18
+-- The centre handle draws only while the pointer is this close (or on it, or dragging it):
+-- always shown, it would cover the object under it. It grabs at CENTRE_GRAB_PX regardless.
+local CENTRE_SHOW_PX = 56
 
 -- Rings are hit-tested by walking the circle, so the arc between probes has to
 -- stay under the grab radius or the ring develops dead spots. Any fixed count
@@ -83,10 +88,11 @@ local RING_COARSE_SAMPLES = 48
 local RING_REFINE_STEPS = 18
 local RING_RADIUS = 1.0 -- relative to gizmo size
 local ARROW_LENGTH = 0.95
-local SHAFT_RADIUS = 0.018
-local HEAD_LENGTH = 0.22
-local HEAD_RADIUS = 0.062
-local CENTRE_RADIUS = 0.085
+-- Slim: thin shafts and small heads read as handles, not as objects.
+local SHAFT_RADIUS = 0.009
+local HEAD_LENGTH = 0.15
+local HEAD_RADIUS = 0.038
+local CENTRE_RADIUS = 0.055
 local SHAFT_LENGTH = ARROW_LENGTH - HEAD_LENGTH
 
 -- Rotating an axis-aligned primitive into place. All the primitive helpers build
@@ -105,6 +111,8 @@ local HANDLES = {
 -- Draw and pick order. Arrows before rings so an arrow tip lying over a ring
 -- wins the grab, which is what it looks like from the front.
 local HANDLE_ORDER = { "centre", "tx", "ty", "tz", "rx", "ry", "rz" }
+-- The handles drawn and grabbed: HANDLE_ORDER less the ones setHidden took away.
+local shownOrder = HANDLE_ORDER
 
 ----------------------------------------------------------------
 -- Shader
@@ -332,6 +340,22 @@ function Gizmo.setSnap(opts)
 	snap.angleDeg = opts and opts.angleDeg or nil
 end
 
+---Handles that are neither drawn nor grabbed, for a tool that may not tilt or lift what it
+---moves: { rx = true, rz = true, ty = true }. Nil shows every handle.
+---@param hidden table|nil
+function Gizmo.setHidden(hidden)
+	if not hidden or next(hidden) == nil then
+		shownOrder = HANDLE_ORDER
+		return
+	end
+	shownOrder = {}
+	for i = 1, #HANDLE_ORDER do
+		if not hidden[HANDLE_ORDER[i]] then
+			shownOrder[#shownOrder + 1] = HANDLE_ORDER[i]
+		end
+	end
+end
+
 ----------------------------------------------------------------
 -- Public: hit testing
 ----------------------------------------------------------------
@@ -460,8 +484,8 @@ function Gizmo.hitTest(mx, my)
 		end
 	end
 
-	for i = 1, #HANDLE_ORDER do
-		local name = HANDLE_ORDER[i]
+	for i = 1, #shownOrder do
+		local name = shownOrder[i]
 		local h = HANDLES[name]
 
 		if h.kind == "centre" then
@@ -553,7 +577,9 @@ local function ringAngle(origin, axis, mx, my)
 end
 
 ---@return boolean started
-function Gizmo.beginDrag(handle, mx, my)
+---@param opts table|nil { body = true }: a centre move begun on the object itself, not on the
+--- handle; the centre handle then stays hidden for the drag.
+function Gizmo.beginDrag(handle, mx, my, opts)
 	local h = pivot and HANDLES[handle]
 	if not h then
 		return false
@@ -564,6 +590,7 @@ function Gizmo.beginDrag(handle, mx, my)
 		kind = h.kind,
 		axis = h.axis,
 		origin = { x = pivot.x, y = pivot.y, z = pivot.z },
+		body = type(opts) == "table" and opts.body == true,
 	}
 
 	if h.kind == "arrow" then
@@ -813,13 +840,20 @@ function Gizmo.draw(hovered)
 	end
 
 	local active = drag and drag.handle or nil
+	local bodyDrag = drag ~= nil and drag.body
+	local centreShown = (active == "centre" and not bodyDrag) or hovered == "centre"
+	if not centreShown and not bodyDrag then
+		local mx, my = Spring.GetMouseState()
+		local dsq = pixelDistSq(mx, my, pivot.x, pivot.y, pivot.z)
+		centreShown = dsq ~= nil and dsq <= CENTRE_SHOW_PX * CENTRE_SHOW_PX
+	end
 
 	for _, prim in pairs(prims) do
 		InstanceVBOTable.clearInstanceTable(prim.table)
 	end
 
-	for i = 1, #HANDLE_ORDER do
-		local name = HANDLE_ORDER[i]
+	for i = 1, #shownOrder do
+		local name = shownOrder[i]
 		local h = HANDLES[name]
 
 		local r, g, b = h.color[1], h.color[2], h.color[3]
@@ -867,7 +901,7 @@ function Gizmo.draw(hovered)
 			)
 		elseif h.kind == "ring" then
 			push(prims.ring, pivot.x, pivot.y, pivot.z, size, h.euler, r, g, b, a, name)
-		else
+		elseif centreShown then
 			push(prims.centre, pivot.x, pivot.y, pivot.z, size, h.euler, r, g, b, a, name)
 		end
 	end
@@ -883,7 +917,7 @@ function Gizmo.draw(hovered)
 	gl.DepthMask(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.Culling(false)
-	gl.LineWidth(2.5)
+	gl.LineWidth(3.5)
 
 	local activeShader = nil
 	for _, prim in pairs(prims) do

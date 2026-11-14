@@ -3,6 +3,9 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 -- The builder reads these at load or on first use; the game provides them, the specs do not.
 local env = SpecEnv.new({
 	Spring = {
+		GetKeyCode = function()
+			return 1
+		end,
 		GetTimer = function() end,
 		DiffTimers = function()
 			return 0
@@ -192,6 +195,14 @@ end)
 describe("the selection builder", function()
 	local function open(action)
 		local builder = Builder.new()
+		builder:setLook({
+			textWidth = function(s)
+				return #s * 0.5
+			end,
+			barWidth = function(scale)
+				return math.floor(11 * scale)
+			end,
+		})
 		builder:setArea(0, 0, 1100, 594, 1)
 		builder:show(action and Select.parse(action), { title = "", acceptLabel = "", cancelLabel = "" })
 

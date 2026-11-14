@@ -23,7 +23,7 @@ jobs:
       - name: Resolve engine version
         id: engine
         run: |
-          CONFIG=$(curl -fsSL https://launcher-config.beyondallreason.dev/config.json)
+          CONFIG=$(curl -fsSL --retry 5 --retry-delay 10 https://launcher-config.beyondallreason.dev/config.json)
           ENGINE_URL=$(echo "$CONFIG" | jq -r '
             .setups[]
             | select(.package.id == "manual-linux-test-engine")
@@ -58,7 +58,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p "$EXPORT_DIR/${{ steps.engine.outputs.dest }}"
-          curl -fsSL "${{ steps.engine.outputs.url }}" -o /tmp/engine.7z
+          curl -fsSL --retry 5 --retry-delay 10 "${{ steps.engine.outputs.url }}" -o /tmp/engine.7z
           7z x /tmp/engine.7z -o"$EXPORT_DIR/${{ steps.engine.outputs.dest }}"
           rm /tmp/engine.7z
 
@@ -66,7 +66,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p "$EXPORT_DIR/maps"
-          curl -fsSL "$MAP_URL" -o "$EXPORT_DIR/maps/$MAP_NAME"
+          curl -fsSL --retry 5 --retry-delay 10 "$MAP_URL" -o "$EXPORT_DIR/maps/$MAP_NAME"
 
       - name: Set up workspace
         run: |

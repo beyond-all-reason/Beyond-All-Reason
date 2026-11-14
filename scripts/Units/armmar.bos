@@ -3,7 +3,7 @@
 
 piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, rturbfx, lflareaa, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger, lturbine, rturbine, laaturretfirepoint, raaturretfirepoint;
 
-static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
+static-var restore_delay, gun_primary, gun_2, secondary_deployed;
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
 #define TURRET_SPEED_WEAPONS 1
@@ -14,17 +14,8 @@ static-var last_primary_heading, last_primary_pitch, last_secondary_heading, las
 #define SIGNAL_AIM2 512
 // For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-static-var walkCount;
+static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, isSwimming;
 #define SIGNAL_MOVE 1
-
-LOLEMPTYFUNCTION(){
-	// Ok let me tell you what weird error this script has, which is probably an error of scriptor.
-	// The script will when shooting and walking at the same time, call the first function that is defined
-	// I was able to debug with with the calledFrom param of Walk, because it was called with 0, which I never
-	// call it with. So anyhow, this is the hacky fix, an empty, silly function. It is what is is.
-	sleep 1;
-}
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -69,9 +60,8 @@ StopWalking() {
 }
 
 
-Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
+Walk() {// For N:\animations\Raptors\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIGNAL_MOVE;
-	walkCount = walkCount + 1;
 	if (isMoving) { //Frame:6
 			turn lfoot to x-axis <-33.421407> speed <1002.642225> / animSpeed; //delta=33.42
 			turn lfoot to z-axis <1.015298> speed <30.458947> / animSpeed; //delta=-1.02
@@ -92,8 +82,6 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 		sleep ((33*animSpeed) -1);
 	}
 	while(isMoving) {
-
-		//get PRINT (get GAME_FRAME, 666,calledfrom,walkCount);
 		if (isMoving) { //Frame:12
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-32.878383> speed <16.290718> / animSpeed; //delta=-0.54
@@ -357,12 +345,10 @@ Walk(calledfrom) {// For N:\animations\Raptors\armmar_walk_v2.blend Created by h
 		}
 	}
 }
-// Call this from StopMoving()!
 
 Swim() {// For N:\animations\Raptors\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIGNAL_MOVE;
 
-	//get PRINT (get GAME_FRAME, 777);
 	if (isMoving) { //Frame:6
 
 		if (isMoving) { //Frame:30
@@ -423,8 +409,6 @@ StopSwimming() {
 	turn ruparm to x-axis <0.0> speed <2135.376511> / animSpeed;
 }
 
-
-static-var isSwimming;
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
@@ -432,8 +416,6 @@ UnitSpeed(){
 	var groundheight;
 	var unitxz;
 	while(TRUE){
-		//get PRINT(get GAME_FRAME, isSwimming);
-		//get PRINT ((GET UNIT_Y)/65000, isMoving, 2, 3);
 		if (isMoving == TRUE){
 			unitxz = (get UNIT_XZ);
 			groundheight = 0;
@@ -441,16 +423,12 @@ UnitSpeed(){
 				groundheight = (get GROUND_WATER_HEIGHT(unitxz));
 			}
 			groundheight = groundheight /[1.0];
-
-			//groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
-			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);
 			if (groundheight > (((-1) * 66))){
 				if (isSwimming == TRUE){
-					//get PRINT( get GAME_FRAME, 6666);
 					signal SIGNAL_MOVE;
 					// switch to walk
 					call-script StopSwimming();
-					start-script Walk(11);
+					start-script Walk();
 					isSwimming = FALSE;
 				}
 
@@ -459,8 +437,6 @@ UnitSpeed(){
 				emit-sfx 1024 + 1 from lturbfx;
 				emit-sfx 1024 + 1 from rturbfx;
 				if (isSwimming == FALSE){
-
-					//get PRINT( get GAME_FRAME, 7777);
 					signal SIGNAL_MOVE;
 					call-script StopWalking();
 					start-script Swim();
@@ -471,9 +447,8 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed;
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
-		if (animspeed> 12) animSpeed = 12;
+		if (animSpeed> 12) animSpeed = 12;
 		sleep 197;
 	}
 }
@@ -483,26 +458,21 @@ StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
-	//start-script UnitSpeed();
 	if (isSwimming == TRUE) {
 		start-script Swim();
 	}
 	else {
-		start-script Walk(22);
+		start-script Walk();
 	}
 }
 
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-		//if (isSwimming == TRUE ) call-script StopSwimming();
-		//else call-script StopWalking();
 
-		if (isSwimming == FALSE ) {
-			call-script StopWalking();
-		}
-
-
+	if (isSwimming == FALSE ) {
+		call-script StopWalking();
+	}
 }
 
 #define BASEPIECE pelvis
@@ -573,7 +543,6 @@ Create()
 	hide lflareaa;
 	hide aimy1;
 	isMoving = FALSE;
-	isAiming = FALSE;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -583,7 +552,6 @@ Create()
 	gun_2 = 0;
 	animSpeed = 4;
 	restore_delay = 3000;
-	walkCount = 0;
 	start-script UnitSpeed();
 	secondary_deployed = 0;
 	start-script RetractWeapon2();

@@ -21,8 +21,8 @@ eBlasterFlare;
 static-var restore_delay, wpn1_lasthead, whichBarrel;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 #define WATER_ROCK_UNITSIZE 17
 #include "../floatmotion.h"
@@ -51,8 +51,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turretHeadingPivot to y-axis <0> speed <60>;
-    turn blastTurretPitchPivot to x-axis <0.000000> speed <30>;
-	turn eBlasterTurretPitchPivot to x-axis <0.000000> speed <30>;
+    turn blastTurretPitchPivot to x-axis <0.0> speed <30>;
+	turn eBlasterTurretPitchPivot to x-axis <0.0> speed <30>;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
@@ -73,12 +73,12 @@ RestoreAfterDelay()
 
 
 /// energy blaster
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turretHeadingPivot to y-axis heading speed <150>;
-	turn eBlasterTurretPitchPivot to x-axis <0.000000> - pitch speed <90>;
+	turn eBlasterTurretPitchPivot to x-axis <0.0> - pitch speed <90>;
 
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -91,7 +91,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
     emit-sfx 1024 + 0 from eBlasterFlare;
     move barrel to z-axis [-7] now;
@@ -99,34 +99,29 @@ FirePrimary()
     move barrel to z-axis [0] speed [7];
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = eBlasterTurretPitchPivot;
+	pieceIndex = eBlasterTurretPitchPivot;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-    piecenum = eBlasterFlare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+    pieceIndex = eBlasterFlare;
 }
 
 /// 2x blast cannons
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn blastTurretPitchPivot to x-axis <0.000000> - pitch speed <60>;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn blastTurretPitchPivot to x-axis <0.0> - pitch speed <60>;
 	wait-for-turn turretHeadingPivot around y-axis;
 	wait-for-turn blastTurretPitchPivot around x-axis;
 
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if(whichBarrel == 0){
 		emit-sfx 1024 + 1 from blastFlare1;
@@ -144,18 +139,18 @@ FireSecondary()
 	}
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = blastTurretPitchPivot;
+	pieceIndex = blastTurretPitchPivot;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if(whichBarrel == 0){
-		piecenum = blastFlare1;
+		pieceIndex = blastFlare1;
 	}
 	else if(whichBarrel == 1){
-		piecenum = blastFlare2;
+		pieceIndex = blastFlare2;
 	}
 }
 

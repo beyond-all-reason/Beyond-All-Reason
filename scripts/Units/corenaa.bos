@@ -25,17 +25,15 @@ Create()
 {
 	hide flare1;
 	hide flare2;
-	hide flare1;
-	hide flare2;
 	restore_delay = 3000;
 	gun_1 = 0;
-    spin mount around y-axis speed <25.0>;
+	spin mount around y-axis speed <25.0>;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
 }
 Stop()
 {
-    spin mount around y-axis speed <0.0>;
+	spin mount around y-axis speed <0.0>;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -45,19 +43,19 @@ SetMaxReloadTime(reloadMS)
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    turn gunbase to x-axis <-30> speed <25.0>;
-    spin mount around y-axis speed <25.0>;
+	if (Stunned) {
+		return (1);
+	}
+	turn gunbase to x-axis <-30> speed <25.0>;
+	spin mount around y-axis speed <25.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script Stop();
 	} else {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -68,7 +66,6 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	//return (1);
 	stop-spin mount around y-axis;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
@@ -84,15 +81,15 @@ FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
-	    emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from flare1;
 		move guna to z-axis [-3.999994] now;
-		move guna to z-axis [0.000000] speed [15.000000];
+		move guna to z-axis [0.0] speed [15.0];
 	}
 	if( gun_1 == 1 )
 	{
-	    emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from flare2;
 		move gunb to z-axis [-3.999994] now;
-		move gunb to z-axis [0.000000] speed [15.000000];
+		move gunb to z-axis [0.0] speed [15.0];
 	}
 	gun_1 = !gun_1;
 }

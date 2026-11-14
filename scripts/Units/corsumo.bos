@@ -7,7 +7,7 @@ piece  lflare, rflare, torso, aimy, turret, aimx, sleeve, rbarrel, lbarrel, thig
 static-var  isAiming, restore_delay, gun_1, reload, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, stepcount;
 
 // Signal definitions
-#define SIGNAL_AIM1 2
+#define SIGNAL_AIM1 256
 
 lua_UnitScriptDecal(lightIndex, xpos, zpos, heading) 
 {
@@ -443,9 +443,11 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 
@@ -473,8 +475,6 @@ Create()
 	hide stompfr;
 	hide stompbl;
 	hide stompbr;
-	
-	start-script UnitSpeed();
 	
 	isMoving = FALSE;
 	isAiming = FALSE;
