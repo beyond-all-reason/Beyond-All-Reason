@@ -4,6 +4,7 @@
 --- The mission pauses the game twice. While paused, the pause screen must stay
 --- hidden and pressing the pause key must not unpause for more than a moment.
 --- Ordering the scout ends each scripted pause (orders still arrive while paused).
+--- The third pause, at 15 s, has seconds and ends by itself after 5 s of real time.
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -48,6 +49,14 @@ local triggers = {
 		},
 		actions = { 'pause', 'messagePausedAgain' },
 	},
+
+	timedPause = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 15,
+		},
+		actions = { 'pauseForSeconds', 'messageTimedPause' },
+	},
 }
 
 local actions = {
@@ -72,6 +81,13 @@ local actions = {
 		type = actionTypes.Pause,
 	},
 
+	pauseForSeconds = {
+		type = actionTypes.Pause,
+		parameters = {
+			seconds = 5,
+		},
+	},
+
 	unpause = {
 		type = actionTypes.Unpause,
 	},
@@ -87,6 +103,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Paused by the mission again. Order the flea to continue.",
+		},
+	},
+
+	messageTimedPause = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Paused for 5 s: play goes on by itself. Do not order the flea.",
 		},
 	},
 

@@ -19,8 +19,7 @@ end
 
 	Pausing twice from one source pauses once. A source added with publish=true
 	can also be unpaused from widgets, with `widgetHandler:Unpause(source)`.
-	A source added with seconds unpauses itself after that much real time, counted
-	once the game is paused. Pausing it again restarts or, without seconds, cancels the timer.
+	A source added with seconds unpauses itself after that much real time; pausing it again restarts or cancels that.
 
 	Game rulesparams (for widgets):
 		"gamePaused"          `1` while any gadget source holds the game, so widgets can tell
@@ -29,9 +28,7 @@ end
 		"gamePausePublished"  a JSON array of [source, generation] for unpausing named sources
 
 	Each pause gets a new generation, which widgets send back with an unpause, so a late
-	message can never release a later pause. Any active player can send one.
-	Timed sources take the same release: any active player who knows the generation
-	can end one early, spectators cannot.
+	message can never release a later pause. Any active player can send one, for a published or a timed source.
 
 	Implementation notes:
 	Only a client can pause, by sending NETMSG_PAUSE through Spring.SendCommands("pause").
@@ -76,8 +73,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function pause(source, publish, seconds)
 		local held = pauseSources[source]
-		local timed = seconds ~= nil or (held ~= nil and held.seconds ~= nil)
-		if held and not timed then
+		local retime = seconds ~= nil or (held ~= nil and held.seconds ~= nil)
+		if held and not retime then
 			held.publish = publish == true
 		else
 			generation = generation + 1
@@ -88,8 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 				SendToUnsynced(SYNCACTION, true)
 			end
 			pauseSources[source] = { generation = generation, publish = publish == true, seconds = seconds }
-			-- Starts, restarts or cancels the clients' timer; the new generation outdates any old one.
-			if timed then
+			if retime then
 				SendToUnsynced(SYNCACTION_TIMER, source, generation, seconds)
 			end
 		end
@@ -172,7 +168,7 @@ else
 	local catchingUp = false
 	local controllerID -- as of the last check, to hand pending requests to the next one
 	local controllerCheckTimer = 0.0
-	local timers = {} ---@type table<string, { generation: integer, left: number }> real-time seconds left per timed source
+	local timers = {} ---@type table<string, { generation: integer, left: number }>
 
 	local function setGamePaused(paused)
 		if catchingUp or getPauseControllerID() ~= spGetMyPlayerID() then
@@ -239,11 +235,11 @@ else
 		applyPendingPause()
 	end
 
-	-- Synced code has no clock while paused, so every client counts and only the controller sends the release.
 	local function onPauseTimer(_, source, timerGeneration, seconds)
 		timers[source] = seconds and { generation = timerGeneration, left = seconds } or nil
 	end
 
+	-- Synced has no clock while paused: every client counts, the controller sends.
 	local function updateTimers(deltaTime)
 		if next(timers) == nil or not select(3, spGetGameSpeed()) then
 			return

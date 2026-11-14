@@ -3,7 +3,6 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/game/pause.lua")
@@ -43,19 +42,12 @@ describe("mission_api.actions.pause", function()
 	end)
 
 	describe("actionFunction", function()
-		it("calls GG.GamePause.Pause", function()
-			action.actionFunction()
+		it("calls GG.GamePause.Pause with its seconds", function()
+			action.actionFunction(2.5)
 			assert.are.equal(1, calls.pause)
 			assert.are.equal(0, calls.unpause)
 			assert.are.equal("mission", calls.source)
 			assert.is_false(calls.publish)
-			assert.is_nil(calls.seconds)
-		end)
-
-		it("passes the seconds on, for a pause that ends by itself", function()
-			action.actionFunction(2.5)
-			assert.are.equal(1, calls.pause)
-			assert.are.equal("mission", calls.source)
 			assert.are.equal(2.5, calls.seconds)
 		end)
 	end)

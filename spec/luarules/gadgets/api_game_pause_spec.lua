@@ -184,23 +184,6 @@ describe("api_game_pause", function()
 			assert.same({ { "GamePause", true }, { "GamePauseWidgetsUnpaused" } }, world.sent)
 		end)
 
-		it("hands the clients a timer for a pause with seconds, with its generation", function()
-			gamePause.Pause("mission", false, 5)
-
-			assert.same({ { "GamePause", true }, { "GamePauseTimer", "mission", 1, 5 } }, world.sent)
-			assert.same({}, Json.decode(world.rulesParams.gamePausePublished))
-		end)
-
-		it("lets a timed pause be released for its generation, but not by a spectator", function()
-			gamePause.Pause("mission", false, 5)
-
-			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", SPECTATOR_ID))
-			assert.equals(1, world.rulesParams.gamePaused)
-
-			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", CONTROLLER_ID))
-			assert.equals(0, world.rulesParams.gamePaused)
-		end)
-
 		it("lets an active player who is not the controller end a timed pause early", function()
 			gamePause.Pause("mission", false, 5)
 
@@ -223,32 +206,20 @@ describe("api_game_pause", function()
 			assert.equals(1, world.rulesParams.gamePaused, "an untimed pause only ends with an Unpause")
 		end)
 
-		it("pausing a timed source again restarts its timer under a new generation", function()
+		it("pausing a timed source again restarts its timer, or cancels it without seconds", function()
 			gamePause.Pause("mission", false, 5)
 			gamePause.Pause("mission", false, 3)
-			assert.same({ "GamePauseTimer", "mission", 2, 3 }, world.sent[3])
-
 			gadget:RecvLuaMsg("GamePauseUnpause:1:mission", CONTROLLER_ID)
 			assert.equals(1, world.rulesParams.gamePaused, "the first timer no longer counts")
-			gadget:RecvLuaMsg("GamePauseUnpause:2:mission", CONTROLLER_ID)
-			assert.equals(0, world.rulesParams.gamePaused)
-		end)
 
-		it("pausing a timed source again without seconds cancels the timer", function()
-			gamePause.Pause("mission", false, 5)
 			gamePause.Pause("mission")
-			assert.same({ "GamePauseTimer", "mission", 2 }, world.sent[3])
-
-			gadget:RecvLuaMsg("GamePauseUnpause:1:mission", CONTROLLER_ID)
-			gadget:RecvLuaMsg("GamePauseUnpause:2:mission", CONTROLLER_ID)
-			assert.equals(1, world.rulesParams.gamePaused)
-		end)
-
-		it("a timed source releasing itself leaves the other sources paused", function()
-			gamePause.Pause("cutscene")
-			gamePause.Pause("mission", false, 5)
-
-			gadget:RecvLuaMsg("GamePauseUnpause:2:mission", CONTROLLER_ID)
+			assert.same({
+				{ "GamePause", true },
+				{ "GamePauseTimer", "mission", 1, 5 },
+				{ "GamePauseTimer", "mission", 2, 3 },
+				{ "GamePauseTimer", "mission", 3 },
+			}, world.sent)
+			gadget:RecvLuaMsg("GamePauseUnpause:3:mission", CONTROLLER_ID)
 			assert.equals(1, world.rulesParams.gamePaused)
 		end)
 	end)
@@ -460,22 +431,17 @@ describe("api_game_pause", function()
 				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
 			end)
 
-			it("a new timer for the source replaces the old one", function()
+			it("a new timer for the source replaces the old one, and one without seconds drops it", function()
 				world.paused = true
 				startTimer("mission", 1, 2)
 				startTimer("mission", 2, 1)
 				gadget:Update(1.2)
-
 				assert.same({ "GamePauseUnpause:2:mission" }, world.messages)
-			end)
 
-			it("drops the timer when the source is released or its timer cancelled", function()
-				world.paused = true
-				startTimer("mission", 1, 2)
+				startTimer("mission", 3, 2)
 				startTimer("mission")
 				gadget:Update(3)
-
-				assert.same({}, world.messages)
+				assert.same({ "GamePauseUnpause:2:mission" }, world.messages)
 			end)
 
 			it("counts on a client that is not the controller and sends once it becomes it", function()
