@@ -52,6 +52,8 @@ local WRAITH_ENEMY_RADIUS_SQUARED = WRAITH_ENEMY_RADIUS * WRAITH_ENEMY_RADIUS
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
 local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE ^ 2
+local HOP_ARRIVAL_DISTANCE = 400
+local HOP_ARRIVAL_DISTANCE_SQUARED = HOP_ARRIVAL_DISTANCE ^ 2
 local COMBAT_TARGET_MOVE_REFRESH_DISTANCE = 250
 local COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED = COMBAT_TARGET_MOVE_REFRESH_DISTANCE ^ 2
 local POSITION_VARIANCE = 50
@@ -953,6 +955,13 @@ local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX,
 	end
 end
 
+local function isArrivedAtMoveOrder(zombieData, unitX, unitZ)
+	return zombieData.moveOrderX
+		and unitX
+		and distance2dSquared(unitX, unitZ, zombieData.moveOrderX, zombieData.moveOrderZ)
+			<= HOP_ARRIVAL_DISTANCE_SQUARED
+end
+
 local function issueObjectiveMove(unitID, unitDefID, zombieData, objective, unitX, unitZ, attemptLimit)
 	unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
 	if not unitX then
@@ -1115,18 +1124,16 @@ local function getRandomResurrectableWreck(unitID, unitX, unitZ)
 end
 
 local function issueResurrectOrder(unitID, zombieData, currentCommand, unitX, unitZ)
-	local previousTargetID = zombieData.resurrectTargetID
-	local targetID = previousTargetID
-	if spGetUnitWorkerTask(unitID) ~= CMD_RESURRECT then
-		targetID = getRandomResurrectableWreck(unitID, unitX, unitZ)
+	local targetID = zombieData.resurrectTargetID
+	if currentCommand == CMD_RESURRECT and targetID then
+		return true
 	end
+	targetID = getRandomResurrectableWreck(unitID, unitX, unitZ)
 	zombieData.resurrectTargetID = targetID
 	if not targetID then
 		return false
 	end
-	if currentCommand ~= CMD_RESURRECT or previousTargetID ~= targetID then
-		spGiveOrderToUnit(unitID, CMD_RESURRECT, { targetID + FEATURE_ID_OFFSET }, 0)
-	end
+	spGiveOrderToUnit(unitID, CMD_RESURRECT, { targetID + FEATURE_ID_OFFSET }, 0)
 	return true
 end
 
@@ -1226,9 +1233,15 @@ local function updateOrders(unitID, zombieData)
 			then
 				return
 			end
+			unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
 			local objective, objectiveChanged =
 				ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-			if previousCombatTargetID or objectiveChanged or currentCommand ~= movementCommand then
+			if
+				previousCombatTargetID
+				or objectiveChanged
+				or currentCommand ~= movementCommand
+				or isArrivedAtMoveOrder(zombieData, unitX, unitZ)
+			then
 				issueObjectiveMove(unitID, unitDefID, zombieData, objective, unitX, unitZ)
 			end
 		end
@@ -1459,50 +1472,41 @@ local function updateStuckZombie(unitID, zombieData)
 	end
 	local unitDefID = zombieData.unitDefID
 	local isMobileUnit = mobileUnitDefs[unitDefID] ---@as true?
-	local arrivedAtMoveOrder = isMobileUnit
-		and zombieData.moveOrderX
-		and not zombieData.combatTargetID
-		and distance2dSquared(unitX, unitZ, zombieData.moveOrderX, zombieData.moveOrderZ) <= 400 * 400
-	if arrivedAtMoveOrder then
-		local arrivalObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-		issueObjectiveMove(unitID, unitDefID, zombieData, arrivalObjective, unitX, unitZ)
-	else
-		local objective = zombieData.objective
-		local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
-		local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
-			and isObjectiveReached(unitID, objective, unitX, unitZ)
-		local isStationary = isMobileUnit
-			and not isAtRememberedObjective
-			and movedDistanceSquared < STUCK_DISTANCE_SQUARED
-		local workerTask
-		if isStationary then
-			workerTask = spGetUnitWorkerTask(unitID)
+	local objective = zombieData.objective
+	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
+	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
+		and isObjectiveReached(unitID, objective, unitX, unitZ)
+	local isStationary = isMobileUnit
+		and not isAtRememberedObjective
+		and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+	local workerTask
+	if isStationary then
+		workerTask = spGetUnitWorkerTask(unitID)
+	end
+	if isStationary and workerTask ~= CMD_RESURRECT and workerTask ~= CMD_RECLAIM then -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
+		clearUnitOrders(unitID)
+		clearCombatTracking(zombieData)
+		zombieData.resurrectTargetID = nil
+		if objective and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX) then
+			zombieData.objective = nil
 		end
-		if isStationary and workerTask ~= CMD_RESURRECT and workerTask ~= CMD_RECLAIM then -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
-			clearUnitOrders(unitID)
-			clearCombatTracking(zombieData)
-			zombieData.resurrectTargetID = nil
-			if objective and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX) then
-				zombieData.objective = nil
+		if not isInNoGoZone(zombieData, unitX, unitZ) then
+			if #zombieData.noGoZones >= MAX_NOGO_ZONES then
+				table.remove(zombieData.noGoZones, 1)
 			end
-			if not isInNoGoZone(zombieData, unitX, unitZ) then
-				if #zombieData.noGoZones >= MAX_NOGO_ZONES then
-					table.remove(zombieData.noGoZones, 1)
-				end
-				table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
-			end
-			local recoveryObjective =
-				ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-			issueObjectiveMove(
-				unitID,
-				unitDefID,
-				zombieData,
-				recoveryObjective,
-				unitX,
-				unitZ,
-				ZOMBIE_MAX_ORDER_ATTEMPTS
-			)
+			table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
 		end
+		local recoveryObjective =
+			ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
+		issueObjectiveMove(
+			unitID,
+			unitDefID,
+			zombieData,
+			recoveryObjective,
+			unitX,
+			unitZ,
+			ZOMBIE_MAX_ORDER_ATTEMPTS
+		)
 	end
 	if mobileUnitDefs[unitDefID] and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL then
 		if

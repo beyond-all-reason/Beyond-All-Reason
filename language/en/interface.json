@@ -3577,7 +3577,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu] Set zombie mode"
 		}
 	},
 	"modoptions": {

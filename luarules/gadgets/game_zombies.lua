@@ -113,7 +113,7 @@ local clamp = math.clamp
 
 local scavTeamID = BAR.Utilities.GetScavTeamID()
 local gaiaTeamID = spring.GetGaiaTeamID()
-local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
+local gaiaAllyTeamID = spring.GetTeamAllyTeamID(gaiaTeamID)
 local zombieModeSettings = {
 	initialSpawnCountMinimum = 2,
 	initialSpawnCountMaximum = 6,
@@ -140,7 +140,7 @@ local zombieModeSettings = {
 }
 
 ---One of the zombie modes, matching the keys of `ZOMBIE_MODE_FEATURES`.
----@alias ZombieMode "basic"|"wraith"|"hydra"|"akumu"|"spidergeddon"
+---@alias ZombieMode "basic"|"wraith"|"hydra"|"akumu"
 
 ---@class ZombieModeFeatures
 ---@field wraithRespawns boolean?
@@ -152,7 +152,6 @@ local ZOMBIE_MODE_FEATURES = {
 	wraith = { wraithRespawns = true },
 	hydra = { multipleSpawns = true },
 	akumu = { wraithRespawns = true, multipleSpawns = true },
-	spidergeddon = { wraithRespawns = true, multipleSpawns = true },
 }
 local DEFAULT_ZOMBIE_MODE = "basic"
 
@@ -225,6 +224,7 @@ local runFeatureBuildStepCheck = false
 local tooLong = false
 local factoryBuildpowerMultiplier = 1
 local currentTechLevel = 1
+local cachedHighestPlayerTeamPower = 0
 
 local PICK = {
 	LOWEST = true,
@@ -254,7 +254,6 @@ local RULES_PARAM = {
 	TECH_LEVEL = "zombie_tech_level",
 	FACTORY_BUILDPOWER_MULTIPLIER = "zombie_factory_buildpower_multiplier",
 	REZ_FRAME = "zombie_rez_frame",
-	REZ_DELAY = "zombie_rez_delay",
 	REZ_ARM_FRAME = "zombie_rez_arm_frame",
 	WAS_ZOMBIE = "wasZombie",
 	PUBLIC_ACCESS = { public = true },
@@ -392,13 +391,6 @@ do
 		end
 	end
 
-	local function unitRequiresSpecificPlacement(unitDef)
-		if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-			return true
-		end
-		return unitDef.customParams.geothermal and true or false
-	end
-
 	local function unitDefHasDamagingWeapon(unitDef)
 		if not unitDef.weapons then
 			return false
@@ -533,7 +525,6 @@ do
 			isCommander = customParams.iscommander and true or false,
 			isPoolMember = isPoolMember,
 			forceRespawn = isPoolMember,
-			selfDestructOnSpawn = unitRequiresSpecificPlacement(unitDef),
 			expiryLifetimeFrames = getExpiryLifetimeFrames(unitDef, rezPower),
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
@@ -719,12 +710,16 @@ local function techLevelForPower(power)
 	return previousThreshold.techLevel
 end
 
-local function bandMinutesFromPlayerPower()
-	if not GG.PowerLib or not GG.PowerLib.HighestPlayerTeamPower then
-		return 0
+local function refreshCachedHighestPlayerTeamPower()
+	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower then
+		cachedHighestPlayerTeamPower = GG.PowerLib.HighestPlayerTeamPower().power
+	else
+		cachedHighestPlayerTeamPower = 0
 	end
-	local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-	local techLevel = techLevelForPower(highestPowerData.power)
+end
+
+local function bandMinutesFromPlayerPower()
+	local techLevel = techLevelForPower(cachedHighestPlayerTeamPower)
 	if getElapsedMinutes() < zombieModeSettings.techScalingDelayMinutes then
 		techLevel = techLevel - BASE_TECH_LEVEL
 	end
@@ -839,9 +834,8 @@ end
 
 local function updateTechLevel()
 	local techLevel = 1
-	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
-		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
+	if GG.PowerLib and GG.PowerLib.TechGuesstimate then
+		techLevel = GG.PowerLib.TechGuesstimate(cachedHighestPlayerTeamPower)
 	end
 	factoryBuildpowerMultiplier = zombieModeSettings.factoryBuildpowerTechMultiplier ^ techLevel
 	currentTechLevel = techLevel
@@ -885,7 +879,6 @@ end
 
 local function clearCorpseRezRulesParam(featureID)
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
-	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_DELAY, nil, RULES_PARAM.PUBLIC_ACCESS)
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_ARM_FRAME, nil, RULES_PARAM.PUBLIC_ACCESS)
 end
 
@@ -908,12 +901,6 @@ local function armCorpseSpawn(featureID, featureData, spawnFrame, armFrame)
 		addToFrameList(featureCheckFrames, spawnFrame, featureID)
 	end
 	spring.SetFeatureRulesParam(featureID, RULES_PARAM.REZ_FRAME, spawnFrame, RULES_PARAM.PUBLIC_ACCESS)
-	spring.SetFeatureRulesParam(
-		featureID,
-		RULES_PARAM.REZ_DELAY,
-		featureData.spawnDelayFrames,
-		RULES_PARAM.PUBLIC_ACCESS
-	)
 	if featureData.isHeap then
 		return
 	end
@@ -973,14 +960,6 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 
 	local smallestPack = getSmallestPack()
 	local spawnCountMaximum = getSpawnCountMaximum()
-	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE * (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
-	if random() < veteranChance then
-		local eliteCount = math.ceil(smallestPack / 2)
-		local eliteExperience = math.max(minuteExperience * 2, minuteExperience + EXPERIENCE_GROWTH.ELITE_BONUS)
-		local dividedInherited = inheritedExperience * smallestPack / eliteCount
-		return eliteCount, math.max(eliteExperience, dividedInherited)
-	end
-
 	local unitDefData = zombieUnitDefs[unitDefID]
 	local advantage = math.round(
 		getGameStateScaleForPower(unitDefData.rezPower, POWER_BAND.ADVANTAGE_AT_BOTTOM, POWER_BAND.ADVANTAGE_AT_TOP),
@@ -992,7 +971,12 @@ local function calculateSpawnCount(unitDefID, inheritedExperience)
 		keep = PICK.HIGHEST
 	end
 	local spawnCount = rollFor(keep, rollCount, smallestPack, spawnCountMaximum)
-	return spawnCount, budget * smallestPack / spawnCount
+	local experience = budget * smallestPack / spawnCount
+	local veteranChance = EXPERIENCE_GROWTH.VETERAN_PACK_CHANCE * (1 - minuteExperience / EXPERIENCE_GROWTH.MAXIMUM)
+	if random() < veteranChance then
+		experience = experience + EXPERIENCE_GROWTH.ELITE_BONUS
+	end
+	return spawnCount, experience
 end
 
 local function registerZombie(unitID, unitDefID, transferToScavs)
@@ -1123,7 +1107,7 @@ local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie
 	end
 
 	local spawnUnitDefID, plannedCount, isSubstitute
-	if sourceIsScav or unitDefData.selfDestructOnSpawn then
+	if sourceIsScav then
 		spawnUnitDefID, plannedCount, isSubstitute = unitDefID, 1, false
 	else
 		spawnUnitDefID, plannedCount, isSubstitute =
@@ -1670,6 +1654,8 @@ local function spawnCorpseFromHeap(featureID, heapDefData, heapData)
 	if not featureX then
 		return false
 	end
+	local remainingMetal = spring.GetFeatureResources(featureID)
+	local remainingHealth = spring.GetFeatureHealth(featureID)
 	local radius = spring.GetFeatureRadius(featureID) or 0
 	local inheritedExperience = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
 	local heading = spring.GetFeatureHeading(featureID) or 0
@@ -1697,7 +1683,18 @@ local function spawnCorpseFromHeap(featureID, heapDefData, heapData)
 	}
 	local corpseFeatureID = spring.CreateFeature(corpseDefID, featureX, featureY, featureZ, heading, gaiaTeamID)
 	pendingCreatedFeatureData = nil
-	return corpseFeatureID ~= nil
+	if not corpseFeatureID then
+		return false
+	end
+	local corpseDefMetal = FeatureDefs[corpseDefID].metal
+	if remainingMetal and corpseDefMetal and corpseDefMetal > 0 then
+		spring.SetFeatureReclaim(corpseFeatureID, clamp(remainingMetal / corpseDefMetal, 0, 1))
+	end
+	local _, corpseMaxHealth = spring.GetFeatureHealth(corpseFeatureID)
+	if remainingHealth and corpseMaxHealth and corpseMaxHealth > 0 then
+		spring.SetFeatureHealth(corpseFeatureID, clamp(remainingHealth, 0, corpseMaxHealth))
+	end
+	return true
 end
 
 local function registerDeathFeature(featureID, featureDefID, deathData)
@@ -1801,6 +1798,11 @@ local function processDueCorpse(featureID, frame)
 		return
 	end
 	if corpseData.isHeap then
+		local _, heapY = spring.GetFeaturePosition(featureID)
+		if heapY ~= nil and isPositionInLava(heapY) then
+			armCorpseSpawn(featureID, corpseData, gameFrame + (corpseData.spawnDelayFrames or 0))
+			return
+		end
 		local heapDefData = zombieHeapDefs[corpseData.featureDefID]
 		if heapDefData then
 			spawnCorpseFromHeap(featureID, heapDefData, corpseData)
@@ -1861,6 +1863,7 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+	refreshCachedHighestPlayerTeamPower()
 	if frame % FRAMES.BUILD_STEP_CHECK == 5 then
 		runFeatureBuildStepCheck = true
 	else
@@ -1894,11 +1897,6 @@ function gadget:GameFrame(frame)
 	if next(createdFeaturesByPosition) then
 		createdFeaturesByPosition = {}
 	end
-end
-
-local function isFeatureInLava(featureID)
-	local _, featureY = spring.GetFeaturePosition(featureID)
-	return featureY ~= nil and isPositionInLava(featureY)
 end
 
 local function handlePendingCreatedFeature(featureID, createdData)
@@ -2079,25 +2077,23 @@ function gadget:FeatureCreated(featureID, _, sourceID)
 	local deathData = sourceID and pendingDeaths[sourceID] or nil
 	if deathData then
 		pendingDeaths[sourceID] = nil
+		local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
 		if
 			deathData.wasZombie
 			and featureDefID == zombieUnitDefs[deathData.unitDefID].corpseDefID
-			and (deathData.isDrowned or isFeatureInLava(featureID))
+			and (deathData.isDrowned or (featureY ~= nil and isPositionInLava(featureY)))
 		then
-			if deathData.feedsWraith then
-				local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
-				if featureX ~= nil then
-					rememberWreckWraithFeed(
-						featureID,
-						deathData.unitDefID,
-						featureX,
-						featureZ,
-						deathData.wasZombie,
-						deathData.attackerID,
-						deathData.attackerX,
-						deathData.attackerZ
-					)
-				end
+			if deathData.feedsWraith and featureX ~= nil then
+				rememberWreckWraithFeed(
+					featureID,
+					deathData.unitDefID,
+					featureX,
+					featureZ,
+					deathData.wasZombie,
+					deathData.attackerID,
+					deathData.attackerX,
+					deathData.attackerZ
+				)
 			end
 			pendingWreckSwaps[#pendingWreckSwaps + 1] = featureID
 			trackResurrectableWreck(featureID)
@@ -2595,18 +2591,18 @@ local ZOMBIE_CHAT_ACTIONS = {
 	},
 	{
 		name = "zombiemode",
-		description = "Set zombie mode (basic/wraith/hydra/akumu/spidergeddon)",
+		description = "Set zombie mode (basic/wraith/hydra/akumu)",
 		run = function(words, playerID)
 			if #words == 0 then
 				spring.SendMessageToPlayer(
 					playerID,
-					"Usage: /luarules zombiemode basic|wraith|hydra|akumu|spidergeddon"
+					"Usage: /luarules zombiemode basic|wraith|hydra|akumu"
 				)
 				return
 			end
 			local mode = string.lower(words[1])
 			if not setZombieMode(mode) then
-				spring.SendMessageToPlayer(playerID, "Invalid mode. Use: basic, wraith, hydra, akumu, or spidergeddon")
+				spring.SendMessageToPlayer(playerID, "Invalid mode. Use: basic, wraith, hydra, or akumu")
 				return
 			end
 			spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)

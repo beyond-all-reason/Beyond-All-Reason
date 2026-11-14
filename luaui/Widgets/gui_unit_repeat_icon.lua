@@ -168,7 +168,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitRepeat = {}
 	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		if spGetUnitTeam(unitID) ~= gaiaTeamID and unitConf[unitDefID] then
+		if unitConf[unitDefID] and spGetUnitTeam(unitID) ~= gaiaTeamID then
 			visibleUnits[unitID] = unitDefID
 			if not crashingUnits[unitID] then
 				-- the 4th value is the repeat state (no table built), all nil for units that are not ours to read
