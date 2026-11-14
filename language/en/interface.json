@@ -4404,6 +4404,32 @@
 				}
 			}
 		},
+		"experimental_reclaim_resurrection": {
+			"name": "Allied reclaim / resurrection",
+			"desc": "Prevent conflicting allied work on wrecks. Losing workers wait and resume when the wreck is free. Applies to explicit orders too; existing automatic target selection is unchanged.",
+			"items": {
+				"off": {
+					"name": "Off",
+					"desc": "Keep existing behavior."
+				},
+				"first": {
+					"name": "First arrival has priority",
+					"desc": "The first activity at the wreck takes priority until abandoned or completed."
+				},
+				"reclaim": {
+					"name": "Reclaim has priority",
+					"desc": "Reclaim takes priority over allied resurrection."
+				},
+				"resurrect": {
+					"name": "Resurrection has priority",
+					"desc": "Resurrection takes priority over allied reclaim."
+				},
+				"last": {
+					"name": "Latest arrival has priority",
+					"desc": "A newly arriving conflicting worker takes priority. Displaced workers wait until the winning activity ends."
+				}
+			}
+		},
 		"options_experimental": {
 			"name": "Experimental",
 			"desc": "Experimental options"

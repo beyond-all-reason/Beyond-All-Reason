@@ -162,7 +162,8 @@ local function slowWatchBuilder(builderID)
 end
 
 local function ignoreBuggeroff(unitID, unitDefData)
-	return unitDefData.isImmobile
+	return (GG.IsProtectedResurrecter and GG.IsProtectedResurrecter(unitID))
+		or unitDefData.isImmobile
 		or spGetUnitIsDead(unitID) ~= false
 		or spGetUnitIsBeingBuilt(unitID) ~= false
 		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
