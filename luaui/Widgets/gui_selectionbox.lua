@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+local spGetBoxSelectionByEngine = Spring.GetBoxSelectionByEngine
 local spGetSelectionBox = Spring.GetSelectionBox
 local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
@@ -129,7 +130,7 @@ end
 
 function widget:DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
 	local x1, y1, x2, y2 = spGetSelectionBox()
-	if y2 then
+	if y2 and spGetBoxSelectionByEngine() then
 		-- Get modifier key states
 		local alt, ctrl, meta, shift = spGetModKeyState()
 
