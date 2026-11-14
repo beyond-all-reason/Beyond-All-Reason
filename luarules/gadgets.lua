@@ -60,6 +60,14 @@ local chatActionInitialSnapshotUpdates = 0
 
 local BroadcastChatActionUpdate
 
+local realGetTeamResources = Spring.GetTeamResources
+Spring.GetTeamResources = function(teamID, resource)
+	local resourceFullString = string.sub(resource, 1,1) == "m" and "Metal" or "Energy"
+	local a,b,c,d,e,f,g,h = realGetTeamResources(teamID, resource)
+	local realPull = c + (Spring.GetTeamRulesParam(teamID, "hidden"..resourceFullString.."Pull") or 0)
+	return a,b,realPull,d,e,f,g,h
+end
+
 local function GetChatActionSource()
 	return (SendToUnsynced ~= nil) and "synced" or "unsynced"
 end
