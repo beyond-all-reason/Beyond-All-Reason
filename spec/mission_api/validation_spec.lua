@@ -42,7 +42,7 @@ describe("mission_api.validation", function()
 	describe("result", function()
 		it("is ok when the mission only produces warnings", function()
 			local result = V.validate(
-				V.mission():WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })):WithAction(
+				V.mission():WithTrigger("t", V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 })):WithAction(
 					"ok",
 					{ type = V.actionTypes.NameUnits, parameters = { unitName = "unreferenced", teamName = "player" } }
 				)

@@ -21,8 +21,8 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 1. `api_missions.lua` (layer 0, synced) `Initialize()` creates `GG['MissionAPI']` and `VFS.Include`s
    the modules into `.Modules` in a fixed order, `ParameterTypes` first because every other file
    reads it at load time.
-2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan
-   their directories into `GG['MissionAPI'].ActionDefinitions` and `.TriggerDefinitions`.
+2. `actions_loader.LoadActionDefinitions()` then `conditions_loader.LoadConditionDefinitions()` scan
+   their directories into `GG['MissionAPI'].ActionDefinitions` and `.ConditionDefinitions`.
 3. `loadMission(gameSetup)` includes the mission file, validates it with `validation.lua`, runs the
    four `*_loader` normalizers, resolves difficulties, then variable references (`variables.lua`),
    then runs `parameter_processing.lua`.
@@ -42,12 +42,14 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 
 ### Type IDs
 
-- `triggers_loader` numbers trigger types from `ipairs(VFS.DirList(...))`, and `actions_loader` runs
-  a counter over `VFS.SubDirs`. Missions author `type = triggerTypes.TimeElapsed` (`triggerTypes`
-  is `GG['MissionAPI'].TriggerDefinitions.Types`, `actionTypes` likewise), so the string never
-  reaches the runtime: `trigger.type` and `action.type` are integers, and the schema tables
-  (`Parameters`, `Functions`, `Callins`) are keyed by them.
-- Adding or renaming a file renumbers types, so compare against `triggerTypes.X` or
+- `conditions_loader` numbers condition types from `ipairs(VFS.DirList(...))`, and `actions_loader`
+  runs a counter over `VFS.SubDirs`. Missions author `type = eventTypes.TimeElapsed` or
+  `metricTypes.UnitsOwned`, so the string never reaches the runtime: `trigger.type` and
+  `action.type` are integers, and the schema tables (`Parameters`, `Kinds`, `Functions`, `Callins`)
+  are keyed by them.
+- `ConditionDefinitions.Types` holds every type; `EventTypes` and `MetricTypes` are views over it
+  split by kind.
+- Adding or renaming a file renumbers types, so compare against `ConditionDefinitions.Types.X` or
   `actionTypes.X`, never a literal, and never persist, network, or hard-code an ID.
 
 ## Runtime surfaces
@@ -73,15 +75,17 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 - Camera durations are real seconds, so a sequence also plays while the game is paused, unless
   `clock = 'game'` runs it on game time, in step with `TimeElapsed`.
 
-## Adding a trigger type
+## Adding a condition type
 
-One file per type in `luarules/mission_api/triggers/`, snake_case, returning one table:
+A condition is what a trigger or an objective waits for. One file per type in
+`luarules/mission_api/conditions/`, snake_case, returning one table:
 
 ```lua
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'UnitKilled',                                  -- PascalCase, unique, matches the file name
+	kind = 'event',                                       -- 'event' or 'metric', see below
 	parameters = {
 		{ name = 'unitName', required = false, type = ParameterTypes.UnitName },
 		requiresOneOf = { 'unitName', 'unitDefName' },    -- optional, on the array itself
@@ -95,26 +99,33 @@ return {
 }
 ```
 
+- `kind` is required; the loader logs an error without it. An event is an occurrence, counted
+  towards the trigger's `count` (default 1). A metric is a value sampled now that can move either
+  way; its handler calls `context.EvaluateMetric(trigger, value)` instead of `ActivateTrigger`, and
+  the trigger fires when the value crosses `atLeast` or `atMost`. Validation rejects `count` on a
+  metric and `atLeast` or `atMost` on an event.
 - A type that overlaps an existing one becomes a parameter on it, or is narrowed until they differ.
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
   synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`); otherwise add the gadget
-  call-in plus its `dispatchTriggerCallin` line.
-- `dispatchTriggerCallin` runs a handler once per trigger of its type, passing
+  call-in plus its `dispatchConditionCallin` line.
+- `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the
   matching `needs*` check or silently never fires.
 - Never fire actions yourself. `context.ActivateTrigger(trigger)` enforces the `settings` keys
-  `active`, `prerequisites`, `stages`, `repeating` with `maxRepeats`, and `difficulties` (see
-  Objectives and stages, and Difficulty), and returns `false` when the trigger was not eligible:
-  `active`, `prerequisites`, and `stages` can pass later, `maxRepeats` and `difficulties` never
-  will. Record a firing only on `true`, and decide what happens for each kind of refusal.
+  `active`, `prerequisites`, `stages`, `repeating`, `count`, and `difficulties` (see Objectives and
+  stages, and Difficulty), and returns `false` when the trigger was not eligible: `active`,
+  `prerequisites`, and `stages` can pass later, a fired non-repeating trigger and `difficulties`
+  never will. Record a firing only on `true`, and decide what happens for each kind of refusal.
+- There is no repeat cap: a repeating trigger fires every time, so stop it with prerequisites,
+  stages, or an action.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
-  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `triggerContext` rather than reach
+  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.
-- Statistics triggers (`total_units_*`, `units_owned`) declare no `callins` and are evaluated
+- Statistics conditions (`total_units_*` events, the `UnitsOwned` metric) declare no `callins` and are evaluated
   centrally through `statistics.lua`; follow that pattern for anything needing shared counters.
 - A trigger that holds state handles every event that can change its answer, which for units means
   moving, finishing, and the `MetaUnitAdded` and `MetaUnitRemoved` call-ins, which cover death and
@@ -254,11 +265,11 @@ return {
   hand-building one, re-`Install()` in `before_each` because the state is global, and keep mission
   terms out of the general builders.
 - `require("mission_api.schema_spec_helper")` flattens a definition to
-  `{ type = ..., param = "Type!" }` so the whole schema is one `assert.are.same`; every trigger and
+  `{ type = ..., param = "Type!" }` so the whole schema is one `assert.are.same`; every condition and
   action spec asserts its schema this way, which catches a reorder breaking the positional dispatch.
 - Test `actionFunction` and `callins.<Name>` directly with a hand-built `trigger` table and a
-  `context` stub; never boot the gadgets.
-- Each call-in a trigger listens to gets an assertion in `triggers_loader_spec.lua`.
+  `context` stub (`spec/builders/condition_context_builder.lua`); never boot the gadgets.
+- Each call-in a trigger listens to gets an assertion in `conditions_loader_spec.lua`.
 - Each `it` covers one behavior, its description matches its assertions, and a normal case comes
   before any special case.
 - A spy records everything it receives, so a reader never has to work out what it dropped.
@@ -276,15 +287,14 @@ return {
 
 ## Objectives and stages
 
-- `objectives_loader` splits objectives in two: a trigger type with a `Quantity` parameter becomes a
-  managed objective (metadata in `GG['MissionAPI'].ManagedObjectives`, evaluated centrally, nothing
-  synthesized), and anything else synthesizes a trigger `__objective_<objectiveID>` and an action
-  `__updateObjective_<objectiveID>` into the raw tables.
-- Adding or removing a `Quantity` parameter on a trigger silently moves every objective using it
-  between those two paths.
+- `objectives_loader` turns an objective's `trigger` (`type` and `parameters`, no threshold of its
+  own) into a condition record `__objective_<objectiveID>` that completes the objective instead of
+  running actions, so objectives reuse every condition handler.
+- The objective's `amount` becomes the threshold: `count` for an event condition, `atLeast` for a
+  metric one; `objective.target` holds the value the UI counts towards.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
-- Stage membership comes from `Stages[stageID].objectives` and is copied onto the synthesized
-  trigger's `settings.stages`; `stages_loader` is otherwise a pass-through.
+- Stage membership comes from `Stages[stageID].objectives` and is copied onto the objective's
+  condition record as `settings.stages`; `stages_loader` is otherwise a pass-through.
 - `objective.textKey` is an I18N key with no LuaUI consumer yet; `objectives.lua` only
   `Spring.Echo`s updates, so do not assume a UI reads it.
 
@@ -297,8 +307,8 @@ return {
 - `settings.difficulties`, the per-trigger gate, is an array of names with no inheritance between
   difficulties; empty or omitted enables the trigger on every difficulty, and after validation the
   names become values for the runtime check in `api_missions_triggers.lua`.
-- Any trigger parameter, action parameter, objective field, or cutscene field may be authored per
-  difficulty, as in `seconds = { difficulties = { Medium = 60, Hard = 30 } }`; resolution picks the
+- Any trigger parameter, action parameter, objective field, cutscene field, or threshold (`count`,
+  `atLeast`, `atMost`) may be authored per difficulty, as in `seconds = { difficulties = { Medium = 60, Hard = 30 } }`; resolution picks the
   exact difficulty, else the highest specified one below it, else the lowest specified one.
 - Detection is by a non-nil `difficulties` key, not by Lua type, so table parameters (`Area`,
   `Orders`) work the same way.
@@ -306,8 +316,10 @@ return {
   inside loadout entries, orders, or camera keyframes do not support it; author the whole
   parameter per difficulty instead.
 - Difficulties tables survive validation so every difficulty's value is checked, and the loaders run
-  before the resolve, so a loader does not consume parameter values: `objectives_loader` leaves a
-  difficulty-dependent `amount` alone, and the resolve pass derives `maxRepeats` from it.
+  before the resolve, so a loader does not consume parameter values: `objectives_loader` builds each
+  objective's condition record before thresholds are known, and the resolve pass copies the resolved
+  `amount` onto it as a threshold (`objectives_loader.ApplyThresholds`). Thresholds are fixed once
+  the mission starts.
 
 ## Work in flight
 
