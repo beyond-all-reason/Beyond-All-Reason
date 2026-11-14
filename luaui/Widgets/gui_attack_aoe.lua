@@ -55,6 +55,9 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 local spGetUnitStockpile = Spring.GetUnitStockpile
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spIsGUIHidden = Spring.IsGUIHidden
 local spGetViewGeometry = Spring.GetViewGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
@@ -139,6 +142,15 @@ local Config = {
 		salvoSpeed = 0.1,
 		waveDuration = 0.35,
 		fadeDuration = 0,
+	},
+	-- Persistent rings at the ground positions of queued attack orders and
+	-- user-set ground targets of selected units.
+	Order = {
+		enabled = true,
+		refreshInterval = 0.15, -- seconds between command queue scans
+		queueDepth = 12, -- commands inspected per unit
+		maxIndicators = 24, -- unique target positions drawn at once
+		minAoe = 8, -- weapons with a smaller AoE get no rings
 	},
 }
 
@@ -243,6 +255,13 @@ local State = {
 	aoeTerrainCircleDivs = 48,
 	aoeTerrainIntersectionSteps = 4,
 	aoeTerrainQualityID = 1,
+
+	orderTargets = {}, ---@type OrderTarget[]
+	orderRefreshSec = 0, ---@type number
+	orderPulsePhase = 0, ---@type number
+	setTargetActiveIndices = {}, ---@type table<integer, integer>
+	-- User-set ground targets per unit, pushed by the set target gadget
+	setTargetPositions = {}, ---@type table<integer, number[][]>
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -2296,6 +2315,178 @@ local WeaponTypeHandlers = {
 }
 
 --------------------------------------------------------------------------------
+-- ORDER INDICATORS
+--------------------------------------------------------------------------------
+-- The engine draws a ground attack exactly like a unit attack: a line ending in
+-- an icon. These rings mark the ground position of an attack order with the
+-- same damage falloff radii as the cursor preview, so the player can tell a
+-- ground attack from a unit attack and see where the shot will do damage.
+
+---@class OrderTarget
+---@field x number
+---@field y number
+---@field z number
+---@field weaponInfo WeaponInfo
+---@field active boolean
+
+local function GetOrderWeaponInfo(weaponInfos, unitID, tx, ty, tz)
+	local weaponInfo = weaponInfos.primary
+	if weaponInfos.secondary and weaponInfo.range then
+		local ux, uy, uz = spGetUnitPosition(unitID)
+		if ux and distance3d(ux, uy, uz, tx, ty, tz) > weaponInfo.range then
+			weaponInfo = weaponInfos.secondary
+		end
+	end
+	local weaponType = weaponInfo.type
+	if weaponType == "dgun" or weaponType == "noexplode" or weaponType == "juno" then
+		return nil
+	end
+	if not weaponInfo.aoe or weaponInfo.aoe < Config.Order.minAoe then
+		return nil
+	end
+	return weaponInfo
+end
+
+local function AddOrderTarget(targets, seen, weaponInfos, unitID, tx, tz, active)
+	local ty = spGetGroundHeight(tx, tz)
+	local weaponInfo = GetOrderWeaponInfo(weaponInfos, unitID, tx, ty, tz)
+	if not weaponInfo then
+		return
+	end
+	if not weaponInfo.waterWeapon and ty < 0 then
+		ty = 0
+	end
+	-- Many units ordered onto the same spot with the same weapon share one indicator
+	local color = weaponInfo.color or Config.Colors.aoe
+	local key = floor(tx)
+		.. ":"
+		.. floor(tz)
+		.. ":"
+		.. weaponInfo.aoe
+		.. ":"
+		.. weaponInfo.ee
+		.. ":"
+		.. color[1]
+		.. ":"
+		.. color[2]
+		.. ":"
+		.. color[3]
+	local existing = seen[key]
+	if existing then
+		existing.active = existing.active or active
+		return
+	end
+	if #targets >= Config.Order.maxIndicators then
+		return
+	end
+	local entry = { x = tx, y = ty, z = tz, weaponInfo = weaponInfo, active = active }
+	seen[key] = entry
+	targets[#targets + 1] = entry
+end
+
+local function CollectOrderTargets(targets, seen, aimUnits, cmdID)
+	local queueDepth = Config.Order.queueDepth
+	for i = 1, #aimUnits do
+		local aimUnit = aimUnits[i]
+		local unitID = aimUnit.unitID
+		local weaponInfos = aimUnit.weaponInfos
+
+		local commandCount = min(spGetUnitCommandCount(unitID) or 0, queueDepth)
+		for c = 1, commandCount do
+			local id, _, _, px, _, pz, radius = spGetUnitCurrentCommand(unitID, c)
+			-- Ground clicks may include a fourth parameter with zero radius.
+			if id == cmdID and pz and (not radius or radius == 0) then
+				AddOrderTarget(targets, seen, weaponInfos, unitID, px, pz, c == 1)
+			end
+		end
+
+		-- Set Target on ground does not appear in the command queue. The set
+		-- target gadget pushes every user-set ground position of the unit, the
+		-- same list it draws its own lines and icons from. Set Target never uses
+		-- the manual fire weapon.
+		local setTargets = cmdID == CMD_ATTACK and State.setTargetPositions[unitID]
+		if setTargets then
+			local activeIndex = State.setTargetActiveIndices[unitID]
+			if activeIndex and setTargets[activeIndex] then
+				local position = setTargets[activeIndex]
+				AddOrderTarget(targets, seen, weaponInfos, unitID, position[1], position[3], true)
+			end
+			for t = 1, min(#setTargets, Config.Order.maxIndicators) do
+				local position = setTargets[t]
+				AddOrderTarget(targets, seen, weaponInfos, unitID, position[1], position[3], t == activeIndex)
+			end
+		end
+	end
+end
+
+---Called by the set target gadget (unit_target_on_the_move) whenever the
+---user-set targets of a unit change; the gadget also clears the entry when
+---the unit is removed.
+---@param unitID integer
+---@param positions number[][]? ground positions as {x, y, z}, nil when there are none
+---@param activeIndex integer? index of the active ground target within positions
+local function UnitSetTargetListChanged(unitID, positions, activeIndex)
+	State.setTargetPositions[unitID] = positions
+	State.setTargetActiveIndices[unitID] = activeIndex
+end
+
+local function UpdateOrderTargets()
+	local targets = State.orderTargets
+	for i = #targets, 1, -1 do
+		targets[i] = nil
+	end
+	if not Config.Order.enabled or not State.hasSelection then
+		return
+	end
+	local seen = {}
+	CollectOrderTargets(targets, seen, State.attackAimUnits, CMD_ATTACK)
+	CollectOrderTargets(targets, seen, State.manualAimUnits, CMD_MANUALFIRE)
+end
+
+---@param entry OrderTarget
+local function DrawOrderTarget(entry, cx, cy, cz)
+	local weaponInfo = entry.weaponInfo
+	local tx, ty, tz = entry.x, entry.y, entry.z
+	local aoe, edgeEffectiveness = weaponInfo.aoe, weaponInfo.ee
+	local color = weaponInfo.color or Config.Colors.aoe
+	local distanceFromCamera = max(distance3d(cx, cy, cz, tx, ty, tz), 1)
+	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / distanceFromCamera, 0.5))
+
+	-- Active targets share the cursor animation; queued targets keep static damage rings.
+	if entry.active then
+		if edgeEffectiveness == 1 or weaponInfo.shader then
+			DrawFilledAoeCircle(tx, ty, tz, aoe, 1, State.orderPulsePhase, color, weaponInfo.shader)
+		else
+			DrawAoeDamageRings(tx, ty, tz, aoe, edgeEffectiveness, 1, State.orderPulsePhase, color)
+		end
+	elseif edgeEffectiveness < 1 then
+		local minRingRadius = Config.General.minRingRadius
+		for _, damageLevel in ipairs(Config.Render.ringDamageLevels) do
+			local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
+			if ringRadius < minRingRadius then
+				break
+			end
+			SetGlColor(damageLevel, color)
+			DrawCircle(tx, ty, tz, ringRadius)
+		end
+	end
+
+	SetGlColor(Config.Render.outerRingAlpha, color)
+	glLineWidth(screenLineWidthScale)
+	DrawCircle(tx, ty, tz, aoe)
+end
+
+local function DrawOrderTargets()
+	local targets = State.orderTargets
+	local cx, cy, cz = spGetCameraPosition()
+	for i = 1, #targets do
+		DrawOrderTarget(targets[i], cx, cy, cz)
+	end
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+--------------------------------------------------------------------------------
 -- CALLINS
 --------------------------------------------------------------------------------
 function widget:Initialize()
@@ -2307,6 +2498,7 @@ function widget:Initialize()
 	SetupDisplayLists()
 	UpdateScreenScale()
 	UpdateSelection()
+	widgetHandler:RegisterGlobal("UnitSetTargetListChanged", UnitSetTargetListChanged)
 end
 
 function widget:ViewResize()
@@ -2314,6 +2506,7 @@ function widget:ViewResize()
 end
 
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal("UnitSetTargetListChanged")
 	DeleteDisplayLists()
 	if type(napalmShader) == "table" then
 		napalmShader:Finalize()
@@ -2411,7 +2604,7 @@ local function DrawUnitAoe(
 	end
 end
 
-function widget:DrawWorldPreUnit()
+local function DrawCursorPreview()
 	State.isOverMinimap = false
 	local weaponInfos, aimingUnitID, aimUnits, activeCommand = GetActiveUnitInfo()
 	if not weaponInfos then
@@ -2507,11 +2700,25 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
+function widget:DrawWorldPreUnit()
+	DrawCursorPreview()
+
+	local orderCount = #State.orderTargets
+	if orderCount > 0 and not spIsGUIHidden() then
+		-- Terrain circle lists are cached per quality level, so the order pass
+		-- can pick its own quality without disturbing the cursor preview.
+		SetAoeTerrainQuality(orderCount)
+		DrawOrderTargets()
+	end
+end
+
 function widget:SelectionChanged(sel)
 	State.selectionChanged = true
 end
 
 function widget:Update(dt)
+	local orderPhase = State.orderPulsePhase + dt
+	State.orderPulsePhase = orderPhase - floor(orderPhase)
 	local pulsePhase = State.pulsePhase + dt
 	State.pulsePhase = pulsePhase - floor(pulsePhase)
 
@@ -2528,6 +2735,13 @@ function widget:Update(dt)
 		State.selChangedSec = 0
 		State.selectionChanged = nil
 		UpdateSelection()
+		State.orderRefreshSec = Config.Order.refreshInterval
+	end
+
+	State.orderRefreshSec = State.orderRefreshSec + dt
+	if State.orderRefreshSec >= Config.Order.refreshInterval then
+		State.orderRefreshSec = 0
+		UpdateOrderTargets()
 	end
 
 	local weaponInfos, aimingUnitID = GetActiveUnitInfo()
