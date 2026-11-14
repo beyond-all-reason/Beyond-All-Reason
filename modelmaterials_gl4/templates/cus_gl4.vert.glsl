@@ -434,15 +434,17 @@ void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msN
 
 				weights[bi] *= float(boneTx.trSc.w > 0.0);
 
+				// boneTx * bposeInvTra * bposeTra, composed once for the position and the directions
+				Transform skinTx = ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra));
+
 				// emulate boneTx * bposeInvTra * bposeTra * piecePos
-				vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
+				vec4 txPiecePos = ApplyTransform(skinTx, piecePos);
 
-				tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
-
-				// emulate boneTx * bposeInvTra * bposeTra * normal
-				vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
-				vec3 txPieceTangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeTangent);
-				vec3 txPieceBitangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeBitangent);
+				// Directions take only the rotation: the vec3 ApplyTransform overload would add the bone's
+				// translation (several elmos) to a unit-length normal. Same as bone 0 above and the matrix path's mat3(skinMat).
+				vec3 txPieceNormal = RotateByQuaternion(skinTx.quat, normal);
+				vec3 txPieceTangent = RotateByQuaternion(skinTx.quat, safeTangent);
+				vec3 txPieceBitangent = RotateByQuaternion(skinTx.quat, safeBitangent);
 
 				msPosition += txPiecePos    * weights[bi];
 				msNormal   += txPieceNormal * weights[bi];
