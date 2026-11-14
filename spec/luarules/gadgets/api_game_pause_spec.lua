@@ -444,25 +444,40 @@ describe("api_game_pause", function()
 				assert.same({ "GamePauseUnpause:2:mission" }, world.messages)
 			end)
 
-			it("counts on a client that is not the controller and sends once it becomes it", function()
+			it("sends from a client that is not the controller too", function()
 				world.myPlayerID = OTHER_PLAYER_ID
 				world.paused = true
 				startTimer("mission", 1, 2)
 				gadget:Update(3)
-				assert.same({}, world.messages)
 
-				world.controllerID = OTHER_PLAYER_ID
-				gadget:Update(0.1)
 				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
 			end)
 
-			it("sends no release while catching up", function()
+			it("waits out a player's earlier pause before it counts", function()
+				world.paused = true
+				gadgetsPause()
+				startTimer("mission", 1, 2)
+				gadget:Update(3)
+				assert.same({}, world.messages)
+
+				world.paused = false
+				gadget:GamePaused(OTHER_PLAYER_ID, false)
+				world.paused = true
+				gadget:Update(2.1)
+				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
+			end)
+
+			it("neither counts nor sends while catching up", function()
 				world.gameFrame = 100
 				gadget:GameProgress(1000)
 				world.paused = true
 				startTimer("mission", 1, 2)
 				gadget:Update(3)
+				assert.same({}, world.messages)
 
+				world.gameFrame = 1000
+				gadget:GameFrame(1000)
+				gadget:Update(1.5)
 				assert.same({}, world.messages)
 			end)
 		end)

@@ -239,15 +239,14 @@ else
 		timers[source] = seconds and { generation = timerGeneration, left = seconds } or nil
 	end
 
-	-- Synced has no clock while paused: every client counts, the controller sends.
+	-- Synced has no clock while paused: every client counts and sends, the first release ends the pause.
 	local function updateTimers(deltaTime)
-		if next(timers) == nil or not select(3, spGetGameSpeed()) then
+		if next(timers) == nil or catchingUp or pausedByPlayer or not select(3, spGetGameSpeed()) then
 			return
 		end
-		local isSender = not catchingUp and getPauseControllerID() == spGetMyPlayerID()
 		for source, timer in pairs(timers) do
 			timer.left = timer.left - deltaTime
-			if timer.left <= 0 and isSender then
+			if timer.left <= 0 then
 				spSendLuaRulesMsg(MESSAGE_UNPAUSE .. timer.generation .. ":" .. source)
 				timers[source] = nil
 			end
