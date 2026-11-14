@@ -86,9 +86,12 @@ local rules = {
 	"scavBossTime",
 	"scavBossAnger",
 	"scavBossesKilled",
+	"scavBossesTotal",
 	"scavTechAnger",
 	"scavGracePeriod",
 	"scavBossHealth",
+	"scavBossHunger",
+	"scavBossMeal",
 	"lagging",
 	"scavDifficulty",
 	"scavCount",
@@ -121,6 +124,28 @@ local function CreatePanelDisplayList()
 	gl.Translate(x1, y1, 0)
 	gl.Scale(widgetScale, widgetScale, 1)
 	gl.CallList(displayList)
+	local hunger = gameInfo.scavBossAnger >= 100 and Spring.GetGameRulesParam("scavBossHunger") or -1
+	local meal = Spring.GetGameRulesParam("scavBossMeal") or -1
+	local hungerRow = Spring.GetGameRulesParam("scavBossStaggerActive") == false and 3 or 4
+	if nBosses > 1 then
+		hungerRow = 5
+	end
+	if hunger >= 0 then
+		local left, right, bottom = w * 0.45, w - panelMarginX * 3, PanelRow(hungerRow) - 2
+		gl.Texture(false)
+		gl.Color(0, 0, 0, 0.6)
+		gl.Rect(left, bottom, right, bottom + panelFontSize)
+		local fill = meal >= 0 and meal or hunger
+		if meal >= 0 then
+			gl.Color(1, 0.6, 0.1, 0.9)
+		elseif hunger >= 80 then
+			gl.Color(1, 0.25, 0.2, 0.9)
+		else
+			gl.Color(0.6, 0.3, 0.9, 0.9)
+		end
+		gl.Rect(left + 1, bottom + 1, left + 1 + (right - left - 2) * fill / 100, bottom + panelFontSize - 1)
+		gl.Color(1, 1, 1, 1)
+	end
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
@@ -237,6 +262,15 @@ local function CreatePanelDisplayList()
 						.. BAR.I18N("ui.scavs.bossesKilled", { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }),
 					panelMarginX,
 					PanelRow(4),
+					panelFontSize,
+					""
+				)
+			end
+			if hunger >= 0 then
+				font:Print(
+					textColor .. BAR.I18N(meal >= 0 and "ui.scavs.bossFeeding" or "ui.scavs.bossHunger"),
+					panelMarginX,
+					PanelRow(hungerRow),
 					panelFontSize,
 					""
 				)
@@ -400,6 +434,9 @@ local function UpdateRules()
 
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
+	end
+	if gameInfo.scavBossesTotal > 0 then
+		nBosses = gameInfo.scavBossesTotal
 	end
 	gameInfo.scavCounts = getScavCounts("Count")
 	gameInfo.scavKills = getScavCounts("Kills")
