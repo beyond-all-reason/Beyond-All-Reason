@@ -243,6 +243,23 @@ return function(model)
 		},
 
 		{
+			id = "screen_select_double_click_enabled",
+			group = "control",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.screen_select_double_click_enabled"),
+			type = "bool",
+			value = true,
+			description = BAR.I18N("ui.settings.option.screen_select_double_click_enabled_descr"),
+			widgetConfig = {
+				"Screen Select Commands",
+				"doubleClickEnabled",
+				api = "screenSelectCommands",
+				get = "getDoubleClickEnabled",
+				set = "setDoubleClickEnabled",
+			},
+		},
+
+		{
 			id = "dragthreshold",
 			group = "control",
 			category = types.advanced,
