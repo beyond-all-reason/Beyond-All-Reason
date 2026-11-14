@@ -120,7 +120,6 @@ local modKeyMultiplier = {
 
 local isSpec
 local myTeamID
-local startDefID
 
 -- Configurable values
 local stickToBottom = false
@@ -362,7 +361,6 @@ local categoriesRect = Rect:new(0, 0, 0, 0)
 local labBuildModeRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
-local isPregame
 
 -------------------------------------------------------------------------------
 --- Unit prep
@@ -1001,10 +999,6 @@ local function refreshCommands()
 	gridOpts = nil
 	local liveOptions -- build options the active builder unit really has, when known
 
-	if isPregame and startDefID then
-		activeBuilder = startDefID
-	end
-
 	if not activeBuilder then
 		if alwaysShow then
 			gridOpts = {}
@@ -1020,7 +1014,7 @@ local function refreshCommands()
 	else
 		updateCategories(CONFIG.buildCategories)
 
-		-- the unit's live build options (they can change at runtime); the def copy is for pregame
+		-- The unit's live build options can change at runtime.
 		local buildOptions = unitBuildOptions[activeBuilder]
 		local cmdDescs = activeBuilderID and Spring.GetUnitCmdDescs(activeBuilderID)
 		if cmdDescs then
@@ -1177,33 +1171,7 @@ local function setCurrentCategory(category)
 			return
 		end
 
-		if isPregame then
-			-- here we repeat setPregameBlueprint, but we can't have circular dependencies
-			activeCmd = firstCmd
-
-			if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
-				WG["pregame-build"].setPreGamestartDefID(-firstCmd)
-			end
-
-			updateSelectedCell()
-		else
-			pickBlueprint(-firstCmd)
-		end
-	end
-end
-
-local function setPregameBlueprint(uDefID)
-	if not isPregame then
-		return
-	end
-
-	activeCmd = uDefID and -uDefID
-	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
-		WG["pregame-build"].setPreGamestartDefID(uDefID)
-	end
-
-	if not uDefID then
-		setCurrentCategory(nil)
+		pickBlueprint(-firstCmd)
 	end
 end
 
@@ -1223,12 +1191,8 @@ end
 local function clearCategory()
 	setLabBuildMode(false)
 
-	if isPregame then
-		setPregameBlueprint(nil)
-	else
-		setCurrentCategory(nil)
-		setActiveCommand(0)
-	end
+	setCurrentCategory(nil)
+	setActiveCommand(0)
 end
 
 local function gridmenuCategoryHandler(_, _, args)
@@ -1337,17 +1301,6 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 			return true
 		end
-	elseif isPregame and currentCategory then
-		if alt or ctrl or meta then
-			return
-		end
-		if args[3] and args[3] == "factory" then
-			return false
-		end
-
-		setPregameBlueprint(uDefID)
-		updateGrid()
-		return true
 	elseif activeBuilder and currentCategory then
 		if args[3] and args[3] == "factory" then
 			return false
@@ -1438,13 +1391,6 @@ function widget:Initialize()
 
 	myTeamID = Spring.GetLocalTeamID()
 	isSpec = Spring.GetSpectatingState()
-	isPregame = Spring.GetGameFrame() == 0 and not isSpec
-
-	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
-	if isPregame then
-		local missionOptions = require("luaui/Include/mission_options")
-		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
-	end
 
 	WG.gridmenu = {}
 	WG.buildmenu = {}
@@ -1472,18 +1418,9 @@ function widget:Initialize()
 	ui_opacity = WG.FlowUI.opacity
 	ui_scale = WG.FlowUI.scale
 
-	-- Get our starting unit
-	if isPregame then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-	end
-
 	widget:ViewResize()
 
-	if isPregame then
-		refreshCommands()
-	else
-		widget:SelectionChanged(Spring.GetSelectedUnits())
-	end
+	widget:SelectionChanged(Spring.GetSelectedUnits())
 
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
@@ -1915,9 +1852,7 @@ function widget:Update(dt)
 		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 
-			if not isPregame then
-				updateBuilders() -- builder rects are defined dynamically
-			end
+			updateBuilders() -- builder rects are defined dynamically
 		end
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
@@ -1935,9 +1870,7 @@ function widget:Update(dt)
 			or ordermenuHeight ~= prevOrdermenuHeight
 		then
 			widget:ViewResize()
-			if not isPregame then
-				updateBuilders() -- builder rects are defined dynamically
-			end
+			updateBuilders() -- builder rects are defined dynamically
 			prevAdvplayerlistLeft = advplayerlistLeft
 		end
 
@@ -1948,7 +1881,7 @@ function widget:Update(dt)
 	end
 
 	local prevBuildmenuShows = buildmenuShows
-	if not (isPregame or activeBuilder or alwaysShow) then
+	if not (activeBuilder or alwaysShow) then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
@@ -1973,18 +1906,10 @@ function widget:Update(dt)
 	local prevActiveCmd = activeCmd
 
 	-- PERF: Maybe make this slow-ish-update?
-	if isPregame then
-		local previousStartDefID = startDefID
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	activeCmd = select(2, spGetActiveCommand())
 
-		-- Don't update unless defid has changed
-		doUpdate = previousStartDefID ~= startDefID
-	else
-		activeCmd = select(2, spGetActiveCommand())
-
-		if activeCmd ~= prevActiveCmd then
-			doUpdate = true
-		end
+	if activeCmd ~= prevActiveCmd then
+		doUpdate = true
 	end
 
 	if doUpdate or (doUpdateClock and doUpdateClock > os.clock()) then
@@ -2930,9 +2855,7 @@ function widget:MousePress(x, y, button)
 							end
 							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
-							if isPregame then
-								setPregameBlueprint(unitDefID)
-							elseif spGetCmdDescIndex(-unitDefID) then
+							if spGetCmdDescIndex(-unitDefID) then
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
@@ -3298,10 +3221,6 @@ function widget:SelectionChanged(newSel)
 	if activeBuilder ~= prevActiveBuilderDefID or (builderIsFactory and activeBuilderID ~= prevActiveBuilderID) then
 		refreshCommands()
 	end
-end
-
-function widget:GameStart()
-	isPregame = false
 end
 
 function widget:PlayerChanged()
