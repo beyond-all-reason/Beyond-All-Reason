@@ -27,6 +27,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	return false
+end
+
 local isParatrooper = {}
 
 for udid, ud in pairs(UnitDefs) do

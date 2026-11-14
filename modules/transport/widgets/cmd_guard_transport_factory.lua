@@ -345,6 +345,22 @@ local function canTransport(transportID, unitID)
 	local uDefObj = cachedUnitDefs[udef]
 	local tDefObj = cachedUnitDefs[tdef]
 
+	-- tractor beam transports go by free seats
+	local TransportAPI = WG.TransportAPI
+	if TransportAPI and TransportAPI.IsTractorTransport(transportID) then
+		if uDefObj.cantBeTransported then
+			return false
+		end
+		local size = TransportAPI.GetPassengerSize(unitID)
+		return TransportAPI.CanPassengerFitInTransporter(
+			transportID,
+			unitID,
+			nil,
+			size,
+			TransportAPI.GetPendingSeats(transportID)
+		)
+	end
+
 	if uDefObj.xsize > tDefObj.transportSize * Game.footprintScale then
 		return false
 	end

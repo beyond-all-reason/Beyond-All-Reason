@@ -16,6 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	return false
+end
+
 local frameMargin = 10
 
 -- paradropped units (customparams.paratrooper) keep the transport's momentum on unload

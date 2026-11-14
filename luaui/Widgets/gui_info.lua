@@ -292,8 +292,12 @@ local function refreshUnitInfo()
 			end
 		end
 		if unitDef.isTransport then
-			unitDefInfo[unitDefID].transport =
-				{ unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
+			unitDefInfo[unitDefID].transport = {
+				unitDef.transportMass,
+				unitDef.transportSize,
+				unitDef.transportCapacity,
+				tonumber(unitDef.customParams.transporterseats), -- tractor beam transports: seats
+			}
 		end
 		if unitDef.customParams.paralyzemultiplier then
 			unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
@@ -1121,6 +1125,12 @@ end
 local killCountCache = {}
 local killCountCacheTime = 0
 
+-- tractor beam transports: seats in use, shown as each passenger's seat size
+local tractorCargo = {
+	MAX_ROW_SEATS = 6, -- more seats than this go in two rows
+	slotsFor = nil, -- the transport cellRect was last filled for by drawSlots
+}
+
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	tracy.ZoneBeginN("W:Info:DrawSelection:Cell")
 	if not usedZoom then
@@ -1488,6 +1498,7 @@ local function drawSelection()
 	-- draw grid (bottom right to top left)
 	-- Reuse cellRect table
 	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:CellRects")
+	tractorCargo.slotsFor = nil
 	if not cellRect then
 		cellRect = {}
 	else
@@ -1546,6 +1557,127 @@ local function GetAIName(teamID)
 		--end
 	end
 	return BAR.I18N("ui.playersList.aiName", { name = name })
+end
+
+function tractorCargo.seats(unitID)
+	local seats = Spring.GetUnitRulesParam(unitID, "transporterSeats")
+	if seats and seats > 0 then
+		return seats, Spring.GetUnitRulesParam(unitID, "transporterUsedSeats") or 0
+	end
+end
+
+function tractorCargo.hasCargo(unitID)
+	local units = Spring.GetUnitIsTransporting(unitID)
+	if units and #units > 0 then
+		return true
+	end
+	local seats, usedSeats = tractorCargo.seats(unitID)
+	return seats ~= nil and usedSeats > 0
+end
+
+-- units the beam is lifting into this transport right now (not in its cargo list until they arrive)
+function tractorCargo.incoming(unitID)
+	local list = {}
+	local x, _, z = Spring.GetUnitPosition(unitID)
+	if not x then
+		return list
+	end
+	local loadRadius = Spring.GetGameRulesParam("tractorbeam_loadRadius") or 0
+	local nearby = Spring.GetUnitsInCylinder(x, z, math_max(400, 2 * loadRadius))
+	for i = 1, #nearby do
+		if Spring.GetUnitRulesParam(nearby[i], "inLoadAnim") == unitID then
+			list[#list + 1] = nearby[i]
+		end
+	end
+	return list
+end
+
+-- one unit-icon slot per seat; a unit taking several seats fills its first slot and fades the rest,
+-- units flying in fade too. cellRect[i] is the first slot of units[i]. Returns false for other transports.
+function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
+	local seats, usedSeats = tractorCargo.seats(unitID)
+	if not seats then
+		return false
+	end
+	tractorCargo.slotsFor = unitID
+	local labelSize = math_floor(areaHeight * 0.17)
+	local rows = seats > tractorCargo.MAX_ROW_SEATS and 2 or 1
+	local cols = math_ceil(seats / rows)
+	cellsize = math_floor(math_min(areaWidth / cols, (gridHeight - labelSize * 1.4) / rows) + 0.5)
+	cellPadding = math_floor((cellsize * 0.022) + 0.5)
+	cornerSize = math_max(1, cellPadding * 0.9)
+	if not cellRect then
+		cellRect = {}
+	else
+		for i = #cellRect, 1, -1 do
+			cellRect[i] = nil
+		end
+	end
+
+	-- what sits in each seat: { unitID, first slot of that unit, faded }
+	local slots = {}
+	local function seat(passengerID, index, faded)
+		local size = WG.TransportAPI.GetPassengerSize(passengerID)
+		for s = 1, math_max(1, size) do
+			if #slots < seats then
+				slots[#slots + 1] = { passengerID, s == 1 and index, faded or s > 1 }
+			end
+		end
+	end
+	for i = 1, #units do
+		seat(units[i], i)
+	end
+	local incoming = tractorCargo.incoming(unitID)
+	for i = 1, #incoming do
+		seat(incoming[i], nil, true)
+	end
+	local held = math_min(usedSeats, seats) - #slots -- set down but still counted while the beam lets go
+
+	local function slotRect(k)
+		local row, col = math_ceil(k / cols), (k - 1) % cols + 1
+		return {
+			math_floor(area[3] - cellPadding - ((cols - col + 1) * cellsize)),
+			math_floor(area[2] + cellPadding + ((rows - row) * cellsize)),
+			math_floor(area[3] - cellPadding - ((cols - col) * cellsize)),
+			math_floor(area[2] + cellPadding + ((rows - row + 1) * cellsize)),
+		}
+	end
+
+	for k = 1, seats do
+		local r = slotRect(k)
+		local x1, y1, x2, y2 = r[1] + cellPadding, r[2] + cellPadding, r[3], r[4]
+		local s = slots[k]
+		if s then
+			local uDefID = spGetUnitDefID(s[1])
+			if uDefID then
+				local iconType = unitDefInfo[uDefID].icontype
+				local icon = iconType and ":l:" .. iconType or nil
+				local cost = { unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost }
+				local pad, group = cellPadding * 1.3, groups[unitGroup[uDefID]]
+				UiUnit(x1, y1, x2, y2, pad, 1, 1, 1, 1, 0.1, nil, nil, "#" .. uDefID, icon, group, cost)
+				if s[3] then
+					RectRound(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.6 })
+				end
+			end
+			if s[2] then
+				cellRect[s[2]] = r
+			end
+		else
+			-- empty seat, or one still held by a unit just set down (brighter edge)
+			local edge = (k - #slots <= held) and 0.3 or 0.12
+			RectRound(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, { 1, 1, 1, edge })
+			local inset = cellPadding
+			RectRound(x1 + inset, y1 + inset, x2 - inset, y2 - inset, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.35 })
+		end
+	end
+	glTexture(false)
+	glColor(1, 1, 1, 1)
+
+	font2:Begin(true)
+	font2:SetOutlineColor(0, 0, 0, 1)
+	font2:Print(usedSeats .. "/" .. seats, area[1] + labelSize * 0.6, area[4] - labelSize * 1.15, labelSize, "o")
+	font2:End()
+	return true
 end
 
 local function drawUnitInfo()
@@ -1908,6 +2040,7 @@ local function drawUnitInfo()
 	tracy.ZoneEnd()
 
 	cellRect = nil
+	tractorCargo.slotsFor = nil
 
 	-- draw unit buildoption icons
 	if
@@ -1990,12 +2123,12 @@ local function drawUnitInfo()
 	elseif
 		displayMode == "unit"
 		and unitDefInfo[displayUnitDefID].transport
-		and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0
+		and tractorCargo.hasCargo(displayUnitID)
 	then
 		tracy.ZoneBeginN("W:Info:DrawUnitInfo:Transported")
-		local units = Spring.GetUnitIsTransporting(displayUnitID)
-		if #units > 0 then
-			gridHeight = math_ceil(height * 0.975)
+		local units = Spring.GetUnitIsTransporting(displayUnitID) or {}
+		gridHeight = math_ceil(height * 0.975)
+		if not tractorCargo.drawSlots(displayUnitID, units, customInfoArea, width, height) and #units > 0 then
 			local rows = 2
 			local colls = math_ceil(#units / rows)
 			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
@@ -2275,7 +2408,10 @@ local function drawUnitInfo()
 			addTextInfo(BAR.I18N("ui.info.mstorage"), unitDefInfo[displayUnitDefID].metalStorage)
 		end
 
-		if unitDefInfo[displayUnitDefID].transport then
+		if unitDefInfo[displayUnitDefID].transport and unitDefInfo[displayUnitDefID].transport[4] then
+			-- tractor beam transports go by seats, not by mass
+			addTextInfo(BAR.I18N("ui.info.transportcapacity"), unitDefInfo[displayUnitDefID].transport[4])
+		elseif unitDefInfo[displayUnitDefID].transport then
 			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
 				addTextInfo(BAR.I18N("ui.info.transport_light", { highlightColor = valueColor }), nil)
 			end
@@ -2657,7 +2793,8 @@ function widget:MousePress(x, y, button)
 	end
 end
 
--- makes sure it gets unloaded at a free spot
+-- makes sure it gets unloaded at a free spot -- NO, we don't need that here, because allowCommand already snaps to valid pos.
+-- so we just give the unload command at current pos anyways
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	if not depth then
@@ -2770,6 +2907,10 @@ function widget:MouseRelease(x, y, button)
 							cellRect[cellID][4]
 						)
 					then
+						-- tractor beam transports: the unit is placed with the unload preview
+						if WG.UnloadSnap and WG.UnloadSnap.DropUnit(displayUnitID, unitID) then
+							return -1
+						end
 						local x, y, z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
@@ -2796,7 +2937,7 @@ function widget:MouseRelease(x, y, button)
 								end
 							end
 						end
-						unloadTransport(displayUnitID, unitID, math_floor(x), math_floor(z), shift)
+						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, { "" })
 						return -1
 					end
 				end
@@ -2910,6 +3051,30 @@ function widget:DrawScreen()
 	elseif dlistGuishader then
 		WG.guishader.DeleteDlist("info")
 		dlistGuishader = nil
+	end
+
+	-- the cargo unit waiting to be placed with the unload command
+	if
+		WG.UnloadSnap
+		and infoShows
+		and displayMode == "unit"
+		and cellRect
+		and tractorCargo.slotsFor == displayUnitID
+	then
+		local dropTransport, dropPassenger = WG.UnloadSnap.GetDrop()
+		local units = dropTransport == displayUnitID and Spring.GetUnitIsTransporting(displayUnitID)
+		if units then
+			for cellID, unitID in pairs(units) do
+				local r = cellRect[cellID]
+				if unitID == dropPassenger and r then
+					local amber = { 1, 0.85, 0.1, 0.28 }
+					local x1, y1 = r[1] + cellPadding, r[2] + cellPadding
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					RectRound(x1, y1, r[3], r[4], cellPadding * 0.9, 1, 1, 1, 1, amber, amber)
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+				end
+			end
+		end
 	end
 
 	-- widget hovered

@@ -12,6 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	return false
+end
+
 if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowUnitTransport(
 		transporterID,

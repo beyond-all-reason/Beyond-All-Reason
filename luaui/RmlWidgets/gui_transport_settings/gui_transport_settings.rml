@@ -1,0 +1,28 @@
+<rml>
+<head>
+	<link type="text/rcss" href="gui_transport_settings.rcss" />
+</head>
+<body data-model="transport_settings_model">
+	<div class="ts-panel">
+		<div class="ts-header" data-event-click="toggleOpen()">
+			<div class="ts-title">{{title}}</div>
+			<div class="ts-chevron">{{chevron}}</div>
+		</div>
+		<div class="ts-body" data-if="open">
+			<div class="ts-section">{{gameplayTitle}}</div>
+			<div class="ts-hint" data-if="!cheats">{{cheatHint}}</div>
+			<div class="ts-row" data-for="row : rows">
+				<div class="ts-label">{{row.label}}</div>
+				<div class="ts-btn" data-class-ts-off="!cheats" data-event-click="step(row.key, -1)"><div class="ts-btn-text">-</div></div>
+				<div class="ts-value">{{row.value}}</div>
+				<div class="ts-btn" data-class-ts-off="!cheats" data-event-click="step(row.key, 1)"><div class="ts-btn-text">+</div></div>
+			</div>
+			<div class="ts-section">{{previewTitle}}</div>
+			<div class="ts-row ts-toggle" data-for="t : toggles" data-event-click="toggle(t.key)">
+				<div class="ts-check" data-class-ts-on="t.on"></div>
+				<div class="ts-label">{{t.label}}</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>
