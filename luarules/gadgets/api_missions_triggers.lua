@@ -170,8 +170,6 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	end
 end
 
--- Detection events are hot paths with complicated routing at M^2 routing cost.
--- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
 local function markDetectionDirty(unitID)
 	if not detections[unitID] then
 		detections[unitID] = true
