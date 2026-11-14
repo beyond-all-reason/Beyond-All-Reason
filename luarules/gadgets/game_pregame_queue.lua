@@ -16,8 +16,16 @@ end
 
 local substitution = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
-local proxies, owners, builders = {}, {}, {}
-local positions, published = {}, {}
+---@type table<string|PlayerID, UnitID?>
+local proxies = {}
+---@type table<UnitID, (string|PlayerID)?>
+local owners = {}
+---@type table<UnitID, {generation: integer, pending: table<PlayerID, boolean?>}?>
+local builders = {}
+---@type table<string|PlayerID, {team: TeamID, x: number, z: number}?>
+local positions = {}
+---@type table<PlayerID, UnitID?>
+local published = {}
 local generation = 0
 -- Beyond the engine's 16384-world-unit queue-origin margin; no simulation runs here.
 local UNPLACED_POSITION = -32768
@@ -28,7 +36,7 @@ end
 
 local function members(key)
 	local result = {}
-	for _, playerID in ipairs(Spring.GetPlayerList()) do
+	for _, playerID in ipairs(Spring.GetPlayerList() or {}) do
 		local _, active, spectator, teamID = Spring.GetPlayerInfo(playerID, false)
 		if active and not spectator and queueKey(playerID, teamID) == key then
 			result[#result + 1] = playerID
@@ -159,6 +167,7 @@ local function refresh(playerID)
 	end
 	local position = positions[key]
 	local coopPosition = GG.coopStartPoints and GG.coopStartPoints[playerID]
+	---@type number, number, number
 	local x, y, z = UNPLACED_POSITION, 0, UNPLACED_POSITION
 	local positioned = false
 	if position and position.team == teamID then
@@ -234,7 +243,7 @@ end
 
 function gadget:GamePreload()
 	-- Initialize scans must not register planning units as gameplay commanders.
-	for _, playerID in ipairs(Spring.GetPlayerList()) do
+	for _, playerID in ipairs(Spring.GetPlayerList() or {}) do
 		refresh(playerID)
 	end
 end

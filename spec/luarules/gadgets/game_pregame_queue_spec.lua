@@ -1,8 +1,8 @@
 local function loadQueue(coop, deferPreload)
 	local units, rules, orders, destroyed = {}, {}, {}, {}
-	local pregameUnits
+	local pregameUnits ---@type PregameUnits
 	local players = { [0] = { team = 0 }, [1] = { team = 0 } }
-	local storage = { metal = 1000, energy = 1000 }
+	local storage = { metal = 1000, energy = 1000 } ---@type table<string, number>
 	local nextID, nextTag = 100, 1000
 	local recycled = {}
 	local engineStats = {}
@@ -199,13 +199,17 @@ local function loadQueue(coop, deferPreload)
 	env.gadgetHandler.CreatePregameUnit = function(_, ...)
 		return pregameUnits.create(...)
 	end
-	setfenv(assert(loadfile("luarules/gadgets/game_pregame_queue.lua")), env)()
+	local queueChunk = assert(loadfile("luarules/gadgets/game_pregame_queue.lua"))
+	setfenv(queueChunk, env)
+	queueChunk()
 	env.gadget:Initialize()
 	if not deferPreload then
 		env.gadget:GamePreload()
 	end
 	env.rawHistory = env.Spring.GetTeamStatsHistory
-	setfenv(assert(loadfile("luaui/Include/pregame_stats.lua")), env)()
+	local statsChunk = assert(loadfile("luaui/Include/pregame_stats.lua"))
+	setfenv(statsChunk, env)
+	statsChunk()
 	return env, units, rules, orders, destroyed, players, storage
 end
 
@@ -223,7 +227,7 @@ describe("Pregame engine queue lifecycle", function()
 		env.gadget:GamePreload()
 		local id = next(units)
 		assert.is_not_nil(id)
-		assert.equals(1, units[id].rules.pregame_proxy)
+		assert.equal(1, units[id].rules.pregame_proxy)
 	end)
 
 	it("updates position synchronously without waiting for a refresh message", function()
@@ -381,7 +385,9 @@ local function loadAdapter(env, rules)
 	env.Spring.SendLuaRulesMsg = function(message)
 		pending = message
 	end
-	setfenv(assert(loadfile("luaui/Widgets/gui_pregame_queue.lua")), env)()
+	local adapterChunk = assert(loadfile("luaui/Widgets/gui_pregame_queue.lua"))
+	setfenv(adapterChunk, env)
+	adapterChunk()
 	env.widget:Initialize()
 	env.widget:Update(0)
 	return env.WG.pregameQueue, function()

@@ -10,8 +10,8 @@ Spring.GetTeamStatsHistory = function(teamID, ...)
 		return history
 	end
 
-	local produced = Spring.GetTeamRulesParam(teamID, "pregameUnitsProduced") or 0
-	local died = Spring.GetTeamRulesParam(teamID, "pregameUnitsDied") or 0
+	local produced = Spring.GetTeamRulesParam(teamID, "pregameUnitsProduced") or 0 ---@cast produced integer
+	local died = Spring.GetTeamRulesParam(teamID, "pregameUnitsDied") or 0 ---@cast died integer
 	for _, sample in ipairs(history) do
 		sample.unitsProduced = sample.unitsProduced + produced
 		sample.unitsDied = sample.unitsDied + died

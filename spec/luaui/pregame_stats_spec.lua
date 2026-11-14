@@ -1,5 +1,7 @@
 describe("Pregame statistics LuaUI wrapper", function()
-	local spring, offsets, args
+	local spring ---@type table
+	local offsets ---@type table<string, integer>
+	local args ---@type table
 	before_each(function()
 		offsets = { pregameUnitsProduced = -3, pregameUnitsDied = -3 }
 		spring = {
@@ -23,7 +25,9 @@ describe("Pregame statistics LuaUI wrapper", function()
 				}
 			end,
 		}
-		setfenv(assert(loadfile("luaui/Include/pregame_stats.lua")), { Spring = spring, type = type, ipairs = ipairs })()
+		local chunk = assert(loadfile("luaui/Include/pregame_stats.lua"))
+		setfenv(chunk, { Spring = spring, type = type, ipairs = ipairs })
+		chunk()
 	end)
 
 	it("preserves count queries, unavailable teams and explicit nil arguments", function()
