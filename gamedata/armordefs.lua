@@ -395,6 +395,7 @@ local armorDefs = {
 		"armlunchbox",
 		"armmeatball",
 		"armsptkt4",
+		"armscorp",
 		"cordemon",
 		"corgolt4",
 
