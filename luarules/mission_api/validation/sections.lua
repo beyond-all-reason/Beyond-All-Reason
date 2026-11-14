@@ -562,7 +562,7 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
--- direction turns a marching group only, elsewhere it is ignored
+-- direction and matchSpeed work on a marching group only, elsewhere they are ignored
 local function validateIssueOrdersAction(context, actionReport, actionID, action)
 	local parameters = action.parameters
 	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
@@ -571,6 +571,9 @@ local function validateIssueOrdersAction(context, actionReport, actionID, action
 
 	if parameters.direction ~= nil and parameters.marching ~= true then
 		actionReport.Warn(actionID, "Parameter 'direction' is ignored without marching", "Parameter: direction")
+	end
+	if parameters.matchSpeed == true and parameters.marching ~= true then
+		actionReport.Warn(actionID, "Parameter 'matchSpeed' is ignored without marching", "Parameter: matchSpeed")
 	end
 end
 
