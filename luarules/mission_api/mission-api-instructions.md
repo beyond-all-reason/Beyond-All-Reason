@@ -62,6 +62,8 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   key. Synced code cannot translate, so entries are published as game rules params and
   `luaui/Widgets/api_mission_battle_log.lua` translates them into `WG.MissionAPI.BattleLog`; the
   `Spring.Echo` in `AddMessage` is a placeholder until a widget displays the log.
+- The one hint on screen (`ShowHint` / `HideHint`) is the `missionHint` game rules param, JSON or nil;
+  `luaui/RmlWidgets/gui_mission_hint` translates and shows it, and hides a timed one at its `untilFrame`.
 - `GG.MapLighting` (`luarules/gadgets/api_map_lighting.lua`) runs the `actions/environment/` actions:
   lighting, time of day, and skybox, blended on game time and lost on a `/luarules reload`.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)

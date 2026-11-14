@@ -1,0 +1,12 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="gui_mission_hint.rcss" />
+</head>
+<body data-model="mission_hint">
+	<!-- The body has no size in the shared context, so a full-screen root carries the layout. -->
+	<div class="mh-root">
+		<div class="mh-box" data-if="text != ''">{{text}}</div>
+	</div>
+</body>
+</rml>

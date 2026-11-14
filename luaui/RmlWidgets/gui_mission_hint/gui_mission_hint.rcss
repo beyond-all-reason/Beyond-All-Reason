@@ -1,0 +1,21 @@
+.mh-root {
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	pointer-events: none;
+}
+
+/* Clear of the top bar and the first console lines; centered by a half-width margin. */
+.mh-box {
+	position: absolute;
+	top: 110dp;
+	left: 50%;
+	width: 640dp;
+	margin-left: -320dp;
+	padding: 10dp 14dp;
+	background-color: #16161ce6;
+	border: 1dp #3e3e4a;
+	border-radius: 6dp;
+	font-size: 1.5rem;
+	color: #f4f4f8;
+}
