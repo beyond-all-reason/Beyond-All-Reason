@@ -327,6 +327,18 @@ for index, name in ipairs({
 	_G.CMD[name] = index
 	_G.CMD[index] = name
 end
+-- The state values mission files name.
+for name, value in pairs({
+	MOVESTATE_HOLDPOS = 0,
+	MOVESTATE_MANEUVER = 1,
+	MOVESTATE_ROAM = 2,
+	FIRESTATE_HOLDFIRE = 0,
+	FIRESTATE_RETURNFIRE = 1,
+	FIRESTATE_FIREATWILL = 2,
+	FIRESTATE_FIREATNEUTRAL = 3,
+}) do
+	_G.CMD[name] = value
+end
 
 _G.GameCMD = VFS.Include("modules/customcommands.lua").GameCMD or {}
 

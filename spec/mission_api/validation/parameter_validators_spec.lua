@@ -986,7 +986,14 @@ describe("mission_api.validation.parameter_validators", function()
 			V.env.CMD[name] = i
 			V.env.CMD[i] = name
 		end
-		V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
+		V.env.GameCMD = {
+			AREA_ATTACK_GROUND = 100,
+			[100] = "AREA_ATTACK_GROUND",
+			SMART_TOGGLE = 101,
+			[101] = "SMART_TOGGLE",
+			USER_FIRESTATE = 102,
+			[102] = "USER_FIRESTATE",
+		}
 	end)
 
 	after_each(function()
@@ -1172,13 +1179,49 @@ describe("mission_api.validation.parameter_validators", function()
 			for index = 1, 6 do
 				V.assertMessage(
 					result,
-					"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
-						.. index
-						.. "][2]"
+					"Parameter must be 0 or 1, as a number or {n}. Action: a, Parameter: orders[" .. index .. "][2]"
 				)
 			end
 		end)
 	end
+
+	it("accepts each value of a state command, engine or game", function()
+		local orders = {}
+		for moveState = 0, 2 do
+			orders[#orders + 1] = { V.env.CMD.MOVE_STATE, { moveState } }
+		end
+		for fireState = 0, 3 do
+			orders[#orders + 1] = { V.env.CMD.FIRE_STATE, fireState }
+		end
+		for trajectory = 0, 2 do
+			orders[#orders + 1] = { V.env.GameCMD.SMART_TOGGLE, { trajectory } }
+		end
+		for userFireState = 0, 4 do
+			orders[#orders + 1] = { V.env.GameCMD.USER_FIRESTATE, { userFireState } }
+		end
+
+		V.assertNoMessageContaining(validateOrders(orders), "Parameter: orders")
+	end)
+
+	it("rejects a value a state command does not take", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE_STATE, { 3 } },
+			{ V.env.CMD.FIRE_STATE, -1 },
+			{ V.env.GameCMD.SMART_TOGGLE, { 3 } },
+			{ V.env.GameCMD.USER_FIRESTATE, { 5 } },
+		})
+
+		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[1][2]")
+		V.assertMessage(
+			result,
+			"Parameter must be 0, 1, 2 or 3, as a number or {n}. Action: a, Parameter: orders[2][2]"
+		)
+		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[3][2]")
+		V.assertMessage(
+			result,
+			"Parameter must be 0, 1, 2, 3 or 4, as a number or {n}. Action: a, Parameter: orders[4][2]"
+		)
+	end)
 
 	it("rejects AREA_ATTACK without a radius", function()
 		V.assertMessage(
