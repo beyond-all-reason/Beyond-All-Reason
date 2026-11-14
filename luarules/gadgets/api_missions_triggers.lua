@@ -360,6 +360,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
+function gadget:UnitBuildStepPost(unitID)
+	dispatchTriggerCallin("UnitBuildStepPost", unitID)
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
@@ -434,9 +438,6 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 	return true
 end
 
-function gadget:UnitBuildStepPost(unitID)
-	dispatchTriggerCallin("UnitBuildStepPost", unitID)
-end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
 	-- Negative buildStep means reclaim
