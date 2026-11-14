@@ -1,0 +1,337 @@
+name: Bulk Migration
+
+# Run with a PR number to replay the bulk migrations onto that branch, commit,
+# merge the base, and push it back -- the same catch-up a contributor would run
+# locally, done for them. By default it replays every migration BAR-Devtools
+# still lists, oldest first.
+#
+# Bails without pushing if the merge conflicts: both sides have been through the
+# same deterministic transforms by then, so what is left is a real disagreement
+# with the base branch.
+#
+# Toolchain and recipes both come from BAR-Devtools, so nothing here needs to be
+# kept in step with it. It does nothing until those are on BAR-Devtools master
+# and a migration is on this repo's master; being manual-trigger only, merging
+# before then is inert rather than wrong.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number to replay migrations onto"
+        required: true
+        type: string
+      migration:
+        description: "Single migration to replay (blank = every active one, in order)"
+        required: false
+        type: string
+      # Overridable so this can be exercised against a fork before the
+      # BAR-Devtools side has merged and published anything. Defaults are the
+      # canonical ones; leave them alone in normal use.
+      devtools_repo:
+        description: "BAR-Devtools repository to take recipes from"
+        required: false
+        default: beyond-all-reason/BAR-Devtools
+        type: string
+      devtools_ref:
+        description: "BAR-Devtools ref (blank = its default branch)"
+        required: false
+        type: string
+      image:
+        description: "Container image to run in"
+        required: false
+        default: ghcr.io/beyond-all-reason/bar-migration:latest
+        type: string
+
+# Pushing the replay to the PR head, and reporting back on it.
+permissions:
+  contents: write
+  pull-requests: write
+
+# Two replays racing on one PR would push over each other.
+concurrency:
+  group: bulk-migration-${{ inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    container:
+      # BAR-Devtools' dev image plus a prebuilt codemod -- the toolchain
+      # contributors run the migration on locally. StyLua's output is
+      # version-specific, so a separately assembled toolchain would drift and
+      # the conflicts would stop cancelling out. Pulled anonymously, so the
+      # package must stay public: "manifest unknown" here means its visibility
+      # got reset, not a bad tag.
+      image: ${{ inputs.image }}
+
+    steps:
+      - name: Resolve target
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ inputs.pr }}
+          REQUESTED: ${{ inputs.migration }}
+        run: |
+          set -euo pipefail
+          pr="$PR"
+          requested="$REQUESTED"
+
+          # Charset only, and no leading dash so it can never read as a flag.
+          # Whether the name is a *real* migration is settled against
+          # BAR-Devtools in the next step, once it is checked out.
+          if [ -n "${requested//[a-z0-9-]/}" ] || [ "${requested#-}" != "$requested" ]; then
+            echo "::error::Migration names are lowercase alphanumerics and dashes; got '$requested'"
+            exit 1
+          fi
+
+          if [ -z "$pr" ] || [ -n "${pr//[0-9]/}" ]; then
+            echo "::error::PR must be a number, got '$pr'"
+            exit 1
+          fi
+
+          meta="$RUNNER_TEMP/pr.json"
+          gh pr view "$pr" --repo "$GITHUB_REPOSITORY" \
+            --json baseRefName,headRefName,isCrossRepository \
+            > "$meta"
+
+          {
+            echo "pr=$pr"
+            echo "requested=$requested"
+            echo "base=$(jq -r .baseRefName "$meta")"
+            echo "head_ref=$(jq -r .headRefName "$meta")"
+            echo "cross_repo=$(jq -r .isCrossRepository "$meta")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out BAR-Devtools
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.devtools_repo }}
+          ref: ${{ inputs.devtools_ref }}
+          path: BAR-Devtools
+
+      # `just bar::migrate::*` resolves the game repo as a sibling of the
+      # justfile, so BAR is checked out inside the devtools tree rather than
+      # alongside it.
+      - name: Check out the game repo
+        uses: actions/checkout@v5
+        with:
+          path: BAR-Devtools/Beyond-All-Reason
+          fetch-depth: 0
+
+      - name: Select migrations
+        id: select
+        working-directory: BAR-Devtools
+        env:
+          REQUESTED: ${{ steps.target.outputs.requested }}
+        run: |
+          set -euo pipefail
+          # bar-migrate.just is the registry: migrations are declared in
+          # adoption order and retired by marking them [private], which drops
+          # them from --list. So this is exactly "every migration still worth
+          # replaying, oldest first", with no second copy of the list here.
+          available=$(just --unsorted --list bar::migrate \
+            | awk 'NR > 1 && /^[[:space:]]/ { print $1 }' \
+            | grep -E '^[a-z0-9][a-z0-9-]*$' || true)
+
+          if [ -z "$available" ]; then
+            echo "::error::No migrations found in bar::migrate"
+            exit 1
+          fi
+
+          if [ -n "$REQUESTED" ]; then
+            # The name came from a PR comment. It is only ever compared against
+            # this list, never passed through -- so a [private] recipe like
+            # stylua-cleanup-generate, absent from --list, cannot be reached.
+            if ! printf '%s\n' "$available" | grep -qxF "$REQUESTED"; then
+              echo "::error::Unknown migration '$REQUESTED'. Available: $(echo $available)"
+              exit 1
+            fi
+            selected="$REQUESTED"
+          else
+            selected="$available"
+          fi
+
+          echo "Replaying: $(echo $selected)"
+          {
+            echo "migrations<<EOF"
+            echo "$selected"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "names=$(echo $selected | tr ' ' ',')" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the PR head
+        working-directory: BAR-Devtools/Beyond-All-Reason
+        env:
+          PR: ${{ steps.target.outputs.pr }}
+          BASE: ${{ steps.target.outputs.base }}
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory '*'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # refs/pull/N/head reaches fork PRs too, without adding a remote.
+          git fetch --no-tags origin "pull/$PR/head:pr-$PR" "$BASE:refs/remotes/origin/$BASE"
+          git checkout "pr-$PR"
+
+      - name: Replay the migrations
+        id: replay
+        working-directory: BAR-Devtools
+        env:
+          MIGRATIONS: ${{ steps.select.outputs.migrations }}
+          # The recipes re-exec themselves into the `bar-dev` distrobox unless
+          # they are already inside a container with the toolchain on PATH --
+          # which, in this job, is exactly where they are. common.sh defaults
+          # DEVTOOLS_DISTROBOX to `bar-dev` and never leaves it unset, so this
+          # is the flag that says "you have arrived" rather than clearing it.
+          _DEVTOOLS_IN_DISTROBOX: 1
+        run: |
+          set -euo pipefail
+          # The image ships a prebuilt codemod; point the recipes at it rather
+          # than spending ~2.5 minutes rebuilding what we already have. Guarded
+          # so an image without it still falls back to building from source.
+          if [ -x /usr/local/bin/bar-lua-codemod ]; then
+            export CODEMOD_BIN=/usr/local/bin/bar-lua-codemod
+          fi
+
+          applied=""
+          # One commit per migration that actually changes something. They are
+          # all squashed when the PR merges, but until then they say which
+          # migration touched what -- and a branch that already caught up to
+          # some of them just produces nothing for those.
+          while read -r migration; do
+            [ -n "$migration" ] || continue
+            echo "::group::$migration"
+            just "bar::migrate::${migration}"
+            git -C Beyond-All-Reason add -A
+            if git -C Beyond-All-Reason diff --cached --quiet; then
+              echo "already applied on this branch -- nothing to commit"
+            else
+              git -C Beyond-All-Reason commit -m "apply $migration migration"
+              applied="${applied:+$applied }$migration"
+            fi
+            echo "::endgroup::"
+          done <<< "$MIGRATIONS"
+          echo "applied=$applied" >> "$GITHUB_OUTPUT"
+
+      - name: Merge the base branch
+        id: merge
+        working-directory: BAR-Devtools/Beyond-All-Reason
+        env:
+          BASE: ${{ steps.target.outputs.base }}
+        run: |
+          set -euo pipefail
+          if git merge --no-edit "origin/$BASE"; then
+            echo "conflicts=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Both sides have now been through the same deterministic transforms,
+          # so whatever still conflicts is a real disagreement with the base --
+          # not something a replay can settle. Leave the branch untouched.
+          conflicts=$(git diff --name-only --diff-filter=U)
+          git merge --abort
+          {
+            echo "conflicts<<EOF"
+            echo "$conflicts"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "::error::Merge with $BASE conflicts outside the migration; not pushing."
+          # Fail the job: this outcome needs a person, and a green check would
+          # say the opposite. The reporting step still runs (always()).
+          exit 1
+
+      - name: Push the result
+        id: push
+        # `success() &&` is load-bearing: an explicit `if` drops the implicit
+        # success check, and without it a failed migration would fall through
+        # to a push with an empty (never-set) conflicts output.
+        if: success() && steps.merge.outputs.conflicts == ''
+        working-directory: BAR-Devtools/Beyond-All-Reason
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.target.outputs.pr }}
+          HEAD_REF: ${{ steps.target.outputs.head_ref }}
+          CROSS_REPO: ${{ steps.target.outputs.cross_repo }}
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          # Not forced: the replay and the merge both sit on top of the PR head,
+          # so this is a fast-forward. If the author pushed while we were
+          # working, the reject is the correct outcome.
+          if [ "$CROSS_REPO" = false ]; then
+            git push "$remote" "HEAD:refs/heads/${HEAD_REF}"
+            echo "landed=head" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The head is a fork. GITHUB_TOKEN is scoped to this repository and
+          # cannot push there at all -- not even when the PR allows maintainer
+          # edits -- so park the result on a branch here and let the author take
+          # it in one command rather than reproducing the run locally.
+          staging="migrate/pr-${PR}"
+          git push --force "$remote" "HEAD:refs/heads/${staging}"
+          echo "landed=staging" >> "$GITHUB_OUTPUT"
+          echo "staging=$staging" >> "$GITHUB_OUTPUT"
+
+      - name: Report back
+        if: always() && steps.target.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.target.outputs.pr }}
+          CONSIDERED: ${{ steps.select.outputs.names }}
+          APPLIED: ${{ steps.replay.outputs.applied }}
+          BASE: ${{ steps.target.outputs.base }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+          LANDED: ${{ steps.push.outputs.landed }}
+          STAGING: ${{ steps.push.outputs.staging }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # "a, b and c", or "nothing -- already up to date".
+          if [ -n "$APPLIED" ]; then
+            applied_md=$(printf '%s' "$APPLIED" | sed 's/[^ ]*/`&`/g; s/ /, /g; s/\(.*\), /\1 and /')
+          else
+            applied_md=""
+          fi
+
+          {
+            if [ -n "$CONFLICTS" ]; then
+              echo "**Replayed the migrations, but merging \`$BASE\` conflicts.**"
+              echo
+              echo "Both sides have been through the same transforms, so these are real"
+              echo "conflicts rather than migration noise, and need a human. Nothing was"
+              echo "pushed."
+              echo
+              echo '```'
+              echo "$CONFLICTS"
+              echo '```'
+            elif [ "$LANDED" = head ] || [ "$LANDED" = staging ]; then
+              if [ -n "$applied_md" ]; then
+                echo "**Applied $applied_md, then merged \`$BASE\`.**"
+              else
+                echo "**Already had every migration; merged \`$BASE\`.**"
+              fi
+              echo
+              if [ "$LANDED" = head ]; then
+                echo "Pushed to this PR's branch."
+              else
+                echo "This PR is from a fork, so it could not be pushed to directly. Take it with:"
+                echo
+                echo '```bash'
+                echo "git pull $GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git $STAGING"
+                echo '```'
+              fi
+            else
+              echo "**Replay failed.** Nothing was pushed."
+            fi
+            echo
+            echo "<sub>Considered: \`$CONSIDERED\`</sub>"
+            echo
+            echo "[Run log]($RUN_URL)"
+          } > comment.md
+
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file comment.md
