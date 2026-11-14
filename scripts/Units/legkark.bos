@@ -328,7 +328,7 @@ UnitSpeed()
 		animSpeed = (maxSpeed * 5) / animSpeed; 
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
-		sleep 164;
+		sleep 50;
 	}
 }
 
@@ -574,12 +574,16 @@ QueryWeapon2(pieceIndex)
 	pieceIndex = lflare1 + gun_1;
 }
 
+// Shotgun
+
 AimWeapon2(heading, pitch)
 {
 	var relativeHeading;
 
 	signal SIGNAL_AIM2;
 	isAiming = TRUE;
+	
+	turn lshoulder to y-axis <-5> speed <25>;
 
 	// Restrict secondary weapons firing angles relative to the primary weapons heading
 	relativeHeading = WRAPDELTA(heading - torsoHeading);
@@ -597,8 +601,23 @@ AimWeapon2(heading, pitch)
 	}
 }
 
+ShotgunRetraction()
+{
+	move lbarrel to z-axis [-2] speed [100];
+	sleep 400;
+	start-script SecondShotgunFire();
+	move lbarrel to z-axis [-5] speed [100];
+	sleep 500;
+	move lbarrel to z-axis [0] speed [20];
+}
+
 FireWeapon2()
 {
+
+	isAiming = TRUE;
+
+	// wait-for-turn lbarrel around y-axis;
+
 	if(gun_1)
 	{
 		emit-sfx 1024 + 0 from lflare1;
@@ -607,11 +626,26 @@ FireWeapon2()
 	{
 		emit-sfx 1024 + 0 from lflare2;
 	}
-	move lbarrel to z-axis [-6] now;
-	move lbarrel to z-axis [0] speed [3];
-	
+
+	// Shotgun retraction animation
+
+	start-script ShotgunRetraction();
+
+
 	gun_1 = !gun_1;
 	
+}
+
+SecondShotgunFire()
+{
+	if(gun_1)
+	{
+		emit-sfx 1024 + 0 from lflare2;
+	}
+	else
+	{
+		emit-sfx 1024 + 0 from lflare1;
+	}
 }
 
 //use call-script DeathAnim(); from Killed()
