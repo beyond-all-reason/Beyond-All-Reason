@@ -181,11 +181,11 @@ end
 -- Attempt at single-assigning a construction task owner to each buildee.
 -- When multiple constructors place the same buildDefID, any can become an
 -- "owner" in some technical sense, since only factories own build frames.
-local function isBuildFrameOwner(unbuiltID, builderName, builderDefName)
+local function isBuildFrameOwner(buildeeID, builderName, builderDefName)
 	if not builderName and not builderDefName then
 		return true
 	end
-	local builder = buildFrameOwners[unbuiltID]
+	local builder = buildFrameOwners[buildeeID]
 	if not builder then
 		return false
 	end
