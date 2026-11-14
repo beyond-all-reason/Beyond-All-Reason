@@ -22,6 +22,8 @@ local INCOME_ON_FULL_UNIT_RECLAIM = true
 local triggerTypes, triggers, triggerContext ---@type table, table<string, table>, table
 
 local callins ---@type table
+local unitsEnteredAreaHandlers ---@type table<string, function?>
+local unitsLeftAreaHandlers ---@table<string, function?>
 local needsBuildOwnerMap = false
 local needsBuildStartSet = false
 
@@ -149,7 +151,6 @@ end
 
 -- Location triggers are dispatched through area tracking instead of by polling with GameFrame.
 -- Each has its own tracker. Callbacks then act on the units that crossed a tracking boundary.
-local unitsEnteredAreaHandlers, unitsLeftAreaHandlers ---@type table<string, function?>, table<string, function?>
 
 ---@param triggerID string
 local function onUnitsEnteredArea(unitIDs, triggerID)
@@ -166,6 +167,15 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
 		handler(trigger, triggerID, triggerContext, unitIDs)
+	end
+end
+
+-- Detection events are hot paths with complicated routing at M^2 routing cost.
+-- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
+local function markDetectionDirty(unitID)
+	if not detections[unitID] then
+		detections[unitID] = true
+		detectionCount = detectionCount + 1
 	end
 end
 
@@ -216,15 +226,6 @@ end
 local function hasConstructionStarted(buildeeID, triggerID)
 	local claims = constructionStarts[buildeeID]
 	return claims and claims[triggerID]
-end
-
--- Detection events are hot paths with complicated routing at M^2 routing cost.
--- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
-local function markDetectionDirty(unitID)
-	if not detections[unitID] then
-		detections[unitID] = true
-		detectionCount = detectionCount + 1
-	end
 end
 
 ----------------------------------------------------------------
