@@ -15,7 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy.
-local RECLAIM_UNIT_IS_BAR_STYLE = true
+local INCOME_ON_FULL_UNIT_RECLAIM = true
 	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
 	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
 
@@ -421,7 +421,7 @@ function gadget:UnitIdlePost(unitID, idled)
 end
 
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
-	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
+	if buildStep < 0 then
 		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
 			local unitDef = UnitDefs[unitDefID]
@@ -632,7 +632,7 @@ function gadget:Initialize()
 	-- Only remain subscribed to these when the loaded mission actually requires them.
 	for callinName, needed in pairs({
 		AllowUnitCreation = hasTriggerType[triggerTypes.ConstructionStarted],
-		AllowUnitBuildStep = hasTriggerType[triggerTypes.ResourceIncome],
+		AllowUnitBuildStep = hasTriggerType[triggerTypes.ResourceIncome] and INCOME_ON_FULL_UNIT_RECLAIM,
 		AllowFeatureBuildStep = hasTriggerType[triggerTypes.ResourceIncome]
 			or hasTriggerType[triggerTypes.FeatureReclaimed]
 			or hasTriggerType[triggerTypes.FeatureDestroyed],
