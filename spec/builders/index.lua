@@ -8,7 +8,7 @@ local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionBuilder = VFS.Include("spec/builders/mission_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 
 ---@class Builders
 ---@field Team TeamBuilder
@@ -20,7 +20,7 @@ local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder
 ---@field MissionApi MissionApiBuilder
 ---@field Mission MissionBuilder
 ---@field Trigger TriggerBuilder
----@field TriggerContext TriggerContextBuilder
+---@field ConditionContext ConditionContextBuilder
 local Builders = {
 	Team = TeamBuilder,
 	Spring = SpringSyncedBuilder,
@@ -32,7 +32,7 @@ local Builders = {
 	MissionApi = MissionApiBuilder,
 	Mission = MissionBuilder,
 	Trigger = TriggerBuilder,
-	TriggerContext = TriggerContextBuilder,
+	ConditionContext = ConditionContextBuilder,
 }
 
 return Builders

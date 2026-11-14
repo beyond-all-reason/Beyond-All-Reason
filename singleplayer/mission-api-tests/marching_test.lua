@@ -1,11 +1,11 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- One squad of fast and slow bots marching on a timer. Each march shows one parameter.
 local triggers = {
 
 	start = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -13,7 +13,7 @@ local triggers = {
 	},
 
 	keepShape = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -21,7 +21,7 @@ local triggers = {
 	},
 
 	turnShape = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 43,
 		},
@@ -29,7 +29,7 @@ local triggers = {
 	},
 
 	queueTwoMoves = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 83,
 		},
