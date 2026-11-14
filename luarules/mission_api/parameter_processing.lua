@@ -9,7 +9,7 @@ local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local conditionsSchemaParameters = GG["MissionAPI"].ConditionDefinitions.Parameters
 local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
 local teams = GG["MissionAPI"].Teams
 local alliances = GG["MissionAPI"].Alliances
@@ -190,15 +190,7 @@ local function processActionParameters(actions)
 end
 
 local function processTriggerParameters(triggers)
-	processParameters(triggers, triggersSchemaParameters)
-end
-
-local function processManagedObjectiveParameters(managedObjectives)
-	for triggerType, objectives in pairs(managedObjectives) do
-		for _, objective in ipairs(objectives) do
-			processSchemaParameters(objective.parameters, triggersSchemaParameters[triggerType])
-		end
-	end
+	processParameters(triggers, conditionsSchemaParameters)
 end
 
 return {
@@ -206,5 +198,4 @@ return {
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
-	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }

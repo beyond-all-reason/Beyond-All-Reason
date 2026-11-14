@@ -119,7 +119,7 @@ local function validateObjectiveEventReferences(context, report)
 						namedTriggerIDs[triggerID] = true
 
 						local trigger = context.Triggers[triggerID]
-						if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
+						if type(trigger) == "table" and trigger.type ~= context.ConditionTypes.Event then
 							report.Error(
 								SECTION,
 								"Objective",
@@ -137,7 +137,7 @@ local function validateObjectiveEventReferences(context, report)
 	for triggerID, trigger in pairs(context.Triggers) do
 		if
 			type(trigger) == "table"
-			and trigger.type == context.TriggerTypes.Event
+			and trigger.type == context.ConditionTypes.Event
 			and not namedTriggerIDs[triggerID]
 		then
 			report.Warn(SECTION, "Trigger", triggerID, "Event trigger has no owners, so it can never fire")
@@ -332,7 +332,7 @@ end
 
 --- Triggers only ever refer to names, never create them.
 local function collectTriggerNames(context, nameKind, referencedNames)
-	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		local parameters = parametersOf(trigger)
@@ -348,19 +348,18 @@ local function collectTriggerNames(context, nameKind, referencedNames)
 	end
 end
 
---- An objective can hold a trigger inline, which refers to names as any other trigger does.
+--- An objective holds its condition inline, which refers to names as any trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
-	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
 
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		local parameters = parametersOf(trigger)
+		local parameters = parametersOf(objective)
 		if parameters then
 			collectParameterNames(
 				context,
-				referencingParameterNames[trigger.type],
+				referencingParameterNames[objective.type],
 				parameters,
-				"objective " .. objectiveID .. " (trigger)",
+				"objective " .. objectiveID .. " (condition)",
 				referencedNames
 			)
 		end
@@ -416,20 +415,19 @@ local function validateCountdownIDReferences(context, report)
 		end
 	end
 
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CountdownID)
+	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.CountdownID)
 	for triggerID, trigger in pairs(context.Triggers) do
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+		if referencingConditionTypes[type(trigger) == "table" and trigger.type] then
 			for _, countdownID in ipairs(countdownIDsOf(parametersOf(trigger))) do
 				recordSource(referencedIDs, countdownID, "trigger " .. triggerID)
 			end
 		end
 	end
 
-	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
+	-- Objectives hold their condition inline, which refers to a countdown as any trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
-		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		for _, countdownID in ipairs(countdownIDsOf(parameters)) do
-			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (trigger)")
+		for _, countdownID in ipairs(countdownIDsOf(parametersOf(objective))) do
+			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -460,16 +458,15 @@ local function validateCutsceneIDReferences(context, report)
 		end
 	end
 
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CutsceneID)
+	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.CutsceneID)
 	for triggerID, trigger in pairs(context.Triggers) do
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+		if referencingConditionTypes[type(trigger) == "table" and trigger.type] then
 			recordCutsceneIDs(parametersOf(trigger), "trigger " .. triggerID)
 		end
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
-			recordCutsceneIDs(parametersOf(trigger), "objective " .. objectiveID .. " (trigger)")
+		if referencingConditionTypes[type(objective) == "table" and objective.type] then
+			recordCutsceneIDs(parametersOf(objective), "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -515,14 +512,20 @@ local function validateVariableReferences(context, report)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+		if type(trigger) == "table" then
+			recordKeys(
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				"trigger " .. triggerID
+			)
+		end
 	end
 	for actionID, action in pairs(context.Actions) do
 		recordKeys(parametersOf(action), "action " .. actionID)
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objective) == "table" then
-			recordKeys(objective, "objective " .. objectiveID, "trigger")
-			recordKeys(parametersOf(objective.trigger), "objective " .. objectiveID .. " trigger")
+			recordKeys(objective, "objective " .. objectiveID, "parameters")
+			recordKeys(parametersOf(objective), "objective " .. objectiveID .. " condition")
 		end
 	end
 

@@ -10,11 +10,6 @@ local function validateObjective(objective)
 	return V.validate(V.mission():WithObjective("o", objective))
 end
 
---- Validates objective 'o' with the inline trigger under test.
-local function validateObjectiveTrigger(trigger)
-	return validateObjective({ textKey = "ok", trigger = trigger })
-end
-
 describe("mission_api.validation.sections", function()
 	before_each(V.mockEngineGlobals)
 
@@ -137,7 +132,7 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	describe("objective fields", function()
-		it("passes for a well-formed objective without a trigger", function()
+		it("passes for an objective without a condition type, which only actions complete", function()
 			V.assertValid(validateObjective({ textKey = "Do the thing." }))
 		end)
 
@@ -164,13 +159,13 @@ describe("mission_api.validation.sections", function()
 		it("reports incorrect field types", function()
 			local result = validateObjective({
 				textKey = "ok",
-				amount = "notANumber",
+				count = "notANumber",
 				coop = "notABoolean",
 			})
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount"
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: count"
 			)
 			V.assertMessage(
 				result,
@@ -201,34 +196,38 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("accepts difficulty-wrapped fields and inline trigger parameters", function()
+		it("accepts difficulty-wrapped thresholds and condition parameters", function()
 			V.assertValid(validateObjective({
 				textKey = "ok",
-				amount = { difficulties = { Easy = 2, Hard = 5 } },
-				trigger = {
-					type = V.triggerTypes.TimeElapsed,
-					parameters = { seconds = { difficulties = { Easy = 60, Hard = 30 } } },
-				},
+				type = V.conditionTypes.TimeElapsed,
+				parameters = { seconds = { difficulties = { Easy = 60, Hard = 30 } } },
+				count = { difficulties = { Easy = 2, Hard = 5 } },
 			}))
 		end)
 
 		it("reports an invalid value in a wrapped field", function()
-			local result = validateObjective({ textKey = "ok", amount = { difficulties = { Easy = "x" } } })
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				count = { difficulties = { Easy = "x" } },
+			})
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount.difficulties.Easy"
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: count.difficulties.Easy"
 			)
 		end)
 
-		-- The inline trigger is registered before the difficulty is known.
-		it("reports a difficulty-wrapped trigger field", function()
-			local result = validateObjectiveTrigger({ difficulties = { Easy = { type = V.triggerTypes.TimeElapsed } } })
+		-- The condition record is registered before the difficulty is known.
+		it("reports a difficulty-wrapped condition type", function()
+			local result = validateObjective({
+				textKey = "ok",
+				type = { difficulties = { Easy = V.conditionTypes.TimeElapsed } },
+				parameters = { seconds = 1 },
+			})
 
-			V.assertMessage(
-				result,
-				"Objective 'trigger' field does not support difficulties. Objective: o, Field: trigger"
-			)
+			V.assertMessage(result, "Objective condition type does not support difficulties or variables. Objective: o")
 		end)
 
 		it("accepts a difficulty-wrapped nextStage naming existing stages", function()
@@ -256,71 +255,111 @@ describe("mission_api.validation.sections", function()
 		end)
 	end)
 
-	describe("inline trigger", function()
-		it("passes for a valid inline trigger", function()
-			V.assertValid(validateObjectiveTrigger({
-				type = V.triggerTypes.TimeElapsed,
+	describe("objective condition", function()
+		it("passes for a well-formed event objective", function()
+			V.assertValid(validateObjective({
+				textKey = "Survive.",
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 90 },
 			}))
 		end)
 
-		it("reports a 'settings' field", function()
-			local result = validateObjectiveTrigger({
-				settings = { repeating = true },
-				type = V.triggerTypes.TimeElapsed,
-				parameters = { seconds = 1 },
-			})
-
-			V.assertMessage(result, "Objective trigger must not have a 'settings' field. Objective: o")
+		it("passes for an event objective with a count", function()
+			V.assertValid(validateObjective({
+				textKey = "Build three.",
+				type = V.conditionTypes.ConstructionFinished,
+				parameters = { unitDefName = "armwar", teamName = "player" },
+				count = 3,
+			}))
 		end)
 
-		it("reports an 'actions' field", function()
-			local result = validateObjectiveTrigger({
-				type = V.triggerTypes.TimeElapsed,
-				parameters = { seconds = 1 },
-				actions = { "someAction" },
-			})
-
-			V.assertMessage(result, "Objective trigger must not have an 'actions' field. Objective: o")
+		it("passes for a metric objective with a bound", function()
+			V.assertValid(validateObjective({
+				textKey = "Wipe them out.",
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player", unitDefName = "armwar" },
+				atMost = 0,
+			}))
 		end)
 
-		it("reports a missing type", function()
-			local result = validateObjectiveTrigger({ parameters = { seconds = 1 } })
+		it("reports an unknown field", function()
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player" },
+				atMostt = 0,
+			})
 
-			V.assertMessage(result, "Objective trigger missing type. Objective: o")
+			V.assertMessage(result, "Unknown field. Objective: o, Field: atMostt")
 		end)
 
 		it("reports an invalid type", function()
-			local result = validateObjectiveTrigger({ type = "notAType" })
+			local result = validateObjective({ textKey = "ok", type = "notAType" })
 
-			V.assertMessage(result, "Objective trigger has invalid type. Objective: o")
+			V.assertMessage(result, "Objective condition has invalid type. Objective: o")
 		end)
 
 		it("reports a missing required parameter", function()
-			local result = validateObjectiveTrigger({
-				type = V.triggerTypes.TimeElapsed,
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.TimeElapsed,
 				parameters = {},
 			})
 
-			V.assertMessage(result, "Objective trigger missing required parameter. Objective: o, Parameter: seconds")
+			V.assertMessage(result, "Objective condition missing required parameter. Objective: o, Parameter: seconds")
 		end)
 
-		-- Objective triggers take their quantity from the objective's own amount.
-		it("warns when a statistics trigger specifies quantity", function()
-			local result = validateObjectiveTrigger({
-				type = V.triggerTypes.UnitsOwned,
-				parameters = { teamName = "player", quantity = 5, unitDefName = "armwar" },
+		it("reports parameters without a condition type", function()
+			local result = validateObjective({ textKey = "ok", parameters = { seconds = 1 } })
+
+			V.assertMessage(result, "Objective has parameters but no condition type. Objective: o")
+		end)
+
+		it("rejects count on a metric objective", function()
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player" },
+				count = 3,
 			})
 
-			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
+			V.assertMessage(result, "Metric conditions are thresholded with atLeast/atMost, not count. Objective: o")
 		end)
+
+		it("rejects atLeast/atMost on an event objective", function()
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				atLeast = 3,
+			})
+
+			V.assertMessage(result, "Event conditions are thresholded with count, not atLeast/atMost. Objective: o")
+		end)
+
+		it("requires a bound on a metric objective", function()
+			local result = validateObjective({
+				textKey = "ok",
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player" },
+			})
+
+			V.assertMessage(result, "Metric conditions require atLeast and/or atMost. Objective: o")
+		end)
+
+		it("reports atLeast/atMost without a condition type", function()
+			local result = validateObjective({ textKey = "ok", atLeast = 3 })
+
+			V.assertMessage(result, "Objective has atLeast/atMost but no condition type. Objective: o")
+		end)
+
 	end)
 
 	--- Validates trigger 't' with the settings under test.
 	local function validateSettings(settings)
 		return V.validate(V.mission()
 			:WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				settings = settings,
 				actions = { "ok" },
@@ -330,7 +369,7 @@ describe("mission_api.validation.sections", function()
 
 	describe("trigger shape", function()
 		it("passes for a well-formed trigger", function()
-			V.assertValid(V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })))
+			V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 })))
 		end)
 
 		it("reports a missing type", function()
@@ -347,7 +386,7 @@ describe("mission_api.validation.sections", function()
 
 		it("reports a trigger ID that is not a string", function()
 			local result =
-				V.validate(V.mission():WithTrigger(123, V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })))
+				V.validate(V.mission():WithTrigger(123, V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 })))
 
 			V.assertMessage(result, "Unexpected parameter type, expected string, got number. Trigger: 123, Field: ID")
 		end)
@@ -362,7 +401,7 @@ describe("mission_api.validation.sections", function()
 	describe("actions", function()
 		it("reports a trigger without actions", function()
 			local result = V.validate(
-				V.mission():WithTrigger("t", { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 } })
+				V.mission():WithTrigger("t", { type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 } })
 			)
 
 			V.assertMessage(result, "Trigger has no actions. Trigger: t")
@@ -370,7 +409,7 @@ describe("mission_api.validation.sections", function()
 
 		it("reports an 'actions' field that is not a table", function()
 			local result = V.validateTrigger({
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = "notATable",
 			})
@@ -380,7 +419,7 @@ describe("mission_api.validation.sections", function()
 
 		it("reports an action ID that does not exist", function()
 			local result = V.validateTrigger({
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = { "doesNotExist" },
 			})
@@ -393,7 +432,7 @@ describe("mission_api.validation.sections", function()
 		--- Validates a mission whose cutscenes are all started, so only the cutscene checks report.
 		local function validateCutscenes(cutscenes)
 			local mission = V.mission():WithTrigger("t", {
-				type = V.triggerTypes.TimeElapsed,
+				type = V.conditionTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 				actions = {},
 			})
@@ -664,7 +703,7 @@ describe("mission_api.validation.sections", function()
 
 		it("accepts any fractional progress value", function()
 			for _, progress in ipairs({ 0, 0.5, 1 }) do
-				V.assertValid(V.validateTrigger(V.trigger(V.triggerTypes.StockpileProgress, {
+				V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = progress,
 					unitDefName = "armmercury",
 				})))
@@ -673,14 +712,14 @@ describe("mission_api.validation.sections", function()
 
 		it("reports a unit def without a stockpiling weapon", function()
 			V.assertMessage(
-				V.validateTrigger(V.trigger(V.triggerTypes.StockpileCount, { count = 1, unitDefName = "armwar" })),
+				V.validateTrigger(V.trigger(V.conditionTypes.StockpileCount, { count = 1, unitDefName = "armwar" })),
 				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
 			)
 		end)
 
 		it("checks every difficulty's unit def", function()
 			V.assertMessage(
-				V.validateTrigger(V.trigger(V.triggerTypes.StockpileProgress, {
+				V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = 0.5,
 					unitDefName = { difficulties = { Easy = "armmercury", Hard = "armwar" } },
 				})),
@@ -688,14 +727,12 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("checks an objective's trigger", function()
+		it("checks an objective's condition", function()
 			V.assertMessage(
 				V.validate(V.mission():WithObjective("o", {
 					textKey = "stockpile",
-					trigger = {
-						type = V.triggerTypes.StockpileCount,
-						parameters = { count = 1, unitDefName = "armwar" },
-					},
+					type = V.conditionTypes.StockpileCount,
+					parameters = { count = 1, unitDefName = "armwar" },
 				})),
 				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: unitDefName"
 			)
@@ -705,7 +742,7 @@ describe("mission_api.validation.sections", function()
 	describe("settings", function()
 		-- The loaders apply the setting defaults, and they run after validation.
 		it("passes for a trigger without a settings table", function()
-			V.assertValid(V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })))
+			V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 })))
 		end)
 
 		it("reports settings that are not a table", function()
@@ -726,16 +763,11 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("reports maxRepeats without repeating", function()
-			local result = validateSettings({ maxRepeats = 3 })
+		-- maxRepeats was removed; a mission still using it should fail loudly rather than repeat forever.
+		it("reports an unknown setting", function()
+			local result = validateSettings({ repeating = true, maxRepeats = 3 })
 
-			V.assertMessage(result, "Trigger has maxRepeats setting but is not set to repeating. Trigger: t")
-		end)
-
-		it("reports a negative maxRepeats", function()
-			local result = validateSettings({ repeating = true, maxRepeats = -1 })
-
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Setting: maxRepeats")
+			V.assertMessage(result, "Unknown setting. Trigger: t, Setting: maxRepeats")
 		end)
 
 		describe("prerequisites", function()
@@ -814,7 +846,7 @@ describe("mission_api.validation.sections", function()
 	it("reports an action ID that is not a string", function()
 		local result = V.validate(
 			V.mission()
-				:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+				:WithTrigger("t", V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 }))
 				:WithAction(123, { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 		)
 
@@ -824,7 +856,7 @@ describe("mission_api.validation.sections", function()
 	it("reports action data that is not a table", function()
 		local result = V.validate(
 			V.mission()
-				:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+				:WithTrigger("t", V.trigger(V.conditionTypes.TimeElapsed, { seconds = 1 }))
 				:WithAction("ok", "notATable")
 		)
 
@@ -860,7 +892,7 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	it("reports a missing required trigger parameter", function()
-		local result = V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, {}))
+		local result = V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, {}))
 
 		V.assertMessage(result, "Trigger missing required parameter. Trigger: t, Parameter: seconds")
 	end)
@@ -890,7 +922,7 @@ describe("mission_api.validation.sections", function()
 
 	describe("requiresOneOf", function()
 		it("reports when none of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, {}))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, {}))
 
 			V.assertMessage(
 				result,
@@ -899,7 +931,7 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("passes when one of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = "armwar" }))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, { unitDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)
@@ -939,7 +971,7 @@ describe("mission_api.validation.sections", function()
 
 	describe("difficulties parameters", function()
 		local function validateSeconds(seconds)
-			return V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = seconds }))
+			return V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = seconds }))
 		end
 
 		it("accepts a wrapped parameter with valid difficulties and values", function()
@@ -1011,7 +1043,7 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("validates each difficulty's value of a table-typed parameter, with nested suffixes", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitEnteredLocation, {
 				unitName = "x",
 				area = {
 					difficulties = {
@@ -1239,7 +1271,7 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		local function waitFor(quantity)
-			return V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = quantity }))
+			return V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = quantity }))
 		end
 
 		it("checks a parameter against the variable's value at the start of the mission", function()
@@ -1278,15 +1310,15 @@ describe("mission_api.validation.sections", function()
 				)
 			)
 			V.assertMessage(
-				V.validate(V.mission():WithObjective("o", { textKey = "ok", amount = { variable = "wrongType" } })),
-				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount"
+				V.validate(V.mission():WithObjective("o", { textKey = "ok", count = { variable = "wrongType" } })),
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: count"
 			)
 		end)
 
-		it("reports an objective trigger that is a variable", function()
+		it("reports an objective condition type that is a variable", function()
 			V.assertMessage(
-				V.validate(V.mission():WithObjective("o", { textKey = "ok", trigger = { variable = "waveSize" } })),
-				"Objective 'trigger' field does not support variables. Objective: o, Field: trigger"
+				V.validate(V.mission():WithObjective("o", { textKey = "ok", type = { variable = "waveSize" } })),
+				"Objective condition type does not support difficulties or variables. Objective: o"
 			)
 		end)
 	end)
