@@ -81,6 +81,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 
 	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
 	local unitHealth = spGetUnitHealth(unitID)
+	local takenFromTeam = Spring.GetUnitRulesParam(unitID, "takenFromTeam")
 
 	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
 
@@ -114,6 +115,10 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 
+	if GG.SetTakenUnitOrigin then
+		GG.SetTakenUnitOrigin(mexID, takenFromTeam)
+		GG.SetTakenUnitOrigin(conID, takenFromTeam)
+	end
 	-- transported units can't be targeted, so the turret carries the mex
 	Spring.UnitAttach(conID, mexID, piece, true)
 	-- attaching resets these
@@ -186,6 +191,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 		return true
 	end
 	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
+		or (GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam, 2))
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)

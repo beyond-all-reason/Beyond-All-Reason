@@ -1276,6 +1276,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 		end
 	end
 	return BAR.Utilities.CanTeamReceiveUnits(newTeam, unitCount)
+		or (GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam, unitCount))
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)

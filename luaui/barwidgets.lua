@@ -611,6 +611,7 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "%f[%w_]option%f[^%w_]") ~= nil -- not "options", which only opens the panel
 end
 
+local redirectTakeCommand = vfsInclude(LUAUI_DIRNAME .. "Include/take_command.lua", nil, vfsZip)
 local inMultiplayer = not isSinglePlayer()
 local function isHiddenStateCommand(command)
 	if not inMultiplayer or select(2, spGetSpectatingState()) then
@@ -962,7 +963,7 @@ local function CreateSandboxedSystem()
 			if type(command) == "string" and (isPrivilegedCommand(command) or isHiddenStateCommand(command)) then
 				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
 			else
-				allowed[#allowed + 1] = command
+				allowed[#allowed + 1] = redirectTakeCommand(command, inMultiplayer)
 			end
 		end
 		if allowed[1] ~= nil then
