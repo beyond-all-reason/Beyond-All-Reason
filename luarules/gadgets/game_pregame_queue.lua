@@ -111,6 +111,8 @@ local function removeProxy(key)
 	proxies[key], owners[unitID] = nil, nil
 	local teamID = Spring.GetUnitTeam(unitID)
 	-- All callers run outside unit updates; finish removal before stats snapshots.
+	-- Proxy lifecycle events do not reach gameplay gadgets, including this one.
+	builders[unitID] = nil
 	Spring.DestroyUnit(unitID, false, true, nil, true)
 	adjustStats(teamID, "pregameUnitsDied")
 end
@@ -183,14 +185,13 @@ local function refresh(playerID)
 		removeProxy(key)
 	end
 	-- Reuse the ID so commands already on the network still address this builder.
-	local replacement = Spring.CreateUnit(defID, x, y, z, 0, teamID, false, false, unitID)
+	local replacement = gadgetHandler:CreatePregameUnit(defID, x, y, z, 0, teamID, false, false, unitID)
 	if not replacement then
 		return
 	end
 	adjustStats(teamID, "pregameUnitsProduced")
 	-- GameStart resets team storage; removing the proxy must not subtract it again.
 	Spring.SetUnitStorage(replacement, { metal = 0, energy = 0 })
-	Spring.SetUnitRulesParam(replacement, "pregame_proxy", 1, { public = true })
 	Spring.SetUnitRulesParam(replacement, "startingOwner", playerID, { allied = true })
 	Spring.SetUnitRulesParam(replacement, "remove_decorations", 1)
 	Spring.SetUnitBlocking(replacement, false, false, false, false, false, false, false)
@@ -229,6 +230,10 @@ function gadget:Initialize()
 		refresh(playerID)
 	end
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
+function gadget:GamePreload()
+	-- Initialize scans must not register planning units as gameplay commanders.
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
 		refresh(playerID)
 	end

@@ -1,5 +1,6 @@
-local function loadQueue(coop)
+local function loadQueue(coop, deferPreload)
 	local units, rules, orders, destroyed = {}, {}, {}, {}
+	local pregameUnits
 	local players = { [0] = { team = 0 }, [1] = { team = 0 } }
 	local storage = { metal = 1000, energy = 1000 }
 	local nextID, nextTag = 100, 1000
@@ -118,6 +119,7 @@ local function loadQueue(coop)
 				queue = {},
 				rules = {},
 			}
+			pregameUnits.created(createdID, def, team)
 			return createdID
 		end,
 		SetUnitStorage = function(id, value)
@@ -167,7 +169,9 @@ local function loadQueue(coop)
 			if env.widget and env.widget.UnitDestroyed then
 				env.widget:UnitDestroyed(id)
 			end
-			env.gadget:UnitDestroyed(id)
+			if not pregameUnits.destroyed(id) then
+				env.gadget:UnitDestroyed(id)
+			end
 			units[id] = nil
 		end,
 		GetAllUnits = function()
@@ -191,8 +195,15 @@ local function loadQueue(coop)
 			end
 		end,
 	}
+	pregameUnits = assert(loadfile("luarules/callins/pregame_units.lua"))().new(env.Spring)
+	env.gadgetHandler.CreatePregameUnit = function(_, ...)
+		return pregameUnits.create(...)
+	end
 	setfenv(assert(loadfile("luarules/gadgets/game_pregame_queue.lua")), env)()
 	env.gadget:Initialize()
+	if not deferPreload then
+		env.gadget:GamePreload()
+	end
 	env.rawHistory = env.Spring.GetTeamStatsHistory
 	setfenv(assert(loadfile("luaui/Include/pregame_stats.lua")), env)()
 	return env, units, rules, orders, destroyed, players, storage
@@ -206,6 +217,15 @@ local function buildQueue(unit)
 end
 
 describe("Pregame engine queue lifecycle", function()
+	it("keeps startup scans empty until GamePreload", function()
+		local env, units = loadQueue(false, true)
+		assert.is_nil(next(units))
+		env.gadget:GamePreload()
+		local id = next(units)
+		assert.is_not_nil(id)
+		assert.equals(1, units[id].rules.pregame_proxy)
+	end)
+
 	it("updates position synchronously without waiting for a refresh message", function()
 		local env, units, rules = loadQueue()
 		local id = rules["0pregameQueue_0"]

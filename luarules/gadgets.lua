@@ -491,6 +491,7 @@ end
 --
 --  Gadgets register the IDs that they want from some of the busiest callins:
 local registered = VFS.Include(SCRIPT_DIR .. "callins/registered_callins.lua", nil, VFSMODE) ---@type RegisteredCallinsAPI
+local pregameUnits = VFS.Include(SCRIPT_DIR .. "callins/pregame_units.lua", nil, VFSMODE).new(Spring)
 
 local allowCommandLists = registered.getLists("AllowCommand")
 local unitCommandLists = registered.getLists("UnitCommand")
@@ -751,6 +752,9 @@ function gadgetHandler:NewGadget()
 	end
 	gh.RemoveGadget = function(_)
 		self:RemoveGadget(gadget)
+	end
+	gh.CreatePregameUnit = function(_, ...)
+		return pregameUnits.create(...)
 	end
 	gh.GetViewSizes = function(_)
 		return self:GetViewSizes()
@@ -2130,6 +2134,9 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if pregameUnits.created(unitID, unitDefID, unitTeam) then
+		return
+	end
 	tracyZoneBeginN("G:UnitCreated")
 	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
@@ -2145,6 +2152,9 @@ function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
+	if pregameUnits.contains(unitID) then
+		return
+	end
 	tracyZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
 		tracyZoneBeginN(g._tracyUnitFinishedName)
@@ -2181,6 +2191,10 @@ function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if pregameUnits.destroyed(unitID) then
+		markIdle(unitID)
+		return
+	end
 	tracyZoneBeginN("G:UnitDestroyed")
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	local list = self.UnitDestroyedList ---@type table[]
