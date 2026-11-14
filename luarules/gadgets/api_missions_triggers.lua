@@ -439,7 +439,6 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 	return true
 end
 
-
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
 	-- Negative buildStep means reclaim
 	if buildStep < 0 then
