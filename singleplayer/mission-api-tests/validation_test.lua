@@ -2,7 +2,7 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -11,8 +11,8 @@ local stages = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
 			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidConditionType',
+			'objectiveWithMissingConditionType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
 			'objectiveWithDifficultiesTrigger',
@@ -40,22 +40,22 @@ local objectives = {
 		textKey = "trigger_must_not_have_settings",
 		trigger = {
 			settings = { repeating = true },  -- error: trigger must not have a settings field
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = { seconds = 100000000 },
 		},
 	},
 
-	objectiveWithInvalidTriggerType = {
+	objectiveWithInvalidConditionType = {
 		textKey = "trigger_with_invalid_type",
 		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
+			type = 'invalidType',  -- error: invalid condition type
 		},
 	},
 
-	objectiveWithMissingTriggerType = {
+	objectiveWithMissingConditionType = {
 		textKey = "trigger_with_missing_type",
 		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
+			parameters = { seconds = 100000000 },  -- error: missing condition type
 		},
 	},
 
@@ -67,7 +67,7 @@ local objectives = {
 	objectiveWithTriggerHavingActions = {
 		textKey = "trigger_must_not_have_actions",
 		trigger = {
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = { seconds = 100000000 },
 			actions = { 'someAction' },  -- error: objective trigger must not have actions
 		},
@@ -76,7 +76,7 @@ local objectives = {
 	objectiveWithDifficultiesTrigger = {
 		textKey = "trigger_field_must_not_have_difficulties",
 		trigger = {
-			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
+			difficulties = { Easy = { type = conditionTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
 		},
 	},
 }
@@ -93,7 +93,7 @@ local triggers = {
 
 	-- Valid: settings are optional in raw missions, the loader applies the defaults.
 	triggerWithoutSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -102,7 +102,7 @@ local triggers = {
 
 	-- error: settings must be a table
 	triggerWithNonTableSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = 'notATable',
 		parameters = {
 			seconds = 100000000,
@@ -112,7 +112,7 @@ local triggers = {
 
 	-- error: maxRepeats without repeating
 	triggerWithMaxRepeatsButNotRepeating = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			maxRepeats = 3,
 		},
@@ -123,7 +123,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -131,7 +131,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidTypesInSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
@@ -148,7 +148,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultiesValues = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = {
@@ -161,7 +161,7 @@ local triggers = {
 	},
 
 	triggerWithExtraKeyBesideDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
 		},
@@ -169,7 +169,7 @@ local triggers = {
 	},
 
 	triggerWithEmptyDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = {} },  -- error: difficulties table is empty
 		},
@@ -177,7 +177,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultyInGate = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
@@ -188,7 +188,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllianceName = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			sensorAllianceName = 777,
 		},
@@ -196,7 +196,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAreaType = {
-		type = triggerTypes.FeatureCreated,
+		type = conditionTypes.FeatureCreated,
 		parameters = {
 			area = 'notATable',
 		},
@@ -204,7 +204,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSourcesType = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			metal = 10,
@@ -214,7 +214,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSources = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			metal = 10,
@@ -224,7 +224,7 @@ local triggers = {
 	},
 
 	triggerWithFractionOutOfRange = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armcom',
@@ -234,7 +234,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidFractionType = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armcom',

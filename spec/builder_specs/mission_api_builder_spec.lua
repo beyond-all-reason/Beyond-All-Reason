@@ -92,14 +92,14 @@ describe("MissionApiBuilder", function()
 			assert.are.equal(2, api.Difficulty)
 		end)
 
-		it("seeds action and trigger definitions", function()
+		it("seeds action and condition definitions", function()
 			local api = MissionApiBuilder.new()
 				:WithActionDefinitions({ Victory = {} })
-				:WithTriggerDefinitions({ TimeElapsed = {} })
+				:WithConditionDefinitions({ TimeElapsed = {} })
 				:Build()
 
 			assert.is_table(api.ActionDefinitions.Victory)
-			assert.is_table(api.TriggerDefinitions.TimeElapsed)
+			assert.is_table(api.ConditionDefinitions.TimeElapsed)
 		end)
 	end)
 

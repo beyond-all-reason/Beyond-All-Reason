@@ -2,13 +2,13 @@
 -- Builds a loaded trigger: the table api_missions_triggers.lua holds in
 -- GG['MissionAPI'].Triggers and hands to a trigger's call-in handlers.
 --
--- A mission author writes only `parameters` and `settings`; triggers_loader's
+-- A mission author writes only `parameters` and `settings`; conditions_loader's
 -- ProcessRawTriggers then fills in the settings defaults and the run-time
 -- bookkeeping fields. Build() runs the raw table through it, so a spec fixture
 -- carries the same fields a handler meets in game rather than the sparser table a
 -- mission file declares.
 
-local triggersLoader = VFS.Include("luarules/mission_api/triggers_loader.lua")
+local conditionsLoader = VFS.Include("luarules/mission_api/conditions_loader.lua")
 
 ---@class TriggerMock
 ---@field parameters table
@@ -57,20 +57,20 @@ function TB:WithSettings(settings)
 	return self
 end
 
----The raw, mission-authored table, before triggers_loader normalises it.
+---The raw, mission-authored table, before conditions_loader normalises it.
 ---@param self TriggerBuilder
 ---@return table
 function TB:BuildRaw()
 	return { parameters = copy(self.parameters), settings = copy(self.settings) }
 end
 
----The trigger as triggers_loader's ProcessRawTriggers loads it.
+---The trigger as conditions_loader's ProcessRawTriggers loads it.
 ---Each Build() hands out its own tables, so one builder can seed several triggers
 ---without them sharing state a handler might latch onto.
 ---@param self TriggerBuilder
 ---@return TriggerMock
 function TB:Build()
-	return triggersLoader.ProcessRawTriggers({ trigger = self:BuildRaw() }).trigger
+	return conditionsLoader.ProcessRawTriggers({ trigger = self:BuildRaw() }).trigger
 end
 
 return TB

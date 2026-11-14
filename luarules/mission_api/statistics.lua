@@ -1,7 +1,7 @@
 ---
 --- Statistics engine for the Mission API.
 ---
---- Owns the shared per-trigger counting for the statistics trigger types
+--- Owns the shared per-trigger counting for the statistics condition types
 --- (TotalUnitsLost/Built/Killed/Captured, UnitsOwned) and bridges those events
 --- to managed objectives.
 ---
@@ -17,10 +17,10 @@ local function init(dependencies)
 	activateTrigger = dependencies.activateTrigger
 end
 
-local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+local function updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, direction)
 	unitNames = unitNames or {}
 
-	processTriggersOfType(triggerType, function(trigger, triggerID)
+	processTriggersOfType(conditionType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamName then
 			return
 		end
@@ -47,7 +47,7 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	end)
 
 	-- Update managed objectives:
-	for _, managedObjective in ipairs(GG["MissionAPI"].ManagedObjectives[triggerType] or {}) do
+	for _, managedObjective in ipairs(GG["MissionAPI"].ManagedObjectives[conditionType] or {}) do
 		GG["MissionAPI"].Modules.Objectives.UpdateObjectiveProgress(
 			managedObjective.objectiveID,
 			teamID,
@@ -59,12 +59,12 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	end
 end
 
-local function increment(triggerType, teamID, unitDefName, unitNames)
-	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
+local function increment(conditionType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, 1)
 end
 
-local function decrement(triggerType, teamID, unitDefName, unitNames)
-	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, -1)
+local function decrement(conditionType, teamID, unitDefName, unitNames)
+	updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, -1)
 end
 
 return {

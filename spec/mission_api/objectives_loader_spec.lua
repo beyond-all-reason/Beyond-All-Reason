@@ -5,12 +5,12 @@ local env = MissionSpecEnv.new()
 -- Trigger and action definition files read the Mission API modules from GG at include time.
 MissionSpecEnv.registerModules(env)
 local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 GG["MissionAPI"] = nil
 
 local objectivesLoader = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
-local triggerTypes = triggerDefinitions.Types
+local conditionTypes = conditionDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
 --- Triggers and actions synthesized here are not validated by the Mission API validation,
@@ -19,7 +19,7 @@ describe("mission_api.objectives_loader", function()
 	before_each(function()
 		GG["MissionAPI"] = {
 			ActionDefinitions = actionDefinitions,
-			TriggerDefinitions = triggerDefinitions,
+			ConditionDefinitions = conditionDefinitions,
 			ManagedObjectives = {},
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
@@ -38,7 +38,7 @@ describe("mission_api.objectives_loader", function()
 				killBot = {
 					textKey = "kill the bot",
 					trigger = {
-						type = triggerTypes.UnitKilled,
+						type = conditionTypes.UnitKilled,
 						parameters = { unitName = "bot" },
 					},
 				},
@@ -46,7 +46,7 @@ describe("mission_api.objectives_loader", function()
 
 			local trigger = rawTriggers["__objective_killBot"]
 			assert.is_table(trigger)
-			assert.are.equal(triggerTypes.UnitKilled, trigger.type)
+			assert.are.equal(conditionTypes.UnitKilled, trigger.type)
 			assert.are.same({ unitName = "bot" }, trigger.parameters)
 			assert.are.same({ "__updateObjective_killBot" }, trigger.actions)
 
@@ -60,7 +60,7 @@ describe("mission_api.objectives_loader", function()
 			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled } },
+				obj = { textKey = "ok", trigger = { type = conditionTypes.UnitKilled } },
 			}, rawTriggers, {}, {})
 
 			assert.are.same({}, rawTriggers["__objective_obj"].parameters)
@@ -70,7 +70,7 @@ describe("mission_api.objectives_loader", function()
 			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
+				obj = { textKey = "ok", trigger = { type = conditionTypes.UnitKilled, parameters = {} } },
 			}, rawTriggers, {}, {})
 
 			local settings = rawTriggers["__objective_obj"].settings
@@ -82,7 +82,7 @@ describe("mission_api.objectives_loader", function()
 			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", amount = 3, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
+				obj = { textKey = "ok", amount = 3, trigger = { type = conditionTypes.UnitKilled, parameters = {} } },
 			}, rawTriggers, {}, {})
 
 			local settings = rawTriggers["__objective_obj"].settings
@@ -94,7 +94,7 @@ describe("mission_api.objectives_loader", function()
 			---@type table<string, table>
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives({
-				obj = { textKey = "ok", amount = 1, trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
+				obj = { textKey = "ok", amount = 1, trigger = { type = conditionTypes.UnitKilled, parameters = {} } },
 			}, rawTriggers, {}, {})
 
 			local settings = rawTriggers["__objective_obj"].settings
@@ -107,7 +107,7 @@ describe("mission_api.objectives_loader", function()
 			local rawTriggers = {}
 			objectivesLoader.ProcessRawObjectives(
 				{
-					obj = { textKey = "ok", trigger = { type = triggerTypes.UnitKilled, parameters = {} } },
+					obj = { textKey = "ok", trigger = { type = conditionTypes.UnitKilled, parameters = {} } },
 				},
 				rawTriggers,
 				{},
@@ -149,7 +149,7 @@ describe("mission_api.objectives_loader", function()
 					amount = 5,
 					nextStage = "stageB",
 					trigger = {
-						type = triggerTypes.UnitsOwned,
+						type = conditionTypes.UnitsOwned,
 						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
@@ -158,7 +158,7 @@ describe("mission_api.objectives_loader", function()
 			assert.are.same({}, rawTriggers)
 			assert.are.same({}, rawActions)
 
-			local managed = GG["MissionAPI"].ManagedObjectives[triggerTypes.UnitsOwned]
+			local managed = GG["MissionAPI"].ManagedObjectives[conditionTypes.UnitsOwned]
 			assert.are.equal(1, #managed)
 			assert.are.same({
 				objectiveID = "ownBots",
@@ -169,16 +169,19 @@ describe("mission_api.objectives_loader", function()
 			}, managed[1])
 		end)
 
-		it("groups several managed objectives under their trigger type", function()
+		it("groups several managed objectives under their condition type", function()
 			objectivesLoader.ProcessRawObjectives({
 				a = {
 					textKey = "a",
-					trigger = { type = triggerTypes.UnitsOwned, parameters = { teamName = "player" } },
+					trigger = { type = conditionTypes.UnitsOwned, parameters = { teamName = "player" } },
 				},
-				b = { textKey = "b", trigger = { type = triggerTypes.UnitsOwned, parameters = { teamName = "enemy" } } },
+				b = {
+					textKey = "b",
+					trigger = { type = conditionTypes.UnitsOwned, parameters = { teamName = "enemy" } },
+				},
 			}, {}, {}, {})
 
-			assert.are.equal(2, #GG["MissionAPI"].ManagedObjectives[triggerTypes.UnitsOwned])
+			assert.are.equal(2, #GG["MissionAPI"].ManagedObjectives[conditionTypes.UnitsOwned])
 		end)
 	end)
 end)
