@@ -72,6 +72,9 @@ local function loadGadget(synced, world)
 			SendCommands = function(command)
 				world.commands[#world.commands + 1] = command
 			end,
+			SendLuaRulesMsg = function(message)
+				world.messages[#world.messages + 1] = message
+			end,
 		},
 	}
 	setmetatable(env, { __index = _G })
@@ -180,6 +183,45 @@ describe("api_game_pause", function()
 			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused:1", OTHER_PLAYER_ID))
 			assert.same({ { "GamePause", true }, { "GamePauseWidgetsUnpaused" } }, world.sent)
 		end)
+
+		it("lets an active player who is not the controller end a timed pause early", function()
+			gamePause.Pause("mission", false, 5)
+
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", SPECTATOR_ID))
+			assert.equals(1, world.rulesParams.gamePaused, "a spectator is still refused")
+
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:mission", OTHER_PLAYER_ID))
+			assert.equals(0, world.rulesParams.gamePaused)
+		end)
+
+		it("an Unpause ends a timed pause, and its old timer cannot release a later pause", function()
+			gamePause.Pause("mission", false, 5)
+			gamePause.Unpause("mission")
+			assert.same({ "GamePauseTimer", "mission" }, world.sent[3], "the clients drop the timer")
+			assert.equals(0, world.rulesParams.gamePaused)
+
+			gamePause.Pause("mission")
+			gadget:RecvLuaMsg("GamePauseUnpause:1:mission", CONTROLLER_ID)
+			gadget:RecvLuaMsg("GamePauseUnpause:2:mission", CONTROLLER_ID)
+			assert.equals(1, world.rulesParams.gamePaused, "an untimed pause only ends with an Unpause")
+		end)
+
+		it("pausing a timed source again restarts its timer, or cancels it without seconds", function()
+			gamePause.Pause("mission", false, 5)
+			gamePause.Pause("mission", false, 3)
+			gadget:RecvLuaMsg("GamePauseUnpause:1:mission", CONTROLLER_ID)
+			assert.equals(1, world.rulesParams.gamePaused, "the first timer no longer counts")
+
+			gamePause.Pause("mission")
+			assert.same({
+				{ "GamePause", true },
+				{ "GamePauseTimer", "mission", 1, 5 },
+				{ "GamePauseTimer", "mission", 2, 3 },
+				{ "GamePauseTimer", "mission", 3 },
+			}, world.sent)
+			gadget:RecvLuaMsg("GamePauseUnpause:3:mission", CONTROLLER_ID)
+			assert.equals(1, world.rulesParams.gamePaused)
+		end)
 	end)
 
 	describe("unsynced", function()
@@ -206,6 +248,7 @@ describe("api_game_pause", function()
 				luaUI = {},
 				rulesParams = { gamePaused = 0 },
 				commands = {},
+				messages = {},
 				syncActions = {},
 			}
 			gadget = loadGadget(false, world)
@@ -367,6 +410,76 @@ describe("api_game_pause", function()
 			gadget:PlayerChanged()
 
 			assert.same({ "pause 0" }, world.commands)
+		end)
+
+		describe("timed pause", function()
+			local function startTimer(source, generation, seconds)
+				world.syncActions.GamePauseTimer("GamePauseTimer", source, generation, seconds)
+			end
+
+			it("counts real time only once the game is paused, and sends the release once", function()
+				startTimer("mission", 1, 2)
+				gadget:Update(5)
+				assert.same({}, world.messages, "the pause has not landed yet")
+
+				world.paused = true
+				gadget:Update(1.5)
+				assert.same({}, world.messages)
+				gadget:Update(0.6)
+				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
+				gadget:Update(1)
+				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
+			end)
+
+			it("a new timer for the source replaces the old one, and one without seconds drops it", function()
+				world.paused = true
+				startTimer("mission", 1, 2)
+				startTimer("mission", 2, 1)
+				gadget:Update(1.2)
+				assert.same({ "GamePauseUnpause:2:mission" }, world.messages)
+
+				startTimer("mission", 3, 2)
+				startTimer("mission")
+				gadget:Update(3)
+				assert.same({ "GamePauseUnpause:2:mission" }, world.messages)
+			end)
+
+			it("sends from a client that is not the controller too", function()
+				world.myPlayerID = OTHER_PLAYER_ID
+				world.paused = true
+				startTimer("mission", 1, 2)
+				gadget:Update(3)
+
+				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
+			end)
+
+			it("waits out a player's earlier pause before it counts", function()
+				world.paused = true
+				gadgetsPause()
+				startTimer("mission", 1, 2)
+				gadget:Update(3)
+				assert.same({}, world.messages)
+
+				world.paused = false
+				gadget:GamePaused(OTHER_PLAYER_ID, false)
+				world.paused = true
+				gadget:Update(2.1)
+				assert.same({ "GamePauseUnpause:1:mission" }, world.messages)
+			end)
+
+			it("neither counts nor sends while catching up", function()
+				world.gameFrame = 100
+				gadget:GameProgress(1000)
+				world.paused = true
+				startTimer("mission", 1, 2)
+				gadget:Update(3)
+				assert.same({}, world.messages)
+
+				world.gameFrame = 1000
+				gadget:GameFrame(1000)
+				gadget:Update(1.5)
+				assert.same({}, world.messages)
+			end)
 		end)
 	end)
 end)
