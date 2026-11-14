@@ -9,7 +9,8 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'excludedUnitDefNames', required = false, type = ParameterTypes.UnitDefNames },
+		requiresOneOf = { 'unitName', 'unitDefName', 'teamName' },
 	},
 	callins = {
 		-- Every unit is checked before any activation, since an action may change what the next one matches.
@@ -18,7 +19,7 @@ return {
 			local matchCount = 0
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
-				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) and Spring.GetUnitIsDead(unitID) == false then
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName, parameters.excludedUnitDefNames) and Spring.GetUnitIsDead(unitID) == false then
 					matchCount = matchCount + 1
 				end
 			end

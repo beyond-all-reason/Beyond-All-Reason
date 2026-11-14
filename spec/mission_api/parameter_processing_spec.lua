@@ -164,6 +164,17 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("UnitDefNames", function()
+		it("turns the list of unit types into a set of unit def IDs", function()
+			local parameters = processTrigger({
+				type = triggerTypes.UnitEnteredLocation,
+				parameters = { area = { x = 0, z = 0, radius = 10 }, excludedUnitDefNames = { "armwar" } },
+			})
+
+			assert.are.same({ [7] = true }, parameters.excludedUnitDefNames)
+		end)
+	end)
+
 	it("leaves parameters the mission did not set alone", function()
 		local parameters = processAction({
 			type = actionTypes.PlaySound,
