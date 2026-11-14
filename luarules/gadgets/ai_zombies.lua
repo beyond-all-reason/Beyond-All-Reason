@@ -15,10 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spring = Spring
-local modOptions = spring.GetModOptions()
-local modOptionEnabled = modOptions.zombies ~= "disabled"
-local isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
-if not modOptionEnabled and not isIdleMode then
+if spring.GetModOptions().zombies == "disabled" and not (GG.Zombies and GG.Zombies.IdleMode == true) then
 	return false
 end
 
@@ -63,6 +60,7 @@ local ZOMBIE_FACTORY_BUILD_COUNT = 20
 local MAX_NOGO_ZONES = 10
 local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1 -- the threshold of relative power where zombies stop wandering and swarm players
 local COMBAT_ENGAGE_RANGE_RATIO = 0.5
+local WEAPON_RANGE_TO_FIGHT_INSTEAD = 150
 
 local NORMAL_OBJECTIVE_ANGLE_VARIANCE = 90 * DEGREES_TO_RADIANS
 local AGGRO_OBJECTIVE_ANGLE_VARIANCE = 22.5 * DEGREES_TO_RADIANS
@@ -146,6 +144,7 @@ local permanentlyAggro = false
 
 local mobileUnitDefs = {}
 local aircraftUnitDefs = {}
+local fightCommandUnitDefs = {}
 local factoriesWithWantedOptions = {}
 local unitDefWeaponRanges = {}
 local capturingUnits = {}
@@ -253,6 +252,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if #wantedOptions > 0 then
 			factoriesWithWantedOptions[unitDefID] = wantedOptions
 		end
+	end
+
+	local weaponRanges = unitDefWeaponRanges[unitDefID]
+	local maximumWeaponRange = 0
+	if weaponRanges then
+		maximumWeaponRange = math.max(weaponRanges.ground, weaponRanges.air, weaponRanges.underwater)
+	end
+	if
+		aircraftUnitDefs[unitDefID]
+		or unitDef.canKamikaze
+		or (maximumWeaponRange > 0 and maximumWeaponRange < WEAPON_RANGE_TO_FIGHT_INSTEAD)
+	then
+		fightCommandUnitDefs[unitDefID] = true
 	end
 end
 
@@ -914,7 +926,7 @@ local function isMoveTargetTraversable(unitDefID, targetX, targetY, targetZ)
 end
 
 local function getMovementCommand(unitDefID)
-	if aircraftUnitDefs[unitDefID] then
+	if fightCommandUnitDefs[unitDefID] then
 		return CMD_FIGHT
 	end
 	return CMD_MOVE
