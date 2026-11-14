@@ -1378,7 +1378,9 @@ end
 
 local groundnukeair = { "ground", "nano", "AA" }
 local cannonlrpc = { "cannon", "lrpc" }
-local function DRAWRINGS(primitiveType, linethickness)
+local overviewHiddenClasses = { nano = true }
+local noHiddenClasses = {}
+local function DRAWRINGS(primitiveType, linethickness, hiddenClasses)
 	if not show_selected_weapon_ranges and not isBuilding then
 		return
 	end
@@ -1390,7 +1392,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 			local iT = attackRangeVAOs[atkRangeClass]
 			stencilMask = 2 ^ (4 * (i - 1) + (j - 1)) -- from 1 to 128
 			drawcounts[stencilMask] = iT.usedElements
-			if iT.usedElements > 0 then --and buttonConfig[allyState][wt] then
+			if iT.usedElements > 0 and not hiddenClasses[wt] then
 				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
@@ -1411,7 +1413,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
 				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
 				drawcounts[stencilMask] = iT.usedElements
-				if iT.usedElements > 0 then
+				if iT.usedElements > 0 and not hiddenClasses[wt] then
 					if linethickness then
 						glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 					end
@@ -1598,6 +1600,17 @@ function widget:DrawWorld(inMiniMap)
 		-- Stencil path: the minimap (tiny discs), and the fallback when the coverage mask is unavailable.
 		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
 		local inPip = inMiniMap and WG.minimap and WG.minimap.isDrawingInPip
+		local hideOverviewBuildRanges = inMiniMap
+		if inPip and WG.minimap.getNormalizedVisibleArea then
+			local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
+			-- PIP reports world Z from bottom (high) to top (low).
+			local edgeTolerance = 0.001
+			hideOverviewBuildRanges = left <= edgeTolerance
+				and right >= 1 - edgeTolerance
+				and bottom >= 1 - edgeTolerance
+				and top <= edgeTolerance
+		end
+		local hiddenClasses = hideOverviewBuildRanges and overviewHiddenClasses or noHiddenClasses
 		if inPip then
 			cameraHeightFactor = 2.5 -- PIP is larger, needs thicker lines
 		else
@@ -1632,7 +1645,7 @@ function widget:DrawWorld(inMiniMap)
 
 			attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
-			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
+			DRAWRINGS(GL_TRIANGLE_FAN, nil, hiddenClasses) -- FILL THE CIRCLES
 
 			-- Draw the outside rings by testing the stencil buffer
 			glLineWidth(mathMax(0.1, 4 + math.sin(gameFrame * 0.04) * 10))
@@ -1644,7 +1657,11 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawMode", 1.0)
 			attackRangeShader:SetUniform("drawAlpha", 1.0)
 
-			DRAWRINGS(GL_LINE_LOOP, inMiniMap and "minimapexternallinethickness" or "externallinethickness") -- DRAW THE OUTER RINGS
+			DRAWRINGS(
+				GL_LINE_LOOP,
+				inMiniMap and "minimapexternallinethickness" or "externallinethickness",
+				hiddenClasses
+			) -- DRAW THE OUTER RINGS
 
 			-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 			glStencilTest(false) -- Disable the stencil test
@@ -1659,7 +1676,11 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.internalalpha)
 			attackRangeShader:SetUniform("drawMode", 2.0)
 			attackRangeShader:SetUniform("fadeDistOffset", 0)
-			DRAWRINGS(GL_LINE_LOOP, inMiniMap and "minimapinternallinethickness" or "internallinethickness") -- DRAW THE INNER RINGS
+			DRAWRINGS(
+				GL_LINE_LOOP,
+				inMiniMap and "minimapinternallinethickness" or "internallinethickness",
+				hiddenClasses
+			) -- DRAW THE INNER RINGS
 		end
 
 		attackRangeShader:Deactivate()
