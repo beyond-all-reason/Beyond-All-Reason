@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1;
+piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, centerpoint;
 
 static-var  isMoving, firing, restore_delay, gun_1, WALK_PERIOD, wpn1_lasthead;
 
@@ -145,7 +145,8 @@ UnitSpeed()
 		{
 			WALK_PERIOD=98;
 		}
-		sleep 142;
+		sleep 50;
+		//get PRINT(moving, currentSpeed,0,0);
 	}
 }
 
@@ -291,6 +292,8 @@ AimWeapon1(heading, pitch)
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
 		wpn1_lasthead = 0xbadface;
+
+		//Prevents the head from visually snapping it's neck, but can interfere with firing when doing 180 turns
 		wait-for-turn head around y-axis;
 		wait-for-turn head around x-axis;
 	}
@@ -329,12 +332,12 @@ AimFromWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		pieceIndex = flare1;
+		pieceIndex = centerpoint;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		pieceIndex = flare2;
+		pieceIndex = centerpoint;
 		return (0);
 	}
 }
