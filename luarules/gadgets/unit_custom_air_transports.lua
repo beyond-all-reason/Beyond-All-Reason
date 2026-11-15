@@ -104,8 +104,9 @@ local MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = tractorbeamDefs.MIN_CONSECUTIVE_FRA
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 local MOBILITY_DIST = MAP_SIZE_X * MAP_SIZE_Z -- priority offset: mobile < immobile
-local ALLIED_DIST = 2 * MOBILITY_DIST -- priority offset: own team < allied < enemy (never)
-local MAX_DIST_SQ = 2 * ALLIED_DIST -- guaranteed > any real sq distance on the map
+local ALLIED_DIST = 2 * MOBILITY_DIST -- priority offset: own team < allied < enemy
+local ENEMY_DIST = 2 * ALLIED_DIST
+local MAX_DIST_SQ = 2 * ENEMY_DIST -- guaranteed > any real sq distance on the map
 local ENEMY_LOAD_RADIUS = LOAD_RADIUS * ENEMY_LOAD_RADIUS_MULTIPLIER
 
 -- VARS
@@ -130,6 +131,9 @@ local successiveLoadCoroutinesCount = 0
 local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
 ---@type table<UnitID, table<UnitID, number>>
 local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerID → number frames }; populated for modes 3-5
+
+---@type table<UnitID, UnitID>
+local boardingOrder = {} -- passengerID → transporterID its player sent it to board
 
 local autoClaimBlackList = {} -- passengerID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
 local autoClaimBlackListDefIDs = {} -- passengerDefID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
@@ -232,19 +236,20 @@ end
 ---@param cz number
 ---@param radius number
 ---@param allyTeam integer
+---@param withEnemies boolean? every unit in the cylinder, not only the ally team's
 ---@return UnitID[] units
-local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
+local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam, withEnemies)
 	cz, cx, radius =
 		math.floor(cz / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING,
 		math.floor(cx / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING,
 		math.ceil(radius / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING
-	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius
+	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius .. (withEnemies and ",all" or "")
 	local cached = cylinderCache[key]
 	local frame = math.floor(spGetGameFrame() / CACHED_CYLINDER_UNITS_LIFESPAN) * CACHED_CYLINDER_UNITS_LIFESPAN
 	if cached and cached.frame == frame then
 		return cached.units
 	end
-	local units = spGetUnitsInCylinder(cx, cz, radius, allyTeam)
+	local units = withEnemies and spGetUnitsInCylinder(cx, cz, radius) or spGetUnitsInCylinder(cx, cz, radius, allyTeam)
 	cylinderCache[key] = { frame = frame, units = units }
 	return units
 end
@@ -501,13 +506,15 @@ local function CanBeTransportedNow(
 	return false
 end
 
+-- only a passenger its player sent to this transporter walks to it, once its own orders are done
 ---@param passengerID UnitID
----@param passengerTeamID TeamID?
 ---@param transporterID UnitID
----@param transporterTeamID TeamID
----@param posY number
+---@param posY number ground height under the transporter
 ---@return boolean
-local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, posY)
+local function CanMoveToTransporter(passengerID, transporterID, posY)
+	if boardingOrder[passengerID] ~= transporterID then
+		return false
+	end
 	if posY < 0 then
 		local passengerDefID = spGetUnitDefID(passengerID)
 		local isHover = UnitDefs[passengerDefID].modCategories["hover"] == true
@@ -515,16 +522,22 @@ local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID,
 			return false
 		end
 	end
-	---@cast passengerTeamID -?
-	if passengerTeamID == transporterTeamID then
-		return true
+	return spGetUnitCommands(passengerID, 0) == 0
+end
+
+---@param transporterID UnitID
+local function clearBoarding(transporterID)
+	for passengerID, boardedID in pairs(boardingOrder) do
+		if boardedID == transporterID then
+			boardingOrder[passengerID] = nil
+		end
 	end
-	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
-		local hasQ = spGetUnitCommands(passengerID, 0) >= 1
-		return not hasQ
-	else
-		return false
-	end
+end
+
+-- an enemy an area load may pick: stunned, or any once hovering over one is enough to lift it
+---@param passengerID UnitID
+local function EnemyLoadable(passengerID)
+	return ALLOW_ENEMY_LOAD_MODE > 2 or spGetUnitIsStunned(passengerID) == true
 end
 
 -- claims readable by allies: the load preview draws which transport picks which unit
@@ -547,6 +560,9 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 	local transporterID = claimedBy[transporterAllyTeam][passengerID]
 	if not transporterID then
 		return
+	end
+	if boardingOrder[passengerID] == transporterID then
+		boardingOrder[passengerID] = nil
 	end
 	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
 		consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
@@ -647,13 +663,12 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	-- note: there is a priority system:
 	-- 1. closest > furthest
 	-- 2. mobile > immobile (priority offset: MOBILITY_DIST)
-	-- 3. owned > allied (priority offset: ALLIED_DIST)
-	-- enemies are never considered
+	-- 3. owned > allied > enemy (priority offsets: ALLIED_DIST, ENEMY_DIST)
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	---@cast transporterAllyTeam -?
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	---@cast transporterPosX -?
-	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
+	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam, ALLOW_ENEMY_LOAD_MODE > 1)
 	local unitsCount = #units
 	local bestUnit = nil
 	local bestDist = MAX_DIST_SQ ---@type number
@@ -691,6 +706,11 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 				break
 			end
 			---@cast passengerPosX -?
+			---@cast passengerTeamID -?
+			local allied = spAreTeamsAllied(passengerTeamID, transporterTeamID)
+			if not allied and not EnemyLoadable(passengerID) then
+				break
+			end
 			units[w] = passengerID
 			w = w + 1
 			if
@@ -707,7 +727,7 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			local dx, dz = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
 			local rawDistSq = dx * dx + dz * dz
 			local mDist = UnitDefs[passengerDefID].speed > 0 and 0 or MOBILITY_DIST
-			local aDist = (passengerTeamID ~= transporterTeamID) and ALLIED_DIST or 0
+			local aDist = (passengerTeamID == transporterTeamID and 0) or (allied and ALLIED_DIST) or ENEMY_DIST
 			local unitDist = rawDistSq + aDist + mDist
 			if unitDist >= bestDist then
 				break
@@ -780,6 +800,14 @@ local function ExecuteLoadUnits(
 		if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, 0) then
 			removalFlag = true
 		end
+		-- an enemy the area picked that can no longer be lifted
+		if
+			not removalFlag
+			and not spAreTeamsAllied(passengerTeamID --[[@as TeamID]], transporterTeamID)
+			and not EnemyLoadable(passengerID)
+		then
+			removalFlag = true
+		end
 		if removalFlag then
 			releasePassenger(passengerID, transporterAllyTeam)
 		elseif
@@ -799,14 +827,7 @@ local function ExecuteLoadUnits(
 			customTransportLoad[transporterDefID](transporterID, "PerformLoad", passengerID)
 			removalFlag = true
 		elseif
-			dist2D(transporterPosX, transporterPosZ, cx, cz) < radius
-			and CanMoveToTransporter(
-				passengerID,
-				passengerTeamID,
-				transporterID,
-				transporterTeamID,
-				spGetGroundHeight(transporterPosX, transporterPosZ)
-			)
+			CanMoveToTransporter(passengerID, transporterID, spGetGroundHeight(transporterPosX, transporterPosZ))
 		then
 			moveToTransporterFlag = true
 		end
@@ -993,14 +1014,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			customTransportLoad[transporterDefID](transporterID, "PerformLoad", passengerID)
 			removalFlag = true
 		elseif
-			dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512
-			and CanMoveToTransporter(
-				passengerID,
-				passengerTeamID,
-				transporterID,
-				transporterTeamID,
-				spGetGroundHeight(transporterPosX, transporterPosZ)
-			)
+			CanMoveToTransporter(passengerID, transporterID, spGetGroundHeight(transporterPosX, transporterPosZ))
 		then
 			moveToTransporterFlag = true
 		end
@@ -1219,6 +1233,10 @@ function gadget:UnitCommand(
 	fromSynced,
 	fromLua
 )
+	-- a new plain order takes the unit off its way to a transporter
+	if boardingOrder[unitID] and not cmdOptions.shift then
+		boardingOrder[unitID] = nil
+	end
 	if transporterClaims[unitID] ~= nil then
 		local cmds = spGetUnitCommands(unitID, 1)
 		if not (cmds[1] and (cmds[1].id == CMD_AREA_LOAD or cmds[1].id == CMD.LOAD_UNITS)) then
@@ -1241,6 +1259,8 @@ function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	---@cast transporterAllyTeam -?
 	releasePassenger(unitID, transporterAllyTeam)
 	releaseAllClaims(unitID)
+	boardingOrder[unitID] = nil
+	clearBoarding(unitID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -1248,6 +1268,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	---@cast transporterAllyTeam -?
 	releasePassenger(unitID, transporterAllyTeam)
 	releaseAllClaims(unitID)
+	boardingOrder[unitID] = nil
+	clearBoarding(unitID)
 	local transporterID = spGetUnitTransporter(unitID)
 	if not transporterID then
 		return
@@ -1379,6 +1401,7 @@ function gadget:CommandFallback(
 					if not (cmd and cmd.id == CMD_LOAD_UNIT) then
 						RemoveSuccessiveCoroutine(transporterID)
 						releaseAllClaims(transporterID)
+						clearBoarding(transporterID)
 						break
 					end
 					ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
@@ -1597,21 +1620,21 @@ function gadget:AllowCommand(
 	fromLua,
 	fromInsert
 )
-	-- LOAD_ONTO: Need to figure out how we want to handle this command.
-	-- In current engine, the CMD.LOAD_UNITS is inserted only once;
-	-- due to our different restrictions, that command can be ignored from transport's side, while the passenger will still have a pending LOAD_ONTO command...
-	-- Maybe we should create our custom LOAD_ONTO command too
+	-- LOAD_ONTO: the transporter gets the load in front of its queue and the passenger walks to it.
+	-- The passenger keeps no command of its own; other kinds of transport keep the engine's.
 	if cmdID == CMD.LOAD_ONTO then
+		local transporterID = cmdParams[1] ---@as UnitID
+		if not transporterClaims[transporterID] then
+			return true
+		end
 		if fromInsert then
-			spEcho(
-				"Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored"
-			)
 			return false
 		end
-		spEcho(
-			"Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; use CMD.INSERT + CMD_LOAD_UNIT instead"
-		)
-		spGiveOrderToUnit(cmdParams[1] --[[@as UnitID]], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, { "alt" }) -- insert in front of target's queue a load units cmd
+		spGiveOrderToUnit(transporterID, CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, { "alt" })
+		if not cmdOptions.shift then
+			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		end
+		boardingOrder[unitID] = transporterID
 		return false
 	end
 	-- the next commands are only relevant for air transports here, so this guards against messing with other forms of transports

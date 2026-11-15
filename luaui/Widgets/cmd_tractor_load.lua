@@ -45,8 +45,10 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local TransportAPI ---@type table
 
 local cantBeTransported, isMobile, footprint = {}, {}, {} ---@type table<integer, boolean>, table<integer, boolean>, table<integer, number>
+local noEnemyLoad = {} ---@type table<integer, boolean> never lifted by an enemy transport
 for unitDefID, ud in pairs(UnitDefs) do
 	cantBeTransported[unitDefID] = ud.cantBeTransported
+	noEnemyLoad[unitDefID] = ud.customParams.isCommander ~= nil or ud.transportByEnemy == false
 	isMobile[unitDefID] = ud.speed > 0
 	footprint[unitDefID] = math.max(ud.xsize, ud.zsize) * Game.squareSize * 0.5
 end
@@ -104,8 +106,18 @@ local function owedSeats(shift)
 	return shift and pending or EMPTY
 end
 
--- a unit the gadget would lift (seats aside): ours or allied, standing free
-local function isLoadable(unitID, unitDefID)
+-- an enemy an area load picks: the gadget's rule for the live enemy loading mode
+local function enemyLoadable(unitID, unitDefID)
+	local mode = Spring.GetGameRulesParam("tractorbeam_enemyLoadMode") or 1
+	if mode <= 1 or noEnemyLoad[unitDefID] then
+		return false
+	end
+	return mode > 2 or Spring.GetUnitIsStunned(unitID) == true
+end
+
+-- a unit the gadget would lift (seats aside): ours or allied standing free, enemies only for an area load
+---@param withEnemies boolean?
+local function isLoadable(unitID, unitDefID, withEnemies)
 	if not unitDefID or cantBeTransported[unitDefID] or selected[unitID] then
 		return false
 	end
@@ -116,7 +128,10 @@ local function isLoadable(unitID, unitDefID)
 		return false
 	end
 	local teamID = spGetUnitTeam(unitID)
-	return teamID ~= nil and Spring.AreTeamsAllied(teamID, spGetMyTeamID())
+	if teamID == nil then
+		return false
+	end
+	return Spring.AreTeamsAllied(teamID, spGetMyTeamID()) or (withEnemies == true and enemyLoadable(unitID, unitDefID))
 end
 
 -- nearest selected transport with a seat that fits the unit
@@ -144,6 +159,7 @@ end
 -- transports closer to the area go first (the gadget's order between transports is not fixed)
 local MOBILITY_DIST = Game.mapSizeX * Game.mapSizeZ -- the gadget's priority offsets
 local ALLIED_DIST = 2 * MOBILITY_DIST
+local ENEMY_DIST = 2 * ALLIED_DIST
 
 ---@return LoadPick[]
 local function predictAreaLoad(cx, cz, radius, shift)
@@ -157,9 +173,12 @@ local function predictAreaLoad(cx, cz, radius, shift)
 		-- a plain order frees the claims of the selected transports
 		local free = claimedBy == 0 or (not shift and selected[claimedBy])
 		local x, _, z = spGetUnitPosition(unitID)
-		if unitDefID and x and free and isLoadable(unitID, unitDefID) then
-			local offset = (isMobile[unitDefID] and 0 or MOBILITY_DIST)
-				+ (spGetUnitTeam(unitID) == myTeam and 0 or ALLIED_DIST)
+		if unitDefID and x and free and isLoadable(unitID, unitDefID, true) then
+			local teamID = spGetUnitTeam(unitID)
+			local allegiance = (teamID == myTeam and 0)
+				or (teamID and Spring.AreTeamsAllied(teamID, myTeam) and ALLIED_DIST)
+				or ENEMY_DIST
+			local offset = (isMobile[unitDefID] and 0 or MOBILITY_DIST) + allegiance
 			candidates[#candidates + 1] =
 				{ id = unitID, x = x, z = z, size = TransportAPI.GetPassengerSize(unitID), offset = offset }
 		end
@@ -371,7 +390,7 @@ local function findRings(cx, cz, owed)
 	for i = 1, #units do
 		local unitID = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID and isLoadable(unitID, unitDefID) and not Spring.IsUnitIcon(unitID) then
+		if unitDefID and isLoadable(unitID, unitDefID, true) and not Spring.IsUnitIcon(unitID) then
 			local x, y, z = Spring.GetUnitBasePosition(unitID)
 			if x and y and z then
 				local radius = footprint[unitDefID] + RING_MARGIN
