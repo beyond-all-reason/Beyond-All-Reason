@@ -531,7 +531,7 @@ local function getExplosionFromSource(weaponDefID, projectileID)
 	local explosion = projectileExplosions[projectileID]
 	if
 		explosion
-		and (explosion.weaponDefID == weaponDefID or gameFrame - explosion.frame <= explosionLatency[weaponDefID])
+		and (explosion.weaponDefID == weaponDefID and gameFrame - explosion.frame <= explosionLatency[weaponDefID])
 	then
 		return explosion
 	end
