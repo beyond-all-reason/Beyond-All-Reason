@@ -519,11 +519,6 @@ local function activateShield(unitID, unitData)
 	end
 end
 
-local function isExplosionInShield(explosion, shieldUnitID)
-	local x, y, z, radius = getUnitShieldWeaponPosition(shieldUnitID, shieldUnitsData[shieldUnitID])
-	return x and distanceSquared(explosion.x, explosion.y, explosion.z, x, y, z) < radius * radius
-end
-
 -- Projectile IDs are reused, so most explosion records can belong to an earlier projectile.
 -- This is more frequent than you might expect, though the engine recycles IDs slowly, mostly.
 -- Explosion speeds in current BAR can take at most 24 frames to deal delayed damages.
@@ -535,6 +530,11 @@ local function getExplosionFromSource(weaponDefID, projectileID)
 	then
 		return explosion
 	end
+end
+
+local function isExplosionInShield(explosion, shieldUnitID)
+	local x, y, z, radius = getUnitShieldWeaponPosition(shieldUnitID, shieldUnitsData[shieldUnitID])
+	return x and distanceSquared(explosion.x, explosion.y, explosion.z, x, y, z) < radius * radius
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam, weaponDefID, projectileID)
