@@ -1479,7 +1479,6 @@ local AA = {
 	tickMs = 100,
 	launchUp = 12,
 	launchSide = 6,
-	flightSeconds = 2.5,
 	unitTarget = string.byte("u"),
 	looks = {
 		{ "cormissile.s3o", "custom:missiletrailaa" },
@@ -1491,7 +1490,7 @@ local AA = {
 }
 do
 	local def = WeaponDefNames[UnitDefs[unitDefID].name .. "_podaa_turbo"]
-	AA.turboDef, AA.range = def.id, def.range
+	AA.turboDef, AA.range, AA.flightFrames = def.id, def.range, def.flightTime
 end
 
 ---@type table<string, any>
@@ -1828,7 +1827,7 @@ local RAIL = {
 	restoreFrames = 90,
 }
 ---@type table<string, any>
-local rail = { count = 0, rapidUntil = 0, goal = 0, belief = 0, aimFrame = -1000 }
+local rail = { count = 0, turn = -1, rapidUntil = 0, goal = 0, belief = 0, aimFrame = -1000 }
 
 local function RailSpark()
 	if GG.SpawnEnvironmentalLightning then
@@ -1881,6 +1880,9 @@ local function FireRail(num)
 		local def = DEFS.Weapon(num)
 		rail.rapidUntil = Spring.GetGameFrame() + def.salvoSize * def.salvoDelay * Game.gameSpeed
 		return
+	end
+	if rail.turn ~= ACT.started then
+		rail.turn, rail.count = ACT.started, 0
 	end
 	rail.count = rail.count + 1
 	if rail.count >= RAIL.heavyShots then
@@ -2080,7 +2082,7 @@ AA.Unleash = function()
 	local params = AA.params
 	local from, to, speed = params.pos, params["end"], params.speed
 	params.team = Spring.GetUnitTeam(unitID)
-	params.ttl = AA.flightSeconds * Game.gameSpeed
+	params.ttl = AA.flightFrames
 	for shot = 1, AA.volley do
 		local targetID = targets[(shot - 1) % #targets + 1]
 		local tx, ty, tz = Spring.GetUnitPosition(targetID)
@@ -2197,6 +2199,16 @@ local function VolleyHold(num)
 	Spring.SetUnitWeaponState(unitID, num, "reloadFrame", Spring.GetGameFrame() + 100000)
 end
 
+local function VolleyLoadout(turbo)
+	VolleyHold(volley.left)
+	volley.left = turbo and VOLLEY.turboLeft or VOLLEY.left
+	volley.right = turbo and VOLLEY.turboRight or VOLLEY.right
+	TURBO.Boost(VOLLEY.finaleLeft, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
+	TURBO.Boost(VOLLEY.finaleRight, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
+	volley.phase, volley.turn = "armed", volley.left
+	Spring.SetUnitWeaponState(unitID, volley.left, "reloadFrame", Spring.GetGameFrame())
+end
+
 local function VolleyCooldown()
 	volley.phase, volley.shots, volley.finale = "cooldown", 0, 0
 	for num = VOLLEY.left, VOLLEY.finaleRight do
@@ -2216,13 +2228,7 @@ local function VolleyCooldown()
 			waited = waited + 1
 		end
 	end
-	local turbo = TURBO.kind == "volley"
-	volley.left = turbo and VOLLEY.turboLeft or VOLLEY.left
-	volley.right = turbo and VOLLEY.turboRight or VOLLEY.right
-	TURBO.Boost(VOLLEY.finaleLeft, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
-	TURBO.Boost(VOLLEY.finaleRight, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
-	volley.phase, volley.turn = "armed", volley.left
-	Spring.SetUnitWeaponState(unitID, volley.left, "reloadFrame", Spring.GetGameFrame())
+	VolleyLoadout(TURBO.kind == "volley")
 end
 
 local function VolleyWatch()
@@ -3385,6 +3391,8 @@ TURBO.Set = function(kind, on)
 		end
 	elseif kind == "beam" then
 		TURBO.Boost(BEAM.weapon, on and TURBO.beamDamage or 1)
+	elseif kind == "volley" and volley.phase == "armed" then
+		VolleyLoadout(on)
 	end
 end
 
