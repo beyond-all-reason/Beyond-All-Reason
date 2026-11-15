@@ -308,9 +308,13 @@ local function AddFNode(pos)
 	return true
 end
 
-local function GetInterpNodes(mUnits)
-	local number = #mUnits
-	local spacing = fDists[#fNodes] / (#mUnits - 1)
+-- tractor beam transports: an unload line has a point for every passenger
+local function UnloadLineSlots()
+	return usingCmd == CMD_UNLOADUNIT and WG.UnloadSnap and WG.UnloadSnap.LineSlots() or nil
+end
+
+local function GetInterpNodes(number)
+	local spacing = fDists[#fNodes] / (number - 1)
 
 	local interpNodes = {}
 
@@ -490,7 +494,10 @@ function widget:MousePress(mx, my, mButton)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	-- Is this line a path candidate (We don't do a path off an overridden command)
-	pathCandidate = (not overriddenCmd) and selectedUnitsCount == 1 and (not shift or repeatForSingleUnit)
+	pathCandidate = not overriddenCmd
+		and selectedUnitsCount == 1
+		and (not shift or repeatForSingleUnit)
+		and not UnloadLineSlots()
 
 	-- Initialize path positions tracking
 	pathPositions = {}
@@ -650,10 +657,11 @@ function widget:MouseRelease(mx, my, mButton)
 			dragDelta = pos[3] - dragDeltaPos[3]
 		end
 		local adjustedMinFormationLength = max(dragDelta, minFormationLength)
+		local unloadSlots = UnloadLineSlots()
 
 		if
 			fDists[#fNodes] < adjustedMinFormationLength
-			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
+			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * ((unloadSlots or selectedUnitsCount) - 1))
 		then
 			-- We should check if any units are able to execute it,
 			-- but the order is small enough network-wise that the tiny bug potential isn't worth it.
@@ -683,8 +691,10 @@ function widget:MouseRelease(mx, my, mButton)
 			-- Are any units able to execute it?
 			local mUnits = GetExecutingUnits(usingCmd)
 
-			if #mUnits > 0 then
-				local interpNodes = GetInterpNodes(mUnits)
+			if unloadSlots and not meta and WG.UnloadSnap.GiveLine(GetInterpNodes(unloadSlots), cmdOpts) then
+				spSetActiveCommand(0)
+			elseif #mUnits > 0 then
+				local interpNodes = GetInterpNodes(#mUnits)
 
 				local orders
 				if #mUnits <= maxHungarianUnits then
@@ -805,7 +815,7 @@ local function DrawFormationDotQuads(dotSize, lengthPerUnit)
 end
 
 local function DrawFormationDots(zoomY)
-	local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
+	local lengthPerUnit = lineLength / ((UnloadLineSlots() or selectedUnitsCount) - 1)
 	local dotSize = sqrt(zoomY * 0.24)
 	SetColor(usingCmd, 1)
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
@@ -1521,7 +1531,7 @@ function widget:Initialize()
 				-- Formation order
 				local mUnits = GetExecutingUnits(usingCmd)
 				if #mUnits > 0 then
-					local interpNodes = GetInterpNodes(mUnits)
+					local interpNodes = GetInterpNodes(#mUnits)
 					local orders
 					if #mUnits <= maxHungarianUnits then
 						orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -1623,7 +1633,7 @@ function widget:Initialize()
 			if #mUnits == 0 then
 				return nil
 			end
-			local interpNodes = GetInterpNodes(mUnits)
+			local interpNodes = GetInterpNodes(#mUnits)
 			local orders
 			if #mUnits <= maxHungarianUnits then
 				orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)

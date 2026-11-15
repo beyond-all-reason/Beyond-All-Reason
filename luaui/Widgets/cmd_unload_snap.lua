@@ -39,6 +39,11 @@ local REPLAN_FRAMES = 15 -- cargo and queues change without a cursor move
 local RECENT_SECONDS = 2 -- an order shows up in the queue only after a round trip; hold its pad until then
 local ARRIVE_TURN_DIST = 64 -- closer than this the transport arrives without turning to face the pad
 local CROSS_SIZE = 20
+local AREA_MIN_RADIUS = 64 -- a smaller area unload is a point
+local SPREAD_MARGIN = 8 -- gap between passengers set down apart
+local STANDING_MARGIN = 4 -- kept off a standing unit's radius
+local SPREAD_PACKING = 1.77 -- spiral points sit about radius * this / sqrt(count) apart
+local GOLDEN_ANGLE = math.pi * (3 - math.sqrt(5))
 
 -- TestBuildOrder: 0 blocked, 1 mobile unit in the way, 2 free; a feature comes back as a 2nd value
 -- (ClosestBuildPos never keeps such a spot)
@@ -51,6 +56,8 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHeading = Spring.GetUnitHeading
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitRadius = Spring.GetUnitRadius
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetActiveCommand = Spring.SetActiveCommand
 local spPos2BuildPos = Spring.Pos2BuildPos
@@ -82,9 +89,12 @@ local TransportAPI ---@type table
 local isFactory = {} ---@type table<integer, true>
 local isImmobile = {} ---@type table<integer, boolean> these land on the build grid, facing a cardinal direction
 local defHalfX, defHalfZ = {}, {} ---@type table<integer, number>, table<integer, number>
-local maxFactoryHalf = 0 ---@type number
+local defRadius = {} ---@type table<integer, number>
+local maxFactoryHalf, maxRadius = 0, 0 ---@type number, number
 for unitDefID, ud in pairs(UnitDefs) do
 	isImmobile[unitDefID] = ud.speed == 0
+	defRadius[unitDefID] = ud.radius
+	maxRadius = mathMax(maxRadius, ud.radius)
 	defHalfX[unitDefID] = ud.xsize * Game.squareSize * 0.5
 	defHalfZ[unitDefID] = ud.zsize * Game.squareSize * 0.5
 	if ud.isFactory then
@@ -135,6 +145,8 @@ end
 ---@field y number
 ---@field z number
 ---@field facing integer? build facing of a building
+---@field hx number? room kept clear around it, when smaller than the pad
+---@field hz number?
 
 ---@class UnloadPad : QueuedPad
 ---@field transportID integer
@@ -148,6 +160,8 @@ end
 ---@field passengerID integer?
 ---@field hasCargo boolean?
 ---@field dist number?
+---@field x number? the point asked for, when not the plan's
+---@field z number?
 
 ---@class UnloadPlan
 ---@field cx number
@@ -158,6 +172,8 @@ end
 ---@field frame integer
 ---@field facing integer? build facing, buildings only
 ---@field place boolean? nil for cargo on pads; for buildings placed like a build order, whether they all fit
+---@field spread boolean? every passenger has its own drop
+---@field area boolean? made for an area being dragged
 ---@field pads UnloadPad[]
 ---@field failed UnloadEntry[] transports that found no spot
 
@@ -173,12 +189,13 @@ end
 local plan ---@type UnloadPlan?
 local ghosts = {} ---@type { id: any, defID: integer, x: number, z: number, rot: number }[]
 local queuedPads = {} ---@type QueuedPad[] unloads the selection already has queued
-local recentPads = {} ---@type { pad: QueuedPad, timer: any }[] pads just ordered, until the queue shows them
+local recentPads = {} ---@type { pad: QueuedPad, timer: any, passengerID: integer? }[] pads just ordered, until the queue shows them
 local press ---@type { notified: boolean?, formation: boolean?, otherOwner: boolean? }? a right press custom formations may swallow
 local drop ---@type { [1]: integer, [2]: integer }? transportID, passengerID picked in the info panel
 local dropPlaced = false -- disarm after a single drop
 local rearmDrop = false -- re-arm after a click on a blocked building spot
 local lineReserve ---@type UnloadRect[]? pads already handed out along the line custom formations is giving
+local areaDrag ---@type { cx: number, cz: number }? where an area unload drag started
 local testCache, testCacheFrame = {}, -math.huge ---@type table<number, boolean>, number
 local lastQueueScan = -math.huge
 
@@ -225,7 +242,42 @@ end
 ---@return UnloadRect
 local function padRect(pad)
 	local hx, hz = footprintHalf(pad.padDefID, pad.facing)
-	return { x = pad.x, z = pad.z, hx = hx, hz = hz }
+	return { x = pad.x, z = pad.z, hx = pad.hx or hx, hz = pad.hz or hz }
+end
+
+-- room a passenger set down on its own takes
+---@return number, number
+local function passengerHalf(defID)
+	local half = mathMax(defHalfX[defID], defHalfZ[defID], defRadius[defID]) + SPREAD_MARGIN
+	return half, half
+end
+
+-- the transport and its cargo, which never block their own drop
+---@return table<integer, true>
+local function ownUnits(transportID)
+	local own = { [transportID] = true }
+	local carried = spGetUnitIsTransporting(transportID) or {}
+	for i = 1, #carried do
+		own[carried[i]] = true
+	end
+	return own
+end
+
+-- the engine silently drops a named unload onto a spot inside another unit's radius
+---@param ignore table<integer, true>
+local function standingClear(x, y, z, ignore)
+	local units = spGetUnitsInCylinder(x, z, maxRadius + STANDING_MARGIN)
+	for i = 1, #units do
+		local unitID = units[i]
+		local ux, uy, uz = spGetUnitPosition(unitID)
+		if ux and not ignore[unitID] then
+			local room = (spGetUnitRadius(unitID) or 0) + STANDING_MARGIN
+			if (ux - x) ^ 2 + (uy - y) ^ 2 + (uz - z) ^ 2 < room * room then
+				return false
+			end
+		end
+	end
+	return true
 end
 
 ---@param rects UnloadRect[]
@@ -283,9 +335,13 @@ local function spotFree(defID, x, y, z, facing)
 end
 
 ---@param reserved UnloadRect[]
+---@param ignore table<integer, true>? a named drop: keep off standing units, but for these
+---@param keepX number? room to keep clear of the reserved spots, the pad's own size when nil
+---@param keepZ number?
 ---@return number? x, number? y, number? z, number budget
-local function findPadSpot(padDefID, cx, cz, reserved, budget)
+local function findPadSpot(padDefID, cx, cz, reserved, budget, ignore, keepX, keepZ)
 	local hx, hz = defHalfX[padDefID], defHalfZ[padDefID]
+	keepX, keepZ = keepX or hx, keepZ or hz
 	for i = 1, #searchOffsets do
 		if budget <= 0 then
 			break
@@ -293,9 +349,10 @@ local function findPadSpot(padDefID, cx, cz, reserved, budget)
 		local wx, wz = cx + searchOffsets[i].dx, cz + searchOffsets[i].dz
 		if wx > hx and wz > hz and wx < mapSizeX - hx and wz < mapSizeZ - hz then
 			local bx, by, bz = spPos2BuildPos(padDefID, wx, spGetGroundHeight(wx, wz), wz)
-			if not overlaps(bx, bz, hx, hz, reserved) then
+			if not overlaps(bx, bz, keepX, keepZ, reserved) then
 				budget = budget - 1
-				if spotFree(padDefID, bx, by, bz, 0) then
+				local free = spotFree(padDefID, bx, by, bz, 0)
+				if free and (not ignore or standingClear(bx, by, bz, ignore)) then
 					return bx, by, bz, budget
 				end
 			end
@@ -306,8 +363,9 @@ end
 
 ---@param pad QueuedPad
 local function rememberIssued(pad)
-	local queued = { padDefID = pad.padDefID, x = pad.x, y = pad.y, z = pad.z, facing = pad.facing }
-	recentPads[#recentPads + 1] = { pad = queued, timer = spGetTimer() }
+	local queued =
+		{ padDefID = pad.padDefID, x = pad.x, y = pad.y, z = pad.z, facing = pad.facing, hx = pad.hx, hz = pad.hz }
+	recentPads[#recentPads + 1] = { pad = queued, timer = spGetTimer(), passengerID = pad.passengerID }
 	queuedPads[#queuedPads + 1] = queued
 end
 
@@ -328,8 +386,11 @@ local function collectQueuedPads(transports)
 					or TransportAPI.GetUnloadPadType(unitID, passengerID, true)
 				if padDefID then
 					local facing = isBuilding and params[5] or nil
-					pads[#pads + 1] =
-						{ padDefID = padDefID, x = params[1], y = params[2], z = params[3], facing = facing }
+					local pad = { padDefID = padDefID, x = params[1], y = params[2], z = params[3], facing = facing }
+					if buildingDefID and not isBuilding then
+						pad.hx, pad.hz = passengerHalf(buildingDefID)
+					end
+					pads[#pads + 1] = pad
 				end
 			end
 		end
@@ -508,6 +569,7 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 	local spread = (#layout > 1 and minGap > 0 and minGap < widest) and widest / minGap or 1
 
 	local reserved = shift and queuedRects() or {}
+	local ignore = ownUnits(transportID)
 	local placed = {} ---@type UnloadRect[]
 	---@type UnloadPlan
 	local newPlan = {
@@ -538,8 +600,9 @@ local function placementPlan(transportID, passengers, cx, cz, shift)
 			bx, by, bz = spPos2BuildPos(entry.defID, nx, spGetGroundHeight(nx, nz), nz, facing)
 		end
 		placed[#placed + 1] = { x = bx, z = bz, hx = hx, hz = hz }
-		-- units in the way get pushed aside
-		local fits = spotFree(entry.defID, bx, by, bz, facing) and not overlaps(bx, bz, hx, hz, reserved)
+		local fits = spotFree(entry.defID, bx, by, bz, facing)
+			and standingClear(bx, by, bz, ignore)
+			and not overlaps(bx, bz, hx, hz, reserved)
 		newPlan.place = newPlan.place and fits
 		newPlan.pads[i] = {
 			transportID = transportID,
@@ -573,10 +636,11 @@ local function makePlan(cx, cz, shift)
 	local budget = SEARCH_BUDGET ---@type number
 	for i = 1, #chosen do
 		local entry = chosen[i]
+		local cargo = entry.passengerID and { entry.passengerID } or spGetUnitIsTransporting(entry.unitID) or {}
+		local ignore = entry.passengerID and ownUnits(entry.unitID) or nil
 		local x, y, z
-		x, y, z, budget = findPadSpot(entry.padDefID, cx, cz, reserved, budget)
+		x, y, z, budget = findPadSpot(entry.padDefID, cx, cz, reserved, budget, ignore)
 		if x and y and z then
-			local cargo = entry.passengerID and { entry.passengerID } or spGetUnitIsTransporting(entry.unitID) or {}
 			---@type UnloadPad
 			local pad = {
 				transportID = entry.unitID,
@@ -594,6 +658,119 @@ local function makePlan(cx, cz, shift)
 		end
 	end
 	return newPlan
+end
+
+-- one passenger's own drop: the free spot nearest x, z, clear of the spots already handed out
+---@param p UnloadPlan
+---@param reserved UnloadRect[]
+---@return number budget
+local function addNamedPad(p, transportID, passengerID, x, z, reserved, budget)
+	local defID = spGetUnitDefID(passengerID)
+	local building = defID and isImmobile[defID]
+	local padDefID = building and defID or TransportAPI.GetUnloadPadType(transportID, passengerID)
+	if not (defID and padDefID) then
+		return budget
+	end
+	local hx, hz ---@type number?, number?
+	if not building then
+		hx, hz = passengerHalf(defID)
+	end
+	local px, py, pz
+	px, py, pz, budget = findPadSpot(padDefID, x, z, reserved, budget, ownUnits(transportID), hx, hz)
+	if not (px and py and pz) then
+		p.failed[#p.failed + 1] = { unitID = transportID, padDefID = padDefID, passengerID = passengerID, x = x, z = z }
+		return budget
+	end
+	---@type UnloadPad
+	local pad = {
+		transportID = transportID,
+		padDefID = padDefID,
+		x = px,
+		y = py,
+		z = pz,
+		passengerID = passengerID,
+		hx = hx,
+		hz = hz,
+		spots = building and { { defID = defID, x = px, y = py, z = pz, rot = 0 } }
+			or landingSpots(transportID, { passengerID }, px, pz),
+	}
+	p.pads[#p.pads + 1] = pad
+	reserved[#reserved + 1] = padRect(pad)
+	return budget
+end
+
+-- an area unload: every passenger gets its own spot, spread over the circle
+---@param transports integer[]
+---@param reserved UnloadRect[]
+---@return UnloadPlan?
+local function spreadPlan(cx, cz, radius, shift, transports, reserved)
+	local loads, total = {}, 0
+	for i = 1, #transports do
+		local carried = spGetUnitIsTransporting(transports[i])
+		local x, _, z = spGetUnitPosition(transports[i])
+		if x and carried and #carried > 0 then
+			loads[#loads + 1] = { unitID = transports[i], cargo = carried, x = x, z = z }
+			total = total + #carried
+		end
+	end
+	if total == 0 then
+		return nil
+	end
+	-- sunflower spiral: even cover of the circle
+	local points = {}
+	for i = 1, total do
+		local r = total > 1 and radius * mathSqrt((i - 0.5) / total) or 0
+		points[i] = { x = cx + r * mathCos(i * GOLDEN_ANGLE), z = cz + r * mathSin(i * GOLDEN_ANGLE) }
+	end
+	---@type UnloadPlan
+	local newPlan = { cx = cx, cz = cz, shift = shift, frame = spGetGameFrame(), pads = {}, failed = {}, spread = true }
+	local budget = SEARCH_BUDGET ---@type number
+	-- transports take turns, each picking the free point nearest to its last one
+	local left, turn = total, 0
+	while left > 0 do
+		turn = turn + 1
+		for i = 1, #loads do
+			local load = loads[i]
+			local passengerID = load.cargo[turn]
+			if passengerID then
+				local best, bestDist
+				for j = 1, total do
+					local point = points[j]
+					local dist = (point.x - load.x) ^ 2 + (point.z - load.z) ^ 2
+					if not point.taken and (not bestDist or dist < bestDist) then
+						best, bestDist = point, dist
+					end
+				end
+				best.taken = true
+				load.x, load.z = best.x, best.z
+				budget = addNamedPad(newPlan, load.unitID, passengerID, best.x, best.z, reserved, budget)
+				left = left - 1
+			end
+		end
+	end
+	return newPlan
+end
+
+-- cargo for a drawn line: only when every transport in the selection is a loaded tractor beam one
+---@return { unitID: integer, cargo: integer[], along: number }[]? loads, integer total
+local function lineCargo()
+	local selected = spGetSelectedUnits()
+	local loads, total = {}, 0
+	for i = 1, #selected do
+		local unitID = selected[i]
+		if Spring.FindUnitCmdDesc(unitID, CMD.UNLOAD_UNITS) then
+			local carried = spGetUnitIsTransporting(unitID)
+			if not (TransportAPI.IsTractorTransport(unitID) and carried and #carried > 0) then
+				return nil, 0
+			end
+			loads[#loads + 1] = { unitID = unitID, cargo = carried, along = 0 }
+			total = total + #carried
+		end
+	end
+	if total < 2 then
+		return nil, 0
+	end
+	return loads, total
 end
 
 -- stops drawing the ghosts past the first keep
@@ -670,22 +847,22 @@ local function issuePlan(p, options)
 	if p.place == false then
 		return
 	end
+	-- a transport's later drops queue behind its first
+	local given = {} ---@type table<integer, true>
+	local function give(transportID, params)
+		spGiveOrderToUnit(transportID, CMD_UNLOAD_UNIT, params, given[transportID] and CMD.OPT_SHIFT or options)
+		given[transportID] = true
+	end
 	for i = 1, #p.pads do
 		local pad = p.pads[i]
-		if p.place then
-			-- buildings: one exact drop each, queued one after another
-			local params = { pad.x, pad.y, pad.z, pad.passengerID, p.facing }
-			spGiveOrderToUnit(pad.transportID, CMD_UNLOAD_UNIT, params, i == 1 and options or CMD.OPT_SHIFT)
-		else
-			spGiveOrderToUnit(pad.transportID, CMD_UNLOAD_UNIT, { pad.x, pad.y, pad.z, pad.passengerID }, options)
-		end
+		give(pad.transportID, { pad.x, pad.y, pad.z, pad.passengerID, p.place and p.facing or nil })
 		rememberIssued(pad)
 	end
 	-- no free spot found here: hand the raw point to the gadget, which searches with everything it knows
 	for i = 1, #p.failed do
 		local entry = p.failed[i]
-		local params = { p.cx, spGetGroundHeight(p.cx, p.cz), p.cz, entry.passengerID }
-		spGiveOrderToUnit(entry.unitID, CMD_UNLOAD_UNIT, params, options)
+		local x, z = entry.x or p.cx, entry.z or p.cz
+		give(entry.unitID, { x, spGetGroundHeight(x, z), z, entry.passengerID })
 	end
 	finishDrop()
 end
@@ -702,6 +879,110 @@ local function dropUnit(transportID, passengerID)
 	drop = { transportID, passengerID }
 	plan = nil
 	return true
+end
+
+-- the info panel's cargo icons, plain click: that passenger goes down where the transport is
+local function dropHere(transportID, passengerID)
+	local x, _, z = spGetUnitPosition(transportID)
+	if not (x and z and TransportAPI.IsTractorTransport(transportID) and isCarrying(transportID, passengerID)) then
+		return false
+	end
+	local queue = spGetUnitCommands(transportID, -1) or {}
+	for i = 1, #queue do
+		if queue[i].id == CMD_UNLOAD_UNIT and queue[i].params[4] == passengerID then
+			return true -- already on its way down
+		end
+	end
+	local now = spGetTimer()
+	for i = 1, #recentPads do
+		local recent = recentPads[i]
+		if recent.passengerID == passengerID and spDiffTimers(now, recent.timer) <= RECENT_SECONDS then
+			return true
+		end
+	end
+	-- behind an unload under way, so quick clicks empty the transport one by one
+	local append = queue[1] ~= nil and queue[1].id == CMD_UNLOAD_UNIT
+	queuedPads = collectQueuedPads({ transportID })
+	local armed = drop ~= nil
+	drop = { transportID, passengerID }
+	local p = makePlan(x, z, append)
+	drop = nil
+	dropPlaced = dropPlaced or armed
+	plan = nil
+	if not p or p.place == false or (#p.pads == 0 and #p.failed == 0) then
+		return false
+	end
+	issuePlan(p, append and CMD.OPT_SHIFT or 0)
+	return true
+end
+
+-- a line drawn with custom formations, one node per passenger: transports take runs of it in the order they
+-- stand along it, each passenger its own drop
+local function giveLine(nodes, options)
+	local loads, total = lineCargo()
+	if not loads or total ~= #nodes then
+		return false
+	end
+	if press then
+		press.formation = true
+	end
+	local first, last = nodes[1], nodes[total]
+	local dirX, dirZ = last[1] - first[1], last[3] - first[3]
+	for i = 1, #loads do
+		local x, _, z = spGetUnitPosition(loads[i].unitID)
+		loads[i].along = x and (x * dirX + z * dirZ) or 0
+	end
+	table.sort(loads, function(a, b)
+		return a.along < b.along
+	end)
+	local shift = options.shift
+	local reserved = shift and queuedRects() or {}
+	---@type UnloadPlan
+	local newPlan = { cx = first[1], cz = first[3], shift = shift, frame = spGetGameFrame(), pads = {}, failed = {} }
+	local budget, node = SEARCH_BUDGET, 0 ---@type number, integer
+	for i = 1, #loads do
+		local load = loads[i]
+		for j = 1, #load.cargo do
+			node = node + 1
+			budget = addNamedPad(newPlan, load.unitID, load.cargo[j], nodes[node][1], nodes[node][3], reserved, budget)
+		end
+	end
+	issuePlan(newPlan, options.coded)
+	return true
+end
+
+-- a circle that fits the cargo side by side
+local function hereRadius(cargo)
+	local widest = 0
+	for i = 1, #cargo do
+		local defID = spGetUnitDefID(cargo[i])
+		widest = mathMax(widest, defID and passengerHalf(defID) or 0)
+	end
+	return 2 * widest * mathSqrt(#cargo) / SPREAD_PACKING
+end
+
+-- hotkey: every selected transport sets its whole cargo down where it is
+local function unloadAllHere()
+	if Spring.GetSpectatingState() then
+		return false
+	end
+	local transports = selectedTransports()
+	local shift = TransportUI.shiftHeld()
+	queuedPads = collectQueuedPads(transports)
+	local reserved = shift and queuedRects() or {}
+	local given = false
+	for i = 1, #transports do
+		local x, _, z = spGetUnitPosition(transports[i])
+		local carried = spGetUnitIsTransporting(transports[i])
+		if x and z and carried and #carried > 0 then
+			local p = spreadPlan(x, z, hereRadius(carried), shift, { transports[i] }, reserved)
+			if p then
+				issuePlan(p, shift and CMD.OPT_SHIFT or 0)
+				given = true
+			end
+		end
+	end
+	return given
 end
 
 local FACING_NAMES = { south = 0, east = 1, north = 2, west = 3 }
@@ -733,8 +1014,17 @@ function widget:Initialize()
 		return
 	end
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "transport_unload_all_here", unloadAllHere, nil, "p")
 	WG.UnloadSnap = {
 		DropUnit = dropUnit,
+		DropHere = dropHere,
+		UnloadAllHere = unloadAllHere,
+		---@return integer? passengers an unload line gets one point each, nil for one point per transport
+		LineSlots = function()
+			local loads, total = lineCargo()
+			return loads and total or nil
+		end,
+		GiveLine = giveLine,
 		GetDrop = function()
 			if drop then
 				return drop[1], drop[2]
@@ -744,9 +1034,9 @@ function widget:Initialize()
 		GetPads = function()
 			return plan and plan.pads
 		end,
-		-- test hook: the drops an unload of the selection at x, z would get
-		PreviewAt = function(x, z, shift)
-			local p = makePlan(x, z, shift)
+		-- test hook: the drops an unload of the selection at x, z would get, over an area with a radius
+		PreviewAt = function(x, z, shift, radius)
+			local p = radius and spreadPlan(x, z, radius, shift, selectedTransports(), {}) or makePlan(x, z, shift)
 			return p and p.pads
 		end,
 	}
@@ -756,6 +1046,7 @@ function widget:Shutdown()
 	trimGhosts(0)
 	WG.UnloadSnap = nil
 	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "transport_unload_all_here", "p")
 end
 
 function widget:SelectionChanged()
@@ -786,8 +1077,11 @@ local function clearPreview()
 end
 
 function widget:Update()
-	local mx, my, _, _, rmb = Spring.GetMouseState()
+	local mx, my, lmb, _, rmb = Spring.GetMouseState()
 	lineReserve = nil -- custom formations gives a whole line inside one mouse release
+	if not lmb then
+		areaDrag = nil
+	end
 	releaseSwallowedClick(rmb)
 
 	local mode = not Spring.GetSpectatingState() and unloadMode() or nil
@@ -832,17 +1126,27 @@ function widget:Update()
 	end
 	local shift = TransportUI.shiftHeld()
 	local squareX, squareZ = mathFloor(cx / BUILD_SQUARE), mathFloor(cz / BUILD_SQUARE)
+	local radius = areaDrag and mathSqrt((cx - areaDrag.cx) ^ 2 + (cz - areaDrag.cz) ^ 2) or 0
+	local area = areaDrag ~= nil and radius >= AREA_MIN_RADIUS
 	if
 		not plan
 		or plan.squareX ~= squareX
 		or plan.squareZ ~= squareZ
 		or plan.shift ~= shift
+		or plan.area ~= area
 		or (plan.facing and plan.facing ~= spGetBuildFacing())
 		or spGetGameFrame() - plan.frame >= REPLAN_FRAMES
 	then
-		plan = makePlan(cx, cz, shift)
+		if area and areaDrag then
+			-- the circle being dragged, as it will be filled
+			local reserved = shift and queuedRects() or {}
+			plan = spreadPlan(areaDrag.cx, areaDrag.cz, radius, shift, selectedTransports(), reserved)
+				or makePlan(areaDrag.cx, areaDrag.cz, shift)
+		else
+			plan = makePlan(cx, cz, shift)
+		end
 		if plan then
-			plan.squareX, plan.squareZ = squareX, squareZ
+			plan.squareX, plan.squareZ, plan.area = squareX, squareZ, area
 		end
 	end
 	syncGhosts()
@@ -858,6 +1162,10 @@ function widget:MousePress(mx, my, button)
 		and not Spring.IsAboveMiniMap(mx, my)
 	then
 		press = {}
+	end
+	if button == 1 and not drop and unloadMode() == "active" and not widgetHandler:IsAbove(mx, my) then
+		local x, _, z = TransportUI.cursorGround(mx, my)
+		areaDrag = x and z and { cx = x, cz = z } or nil
 	end
 	return false -- custom formations still gets the drag for line unloads
 end
@@ -910,9 +1218,23 @@ function widget:CommandNotify(cmdID, params, options)
 	if not UNLOAD_COMMANDS[cmdID] or (cmdID == CMD_UNLOAD_UNIT and params[4]) or not params[3] then
 		return false -- not a drop at a point (an unload of one named passenger is gui_info's)
 	end
+	local radius = cmdID == CMD.UNLOAD_UNITS and not drop and params[4] or 0
+	if radius >= AREA_MIN_RADIUS then
+		local reserved = options.shift and queuedRects() or {}
+		local spread = spreadPlan(params[1], params[3], radius, options.shift, selectedTransports(), reserved)
+		if spread then
+			if press then
+				press.notified = true
+			end
+			issuePlan(spread, options.coded)
+			passToOtherTransports(cmdID, params, options)
+			return true
+		end
+	end
 	local p = plan
 	if
 		not p
+		or p.area
 		or p.shift ~= options.shift
 		or p.squareX ~= mathFloor(params[1] / BUILD_SQUARE)
 		or p.squareZ ~= mathFloor(params[3] / BUILD_SQUARE)
@@ -1004,7 +1326,7 @@ end
 ---@param pad QueuedPad
 local function drawBrackets(pad, width, alpha)
 	local hx, hz = footprintHalf(pad.padDefID, pad.facing)
-	drawLines(bracketVertices, width, alpha, pad.x, pad.z, hx, hz)
+	drawLines(bracketVertices, width, alpha, pad.x, pad.z, pad.hx or hx, pad.hz or hz)
 end
 
 -- a building placed like a build order: green where it can go, red where it cannot (blueprint colours)
@@ -1024,6 +1346,7 @@ end
 ---@param p UnloadPlan
 local function drawPlan(p)
 	local cursorY = groundY(p.cx, p.cz)
+	local lined = {} ---@type table<integer, true> transports with a line to their first drop
 	for i = 1, #p.pads do
 		local pad = p.pads[i]
 		local tx, ty, tz = spGetUnitPosition(pad.transportID)
@@ -1035,7 +1358,8 @@ local function drawPlan(p)
 			end
 		else
 			drawBrackets(pad, 2, 0.85)
-			if tx then
+			if tx and not lined[pad.transportID] then
+				lined[pad.transportID] = true
 				drawLines(dashVertices, 1.5, 0.4, tx, ty, tz, pad.x, groundY(pad.x, pad.z), pad.z)
 			end
 		end
@@ -1043,7 +1367,7 @@ local function drawPlan(p)
 
 	-- the nearest drop had to move off the cursor: show where to
 	local first = p.pads[1]
-	if first and p.place == nil then
+	if first and p.place == nil and not p.spread then
 		local moved = mathAbs(first.x - p.cx) > defHalfX[first.padDefID]
 			or mathAbs(first.z - p.cz) > defHalfZ[first.padDefID]
 		if moved then
@@ -1051,9 +1375,10 @@ local function drawPlan(p)
 		end
 	end
 
-	-- some transports found no spot within reach
-	if #p.failed > 0 then
-		drawLinesColored(TransportUI.crossVertices, 2.5, 1, 0.25, 0.2, 0.9, p.cx, cursorY, p.cz, CROSS_SIZE)
+	-- some drops found no spot within reach
+	for i = 1, #p.failed do
+		local x, z = p.failed[i].x or p.cx, p.failed[i].z or p.cz
+		drawLinesColored(TransportUI.crossVertices, 2.5, 1, 0.25, 0.2, 0.9, x, groundY(x, z), z, CROSS_SIZE)
 	end
 end
 
