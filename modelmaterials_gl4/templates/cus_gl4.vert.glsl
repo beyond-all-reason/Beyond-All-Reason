@@ -640,6 +640,12 @@ void main(void)
 	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
 	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
 
+	// A unit's own color over its team's: packed RGB, negated (api_mission_unit_color.lua).
+	float ownColor = -UNITUNIFORMS.userDefined[0].y;
+	if (ownColor > 0.5) {
+		teamCol.rgb = vec3(floor(ownColor / 65536.0), mod(floor(ownColor / 256.0), 256.0), mod(ownColor, 256.0)) / 255.0;
+	}
+
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
 

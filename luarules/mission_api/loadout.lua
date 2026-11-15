@@ -4,6 +4,7 @@
 
 local tracking = GG["MissionAPI"].Modules.Tracking
 local missionOrders = GG["MissionAPI"].Modules.Orders
+local unitColor = GG["MissionAPI"].Modules.UnitColor
 
 --- Orientation of unit and feature entries
 
@@ -68,6 +69,10 @@ local function spawnUnit(unit, pos, facing, heading)
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
+	end
+
+	if unitID and unit.color then
+		unitColor.Set(unitID, unit.color)
 	end
 
 	tracking.TrackUnit(unit.unitName, unitID)
