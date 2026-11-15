@@ -16,6 +16,27 @@ return function(model)
 	local init = model.init
 	local applyOptionValue = model.applyOptionValue
 	local GetWidgetToggleValue = model.GetWidgetToggleValue
+
+	-- FlowUI2 Guide shows its page or its live state: WG.flowui2guide while it runs, else switched on in that mode
+	local guideKnown = WG.FlowUI2 ~= nil and widgetHandler.knownWidgets["FlowUI2 Guide"] ~= nil
+	local function guideShows(mode)
+		local api = WG.flowui2guide
+		return api ~= nil and api.getMode() == mode
+	end
+	local function showGuide(mode, on)
+		local api = WG.flowui2guide
+		if not on then
+			if guideShows(mode) then
+				api.setMode(false)
+			end
+		elseif api then
+			api.setMode(mode)
+		else
+			WG.flowui2guideOpen = mode -- (read at its Initialize: switching it on is put off a frame)
+			widgetHandler:EnableWidget("FlowUI2 Guide")
+		end
+	end
+
 	return {
 		-- DEV
 		{
@@ -123,6 +144,38 @@ return function(model)
 			value = 2,
 			description = BAR.I18N("ui.settings.option.profiler_averagetime_descr"),
 			configFloat = "profiler_averagetime",
+		},
+		{
+			id = "flowui2guide",
+			group = "dev",
+			category = types.dev,
+			available = guideKnown,
+			name = BAR.I18N("ui.settings.option.flowui2guide"),
+			type = "bool",
+			value = guideShows("guide"),
+			description = BAR.I18N("ui.settings.option.flowui2guide_descr"),
+			current = function()
+				return guideShows("guide")
+			end,
+			onchange = function(option, value)
+				showGuide("guide", value)
+			end,
+		},
+		{
+			id = "flowui2livestate",
+			group = "dev",
+			category = types.dev,
+			available = guideKnown,
+			name = BAR.I18N("ui.settings.option.flowui2livestate"),
+			type = "bool",
+			value = guideShows("state"),
+			description = BAR.I18N("ui.settings.option.flowui2livestate_descr"),
+			current = function()
+				return guideShows("state")
+			end,
+			onchange = function(option, value)
+				showGuide("state", value)
+			end,
 		},
 		{
 			id = "framegrapher",
