@@ -2,16 +2,17 @@
 	position: absolute;
 	width: 100vw;
 	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
 	pointer-events: none;
 }
 
-/* Clear of the top bar and the first console lines; centered by a half-width margin. */
+/* Clear of the top bar and the first console lines. */
 .mh-box {
-	position: absolute;
-	top: 110dp;
-	left: 50%;
+	margin-top: 110dp;
 	width: 640dp;
-	margin-left: -320dp;
+	max-width: 90vw;
 	padding: 10dp 14dp;
 	background-color: #16161ce6;
 	border: 1dp #3e3e4a;

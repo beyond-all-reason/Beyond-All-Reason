@@ -10,8 +10,7 @@ local function publish(hint)
 end
 
 local function showHint(messageKey, messageData, seconds)
-	local untilFrame = seconds and Spring.GetGameFrame() + math.max(1, math.ceil(seconds * Game.gameSpeed)) or nil
-	publish({ messageKey = messageKey, messageData = messageData, untilFrame = untilFrame })
+	publish({ messageKey = messageKey, messageData = messageData, seconds = seconds })
 end
 
 local function hideHint()

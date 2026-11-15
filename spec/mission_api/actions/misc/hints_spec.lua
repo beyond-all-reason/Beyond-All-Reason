@@ -1,7 +1,7 @@
 local MissionSpecEnv = require("mission_api.spec_helper")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-local env = MissionSpecEnv.new({ Game = { gameSpeed = 30 } })
+local env = MissionSpecEnv.new()
 MissionSpecEnv.registerModules(env)
 local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/misc/hints.lua")
 local showHint, hideHint = actions[1], actions[2]
@@ -19,9 +19,6 @@ describe("mission_api.actions.hints", function()
 		rulesParams, syncActions = {}, {}
 		env.Spring.SetGameRulesParam = function(name, value)
 			rulesParams[name] = value
-		end
-		env.Spring.GetGameFrame = function()
-			return 300
 		end
 		env.SendToUnsynced = function(action)
 			syncActions[#syncActions + 1] = action
@@ -42,11 +39,9 @@ describe("mission_api.actions.hints", function()
 		assert.are.same({ "MissionHintChanged" }, syncActions)
 	end)
 
-	it("ends a timed hint when its seconds run out, at least one frame on", function()
+	it("publishes a timed hint's seconds for LuaUI to count", function()
 		showHint.actionFunction("tutorial.mex", { count = 2 }, 2.5)
-		assert.are.same({ messageKey = "tutorial.mex", messageData = { count = 2 }, untilFrame = 375 }, published())
-		showHint.actionFunction("tutorial.flash", nil, 0)
-		assert.are.equal(301, published().untilFrame)
+		assert.are.same({ messageKey = "tutorial.mex", messageData = { count = 2 }, seconds = 2.5 }, published())
 	end)
 
 	it("clears the hint on HideHint", function()
