@@ -977,6 +977,38 @@ local function setGrassVisualConfig(cfg)
 	return changed
 end
 
+-- A map project's grass_config.lua (exportGrassConfig's grassConfig table): the shader
+-- params and the look. patchResolution and grassDistTGA stay, the project carries its own
+-- grass_dist.tga for this session's grid; COMPACTVBO stays, the vertex layout is built at
+-- init. Apply before LoadGrassTGA: grassMinSize/grassMaxSize turn its bytes into sizes.
+local function applyGrassProjectConfig(cfg)
+	if type(cfg) ~= "table" then
+		return false
+	end
+	for _, k in ipairs({
+		"grassMinSize",
+		"grassMaxSize",
+		"grassWindMult",
+		"maxWindSpeed",
+		"grassBladeColorTex",
+		"mapGrassColorModTex",
+		"grassWindPerturbTex",
+	}) do
+		if type(cfg[k]) == type(grassConfig[k]) then
+			grassConfig[k] = cfg[k]
+		end
+	end
+	if type(cfg.grassShaderParams) == "table" then
+		for k, v in pairs(cfg.grassShaderParams) do
+			if type(v) == "number" and k ~= "COMPACTVBO" then
+				grassConfig.grassShaderParams[k] = v
+			end
+		end
+	end
+	shaderRebuildPending = true
+	return true
+end
+
 function widget:Update(dt)
 	if shaderRebuildPending then
 		makeShaderVAO()
@@ -1644,6 +1676,9 @@ function widget:Initialize()
 	end
 	WG.grassgl4.setVisualConfig = function(cfg)
 		return setGrassVisualConfig(cfg)
+	end
+	WG.grassgl4.applyProjectConfig = function(cfg)
+		return applyGrassProjectConfig(cfg)
 	end
 	WG.grassgl4.loadGrass = function(filename)
 		if not filename or #filename < 2 then
