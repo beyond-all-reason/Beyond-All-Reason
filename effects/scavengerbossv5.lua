@@ -80,16 +80,26 @@ end
 local cannons = VFS.Include("effects/cannons.lua")
 local nukes = VFS.Include("effects/nukes.lua")
 local shells = VFS.Include("effects/genericshellexplosion.lua")
-local STREAM_HIT_SCALE = 1.5
+local STREAM_HIT_SCALE, STREAM_TURBO_HIT_SCALE = 1.5, 2.25
+local RAIN_HIT_SCALE = 1.5
+local BLAST_LOOK_STEP = 10
 local STAR_MARKS, STAR_MARK_SIZE, STAR_MARK_TAPER = 8, 80, 0.5
 
 local effects = {
 	["scavbossrail-trail"] = scaled(cannons["railgun-epic"], TRAIL_SCALE),
-	scavbossblast = scaledBlast(nukes.newnukehuge, BLAST_SCALE),
 	scavbossrailhit = dimmed(nukes.newnukecor, RAIL_FLASH),
 	scavbossstreamhit = scaledBlast(shells["genericshellexplosion-huge"], STREAM_HIT_SCALE),
-	scavbossstreamhitturbo = scaledBlast(shells["genericshellexplosion-huge-bomb"], STREAM_HIT_SCALE),
+	scavbossstreamhitturbo = scaledBlast(shells["genericshellexplosion-huge-bomb"], STREAM_TURBO_HIT_SCALE),
+	scavbossrainhit = scaledBlast(shells["genericshellexplosion-large-bomb"], RAIN_HIT_SCALE),
 }
+
+for look = BLAST_LOOK_STEP, 100, BLAST_LOOK_STEP do
+	local scale = BLAST_SCALE * look / 100
+	local blast = scaledBlast(nukes.newnukehuge, scale)
+	blast.nukefloor.properties.explosiongenerator = "custom:scavbossblastfloor" .. look
+	effects["scavbossblast" .. look] = blast
+	effects["scavbossblastfloor" .. look] = scaledBlast(nukes["newnukehuge-floor"], scale)
+end
 
 for i = 1, STAR_MARKS do
 	effects["scavbossdgunmark" .. i] = {

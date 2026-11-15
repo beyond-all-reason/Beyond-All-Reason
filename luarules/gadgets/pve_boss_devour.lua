@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "PvE Boss Devour",
-		desc = "Devour and Raise support for PvE bosses: holds their orders while they eat, turns raised wrecks into their units, reports hunger",
+		desc = "Support for PvE bosses that eat: holds their orders while they eat, turns raised wrecks into their units, scales health by map size, reports hunger, heat and the economy the players lost",
 		author = "Mat_Ba",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -36,15 +36,14 @@ if not next(eaters) then
 end
 
 local bosses = {}
+local gaiaTeam = Spring.GetGaiaTeamID()
 
 ---@type table<string, any>
 local economy = { standing = {}, standingCost = 0, lostCost = 0 }
 local ECONOMY_UNCOUNTED = { [Game.envDamageTypes.Reclaimed] = true, [Game.envDamageTypes.SelfD] = true }
 
 local function IsPlayerEconomy(unitDefID, unitTeam)
-	return economyCost[unitDefID]
-		and unitTeam ~= Spring.GetGaiaTeamID()
-		and not Spring.AreTeamsAllied(unitTeam, economy.bossTeam)
+	return economyCost[unitDefID] and unitTeam ~= gaiaTeam and not Spring.AreTeamsAllied(unitTeam, economy.bossTeam)
 end
 
 local function AddEconomy(unitID, unitDefID)
@@ -150,6 +149,7 @@ function gadget:GameFrame(frame)
 	if heat >= 0 then
 		Spring.SetGameRulesParam("scavBossStaggerPercentage", 100 - heat)
 		Spring.SetGameRulesParam("scavBossStaggerActive", venting)
+		Spring.SetGameRulesParam("scavBossOverheats", 1)
 	end
 end
 

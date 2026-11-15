@@ -49,7 +49,7 @@ local panelTexture = ":n:LuaUI/Images/scavpanel.png"
 local hungerBar = {
 	skull = "icons/skull.png",
 	hungerPattern = "LuaUI/Images/scav-tileable_v002_small.tga",
-	feedPattern = "bitmaps/default/randdots.tga",
+	feedPattern = "LuaUI/Images/rapt-tileable_v002_small.tga",
 	hungerColor = { 0.45, 0.15, 0.75, 0.9 },
 	feedColor = { 1, 0.5, 0.1, 0.9 },
 	patternColor = { 1, 1, 1, 0.55 },
@@ -249,11 +249,13 @@ local function CreatePanelDisplayList()
 				""
 			)
 
+			local overheats = Spring.GetGameRulesParam("scavBossOverheats") == 1
+			local staggerText = overheats and "ui.scavs.bossOverheat" or "ui.scavs.bossStagger"
 			if Spring.GetGameRulesParam("scavBossStaggerActive") == false then
 				font:Print(
 					textColor
 						.. BAR.I18N(
-							"ui.scavs.bossStaggerPercentage",
+							staggerText .. "Percentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("scavBossStaggerPercentage") }
 						),
 					panelMarginX,
@@ -263,7 +265,7 @@ local function CreatePanelDisplayList()
 				)
 			else
 				font:Print(
-					"\255\255\255\0" .. BAR.I18N("ui.scavs.bossStaggerActive", { count = nBosses }),
+					"\255\255\255\0" .. BAR.I18N(staggerText .. "Active", { count = nBosses }),
 					panelMarginX,
 					PanelRow(2),
 					panelFontSize,
@@ -272,7 +274,7 @@ local function CreatePanelDisplayList()
 				font:Print(
 					"\255\255\255\0"
 						.. BAR.I18N(
-							"ui.scavs.bossStaggerPercentage",
+							staggerText .. "Percentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("scavBossStaggerPercentage") }
 						),
 					panelMarginX,

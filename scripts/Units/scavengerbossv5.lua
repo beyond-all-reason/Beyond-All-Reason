@@ -1260,7 +1260,7 @@ local function StopWalking()
 end
 
 local SIG_RESTORE = 2
-local SIG_ALL_AIM = 2 ^ 28 - 4
+local SIG_ALL_AIM = 2 ^ 24 - 4
 local function SigOf(num)
 	return 2 ^ (num + 1)
 end
@@ -1433,6 +1433,8 @@ local ACT = {
 	abilityGap = 5,
 	abilityReady = 0,
 	hunting = false,
+	busy = false,
+	overheating = false,
 	of = {
 		[1] = "arms",
 		[2] = "arms",
@@ -1507,6 +1509,7 @@ local TURBO = {
 	volleyMin = 12,
 	volleyNear = 300,
 	volleyRange = WeaponDefNames[UnitDefs[unitDefID].name .. "_gaussvolley_turbo"].range,
+	swarmRange = WeaponDefNames[UnitDefs[unitDefID].name .. "_pod_stream_turbo"].range,
 	stale = 5,
 	volleyDamage = 2,
 	beamDamage = 2,
@@ -1527,7 +1530,7 @@ local NAPALM = {
 	telegraph = 2.5,
 	seconds = 11,
 	crowd = 10,
-	crowdRange = 500,
+	crowdRange = 700,
 	cooldown = 40,
 	ready = 0,
 	wedges = 3,
@@ -1570,6 +1573,8 @@ ACT.AbilityFree = function()
 		and not NAPALM.running
 		and not ACT.hunting
 		and not eating
+		and not ACT.busy
+		and not ACT.overheating
 		and Spring.GetGameFrame() >= ACT.abilityReady
 end
 
@@ -1599,8 +1604,23 @@ local HEAL = {
 	shieldUsers = 0,
 }
 ---@type table<string, any>
+local SHOCK = {
+	big = { radius = 900, push = 25.2, sound = "newboom", ripple = 7 },
+	gentle = { radius = 600, push = 17.5, sound = "xplolrg2", ripple = 6 },
+	lift = 0.12,
+	lightCost = 300,
+	heavyShare = 0.5,
+	crowd = 8,
+	crowdRange = 350,
+	cooldown = 30,
+	ready = 0,
+}
+---@type table<string, any>
+local HASTE = { health = 0.15, speed = 3, rate = 1 }
+---@type table<string, any>
 local HEAT = {
 	value = 0,
+	lastShot = -1000,
 	fillSeconds = { 240, 180, 100 },
 	satisfiedShare = 0.5,
 	coolSeconds = 480,
@@ -1937,6 +1957,17 @@ local podStreamStart = -1
 ---@type table
 local podLastFire = { -1000, -1000, side = 2 }
 
+HASTE.Set = function(on)
+	HASTE.rate = on and HASTE.speed or 1
+	for num, mode in pairs(podModeOf) do
+		if mode ~= POD_BARRAGE then
+			local def = DEFS.Weapon(num)
+			Spring.SetUnitWeaponState(unitID, num, "reloadTime", def.reload / HASTE.rate)
+			Spring.SetUnitWeaponState(unitID, num, "burstRate", def.salvoDelay / HASTE.rate)
+		end
+	end
+end
+
 local function PodModeDone()
 	ACT.done = true
 	Turn(podPiece[1], x_axis, 0, POD_SPEED)
@@ -1964,10 +1995,10 @@ local function AimPod(num, heading, pitch)
 		return true
 	end
 	if podMode == POD_STREAM then
-		if podStreamStart >= 0 and frame - podStreamStart > STREAM_DURATION * Game.gameSpeed then
+		if podStreamStart >= 0 and frame - podStreamStart > STREAM_DURATION * Game.gameSpeed / HASTE.rate then
 			return false
 		end
-		if podLastFire.side == side or frame - podLastFire[3 - side] < STREAM_GAP then
+		if podLastFire.side == side or frame - podLastFire[3 - side] < STREAM_GAP / HASTE.rate then
 			return false
 		end
 	end
@@ -1997,7 +2028,7 @@ local function FirePod(num)
 			podStreamStart = frame
 			local turn = ACT.started
 			StartThread(function()
-				Sleep(STREAM_DURATION * 1000)
+				Sleep(STREAM_DURATION * 1000 / HASTE.rate)
 				if ACT.started == turn then
 					PodModeDone()
 				end
@@ -2073,6 +2104,7 @@ AA.Unleash = function()
 end
 
 function script.Shot(num)
+	HEAT.lastShot = Spring.GetGameFrame()
 	if ACT.of[num] then
 		ACT.lastShot = Spring.GetGameFrame()
 	end
@@ -2435,7 +2467,7 @@ do
 	FEED_GOAL = FEED_GOAL * math.max(0.15, players)
 end
 local EAT_RANGE = 650
-local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH = 1200, 136000, 0.35
+local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH, BLAST_LOOK_STEP = 1200, 136000, 0.35, 10
 local BLAST_WAVE_FRAMES = 8
 local SHIELD_WEAPON = 5
 local T_SHIELD_ON, T_AURA, T_SHIELD_OFF, T_AURA_OFF, T_BLAST = 0.5, 0.1, 6, 6, 6.5
@@ -2572,6 +2604,8 @@ end
 local function Blast(share)
 	local x, y, z = Here()
 	local radius = BLAST_RADIUS * share
+	local look = math.max(1, math.floor(share * 100 / BLAST_LOOK_STEP + 0.5)) * BLAST_LOOK_STEP
+	Spring.SpawnCEG("scavbossblast" .. look, x, y + 40, z)
 	Spring.SpawnExplosion(x, y + 40, z, 0, 1, 0, {
 		weaponDef = BLAST_WEAPON,
 		owner = unitID,
@@ -2720,6 +2754,10 @@ HEAL.Watch = function()
 		Sleep(HEAL.sampleMs)
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		if health then
+			local hasty = health <= maxHealth * HASTE.health
+			if hasty ~= (HASTE.rate > 1) then
+				HASTE.Set(hasty)
+			end
 			history[#history + 1] = health
 			if #history > samples then
 				table.remove(history, 1)
@@ -2729,7 +2767,7 @@ HEAL.Watch = function()
 			local low = health <= maxHealth * HEAL.lowHealth and lost >= maxHealth * HEAL.minLoss
 			if
 				not HEAL.active
-				and not HEAT.venting
+				and not ACT.overheating
 				and Spring.GetGameFrame() >= HEAL.ready
 				and (low or lostFast >= maxHealth * HEAL.panicLoss)
 			then
@@ -2769,6 +2807,7 @@ HEAT.LeavePose = function()
 	HEAT.SetPose(false)
 	Sleep(HEAT.poseSeconds * 1000)
 	posed, HEAT.posing = false, false
+	StartThread(RestoreAfterDelay)
 	local _, _, _, speed = Spring.GetUnitVelocity(unitID)
 	if speed and speed > HEAT.movingSpeed then
 		walking = true
@@ -2777,18 +2816,6 @@ HEAT.LeavePose = function()
 		StartThread(StopWalking)
 	end
 end
-
-local SHOCK = {
-	big = { radius = 900, push = 23, sound = "newboom", ripple = 7 },
-	gentle = { radius = 600, push = 16, sound = "xplolrg2", ripple = 6 },
-	lift = 0.12,
-	lightCost = 300,
-	heavyShare = 0.5,
-	crowd = 8,
-	crowdRange = 350,
-	cooldown = 30,
-	ready = 0,
-}
 
 SHOCK.Pushable = function(otherID)
 	local team = Spring.GetUnitTeam(otherID)
@@ -2811,7 +2838,7 @@ SHOCK.Run = function(kind)
 			local otherX, _, otherZ = Spring.GetUnitPosition(otherID)
 			local dirX, dirZ = otherX - x, otherZ - z
 			local distance = math.max(1, math.sqrt(dirX * dirX + dirZ * dirZ))
-			local weight = math.max(SHOCK.heavyShare, math.min(1, (SHOCK.lightCost / def.metalCost) ^ 0.5))
+			local weight = math.max(SHOCK.heavyShare, math.min(1, math.sqrt(SHOCK.lightCost / def.metalCost)))
 			local speed = kind.push * math.max(0, 1 - distance / kind.radius) * weight
 			Spring.AddUnitImpulse(otherID, dirX / distance * speed, speed * SHOCK.lift, dirZ / distance * speed)
 		end
@@ -2835,21 +2862,26 @@ end
 SHOCK.Watch = function()
 	while true do
 		Sleep(1000)
-		local idle = not eating and not HEAT.venting and not Spring.GetUnitIsStunned(unitID)
-		if idle and Spring.GetGameFrame() >= SHOCK.ready and SHOCK.Crowded() then
+		local free = not eating and not HEAT.venting and not Spring.GetUnitIsStunned(unitID)
+		if free and Spring.GetGameFrame() >= SHOCK.ready and SHOCK.Crowded() then
 			SHOCK.Run(SHOCK.gentle)
 		end
 	end
 end
 
 HEAT.FillSeconds = function()
-	local stage = 2 * math.min(1, (GG.ScavBossEconomyLost or 0) / HEAT.satisfiedShare)
-	local from = math.min(2, math.floor(stage) + 1)
 	local fill = HEAT.fillSeconds
+	local steps = #fill - 1
+	local stage = steps * math.min(1, (GG.ScavBossEconomyLost or 0) / HEAT.satisfiedShare)
+	local from = math.min(steps, math.floor(stage) + 1)
 	return fill[from] + (fill[from + 1] - fill[from]) * (stage - from + 1)
 end
 
 HEAT.Vent = function()
+	ACT.overheating = true
+	while ACT.busy or NAPALM.running or HEAL.active do
+		Sleep(500)
+	end
 	for _ = 1, HEAT.warning * 2 do
 		HEAL.Spark()
 		HEAL.Spark()
@@ -2869,7 +2901,7 @@ HEAT.Vent = function()
 	Spring.SetUnitHealth(unitID, { paralyze = 0 })
 	SHOCK.Run(SHOCK.big)
 	HEAT.LeavePose()
-	HEAT.venting, HEAT.value = false, 0
+	HEAT.venting, ACT.overheating, HEAT.value = false, false, 0
 	Spring.SetUnitRulesParam(unitID, "scavboss_venting", 0)
 end
 
@@ -2877,14 +2909,14 @@ HEAT.Watch = function()
 	while true do
 		Sleep(1000)
 		if not Spring.GetUnitIsStunned(unitID) then
-			local engaged = Spring.GetGameFrame() - PACE.lastAim < PACE.linger * Game.gameSpeed
+			local engaged = eating or Spring.GetGameFrame() - HEAT.lastShot < PACE.linger * Game.gameSpeed
 			local busy = eating or NAPALM.running or TURBO.glows > 0
 			local change = engaged and (busy and HEAT.abilityRate or 1) * 100 / HEAT.FillSeconds()
 				or -100 / HEAT.coolSeconds
 			HEAT.value = math.max(0, math.min(100, HEAT.value + change))
 		end
 		Spring.SetUnitRulesParam(unitID, "scavboss_heat", math.floor(HEAT.value))
-		if HEAT.value >= 100 and not eating and not HEAL.active then
+		if HEAT.value >= 100 then
 			HEAT.Vent()
 		end
 	end
@@ -3080,7 +3112,7 @@ end
 
 local function Feed()
 	if HUNT.InReach() < FEED_GOAL * HUNGER.blastFloor and not HUNT.Run() then
-		return
+		return false
 	end
 	ACT.Quiet()
 	Show(P.devourglow)
@@ -3161,6 +3193,7 @@ local function Feed()
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	SetFace(false)
 	StartThread(RestoreAfterDelay)
+	return true
 end
 
 do
@@ -3200,6 +3233,7 @@ end
 
 local function Raise()
 	ACT.Quiet()
+	SHOCK.Run(SHOCK.big)
 	Show(P.raiseglow)
 	Sleep(RAISE.grace * 1000)
 	eating, isAiming = true, true
@@ -3296,7 +3330,9 @@ TURBO.Pick = function(health)
 				elseif heavy then
 					kind = "far"
 				end
-				score[kind] = score[kind] + 1
+				if kind ~= "swarm" or distance <= TURBO.swarmRange then
+					score[kind] = score[kind] + 1
+				end
 			end
 		end
 	end
@@ -3516,6 +3552,7 @@ end
 
 NAPALM.Run = function()
 	NAPALM.ready, NAPALM.running = math.huge, true
+	SHOCK.Run(SHOCK.big)
 	PACE.stopUntil = Spring.GetGameFrame() + (NAPALM.telegraph + NAPALM.seconds) * Game.gameSpeed
 	StartThread(NAPALM.Flare)
 	local x, y, z = Here()
@@ -3560,9 +3597,9 @@ ACT.RunAbilities = function()
 	if not ACT.AbilityFree() or Spring.GetUnitIsStunned(unitID) then
 		return
 	end
-	if HUNGER.value >= HUNGER.trigger then
-		Feed()
-	elseif Spring.GetGameFrame() >= RAISE.ready then
+	ACT.busy = true
+	local fed = HUNGER.value >= HUNGER.trigger and Feed()
+	if not fed and Spring.GetGameFrame() >= RAISE.ready then
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		if (health or 1) / (maxHealth or 1) <= TURBO.raiseHealth and TURBO.Food() >= TURBO.raiseWrecks then
 			Raise()
@@ -3570,6 +3607,7 @@ ACT.RunAbilities = function()
 			RAISE.ready = Spring.GetGameFrame() + RAISE.recheck * Game.gameSpeed
 		end
 	end
+	ACT.busy = false
 end
 
 local function Director()
