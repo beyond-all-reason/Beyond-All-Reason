@@ -384,6 +384,7 @@ QueryWeapon1(pieceIndex)
 		return (0);
 	}
 
+	return (0);
 }
 
 

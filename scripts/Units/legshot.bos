@@ -440,6 +440,7 @@ FireWeapon1(){
 		whichBarrel = 0;
 		return (0);
     }
+	return (0);
 }
 
 Killed(severity, corpsetype)
