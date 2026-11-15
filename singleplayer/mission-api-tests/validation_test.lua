@@ -459,14 +459,14 @@ local actions = {
 	actionWithNonExistentSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'nonExistentSoundfile',
+			soundFile = 'nonExistentSoundfile',
 		},
 	},
 
 	actionWithNonWavSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'README.md',
+			soundFile = 'README.md',
 		},
 	},
 

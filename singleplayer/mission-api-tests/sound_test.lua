@@ -82,7 +82,7 @@ local actions = {
 	playSoundPosition = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/weapons-mult/mgun12.wav',
+			soundFile = 'sounds/weapons-mult/mgun12.wav',
 			volume = 3.5,
 			position = { x = 1800, z = 1600 },
 		},
@@ -98,7 +98,7 @@ local actions = {
 	playVoiceQueued1 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
+			soundFile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
 			enqueue = true,
 		},
 	},
@@ -106,7 +106,7 @@ local actions = {
 	playVoiceQueued2 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/winter/EnemyCommanderDied.wav',
+			soundFile = 'sounds/voice/en/winter/EnemyCommanderDied.wav',
 			enqueue = true,
 		},
 	},
