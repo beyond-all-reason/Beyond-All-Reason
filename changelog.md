@@ -1,5 +1,6 @@
 # November
 - [Zombies]
+  - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.
   - Complete rework of Wraiths. They're now created when a unit, corpse, or debris is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place debris. That debris will only ever spawn 1 unit.
   - Wraiths are immune to EMP.
