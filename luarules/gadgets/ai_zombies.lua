@@ -1148,11 +1148,7 @@ end
 local function updateOrders(unitID, zombieData)
 	local unitDefID = zombieData.unitDefID
 	local CLOAK_INVERT_CHANCE = 0.1
-	if
-		trackedUnitData.canCloak[unitDefID]
-		and GG.SetWantedCloaked
-		and random() < CLOAK_INVERT_CHANCE
-	then
+	if trackedUnitData.canCloak[unitDefID] and GG.SetWantedCloaked and random() < CLOAK_INVERT_CHANCE then
 		local invertedCloakState = spGetUnitRulesParam(unitID, "wantcloak") == 1 and 0 or 1
 		GG.SetWantedCloaked(unitID, invertedCloakState)
 	end
@@ -1493,9 +1489,7 @@ local function updateStuckZombie(unitID, zombieData)
 	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
 	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
 		and isObjectiveReached(unitID, objective, unitX, unitZ)
-	local isStationary = isMobileUnit
-		and not isAtRememberedObjective
-		and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+	local isStationary = isMobileUnit and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
 	local workerTask
 	if isStationary then
 		workerTask = spGetUnitWorkerTask(unitID)
@@ -1515,15 +1509,7 @@ local function updateStuckZombie(unitID, zombieData)
 		end
 		local recoveryObjective =
 			ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-		issueObjectiveMove(
-			unitID,
-			unitDefID,
-			zombieData,
-			recoveryObjective,
-			unitX,
-			unitZ,
-			ZOMBIE_MAX_ORDER_ATTEMPTS
-		)
+		issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective, unitX, unitZ, ZOMBIE_MAX_ORDER_ATTEMPTS)
 	end
 	if mobileUnitDefs[unitDefID] and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL then
 		if
