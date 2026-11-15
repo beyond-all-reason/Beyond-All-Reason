@@ -651,19 +651,20 @@ local function validateNoParams(params, results)
 	end
 end
 
--- A state command takes one of its values, bare or as {value}.
-local function getStateValidator(states)
-	local allowed, values = {}, {}
-	for _, value in pairs(states) do
-		values[#values + 1] = value
+-- One command's validator: it takes one of that command's states, bare or as {state}.
+local function getStateValidator(commandStates)
+	local allowed, named = {}, {}
+	for name, value in pairs(commandStates) do
+		named[#named + 1] = { name = name, value = value }
 		allowed[value] = true
 	end
-	table.sort(values)
-	local message = "Parameter must be "
-		.. table.concat(values, ", ", 1, #values - 1)
-		.. " or "
-		.. values[#values]
-		.. ", as a number or {n}"
+	table.sort(named, function(a, b)
+		return a.value < b.value
+	end)
+	for index, state in ipairs(named) do
+		named[index] = state.name .. " (" .. state.value .. ")"
+	end
+	local message = "Parameter must be one of: " .. table.concat(named, ", ")
 	return function(params, results)
 		local value = params
 		if type(params) == "table" and #params == 1 then
@@ -747,8 +748,8 @@ local validatorsByCommandName = {
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
 }
-for commandName, values in pairs(stateCommands) do
-	validatorsByCommandName[commandName] = getStateValidator(values)
+for commandName, commandStates in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(commandStates)
 end
 
 local function validateOrderOptions(options, results)

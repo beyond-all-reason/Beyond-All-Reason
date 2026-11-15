@@ -1179,7 +1179,7 @@ describe("mission_api.validation.parameter_validators", function()
 			for index = 1, 6 do
 				V.assertMessage(
 					result,
-					"Parameter must be 0 or 1, as a number or {n}. Action: a, Parameter: orders[" .. index .. "][2]"
+					"Parameter must be one of: OFF (0), ON (1). Action: a, Parameter: orders[" .. index .. "][2]"
 				)
 			end
 		end)
@@ -1211,15 +1211,15 @@ describe("mission_api.validation.parameter_validators", function()
 			{ V.env.GameCMD.USER_FIRESTATE, { 5 } },
 		})
 
-		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[1][2]")
+		local function message(states, index)
+			return "Parameter must be one of: " .. states .. ". Action: a, Parameter: orders[" .. index .. "][2]"
+		end
+		V.assertMessage(result, message("HOLD_POSITION (0), MANEUVER (1), ROAM (2)", 1))
+		V.assertMessage(result, message("HOLD_FIRE (0), RETURN_FIRE (1), FIRE_AT_WILL (2), FIRE_AT_NEUTRAL (3)", 2))
+		V.assertMessage(result, message("LOW (0), HIGH (1), AUTO (2)", 3))
 		V.assertMessage(
 			result,
-			"Parameter must be 0, 1, 2 or 3, as a number or {n}. Action: a, Parameter: orders[2][2]"
-		)
-		V.assertMessage(result, "Parameter must be 0, 1 or 2, as a number or {n}. Action: a, Parameter: orders[3][2]")
-		V.assertMessage(
-			result,
-			"Parameter must be 0, 1, 2, 3 or 4, as a number or {n}. Action: a, Parameter: orders[4][2]"
+			message("HOLD_FIRE (0), DEFEND (1), RETURN_FIRE (2), FIRE_AT_WILL (3), FIRE_AT_ALL (4)", 4)
 		)
 	end)
 
