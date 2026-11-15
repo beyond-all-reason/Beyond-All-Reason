@@ -33,6 +33,16 @@ end
 
 local bosses = {}
 
+local SMALL_MAP, LARGE_MAP, LARGE_MAP_HEALTH = { 12, 10 }, { 32, 32 }, 5
+local mapSizeShare
+do
+	local small = math.sqrt(SMALL_MAP[1] ^ 2 + SMALL_MAP[2] ^ 2)
+	local large = math.sqrt(LARGE_MAP[1] ^ 2 + LARGE_MAP[2] ^ 2)
+	local diagonal = math.sqrt(Game.mapX ^ 2 + Game.mapY ^ 2)
+	mapSizeShare = math.max(0, math.min(1, (diagonal - small) / (large - small)))
+end
+local mapHealthScale = 1 + (LARGE_MAP_HEALTH - 1) * mapSizeShare
+
 local feedCount = 0
 local function FeedingEffect(unitID, unitDefID, index)
 	feedCount = feedCount + 1
@@ -47,6 +57,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
 	if eaters[unitDefID] then
 		bosses[unitID] = true
+		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		Spring.SetUnitMaxHealth(unitID, maxHealth * mapHealthScale)
+		Spring.SetUnitHealth(unitID, health * mapHealthScale)
 	end
 end
 
@@ -68,9 +81,12 @@ function gadget:GameFrame(frame)
 	if frame % Game.gameSpeed ~= 0 then
 		return
 	end
-	---@type number, number
-	local hunger, meal = -1, -1
+	---@type number, number, number
+	local hunger, meal, heat = -1, -1, -1
+	local venting = false
 	for unitID in pairs(bosses) do
+		heat = math.max(heat, Spring.GetUnitRulesParam(unitID, "scavboss_heat") or 0)
+		venting = venting or Spring.GetUnitRulesParam(unitID, "scavboss_venting") == 1
 		local bossHunger = Spring.GetUnitRulesParam(unitID, "scavboss_hunger") or 0
 		hunger = math.max(hunger, tonumber(bossHunger) or 0)
 		if (Spring.GetUnitRulesParam(unitID, "scavboss_feed_state") or 0) > 0 then
@@ -81,6 +97,10 @@ function gadget:GameFrame(frame)
 	end
 	Spring.SetGameRulesParam("scavBossHunger", hunger)
 	Spring.SetGameRulesParam("scavBossMeal", meal)
+	if heat >= 0 then
+		Spring.SetGameRulesParam("scavBossStaggerPercentage", 100 - heat)
+		Spring.SetGameRulesParam("scavBossStaggerActive", venting)
+	end
 end
 
 function gadget:Initialize()
@@ -91,12 +111,14 @@ function gadget:Initialize()
 	end
 	GG.ScavBossFeedingEffect = FeedingEffect
 	GG.ScavBossShield = SetShield
+	GG.ScavBossMapSizeShare = mapSizeShare
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 end
 
 function gadget:Shutdown()
 	GG.ScavBossFeedingEffect = nil
 	GG.ScavBossShield = nil
+	GG.ScavBossMapSizeShare = nil
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)

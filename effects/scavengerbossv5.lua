@@ -34,7 +34,7 @@ local function scaled(def, factor)
 	return copy
 end
 
-local BLAST_SCALE = 2
+local BLAST_SCALE = 0.85
 local BLAST_KEYS = { "particlesize", "particlespeed", "particlespeedspread", "size", "sizegrowth" }
 
 local function scaledBlast(def, factor)
@@ -79,9 +79,37 @@ end
 
 local cannons = VFS.Include("effects/cannons.lua")
 local nukes = VFS.Include("effects/nukes.lua")
+local shells = VFS.Include("effects/genericshellexplosion.lua")
+local STREAM_HIT_SCALE = 1.5
+local STAR_MARKS, STAR_MARK_SIZE, STAR_MARK_TAPER = 8, 80, 0.5
 
-return {
+local effects = {
 	["scavbossrail-trail"] = scaled(cannons["railgun-epic"], TRAIL_SCALE),
 	scavbossblast = scaledBlast(nukes.newnukehuge, BLAST_SCALE),
 	scavbossrailhit = dimmed(nukes.newnukecor, RAIL_FLASH),
+	scavbossstreamhit = scaledBlast(shells["genericshellexplosion-huge"], STREAM_HIT_SCALE),
+	scavbossstreamhitturbo = scaledBlast(shells["genericshellexplosion-huge-bomb"], STREAM_HIT_SCALE),
 }
+
+for i = 1, STAR_MARKS do
+	effects["scavbossdgunmark" .. i] = {
+		mark = {
+			class = [[CSimpleGroundFlash]],
+			count = 1,
+			air = true,
+			ground = true,
+			water = true,
+			properties = {
+				alwaysvisible = true,
+				colormap = [[0.8 0.3 1 0.8   0.8 0.3 1 0.6   0.8 0.3 1 0.01]],
+				rotParams = [[0, 0, 0 d1]],
+				size = STAR_MARK_SIZE * (1 - STAR_MARK_TAPER * (i - 1) / (STAR_MARKS - 1)),
+				sizegrowth = 0,
+				ttl = 24,
+				texture = [[circlefx3]],
+			},
+		},
+	}
+end
+
+return effects

@@ -46,6 +46,19 @@ local GetGameSeconds = Spring.GetGameSeconds
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/scavpanel.png"
+local hungerBar = {
+	skull = "icons/skull.png",
+	hungerPattern = "LuaUI/Images/scav-tileable_v002_small.tga",
+	feedPattern = "bitmaps/default/randdots.tga",
+	hungerColor = { 0.45, 0.15, 0.75, 0.9 },
+	feedColor = { 1, 0.5, 0.1, 0.9 },
+	patternColor = { 1, 1, 1, 0.55 },
+	huntingOutline = { 0.25, 0.05, 0.4, 1 },
+	patternTiles = 2,
+	huntingOutlineSize = 0.5,
+	huntingOutlineStrength = 3,
+	blastMark = 0.3,
+}
 
 local panelFontSize = 14
 local waveFontSize = 36
@@ -132,18 +145,30 @@ local function CreatePanelDisplayList()
 	end
 	if hunger >= 0 then
 		local left, right, bottom = w * 0.45, w - panelMarginX * 3, PanelRow(hungerRow) - 2
+		local top, width = bottom + panelFontSize, right - left - 2
+		local feeding = meal >= 0
+		local fill = (feeding and meal or hunger) / 100
+		local fillRight = left + 1 + width * fill
 		gl.Texture(false)
 		gl.Color(0, 0, 0, 0.6)
-		gl.Rect(left, bottom, right, bottom + panelFontSize)
-		local fill = meal >= 0 and meal or hunger
-		if meal >= 0 then
-			gl.Color(1, 0.6, 0.1, 0.9)
-		elseif hunger >= 80 then
-			gl.Color(1, 0.25, 0.2, 0.9)
+		gl.Rect(left, bottom, right, top)
+		gl.Color(feeding and hungerBar.feedColor or hungerBar.hungerColor)
+		gl.Rect(left + 1, bottom + 1, fillRight, top - 1)
+		gl.Texture(feeding and hungerBar.feedPattern or hungerBar.hungerPattern)
+		gl.Color(hungerBar.patternColor)
+		local strip = hungerBar.patternTiles * (panelFontSize - 2) / width
+		gl.TexRect(left + 1, bottom + 1, fillRight, top - 1, 0, 0, hungerBar.patternTiles * fill, strip)
+		if feeding then
+			local mark = left + 1 + width * hungerBar.blastMark
+			gl.Texture(false)
+			gl.Color(1, 1, 1, 1)
+			gl.Rect(mark - 1, bottom, mark + 1, top)
 		else
-			gl.Color(0.6, 0.3, 0.9, 0.9)
+			gl.Texture(hungerBar.skull)
+			gl.Color(1, 1, 1, 1)
+			gl.TexRect(left + 2, bottom, left + 2 + panelFontSize, top)
 		end
-		gl.Rect(left + 1, bottom + 1, left + 1 + (right - left - 2) * fill / 100, bottom + panelFontSize - 1)
+		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)
 	end
 	font:Begin()
@@ -266,7 +291,16 @@ local function CreatePanelDisplayList()
 					""
 				)
 			end
-			if hunger >= 0 then
+			if hunger >= 0 and meal < 0 and hunger >= 100 then
+				hungerBar.font:SetOutlineColor(hungerBar.huntingOutline)
+				hungerBar.font:Print(
+					textColor .. BAR.I18N("ui.scavs.bossHunting"),
+					panelMarginX,
+					PanelRow(hungerRow),
+					panelFontSize,
+					"o"
+				)
+			elseif hunger >= 0 then
 				font:Print(
 					textColor .. BAR.I18N(meal >= 0 and "ui.scavs.bossFeeding" or "ui.scavs.bossHunger"),
 					panelMarginX,
@@ -578,6 +612,7 @@ function widget:ViewResize()
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
+	hungerBar.font = WG.fonts.getFont(nil, 1, hungerBar.huntingOutlineSize, hungerBar.huntingOutlineStrength)
 
 	x1 = mathFloor(x1 - viewSizeX)
 	y1 = mathFloor(y1 - viewSizeY)

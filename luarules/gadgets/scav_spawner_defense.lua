@@ -164,6 +164,7 @@ if gadgetHandler:IsSyncedCode() then
 		CurrentTimer = config.bossStagger.time + 1,
 		currentlyStaggered = false,
 	}
+	local bossOwnsStagger = UnitDefNames[config.bossName].customParams.ownstagger ~= nil
 	local bossIDs = {}
 	local bosses = { resistances = bossResistance, statuses = {}, playerDamages = {} }
 	local scavTeamID = BAR.Utilities.GetScavTeamID()
@@ -395,6 +396,7 @@ if gadgetHandler:IsSyncedCode() then
 			config.healthMod = config.healthMod + 0.25
 		end
 		config.bossName = nextDifficulty.bossName
+		bossOwnsStagger = UnitDefNames[config.bossName].customParams.ownstagger ~= nil
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.turretSpawnRate = nextDifficulty.turretSpawnRate
 		config.bossSpawnMult = nextDifficulty.bossSpawnMult
@@ -1332,7 +1334,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if next(bossIDs) ~= nil then
+		if next(bossIDs) ~= nil and not bossOwnsStagger then
 			if bossStagger.currentlyStaggered == false then
 				if bossStagger.CurrentHealth > 0 then
 					SetGameRulesParam(
