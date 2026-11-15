@@ -159,6 +159,9 @@ local smartFilter = {
 -- Texture state
 local splatTexWidth = 0
 local splatTexHeight = 0
+-- true when the painter picked the edit texture's size itself (the map exposes no
+-- real distribution), so a loaded splat PNG may resize it to its own
+local splatTexOwnSize = false
 ---@type string?
 local fboTex = nil
 local texApplied = false
@@ -696,7 +699,9 @@ local function canSynthesizeDistribution()
 	return type(mapOpts) == "table" and (tonumber(mapOpts.blank_map_x) or 0) > 0
 end
 
-local function initSplatTexture()
+-- wantW/wantH: size for a texture the painter sizes itself (a project load passes
+-- its PNG's size); ignored when the map has a real distribution.
+local function initSplatTexture(wantW, wantH)
 	---@type {xsize: integer, ysize: integer}?
 	local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
 	local synthesize = false
@@ -722,10 +727,12 @@ local function initSplatTexture()
 	splatTexHeight = sourceH
 
 	-- A blank map can expose a 1x1 fallback distribution, where any stroke fills
-	-- the whole map. Edit a map-sized texture instead.
-	if sourceW <= 1 or sourceH <= 1 then
-		splatTexWidth = max(64, floor((Game.mapSizeX or 0) / 8))
-		splatTexHeight = max(64, floor((Game.mapSizeZ or 0) / 8))
+	-- the whole map. Edit a map-sized texture instead, or the loaded project's own
+	-- size: resampling it here would lose detail on every open + save.
+	splatTexOwnSize = sourceW <= 1 or sourceH <= 1
+	if splatTexOwnSize then
+		splatTexWidth = wantW or max(64, floor((Game.mapSizeX or 0) / 8))
+		splatTexHeight = wantH or max(64, floor((Game.mapSizeZ or 0) / 8))
 	end
 
 	fboTex = glCreateTexture(splatTexWidth, splatTexHeight, {
@@ -952,7 +959,10 @@ end
 
 -- Public API; the save runs in DrawWorld.
 local function requestSaveSplats(explicitPath)
-	if not fboTex and not active then
+	-- a compiled or legacy map carries a distribution nobody painted: DrawWorld copies it first
+	local info = not fboTex and gl.TextureInfo(SPLAT_TEX_NAME)
+	local mapHas = info and (info.xsize or 0) > 1 and (info.ysize or 0) > 1
+	if not fboTex and not active and not mapHas then
 		Echo("[Splat Painter] No splat texture to save")
 		return
 	end
@@ -971,12 +981,8 @@ local function executeLoadSplats(path)
 			return "failed: shader creation failed"
 		end
 	end
-	if not fboTex then
-		if not initSplatTexture() then
-			return "failed: map exposes no splat distribution texture (DNTS not bound?)"
-		end
-	end
 
+	-- Read the PNG first: its size decides the edit texture's on a blank canvas.
 	local texName = ":l:" .. path
 	if not gl.Texture(texName) then
 		return "failed: could not load " .. path
@@ -984,7 +990,28 @@ local function executeLoadSplats(path)
 	gl.Texture(false)
 	local info = gl.TextureInfo(texName)
 	if not info or not info.xsize or info.xsize <= 0 then
+		gl.DeleteTexture(texName)
 		return "failed: could not read texture info for " .. path
+	end
+	if fboTex and splatTexOwnSize and (info.xsize ~= splatTexWidth or info.ysize ~= splatTexHeight) then
+		-- A texture the painter sized itself (painted or opened before this load):
+		-- rebuild it at the project's size. Undo snapshots are the old size and
+		-- would swap a wrong-sized texture in, so they go too.
+		destroySplatTexture()
+		for _, t in ipairs(undoStack) do
+			glDeleteTexture(t)
+		end
+		undoStack = {}
+		for _, t in ipairs(redoStack) do
+			glDeleteTexture(t)
+		end
+		redoStack = {}
+	end
+	if not fboTex then
+		if not initSplatTexture(info.xsize, info.ysize) then
+			gl.DeleteTexture(texName)
+			return "failed: map exposes no splat distribution texture (DNTS not bound?)"
+		end
 	end
 	if info.xsize > splatTexWidth or info.ysize > splatTexHeight then
 		Echo(
@@ -1279,6 +1306,11 @@ function widget:Initialize()
 		end,
 		hasSplatState = function()
 			return fboTex ~= nil
+		end,
+		-- the map itself carries a distribution (a compiled or legacy map), painted or not
+		hasMapDistribution = function()
+			local info = gl.TextureInfo(SPLAT_TEX_NAME)
+			return info ~= nil and (info.xsize or 0) > 1 and (info.ysize or 0) > 1
 		end,
 		-- true when painting can start: the map has a distribution, or the painter can make one
 		canPaintDistribution = function()
@@ -1584,7 +1616,20 @@ function widget:DrawWorld()
 	end
 
 	-- Deferred save: before the active guard, so a project save requested while
-	-- the tool is deactivated (fboTex still alive) still executes.
+	-- the tool is deactivated (fboTex still alive) still executes. On a map nobody has
+	-- painted yet (a compiled or legacy map), copy the engine's distribution first.
+	if pendingSave and not fboTex then
+		-- the copy draws with copyShader, which only an activation or a load creates
+		if not copyShader then
+			createShaders()
+		end
+		if copyShader and initSplatTexture() then
+			pendingInit = false -- an activation queued meanwhile would re-init and leak fboTex
+		else
+			pendingSave = false -- nothing to save: the project step finds no file and skips
+			pendingSavePath = nil
+		end
+	end
 	if pendingSave and fboTex then
 		pendingSave = false
 		local savePath = pendingSavePath

@@ -9,6 +9,7 @@ local SECTION = VFS.Include("luarules/mission_api/validation/report.lua").Sectio
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
+local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -236,6 +237,36 @@ local function collectOrderNames(context, nameKind, actionID, parameters, refere
 	end
 end
 
+--- The keyframe fields holding a name of this type, e.g. unitName and lookAtUnitName.
+local function keyframeFieldsOfType(nameType)
+	local fields = {}
+	for field, fieldType in pairs(cameraKeyframeSchema.Settings) do
+		if fieldType == nameType then
+			fields[#fields + 1] = field
+		end
+	end
+	table.sort(fields)
+	return fields
+end
+
+--- Camera keyframes can ride along with a unit or look at one.
+local function collectKeyframeNames(context, nameFields, parameterNames, actionID, parameters, referencedNames)
+	local seen = {}
+	for _, parameterName in ipairs(parameterNames) do
+		for _, keyframes in ipairs(context.PossibleValues(parameters[parameterName])) do
+			for _, keyframe in ipairs(type(keyframes) == "table" and keyframes or {}) do
+				for _, field in ipairs(type(keyframe) == "table" and nameFields or {}) do
+					local name = keyframe[field]
+					if type(name) == "string" and not seen[name] then
+						seen[name] = true
+						recordSource(referencedNames, name, "action " .. actionID .. " (" .. parameterName .. ")")
+					end
+				end
+			end
+		end
+	end
+end
+
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
 local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
@@ -257,6 +288,8 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 	for actionType in pairs(nameKind.creatingActionTypes) do
 		referencingParameterNames[actionType] = nil
 	end
+	local keyframeParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.CameraKeyframes)
+	local keyframeNameFields = keyframeFieldsOfType(nameKind.nameType)
 
 	for actionID, action in pairs(context.Actions) do
 		local parameters = parametersOf(action)
@@ -266,6 +299,16 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 			end
 			if action.type == context.ActionTypes.IssueOrders then
 				collectOrderNames(context, nameKind, actionID, parameters, referencedNames)
+			end
+			if keyframeParameterNames[action.type] then
+				collectKeyframeNames(
+					context,
+					keyframeNameFields,
+					keyframeParameterNames[action.type],
+					actionID,
+					parameters,
+					referencedNames
+				)
 			end
 
 			if nameKind.creatingActionTypes[action.type] then

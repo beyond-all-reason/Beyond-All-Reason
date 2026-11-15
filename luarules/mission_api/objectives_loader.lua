@@ -4,7 +4,6 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
-		amount = 3,
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {

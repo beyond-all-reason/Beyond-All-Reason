@@ -1,43 +1,27 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece  base, post, turret, flare, aimpoint;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
+#include "../../damagedsmoke.h"
 #include "../../popup_openclose.h"
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+Create()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
+	hide aimpoint;
+	hide flare;
+	hide flare;
+	restore_delay = 2000;
+	start-script RequestOpen();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
+	start-script RequestClose();
 }
 
 
@@ -46,7 +30,7 @@ OpenAnim()
 	set ARMORED to 0;
 	move post to y-axis [0] speed [50];
 	wait-for-move post along y-axis;
-	turn turret to x-axis <0> speed <300>; 
+	turn turret to x-axis <0> speed <300>;
 	wait-for-turn turret around x-axis;
 }
 
@@ -61,20 +45,6 @@ CloseAnim()
 	wait-for-move post along y-axis;
 }
 
-Create()
-{
-	hide aimpoint;
-	hide flare;
-	hide flare;
-	restore_delay = 2000;
-	start-script RequestOpen();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	start-script SmokeUnit();
-	start-script RequestClose();
-}
 
 Activate()
 {
@@ -86,9 +56,9 @@ Deactivate()
 	start-script RequestClose();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 static-var  Stunned;
@@ -103,7 +73,7 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+ 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -112,16 +82,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestOpen();
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
 	{
 		sleep 250;
 	}
-	turn post to y-axis heading speed <300.000000>;
+	turn post to y-axis heading speed <300.0>;
 	wait-for-turn post around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -137,23 +107,18 @@ Shot1()
 	return (TRUE);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

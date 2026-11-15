@@ -7,8 +7,8 @@ piece  head, torso, hips, rgunflare, lgunflare, eyeflare, rmispoint,
        ltoesfirepoint,
        rtoesfirepoint;
 
-static-var  ShootingArm, WhichShoulderRocket, isMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
-            restore_delay, HandsUp, wpn1_lasthead, wpn2_lasthead;
+static-var  ShootingArm, WhichShoulderRocket, isMoving, WhichFootStompsBool, NotReadytoStomp,
+            HandsUp, wpn2_lasthead;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -20,12 +20,13 @@ lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
 	return 0;
 }
 
-#define SIGNAL_FOOTSTOMP_L 8
-#define SIGNAL_FOOTSTOMP_R 16
-#define SIGNAL_HEAD 2
-#define SIGNAL_BODY 4
+// Unit-local signals on unused bits (lower bits are taken by canonical SIGNAL_*)
+#define SIGNAL_FOOTSTOMP_L 131072
+#define SIGNAL_FOOTSTOMP_R 262144
+#define SIGNAL_HEAD 16384
+#define SIGNAL_BODY 32768
 
-//Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_MOVE 1
@@ -507,7 +508,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 8) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<4) animSpeed=4;
 		if (animspeed>16) animSpeed = 16;
 		sleep 263;
@@ -536,7 +536,6 @@ StopMoving(){
 
 Open()
 {
-	InMotion = 1;
 	if( !HandsUp )
 	{
 		emit-sfx 4096 + 6 from torso;
@@ -576,7 +575,6 @@ Close()
 		turn lshoulder to x-axis <0.0> speed <50.0>;
 		turn rshoulder to x-axis <0.0> speed <50.0>;
 	}
-	InMotion = 0;
 }
 
 
@@ -593,24 +591,18 @@ Create()
 	hide lmispoint;
 	hide aimy1;
 	set ARMORED to 1;
-	hide eyeflare;
-	hide lgunflare;
-	hide rgunflare;
 	animSpeed = 8;
 	isMoving = FALSE;
-	InMotion = 0;
-	Aim_while_moving = 1;
 	HandsUp = 0;
 	ShootingArm = 1;
 	WhichShoulderRocket = 0;
 	NotReadytoStomp=1;
-	restore_delay = 2000;
 	call-script CATT1_Init();
 }
 
 SetMaxReloadTime(reloadMS)
 {
-	restore_delay = reloadMS;
+	// no-op: restore pacing is fixed (see RestoreHead/RestoreBody)
 }
 
 
@@ -665,10 +657,8 @@ RestoreBody() // no need to signal, as threads inherit parents signal masks
 {
 	sleep 3000;
 	start-script Close();
-	//turn aimy1 to y-axis <0.0> speed <60.0>;
 	turn lshoulder to x-axis <0.0> speed <150>;
 	turn rshoulder to x-axis <0.0> speed <150>;
-	//start-script CATT1_Restore();
 }
 
 
@@ -727,7 +717,6 @@ QueryWeapon1(pieceIndex)
 AimWeapon2(heading, pitch) //headlazor
 {
 	signal SIGNAL_HEAD;
-	//get PRINT(2, heading,wpn1_lasthead,wpn2_lasthead);
 	turn aimy2 to x-axis <0> - (get MAX(<-12>,pitch)) speed <50>;
 	turn aimy2 to y-axis heading - CATT1position speed <100.0>;
 

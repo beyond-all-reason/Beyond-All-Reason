@@ -6,8 +6,8 @@ piece  base, armor, dishtower, hinge1, hinge2, hinge3, hinge4, dish1, dish2, dis
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, Stunned;
 
 // Signal definitions
-#define SIGNAL_TURNON 	4
-#define SIGNAL_MOVE 	1
+#define SIGNAL_TURNON 4
+#define SIGNAL_MOVE 1
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {// For C:\Users\logst\Downloads\BAR\legaradk_anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
@@ -365,7 +365,6 @@ StopWalking() {
 	turn thighfr to y-axis <45> speed <2377.225484> / animSpeed;
 	turn thighfr to z-axis <0> speed <1389.380945> / animSpeed;
 }
-// REMEMBER TO animspeed = 3 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
@@ -374,13 +373,12 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
@@ -404,7 +402,7 @@ StopMoving(){
 Lights()
 {
 	if (!Stunned) {
-	    emit-sfx 1024 + 0 from dishtower;
+		emit-sfx 1024 + 0 from dishtower;
 	}
 	sleep 2500;
 	start-script Lights();
@@ -417,7 +415,6 @@ Create()
 	start-script StopMoving();
 	start-script UnitSpeed();
 	SLEEP_UNTIL_UNITFINISHED;
-	return (0);
 }
 
 Activate()
@@ -431,8 +428,6 @@ Activate()
 	spin dish2 around z-axis speed <62> accelerate <5>;
 	spin dish3 around x-axis speed <-64> accelerate <5>;
 	spin dish4 around z-axis speed <-66> accelerate <5>;
-	
-	return (0);
 }
 
 Deactivate()
@@ -444,13 +439,11 @@ Deactivate()
 	stop-spin dish2 around z-axis decelerate <5>;
 	stop-spin dish3 around x-axis decelerate <5>;
 	stop-spin dish4 around z-axis decelerate <5>;
-	
-	return (0);
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) 
 	{
 		stop-spin dishtower around y-axis decelerate <10.0>;
