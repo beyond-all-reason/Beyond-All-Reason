@@ -65,5 +65,86 @@
     "license": "LicenseRef-BAR-CLA-1.0",
     "signed_at": "2026-11-15T18:23:34.774Z",
     "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armatlas_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armdfly_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armhvytrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corhvytrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corseah_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corvalk_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/legatrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/leglts_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/legstronghold_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
   }
 ]
