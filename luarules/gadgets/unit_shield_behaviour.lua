@@ -276,7 +276,7 @@ local gameFrame = 0
 local hasDestroyedData = false
 
 for weaponDefID = 0, #WeaponDefs do
-	local weaponDef = WeaponDefs[weaponDefID]
+	local weaponDef = WeaponDefs[weaponDefID] ---@type table
 
 	if weaponDef.type == "Flame" then -- flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
 		forceDeleteWeapons[weaponDefID] = weaponDef
