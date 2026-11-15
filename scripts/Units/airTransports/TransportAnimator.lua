@@ -28,11 +28,11 @@ local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
 local spSetUnitBlocking = Spring.SetUnitBlocking
 local spGetUnitVelocity = Spring.GetUnitVelocity
-local CMD_ATTACK = 20
+local CMD_ATTACK = CMD.ATTACK
 
 -- CONSTANTS
 local PI = math.pi
-local ALLIED_READ = { allied = true } -- rules params readable by allies
+local ALLIED_READ = CargoHandler.ALLIED_READ
 local SIG_WATCH = 2 -- signal to stop the WatchBeam thread when cargo state changes
 local SIG_LOAD = 4 -- signal to kill all in-flight Load threads (used by ReorganizeAndLoad)
 
@@ -44,7 +44,6 @@ local cegScaleFactor ---@type number
 local cegName ---@type string
 local heightOffsetMult ---@type number
 local radiusOffsetMult ---@type number
--- set in Init from precomputedProgress[unitDefID]
 local progress ---@type table<integer, number>
 local beamsBySlotID = {}
 
@@ -58,6 +57,7 @@ local currentTransporterPosX, currentTransporterPosY, currentTransporterPosZ, cu
 -- local function getTransporterState()        -- Cache and return transporter pos/rot for the current frame
 -- local function resetSlot(...)               -- Instantly zero all LUS Move/Turn offsets on a slot piece
 -- local function isDead(...)                  -- Returns true if unit is no longer a valid live unit
+-- local function callScript(...)              -- Call a function of the passenger's LUS or COB script, if it has it
 -- local function callUnitScriptOnLoad(...)    -- Call BeingLoaded/StopMoving on the passenger's unit script
 -- local function callUnitScriptOnUnload(...)  -- Call BeingUnloaded/StartMoving on the passenger's unit script
 
@@ -103,30 +103,37 @@ local function resetSlot(slotID)
 	Turn(slotID, 3, 0)
 end
 
--- Returns true if the unit is no longer a valid live unit.
 -- @param  id  number  unitID
 -- @return     boolean
 local function isDead(id)
 	return not spValidUnitID(id) or spGetUnitIsDead(id)
 end
 
--- @param id  number  unitID of the passenger being loaded
-local function callUnitScriptOnLoad(id)
+-- @param  id    number  unitID
+-- @param  name  string  script function name
+-- @return       boolean  true if the script has it
+local function callScript(id, name)
 	local lusEnv = spUnitScript.GetScriptEnv(id)
 	if lusEnv and lusEnv["script"] then
-		if lusEnv["script"]["BeingLoaded"] then
-			spUnitScript.CallAsUnit(id, lusEnv["script"]["BeingLoaded"])
-		elseif lusEnv["script"]["StopMoving"] then
-			spUnitScript.CallAsUnit(id, lusEnv["script"]["StopMoving"])
+		local fn = lusEnv["script"][name] ---@type function?
+		if fn then
+			spUnitScript.CallAsUnit(id, fn)
+			return true
 		end
-	else
-		local cobFuncIDBeingLoaded = spGetCOBScriptID(id, "BeingLoaded")
-		local cobFuncIDStopMoving = spGetCOBScriptID(id, "StopMoving")
-		if cobFuncIDBeingLoaded then
-			spCallCOBScript(id, cobFuncIDBeingLoaded, 1)
-		elseif cobFuncIDStopMoving then
-			spCallCOBScript(id, cobFuncIDStopMoving, 1)
-		end
+		return false
+	end
+	local cobFuncID = spGetCOBScriptID(id, name)
+	if cobFuncID then
+		spCallCOBScript(id, cobFuncID, 1)
+		return true
+	end
+	return false
+end
+
+-- @param id  number  unitID of the passenger being loaded
+local function callUnitScriptOnLoad(id)
+	if not callScript(id, "BeingLoaded") then
+		callScript(id, "StopMoving")
 	end
 end
 
@@ -141,45 +148,18 @@ local function stopIfStanding(id)
 	if Q[1] and Q[1].id ~= CMD_ATTACK then
 		return
 	end
-	local lusEnv = spUnitScript.GetScriptEnv(id)
-	if lusEnv and lusEnv["script"] then
-		if lusEnv["script"]["StopMoving"] then
-			spUnitScript.CallAsUnit(id, lusEnv["script"]["StopMoving"])
-		end
-	else
-		local cobFuncIDStopMoving = spGetCOBScriptID(id, "StopMoving")
-		if cobFuncIDStopMoving then
-			spCallCOBScript(id, cobFuncIDStopMoving, 1)
-		end
-	end
+	callScript(id, "StopMoving")
 end
 
 -- @param id  number  unitID of the passenger being unloaded
 local function callUnitScriptOnUnload(id)
-	local lusEnv = spUnitScript.GetScriptEnv(id)
-	if lusEnv and lusEnv["script"] then
-		if lusEnv["script"]["BeingUnloaded"] then
-			spUnitScript.CallAsUnit(id, lusEnv["script"]["BeingUnloaded"])
-		elseif lusEnv["script"]["StartMoving"] then
-			local Q = spGetUnitCommands(id, 1)
-			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
-				spUnitScript.CallAsUnit(id, lusEnv["script"]["StartMoving"])
-				StartThread(stopIfStanding, id)
-			end
-		end
-	else
-		local cobFuncIDBeingUnloaded = spGetCOBScriptID(id, "BeingUnloaded")
-		local cobFuncIDStartMoving = spGetCOBScriptID(id, "StartMoving")
-
-		if cobFuncIDBeingUnloaded then
-			spCallCOBScript(id, cobFuncIDBeingUnloaded, 1)
-		elseif cobFuncIDStartMoving then
-			local Q = spGetUnitCommands(id, 1)
-			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
-				spCallCOBScript(id, cobFuncIDStartMoving, 1)
-				StartThread(stopIfStanding, id)
-			end
-		end
+	if callScript(id, "BeingUnloaded") then
+		return
+	end
+	-- only with an order queued, so other scripts (a building set down) are not interrupted
+	local Q = spGetUnitCommands(id, 1)
+	if Q[1] and callScript(id, "StartMoving") then
+		StartThread(stopIfStanding, id)
 	end
 end
 
@@ -193,7 +173,7 @@ end
 -- function TransportAnimator.Load(...)      -- Coroutine: animate a passenger from the ground into its slot via MoveCtrl
 -- function TransportAnimator.Unload(...)    -- Coroutine: animate a passenger from its slot back to the ground
 
--- @param setup  table  per-unit anim/slot config loaded from <unitName>/setup.lua
+-- @param setup  table  cargo config from loadPadDefs.lua
 function TransportAnimator.Init(setup)
 	loadTime = tonumber(UnitDefs[unitDefID].customParams.loadtime) ---@as number
 	cegScaleFactor = 1.0
@@ -209,15 +189,16 @@ function TransportAnimator.Init(setup)
 
 	progress = GG.TransportAPI.precomputedProgress[unitDefID]
 
-	-- resolve beam piece name strings from setup into piece IDs, keyed by slot piece ID
-	if setup.beams then
-		for slotName, beamNames in pairs(setup.beams) do
-			local slotID = piece(slotName)
-			beamsBySlotID[slotID] = {}
-			for i, bname in ipairs(beamNames) do
-				beamsBySlotID[slotID][i] = piece(bname)
+	-- slot N_link_X_Z_WxH hangs from beam_(X+2i)_(Z+2j) for i < W, j < H
+	for _, slot in ipairs(setup.slots) do
+		local x, z, w, h = slot.name:match("_link_(%d+)_(%d+)_(%d+)x(%d+)$")
+		local beams = {}
+		for i = 0, w - 1 do
+			for j = 0, h - 1 do
+				beams[#beams + 1] = piece("beam_" .. (x + 2 * i) .. "_" .. (z + 2 * j))
 			end
 		end
+		beamsBySlotID[piece(slot.name)] = beams
 	end
 end
 
@@ -481,7 +462,6 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		passengerData.cachedPosX = nil
 		passengerData.cachedPosY = nil
 		passengerData.cachedPosZ = nil -- invalidate cache
-		-- Spring.SetUnitRadiusAndHeight(passengerData.id, radius, height) -- reset radius/height in case we were transporting a building with custom values
 
 		if not aborted then -- unload anim completed, ensure unit is at final position/rotation
 			local groundHeight = spGetGroundHeight(goalPosX, goalPosZ)

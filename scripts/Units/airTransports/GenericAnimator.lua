@@ -12,7 +12,7 @@ local spAddUnitDamage = Spring.AddUnitDamage
 local spGetUnitHealth = Spring.GetUnitHealth
 
 -- CONSTANTS
-local ALLIED_READ = { allied = true } -- rules params readable by allies
+local ALLIED_READ = CargoHandler.ALLIED_READ
 local CARGO_KILL_DAMAGE_RATIO = 2 -- fraction of current HP dealt to each passenger on transporter death, scaled by animProgress
 local CARGO_KILL_WEAPON_ID = -6 -- -CSolidObject::DAMAGE_EXTSOURCE_KILLED; skipped by engine (releaseHeld=true), applied manually here
 
@@ -46,7 +46,7 @@ end
 -- function GenericAnimator.Init(...)         -- Resolve piece name strings from setup; pre-compute killed tier entries
 -- function GenericAnimator.Activate()        -- Show thruster smoke/flame pieces and mark unit as active
 -- function GenericAnimator.Deactivate()      -- Hide thruster smoke/flame pieces and mark unit as inactive
--- function GenericAnimator.HideThrusters()   -- Explicit startup hide; identical to Deactivate (named for script.Create clarity)
+-- function GenericAnimator.HideThrusters()   -- Hide thruster smoke/flame pieces at startup
 -- function GenericAnimator.MoveRate(...)     -- Tilt jet nozzle pieces by angle keyed to move-rate value
 -- function GenericAnimator.Killed(...)       -- Damage/release all cargo, explode pieces by severity tier, return wreck level
 -- function GenericAnimator.IdleHover()       -- Continuous thread: bob the hover piece up and down for ambient animation
@@ -125,7 +125,7 @@ function GenericAnimator.Killed(severity)
 		if spValidUnitID(passengerID) and not spGetUnitIsDead(passengerID) then
 			spSetUnitRulesParam(passengerID, "inLoadAnim", 0, ALLIED_READ)
 			spSetUnitRulesParam(passengerID, "inUnloadAnim", 0, ALLIED_READ)
-			TransportAPI.EnablePassenger(passengerID) -- re-enable if mid-unload (no-op if mid-load, abilities were never disabled)
+			TransportAPI.EnablePassenger(passengerID) -- undo DisablePassenger of a load or unload in progress
 			spSetUnitRadiusAndHeight(passengerID, passengerData.radius, passengerData.height)
 			spSetUnitPhysicalStateBit(passengerID, 128 + 512) -- PSTATE_BIT_FLYING | PSTATE_BIT_SKIDDING (matches engine ReleasePassengers releaseHeld path)
 		end

@@ -8,7 +8,7 @@
 --   GenericAnimator.lua           -- thrusters, banking, idle hover, killed  --> GenericAnimator
 --
 -- Per-unit config file (via VFS.Include(), path relative to game root):
---   <unitName>/setup.lua  -- cargo slots, load method, and anim config in one table
+--   <unitName>/setup.lua  -- anim config; cargo slots come from loadPadsDefinitions/loadPadDefs.lua
 
 TransportAPI = GG.TransportAPI
 if not TransportAPI then
@@ -70,7 +70,7 @@ function script.Create()
 		return false
 	end
 	cargo = CargoHandler.Init(transportSetup[thisSize].cargo)
-	TransportAnimator.Init(transportSetup[thisSize].loadMethod)
+	TransportAnimator.Init(transportSetup[thisSize].cargo)
 	GenericAnimator.Init(animSetup.anim)
 
 	-- load preexisting cargo (save/load)
@@ -118,7 +118,7 @@ end
 ---@param goalX number
 ---@param goalY number
 ---@param goalZ number
----@param exact boolean|nil set down on the goal itself, not at its slot's offset (a building placed like a build order)
+---@param exact boolean|nil set down on the goal itself, not at its slot's offset
 ---@param facing number|nil build facing for a building set down exactly
 function PerformUnload(passengerID, goalX, goalY, goalZ, exact, facing) -- entry point from gadget transport handler: called once per passenger
 	local passengerData = cargo.passengers[passengerID]

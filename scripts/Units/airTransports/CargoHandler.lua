@@ -14,7 +14,8 @@ local spMoveCtrlSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 -- (none)
 
 -- CONSTANTS
-local ALLIED_READ = { allied = true } -- allies and spectators see seats and load states
+local ALLIED_READ = { allied = true } -- readable by allies
+CargoHandler.ALLIED_READ = ALLIED_READ
 
 -- LOCAL HELPERS
 -- local function RequiresMet(...)           -- Returns true if every required slot is currently empty
@@ -37,7 +38,7 @@ local ALLIED_READ = { allied = true } -- allies and spectators see seats and loa
 -- function CargoHandler.Register(...)            -- Add passenger to cargo.passengers and update seat/weight/commander accounting
 -- function CargoHandler.Unregister(...)          -- Remove passenger from cargo.passengers, release its slot, and update accounting
 
----@param setup table  slot and speed-damping config from <unitName>/setup.lua
+---@param setup table  slot config from loadPadDefs.lua
 ---@return table cargo  initialized cargo state table
 function CargoHandler.Init(setup)
 	-- resolve piece name strings from setup into piece IDs
@@ -86,7 +87,7 @@ function CargoHandler.Init(setup)
 		transporterID = transporterID, -- transporter unit ID
 		slots = slots, -- [slotID] = { size, cargo, requires, overlapping } (see above)
 		slotsBySize = slotsBySize, -- [size] = array of slotIDs of that size
-		passengers = {}, -- [passengerID] = passengerData  ({ id, height, slotID, beamPieces, wbX/Y/Z, animProgress })
+		passengers = {}, -- [passengerID] = passengerData  ({ id, height, radius, slotID, beamPieces, animProgress })
 		count = 0, -- number of units currently loaded
 		transporterUsedSeats = 0, -- sum of seat costs of all loaded units
 		transporterSeats = tonumber(uDef.customParams.transporterseats or 0), -- total seat capacity of this transporter
@@ -96,18 +97,9 @@ function CargoHandler.Init(setup)
 		transporterTurnRate = uDef.turnRate, -- base turn rate of the transporter, used for speed calculations
 		loadedCommandersCount = 0, -- number of loaded commanders
 		passengersTotalWeight = 0, -- sum of "weights" of all loaded units, used for speed slowing
-		transporterSpeedModMode = tonumber(uDef.customParams.transporterspeedmodmode or 0),
-		-- type of speed modification to apply:
-		-- 0 = no speed modification
-		-- 1 = speedNerf = (usedSeats/nSeats) * transporterSpeedModStrength
-		-- 2 = speedNerf = ((passengersTotalWeight-transporterSeats) / (transporterSeats * 0.5)) * transporterSpeedModStrength
-		-- passengersTotalWeight = sum(passengerSize * ((oversized and 1.5) or 1))
-		-- this makes the slowdown based on excess, not cargo
-		transporterSpeedModStrength = tonumber(uDef.customParams.transporterspeedmodstrength or 0), -- strength of speed modification, used as multiplier for the calculated speed mod in all modes
-		-- set to > 0 value to enable; effect depends on transporterSpeedModMode
-		transporterComSpeedModStrength = tonumber(uDef.customParams.transportercomspeedmodstrength or 0), -- separate speed mod strength for commanders, used in modes 1 and 3 as an override if it's higher than the regular mod strength
-		-- set to > 0 value to enable; slows down the transporter if it has a loaded commander
-		-- the resultant speedNerf value is then math.max(speedNerf, comSpeedNerf)
+		transporterSpeedModMode = tonumber(uDef.customParams.transporterspeedmodmode or 0), -- 0 none, 1 by seats used, 2 by weight over capacity
+		transporterSpeedModStrength = tonumber(uDef.customParams.transporterspeedmodstrength or 0), -- slowdown multiplier for the mode; 0 disables
+		transporterComSpeedModStrength = tonumber(uDef.customParams.transportercomspeedmodstrength or 0), -- slowdown with a commander aboard, if above the mode's
 		transporterAltitude = tonumber(uDef.wantedHeight or 100), -- wanted height of the transporter, used for move type data and can be modified by passengers
 		slotSizes = slotSizes, -- set of slot sizes available, eg { [1]=true, [4]=true }
 		loadingCount = 0, -- number of load animations in progress
@@ -129,8 +121,9 @@ function CargoHandler.Init(setup)
 		spSetUnitRulesParam(transporterID, rulesParamString, bool, ALLIED_READ)
 	end
 	CargoHandler.SetSpeedDamping(1.0, cargo, true) -- make sure no silent damping stays after a reload, will be reapplied if necessary.
-	spSetUnitRulesParam(transporterID, "transporterSeats", cargo.transporterSeats, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded, and by anim handler to determine whether to show hover effect
-	spSetUnitRulesParam(transporterID, "transporterUsedSeats", 0, ALLIED_READ) -- used by gadget to determine if a passenger can be loaded/unloaded, and by anim handler to determine whether to show hover effect
+	-- read by the gadget and the UI
+	spSetUnitRulesParam(transporterID, "transporterSeats", cargo.transporterSeats, ALLIED_READ)
+	spSetUnitRulesParam(transporterID, "transporterUsedSeats", 0, ALLIED_READ)
 	CargoHandler.CanLoad(true)
 	CargoHandler.CanUnload(true)
 	return cargo
