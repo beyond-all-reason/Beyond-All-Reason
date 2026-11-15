@@ -55,8 +55,15 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 		z = 1 - z
 	end
 
-	x = x * mapWidth
-	z = z * mapHeight
+	local view = WG and WG.MapRegionView
+	local rect = view and view.rect
+	if rect then
+		x = rect.x0 + x * (rect.x1 - rect.x0)
+		z = rect.z0 + z * (rect.z1 - rect.z0)
+	else
+		x = x * mapWidth
+		z = z * mapHeight
+	end
 
 	y = spGetGroundHeight(x, z)
 

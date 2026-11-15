@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 999998, -- alone on its layer: toggling DrawScreen must not reorder it against other widgets
 		enabled = true,
+		drawInMiniMapPixelSpace = true, -- the minimap box follows the mouse, not map positions
 	}
 end
 
