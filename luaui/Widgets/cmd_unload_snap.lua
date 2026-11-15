@@ -10,6 +10,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- takes the unload before Area Unload and Custom Formations split it their own way
 		enabled = true,
+		handler = true,
 	}
 end
 
@@ -152,6 +153,10 @@ end
 ---@field transportID integer
 ---@field passengerID integer? a single named drop
 ---@field spots UnloadSpot[] where each passenger lands
+---@field arrive number? heading the transport gets there with
+---@field orderX number? where the transport is sent, when not the pad itself
+---@field orderY number?
+---@field orderZ number?
 ---@field fits boolean? a building's spot is free
 
 ---@class UnloadEntry
@@ -190,6 +195,8 @@ local plan ---@type UnloadPlan?
 local ghosts = {} ---@type { id: any, defID: integer, x: number, z: number, rot: number }[]
 local queuedPads = {} ---@type QueuedPad[] unloads the selection already has queued
 local recentPads = {} ---@type { pad: QueuedPad, timer: any, passengerID: integer? }[] pads just ordered, until the queue shows them
+local lineNodes ---@type number[][]? a line being drawn with custom formations
+local lineDirty = false
 local press ---@type { notified: boolean?, formation: boolean?, otherOwner: boolean? }? a right press custom formations may swallow
 local drop ---@type { [1]: integer, [2]: integer }? transportID, passengerID picked in the info panel
 local dropPlaced = false -- disarm after a single drop
@@ -487,15 +494,22 @@ end
 
 -- where each passenger touches down: the animator keeps its offset from the transport, turned to the heading
 -- the transport arrives with (facing the pad from where it is now)
----@return UnloadSpot[]
-local function landingSpots(transportID, passengers, padX, padZ)
+---@param from UnloadPad? the transport's drop before this one, where it comes from
+---@return UnloadSpot[] spots, number arrive
+local function landingSpots(transportID, passengers, padX, padZ, from)
 	local layout, heading, tx, tz = cargoLayout(transportID, passengers)
 	local spots = {}
 	if not layout then
-		return spots
+		return spots, heading
+	end
+	local arrive = heading
+	if from then
+		tx, tz, arrive = from.orderX or from.x, from.orderZ or from.z, from.arrive or heading
 	end
 	local dx, dz = padX - tx, padZ - tz
-	local arrive = dx * dx + dz * dz > ARRIVE_TURN_DIST * ARRIVE_TURN_DIST and math.atan2(dx, dz) or heading
+	if dx * dx + dz * dz > ARRIVE_TURN_DIST * ARRIVE_TURN_DIST then
+		arrive = math.atan2(dx, dz)
+	end
 	local sinA, cosA = mathSin(arrive), mathCos(arrive)
 	for i = 1, #layout do
 		local passenger = layout[i]
@@ -509,7 +523,7 @@ local function landingSpots(transportID, passengers, padX, padZ)
 		end
 		spots[#spots + 1] = { defID = passenger.defID, x = x, y = y, z = z, rot = rot }
 	end
-	return spots
+	return spots, arrive
 end
 
 -- buildings to set down: one picked in the info panel, or the whole cargo of the only selected transport
@@ -660,6 +674,29 @@ local function makePlan(cx, cz, shift)
 	return newPlan
 end
 
+-- the passenger keeps its seat offset from the transport: order the transport so that it lands on the pad
+---@param pad UnloadPad
+---@param own table<integer, true>
+---@param from UnloadPad?
+local function centreOnLanding(pad, own, from)
+	local spot = pad.spots[1]
+	if not spot then
+		return
+	end
+	local qx, qz = 2 * pad.x - spot.x, 2 * pad.z - spot.z
+	local qy
+	qx, qy, qz = spPos2BuildPos(pad.padDefID, qx, spGetGroundHeight(qx, qz), qz)
+	if not (spotFree(pad.padDefID, qx, qy, qz, 0) and standingClear(qx, qy, qz, own)) then
+		return
+	end
+	local spots, arrive = landingSpots(pad.transportID, { pad.passengerID }, qx, qz, from)
+	if spots[1] then
+		pad.orderX, pad.orderY, pad.orderZ = qx, qy, qz
+		pad.spots, pad.arrive = spots, arrive
+		pad.x, pad.z = spots[1].x, spots[1].z
+	end
+end
+
 -- one passenger's own drop: the free spot nearest x, z, clear of the spots already handed out
 ---@param p UnloadPlan
 ---@param reserved UnloadRect[]
@@ -676,7 +713,8 @@ local function addNamedPad(p, transportID, passengerID, x, z, reserved, budget)
 		hx, hz = passengerHalf(defID)
 	end
 	local px, py, pz
-	px, py, pz, budget = findPadSpot(padDefID, x, z, reserved, budget, ownUnits(transportID), hx, hz)
+	local own = ownUnits(transportID)
+	px, py, pz, budget = findPadSpot(padDefID, x, z, reserved, budget, own, hx, hz)
 	if not (px and py and pz) then
 		p.failed[#p.failed + 1] = { unitID = transportID, padDefID = padDefID, passengerID = passengerID, x = x, z = z }
 		return budget
@@ -691,9 +729,21 @@ local function addNamedPad(p, transportID, passengerID, x, z, reserved, budget)
 		passengerID = passengerID,
 		hx = hx,
 		hz = hz,
-		spots = building and { { defID = defID, x = px, y = py, z = pz, rot = 0 } }
-			or landingSpots(transportID, { passengerID }, px, pz),
+		spots = {},
 	}
+	if building then
+		pad.spots = { { defID = defID, x = px, y = py, z = pz, rot = 0 } }
+	else
+		local from ---@type UnloadPad?
+		for i = #p.pads, 1, -1 do
+			if p.pads[i].transportID == transportID then
+				from = p.pads[i]
+				break
+			end
+		end
+		pad.spots, pad.arrive = landingSpots(transportID, { passengerID }, px, pz, from)
+		centreOnLanding(pad, own, from)
+	end
 	p.pads[#p.pads + 1] = pad
 	reserved[#reserved + 1] = padRect(pad)
 	return budget
@@ -855,7 +905,8 @@ local function issuePlan(p, options)
 	end
 	for i = 1, #p.pads do
 		local pad = p.pads[i]
-		give(pad.transportID, { pad.x, pad.y, pad.z, pad.passengerID, p.place and p.facing or nil })
+		local x, y, z = pad.orderX or pad.x, pad.orderY or pad.y, pad.orderZ or pad.z
+		give(pad.transportID, { x, y, z, pad.passengerID, p.place and p.facing or nil })
 		rememberIssued(pad)
 	end
 	-- no free spot found here: hand the raw point to the gadget, which searches with everything it knows
@@ -918,13 +969,11 @@ end
 
 -- a line drawn with custom formations, one node per passenger: transports take runs of it in the order they
 -- stand along it, each passenger its own drop
-local function giveLine(nodes, options)
+---@return UnloadPlan?
+local function linePlan(nodes, shift)
 	local loads, total = lineCargo()
 	if not loads or total ~= #nodes then
-		return false
-	end
-	if press then
-		press.formation = true
+		return nil
 	end
 	local first, last = nodes[1], nodes[total]
 	local dirX, dirZ = last[1] - first[1], last[3] - first[3]
@@ -935,7 +984,6 @@ local function giveLine(nodes, options)
 	table.sort(loads, function(a, b)
 		return a.along < b.along
 	end)
-	local shift = options.shift
 	local reserved = shift and queuedRects() or {}
 	---@type UnloadPlan
 	local newPlan = { cx = first[1], cz = first[3], shift = shift, frame = spGetGameFrame(), pads = {}, failed = {} }
@@ -947,7 +995,19 @@ local function giveLine(nodes, options)
 			budget = addNamedPad(newPlan, load.unitID, load.cargo[j], nodes[node][1], nodes[node][3], reserved, budget)
 		end
 	end
-	issuePlan(newPlan, options.coded)
+	return newPlan
+end
+
+local function giveLine(nodes, options)
+	local p = linePlan(nodes, options.shift)
+	lineNodes = nil
+	if not p then
+		return false
+	end
+	if press then
+		press.formation = true
+	end
+	issuePlan(p, options.coded)
 	return true
 end
 
@@ -1010,7 +1070,7 @@ end
 function widget:Initialize()
 	TransportAPI = WG.TransportAPI
 	if not TransportAPI then
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
@@ -1025,6 +1085,10 @@ function widget:Initialize()
 			return loads and total or nil
 		end,
 		GiveLine = giveLine,
+		-- the line while it is being drawn, for the ghosts
+		PreviewLine = function(nodes)
+			lineNodes, lineDirty = nodes, true
+		end,
 		GetDrop = function()
 			if drop then
 				return drop[1], drop[2]
@@ -1082,6 +1146,9 @@ function widget:Update()
 	if not lmb then
 		areaDrag = nil
 	end
+	if not rmb then
+		lineNodes = nil
+	end
 	releaseSwallowedClick(rmb)
 
 	local mode = not Spring.GetSpectatingState() and unloadMode() or nil
@@ -1117,6 +1184,15 @@ function widget:Update()
 	if drawFrame - lastQueueScan >= REPLAN_FRAMES then
 		lastQueueScan = drawFrame
 		queuedPads = collectQueuedPads(selectedTransports())
+	end
+
+	if lineNodes then
+		if lineDirty then
+			lineDirty = false
+			plan = linePlan(lineNodes, TransportUI.shiftHeld())
+		end
+		syncGhosts()
+		return
 	end
 
 	local cx, _, cz = TransportUI.cursorGround(mx, my)

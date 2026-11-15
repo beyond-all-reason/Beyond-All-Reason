@@ -530,6 +530,11 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		return false
 	end
 
+	local unloadSlots = UnloadLineSlots()
+	if unloadSlots and fDists[#fNodes] >= minFormationLength then
+		WG.UnloadSnap.PreviewLine(GetInterpNodes(unloadSlots))
+	end
+
 	-- Have we started drawing a line?
 	if #fNodes == 2 then
 		-- We have enough nodes to start drawing now
@@ -661,7 +666,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 		if
 			fDists[#fNodes] < adjustedMinFormationLength
-			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * ((unloadSlots or selectedUnitsCount) - 1))
+			or (usingCmd == CMD.UNLOAD_UNIT and not unloadSlots and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
 		then
 			-- We should check if any units are able to execute it,
 			-- but the order is small enough network-wise that the tiny bug potential isn't worth it.
@@ -815,10 +820,11 @@ local function DrawFormationDotQuads(dotSize, lengthPerUnit)
 end
 
 local function DrawFormationDots(zoomY)
-	local lengthPerUnit = lineLength / ((UnloadLineSlots() or selectedUnitsCount) - 1)
+	local unloadSlots = UnloadLineSlots()
+	local lengthPerUnit = lineLength / ((unloadSlots or selectedUnitsCount) - 1)
 	local dotSize = sqrt(zoomY * 0.24)
 	SetColor(usingCmd, 1)
-	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
+	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) and not unloadSlots then
 		glColor(1.0, 0.3, 0.0, 1.0)
 	end
 	glDepthTest(false)

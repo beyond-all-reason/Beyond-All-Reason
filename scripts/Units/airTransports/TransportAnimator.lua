@@ -27,6 +27,8 @@ local spUnitScript = Spring.UnitScript
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
 local spSetUnitBlocking = Spring.SetUnitBlocking
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local CMD_ATTACK = 20
 
 -- CONSTANTS
 local PI = math.pi
@@ -128,6 +130,30 @@ local function callUnitScriptOnLoad(id)
 	end
 end
 
+-- a landed unit that stays put to shoot never gets StopMoving: take it out of its walk
+-- @param id  number  unitID of the passenger set down
+local function stopIfStanding(id)
+	Sleep(500)
+	if isDead(id) or (select(4, spGetUnitVelocity(id)) or 0) > 0.1 then
+		return
+	end
+	local Q = spGetUnitCommands(id, 1)
+	if Q[1] and Q[1].id ~= CMD_ATTACK then
+		return
+	end
+	local lusEnv = spUnitScript.GetScriptEnv(id)
+	if lusEnv and lusEnv["script"] then
+		if lusEnv["script"]["StopMoving"] then
+			spUnitScript.CallAsUnit(id, lusEnv["script"]["StopMoving"])
+		end
+	else
+		local cobFuncIDStopMoving = spGetCOBScriptID(id, "StopMoving")
+		if cobFuncIDStopMoving then
+			spCallCOBScript(id, cobFuncIDStopMoving, 1)
+		end
+	end
+end
+
 -- @param id  number  unitID of the passenger being unloaded
 local function callUnitScriptOnUnload(id)
 	local lusEnv = spUnitScript.GetScriptEnv(id)
@@ -138,6 +164,7 @@ local function callUnitScriptOnUnload(id)
 			local Q = spGetUnitCommands(id, 1)
 			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
 				spUnitScript.CallAsUnit(id, lusEnv["script"]["StartMoving"])
+				StartThread(stopIfStanding, id)
 			end
 		end
 	else
@@ -150,6 +177,7 @@ local function callUnitScriptOnUnload(id)
 			local Q = spGetUnitCommands(id, 1)
 			if Q[1] then -- only call StartMoving if the unit has a move order queued, to avoid interrupting other scripts (e.g. building placement)
 				spCallCOBScript(id, cobFuncIDStartMoving, 1)
+				StartThread(stopIfStanding, id)
 			end
 		end
 	end
