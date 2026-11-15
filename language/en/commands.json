@@ -300,7 +300,8 @@
 			"fovIncrease": "Increase field of view",
 			"fovDecrease": "Decrease field of view",
 			"cycleSelectedNext": "Cycle camera to next selected unit",
-			"cycleSelectedPrev": "Cycle camera to previous selected unit"
+			"cycleSelectedPrev": "Cycle camera to previous selected unit",
+			"mapRegionNext": "View the next map region"
 		},
 		"cameraModes": {
 			"mapmarks": "Cycle through map marks",

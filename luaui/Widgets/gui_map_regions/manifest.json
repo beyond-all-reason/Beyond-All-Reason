@@ -1,0 +1,7 @@
+{
+	"id": "gui_map_regions",
+	"display_name": "Map region view bounds",
+	"keybindings": [
+		{ "action": "map_region_next", "label": "actions.camera.mapRegionNext" }
+	]
+}

@@ -173,6 +173,9 @@
 			"replaySpeedTooltip": "Click or drag to set how fast the replay plays",
 			"skipPregame": "Skip pregame"
 		},
+		"mapRegions": {
+			"tooltip": "Map regions: click one to view it"
+		},
 		"minimap": {
 			"resizeTitle": "Minimap Size",
 			"resizeTooltip": "Drag to resize the minimap",

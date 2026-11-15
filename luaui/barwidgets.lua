@@ -321,6 +321,7 @@ local callInLists = {
 	"AlliedUnitAdded",
 	"AlliedUnitRemoved",
 	"AlliedUnitsChanged",
+	"ParallelWorldShift",
 	"UnitSale",
 	"UnitSold",
 	"VisibleExplosion",
@@ -2051,6 +2052,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.depends = info.depends
 		wi.control = info.control or false
 		wi.handler = info.handler or false
+		wi.drawInMiniMapPixelSpace = info.drawInMiniMapPixelSpace or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -3891,6 +3893,26 @@ function widgetHandler:DrawScreenPost()
 	return
 end
 
+-- Widgets draw in whole-map minimap pixel coordinates. Returns the translation (in pixels) and
+-- scale that map them onto a minimap cropped to the rectangle r, for the minimap rotation in
+-- radians. Along each minimap axis a map axis that runs forwards is pinned at the rectangle's low
+-- edge and one that runs backwards (top-down z, or a flipped axis) at its high edge.
+local function MiniMapRegionTransform(r, rotation, xSize, ySize, mapSizeX, mapSizeZ)
+	local width, height = r.x1 - r.x0, r.z1 - r.z0
+	local scaleMapX, scaleMapZ = mapSizeX / width, mapSizeZ / height
+	local lowX, highX = -r.x0 / width, (r.x1 - mapSizeX) / width
+	local lowZ, highZ = -r.z0 / height, (r.z1 - mapSizeZ) / height
+	local quarterTurns = math.floor(rotation / (math.pi / 2) + 0.5) % 4
+	if quarterTurns == 1 then
+		return lowZ * xSize, lowX * ySize, scaleMapZ, scaleMapX
+	elseif quarterTurns == 2 then
+		return highX * xSize, lowZ * ySize, scaleMapX, scaleMapZ
+	elseif quarterTurns == 3 then
+		return highZ * xSize, highX * ySize, scaleMapZ, scaleMapX
+	end
+	return lowX * xSize, highZ * ySize, scaleMapX, scaleMapZ
+end
+
 function widgetHandler:DrawInMiniMap(xSize, ySize)
 	tracyZoneBeginN("W:DrawInMiniMap")
 	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
@@ -3904,9 +3926,28 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 		tracyZoneEnd()
 		return
 	end
+	-- Map widgets' whole-map minimap coordinates onto the cropped region view, except for widgets
+	-- that draw in minimap pixels taken from the screen (drawInMiniMapPixelSpace in GetInfo).
+	local regionView = rawget(self.WG, "MapRegionView")
+	local r = regionView and regionView.rect
+	local translateX, translateY, scaleX, scaleY
+	if r then
+		translateX, translateY, scaleX, scaleY =
+			MiniMapRegionTransform(r, Spring.GetMiniMapRotation() or 0, xSize, ySize, Game.mapSizeX, Game.mapSizeZ)
+	end
 	local list = self.DrawInMiniMapList
 	for i = #list, 1, -1 do
-		list[i]:DrawInMiniMap(xSize, ySize)
+		local w = list[i]
+		local transform = r and not w.whInfo.drawInMiniMapPixelSpace
+		if transform then
+			gl.PushMatrix()
+			gl.Translate(translateX, translateY, 0)
+			gl.Scale(scaleX, scaleY, 1)
+		end
+		w:DrawInMiniMap(xSize, ySize)
+		if transform then
+			gl.PopMatrix()
+		end
 	end
 	tracyZoneEnd()
 	return
@@ -5405,6 +5446,15 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widgetHandler:ParallelWorldShift()
+	tracyZoneBeginN("W:ParallelWorldShift")
+	---@diagnostic disable-next-line: undefined-field
+	for _, w in ipairs(self.ParallelWorldShiftList) do
+		w:ParallelWorldShift()
+	end
+	tracyZoneEnd()
+end
 
 widgetHandler:ConfigLayoutHandler(true)
 widgetHandler:Initialize()

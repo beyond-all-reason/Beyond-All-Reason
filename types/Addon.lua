@@ -22,6 +22,9 @@ function Addon:GetInfo() end
 ---Widgets this one takes the place of (LuaUI only): while it is on they are not loaded at startup
 ---(switched off, with `knownWidgets[name].replacedBy` naming this one).
 ---@field replaces string|string[]?
+---DrawInMiniMap draws in minimap pixels taken from the screen, not map positions (LuaUI only): on a
+---map region view the widget handler then skips mapping whole-map minimap coordinates onto the region.
+---@field drawInMiniMapPixelSpace boolean?
 
 ---@type Addon
 ---@diagnostic disable-next-line: lowercase-global
