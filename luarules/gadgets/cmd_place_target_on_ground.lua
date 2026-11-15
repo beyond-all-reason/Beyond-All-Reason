@@ -107,6 +107,14 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- Final fallback if an attack or set-target command with a untiID parameter is otherwise given unexpectedly
 	-- usually from user side DefaultCommand widget function
 	if place_target_on_ground[unitDefID] then
+		-- These weapons intentionally target terrain, including a resolved ghost click.
+		if cmdOptions.keepheight and #cmdParams == 3 then
+			local x, z = cmdParams[1], cmdParams[3]
+			local options = table.copy(cmdOptions)
+			options.keepheight = false
+			spGiveOrderToUnit(unitID, cmdID, { x, spGetGroundHeight(x, z), z }, options)
+			return false
+		end
 		-- no need to check cmdID due to RegisterAllowCommand above
 		if hasVoid and (#cmdParams == 3 or #cmdParams == 4) then
 			local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
