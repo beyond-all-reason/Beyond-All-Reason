@@ -254,24 +254,24 @@ local spUseUnitResource = Spring.UseUnitResource
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitArmored = Spring.GetUnitArmored
 
+local unitDefWeaponDefs = {}
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
+local armoredUnitDefs = {}
 local forceDeleteWeapons = {}
+local highestWeapDefDamages = {}
+local weaponIgnoreCoverage = {}
+local destroyedUnitData = {}
 local unitDefIDCache = {}
-local unitDefWeaponDefs = {}
 local unitCoverages = {} -- [unitID] = {[shieldUnitID] = true, ...}
 local shieldCoverages = {} -- [shieldUnitID] = {[unitID] = true, ...}
-local weaponIgnoreCoverage = {}
-local projectileIgnoreCoverage = {}
-local projectileExplosions = {} -- [projectileID] = { x, y, z, team }
-local projectileStoppedByShield = {}
-local highestWeapDefDamages = {}
-local armoredUnitDefs = {}
-local destroyedUnitData = {}
-local hasDestroyedData = false
 local shieldsNeedingUpdate = {} -- shields that are disabled or recovering from overkill
+local projectileIgnoreCoverage = {}
+local projectileExplosions = {} -- [projectileID] = { x, y, z, team, weaponDefID, frame, isStopped }
+local projectileStoppedByShield = {} -- [projectileID] = gameFrame
 
 local gameFrame = 0
+local hasDestroyedData = false
 
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
