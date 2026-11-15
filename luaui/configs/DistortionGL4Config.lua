@@ -2811,6 +2811,26 @@ local unitDistortions = {
 		},
 	},
 
+	corhltfus = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "emit",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 23,
+				noiseStrength = 3.3,
+				noiseScaleSpace = 1.5,
+				distanceFalloff = 0.5,
+				windAffected = -0.5,
+				riseRate = -0.7,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corafus = {
 		distortion = {
 			distortionType = "point",

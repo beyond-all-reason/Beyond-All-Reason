@@ -22,6 +22,7 @@ uniform float previewInactive; // 0 while the previewed jammer jams, 1 while it 
 uniform float stippleOffset; // radar cells the outline's stipple has travelled clockwise around the coverage
 uniform vec2 emitterXZ;     // world x, z of the previewed jammer's emitter, where the spawn ripple starts
 uniform vec2 alliedParams;  // allied coverage on (1) / off (0), its opacity
+uniform float fadeStrength; // 1: the sheet fades out from FADE_START to FADE_END elmos from the camera, 0: it doesn't
 
 // circle mode (SensorPreviewCircles): coverage as circles at the jammers' ranges instead of the engine's radar cells
 uniform float circleMode;       // 1 = circles, 0 = radar cells
@@ -50,6 +51,8 @@ const float outlineThinEnd = max(float(OUTLINE_THIN_END), outlineThinStart + 1.0
 const float outlineThinScale = float(OUTLINE_THIN_SCALE);
 const float outlineMinWidth = float(OUTLINE_MIN_WIDTH); // screen pixels
 const float offMapOutlineFade = max(float(OFFMAP_OUTLINE_FADE), 1.0); // elmos past the map's edge
+const float fadeStart = float(FADE_START); // elmos from the camera
+const float fadeEnd = max(float(FADE_END), fadeStart + 1.0);
 const float outlineDashes = float(OUTLINE_DASHES); // per radar cell side
 const float alliedAlpha = float(ALLIED_ALPHA);
 const float inactiveAlpha = float(INACTIVE_ALPHA);
@@ -197,8 +200,13 @@ void main() {
 	bool circles = circleMode > 0.5;
 	vec2 w = worldPos.xz;
 	float px = max(pixelCells.x, pixelCells.y) * cellSize; // elmos per pixel
+	float camDist = distance(camPos, worldPos);
+	float distanceFade = 1.0 - fadeStrength * smoothstep(fadeStart, fadeEnd, camDist);
+	if (distanceFade <= 0.0) {
+		discard; // faded out with the distance from the camera
+	}
 	// the outline's width factor: 1 up close, OUTLINE_THIN_SCALE from OUTLINE_THIN_END elmos from the camera on
-	float thin = mix(1.0, outlineThinScale, smoothstep(outlineThinStart, outlineThinEnd, distance(camPos, worldPos)));
+	float thin = mix(1.0, outlineThinScale, smoothstep(outlineThinStart, outlineThinEnd, camDist));
 	// past the map's edge there is no fill, and the outline fades out over OFFMAP_OUTLINE_FADE elmos
 	float offMapDist = distance(w, clamp(w, vec2(0.0), mapSize.xy)); // mapSize.xy: the map in elmos
 	float mapFill = clamp(1.0 - offMapDist / px, 0.0, 1.0);
@@ -314,5 +322,5 @@ void main() {
 	vec3 fillColor = mix(alliedColor, sheetColor, weight * (1.0 - inactive * allied));
 	float fillAlpha = sheetAlpha * fillFade * (1.0 - lineAlpha);
 	float alpha = lineAlpha + fillAlpha;
-	fragColor = vec4((outlineColor * lineAlpha + fillColor * fillAlpha) / max(alpha, 1e-4), alpha);
+	fragColor = vec4((outlineColor * lineAlpha + fillColor * fillAlpha) / max(alpha, 1e-4), alpha * distanceFade);
 }

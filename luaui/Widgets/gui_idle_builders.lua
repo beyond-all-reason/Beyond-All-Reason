@@ -51,12 +51,16 @@ local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetLocalTeamID()
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetCameraPosition = Spring.GetCameraPosition
+local spTraceScreenRay = Spring.TraceScreenRay
 
 local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
 local max = mathMax
 local math_isInRect = math.isInRect
+local math_distance2dSquared = math.distance2dSquared
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -83,7 +87,9 @@ local doUpdate = true
 
 local iconButtons = {}
 local existingIcons = {}
-local clicks = {}
+local cycleOriginX, cycleOriginZ -- kept for clicks that move the camera
+local lastSelectedUnitID
+local visitedUnits = {} ---@type table<UnitDefID, table<UnitID, true?>>
 local unitList = {}
 
 local idleList = {}
@@ -501,7 +507,7 @@ local function updateList(force)
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4] - backgroundRect[2]), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(
@@ -517,7 +523,7 @@ local function updateList(force)
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth) * 2, mathFloor(backgroundRect[4] - backgroundRect[2]) * 2, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -530,6 +536,50 @@ local function updateList(force)
 			drawContent,
 			true
 		)
+	end
+end
+
+local getNextIdleUnit ---@type fun(unitDefID:UnitDefID, button:integer):UnitID?
+do
+	local function getViewCenter()
+		local _, position = spTraceScreenRay(floor(vsx * 0.5), floor(vsy * 0.5), true)
+		if position then
+			return position[1], position[3]
+		end
+		local cameraX, _, cameraZ = spGetCameraPosition()
+		return cameraX, cameraZ
+	end
+
+	local function getNearestUnvisitedUnit(unitDefID)
+		local units, visited = idleList[unitDefID], visitedUnits[unitDefID]
+		local nearestUnitID, nearestDistance
+		for i = 1, #units do
+			local unitID = units[i]
+			local unitX, _, unitZ = spGetUnitPosition(unitID)
+			if unitX and not visited[unitID] then
+				local distance = math_distance2dSquared(unitX, unitZ, cycleOriginX, cycleOriginZ)
+				if not nearestDistance or distance < nearestDistance then
+					nearestUnitID, nearestDistance = unitID, distance
+				end
+			end
+		end
+		return nearestUnitID
+	end
+
+	getNextIdleUnit = function(unitDefID, button)
+		if button == 1 or not cycleOriginX then
+			cycleOriginX, cycleOriginZ = getViewCenter()
+		end
+		visitedUnits[unitDefID] = visitedUnits[unitDefID] or {}
+		local unitID = getNearestUnvisitedUnit(unitDefID)
+		if not unitID then
+			visitedUnits[unitDefID] = {}
+			unitID = getNearestUnvisitedUnit(unitDefID)
+		end
+		if unitID then
+			visitedUnits[unitDefID][unitID] = true
+		end
+		return unitID
 	end
 end
 
@@ -859,16 +909,8 @@ function widget:MousePress(x, y, button)
 						if shift then
 							units = idleList[unitDefID]
 						else
-							local num = 1
-							if #idleList[unitDefID] > 1 then
-								if clicks[unitDefID] then
-									clicks[unitDefID] = clicks[unitDefID] + 1
-								else
-									clicks[unitDefID] = 1
-								end
-								num = clicks[unitDefID] % #idleList[unitDefID] + 1
-							end
-							units = { idleList[unitDefID][num] }
+							lastSelectedUnitID = getNextIdleUnit(unitDefID, button)
+							units = { lastSelectedUnitID }
 						end
 						Spring.SelectUnitArray(units)
 					end
@@ -888,6 +930,11 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
+	if #selectedUnits ~= 1 or selectedUnits[1] ~= lastSelectedUnitID then
+		visitedUnits = {}
+		lastSelectedUnitID = nil
+		cycleOriginX, cycleOriginZ = nil, nil
+	end
 end
 
 function widget:GetConfigData()

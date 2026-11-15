@@ -1,5 +1,6 @@
 --- Build options changed at runtime by api_dynamic_build_options.lua, published in the game rules param
 --- "dynamic_build_options" as "<builderUnitDefID>:<builtUnitDefID>:<1 added / 0 removed>" entries.
+--- A team rules param of the same name holds one team's own changes.
 local dynamicBuildOptions = {}
 
 local RULES_PARAM = "dynamic_build_options"
@@ -7,7 +8,8 @@ local RULES_PARAM = "dynamic_build_options"
 --- Publishes the changes (synced).
 ---@param added table<number, table<number, any>?> builder UnitDefID -> added built UnitDefIDs (keys)
 ---@param removed table<number, table<number, any>?> builder UnitDefID -> removed built UnitDefIDs (keys)
-function dynamicBuildOptions.publish(added, removed)
+---@param teamID integer? the team the changes are for; nil for every team
+function dynamicBuildOptions.publish(added, removed, teamID)
 	local entries = {}
 	for builderDefID, options in pairs(added) do
 		for builtDefID in pairs(options) do
@@ -19,17 +21,29 @@ function dynamicBuildOptions.publish(added, removed)
 			entries[#entries + 1] = builderDefID .. ":" .. builtDefID .. ":0"
 		end
 	end
-	Spring.SetGameRulesParam(RULES_PARAM, entries[1] and table.concat(entries, ",") or nil)
+	local encoded = entries[1] and table.concat(entries, ",") or nil
+	if teamID then
+		Spring.SetTeamRulesParam(teamID, RULES_PARAM, encoded)
+	else
+		Spring.SetGameRulesParam(RULES_PARAM, encoded)
+	end
 end
 
---- Reads the published changes; the param is unset while there are none.
----@return table<number, table<number, boolean>> changes builder UnitDefID -> built UnitDefID -> added
-function dynamicBuildOptions.getChanges()
-	local changes = {}
-	local encoded = Spring.GetGameRulesParam(RULES_PARAM) or ""
-	for _, entry in ipairs(string.split(encoded, ",")) do
+local function decode(changes, encoded)
+	for _, entry in ipairs(string.split(encoded or "", ",")) do
 		local fields = string.split(entry, ":")
 		table.ensureTable(changes, tonumber(fields[1]))[tonumber(fields[2])] = fields[3] == "1"
+	end
+end
+
+--- Reads the published changes; the params are unset while there are none.
+---@param teamID integer? also that team's own changes, which win over the ones for every team
+---@return table<number, table<number, boolean>> changes builder UnitDefID -> built UnitDefID -> added
+function dynamicBuildOptions.getChanges(teamID)
+	local changes = {}
+	decode(changes, Spring.GetGameRulesParam(RULES_PARAM))
+	if teamID then
+		decode(changes, Spring.GetTeamRulesParam(teamID, RULES_PARAM))
 	end
 	return changes
 end
@@ -49,8 +63,9 @@ end
 
 --- Applies all published changes to copies of unit defs' build options.
 ---@param unitBuildOptions table<number, number[]?> UnitDefID -> build options, patched in place
-function dynamicBuildOptions.apply(unitBuildOptions)
-	for builderDefID, options in pairs(dynamicBuildOptions.getChanges()) do
+---@param teamID integer? also apply that team's own changes
+function dynamicBuildOptions.apply(unitBuildOptions, teamID)
+	for builderDefID, options in pairs(dynamicBuildOptions.getChanges(teamID)) do
 		local buildOptions = unitBuildOptions[builderDefID]
 		if buildOptions then
 			for builtDefID, added in pairs(options) do

@@ -15,10 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spring = Spring
-local modOptions = spring.GetModOptions()
-local modOptionEnabled = modOptions.zombies ~= "disabled"
-local isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
-if not modOptionEnabled and not isIdleMode then
+if spring.GetModOptions().zombies == "disabled" and not (GG.Zombies and GG.Zombies.IdleMode == true) then
 	return false
 end
 
@@ -32,27 +29,38 @@ local DEGREES_TO_RADIANS = math.pi / 180
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3
 local STUCK_CHECK_INTERVAL = Game.gameSpeed * 12
+local STUCK_SELF_DESTRUCT_INTERVAL = Game.gameSpeed * 60 * 3
 local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
 local AGGRO_DURATION = Game.gameSpeed * 60
 local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
+local WRAITH_ORDER_COOLDOWN = Game.gameSpeed * 5
 
 local STUCK_DISTANCE = 50
 local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
+local STUCK_SELF_DESTRUCT_DISTANCE = 300
+local STUCK_SELF_DESTRUCT_DISTANCE_SQUARED = STUCK_SELF_DESTRUCT_DISTANCE ^ 2
 local NOGO_ZONE_RADIUS = 600
 local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
+local CONSTRUCTOR_SEARCH_DISTANCE = 400
+local CONSTRUCTOR_SEARCH_DISTANCE_SQUARED = CONSTRUCTOR_SEARCH_DISTANCE ^ 2
+local WRAITH_ENEMY_RADIUS = 250
+local WRAITH_ENEMY_RADIUS_SQUARED = WRAITH_ENEMY_RADIUS * WRAITH_ENEMY_RADIUS
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
 local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE ^ 2
-local COMBAT_TARGET_MOVE_REFRESH_DISTANCE = 100
+local HOP_ARRIVAL_DISTANCE = 400
+local HOP_ARRIVAL_DISTANCE_SQUARED = HOP_ARRIVAL_DISTANCE ^ 2
+local COMBAT_TARGET_MOVE_REFRESH_DISTANCE = 250
 local COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED = COMBAT_TARGET_MOVE_REFRESH_DISTANCE ^ 2
 local POSITION_VARIANCE = 50
 
 local ZOMBIE_MAX_ORDER_ATTEMPTS = 10
 local ZOMBIE_FACTORY_BUILD_COUNT = 20
 local MAX_NOGO_ZONES = 10
-local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1 -- the threshold of relative power where zombies stop wandering and swarm players 
+local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1 -- the threshold of relative power where zombies stop wandering and swarm players
 local COMBAT_ENGAGE_RANGE_RATIO = 0.5
+local WEAPON_RANGE_TO_FIGHT_INSTEAD = 150
 
 local NORMAL_OBJECTIVE_ANGLE_VARIANCE = 90 * DEGREES_TO_RADIANS
 local AGGRO_OBJECTIVE_ANGLE_VARIANCE = 22.5 * DEGREES_TO_RADIANS
@@ -67,8 +75,10 @@ local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_MOVE = CMD.MOVE
 local CMD_FIGHT = CMD.FIGHT
 local CMD_CAPTURE = CMD.CAPTURE
+local CMD_RECLAIM = CMD.RECLAIM
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_STOP = CMD.STOP
+local CMD_SELF_DESTRUCT = CMD.SELFD
 local CMD_OPT_SHIFT = { "shift" }
 
 local FIRE_STATE_FIRE_AT_ALL = 3
@@ -82,10 +92,14 @@ local ENVIRONMENTAL_DAMAGE_ID = Game.envDamageTypes.GroundCollision
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 local MAP_PERIMETER = 2 * (MAP_SIZE_X + MAP_SIZE_Z)
+local WATER_IS_LAVA = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
 local FEATURE_ID_OFFSET = Game.maxUnits
 local OBJECTIVE_TYPE_NORMAL = 1
 local OBJECTIVE_TYPE_AGGRO = 2
+local ENEMY_DIRECTION_TOWARD = 1
+local ENEMY_DIRECTION_AWAY = -1
 
+local clamp = math.clamp
 local spGetUnitNearestEnemy = spring.GetUnitNearestEnemy
 local spValidUnitID = spring.ValidUnitID
 local spGetGroundHeight = spring.GetGroundHeight
@@ -95,24 +109,22 @@ local spGiveOrderToUnit = spring.GiveOrderToUnit
 local spGiveOrderArrayToUnit = spring.GiveOrderArrayToUnit
 local spGetFactoryCommandCount = spring.GetFactoryCommandCount
 local spGetUnitIsDead = spring.GetUnitIsDead
+local spGetUnitIsBeingBuilt = spring.GetUnitIsBeingBuilt
 local spGetUnitHealth = spring.GetUnitHealth
 local spGetUnitRulesParam = spring.GetUnitRulesParam
 local spTestMoveOrder = spring.TestMoveOrder
 local spGetUnitCurrentCommand = spring.GetUnitCurrentCommand
-local spGetUnitHeight = spring.GetUnitHeight
 local spGetUnitTeam = spring.GetUnitTeam
 local spGetUnitLosState = spring.GetUnitLosState
-local spGetUnitIsBeingBuilt = spring.GetUnitIsBeingBuilt
 local spGetUnitsInCylinder = spring.GetUnitsInCylinder
-local spGetFeaturesInCylinder = spring.GetFeaturesInCylinder
-local spGetFeatureResurrect = spring.GetFeatureResurrect
-local spGetFeaturePosition = spring.GetFeaturePosition
 local spGetUnitWorkerTask = spring.GetUnitWorkerTask
 local spAreTeamsAllied = spring.AreTeamsAllied
+local spGetClosestEnemyUnit = spring.GetClosestEnemyUnit
 
 local gaiaTeamID = spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
 local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
+local IS_PVE_GAME = BAR.Utilities.Gametype.IsScavengers() or BAR.Utilities.Gametype.IsRaptors()
 local scavTeamID
 for _, teamID in ipairs(spring.GetTeamList()) do
 	local teamLuaAI = spring.GetTeamLuaAI(teamID)
@@ -128,25 +140,42 @@ local autoOrdersSuspended = false
 local gameFrame = 0
 local totalMobileZombiePower = 0
 local aggroExpirationTimestamp = 0
+local permanentlyAggro = false
 
 local mobileUnitDefs = {}
 local aircraftUnitDefs = {}
-local factoriesWithCombatOptions = {}
+local fightCommandUnitDefs = {}
+local factoriesWithWantedOptions = {}
 local unitDefWeaponRanges = {}
 local capturingUnits = {}
+local objectifyUnitDefs = {}
 local resurrectingUnits = {}
 local zombieAggros = {}
 local allyTeamUnits = {}
+local teamAllyTeamIDs = {}
 local unitAllyTeamIDs = {}
 local unitAllyTeamIndices = {}
 local zombieWatch = {}
+local wraithWatch = {}
 local flyingUnits = {}
 local zombieOrderBuckets = {}
 local zombieStuckBuckets = {}
+local trackedUnitData = {
+	canFly = {},
+	height = {},
+	capturableOrObjective = {},
+	defIDs = {},
+	teamIDs = {},
+	airEngage = {},
+	groundEngage = {},
+}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canCapture then
 		capturingUnits[unitDefID] = true
+	end
+	if unitDef.customParams and unitDef.customParams.objectify then
+		objectifyUnitDefs[unitDefID] = true
 	end
 	if unitDef.canResurrect then
 		resurrectingUnits[unitDefID] = true
@@ -168,9 +197,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 					and weaponDef.range > 0
 					and not (weaponDef.customParams and weaponDef.customParams.bogus)
 				then
-					local isAAWeapon = weapon.onlyTargets
-						and weapon.onlyTargets.vtol
-						and not weapon.onlyTargets.ground
+					local isAAWeapon = weapon.onlyTargets and weapon.onlyTargets.vtol and not weapon.onlyTargets.ground
 					local isUnderwaterOnly = weaponDef.type == "TorpedoLauncher"
 
 					if isAAWeapon then
@@ -183,8 +210,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 							maximumAirWeaponRange = math.max(maximumAirWeaponRange, weaponDef.range)
 						end
 						if weaponDef.waterWeapon then
-							maximumUnderwaterWeaponRange =
-								math.max(maximumUnderwaterWeaponRange, weaponDef.range)
+							maximumUnderwaterWeaponRange = math.max(maximumUnderwaterWeaponRange, weaponDef.range)
 						end
 					end
 				end
@@ -199,6 +225,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			}
 		end
 	end
+	local isObjective = objectifyUnitDefs[unitDefID] == true
+	trackedUnitData.canFly[unitDefID] = unitDef.canFly == true
+	trackedUnitData.height[unitDefID] = unitDef.height or 0
+	trackedUnitData.capturableOrObjective[unitDefID] = isObjective or unitDef.capturable ~= false
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -208,16 +238,33 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			aircraftUnitDefs[unitDefID] = true
 		end
 	elseif #unitDef.buildOptions > 0 then
-		local combatOptions = {}
+		local wantedOptions = {}
 		for optionIndex = 1, #unitDef.buildOptions do
 			local optionDefID = unitDef.buildOptions[optionIndex]
-			if unitDefWeaponRanges[optionDefID] then
-				combatOptions[#combatOptions + 1] = optionDefID
+			local optionDef = UnitDefs[optionDefID]
+			local isConstructor = optionDef and optionDef.isBuilder and optionDef.speed > 0
+			local isResurrector = optionDef and optionDef.canResurrect
+			local isExcluded = optionDef and optionDef.customParams.zombie_factory_exclude
+			if not isExcluded and (unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector) then
+				wantedOptions[#wantedOptions + 1] = optionDefID
 			end
 		end
-		if #combatOptions > 0 then
-			factoriesWithCombatOptions[unitDefID] = combatOptions
+		if #wantedOptions > 0 then
+			factoriesWithWantedOptions[unitDefID] = wantedOptions
 		end
+	end
+
+	local weaponRanges = unitDefWeaponRanges[unitDefID]
+	local maximumWeaponRange = 0
+	if weaponRanges then
+		maximumWeaponRange = math.max(weaponRanges.ground, weaponRanges.air, weaponRanges.underwater)
+	end
+	if
+		aircraftUnitDefs[unitDefID]
+		or unitDef.canKamikaze
+		or (maximumWeaponRange > 0 and maximumWeaponRange < WEAPON_RANGE_TO_FIGHT_INSTEAD)
+	then
+		fightCommandUnitDefs[unitDefID] = true
 	end
 end
 
@@ -247,8 +294,18 @@ local function unwatchZombie(unitID)
 	if mobileUnitDefs[zombieData.unitDefID] then
 		totalMobileZombiePower = totalMobileZombiePower - zombieData.power
 	end
-	removeZombieFromBucket(unitID, zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1], zombieData.orderBucketIndex, "orderBucketIndex")
-	removeZombieFromBucket(unitID, zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1], zombieData.stuckBucketIndex, "stuckBucketIndex")
+	removeZombieFromBucket(
+		unitID,
+		zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1],
+		zombieData.orderBucketIndex,
+		"orderBucketIndex"
+	)
+	removeZombieFromBucket(
+		unitID,
+		zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1],
+		zombieData.stuckBucketIndex,
+		"stuckBucketIndex"
+	)
 	zombieWatch[unitID] = nil
 	zombieAggros[unitID] = nil
 end
@@ -258,10 +315,19 @@ local function setAggroExpiration()
 end
 
 local function getActiveZombieAggro(unitID)
-	if gameFrame >= aggroExpirationTimestamp then
+	if not permanentlyAggro and gameFrame >= aggroExpirationTimestamp then
 		return nil
 	end
 	return zombieAggros[unitID]
+end
+
+local function getTeamAllyTeamID(teamID)
+	local allyTeamID = teamAllyTeamIDs[teamID]
+	if not allyTeamID then
+		allyTeamID = select(6, spring.GetTeamInfo(teamID, false))
+		teamAllyTeamIDs[teamID] = allyTeamID
+	end
+	return allyTeamID
 end
 
 local function addAllyTeamUnit(unitID, allyTeamID)
@@ -297,15 +363,28 @@ local function removeAllyTeamUnit(unitID)
 	unitAllyTeamIndices[unitID] = nil
 end
 
+local function rememberUnitIdentity(unitID, unitDefID, unitTeamID)
+	trackedUnitData.defIDs[unitID] = unitDefID
+	trackedUnitData.teamIDs[unitID] = unitTeamID
+end
+
+local function forgetUnitIdentity(unitID)
+	trackedUnitData.defIDs[unitID] = nil
+	trackedUnitData.teamIDs[unitID] = nil
+end
+
 local function isZombie(unitID)
 	return spGetUnitRulesParam(unitID, "zombie") == 1
 end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID, buildCount)
-	local combatOptions = factoriesWithCombatOptions[unitDefID]
+	local wantedOptions = factoriesWithWantedOptions[unitDefID]
+	if not wantedOptions then
+		return
+	end
 	local buildOrders = {}
 	for buildIndex = 1, buildCount do
-		buildOrders[#buildOrders + 1] = { -combatOptions[random(1, #combatOptions)], 0, 0 }
+		buildOrders[#buildOrders + 1] = { -wantedOptions[random(1, #wantedOptions)], 0, 0 }
 	end
 	spGiveOrderArrayToUnit(unitID, buildOrders)
 end
@@ -316,16 +395,87 @@ local function clearUnitOrders(unitID)
 	end
 end
 
-local function getWeaponRangeForTarget(attackerDefID, targetID, targetYPosition)
+local function rememberEngage(engageByAttacker, attackerDefID, targetDefID, canEngage)
+	local engageByTarget = engageByAttacker[attackerDefID]
+	if not engageByTarget then
+		engageByTarget = {}
+		engageByAttacker[attackerDefID] = engageByTarget
+	end
+	engageByTarget[targetDefID] = canEngage
+	return canEngage
+end
+
+local function canEngageAirTargetDef(attackerDefID, targetDefID)
+	local engageByTarget = trackedUnitData.airEngage[attackerDefID]
+	local cachedEngage = engageByTarget and engageByTarget[targetDefID]
+	if cachedEngage ~= nil then
+		return cachedEngage
+	end
+	local weaponRanges = unitDefWeaponRanges[attackerDefID] ---@as { ground: number, air: number, underwater: number }?
+	local canEngage = weaponRanges ~= nil and weaponRanges.air > 0
+	if not canEngage and capturingUnits[attackerDefID] and trackedUnitData.capturableOrObjective[targetDefID] then
+		canEngage = true
+	end
+	return rememberEngage(trackedUnitData.airEngage, attackerDefID, targetDefID, canEngage)
+end
+
+local function canEngageGroundTargetDef(attackerDefID, targetDefID)
+	local engageByTarget = trackedUnitData.groundEngage[attackerDefID]
+	local cachedEngage = engageByTarget and engageByTarget[targetDefID]
+	if cachedEngage ~= nil then
+		return cachedEngage
+	end
+	local weaponRanges = unitDefWeaponRanges[attackerDefID] ---@as { ground: number, air: number, underwater: number }?
+	local canEngage = weaponRanges ~= nil and (weaponRanges.ground > 0 or weaponRanges.underwater > 0)
+	if not canEngage and capturingUnits[attackerDefID] and trackedUnitData.capturableOrObjective[targetDefID] then
+		canEngage = true
+	end
+	return rememberEngage(trackedUnitData.groundEngage, attackerDefID, targetDefID, canEngage)
+end
+
+local function attackerMightEngage(attackerDefID, targetDefID, targetID)
+	if not targetDefID then
+		return true
+	end
+	if trackedUnitData.canFly[targetDefID] or flyingUnits[targetID] then
+		return canEngageAirTargetDef(attackerDefID, targetDefID)
+	end
+	return canEngageGroundTargetDef(attackerDefID, targetDefID)
+end
+
+local function cachedUnitDefID(unitID)
+	local cachedDefID = trackedUnitData.defIDs[unitID] ---@as UnitDefID?
+	if cachedDefID then
+		return cachedDefID
+	end
+	cachedDefID = spGetUnitDefID(unitID)
+	if cachedDefID then
+		trackedUnitData.defIDs[unitID] = cachedDefID
+	end
+	return cachedDefID
+end
+
+local function cachedUnitTeamID(unitID)
+	local cachedTeamID = trackedUnitData.teamIDs[unitID] ---@as TeamID?
+	if cachedTeamID then
+		return cachedTeamID
+	end
+	cachedTeamID = spGetUnitTeam(unitID)
+	if cachedTeamID then
+		trackedUnitData.teamIDs[unitID] = cachedTeamID
+	end
+	return cachedTeamID
+end
+
+local function getWeaponRangeForTarget(attackerDefID, targetID, targetDefID, targetYPosition)
 	local weaponRanges = unitDefWeaponRanges[attackerDefID]
 	if not weaponRanges then
 		return
 	end
-	local targetDef = UnitDefs[spGetUnitDefID(targetID)]
 	local weaponRange
-	if flyingUnits[targetID] or targetDef.canFly then
+	if flyingUnits[targetID] or trackedUnitData.canFly[targetDefID] then
 		weaponRange = weaponRanges.air
-	elseif targetYPosition + (spGetUnitHeight(targetID) or 0) < 0 then
+	elseif targetYPosition + (trackedUnitData.height[targetDefID] or 0) < 0 then
 		weaponRange = weaponRanges.underwater
 	else
 		weaponRange = weaponRanges.ground
@@ -341,63 +491,148 @@ local function isUnitInGaiaLos(unitID)
 	return losState and losState % 2 == 1 -- raw LOS mask: odd means currently in Gaia sight
 end
 
+local function isPositionInLava(positionY)
+	return WATER_IS_LAVA and _G.lavaLevel ~= nil and positionY < _G.lavaLevel
+end
+
 local function getCombatTargetData(unitDefID, targetID)
-	if not targetID or not spValidUnitID(targetID) or spGetUnitIsDead(targetID) then
+	if not targetID or spGetUnitIsDead(targetID) ~= false then
 		return
 	end
-	local targetTeamID = spGetUnitTeam(targetID)
+	local targetTeamID = cachedUnitTeamID(targetID)
 	if not targetTeamID or spAreTeamsAllied(gaiaTeamID, targetTeamID) then
 		return
 	end
-	local targetX, targetY, targetZ = spGetUnitPosition(targetID)
-	if not targetX then
+	local targetDefID = cachedUnitDefID(targetID)
+	if targetDefID and not attackerMightEngage(unitDefID, targetDefID, targetID) then
 		return
 	end
-	local targetDefID = spGetUnitDefID(targetID)
-	local shouldCapture = capturingUnits[unitDefID]
-		and UnitDefs[targetDefID].capturable ~= false
+	local targetX, targetY, targetZ = spGetUnitPosition(targetID)
+	if not targetX or not targetDefID then
+		return
+	end
+	local isObjective = objectifyUnitDefs[targetDefID] == true
+	local targetIsTakeable = capturingUnits[unitDefID]
+		and trackedUnitData.capturableOrObjective[targetDefID]
 		and not spGetUnitIsBeingBuilt(targetID)
 		and isUnitInGaiaLos(targetID)
-	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetY)
-	if shouldCapture or (weaponRange and weaponRange > 0) then
-		return targetX, targetZ, shouldCapture, weaponRange
+	local shouldReclaim = targetIsTakeable and isObjective
+	local shouldCapture = targetIsTakeable and not isObjective and not isPositionInLava(targetY)
+	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetDefID, targetY)
+	if shouldReclaim or shouldCapture or (weaponRange and weaponRange > 0) then
+		return targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
 	end
 end
 
-local function getNearestCombatTarget(unitID, unitDefID)
+local function restrictCaptureToSearchDistance(
+	unitID,
+	unitX,
+	unitZ,
+	targetX,
+	targetZ,
+	shouldCapture,
+	weaponRange,
+	shouldReclaim
+)
+	if not targetX or not shouldCapture then
+		return unitX, unitZ, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
+	end
+	if not unitX then
+		unitX, _, unitZ = spGetUnitPosition(unitID)
+	end
+	if unitX and distance2dSquared(unitX, unitZ, targetX, targetZ) <= CONSTRUCTOR_SEARCH_DISTANCE_SQUARED then
+		return unitX, unitZ, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
+	end
+	if weaponRange and weaponRange > 0 then
+		return unitX, unitZ, targetX, targetZ, false, weaponRange, shouldReclaim
+	end
+	return unitX, unitZ
+end
+
+local function getNearestCombatTarget(unitID, unitDefID, unitX, unitZ)
 	local nearestEnemyID = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
-	local targetX, targetZ, shouldCapture, weaponRange = getCombatTargetData(unitDefID, nearestEnemyID)
+	if not nearestEnemyID then
+		return
+	end
+	local targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, nearestEnemyID)
 	if targetX then
-		return nearestEnemyID, targetX, targetZ, shouldCapture, weaponRange
+		unitX, unitZ, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = restrictCaptureToSearchDistance(
+			unitID,
+			unitX,
+			unitZ,
+			targetX,
+			targetZ,
+			shouldCapture,
+			weaponRange,
+			shouldReclaim
+		)
+		if targetX then
+			return nearestEnemyID, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
+		end
 	end
 
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		unitX, _, unitZ = spGetUnitPosition(unitID)
+	end
 	if not unitX then
 		return
 	end
-	local enemyUnits = CallAsTeam(readAsGaia, spGetUnitsInCylinder, unitX, unitZ, ENEMY_ATTACK_DISTANCE, spring.ENEMY_UNITS) -- nearest-enemy API can return an unshootable unit, so fall back to a cylinder scan
-	local bestTargetID
-	local bestTargetX
-	local bestTargetZ
-	local bestShouldCapture
-	local bestWeaponRange
-	local bestDistanceSquared
+	local enemyUnits =
+		CallAsTeam(readAsGaia, spGetUnitsInCylinder, unitX, unitZ, ENEMY_ATTACK_DISTANCE, spring.ENEMY_UNITS) -- nearest-enemy API can return an unshootable unit, so fall back to a cylinder scan
+	local chosenTargetID
+	local chosenTargetX
+	local chosenTargetZ
+	local chosenShouldCapture
+	local chosenWeaponRange
+	local chosenShouldReclaim
+	local validTargetCount = 0
 	for enemyIndex = 1, #enemyUnits do
 		local enemyID = enemyUnits[enemyIndex]
-		targetX, targetZ, shouldCapture, weaponRange = getCombatTargetData(unitDefID, enemyID)
-		if targetX then
-			local targetDistanceSquared = distance2dSquared(unitX, unitZ, targetX, targetZ)
-			if not bestDistanceSquared or targetDistanceSquared < bestDistanceSquared then
-				bestTargetID = enemyID
-				bestTargetX = targetX
-				bestTargetZ = targetZ
-				bestShouldCapture = shouldCapture
-				bestWeaponRange = weaponRange
-				bestDistanceSquared = targetDistanceSquared
+		if enemyID ~= nearestEnemyID then
+			local enemyDefID = cachedUnitDefID(enemyID)
+			if attackerMightEngage(unitDefID, enemyDefID, enemyID) then
+				targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, enemyID)
+				if targetX then
+					unitX, unitZ, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim =
+						restrictCaptureToSearchDistance(
+							unitID,
+							unitX,
+							unitZ,
+							targetX,
+							targetZ,
+							shouldCapture,
+							weaponRange,
+							shouldReclaim
+						)
+				end
+				if targetX then
+					validTargetCount = validTargetCount + 1
+					if random(1, validTargetCount) == 1 then
+						chosenTargetID = enemyID
+						chosenTargetX = targetX
+						chosenTargetZ = targetZ
+						chosenShouldCapture = shouldCapture
+						chosenWeaponRange = weaponRange
+						chosenShouldReclaim = shouldReclaim
+					end
+				end
 			end
 		end
 	end
-	return bestTargetID, bestTargetX, bestTargetZ, bestShouldCapture, bestWeaponRange
+	return chosenTargetID, chosenTargetX, chosenTargetZ, chosenShouldCapture, chosenWeaponRange, chosenShouldReclaim
+end
+
+local function clampToMap(position, mapSize)
+	return clamp(position, POSITION_VARIANCE, mapSize - POSITION_VARIANCE)
+end
+
+local function mapEdgeScale(origin, delta, mapSize)
+	if delta > 0 then
+		return (mapSize - origin) / delta
+	elseif delta < 0 then
+		return -origin / delta
+	end
+	return math.huge
 end
 
 local function setRandomEdgeObjective(zombieData)
@@ -417,8 +652,8 @@ local function setRandomEdgeObjective(zombieData)
 		objectiveX = 0
 		objectiveZ = MAP_PERIMETER - perimeterPosition
 	end
-	objectiveX = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_X - POSITION_VARIANCE, objectiveX))
-	objectiveZ = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_Z - POSITION_VARIANCE, objectiveZ))
+	objectiveX = clampToMap(objectiveX, MAP_SIZE_X)
+	objectiveZ = clampToMap(objectiveZ, MAP_SIZE_Z)
 	zombieData.objective = { type = OBJECTIVE_TYPE_NORMAL, x = objectiveX, z = objectiveZ }
 end
 
@@ -489,17 +724,21 @@ local function isObjectiveReached(unitID, objective, unitX, unitZ)
 	return distance2dSquared(unitX, unitZ, objective.x, objective.z) <= OBJECTIVE_REACHED_DISTANCE_SQUARED
 end
 
-local function isAggroObjectiveValid(unitID, objective, allyTeamID)
+local function isAggroObjectiveValid(unitID, objective, allyTeamID, unitX, unitZ)
 	if
 		not objective
 		or objective.type ~= OBJECTIVE_TYPE_AGGRO
-		or not spValidUnitID(objective.targetUnitID)
-		or spGetUnitIsDead(objective.targetUnitID)
 		or unitAllyTeamIDs[objective.targetUnitID] ~= allyTeamID
 	then
 		return false
 	end
-	return not isObjectiveReached(unitID, objective)
+	return not isObjectiveReached(unitID, objective, unitX, unitZ)
+end
+
+local function hasLiveAggroObjective(objective, allyTeamID)
+	return objective
+		and objective.type == OBJECTIVE_TYPE_AGGRO
+		and unitAllyTeamIDs[objective.targetUnitID] == allyTeamID
 end
 
 local function assignZombieAggroEvenly()
@@ -507,7 +746,7 @@ local function assignZombieAggroEvenly()
 	local teamPowers = GG.PowerLib.TeamPowers
 	local allyPowers = {}
 	for teamID in pairs(playerTeams) do
-		local allyTeamID = select(6, spring.GetTeamInfo(teamID))
+		local allyTeamID = getTeamAllyTeamID(teamID)
 		local teamPower = teamPowers[teamID] or 0
 		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
 	end
@@ -515,7 +754,8 @@ local function assignZombieAggroEvenly()
 	local eligibleAllies = {}
 	local eligibleAlliesByID = {}
 	for allyTeamID, allyPower in pairs(allyPowers) do
-		if allyPower > 0 and getRandomValidAllyTeamUnit(allyTeamID) then
+		local allyUnitList = allyTeamUnits[allyTeamID] ---@as UnitID[]?
+		if allyPower > 0 and allyUnitList and #allyUnitList > 0 then
 			local allyData = {
 				allyTeamID = allyTeamID,
 				assignedPower = 0,
@@ -530,14 +770,18 @@ local function assignZombieAggroEvenly()
 		if mobileUnitDefs[zombieData.unitDefID] then
 			local allyTeamID = zombieAggros[unitID]
 			local allyData = allyTeamID and eligibleAlliesByID[allyTeamID]
-			if allyData and isAggroObjectiveValid(unitID, zombieData.objective, allyTeamID) then
+			if
+				allyData
+				and hasLiveAggroObjective(zombieData.objective, allyTeamID)
+				and not zombieData.aggroObjectiveReached
+			then
 				allyData.assignedPower = allyData.assignedPower + zombieData.power
 			else
+				zombieData.aggroObjectiveReached = nil
 				zombieAggros[unitID] = nil
 				if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
 					zombieData.objective = nil
 				end
-				clearUnitOrders(unitID)
 				zombiesNeedingAggro[#zombiesNeedingAggro + 1] = {
 					unitID = unitID,
 					power = zombieData.power,
@@ -567,38 +811,60 @@ local function assignZombieAggroEvenly()
 	end
 end
 
-local function rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
-	if not unitX then
-		return
+local function knownUnitXZ(unitID, knownX, knownZ)
+	if knownX then
+		return knownX, knownZ
 	end
-	local deltaX = targetX - unitX
-	local deltaZ = targetZ - unitZ
-	if deltaX == 0 and deltaZ == 0 then
-		return
-	end
-	local xScale = math.huge -- project the enemy bearing out to the map edge for later pursuit
-	if deltaX > 0 then
-		xScale = (MAP_SIZE_X - unitX) / deltaX
-	elseif deltaX < 0 then
-		xScale = -unitX / deltaX
-	end
-	local zScale = math.huge
-	if deltaZ > 0 then
-		zScale = (MAP_SIZE_Z - unitZ) / deltaZ
-	elseif deltaZ < 0 then
-		zScale = -unitZ / deltaZ
-	end
-	local boundaryScale = math.min(xScale, zScale)
-	zombieData.rememberedObjectiveX = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_X - POSITION_VARIANCE, unitX + deltaX * boundaryScale))
-	zombieData.rememberedObjectiveZ = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_Z - POSITION_VARIANCE, unitZ + deltaZ * boundaryScale))
+	local fetchedX, _, fetchedZ = spGetUnitPosition(unitID)
+	return fetchedX, fetchedZ
 end
 
-local function ensureMovementObjective(unitID, zombieData, allyTeamID)
+local function setEnemyDirectionObjective(unitID, zombieData, targetX, targetZ, enemyDirection, unitX, unitZ)
+	unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
+	if not unitX then
+		return false
+	end
+	local deltaX = (targetX - unitX) * enemyDirection
+	local deltaZ = (targetZ - unitZ) * enemyDirection
+	if deltaX == 0 and deltaZ == 0 then
+		return false
+	end
+	local boundaryScale = math.min( -- project the enemy bearing out to the map edge
+		mapEdgeScale(unitX, deltaX, MAP_SIZE_X),
+		mapEdgeScale(unitZ, deltaZ, MAP_SIZE_Z)
+	)
+	zombieData.rememberedObjectiveX = clampToMap(unitX + deltaX * boundaryScale, MAP_SIZE_X)
+	zombieData.rememberedObjectiveZ = clampToMap(unitZ + deltaZ * boundaryScale, MAP_SIZE_Z)
+	if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
+		return false
+	end
+	zombieData.objective = {
+		type = OBJECTIVE_TYPE_NORMAL,
+		x = zombieData.rememberedObjectiveX,
+		z = zombieData.rememberedObjectiveZ,
+	}
+	return true
+end
+
+local function objectiveIsRememberedEdge(zombieData, objective)
+	return zombieData.rememberedObjectiveX
+		and objective
+		and objective.type == OBJECTIVE_TYPE_NORMAL
+		and objective.x == zombieData.rememberedObjectiveX
+		and objective.z == zombieData.rememberedObjectiveZ
+end
+
+local function ensureMovementObjective(unitID, zombieData, allyTeamID, unitX, unitZ)
 	local objective = zombieData.objective -- aggro target, else last-seen enemy edge, else a new map-edge wander
+	if not unitX and (objective or zombieData.rememberedObjectiveX) then
+		unitX, _, unitZ = spGetUnitPosition(unitID)
+	end
 	if allyTeamID then
-		if isAggroObjectiveValid(unitID, objective, allyTeamID) then
+		if isAggroObjectiveValid(unitID, objective, allyTeamID, unitX, unitZ) then
 			return objective, false
+		end
+		if hasLiveAggroObjective(objective, allyTeamID) then
+			zombieData.aggroObjectiveReached = true
 		end
 		if objective and objective.type == OBJECTIVE_TYPE_AGGRO then
 			zombieData.objective = nil
@@ -613,22 +879,12 @@ local function ensureMovementObjective(unitID, zombieData, allyTeamID)
 
 	objective = zombieData.objective
 	if zombieData.rememberedObjectiveX then
-		local isRememberedObjective =
-			objective
-			and objective.type == OBJECTIVE_TYPE_NORMAL
-			and objective.x == zombieData.rememberedObjectiveX
-			and objective.z == zombieData.rememberedObjectiveZ
-		if isRememberedObjective and isObjectiveReached(unitID, objective) then
+		if objectiveIsRememberedEdge(zombieData, objective) and isObjectiveReached(unitID, objective, unitX, unitZ) then
 			zombieData.rememberedObjectiveX = nil
 			zombieData.rememberedObjectiveZ = nil
 			zombieData.objective = nil
 			objective = nil
-		elseif
-			not objective
-			or objective.type ~= OBJECTIVE_TYPE_NORMAL
-			or objective.x ~= zombieData.rememberedObjectiveX
-			or objective.z ~= zombieData.rememberedObjectiveZ
-		then
+		elseif not objectiveIsRememberedEdge(zombieData, objective) then
 			zombieData.objective = {
 				type = OBJECTIVE_TYPE_NORMAL,
 				x = zombieData.rememberedObjectiveX,
@@ -640,7 +896,11 @@ local function ensureMovementObjective(unitID, zombieData, allyTeamID)
 		end
 	end
 
-	if not objective or objective.type ~= OBJECTIVE_TYPE_NORMAL or isObjectiveReached(unitID, objective) then
+	if
+		not objective
+		or objective.type ~= OBJECTIVE_TYPE_NORMAL
+		or isObjectiveReached(unitID, objective, unitX, unitZ)
+	then
 		setRandomEdgeObjective(zombieData)
 		return zombieData.objective, true
 	end
@@ -666,30 +926,38 @@ local function isMoveTargetTraversable(unitDefID, targetX, targetY, targetZ)
 end
 
 local function getMovementCommand(unitDefID)
-	if aircraftUnitDefs[unitDefID] then
+	if fightCommandUnitDefs[unitDefID] then
 		return CMD_FIGHT
 	end
 	return CMD_MOVE
 end
 
-local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX, originZ)
+local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX, originZ, attemptLimit)
 	local deltaX = objective.x - originX
 	local deltaZ = objective.z - originZ
 	local objectiveDistance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
 	local objectiveAngle = atan2(deltaZ, deltaX)
-	local angleVariance = objective.type == OBJECTIVE_TYPE_AGGRO and AGGRO_OBJECTIVE_ANGLE_VARIANCE or NORMAL_OBJECTIVE_ANGLE_VARIANCE
+	local angleVariance = objective.type == OBJECTIVE_TYPE_AGGRO and AGGRO_OBJECTIVE_ANGLE_VARIANCE
+		or NORMAL_OBJECTIVE_ANGLE_VARIANCE
+	local attemptCount = attemptLimit or 4
 
-	for attemptIndex = 1, ZOMBIE_MAX_ORDER_ATTEMPTS do
+	for attemptIndex = 1, attemptCount do
 		local movementAngle
 		local movementDistance = math.min(ORDER_DISTANCE, objectiveDistance)
-		if attemptIndex == ZOMBIE_MAX_ORDER_ATTEMPTS then
+		if attemptIndex == attemptCount then
 			movementAngle = random() * TAU -- last try: ignore the objective and pick any passable heading
 			movementDistance = ORDER_DISTANCE
 		else
 			movementAngle = objectiveAngle + (random() * 2 - 1) * angleVariance
 		end
-		local candidateTargetX = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_X - POSITION_VARIANCE, originX + movementDistance * cos(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE)))
-		local candidateTargetZ = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_Z - POSITION_VARIANCE, originZ + movementDistance * sin(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE)))
+		local candidateTargetX = clampToMap(
+			originX + movementDistance * cos(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE),
+			MAP_SIZE_X
+		)
+		local candidateTargetZ = clampToMap(
+			originZ + movementDistance * sin(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE),
+			MAP_SIZE_Z
+		)
 		if not isInNoGoZone(zombieData, candidateTargetX, candidateTargetZ) then
 			local candidateTargetY = spGetGroundHeight(candidateTargetX, candidateTargetZ)
 			if isMoveTargetTraversable(unitDefID, candidateTargetX, candidateTargetY, candidateTargetZ) then
@@ -699,55 +967,76 @@ local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX,
 	end
 end
 
-local function issueObjectiveMove(unitID, unitDefID, zombieData, objective)
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
+local function isArrivedAtMoveOrder(zombieData, unitX, unitZ)
+	return zombieData.moveOrderX
+		and unitX
+		and distance2dSquared(unitX, unitZ, zombieData.moveOrderX, zombieData.moveOrderZ)
+			<= HOP_ARRIVAL_DISTANCE_SQUARED
+end
+
+local function issueObjectiveMove(unitID, unitDefID, zombieData, objective, unitX, unitZ, attemptLimit)
+	unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
 	if not unitX then
 		return
-	end
-	if
-		zombieData.rememberedObjectiveX
-		and objective.type == OBJECTIVE_TYPE_NORMAL
-		and objective.x == zombieData.rememberedObjectiveX
-		and objective.z == zombieData.rememberedObjectiveZ
-		and isObjectiveReached(unitID, objective, unitX, unitZ)
-	then
-		zombieData.rememberedObjectiveX = nil
-		zombieData.rememberedObjectiveZ = nil
-		zombieData.objective = nil
-		setRandomEdgeObjective(zombieData)
-		objective = zombieData.objective
 	end
 
 	local movementCommand = getMovementCommand(unitDefID)
 	local firstTargetX, firstTargetY, firstTargetZ =
-		getObjectiveMoveTarget(unitDefID, zombieData, objective, unitX, unitZ)
+		getObjectiveMoveTarget(unitDefID, zombieData, objective, unitX, unitZ, attemptLimit)
 	if firstTargetX then
 		spGiveOrderToUnit(unitID, movementCommand, { firstTargetX, firstTargetY, firstTargetZ }, 0)
-		local secondTargetX, secondTargetY, secondTargetZ =
-			getObjectiveMoveTarget(unitDefID, zombieData, objective, firstTargetX, firstTargetZ) -- pre-queue the next hop so they don't stall between order ticks
-		if secondTargetX then
-			spGiveOrderToUnit(
-				unitID,
-				movementCommand,
-				{ secondTargetX, secondTargetY, secondTargetZ },
-				CMD_OPT_SHIFT
-			)
-		end
+		zombieData.moveOrderX = firstTargetX
+		zombieData.moveOrderZ = firstTargetZ
 		return
 	end
 
 	clearUnitOrders(unitID)
 	if objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX then
 		zombieData.objective = nil
-		ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
+		ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
 	end
 end
 
-local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData)
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
+local function clearLastCombatTarget(zombieData)
+	zombieData.lastCombatTargetX = nil
+	zombieData.lastCombatTargetZ = nil
+	zombieData.lastOrbitX = nil
+	zombieData.lastOrbitZ = nil
+end
+
+local function clearCombatTracking(zombieData)
+	zombieData.combatTargetID = nil
+	clearLastCombatTarget(zombieData)
+end
+
+local function abandonCombatToObjective(unitID, unitDefID, zombieData, unitX, unitZ)
+	clearCombatTracking(zombieData)
+	clearUnitOrders(unitID)
+	local fallbackObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
+	issueObjectiveMove(unitID, unitDefID, zombieData, fallbackObjective, unitX, unitZ)
+end
+
+local function isReusableCombatOrbit(zombieData, targetX, targetZ, desiredRange)
+	local orbitX = zombieData.lastOrbitX
+	local orbitZ = zombieData.lastOrbitZ
+	if not orbitX or orbitX < 0 or orbitX > MAP_SIZE_X or orbitZ < 0 or orbitZ > MAP_SIZE_Z then
+		return false
+	end
+	local deltaX = orbitX - targetX
+	local deltaZ = orbitZ - targetZ
+	local orbitDistanceSquared = deltaX * deltaX + deltaZ * deltaZ
+	local minimumRange = desiredRange - COMBAT_TARGET_MOVE_REFRESH_DISTANCE
+	if minimumRange < 0 then
+		minimumRange = 0
+	end
+	local maximumRange = desiredRange + COMBAT_TARGET_MOVE_REFRESH_DISTANCE
+	return orbitDistanceSquared >= minimumRange * minimumRange and orbitDistanceSquared <= maximumRange * maximumRange
+end
+
+local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData, unitX, unitZ)
+	unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
 	if not unitX then
-		zombieData.lastCombatTargetX = nil
-		zombieData.lastCombatTargetZ = nil
+		clearLastCombatTarget(zombieData)
 		clearUnitOrders(unitID)
 		return
 	end
@@ -762,37 +1051,37 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 	local targetMoveX = targetX + deltaX / distance * desiredRange
 	local targetMoveZ = targetZ + deltaZ / distance * desiredRange
 	if targetMoveX < 0 or targetMoveX > MAP_SIZE_X or targetMoveZ < 0 or targetMoveZ > MAP_SIZE_Z then
-		zombieData.combatTargetID = nil
-		zombieData.lastCombatTargetX = nil
-		zombieData.lastCombatTargetZ = nil
-		clearUnitOrders(unitID)
-		local fallbackObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
-		issueObjectiveMove(unitID, unitDefID, zombieData, fallbackObjective)
+		abandonCombatToObjective(unitID, unitDefID, zombieData, unitX, unitZ)
 		return
 	end
 	local targetMoveY = spGetGroundHeight(targetMoveX, targetMoveZ)
 	local isTargetMoveValid = isMoveTargetTraversable(unitDefID, targetMoveX, targetMoveY, targetMoveZ)
 	if not isTargetMoveValid then
-		zombieData.combatTargetID = nil
-		zombieData.lastCombatTargetX = nil
-		zombieData.lastCombatTargetZ = nil
-		clearUnitOrders(unitID)
-		local fallbackObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
-		issueObjectiveMove(unitID, unitDefID, zombieData, fallbackObjective)
+		abandonCombatToObjective(unitID, unitDefID, zombieData, unitX, unitZ)
 		return
 	end
 	local movementCommand = getMovementCommand(unitDefID)
 	spGiveOrderToUnit(unitID, movementCommand, { targetMoveX, targetMoveY, targetMoveZ }, 0)
+	if isReusableCombatOrbit(zombieData, targetX, targetZ, desiredRange) then
+		local orbitY = spGetGroundHeight(zombieData.lastOrbitX, zombieData.lastOrbitZ)
+		spGiveOrderToUnit(
+			unitID,
+			movementCommand,
+			{ zombieData.lastOrbitX, orbitY, zombieData.lastOrbitZ },
+			CMD_OPT_SHIFT
+		)
+		zombieData.lastCombatTargetX = targetX
+		zombieData.lastCombatTargetZ = targetZ
+		return
+	end
 	local radialX = targetMoveX - targetX -- queue a 45° orbit around the target so they don't halt at engage range
 	local radialZ = targetMoveZ - targetZ
 	local rotationDirection = random() < 0.5 and -1 or 1
 	local issuedSecondaryMove = false
 	for attemptIndex = 1, 2 do
 		local signedSin = COMBAT_SECONDARY_ANGLE_SIN * rotationDirection
-		local secondaryTargetX =
-			targetX + radialX * COMBAT_SECONDARY_ANGLE_COS - radialZ * signedSin
-		local secondaryTargetZ =
-			targetZ + radialX * signedSin + radialZ * COMBAT_SECONDARY_ANGLE_COS
+		local secondaryTargetX = targetX + radialX * COMBAT_SECONDARY_ANGLE_COS - radialZ * signedSin
+		local secondaryTargetZ = targetZ + radialX * signedSin + radialZ * COMBAT_SECONDARY_ANGLE_COS
 		if
 			secondaryTargetX >= 0
 			and secondaryTargetX <= MAP_SIZE_X
@@ -807,6 +1096,8 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 					{ secondaryTargetX, secondaryTargetY, secondaryTargetZ },
 					CMD_OPT_SHIFT
 				)
+				zombieData.lastOrbitX = secondaryTargetX
+				zombieData.lastOrbitZ = secondaryTargetZ
 				issuedSecondaryMove = true
 				break
 			end
@@ -824,71 +1115,65 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 				{ secondaryTargetX, secondaryTargetY, secondaryTargetZ },
 				CMD_OPT_SHIFT
 			)
+			zombieData.lastOrbitX = secondaryTargetX
+			zombieData.lastOrbitZ = secondaryTargetZ
 		end
 	end
 	zombieData.lastCombatTargetX = targetX
 	zombieData.lastCombatTargetZ = targetZ
 end
 
-local function isResurrectableWreck(featureID)
-	local resurrectName = spGetFeatureResurrect(featureID)
-	return resurrectName ~= nil and resurrectName ~= ""
-end
-
-local function getNearestResurrectableWreck(unitID)
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
+local function getRandomResurrectableWreck(unitID, unitX, unitZ)
+	unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
 	if not unitX then
 		return
 	end
-	local features = spGetFeaturesInCylinder(unitX, unitZ, ENEMY_ATTACK_DISTANCE)
-	local bestFeatureID
-	local bestDistanceSquared
-	for featureIndex = 1, #features do
-		local featureID = features[featureIndex]
-		if isResurrectableWreck(featureID) then
-			local featureX, _, featureZ = spGetFeaturePosition(featureID)
-			local featureDistanceSquared = distance2dSquared(unitX, unitZ, featureX, featureZ)
-			if not bestDistanceSquared or featureDistanceSquared < bestDistanceSquared then
-				bestFeatureID = featureID
-				bestDistanceSquared = featureDistanceSquared
-			end
-		end
+	local zombieApi = GG.Zombies
+	if not zombieApi or not zombieApi.GetRandomResurrectableWreck then
+		return
 	end
-	return bestFeatureID
+	return zombieApi.GetRandomResurrectableWreck(unitX, unitZ, CONSTRUCTOR_SEARCH_DISTANCE)
 end
 
-local function issueResurrectOrder(unitID, zombieData, currentCommand)
-	local previousTargetID = zombieData.resurrectTargetID
-	local targetID = previousTargetID
-	if spGetUnitWorkerTask(unitID) ~= CMD_RESURRECT then
-		targetID = getNearestResurrectableWreck(unitID)
+local function issueResurrectOrder(unitID, zombieData, currentCommand, unitX, unitZ)
+	local targetID = zombieData.resurrectTargetID
+	if currentCommand == CMD_RESURRECT and targetID then
+		return true
 	end
+	targetID = getRandomResurrectableWreck(unitID, unitX, unitZ)
 	zombieData.resurrectTargetID = targetID
 	if not targetID then
 		return false
 	end
-	if currentCommand ~= CMD_RESURRECT or previousTargetID ~= targetID then
-		spGiveOrderToUnit(unitID, CMD_RESURRECT, { targetID + FEATURE_ID_OFFSET }, 0)
-	end
+	spGiveOrderToUnit(unitID, CMD_RESURRECT, { targetID + FEATURE_ID_OFFSET }, 0)
 	return true
 end
 
-local function updateOrders(unitID, unitDefID)
-	local zombieData = zombieWatch[unitID]
+local function updateOrders(unitID, zombieData)
+	local unitDefID = zombieData.unitDefID
 	if mobileUnitDefs[unitDefID] then
 		local previousCombatTargetID = zombieData.combatTargetID
 		local currentCommand = spGetUnitCurrentCommand(unitID)
 		local movementCommand = getMovementCommand(unitDefID)
 		if
-			currentCommand == CMD_CAPTURE -- capture needs LOS, so drop the order if Gaia loses sight
+			(currentCommand == CMD_CAPTURE or currentCommand == CMD_RECLAIM) -- capture and reclaim need LOS, so drop the order if Gaia loses sight
 			and previousCombatTargetID
 			and not isUnitInGaiaLos(previousCombatTargetID)
 		then
 			zombieData.combatTargetID = nil
 			clearUnitOrders(unitID)
 		end
-		local targetX, targetZ, shouldCapture, weaponRange =
+		local unitX
+		local unitZ
+		local targetX, targetZ, shouldCapture, weaponRange, shouldReclaim =
 			getCombatTargetData(unitDefID, zombieData.combatTargetID)
+		if targetX and shouldCapture then -- a zombie endlessly chasing a distant thing isn't a big deal. It'll shoot everything along the way. Capture though? Bad. It'll just run around never capturing anything because its target is forever unreachable.
+			unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
+			if not unitX or distance2dSquared(unitX, unitZ, targetX, targetZ) > CONSTRUCTOR_SEARCH_DISTANCE_SQUARED then
+				zombieData.combatTargetID = nil
+				targetX = nil
+			end
+		end
 		if not targetX then
 			zombieData.combatTargetID = nil
 		end
@@ -897,24 +1182,32 @@ local function updateOrders(unitID, unitDefID)
 			retargetsEveryTick
 			or (not zombieData.combatTargetID and (capturingUnits[unitDefID] or unitDefWeaponRanges[unitDefID]))
 		then
-			local closestKnownEnemy, nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange =
-				getNearestCombatTarget(unitID, unitDefID)
+			unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
+			local closestKnownEnemy, nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange, nearestShouldReclaim =
+				getNearestCombatTarget(unitID, unitDefID, unitX, unitZ)
 			if nearestX then
 				zombieData.combatTargetID = closestKnownEnemy
-				targetX, targetZ, shouldCapture, weaponRange =
-					nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange
-				rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
+				targetX, targetZ, shouldCapture, weaponRange, shouldReclaim =
+					nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange, nearestShouldReclaim
+				setEnemyDirectionObjective(unitID, zombieData, targetX, targetZ, ENEMY_DIRECTION_TOWARD, unitX, unitZ)
 			end
 		end
 
 		if zombieData.combatTargetID then
-			if shouldCapture then
+			if shouldReclaim then
+				if currentCommand ~= CMD_RECLAIM or previousCombatTargetID ~= zombieData.combatTargetID then
+					clearLastCombatTarget(zombieData)
+					spGiveOrderToUnit(unitID, CMD_RECLAIM, { zombieData.combatTargetID }, 0)
+				end
+			elseif shouldCapture then
 				if currentCommand ~= CMD_CAPTURE or previousCombatTargetID ~= zombieData.combatTargetID then
-					zombieData.lastCombatTargetX = nil
-					zombieData.lastCombatTargetZ = nil
+					clearLastCombatTarget(zombieData)
 					spGiveOrderToUnit(unitID, CMD_CAPTURE, { zombieData.combatTargetID }, 0)
 				end
 			else
+				local COMBAT_ORDER_REFRESH_CHANCE = 0.0005
+				local commandNeedsMove = currentCommand ~= movementCommand
+				local targetChanged = previousCombatTargetID ~= zombieData.combatTargetID
 				local combatTargetMoved = not zombieData.lastCombatTargetX
 					or distance2dSquared(
 							targetX,
@@ -923,51 +1216,59 @@ local function updateOrders(unitID, unitDefID)
 							zombieData.lastCombatTargetZ
 						)
 						>= COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED
-				if
-					currentCommand ~= movementCommand
-					or previousCombatTargetID ~= zombieData.combatTargetID
-					or combatTargetMoved
-				then
-					issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData)
+				if random() < COMBAT_ORDER_REFRESH_CHANCE or commandNeedsMove or targetChanged then
+					issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData, unitX, unitZ)
+				elseif combatTargetMoved then
+					local positionX, positionY, positionZ = spGetUnitPosition(unitID)
+					local engageRange = weaponRange and weaponRange * COMBAT_ENGAGE_RANGE_RATIO
+					local enemyWithinEngageRange = positionX ~= nil
+						and engageRange
+						and engageRange > 0
+						and spGetClosestEnemyUnit(
+								positionX,
+								positionY,
+								positionZ,
+								engageRange,
+								gaiaAllyTeamID,
+								true
+							)
+							~= nil
+					if not enemyWithinEngageRange then
+						issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData, unitX, unitZ)
+					end
 				end
 			end
 		else
-			zombieData.lastCombatTargetX = nil
-			zombieData.lastCombatTargetZ = nil
-			if resurrectingUnits[unitDefID] and issueResurrectOrder(unitID, zombieData, currentCommand) then
+			clearLastCombatTarget(zombieData)
+			if
+				resurrectingUnits[unitDefID] and issueResurrectOrder(unitID, zombieData, currentCommand, unitX, unitZ)
+			then
 				return
 			end
-			local objective, objectiveChanged = ensureMovementObjective(
-				unitID,
-				zombieData,
-				getActiveZombieAggro(unitID)
-			)
+			unitX, unitZ = knownUnitXZ(unitID, unitX, unitZ)
+			local objective, objectiveChanged =
+				ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
 			if
 				previousCombatTargetID
 				or objectiveChanged
 				or currentCommand ~= movementCommand
+				or isArrivedAtMoveOrder(zombieData, unitX, unitZ)
 			then
-				issueObjectiveMove(unitID, unitDefID, zombieData, objective)
+				issueObjectiveMove(unitID, unitDefID, zombieData, objective, unitX, unitZ)
 			end
 		end
 	end
 
-	if factoriesWithCombatOptions[unitDefID] then
+	if factoriesWithWantedOptions[unitDefID] then
 		local factoryCommandCount = spGetFactoryCommandCount(unitID) or 0
 		if factoryCommandCount < ZOMBIE_FACTORY_BUILD_COUNT then
-			issueRandomFactoryBuildOrders(
-				unitID,
-				unitDefID,
-				ZOMBIE_FACTORY_BUILD_COUNT - factoryCommandCount
-			)
+			issueRandomFactoryBuildOrders(unitID, unitDefID, ZOMBIE_FACTORY_BUILD_COUNT - factoryCommandCount)
 		end
 	end
 end
 
 local function setZombieStates(unitID, unitDefID)
-	if factoriesWithCombatOptions[unitDefID] then
-		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
-	end
+	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
 	if aircraftUnitDefs[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_IDLEMODE, IDLEMODE_FLY, 0)
@@ -978,6 +1279,13 @@ local function setZombieStates(unitID, unitDefID)
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_RETURN_FIRE, 0)
 	end
 	spring.SetUnitRulesParam(unitID, "resurrected", 0, { inlos = true })
+end
+
+local function addZombieToBucket(buckets, interval, unitID, zombieData, indexField)
+	local bucket = buckets[unitID % interval + 1]
+	local unitIndex = #bucket + 1
+	zombieData[indexField] = unitIndex
+	bucket[unitIndex] = unitID
 end
 
 local function initializeZombie(unitID, unitDefID)
@@ -997,19 +1305,18 @@ local function initializeZombie(unitID, unitDefID)
 		power = unitPower,
 	}
 	local zombieData = zombieWatch[unitID]
-	local orderBucket = zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1]
-	zombieData.orderBucketIndex = #orderBucket + 1
-	orderBucket[zombieData.orderBucketIndex] = unitID
-	local stuckBucket = zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1]
-	zombieData.stuckBucketIndex = #stuckBucket + 1
-	stuckBucket[zombieData.stuckBucketIndex] = unitID
+	addZombieToBucket(zombieOrderBuckets, ZOMBIE_ORDER_CHECK_INTERVAL, unitID, zombieData, "orderBucketIndex")
+	addZombieToBucket(zombieStuckBuckets, STUCK_CHECK_INTERVAL, unitID, zombieData, "stuckBucketIndex")
 	if mobileUnitDefs[unitDefID] then
+		zombieData.selfDestructTimestamp = gameFrame
+		zombieData.selfDestructX = unitX
+		zombieData.selfDestructZ = unitZ
 		setRandomEdgeObjective(zombieData)
 		totalMobileZombiePower = totalMobileZombiePower + unitPower
 	end
 	setZombieStates(unitID, unitDefID)
 	if ordersEnabled then
-		updateOrders(unitID, unitDefID)
+		updateOrders(unitID, zombieData)
 	end
 end
 
@@ -1046,8 +1353,15 @@ local function hasGameEndExplosionStarted() -- last living ally means the end-ga
 			local teamID = teamList[teamIndex]
 			if teamID ~= gaiaTeamID then
 				local teamLuaAI = spring.GetTeamLuaAI(teamID)
-				if not (teamLuaAI and (string.find(teamLuaAI, "Scavengers", 1, true) or string.find(teamLuaAI, "Raptors", 1, true))) then
-					local _, _, isDead = spring.GetTeamInfo(teamID)
+				if
+					not (
+						teamLuaAI
+						and (
+							string.find(teamLuaAI, "Scavengers", 1, true) or string.find(teamLuaAI, "Raptors", 1, true)
+						)
+					)
+				then
+					local _, _, isDead = spring.GetTeamInfo(teamID, false)
 					if not isDead then
 						allyTeamIsAlive = true
 						break
@@ -1122,8 +1436,20 @@ local function killAllZombies()
 	end
 end
 
+local function enablePermanentAggro()
+	permanentlyAggro = true
+	assignZombieAggroEvenly()
+end
+
 local function updateAggro()
-	if gameFrame % AGGRO_CHECK_INTERVAL ~= 1 or gameFrame < AGGRO_MIN_START_FRAME then
+	if gameFrame % AGGRO_CHECK_INTERVAL ~= 1 then
+		return
+	end
+	if permanentlyAggro then
+		assignZombieAggroEvenly()
+		return
+	end
+	if gameFrame < AGGRO_MIN_START_FRAME then
 		return
 	end
 	local totalPlayerPower = GG.PowerLib.TotalPlayerTeamsPower()
@@ -1137,116 +1463,148 @@ local function updateAggro()
 	end
 end
 
-local function updateZombieOrders()
-	local orderBucket = zombieOrderBuckets[gameFrame % ZOMBIE_ORDER_CHECK_INTERVAL + 1]
+local function forEachLiveZombieInBucket(buckets, interval, visitZombie)
+	local bucket = buckets[gameFrame % interval + 1]
 	local bucketIndex = 1
-	while bucketIndex <= #orderBucket do
-		local unitID = orderBucket[bucketIndex]
-		local zombieData = zombieWatch[unitID]
-		local unitDefID = zombieData.unitDefID
-		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+	while bucketIndex <= #bucket do
+		local unitID = bucket[bucketIndex]
+		if spGetUnitIsDead(unitID) ~= false then
 			unwatchZombie(unitID)
 		else
-			updateOrders(unitID, unitDefID)
+			visitZombie(unitID, zombieWatch[unitID])
 			bucketIndex = bucketIndex + 1
 		end
 	end
 end
 
-local function updateStuckZombies()
-	local stuckBucket = zombieStuckBuckets[gameFrame % STUCK_CHECK_INTERVAL + 1]
-	local bucketIndex = 1
-	while bucketIndex <= #stuckBucket do
-		local unitID = stuckBucket[bucketIndex]
-		local zombieData = zombieWatch[unitID]
-		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
-			unwatchZombie(unitID)
-		else
-			local unitX, _, unitZ = spGetUnitPosition(unitID)
-			if unitX then
-				local unitDefID = zombieData.unitDefID
-				local objective = zombieData.objective
-				local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
-				local isAtRememberedObjective = zombieData.rememberedObjectiveX
-					and objective
-					and objective.type == OBJECTIVE_TYPE_NORMAL
-					and objective.x == zombieData.rememberedObjectiveX
-					and objective.z == zombieData.rememberedObjectiveZ
-					and isObjectiveReached(unitID, objective, unitX, unitZ)
-				if
-					mobileUnitDefs[unitDefID] -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
-					and not isAtRememberedObjective
-					and movedDistanceSquared < STUCK_DISTANCE_SQUARED
-					and spGetUnitWorkerTask(unitID) ~= CMD_RESURRECT
-				then
-					clearUnitOrders(unitID)
-					zombieData.combatTargetID = nil
-					zombieData.resurrectTargetID = nil
-					zombieData.lastCombatTargetX = nil
-					zombieData.lastCombatTargetZ = nil
-					if
-						objective
-						and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX)
-					then
-						zombieData.objective = nil
-					end
-					if not isInNoGoZone(zombieData, unitX, unitZ) then
-						if #zombieData.noGoZones >= MAX_NOGO_ZONES then
-							table.remove(zombieData.noGoZones, 1)
-						end
-						table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
-					end
-					local recoveryObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
-					issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective)
-				end
-				zombieData.lastX = unitX
-				zombieData.lastZ = unitZ
+local function updateStuckZombie(unitID, zombieData)
+	local unitX, _, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		return
+	end
+	local unitDefID = zombieData.unitDefID
+	local isMobileUnit = mobileUnitDefs[unitDefID] ---@as true?
+	local objective = zombieData.objective
+	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
+	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
+		and isObjectiveReached(unitID, objective, unitX, unitZ)
+	local isStationary = isMobileUnit
+		and not isAtRememberedObjective
+		and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+	local workerTask
+	if isStationary then
+		workerTask = spGetUnitWorkerTask(unitID)
+	end
+	if isStationary and workerTask ~= CMD_RESURRECT and workerTask ~= CMD_RECLAIM then -- if they haven't moved, blacklist this spot and reroute; keep a remembered-enemy goal
+		clearUnitOrders(unitID)
+		clearCombatTracking(zombieData)
+		zombieData.resurrectTargetID = nil
+		if objective and (objective.type == OBJECTIVE_TYPE_AGGRO or not zombieData.rememberedObjectiveX) then
+			zombieData.objective = nil
+		end
+		if not isInNoGoZone(zombieData, unitX, unitZ) then
+			if #zombieData.noGoZones >= MAX_NOGO_ZONES then
+				table.remove(zombieData.noGoZones, 1)
 			end
-			bucketIndex = bucketIndex + 1
+			table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
 		end
+		local recoveryObjective =
+			ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
+		issueObjectiveMove(
+			unitID,
+			unitDefID,
+			zombieData,
+			recoveryObjective,
+			unitX,
+			unitZ,
+			ZOMBIE_MAX_ORDER_ATTEMPTS
+		)
 	end
+	if mobileUnitDefs[unitDefID] and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL then
+		if
+			distance2dSquared(unitX, unitZ, zombieData.selfDestructX, zombieData.selfDestructZ)
+			<= STUCK_SELF_DESTRUCT_DISTANCE_SQUARED
+		then
+			spGiveOrderToUnit(unitID, CMD_SELF_DESTRUCT, {}, 0)
+		end
+		zombieData.selfDestructTimestamp = gameFrame
+		zombieData.selfDestructX = unitX
+		zombieData.selfDestructZ = unitZ
+	end
+	zombieData.lastX = unitX
+	zombieData.lastZ = unitZ
 end
 
-function gadget:Initialize()
-	gameFrame = spring.GetGameFrame()
-	for _, unitID in ipairs(spring.GetAllUnits()) do
-		local unitTeam = spring.GetUnitTeam(unitID)
-		local allyTeamID = select(6, spring.GetTeamInfo(unitTeam))
-		addAllyTeamUnit(unitID, allyTeamID)
-		if unitTeam == gaiaTeamID and isZombie(unitID) then
-			initializeZombie(unitID, spGetUnitDefID(unitID))
-		end
+local function getWraithData(unitID, unitDefID)
+	local wraithData = wraithWatch[unitID]
+	if not wraithData then
+		wraithData = {
+			unitDefID = unitDefID,
+			noGoZones = {},
+			nextOrderFrame = 0,
+		}
+		setRandomEdgeObjective(wraithData)
+		wraithWatch[unitID] = wraithData
 	end
-
-	GG.ZombieAI = {
-		InitializeZombie = initializeZombie,
-		PacifyZombies = pacifyZombies,
-		SuspendAutoOrders = suspendAutoOrders,
-		AggroTeamID = aggroTeamID,
-		AggroAllyID = aggroAllyID,
-		KillAllZombies = killAllZombies,
-		ClearAllOrders = clearAllOrders,
-	}
+	return wraithData
 end
 
-function gadget:Shutdown()
-	GG.ZombieAI = nil
+local function issueDirectObjectiveMove(unitID, unitDefID, objective)
+	local targetY = spGetGroundHeight(objective.x, objective.z)
+	spGiveOrderToUnit(unitID, getMovementCommand(unitDefID), { objective.x, targetY, objective.z }, 0)
+end
+
+local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ, attackerX, attackerZ)
+	local wraithData = getWraithData(unitID, unitDefID)
+	local nearestEnemyID =
+		spGetClosestEnemyUnit(wraithX, wraithY, wraithZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
+	local enemyX, enemyZ
+	local enemyWithinRadius = false
+	if nearestEnemyID then
+		enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
+		if enemyX then
+			enemyWithinRadius = distance2dSquared(wraithX, wraithZ, enemyX, enemyZ) <= WRAITH_ENEMY_RADIUS_SQUARED
+		end
+	end
+	if attackerX and attackerZ then
+		setEnemyDirectionObjective(unitID, wraithData, attackerX, attackerZ, ENEMY_DIRECTION_AWAY, wraithX, wraithZ)
+		local objective = wraithData.objective
+		if objective then
+			issueDirectObjectiveMove(unitID, unitDefID, objective)
+			wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
+		end
+		return enemyWithinRadius
+	end
+	if gameFrame < wraithData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
+		return enemyWithinRadius
+	end
+	local objectiveRegenerated = enemyX
+		and nearestEnemyID ~= wraithData.threatTargetID
+		and setEnemyDirectionObjective(unitID, wraithData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY, wraithX, wraithZ)
+	wraithData.threatTargetID = nearestEnemyID
+	local objective, objectiveChanged = ensureMovementObjective(unitID, wraithData, nil, wraithX, wraithZ)
+	if objectiveRegenerated or objectiveChanged or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID) then
+		issueObjectiveMove(unitID, unitDefID, wraithData, objective, wraithX, wraithZ)
+		wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
+	end
+	return enemyWithinRadius
 end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
-	if not isPacified and hasGameEndExplosionStarted() then
+	if not isPacified and not IS_PVE_GAME and frame % Game.gameSpeed == 0 and hasGameEndExplosionStarted() then
 		pacifyZombies(true)
 	end
 	updateAggro()
 	if ordersEnabled then
-		updateZombieOrders()
-		updateStuckZombies()
+		forEachLiveZombieInBucket(zombieOrderBuckets, ZOMBIE_ORDER_CHECK_INTERVAL, updateOrders)
+		forEachLiveZombieInBucket(zombieStuckBuckets, STUCK_CHECK_INTERVAL, updateStuckZombie)
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	local allyTeamID = select(6, spring.GetTeamInfo(unitTeam))
+	rememberUnitIdentity(unitID, unitDefID, unitTeam)
+	local allyTeamID = getTeamAllyTeamID(unitTeam)
 	addAllyTeamUnit(unitID, allyTeamID)
 end
 
@@ -1258,6 +1616,8 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	flyingUnits[unitID] = nil
+	wraithWatch[unitID] = nil
+	forgetUnitIdentity(unitID)
 	unwatchZombie(unitID)
 	removeAllyTeamUnit(unitID)
 end
@@ -1265,9 +1625,11 @@ end
 function gadget:UnitGiven(unitID, unitDefID, newTeam)
 	removeAllyTeamUnit(unitID)
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+		forgetUnitIdentity(unitID)
 		return
 	end
-	local newAllyTeamID = select(6, spring.GetTeamInfo(newTeam))
+	rememberUnitIdentity(unitID, unitDefID, newTeam)
+	local newAllyTeamID = getTeamAllyTeamID(newTeam)
 	addAllyTeamUnit(unitID, newAllyTeamID)
 	if newTeam == gaiaTeamID and isZombie(unitID) then
 		initializeZombie(unitID, unitDefID)
@@ -1282,4 +1644,104 @@ end
 
 function gadget:UnitLeftAir(unitID)
 	flyingUnits[unitID] = nil
+end
+
+local RELOAD_STATE_RULES_PARAM = "zombie_ai_reload_state"
+
+local function saveReloadState()
+	local serpent = require("common/luaUtilities/serpent")
+	spring.SetGameRulesParam(
+		RELOAD_STATE_RULES_PARAM,
+		serpent.dump({
+			gameFrame = gameFrame,
+			ordersEnabled = ordersEnabled,
+			isPacified = isPacified,
+			autoOrdersSuspended = autoOrdersSuspended,
+			totalMobileZombiePower = totalMobileZombiePower,
+			aggroExpirationTimestamp = aggroExpirationTimestamp,
+			permanentlyAggro = permanentlyAggro,
+			zombieAggros = zombieAggros,
+			allyTeamUnits = allyTeamUnits,
+			unitAllyTeamIDs = unitAllyTeamIDs,
+			unitAllyTeamIndices = unitAllyTeamIndices,
+			zombieWatch = zombieWatch,
+			wraithWatch = wraithWatch,
+			flyingUnits = flyingUnits,
+			zombieOrderBuckets = zombieOrderBuckets,
+			zombieStuckBuckets = zombieStuckBuckets,
+		})
+	)
+end
+
+local function restoreReloadState()
+	local savedState = spring.GetGameRulesParam(RELOAD_STATE_RULES_PARAM)
+	if not savedState then
+		return false
+	end
+	local serpent = require("common/luaUtilities/serpent")
+	local loaded, reloadState = serpent.load(savedState)
+	if not loaded or type(reloadState) ~= "table" or reloadState.gameFrame ~= gameFrame then
+		return false
+	end
+
+	ordersEnabled = reloadState.ordersEnabled
+	isPacified = reloadState.isPacified
+	autoOrdersSuspended = reloadState.autoOrdersSuspended
+	totalMobileZombiePower = reloadState.totalMobileZombiePower
+	aggroExpirationTimestamp = reloadState.aggroExpirationTimestamp
+	permanentlyAggro = reloadState.permanentlyAggro
+	zombieAggros = reloadState.zombieAggros
+	allyTeamUnits = reloadState.allyTeamUnits
+	unitAllyTeamIDs = reloadState.unitAllyTeamIDs
+	unitAllyTeamIndices = reloadState.unitAllyTeamIndices
+	zombieWatch = reloadState.zombieWatch
+	wraithWatch = reloadState.wraithWatch
+	flyingUnits = reloadState.flyingUnits
+	zombieOrderBuckets = reloadState.zombieOrderBuckets
+	zombieStuckBuckets = reloadState.zombieStuckBuckets
+
+	spring.SetGameRulesParam(RELOAD_STATE_RULES_PARAM, nil)
+	return true
+end
+
+function gadget:Initialize()
+	gameFrame = spring.GetGameFrame()
+
+	if not restoreReloadState() then
+		for _, unitID in ipairs(spring.GetAllUnits()) do
+			local unitTeam = spring.GetUnitTeam(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
+			rememberUnitIdentity(unitID, unitDefID, unitTeam)
+			local allyTeamID = getTeamAllyTeamID(unitTeam)
+			addAllyTeamUnit(unitID, allyTeamID)
+			if unitTeam == gaiaTeamID and isZombie(unitID) then
+				initializeZombie(unitID, unitDefID)
+			end
+		end
+
+		if GG.Zombies and GG.Zombies.tooLong then
+			enablePermanentAggro()
+		end
+	else
+		for _, unitID in ipairs(spring.GetAllUnits()) do
+			rememberUnitIdentity(unitID, spGetUnitDefID(unitID), spring.GetUnitTeam(unitID))
+		end
+	end
+
+	GG.ZombieAI = {
+		InitializeZombie = initializeZombie,
+		PacifyZombies = pacifyZombies,
+		SuspendAutoOrders = suspendAutoOrders,
+		AggroTeamID = aggroTeamID,
+		AggroAllyID = aggroAllyID,
+		EnablePermanentAggro = enablePermanentAggro,
+		KillAllZombies = killAllZombies,
+		ClearAllOrders = clearAllOrders,
+		CommandWraith = commandWraith,
+	}
+end
+
+function gadget:Shutdown()
+	GG.ZombieAI = nil
+	saveReloadState()
 end

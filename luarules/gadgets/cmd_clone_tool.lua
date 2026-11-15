@@ -11,9 +11,9 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	-- Registered as a sync action (table lookup by message name) instead of a
-	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
-	-- message from every synced gadget. Returning true stops the broadcast.
+	-- A sync action (looked up by name) rather than RecvFromSynced, which would run
+	-- for every SendToUnsynced message of every synced gadget. Returning true stops
+	-- the broadcast.
 	local function onStacks(_, undoCount, redoCount)
 		if Script.LuaUI("CloneToolStackUpdate") then
 			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
@@ -36,20 +36,15 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
--- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
--- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
--- packet that arrived with live cheat off. Demos replay the /cheat chat command,
--- so cheat state is reproduced during playback anyway; what the certification is
--- really for is map-editor sessions, where /cheat is a toggle that competing
--- widgets can flip off mid-stream. The mapeditor modoption is synced from the
--- start script and cannot be forged by a client.
+-- Gates the self-asserted $c$ prefix (see isAllowed). Spring.IsReplay is
+-- unsynced-only and nil here; demos replay /cheat anyway. In map-editor sessions
+-- competing widgets can flip /cheat off mid-stream, and the mapeditor modoption
+-- comes from the start script, so a client cannot forge it.
 local MAP_EDITOR_SESSION = false
 do
 	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
 	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
 end
-local CLONE_TERRAIN_HEADER = "$clone_terrain$"
-local CLONE_TERRAIN_HEADER_LEN = #CLONE_TERRAIN_HEADER
 local CLONE_METAL_HEADER = "$clone_metal$"
 local CLONE_METAL_HEADER_LEN = #CLONE_METAL_HEADER
 local CLONE_FEATURES_HEADER = "$clone_features$"
@@ -84,22 +79,27 @@ local tonumber = tonumber
 -- ---------------------------------------------------------------------------
 -- Undo / Redo
 -- ---------------------------------------------------------------------------
+---@type table[]
 local undoStack = {}
+---@type table[]
 local redoStack = {}
-local totalVertexCount = 0
 local MAX_UNDO = 100
 
 -- ---------------------------------------------------------------------------
--- Height map application (same pattern as terraform brush)
+-- Height map application (same pattern as the terraform brush)
 -- ---------------------------------------------------------------------------
+---@type table
 local pendingFlatData
+---@type number
 local pendingFlatStart
+---@type number
 local pendingFlatEnd
 
 local function heightMapApplyFn()
 	local fd = pendingFlatData
 	for i = pendingFlatStart, pendingFlatEnd - 1 do
 		local base = i * 3
+		---@type number
 		local h = fd[base + 3]
 		if h == h then -- NaN guard
 			spSetHeightMap(fd[base + 1], fd[base + 2], h)
@@ -148,18 +148,11 @@ local function captureCurrentHeights(flatData, vertexCount)
 end
 
 local function pushUndo(beforeSnapshot)
-	for i = 1, #redoStack do
-		local rs = redoStack[i]
-		totalVertexCount = totalVertexCount - (rs.vertexCount or 0)
-	end
 	redoStack = {}
 
 	undoStack[#undoStack + 1] = beforeSnapshot
-	totalVertexCount = totalVertexCount + (beforeSnapshot.vertexCount or 0)
 
 	if #undoStack > MAX_UNDO then
-		local old = undoStack[1]
-		totalVertexCount = totalVertexCount - (old.vertexCount or 0)
 		table.remove(undoStack, 1)
 	end
 
@@ -194,36 +187,6 @@ local function parseParts(payload)
 end
 
 -- ---------------------------------------------------------------------------
--- Handle terrain clone: "$clone_terrain$count x z h x z h ..."
--- ---------------------------------------------------------------------------
-local function handleCloneTerrain(payload)
-	local parts, _ = parseParts(payload)
-	local vertexCount = tonumber(parts[1]) or 0
-	if vertexCount == 0 then
-		return
-	end
-
-	-- Build flat buffer
-	local flatData = {}
-	for i = 1, vertexCount do
-		local base = (i - 1) * 3
-		local pi = 1 + (i - 1) * 3 + 1 -- skip first element (count)
-		flatData[base + 1] = tonumber(parts[pi]) or 0
-		flatData[base + 2] = tonumber(parts[pi + 1]) or 0
-		flatData[base + 3] = tonumber(parts[pi + 2]) or 0
-	end
-
-	-- Capture before for undo
-	local beforeSnapshot = captureCurrentHeights(flatData, vertexCount)
-
-	-- Apply
-	applyHeightChangesFlat(flatData, vertexCount)
-
-	-- Push undo
-	pushUndo(beforeSnapshot)
-end
-
--- ---------------------------------------------------------------------------
 -- Handle metal clone: "$clone_metal$count mx mz val mx mz val ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneMetal(payload)
@@ -233,12 +196,25 @@ local function handleCloneMetal(payload)
 		return
 	end
 
+	local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 3 + 1
 		local mx = tonumber(parts[pi]) or 0
 		local mz = tonumber(parts[pi + 1]) or 0
 		local val = tonumber(parts[pi + 2]) or 0
 		spSetMetalAmount(mx, mz, val)
+		minX, maxX = math.min(minX, mx), math.max(maxX, mx)
+		minZ, maxZ = math.min(minZ, mz), math.max(maxZ, mz)
+	end
+
+	-- Extractors over the pasted squares and the resource spots catch up through the
+	-- metal brush gadget, the same as after a METAL stroke.
+	local metalBrush = GG.MetalBrush
+	if metalBrush and metalBrush.metalWritten then
+		local sq = Game.metalMapSquareSize or 16
+		local x0, x1 = minX * sq, (maxX + 1) * sq
+		local z0, z1 = minZ * sq, (maxZ + 1) * sq
+		metalBrush.metalWritten((x0 + x1) * 0.5, (z0 + z1) * 0.5, math.max(x1 - x0, z1 - z0) * 0.5)
 	end
 end
 
@@ -268,12 +244,10 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local function handleCloneFeatures(payload)
 	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
-	spEcho("[Clone Gadget] Features recv: " .. entryCount)
 	if entryCount == 0 then
 		return
 	end
 
-	local created = 0
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 5 + 1
 		local defName = parts[pi]
@@ -283,21 +257,19 @@ local function handleCloneFeatures(payload)
 		local heading = tonumber(parts[pi + 4]) or 0
 		if defName and FeatureDefNames[defName] then
 			spCreateFeature(defName, x, y, z, heading, gaiaTeamID)
-			created = created + 1
 		else
 			spEcho("[Clone Gadget] Feature defName not found: '" .. tostring(defName) .. "'")
 		end
 	end
-	spEcho("[Clone Gadget] Features created: " .. created .. "/" .. entryCount)
 end
 
 -- ---------------------------------------------------------------------------
--- Grid-based terrain paste (transaction: begin → grid chunks → end)
+-- Grid-based terrain paste (transaction: begin, grid chunks, end)
 -- ---------------------------------------------------------------------------
 local pendingPaste = nil -- { gx0, gz0, srcStep, dstStep, srcCols, srcRows, grid, beforeSnapshot }
 
 local function handleTerrainBegin(payload)
-	-- Safety: clear any stale pending paste from a previous incomplete transaction
+	-- Drop a pending paste left by an incomplete transaction
 	pendingPaste = nil
 
 	local parts = parseParts(payload)
@@ -399,6 +371,7 @@ local function handleTerrainEnd()
 				if or_ % ratio ~= 0 or oc % ratio ~= 0 then
 					local sc = oc / ratio
 					local sr = or_ / ratio
+					---@type number
 					local c0 = floor(sc)
 					if c0 < 0 then
 						c0 = 0
@@ -406,6 +379,7 @@ local function handleTerrainEnd()
 					if c0 > srcCols - 1 then
 						c0 = srcCols - 1
 					end
+					---@type number
 					local r0 = floor(sr)
 					if r0 < 0 then
 						r0 = 0
@@ -454,7 +428,7 @@ local function handleTerrainEnd()
 end
 
 -- ---------------------------------------------------------------------------
--- Undo / Redo handlers (height-only for now)
+-- Undo / Redo handlers (heights only)
 -- ---------------------------------------------------------------------------
 local function handleUndo()
 	if #undoStack == 0 then
@@ -464,7 +438,6 @@ local function handleUndo()
 	local snapshot = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
 	local vc = snapshot.vertexCount or 0
-	totalVertexCount = totalVertexCount - vc
 
 	-- Capture current for redo
 	local redoSnapshot = captureCurrentHeights(snapshot, vc)
@@ -473,7 +446,6 @@ local function handleUndo()
 	applyHeightChangesFlat(snapshot, vc)
 
 	redoStack[#redoStack + 1] = redoSnapshot
-	totalVertexCount = totalVertexCount + vc
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
 end
 
@@ -485,32 +457,22 @@ local function handleRedo()
 	local snapshot = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
 	local vc = snapshot.vertexCount or 0
-	totalVertexCount = totalVertexCount - vc
 
 	local undoSnapshot = captureCurrentHeights(snapshot, vc)
 	applyHeightChangesFlat(snapshot, vc)
 
 	undoStack[#undoStack + 1] = undoSnapshot
-	totalVertexCount = totalVertexCount + vc
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
 end
 
 -- ---------------------------------------------------------------------------
 -- RecvLuaMsg dispatch
 -- ---------------------------------------------------------------------------
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	local certified = msg:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
 	if certified then
 		msg = msg:sub(CHEAT_SIG_LEN + 1)
-	end
-
-	-- Terrain
-	if msg:sub(1, CLONE_TERRAIN_HEADER_LEN) == CLONE_TERRAIN_HEADER then
-		if not isAllowed(certified) then
-			return true
-		end
-		handleCloneTerrain(msg:sub(CLONE_TERRAIN_HEADER_LEN + 1))
-		return true
 	end
 
 	-- Metal

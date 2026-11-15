@@ -1,7 +1,6 @@
 return {
 	legnavysub = {
 		activatewhenbuilt = true,
-		autoheal = 2,
 		buildpic = "legnavysub.DDS",
 		buildtime = 4600,
 		canmove = true,

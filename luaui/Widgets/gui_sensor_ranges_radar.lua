@@ -28,8 +28,8 @@ local lineScale = 1 -- this is a multiplier for the line width, to make it look 
 local circleSegments = 126 -- To ensure its only 2 warps per instance
 local lineInset = 4 -- elmos inside the coverage edge: about one dash, so the visible (outer) half of the line stays within it
 -- radar ranges are large and still readable zoomed out, so they fade later than the LOS and sonar lines
-local fadeStart = 6000 -- elmos from the camera where the lines start fading out
-local fadeEnd = 11000 -- elmos from the camera where they are gone
+local fadeStart = 600000 -- elmos from the camera where the lines start fading out
+local fadeEnd = 1100000 -- elmos from the camera where they are gone
 -- players outside the LOS view (L) see their coverage only through these lines, so those don't fade for them
 local noFadeWithoutLosView = true
 --------- End configurables ------
@@ -393,7 +393,7 @@ function widget:DrawWorld()
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 
-	gl.DepthTest(true)
+	gl.DepthTest(false)
 	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices - 0, 0, circleInstanceVBO.usedElements)
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:

@@ -1,9 +1,12 @@
 -- this file gets included in alldefs_post.lua
 local function convertToPurple(value)
-	value = string.gsub(value, "-red", "-purple")
-	value = string.gsub(value, "-green", "-purple")
-	value = string.gsub(value, "-blue", "-purple")
-	value = string.gsub(value, "-yellow", "-purple")
+	if type(value) ~= "string" then
+		return value
+	end
+	value = value:gsub("-red", "-purple")
+	value = value:gsub("-green", "-purple")
+	value = value:gsub("-blue", "-purple")
+	value = value:gsub("-yellow", "-purple")
 	return value
 end
 

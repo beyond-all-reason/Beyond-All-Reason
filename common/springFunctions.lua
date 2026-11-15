@@ -7,6 +7,7 @@ local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
 local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
 local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. "safeluaparser.lua")
+local objectFunctions = VFS.Include(utilitiesDirectory .. "objectFunctions.lua")
 local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
@@ -27,6 +28,7 @@ utilities = {
 	GetRaptorTeamID = team.GetRaptorTeamID,
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
+	CanTeamReceiveUnits = team.CanTeamReceiveUnits,
 
 	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
 	IsPlayerLagging = player.IsPlayerLagging,
@@ -58,9 +60,15 @@ utilities = {
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
+	CompassAngleToHeading = facingFunctions.CompassAngleToHeading,
+	DirectionToHeading = facingFunctions.DirectionToHeading,
 	FacingToHeading = facingFunctions.FacingToHeading,
+	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
+
+	GetObjectPosition = objectFunctions and objectFunctions.GetObjectPosition,
+	GetObjectCentroid = objectFunctions and objectFunctions.GetObjectCentroid,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,

@@ -1303,6 +1303,7 @@ local Turrets = {
 		armfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
 		armckfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
 		corfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
+		corhltfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 4 },
 		armuwfus_scav = { type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5 },
 		coruwfus_scav = { type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5 },
 		armuwadvms_scav = { type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1 },
@@ -1331,7 +1332,7 @@ local Turrets = {
 		coramsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corasy_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corplat_scav = { type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
-		legamsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
+		legamphlab_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		--["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {

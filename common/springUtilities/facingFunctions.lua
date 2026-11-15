@@ -30,6 +30,13 @@ local function headingToFacing(heading)
 	return facingNames[Spring.GetFacingFromHeading(heading)]
 end
 
+---Convert a named facing to the engine's facing number.
+---@param facing string|integer
+---@return integer facing 0 south, 1 east, 2 north, 3 west
+local function facingToNumber(facing)
+	return facingMap[facing or 0]
+end
+
 --- Whether the given facing is east or west
 --- @param facing string|integer
 --- @return boolean
@@ -38,8 +45,42 @@ local function isFacingEW(facing)
 	return facingValue == 1 or facingValue == 3
 end
 
+---Convert a compass angle in degrees (0 north, clockwise) to a heading.
+---@param angle number
+---@param radians boolean? radians, as Spring.GetUnitHeading(unitID, true) returns them, instead of 0-65535
+---@return number heading
+local function compassAngleToHeading(angle, radians)
+	if radians then
+		return math.rad(180 - angle)
+	end
+	return math.floor((angle % 360 - 180) / 360 * -65536)
+end
+
+-- A point closer than this is on the start point itself.
+local MIN_DIRECTION_DISTANCE = 0.001
+
+---The heading from a point toward a direction: a compass angle ({ angle }) or a point to face ({ x, z }).
+---@param fromX number
+---@param fromZ number
+---@param direction { angle: number?, x: number?, z: number? }
+---@return number heading south when the point to face is the start point
+local function directionToHeading(fromX, fromZ, direction)
+	if direction.angle then
+		return compassAngleToHeading(direction.angle)
+	end
+	local dx, dz = direction.x - fromX, direction.z - fromZ
+	if math.abs(dx) < MIN_DIRECTION_DISTANCE and math.abs(dz) < MIN_DIRECTION_DISTANCE then
+		return facingToHeading(0)
+	end
+	-- Not Spring.GetHeadingFromVector: before RecoilEngine #3240 it swaps east and west for dz just above zero.
+	return compassAngleToHeading(math.deg(math.atan2(dx, -dz)))
+end
+
 return {
+	CompassAngleToHeading = compassAngleToHeading,
+	DirectionToHeading = directionToHeading,
 	FacingToHeading = facingToHeading,
+	FacingToNumber = facingToNumber,
 	HeadingToFacing = headingToFacing,
 	IsFacingEW = isFacingEW,
 }
