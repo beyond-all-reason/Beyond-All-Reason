@@ -1,7 +1,7 @@
 describe("Ghost Target single clicks", function()
-	local widget, env, orders, command, kind, x, y, held, minimap, intercepted
+	local widget, env, orders, command, kind, x, y, held, minimap, intercepted, highlights
 	before_each(function()
-		widget, orders = {}, {}
+		widget, orders, highlights = {}, {}, {}
 		command, kind, x, y, held, minimap, intercepted = 20, "ghost", 100, 100, true, false, false
 		env = setmetatable({
 			widget = widget,
@@ -13,6 +13,12 @@ describe("Ghost Target single clicks", function()
 			CMD = { ATTACK = 20, OPT_KEEP_HEIGHT = 1 },
 			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
 			Spring = {
+				SetGhostHighlight = function(...)
+					highlights[#highlights + 1] = { ... }
+				end,
+				IsGUIHidden = function()
+					return false
+				end,
 				GetActiveCommand = function()
 					return 1, command
 				end,
@@ -34,6 +40,9 @@ describe("Ghost Target single clicks", function()
 				end,
 			},
 			widgetHandler = {
+				ModalAllows = function()
+					return true
+				end,
 				CommandNotify = function(_, id, params, opts)
 					assert.is_false(widget:CommandNotify(id, params, opts)) -- no recursion
 					assert.is_true(opts.keepheight)
@@ -102,4 +111,30 @@ describe("Ghost Target single clicks", function()
 		widget:Update()
 		assert.is_false(widget:CommandNotify(command, { 100, 0, 100 }, {}))
 	end)
+	it("highlights the same frozen aimpoint for attack and set target before clicking", function()
+		held = false
+		for _, id in ipairs({ 20, 34923, 34924 }) do
+			command = id
+			widget:Update()
+			assert.same({ 110, 80, 105 }, highlights[#highlights])
+		end
+	end)
+	it("clears the highlight on non-ghosts, cancelled commands, minimap, and shutdown", function()
+		held = false
+		widget:Update()
+		kind = "unit"
+		widget:Update()
+		assert.same({}, highlights[#highlights])
+		kind = "ghost"
+		command = nil
+		widget:Update()
+		assert.same({}, highlights[#highlights])
+		command = 20
+		minimap = true
+		widget:Update()
+		assert.same({}, highlights[#highlights])
+		widget:Shutdown()
+		assert.same({}, highlights[#highlights])
+	end)
+
 end)

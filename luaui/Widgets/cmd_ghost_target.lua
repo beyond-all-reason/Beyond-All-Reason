@@ -14,6 +14,7 @@ end
 
 local keepHeight = CMD.OPT_KEEP_HEIGHT
 local press
+local setGhostHighlight = Spring.SetGhostHighlight
 local commands = {
 	[CMD.ATTACK] = true,
 	[GameCMD.UNIT_SET_TARGET] = true,
@@ -35,7 +36,39 @@ function widget:MousePress(x, y, button)
 	return false
 end
 
+local function traceTarget(x, y)
+	return Spring.TraceScreenRay(x, y, false, false, false, false, 0, true)
+end
+
+function widget:Shutdown()
+	if setGhostHighlight then
+		setGhostHighlight()
+	end
+end
+
 function widget:Update()
+	if setGhostHighlight then
+		local x, y, left, middle, _, offscreen, panning = Spring.GetMouseState()
+		local _, command = Spring.GetActiveCommand()
+		local aim
+		if
+			commands[command]
+			and not (left or middle or offscreen or panning)
+			and not Spring.IsGUIHidden()
+			and not Spring.IsAboveMiniMap(x, y)
+			and widgetHandler:ModalAllows(self)
+		then
+			local kind, position = traceTarget(x, y)
+			if kind == "ghost" then
+				aim = position
+			end
+		end
+		if aim then
+			setGhostHighlight(aim[1], aim[2], aim[3])
+		else
+			setGhostHighlight()
+		end
+	end
 	if not press then
 		return
 	end
@@ -60,7 +93,7 @@ function widget:CommandNotify(command, params, options)
 	if Spring.IsAboveMiniMap(x, y) or (x - click.x) ^ 2 + (y - click.y) ^ 2 > threshold ^ 2 then
 		return false
 	end
-	local kind, aim = Spring.TraceScreenRay(x, y, false, false, false, false, 0, true)
+	local kind, aim = traceTarget(x, y)
 	if kind ~= "ghost" then
 		return false
 	end
