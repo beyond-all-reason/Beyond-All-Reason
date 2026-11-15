@@ -1574,12 +1574,16 @@ function widget:DrawWorld()
 	end
 end
 
-function widget:DrawInMiniMap(sx, sy)
+function widget:DrawInMiniMap(sx, sy, cropped)
 	if openedMenu > -1 then
 		gl.PushMatrix()
 		local pt = math.min(sx, sy)
 
-		gl.LoadIdentity()
+		if cropped then
+			gl.Scale(sx, sy, 1)
+		else
+			gl.LoadIdentity()
+		end
 
 		local currRot = getCurrentMiniMapRotationOption()
 		if currRot == ROTATION.DEG_0 then

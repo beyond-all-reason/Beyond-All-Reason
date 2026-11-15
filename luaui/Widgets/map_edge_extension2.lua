@@ -1,3 +1,7 @@
+-- The mirrored map edge would draw over neighbouring regions on multi-region maps.
+if VFS.Include("common/map_regions.lua") then
+	return false
+end
 local widget = widget ---@type Widget
 
 function widget:GetInfo()

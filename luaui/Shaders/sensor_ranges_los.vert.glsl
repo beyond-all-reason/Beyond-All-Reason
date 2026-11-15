@@ -15,6 +15,10 @@ layout (location = 2) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+#ifdef MAP_REGIONS
+	uniform vec4 regionBounds; // x0, z0, x1, z1 of the viewed region; zero width disables clipping
+	bool outsideRegion(vec2 p) { return regionBounds.z > regionBounds.x && (any(lessThan(p, regionBounds.xy)) || any(greaterThanEqual(p, regionBounds.zw))); }
+#endif
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -52,6 +56,9 @@ uniform sampler2D heightmapTex;
 
 out DataVS {
 	vec4 v_radius_circum_height;
+	#ifdef MAP_REGIONS
+		vec2 v_worldXZ;
+	#endif
 	#ifndef STENCILPASS
 		flat vec4 v_blendedcolor;
 		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
@@ -75,6 +82,12 @@ void main() {
 	
 	// Get the center position of each unit. 
 	vec4 circleCenterWorldPos = vec4(uni[instData.y].drawPos.xyz, 1.0);
+	#ifdef MAP_REGIONS
+		if (outsideRegion(circleCenterWorldPos.xz)) {
+			gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+			return;
+		}
+	#endif
 	// sensors sit at the unit's midPos: the model's mid offset turned with the heading (drawPos.w, radians)
 	vec2 front = vec2(sin(uni[instData.y].drawPos.w), cos(uni[instData.y].drawPos.w));
 	circleCenterWorldPos.xz += front * radius_params.w + vec2(-front.y, front.x) * radius_params.z;
@@ -136,6 +149,9 @@ void main() {
 	#endif
 	
 
+	#ifdef MAP_REGIONS
+		v_worldXZ = circleVertexWorldPos.xz;
+	#endif
 	gl_Position = cameraViewProj * circleVertexWorldPos;
 	#ifndef STENCILPASS // Circle Pass
 		// depth tested 16 elmos closer to the camera, so terrain bulging between the vertices doesn't hide the line
