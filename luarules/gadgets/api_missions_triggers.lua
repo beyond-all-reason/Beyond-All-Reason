@@ -102,6 +102,11 @@ local function isTriggerValid(trigger)
 		return false
 	end
 
+	--[[
+	--TODO: co-op check
+	if trigger.coop and not ??? then return false end
+	]]
+
 	return true
 end
 
