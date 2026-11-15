@@ -26,7 +26,8 @@
     "signed_at": "2026-11-15T18:23:34.774Z",
     "source": "confirm-license-command",
     "proxy_submitter": "Egzothicki",
-    "proxy_status": "pending-author-confirmation"
+    "proxy_status": "confirmed",
+    "authorship_confirmed_at": "2026-11-15T21:02:56.128Z"
   },
   {
     "file": "objects3d/Units/scavboss/scavengerbossv5_dead.s3o",
@@ -37,7 +38,8 @@
     "signed_at": "2026-11-15T18:23:34.774Z",
     "source": "confirm-license-command",
     "proxy_submitter": "Egzothicki",
-    "proxy_status": "pending-author-confirmation"
+    "proxy_status": "confirmed",
+    "authorship_confirmed_at": "2026-11-15T21:02:56.128Z"
   },
   {
     "file": "unitpics/scavengerbossv4.dds",
