@@ -60,11 +60,11 @@ local ZOMBIE_FACTORY_BUILD_COUNT = 20
 local MAX_NOGO_ZONES = 10
 local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1 -- the threshold of relative power where zombies stop wandering and swarm players
 local COMBAT_ENGAGE_RANGE_RATIO = 0.5
-local WEAPON_RANGE_TO_FIGHT_INSTEAD = 150
+local WEAPON_RANGE_TO_FIGHT_INSTEAD = 200
 
 local NORMAL_OBJECTIVE_ANGLE_VARIANCE = 90 * DEGREES_TO_RADIANS
 local AGGRO_OBJECTIVE_ANGLE_VARIANCE = 22.5 * DEGREES_TO_RADIANS
-local COMBAT_SECONDARY_ANGLE_OFFSET = 45 * DEGREES_TO_RADIANS
+local COMBAT_SECONDARY_ANGLE_OFFSET = 90 * DEGREES_TO_RADIANS
 local COMBAT_SECONDARY_ANGLE_COS = cos(COMBAT_SECONDARY_ANGLE_OFFSET)
 local COMBAT_SECONDARY_ANGLE_SIN = sin(COMBAT_SECONDARY_ANGLE_OFFSET)
 
@@ -168,6 +168,7 @@ local trackedUnitData = {
 	teamIDs = {},
 	airEngage = {},
 	groundEngage = {},
+	canCloak = {},
 }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -229,6 +230,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	trackedUnitData.canFly[unitDefID] = unitDef.canFly == true
 	trackedUnitData.height[unitDefID] = unitDef.height or 0
 	trackedUnitData.capturableOrObjective[unitDefID] = isObjective or unitDef.capturable ~= false
+	if unitDef.canCloak then
+		trackedUnitData.canCloak[unitDefID] = true
+	end
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -242,10 +246,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		for optionIndex = 1, #unitDef.buildOptions do
 			local optionDefID = unitDef.buildOptions[optionIndex]
 			local optionDef = UnitDefs[optionDefID]
-			local isConstructor = optionDef and optionDef.isBuilder and optionDef.speed > 0
-			local isResurrector = optionDef and optionDef.canResurrect
+			local hasBuildpower = optionDef and optionDef.buildSpeed > 0
 			local isExcluded = optionDef and optionDef.customParams.zombie_factory_exclude
-			if not isExcluded and (unitDefWeaponRanges[optionDefID] or isConstructor or isResurrector) then
+			if not isExcluded and not hasBuildpower and unitDefWeaponRanges[optionDefID] then
 				wantedOptions[#wantedOptions + 1] = optionDefID
 			end
 		end
@@ -262,7 +265,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if
 		aircraftUnitDefs[unitDefID]
 		or unitDef.canKamikaze
-		or (maximumWeaponRange > 0 and maximumWeaponRange < WEAPON_RANGE_TO_FIGHT_INSTEAD)
+		or (maximumWeaponRange > 0 and maximumWeaponRange <= WEAPON_RANGE_TO_FIGHT_INSTEAD)
 	then
 		fightCommandUnitDefs[unitDefID] = true
 	end
@@ -743,19 +746,12 @@ end
 
 local function assignZombieAggroEvenly()
 	local playerTeams = GG.PowerLib.PlayerTeams
-	local teamPowers = GG.PowerLib.TeamPowers
-	local allyPowers = {}
-	for teamID in pairs(playerTeams) do
-		local allyTeamID = getTeamAllyTeamID(teamID)
-		local teamPower = teamPowers[teamID] or 0
-		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
-	end
-
 	local eligibleAllies = {}
 	local eligibleAlliesByID = {}
-	for allyTeamID, allyPower in pairs(allyPowers) do
+	for teamID in pairs(playerTeams) do
+		local allyTeamID = getTeamAllyTeamID(teamID)
 		local allyUnitList = allyTeamUnits[allyTeamID] ---@as UnitID[]?
-		if allyPower > 0 and allyUnitList and #allyUnitList > 0 then
+		if not eligibleAlliesByID[allyTeamID] and allyUnitList and #allyUnitList > 0 then
 			local allyData = {
 				allyTeamID = allyTeamID,
 				assignedPower = 0,
@@ -1074,7 +1070,7 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		zombieData.lastCombatTargetZ = targetZ
 		return
 	end
-	local radialX = targetMoveX - targetX -- queue a 45° orbit around the target so they don't halt at engage range
+	local radialX = targetMoveX - targetX -- queue a 90° orbit around the target so they don't halt at engage range
 	local radialZ = targetMoveZ - targetZ
 	local rotationDirection = random() < 0.5 and -1 or 1
 	local issuedSecondaryMove = false
@@ -1151,6 +1147,11 @@ end
 
 local function updateOrders(unitID, zombieData)
 	local unitDefID = zombieData.unitDefID
+	local CLOAK_INVERT_CHANCE = 0.1
+	if trackedUnitData.canCloak[unitDefID] and GG.SetWantedCloaked and random() < CLOAK_INVERT_CHANCE then
+		local invertedCloakState = spGetUnitRulesParam(unitID, "wantcloak") == 1 and 0 or 1
+		GG.SetWantedCloaked(unitID, invertedCloakState)
+	end
 	if mobileUnitDefs[unitDefID] then
 		local previousCombatTargetID = zombieData.combatTargetID
 		local currentCommand = spGetUnitCurrentCommand(unitID)
@@ -1488,9 +1489,7 @@ local function updateStuckZombie(unitID, zombieData)
 	local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
 	local isAtRememberedObjective = objectiveIsRememberedEdge(zombieData, objective)
 		and isObjectiveReached(unitID, objective, unitX, unitZ)
-	local isStationary = isMobileUnit
-		and not isAtRememberedObjective
-		and movedDistanceSquared < STUCK_DISTANCE_SQUARED
+	local isStationary = isMobileUnit and not isAtRememberedObjective and movedDistanceSquared < STUCK_DISTANCE_SQUARED
 	local workerTask
 	if isStationary then
 		workerTask = spGetUnitWorkerTask(unitID)
@@ -1510,15 +1509,7 @@ local function updateStuckZombie(unitID, zombieData)
 		end
 		local recoveryObjective =
 			ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID), unitX, unitZ)
-		issueObjectiveMove(
-			unitID,
-			unitDefID,
-			zombieData,
-			recoveryObjective,
-			unitX,
-			unitZ,
-			ZOMBIE_MAX_ORDER_ATTEMPTS
-		)
+		issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective, unitX, unitZ, ZOMBIE_MAX_ORDER_ATTEMPTS)
 	end
 	if mobileUnitDefs[unitDefID] and gameFrame - zombieData.selfDestructTimestamp >= STUCK_SELF_DESTRUCT_INTERVAL then
 		if
@@ -1560,6 +1551,8 @@ local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ, attac
 		spGetClosestEnemyUnit(wraithX, wraithY, wraithZ, ENEMY_ATTACK_DISTANCE, gaiaAllyTeamID, false)
 	local enemyX, enemyZ
 	local enemyWithinRadius = false
+	local ordersRefreshed = false
+	local CLOAK_INVERT_CHANCE = 0.1
 	if nearestEnemyID then
 		enemyX, _, enemyZ = spGetUnitPosition(nearestEnemyID)
 		if enemyX then
@@ -1573,19 +1566,31 @@ local function commandWraith(unitID, unitDefID, wraithX, wraithY, wraithZ, attac
 			issueDirectObjectiveMove(unitID, unitDefID, objective)
 			wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
 		end
-		return enemyWithinRadius
+		ordersRefreshed = true
+	elseif gameFrame >= wraithData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
+		local objectiveRegenerated = enemyX
+			and nearestEnemyID ~= wraithData.threatTargetID
+			and setEnemyDirectionObjective(unitID, wraithData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY, wraithX, wraithZ)
+		wraithData.threatTargetID = nearestEnemyID
+		local objective, objectiveChanged = ensureMovementObjective(unitID, wraithData, nil, wraithX, wraithZ)
+		if
+			objectiveRegenerated
+			or objectiveChanged
+			or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID)
+		then
+			issueObjectiveMove(unitID, unitDefID, wraithData, objective, wraithX, wraithZ)
+			wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
+		end
+		ordersRefreshed = true
 	end
-	if gameFrame < wraithData.nextOrderFrame then -- delay issuing new orders so it has a chance to escape from the midst of the enemy
-		return enemyWithinRadius
-	end
-	local objectiveRegenerated = enemyX
-		and nearestEnemyID ~= wraithData.threatTargetID
-		and setEnemyDirectionObjective(unitID, wraithData, enemyX, enemyZ, ENEMY_DIRECTION_AWAY, wraithX, wraithZ)
-	wraithData.threatTargetID = nearestEnemyID
-	local objective, objectiveChanged = ensureMovementObjective(unitID, wraithData, nil, wraithX, wraithZ)
-	if objectiveRegenerated or objectiveChanged or spGetUnitCurrentCommand(unitID) ~= getMovementCommand(unitDefID) then
-		issueObjectiveMove(unitID, unitDefID, wraithData, objective, wraithX, wraithZ)
-		wraithData.nextOrderFrame = gameFrame + WRAITH_ORDER_COOLDOWN
+	if
+		ordersRefreshed
+		and trackedUnitData.canCloak[unitDefID]
+		and GG.SetWantedCloaked
+		and random() < CLOAK_INVERT_CHANCE
+	then
+		local invertedCloakState = spGetUnitRulesParam(unitID, "wantcloak") == 1 and 0 or 1
+		GG.SetWantedCloaked(unitID, invertedCloakState)
 	end
 	return enemyWithinRadius
 end
