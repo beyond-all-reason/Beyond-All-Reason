@@ -522,13 +522,13 @@ local function isExplosionInShield(explosion, shieldUnitID)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam, projectileID)
-	local unitShields = unitCoverages[unitID]
-	local explosion = projectileExplosions[projectileID]
+	local explosion = projectileExplosions[projectileID] ---@as table?
 	local sourceTeam = explosion and explosion.team or attackerTeam
 	-- Empty shield lists are nil'd out, so existence implies non-empty
-	if unitShields and sourceTeam and not spAreTeamsAllied(unitTeam, sourceTeam) then
+	if sourceTeam and not spAreTeamsAllied(unitTeam, sourceTeam) then
+		local unitShields = unitCoverages[unitID]
 		local attackerShields = unitCoverages[attackerID]
-		local isStopped = projectileStoppedByShield[projectileID]
+		local isStopped = projectileStoppedByShield[projectileID] ---@as boolean?
 		for shieldUnitID in pairs(unitShields) do
 			local isSourceInShield
 			if isStopped then
