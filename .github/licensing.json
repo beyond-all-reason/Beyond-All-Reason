@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Shared licensing rules read by .github/scripts/licensing.js (CLA bot) and tools/license_auditor (desktop auditor).",
+  "description": "Shared licensing rules read by the CLA bot (licensing.js in beyond-all-reason/licensing) and its desktop auditor.",
   "art_dirs": [
     "anims",
     "bitmaps",
