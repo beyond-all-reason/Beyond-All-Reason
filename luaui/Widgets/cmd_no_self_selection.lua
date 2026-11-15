@@ -258,7 +258,7 @@ local function traceScreenRay(
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result = sp_TraceScreenRay(
+	local description, result, ghostAimPos = sp_TraceScreenRay(
 		screenX,
 		screenY,
 		onlyCoords,
@@ -273,7 +273,7 @@ local function traceScreenRay(
 		removeSelectionVolume(hiddenID)
 	end
 
-	return description, result
+	return description, result, ghostAimPos
 end
 
 local function naiveRemoveSelectionVolume()

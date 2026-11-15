@@ -314,7 +314,14 @@ end
 local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
-	local targetType, target = spTraceScreenRay(mx, my)
+	local _, command = spGetActiveCommand()
+	local includeGhosts = CMD.OPT_KEEP_HEIGHT ~= nil
+		and (command == CMD_ATTACK or command == CMD_UNIT_SET_TARGET or command == CMD_UNIT_SET_TARGET_NO_GROUND)
+	local targetType, target = spTraceScreenRay(mx, my, false, false, false, false, 0, includeGhosts)
+	-- Ghost clicks target a frozen aimpoint, not the terrain behind the remembered model.
+	if targetType == "ghost" then
+		return nil
+	end
 
 	if not targetType or not target then
 		return nil

@@ -58,9 +58,11 @@ function widget:Update()
 			and not Spring.IsAboveMiniMap(x, y)
 			and widgetHandler:ModalAllows(self)
 		then
-			local kind, position = traceTarget(x, y)
+			local kind, position, ghostAimPos = traceTarget(x, y)
 			if kind == "ghost" then
 				aim = position
+			elseif kind == "unit" then
+				aim = ghostAimPos
 			end
 		end
 		if aim then
@@ -93,17 +95,21 @@ function widget:CommandNotify(command, params, options)
 	if Spring.IsAboveMiniMap(x, y) or (x - click.x) ^ 2 + (y - click.y) ^ 2 > threshold ^ 2 then
 		return false
 	end
-	local kind, aim = traceTarget(x, y)
-	if kind ~= "ghost" then
+	local kind, target, ghostAimPos = traceTarget(x, y)
+	local replacementParams
+	local replacementOptions = table.copy(options)
+	if kind == "ghost" then
+		replacementParams = target
+		replacementOptions.keepheight = true
+		replacementOptions.coded = math.bit_or(options.coded or 0, keepHeight)
+	elseif kind == "unit" and ghostAimPos then
+		replacementParams = { target }
+	else
 		return false
 	end
-
-	local replacementOptions = table.copy(options)
-	replacementOptions.keepheight = true
-	replacementOptions.coded = math.bit_or(options.coded or 0, keepHeight)
 	-- Let queue insertion and other command widgets process the resolved point, too.
-	if not widgetHandler:CommandNotify(command, aim, replacementOptions) then
-		Spring.GiveOrder(command, aim, replacementOptions.coded)
+	if not widgetHandler:CommandNotify(command, replacementParams, replacementOptions) then
+		Spring.GiveOrder(command, replacementParams, replacementOptions.coded)
 	end
 	return true
 end

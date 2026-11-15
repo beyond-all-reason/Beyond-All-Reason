@@ -1,7 +1,8 @@
 describe("Ghost Target single clicks", function()
-	local widget, env, orders, command, kind, x, y, held, minimap, intercepted, highlights
+	local widget, env, orders, command, kind, x, y, held, minimap, intercepted, highlights, radarContact
 	before_each(function()
 		widget, orders, highlights = {}, {}, {}
+		radarContact = false
 		command, kind, x, y, held, minimap, intercepted = 20, "ghost", 100, 100, true, false, false
 		env = setmetatable({
 			widget = widget,
@@ -33,6 +34,9 @@ describe("Ghost Target single clicks", function()
 				end,
 				TraceScreenRay = function(...)
 					assert.equals(true, select(8, ...))
+					if radarContact then
+						return "unit", 321, { 110, 80, 105 }
+					end
 					return kind, { 110, 80, 105 }
 				end,
 				GiveOrder = function(id, params, opts)
@@ -45,7 +49,11 @@ describe("Ghost Target single clicks", function()
 				end,
 				CommandNotify = function(_, id, params, opts)
 					assert.is_false(widget:CommandNotify(id, params, opts)) -- no recursion
-					assert.is_true(opts.keepheight)
+					if #params == 3 then
+						assert.is_true(opts.keepheight)
+					else
+						assert.is_nil(opts.keepheight)
+					end
 					return intercepted
 				end,
 			},
@@ -75,6 +83,9 @@ describe("Ghost Target single clicks", function()
 
 		assert.is_true(click())
 		assert.same({ 20, { 110, 80, 105 }, 33 }, orders[1])
+		radarContact = true
+		assert.is_true(click())
+		assert.same({ 20, { 321 }, 32 }, orders[2])
 	end)
 	it("leaves visible units, radar contacts, and terrain to existing command handling", function()
 		for _, targetKind in ipairs({ "unit", "ground", "feature" }) do
@@ -135,6 +146,18 @@ describe("Ghost Target single clicks", function()
 		assert.same({}, highlights[#highlights])
 		widget:Shutdown()
 		assert.same({}, highlights[#highlights])
+	end)
+
+	it("uses the radar unit target for remembered-model clicks and still highlights its snapshot", function()
+		radarContact = true
+		for _, id in ipairs({ 20, 34923, 34924 }) do
+			command = id
+			assert.is_true(click())
+			assert.same({ id, { 321 }, 32 }, orders[#orders])
+		end
+		held = false
+		widget:Update()
+		assert.same({ 110, 80, 105 }, highlights[#highlights])
 	end)
 
 end)
