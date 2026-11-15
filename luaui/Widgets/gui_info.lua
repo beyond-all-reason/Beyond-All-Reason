@@ -1678,6 +1678,34 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	return true
 end
 
+-- a health bar along the bottom of each wounded passenger's slot
+function tractorCargo.drawHealth(units)
+	for cellID, unitID in pairs(units or {}) do
+		local r = cellRect[cellID]
+		local health, maxHealth = spGetUnitHealth(unitID)
+		if r and health and maxHealth and health < maxHealth then
+			local share = math.clamp(health / maxHealth, 0, 1)
+			local color = bfcolormap[math_floor(share * 100)]
+			local x1, y1, x2 = r[1] + cellPadding * 2, r[2] + cellPadding * 2, r[3] - cellPadding
+			local y2 = y1 + math_max(3, math_floor(cellsize * 0.08))
+			RectRound(x1, y1, x2, y2, 1, 1, 1, 1, 1, { 0, 0, 0, 0.75 })
+			local fill = { color[1], color[2], color[3], 1 }
+			RectRound(x1, y1, x1 + (x2 - x1) * share, y2, 1, 1, 1, 1, 1, fill)
+		end
+	end
+end
+
+-- what a click on a passenger's slot does
+function tractorCargo.showTooltip(unitID)
+	local unitDefID = WG.tooltip and spGetUnitDefID(unitID)
+	if not unitDefID then
+		return
+	end
+	tractorCargo.words = tractorCargo.words or VFS.Include("luaui/Include/transport_strings.lua")
+	local text = tooltipTextColor .. tractorCargo.words.slotClick .. "\n" .. tractorCargo.words.slotCtrlClick
+	WG.tooltip.ShowTooltip("info", text, nil, nil, unitDefInfo[unitDefID].translatedHumanName)
+end
+
 local function drawUnitInfo()
 	tracy.ZoneBeginN("W:Info:DrawUnitInfo")
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
@@ -2905,12 +2933,16 @@ function widget:MouseRelease(x, y, button)
 							cellRect[cellID][4]
 						)
 					then
-						-- tractor beam transports: the unit is placed with the unload preview
-						if WG.UnloadSnap and WG.UnloadSnap.DropUnit(displayUnitID, unitID) then
+						local alt, ctrl, meta, shift = spGetModKeyState()
+						-- tractor beam transports: a click sets the unit down here, ctrl + click picks the spot
+						local snap = WG.UnloadSnap
+						if snap and ctrl and snap.DropUnit(displayUnitID, unitID) then
+							return -1
+						end
+						if snap and not ctrl and not shift and snap.DropHere(displayUnitID, unitID) then
 							return -1
 						end
 						local x, y, z = Spring.GetUnitPosition(displayUnitID)
-						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
 							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
@@ -3073,6 +3105,9 @@ function widget:DrawScreen()
 				end
 			end
 		end
+	end
+	if infoShows and displayMode == "unit" and cellRect and tractorCargo.slotsFor == displayUnitID then
+		tractorCargo.drawHealth(Spring.GetUnitIsTransporting(displayUnitID))
 	end
 
 	-- widget hovered
@@ -3269,7 +3304,9 @@ function widget:DrawScreen()
 						)
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-						--cellHovered = cellID
+						if tractorCargo.slotsFor == displayUnitID then
+							tractorCargo.showTooltip(unitID)
+						end
 						break
 					end
 				end

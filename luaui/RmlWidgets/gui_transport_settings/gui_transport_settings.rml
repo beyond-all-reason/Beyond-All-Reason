@@ -18,9 +18,33 @@
 				<div class="ts-btn" data-class-ts-off="!cheats" data-event-click="step(row.key, 1)"><div class="ts-btn-text">+</div></div>
 			</div>
 			<div class="ts-section">{{previewTitle}}</div>
-			<div class="ts-row ts-toggle" data-for="t : toggles" data-event-click="toggle(t.key)">
-				<div class="ts-check" data-class-ts-on="t.on"></div>
-				<div class="ts-label">{{t.label}}</div>
+			<div class="ts-toggle" data-event-click="toggle('ghosts')">
+				<div class="ts-check" data-class-ts-on="ghosts"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{ghostsLabel}}</div>
+					<div class="ts-toggle-hint">{{ghostsHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('rings')">
+				<div class="ts-check" data-class-ts-on="rings"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{ringsLabel}}</div>
+					<div class="ts-toggle-hint">{{ringsHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('claimLines')">
+				<div class="ts-check" data-class-ts-on="claimLines"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{claimLinesLabel}}</div>
+					<div class="ts-toggle-hint">{{claimLinesHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('rightClickLoad')">
+				<div class="ts-check" data-class-ts-on="rightClickLoad"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{rightClickLoadLabel}}</div>
+					<div class="ts-toggle-hint">{{rightClickLoadHint}}</div>
+				</div>
 			</div>
 		</div>
 	</div>

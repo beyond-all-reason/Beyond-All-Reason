@@ -99,7 +99,23 @@ body {
 }
 
 .ts-toggle {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	min-height: 28dp;
+	padding: 3dp 0;
 	cursor: pointer;
+}
+
+.ts-toggle-text {
+	display: block;
+	flex: 1;
+}
+
+.ts-toggle-hint {
+	display: block;
+	font-size: 11dp;
+	color: #a0a0a0;
 }
 
 .ts-check {
@@ -107,6 +123,7 @@ body {
 	width: 18dp;
 	height: 18dp;
 	margin-right: 8dp;
+	flex-shrink: 0;
 	border: 2dp #ffffff55;
 	border-radius: 3dp;
 }

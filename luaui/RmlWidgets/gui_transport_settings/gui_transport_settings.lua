@@ -73,14 +73,6 @@ local function buildRows()
 	return rows
 end
 
-local function buildToggles()
-	local list = {}
-	for i, key in ipairs(TOGGLES) do
-		list[i] = { key = key, label = words[key], on = settings[key] }
-	end
-	return list
-end
-
 local shown = {} -- last values put in the model, so it only changes when something did
 
 local function refresh()
@@ -116,12 +108,13 @@ local function step(_, key, direction)
 			if value < 0 then
 				new = direction > 0 and 0 or value -- leave "per transport" upward only
 			else
-				new = value + direction * g.step
+				-- back onto the step grid: rules params come back as 32 bit floats
+				new = math.floor((value + direction * g.step) / g.step + 0.5) * g.step
 				if new < 0 and (key == "speedModMode" or key:find("Strength")) then
 					new = -1
 				end
 			end
-			Spring.SendLuaRulesMsg(string.format("tractorbeam_set %s %.4g", key, new))
+			Spring.SendLuaRulesMsg(string.format("tractorbeam_set %s %.4f", key, new))
 			return
 		end
 	end
@@ -132,7 +125,7 @@ local function toggle(_, key)
 		return
 	end
 	settings[key] = not settings[key]
-	dm.toggles = buildToggles()
+	dm[key] = settings[key]
 end
 
 local function toggleOpen()
@@ -150,7 +143,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	dm = rmlContext:OpenDataModel(MODEL_NAME, {
+	local model = {
 		title = words.settingsTitle,
 		gameplayTitle = words.settingsGameplay,
 		previewTitle = words.settingsPreview,
@@ -159,11 +152,17 @@ function widget:Initialize()
 		chevron = open and "-" or "+",
 		cheats = Spring.IsCheatingEnabled(),
 		rows = buildRows(),
-		toggles = buildToggles(),
 		step = step,
 		toggle = toggle,
 		toggleOpen = toggleOpen,
-	}, self)
+	}
+	-- one plain value per toggle: the rows never get rebuilt
+	for _, key in ipairs(TOGGLES) do
+		model[key] = settings[key]
+		model[key .. "Label"] = words[key]
+		model[key .. "Hint"] = words[key .. "Hint"]
+	end
+	dm = rmlContext:OpenDataModel(MODEL_NAME, model, self)
 	if not dm then
 		widgetHandler:RemoveWidget()
 		return
