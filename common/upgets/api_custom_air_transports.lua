@@ -27,8 +27,6 @@ globalScope.TransportAPI = {}
 local TransportAPI = globalScope.TransportAPI
 
 -- SPRING API LOCALS
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRotation = Spring.GetUnitRotation
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -42,71 +40,39 @@ local spEcho = Spring.Echo
 local spSetUnitBuildParams = Spring.SetUnitBuildParams
 local spSetUnitUseWeapons = Spring.SetUnitUseWeapons
 
--- CUSTOM SETTINGS
--- (none)
-
 -- CONSTANTS
-local SEATS_TO_PAD_SIZE =
-	{ -- footprint size of the unload pad to spawn for a given transporterSeats value; used by GetUnloadPadType and GetBiggestUnloadPadType
-		[0] = 0,
-		[1] = 4,
-		[2] = 6,
-		[3] = 6,
-		[4] = 6,
-		[5] = 8,
-		[6] = 8,
-		[7] = 8,
-		[8] = 10,
-		[9] = 10,
-		[10] = 10,
-		[11] = 10,
-		[12] = 10,
-		[13] = 12,
-		[14] = 10,
-		[15] = 12,
-		[16] = 10,
-	}
+local SEATS_TO_PAD_SIZE = { -- transporterSeats → unload pad size
+	[1] = 4,
+	[2] = 6,
+	[3] = 6,
+	[4] = 6,
+	[5] = 8,
+	[6] = 8,
+	[7] = 8,
+	[8] = 10,
+	[9] = 10,
+	[10] = 10,
+	[11] = 10,
+	[12] = 10,
+	[13] = 12,
+	[14] = 10,
+	[15] = 12,
+	[16] = 10,
+}
 
 local CMD_LOAD_UNIT = GameCMD.TRANSPORT_LOAD_UNIT
 
 -- VARIABLES
 local cachedUnitSizes = {} -- unitDefID -> size, cached for performance
-local cachedCos, cachedSin = {}, {} -- angle -> cos/sin(angle), cached for performance
-
--- LOCAL HELPERS
--- local function cachedCosSin(...)  -- Return cos/sin of angle, caching results to avoid repeated trig calls
--- local function shortAngle(...)    -- Normalize angle to (-pi, pi]
-
--- note: might've become stale code since MovePieceWS has been removed
----@param angle number
----@return number cos, number sin
-local function cachedCosSin(angle)
-	angle = math.floor(angle * 100) / 100 -- round to 2 decimals to limit cache size; should be enough for smooth animations and avoid visible jumps
-	if not cachedCos[angle] then
-		cachedCos[angle], cachedSin[angle] = math.cos(angle), math.sin(angle)
-	end
-	return cachedCos[angle], cachedSin[angle]
-end
-
----@param a number
----@return number
-local function shortAngle(a)
-	a = a % (2 * math.pi)
-	if a > math.pi then
-		a = a - 2 * math.pi
-	end
-	return a
-end
 
 -- MODULE FUNCTIONS
 -- function TransportAPI.HasAmphibCargo(...)              -- Return true if any passenger is amphibious or hover
 -- function TransportAPI.GetUnloadTargets(...)            -- Return filtered list of passengers valid to unload at goal position
--- function TransportAPI.GetPassengerSize(...)            -- Return seat cost of a unit based on footprint or customParams.nseats
+-- function TransportAPI.GetPassengerSize(...)            -- Return seat cost of a unit: customParams.nseats, else by mass
 -- function TransportAPI.GetPassengerSizeForDef(...)      -- Same, for a unit def (build menu, stats)
 -- function TransportAPI.IsTractorTransport(...)          -- Return true if the unit is a tractor beam transport
 -- function TransportAPI.GetExpectedCargo(...)            -- Return carried units plus the single-unit loads still queued
 -- function TransportAPI.GetUnloadPadType(...)            -- Return unload pad defID for a given transporter and optional passenger
--- function TransportAPI.GetBiggestUnloadPadType(...)     -- Return unload pad defID for the largest transporter in a selection
 -- function TransportAPI.CanPassengerFitInTransporter(...)-- Return true if the passenger can fit in the transporter
 -- function TransportAPI.IsTransportFull(...)             -- Return true if the transporter has no remaining seat capacity
 -- function TransportAPI.GetPendingSeats(...)             -- Return seats claimed or queued to load, not yet aboard
@@ -164,7 +130,7 @@ end
 function TransportAPI.GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 	local Q = spGetUnitCommands(transporterID, 2)
 	local first, second = Q and Q[1], Q and Q[2]
-	-- an UNLOAD_UNIT without a unitID comes from the customFormation/areaUnload widgets
+	-- an UNLOAD_UNIT without a unitID: a drop at a point
 	local noTargetUnit = first and not (first.params and first.params[4])
 	local isAreaUnload = first
 		and (
@@ -240,16 +206,11 @@ function TransportAPI.IsTractorTransport(unitID)
 	return seats ~= nil and seats > 0
 end
 
+-- live units of the single-unit loads in the transporter's queue
 ---@param transporterID UnitID
----@return UnitID[] passengerIDs carried units plus the single-unit loads still in the queue
-function TransportAPI.GetExpectedCargo(transporterID)
-	local cargo = {}
-	local carried = spGetUnitIsTransporting(transporterID)
-	if carried then
-		for i = 1, #carried do
-			cargo[#cargo + 1] = carried[i]
-		end
-	end
+---@return UnitID[]
+local function queuedLoads(transporterID)
+	local list = {}
 	local Q = spGetUnitCommands(transporterID, -1)
 	---@cast Q +?
 	if Q then
@@ -257,9 +218,20 @@ function TransportAPI.GetExpectedCargo(transporterID)
 			local cmd = Q[i]
 			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params and cmd.params[1] ---@as UnitID|false
 			if passengerID and spValidUnitID(passengerID) then
-				cargo[#cargo + 1] = passengerID
+				list[#list + 1] = passengerID
 			end
 		end
+	end
+	return list
+end
+
+---@param transporterID UnitID
+---@return UnitID[] passengerIDs carried units plus the single-unit loads still in the queue
+function TransportAPI.GetExpectedCargo(transporterID)
+	local cargo = queuedLoads(transporterID)
+	local carried = spGetUnitIsTransporting(transporterID) or {}
+	for i = 1, #carried do
+		cargo[#cargo + 1] = carried[i]
 	end
 	return cargo
 end
@@ -269,21 +241,15 @@ end
 function TransportAPI.GetPendingSeats(transporterID)
 	local pending = spGetUnitRulesParam(transporterID, "transporterClaimedSeats") or 0
 	---@cast pending number
-	local Q = spGetUnitCommands(transporterID, -1)
-	---@cast Q +?
-	if Q then
-		for i = 1, #Q do
-			local cmd = Q[i]
-			local passengerID = cmd.id == CMD_LOAD_UNIT and cmd.params and cmd.params[1] ---@as UnitID|false
-			if
-				passengerID
-				and spValidUnitID(passengerID)
-				and spGetUnitRulesParam(passengerID, "transportClaimedBy") ~= transporterID
-				and spGetUnitRulesParam(passengerID, "inLoadAnim") ~= transporterID
-				and spGetUnitTransporter(passengerID) ~= transporterID
-			then
-				pending = pending + TransportAPI.GetPassengerSize(passengerID)
-			end
+	local queued = queuedLoads(transporterID)
+	for i = 1, #queued do
+		local passengerID = queued[i]
+		if
+			spGetUnitRulesParam(passengerID, "transportClaimedBy") ~= transporterID
+			and spGetUnitRulesParam(passengerID, "inLoadAnim") ~= transporterID
+			and spGetUnitTransporter(passengerID) ~= transporterID
+		then
+			pending = pending + TransportAPI.GetPassengerSize(passengerID)
 		end
 	end
 	return pending
@@ -308,81 +274,27 @@ function TransportAPI.GetUnloadPadType(transporterID, passengerID, queued)
 		or spGetUnitIsTransporting(transporterID)
 	local suffix = TransportAPI.HasAmphibCargo(passengers) and "_amphib" or ""
 	local padSize = SEATS_TO_PAD_SIZE[transporterSeats] or 10
-	local padString = "unloadsize" .. tostring(padSize) .. suffix
-	if UnitDefNames[padString] then
-		return UnitDefNames[padString].id
-	end
-	-- suffix variant not defined: fall back to land pad of the same size
-	local landPad = UnitDefNames["unloadsize" .. tostring(padSize)]
-	---@cast landPad table
-	return landPad.id
-end
-
----@param units UnitID[]
----@return number|nil padTypeDefID
-function TransportAPI.GetBiggestUnloadPadType(units)
-	if not units or #units == 0 then
-		return nil
-	end
-	-- find the largest seat count across all transporters in the selection
-	local transporterSeats = 0 ---@type number
-	for i = 1, #units do
-		local thisSeats = spGetUnitRulesParam(units[i], "transporterSeats") or 0 -- set by CargoHandler
-		---@cast thisSeats number
-		if thisSeats > transporterSeats then
-			transporterSeats = thisSeats
-		end
-	end
-	if transporterSeats == 0 then
-		spEcho("Error, GetBiggestUnloadPadType: no valid transporters in units table")
-		return nil
-	end
-	-- aggregate all passengers across every transporter in the selection
-	local allPassengers = {}
-	for i = 1, #units do
-		local passengers = spGetUnitIsTransporting(units[i])
-		if passengers and #passengers > 0 then
-			for _, passengerID in ipairs(passengers) do
-				allPassengers[#allPassengers + 1] = passengerID
-			end
-		end
-	end
-	local suffix = TransportAPI.HasAmphibCargo(allPassengers) and "_amphib" or ""
-	local padSize = SEATS_TO_PAD_SIZE[transporterSeats] or 10
-	local padString = "unloadsize" .. tostring(padSize) .. suffix
-	if UnitDefNames[padString] then
-		return UnitDefNames[padString].id
-	end
-	-- suffix variant not defined: fall back to land pad of the same size
-	local landPad = UnitDefNames["unloadsize" .. tostring(padSize)]
-	---@cast landPad table
-	return landPad.id
+	local pad = UnitDefNames["unloadsize" .. padSize .. suffix]
+	---@cast pad table
+	return pad.id
 end
 
 ---@param transporterID UnitID
 ---@param passengerID UnitID
----@param transporterDefID UnitDefID
----@param passengerSize number
----@param queuedSize number
+---@param queuedSize number? seats already owed to other passengers
 ---@return boolean canFit
-function TransportAPI.CanPassengerFitInTransporter(
-	transporterID,
-	passengerID,
-	transporterDefID,
-	passengerSize,
-	queuedSize
-)
+function TransportAPI.CanPassengerFitInTransporter(transporterID, passengerID, queuedSize)
 	if not spValidUnitID(passengerID) then
 		return false
 	end
+	local passengerSize = TransportAPI.GetPassengerSize(passengerID)
 	local transporterSeats = spGetUnitRulesParam(transporterID, "transporterSeats") or 0 -- set by CargoHandler
 	local transporterUsedSeats = spGetUnitRulesParam(transporterID, "transporterUsedSeats") or 0 -- set by CargoHandler
-	local queuedSize = queuedSize or 0
+	queuedSize = queuedSize or 0
 	if transporterSeats - transporterUsedSeats - queuedSize < passengerSize then
 		return false
 	end
-	-- Verify the transporter has an actual slot that can hold this size (set by CargoHandler).
-	-- Seats alone don't guarantee space; slots ensure both capacity and physical compatibility.
+	-- free seats are not enough: it needs a slot of this size
 	local rulesParamString = "transporterHasSlotOfSize" .. passengerSize -- set by CargoHandler
 	local foundSlot = spGetUnitRulesParam(transporterID, rulesParamString) == true
 	return foundSlot
@@ -394,7 +306,7 @@ end
 function TransportAPI.IsTransportFull(transporterID, queuedSize)
 	local transporterSeats = spGetUnitRulesParam(transporterID, "transporterSeats") or 0 -- set by CargoHandler
 	local transporterUsedSeats = spGetUnitRulesParam(transporterID, "transporterUsedSeats") or 0 -- set by CargoHandler
-	local queuedSize = queuedSize or 0
+	queuedSize = queuedSize or 0
 	return transporterUsedSeats + queuedSize >= transporterSeats
 end
 
@@ -405,7 +317,7 @@ function TransportAPI.GetPassengerWeight(passengerID, cargo)
 	local weight = TransportAPI.GetPassengerSize(passengerID)
 	local oversized = UnitDefs[spGetUnitDefID(passengerID)].customParams.oversized == "1"
 	local undersized = UnitDefs[spGetUnitDefID(passengerID)].customParams.oversized == "-1"
-	weight = weight * (oversized and 1.5 or undersized and 0.5 or 1) -- weight of passengerSize or passengerSize * 1.5 depending on oversized tag
+	weight = weight * (oversized and 1.5 or undersized and 0.5 or 1)
 	return weight
 end
 
@@ -440,7 +352,7 @@ function TransportAPI.DisablePassenger(passengerID)
 	end
 end
 
--- live settings from a balance test (see the Transport Handler gadget); below 0 keeps the transport's own
+-- live setting from Transport Settings; below 0 keeps the transport's own
 local function speedSetting(key, own)
 	local value = spGetGameRulesParam("tractorbeam_" .. key)
 	if value and value >= 0 then

@@ -343,14 +343,7 @@ local function canTransport(transportID, unitID)
 		if uDefObj.cantBeTransported then
 			return false
 		end
-		local size = TransportAPI.GetPassengerSize(unitID)
-		return TransportAPI.CanPassengerFitInTransporter(
-			transportID,
-			unitID,
-			nil,
-			size,
-			TransportAPI.GetPendingSeats(transportID)
-		)
+		return TransportAPI.CanPassengerFitInTransporter(transportID, unitID, TransportAPI.GetPendingSeats(transportID))
 	end
 
 	if uDefObj.xsize > tDefObj.transportSize * Game.footprintScale then

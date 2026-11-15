@@ -3,7 +3,7 @@ if Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	return {}
 end
 
-local PAD_FOOTPRINTS = { [1] = 2, [2] = 3, [4] = 4, [6] = 6, [8] = 8, [10] = 10, [12] = 12 }
+local PAD_FOOTPRINTS = { 4, 6, 8, 10, 12 } -- the pad sizes TransportAPI.GetUnloadPadType picks
 
 local function padDef(footprint, amphib)
 	local rows = {}
@@ -33,8 +33,8 @@ local function padDef(footprint, amphib)
 end
 
 local defs = {}
-for size, footprint in pairs(PAD_FOOTPRINTS) do
-	defs["unloadsize" .. size] = padDef(footprint, false)
-	defs["unloadsize" .. size .. "_amphib"] = padDef(footprint, true)
+for _, size in ipairs(PAD_FOOTPRINTS) do
+	defs["unloadsize" .. size] = padDef(size, false)
+	defs["unloadsize" .. size .. "_amphib"] = padDef(size, true)
 end
 return defs

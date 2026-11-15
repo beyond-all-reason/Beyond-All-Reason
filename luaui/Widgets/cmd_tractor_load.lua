@@ -48,7 +48,7 @@ local cantBeTransported, isMobile, footprint = {}, {}, {} ---@type table<integer
 local noEnemyLoad = {} ---@type table<integer, boolean> never lifted by an enemy transport
 for unitDefID, ud in pairs(UnitDefs) do
 	cantBeTransported[unitDefID] = ud.cantBeTransported
-	noEnemyLoad[unitDefID] = ud.customParams.isCommander ~= nil or ud.transportByEnemy == false
+	noEnemyLoad[unitDefID] = ud.customParams.iscommander ~= nil or ud.transportByEnemy == false
 	isMobile[unitDefID] = ud.speed > 0
 	footprint[unitDefID] = math.max(ud.xsize, ud.zsize) * Game.squareSize * 0.5
 end
@@ -140,12 +140,11 @@ local function bestTransportFor(unitID, owed)
 	if not ux then
 		return nil
 	end
-	local size = TransportAPI.GetPassengerSize(unitID)
 	local best, bestDist ---@type integer?, number?
 	for i = 1, #transports do
 		local transportID = transports[i]
 		local tx, _, tz = spGetUnitPosition(transportID)
-		if tx and TransportAPI.CanPassengerFitInTransporter(transportID, unitID, nil, size, owed[transportID] or 0) then
+		if tx and TransportAPI.CanPassengerFitInTransporter(transportID, unitID, owed[transportID] or 0) then
 			local dist = (tx - ux) * (tx - ux) + (tz - uz) * (tz - uz)
 			if not bestDist or dist < bestDist then
 				best, bestDist = transportID, dist
@@ -204,7 +203,7 @@ local function predictAreaLoad(cx, cz, radius, shift)
 			for j = 1, #candidates do
 				local candidate = candidates[j]
 				local fits = not taken[candidate.id]
-					and TransportAPI.CanPassengerFitInTransporter(transport.id, candidate.id, nil, candidate.size, owed)
+					and TransportAPI.CanPassengerFitInTransporter(transport.id, candidate.id, owed)
 				if fits then
 					local dx, dz = candidate.x - transport.x, candidate.z - transport.z
 					local dist = dx * dx + dz * dz + candidate.offset

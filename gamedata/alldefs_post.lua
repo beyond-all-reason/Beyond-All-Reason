@@ -75,7 +75,6 @@ local _tractorbeamDefs = tractorBeamMode
 	or {}
 local transporterDefs = _tractorbeamDefs.transporters
 local transporterDefaults = _tractorbeamDefs.transporterDefaults
-local passengerSizes = _tractorbeamDefs.passengerSizes
 local labBuildoptions = _tractorbeamDefs.labBuildoptions
 local knownTransporters = {}
 
@@ -83,50 +82,6 @@ if transporterDefs then
 	-- Set of all transport names managed by transporter_defs (used to scrub factory buildoptions).
 	for k in pairs(transporterDefs) do
 		knownTransporters[k] = true
-	end
-end
-
--- Convert a raw passengersize float to (nseats, oversized) where nseats is the nearest
--- lower power-of-2 and oversized is "1" (1.5× weight) or "-1" (0.5× weight) when needed.
-local function passengerSizeToParams(size)
-	if size == 0.5 then
-		return 1, "-1"
-	end -- 1 * 0.5
-	if size == 1 then
-		return 1, nil
-	end
-	if size == 1.5 then
-		return 1, "1"
-	end -- 1 * 1.5
-	if size == 2 then
-		return 2, nil
-	end
-	if size == 3 then
-		return 2, "1"
-	end -- 2 * 1.5
-	if size == 4 then
-		return 4, nil
-	end
-	if size == 6 then
-		return 4, "1"
-	end -- 4 * 1.5
-	if size == 8 then
-		return 8, nil
-	end
-	if size == 16 then
-		return 16, nil
-	end
-	-- generic fallback: floor to nearest power-of-2
-	local p = 1
-	while p * 2 <= size do
-		p = p * 2
-	end
-	if size == p * 1.5 then
-		return p, "1"
-	elseif size == p * 0.5 then
-		return p / 2, "1" -- shouldn't happen with known values
-	else
-		return p, nil
 	end
 end
 
@@ -362,21 +317,6 @@ local function unitDef_Post(name, uDef)
 				for k, v in pairs(tentry.customparams) do
 					uDef.customparams[k] = v
 				end
-			end
-		end
-		-- apply passenger sizes (nseats + oversized tag) from passengerSizes table
-		local pentry = passengerSizes[name]
-		if pentry then
-			local nseats, oversized = passengerSizeToParams(pentry.passengercategory)
-			if not uDef.customparams then
-				uDef.customparams = {}
-			end
-			-- skip if already set by tweakUnits/tweakDefs
-			if uDef.customparams.nseats == nil then
-				uDef.customparams.nseats = nseats
-			end
-			if oversized and uDef.customparams.oversized == nil then
-				uDef.customparams.oversized = oversized
 			end
 		end
 		-- apply lab buildoptions: strip known transporters then re-add only the listed ones

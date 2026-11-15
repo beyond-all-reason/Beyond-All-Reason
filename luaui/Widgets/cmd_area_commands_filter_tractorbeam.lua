@@ -1,11 +1,7 @@
 local widget = widget ---@type Widget
 
--- When performing an area command for one of the `allowedCommands` below:
--- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
--- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
--- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
--- - If Meta is pressed, orders are put in front of the order queue.
--- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
+-- An area command centred on a unit: Ctrl targets every unit in the area (wrecks: same tech level),
+-- Alt the same unit type. Meta puts the orders first; Meta and Shift split them between the selected units.
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter, tractor beam rdy",
@@ -18,18 +14,18 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
-local TransportAPI = WG.TransportAPI
-
-if not TransportAPI then
-	Spring.Echo("Transport API not found, disabling " .. widget:GetInfo().name)
-	return false
-end
-
 if Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	return false
 end
 
+local TransportAPI = WG.TransportAPI
+if not TransportAPI then
+	return false
+end
+
+local TransportUI = VFS.Include("luaui/Include/transport_ui.lua")
+
+-- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
 local mathFloor = math.floor
@@ -45,7 +41,6 @@ local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitTransporter = Spring.GetUnitTransporter
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -64,11 +59,7 @@ local commandLimit = 2000
 
 local myAllyTeamID
 
--- Radius in elmos to search for the unit/feature the user clicked on at the
--- command center.  This replaces the old spWorldToScreenCoords → spTraceScreenRay
--- pipeline which was unreliable at oblique camera angles and under multiplayer
--- frame-interpolation conditions.
-local CLICK_SEARCH_RADIUS = 60
+local CLICK_SEARCH_RADIUS = 60 -- elmos around the command centre to find the clicked unit or feature
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
@@ -87,37 +78,11 @@ local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
 end
 
-----------------------------------------------------------------------------------------------------------
---- Logic which distributes targets between transports. Should be split and extracted to separate widget
---- Preferably after https://github.com/beyond-all-reason/Beyond-All-Reason/pull/5738 will be merged
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+--- Logic which distributes targets between transports
+---------------------------------------------------------------------------------------
 
--- Multiplier to convert footprints sizes
--- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
--- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
-local springFootprintScale = Game.footprintScale
-
----@type table<number, TractorTransportDef>
-local transportDefs = {}
-local cantBeTransported = {}
-local unitMass = {}
-local unitXSize = {}
-
-for defId, def in pairs(UnitDefs) do
-	if def.transportSize and def.transportSize > 0 then
-		---@class TractorTransportDef
-		transportDefs[defId] = {
-			massLimit = def.transportMass,
-			maxCapacity = def.transportCapacity,
-			sizeLimit = def.transportSize,
-			health = def.health,
-		}
-	end
-	unitMass[defId] = def.mass
-	unitXSize[defId] = def.xsize
-	cantBeTransported[defId] = def.cantBeTransported
-end
-
+-- slot size → transport IDs with a slot of that size
 local function createEmptyValidTransportsTable()
 	local tab = {}
 	for i = 0, 5 do
@@ -125,9 +90,6 @@ local function createEmptyValidTransportsTable()
 	end
 	return tab
 end
---> tab[slotSize1] = { transportID1, transportID2,... }
---> tab[slotSize2] = { transportID2, transportID5,... }
--- this table holds possible transport IDs per slot size)
 
 --- @return table<number, number[]> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets, shifted)
@@ -175,16 +137,7 @@ local function distributeTargetsToTransports(transports, targets, shifted)
 		local passengerID = passengerData.id
 		for _, transportID in ipairs(passengerData.matchingTransports) do
 			local queuedSize = queuedSizePerTransport[transportID] or 0
-			if
-				not TransportAPI.IsTransportFull(transportID, queuedSize)
-				and TransportAPI.CanPassengerFitInTransporter(
-					transportID,
-					passengerID,
-					nil,
-					passengerData.size,
-					queuedSize
-				)
-			then
+			if TransportAPI.CanPassengerFitInTransporter(transportID, passengerID, queuedSize) then
 				passengerAssignments[transportID] = passengerAssignments[transportID] or {}
 				tableInsert(passengerAssignments[transportID], passengerID)
 				queuedSizePerTransport[transportID] = queuedSize + passengerData.size
@@ -290,13 +243,7 @@ end
 
 --- Each transport picks one target
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local transports = {}
-	for _, unitId in ipairs(selectedUnits) do
-		local unitDefId = spGetUnitDefID(unitId)
-		if unitDefId and transportDefs[unitDefId] then
-			transports[#transports + 1] = unitId
-		end
-	end
+	local transports = TransportUI.tractorTransports(TransportAPI, selectedUnits)
 	if #transports == 0 then
 		return
 	end
@@ -437,10 +384,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 		end
 		if shouldInsert then
 			if not Engine.FeatureSupport.noOffsetForFeatureID then
-				-- featureId is normalised to Game.maxUnits + featureId because of:
-				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
-				-- offset due to be removed in future engine version
+				-- CMDTYPE.ICON_UNIT_FEATURE_OR_AREA takes a feature as Game.maxUnits + featureID
 				featureId = featureId + Game.maxUnits
 			end
 			tableInsert(filteredTargets, featureId)
@@ -470,12 +414,7 @@ function widget:CommandNotify(cmdId, params, options)
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 
-	-- Find the unit or feature the user clicked on by searching the world near the
-	-- command center instead of round-tripping through screen-space.  The old
-	-- spWorldToScreenCoords → spTraceScreenRay approach projected the *ground*
-	-- position (cmdY = ground height) to screen, which at non-overhead camera
-	-- angles gives a shifted screen position that can hit the wrong unit—especially
-	-- in dense fights or under multiplayer frame interpolation.
+	-- the clicked unit or feature, looked for in the world: a screen ray misses at oblique camera angles
 	local targetType ---@type string?
 	local targetId ---@type integer?
 
