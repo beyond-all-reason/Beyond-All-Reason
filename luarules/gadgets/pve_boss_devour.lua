@@ -18,7 +18,11 @@ end
 
 local eaters = {}
 local bigUnits = {}
+local economyCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isImmobile and #unitDef.weapons == 0 then
+		economyCost[unitDefID] = unitDef.metalCost
+	end
 	if unitDef.customParams.eaterboss then
 		eaters[unitDefID] = true
 	end
@@ -32,6 +36,34 @@ if not next(eaters) then
 end
 
 local bosses = {}
+
+---@type table<string, any>
+local economy = { standing = {}, standingCost = 0, lostCost = 0 }
+local ECONOMY_UNCOUNTED = { [Game.envDamageTypes.Reclaimed] = true, [Game.envDamageTypes.SelfD] = true }
+
+local function IsPlayerEconomy(unitDefID, unitTeam)
+	return economyCost[unitDefID]
+		and unitTeam ~= Spring.GetGaiaTeamID()
+		and not Spring.AreTeamsAllied(unitTeam, economy.bossTeam)
+end
+
+local function AddEconomy(unitID, unitDefID)
+	if not economy.standing[unitID] then
+		economy.standing[unitID] = economyCost[unitDefID]
+		economy.standingCost = economy.standingCost + economyCost[unitDefID]
+	end
+end
+
+local function WatchEconomy(bossID)
+	economy.bossTeam = Spring.GetUnitTeam(bossID)
+	economy.standing, economy.standingCost, economy.lostCost = {}, 0, 0
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if IsPlayerEconomy(unitDefID, Spring.GetUnitTeam(unitID)) and not Spring.GetUnitIsBeingBuilt(unitID) then
+			AddEconomy(unitID, unitDefID)
+		end
+	end
+end
 
 local SMALL_MAP, LARGE_MAP, LARGE_MAP_HEALTH = { 12, 10 }, { 32, 32 }, 5
 local mapSizeShare
@@ -56,6 +88,9 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if eaters[unitDefID] then
+		if not next(bosses) then
+			WatchEconomy(unitID)
+		end
 		bosses[unitID] = true
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		Spring.SetUnitMaxHealth(unitID, maxHealth * mapHealthScale)
@@ -63,8 +98,22 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if next(bosses) and IsPlayerEconomy(unitDefID, unitTeam) then
+		AddEconomy(unitID, unitDefID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	bosses[unitID] = nil
+	local cost = economy.standing[unitID]
+	if cost then
+		economy.standing[unitID] = nil
+		economy.standingCost = economy.standingCost - cost
+		if not ECONOMY_UNCOUNTED[weaponDefID] then
+			economy.lostCost = economy.lostCost + cost
+		end
+	end
 	if
 		attackerID
 		and bosses[attackerID]
@@ -95,6 +144,7 @@ function gadget:GameFrame(frame)
 			meal = math.max(meal, math.min(100, math.floor(100 * eaten / goal)))
 		end
 	end
+	GG.ScavBossEconomyLost = economy.lostCost / math.max(1, economy.lostCost + economy.standingCost)
 	Spring.SetGameRulesParam("scavBossHunger", hunger)
 	Spring.SetGameRulesParam("scavBossMeal", meal)
 	if heat >= 0 then
@@ -106,6 +156,9 @@ end
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if eaters[Spring.GetUnitDefID(unitID)] then
+			if not next(bosses) then
+				WatchEconomy(unitID)
+			end
 			bosses[unitID] = true
 		end
 	end
@@ -119,6 +172,7 @@ function gadget:Shutdown()
 	GG.ScavBossFeedingEffect = nil
 	GG.ScavBossShield = nil
 	GG.ScavBossMapSizeShare = nil
+	GG.ScavBossEconomyLost = nil
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)

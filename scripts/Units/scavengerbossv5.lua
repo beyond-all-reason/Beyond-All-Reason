@@ -1601,7 +1601,8 @@ local HEAL = {
 ---@type table<string, any>
 local HEAT = {
 	value = 0,
-	fillSeconds = 240,
+	fillSeconds = { 240, 180, 100 },
+	satisfiedShare = 0.5,
 	coolSeconds = 480,
 	abilityRate = 1.5,
 	warning = 5,
@@ -2427,7 +2428,7 @@ local FEED_DURATION = 25
 local FEED_GOAL = 40000
 do
 	local players = math.min(1, (#Spring.GetTeamList() - 2) / 8)
-	local scale = math.max(0.25, players)
+	local scale = 0.25 + (math.max(0.25, players) - 0.25) / 3
 	HUNGER.fillSeconds = HUNGER.fillSeconds * scale
 	HUNGER.minSeconds = HUNGER.minSeconds * scale
 	HUNGER.killsForMin = math.ceil(HUNGER.killsForMin * scale)
@@ -2777,6 +2778,77 @@ HEAT.LeavePose = function()
 	end
 end
 
+local SHOCK = {
+	big = { radius = 900, push = 23, sound = "newboom", ripple = 7 },
+	gentle = { radius = 600, push = 16, sound = "xplolrg2", ripple = 6 },
+	lift = 0.12,
+	lightCost = 300,
+	heavyShare = 0.5,
+	crowd = 8,
+	crowdRange = 350,
+	cooldown = 30,
+	ready = 0,
+}
+
+SHOCK.Pushable = function(otherID)
+	local team = Spring.GetUnitTeam(otherID)
+	local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
+	if team and def and not def.canFly and not def.immobile and not Spring.AreTeamsAllied(team, myTeam) then
+		return def
+	end
+end
+
+SHOCK.Run = function(kind)
+	local x, y, z = Here()
+	SHOCK.ready = Spring.GetGameFrame() + SHOCK.cooldown * Game.gameSpeed
+	Spring.PlaySoundFile(kind.sound, 1, x, y, z)
+	if GG.ScavBossFeedingEffect then
+		GG.ScavBossFeedingEffect(unitID, unitDefID, kind.ripple)
+	end
+	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, kind.radius)) do
+		local def = SHOCK.Pushable(otherID)
+		if def then
+			local otherX, _, otherZ = Spring.GetUnitPosition(otherID)
+			local dirX, dirZ = otherX - x, otherZ - z
+			local distance = math.max(1, math.sqrt(dirX * dirX + dirZ * dirZ))
+			local weight = math.max(SHOCK.heavyShare, math.min(1, (SHOCK.lightCost / def.metalCost) ^ 0.5))
+			local speed = kind.push * math.max(0, 1 - distance / kind.radius) * weight
+			Spring.AddUnitImpulse(otherID, dirX / distance * speed, speed * SHOCK.lift, dirZ / distance * speed)
+		end
+	end
+end
+
+SHOCK.Crowded = function()
+	local x, _, z = Here()
+	local count = 0
+	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, SHOCK.crowdRange)) do
+		if SHOCK.Pushable(otherID) then
+			count = count + 1
+			if count >= SHOCK.crowd then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+SHOCK.Watch = function()
+	while true do
+		Sleep(1000)
+		local idle = not eating and not HEAT.venting and not Spring.GetUnitIsStunned(unitID)
+		if idle and Spring.GetGameFrame() >= SHOCK.ready and SHOCK.Crowded() then
+			SHOCK.Run(SHOCK.gentle)
+		end
+	end
+end
+
+HEAT.FillSeconds = function()
+	local stage = 2 * math.min(1, (GG.ScavBossEconomyLost or 0) / HEAT.satisfiedShare)
+	local from = math.min(2, math.floor(stage) + 1)
+	local fill = HEAT.fillSeconds
+	return fill[from] + (fill[from + 1] - fill[from]) * (stage - from + 1)
+end
+
 HEAT.Vent = function()
 	for _ = 1, HEAT.warning * 2 do
 		HEAL.Spark()
@@ -2795,6 +2867,7 @@ HEAT.Vent = function()
 		Sleep(500)
 	end
 	Spring.SetUnitHealth(unitID, { paralyze = 0 })
+	SHOCK.Run(SHOCK.big)
 	HEAT.LeavePose()
 	HEAT.venting, HEAT.value = false, 0
 	Spring.SetUnitRulesParam(unitID, "scavboss_venting", 0)
@@ -2806,7 +2879,7 @@ HEAT.Watch = function()
 		if not Spring.GetUnitIsStunned(unitID) then
 			local engaged = Spring.GetGameFrame() - PACE.lastAim < PACE.linger * Game.gameSpeed
 			local busy = eating or NAPALM.running or TURBO.glows > 0
-			local change = engaged and (busy and HEAT.abilityRate or 1) * 100 / HEAT.fillSeconds
+			local change = engaged and (busy and HEAT.abilityRate or 1) * 100 / HEAT.FillSeconds()
 				or -100 / HEAT.coolSeconds
 			HEAT.value = math.max(0, math.min(100, HEAT.value + change))
 		end
@@ -3627,6 +3700,7 @@ function script.Create()
 	StartThread(StopWalking)
 	StartThread(HEAL.Watch)
 	StartThread(HEAT.Watch)
+	StartThread(SHOCK.Watch)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_goal", FEED_GOAL)
 	StartThread(FeedWatch)
 	StartThread(PACE.Loop)
