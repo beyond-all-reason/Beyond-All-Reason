@@ -270,6 +270,7 @@ local shieldsNeedingUpdate = {} -- shields that are disabled or recovering from 
 local projectileIgnoreCoverage = {}
 local projectileExplosions = {} -- [projectileID] = { x, y, z, team, weaponDefID, frame, wasStopped }
 local projectileStoppedByShield = {} -- [projectileID] = gameFrame
+local expiredExplosions = {}
 
 local gameFrame = 0
 local hasDestroyedData = false
@@ -697,6 +698,15 @@ function gadget:GameFrame(frame)
 		for proID in pairs(projectileIgnoreCoverage) do
 			projectileIgnoreCoverage[proID] = nil
 		end
+		for proID, explosion in pairs(projectileExplosions) do
+			if gameFrame - explosion.frame > explosionLatency[explosion.weaponDefID] then
+				projectileExplosions[proID] = nil
+				expiredExplosions[#expiredExplosions + 1] = explosion -- reuse tables
+			end
+		end
+		for proID in pairs(projectileStoppedByShield) do
+			projectileStoppedByShield[proID] = nil
+		end
 	end
 
 	if frame % 11 == 7 then
@@ -775,15 +785,20 @@ end
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	if projectileID > -1 and next(shieldUnitsData) then
-		projectileExplosions[projectileID] = {
-			x = x,
-			y = y,
-			z = z,
-			team = spGetProjectileTeamID(projectileID),
-			weaponDefID = weaponDefID,
-			frame = gameFrame,
-			wasStopped = projectileStoppedByShield[projectileID] == gameFrame,
-		}
+		local explosion = projectileExplosions[projectileID]
+		if not explosion then
+			local expiredCount = #expiredExplosions
+			explosion = expiredExplosions[expiredCount] or {}
+			expiredExplosions[expiredCount] = nil
+			projectileExplosions[projectileID] = explosion
+		end
+		explosion.x = x
+		explosion.y = y
+		explosion.z = z
+		explosion.team = spGetProjectileTeamID(projectileID)
+		explosion.weaponDefID = weaponDefID
+		explosion.frame = gameFrame
+		explosion.wasStopped = projectileStoppedByShield[projectileID] == gameFrame
 	end
 end
 
