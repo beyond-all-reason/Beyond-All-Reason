@@ -146,6 +146,13 @@ local zombieModeSettings = {
 ---@field wraithRespawns boolean?
 ---@field multipleSpawns boolean?
 
+---@class ZombieBuilderUnitDef
+---@field isFactory boolean
+---@field canReclaim boolean
+---@field canResurrect boolean
+---@field resurrectSpeed number
+---@field buildTime number
+
 ---@type table<ZombieMode, ZombieModeFeatures>
 local ZOMBIE_MODE_FEATURES = {
 	basic = {},
@@ -238,7 +245,7 @@ local WRAITH = {
 	UNIT_NAME = "scavwraith",
 	MIN_FLEE_TIME = Game.gameSpeed * 5,
 	MAX_FLEE_TIME = Game.gameSpeed * 7,
-	EXPIRATION_TIME = Game.gameSpeed * 480,
+	EXPIRATION_TIME = Game.gameSpeed * 20,
 	MAP_MARGIN = 16,
 	SPAWN_ATTEMPT_COUNT = 3,
 	SPAWN_OFFSET_DISTANCE = 100,
@@ -286,10 +293,10 @@ local pendingZombieCaptures = {}
 local unitTamperFrames = {}
 local zombiesBeingBuilt = {}
 local zombieUnitIDs = {}
-local watchedBuilderIDs = {}
+local watchedBuilderIDs = {} ---@type table<integer, UnitID?>
 local watchedBuilderIndex = {}
 local resurrectSpeedByFeatureID = {}
-local interceptFeatureIDs = {}
+local interceptFeatureIDs = {} ---@type table<integer, FeatureID?>
 local maxUnits = Game.maxUnits
 local CORPSE_COMMANDS = {
 	[CMD.RECLAIM] = true,
@@ -527,6 +534,7 @@ do
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
+		local builderUnitDef = unitDef ---@as ZombieBuilderUnitDef
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
@@ -539,9 +547,11 @@ do
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),
-			canWorkCorpses = not unitDef.isFactory and (unitDef.canReclaim or unitDef.canResurrect) or false,
-			resurrectSpeedPerFrame = (unitDef.resurrectSpeed or 0) / Game.gameSpeed,
-			buildTime = unitDef.buildTime or 0,
+			canWorkCorpses = not builderUnitDef.isFactory
+					and (builderUnitDef.canReclaim or builderUnitDef.canResurrect)
+				or false,
+			resurrectSpeedPerFrame = (builderUnitDef.resurrectSpeed or 0) / Game.gameSpeed,
+			buildTime = builderUnitDef.buildTime or 0,
 		}
 
 		local customRespawnTime = tonumber(customParams.zombie_respawn_time)
@@ -1217,6 +1227,7 @@ local function createWraith(spawnData)
 		expirationFrame = gameFrame + WRAITH.EXPIRATION_TIME,
 		payloadUnitDefID = spawnData.payloadUnitDefID,
 		payloadCount = spawnData.payloadCount or 0,
+		isSubstitute = spawnData.isSubstitute == true,
 	}
 	local attackerX, attackerZ = getLiveAttackerPosition(spawnData.attackerID, spawnData.attackerX, spawnData.attackerZ)
 	if GG.ZombieAI then
@@ -1419,6 +1430,11 @@ local function updateWraiths()
 		if wraithData then
 			local wraithX, wraithY, wraithZ = spring.GetUnitPosition(unitID)
 			if not wraithX or gameFrame >= wraithData.expirationFrame or (wraithData.payloadCount or 0) <= 0 then
+				refundSubstitutePayload(
+					wraithData.payloadUnitDefID,
+					wraithData.payloadCount or 0,
+					wraithData.isSubstitute
+				)
 				removeWraith(unitID)
 			else
 				local enemyNearby = false
@@ -1490,7 +1506,7 @@ local function framesUntilResurrectCompletes(featureID, resurrectSpeedPerFrame, 
 	if not resurrectProgress then
 		return nil
 	end
-	local progressPerFrame = 0
+	local progressPerFrame = 0.0
 	if buildTime > 0 then
 		progressPerFrame = resurrectSpeedPerFrame / buildTime
 	end
@@ -1526,7 +1542,7 @@ local function unwatchBuilder(unitID)
 	watchedBuilderIDs[watchIndex] = lastBuilderID
 	watchedBuilderIDs[#watchedBuilderIDs] = nil
 	watchedBuilderIndex[unitID] = nil
-	if lastBuilderID ~= unitID then
+	if lastBuilderID and lastBuilderID ~= unitID then
 		watchedBuilderIndex[lastBuilderID] = watchIndex
 	end
 end
@@ -1534,53 +1550,57 @@ end
 local function pollWatchedBuilders()
 	for watchIndex = #watchedBuilderIDs, 1, -1 do
 		local unitID = watchedBuilderIDs[watchIndex]
-		local commandID, targetID = spring.GetUnitWorkerTask(unitID)
-		local featureID = nil
-		if targetID and targetID >= maxUnits then
-			featureID = targetID - maxUnits
-		end
-		if featureID ~= nil and (commandID == CMD.RECLAIM or commandID == CMD.RESURRECT) then
-			local unitTeam = spring.GetUnitTeam(unitID)
-			if not isZombieTeam(unitTeam) then
-				local corpseData = trackedFeatures[featureID]
-				if corpseData then
-					restartCorpseTimer(featureID, corpseData)
-				end
-			elseif commandID == CMD.RESURRECT and zombieUnitIDs[unitID] then
-				local unitDefID = spring.GetUnitDefID(unitID)
-				local builderDefData = unitDefID and zombieUnitDefs[unitDefID]
-				if builderDefData then
-					local resurrectSpeedPerFrame = resurrectSpeedByFeatureID[featureID]
-					if not resurrectSpeedPerFrame then
-						interceptFeatureIDs[#interceptFeatureIDs + 1] = featureID
-						resurrectSpeedPerFrame = 0
-					end
-					resurrectSpeedByFeatureID[featureID] = resurrectSpeedPerFrame
-						+ builderDefData.resurrectSpeedPerFrame
-				end
+		if unitID then
+			local commandID, targetID = spring.GetUnitWorkerTask(unitID)
+			local featureID = nil
+			if targetID and targetID >= maxUnits then
+				featureID = targetID - maxUnits
 			end
-		elseif spring.GetUnitCommandCount(unitID) == 0 then
-			unwatchBuilder(unitID)
+			if featureID ~= nil and (commandID == CMD.RECLAIM or commandID == CMD.RESURRECT) then
+				local unitTeam = spring.GetUnitTeam(unitID)
+				if not isZombieTeam(unitTeam) then
+					local corpseData = trackedFeatures[featureID] ---@as table?
+					if corpseData then
+						restartCorpseTimer(featureID, corpseData)
+					end
+				elseif commandID == CMD.RESURRECT and zombieUnitIDs[unitID] then
+					local unitDefID = spring.GetUnitDefID(unitID)
+					local builderDefData = unitDefID and zombieUnitDefs[unitDefID] ---@as table?
+					if builderDefData then
+						local resurrectSpeedPerFrame = resurrectSpeedByFeatureID[featureID]
+						if not resurrectSpeedPerFrame then
+							interceptFeatureIDs[#interceptFeatureIDs + 1] = featureID
+							resurrectSpeedPerFrame = 0
+						end
+						resurrectSpeedByFeatureID[featureID] = resurrectSpeedPerFrame
+							+ builderDefData.resurrectSpeedPerFrame
+					end
+				end
+			elseif spring.GetUnitCommandCount(unitID) == 0 then
+				unwatchBuilder(unitID)
+			end
 		end
 	end
 	for interceptIndex = 1, #interceptFeatureIDs do
 		local featureID = interceptFeatureIDs[interceptIndex]
-		local featureDefID = spring.GetFeatureDefID(featureID)
-		local corpseDefData = featureDefID and zombieCorpseDefs[featureDefID]
-		local corpseData = trackedFeatures[featureID]
-		local tamperedFrame = corpseData and corpseData.tamperedFrame
-		if corpseDefData and not wasTamperedRecently(tamperedFrame) then
-			local framesRemaining = framesUntilResurrectCompletes(
-				featureID,
-				resurrectSpeedByFeatureID[featureID],
-				corpseDefData.buildTime
-			)
-			if framesRemaining and framesRemaining <= FRAMES.REZ_HIJACK_LEAD then
-				spawnZombiesFromFeature(featureID, corpseDefData.unitDefID, wasZombieCorpse(featureID, corpseData))
+		if featureID then
+			local featureDefID = spring.GetFeatureDefID(featureID)
+			local corpseDefData = featureDefID and zombieCorpseDefs[featureDefID]
+			local corpseData = trackedFeatures[featureID]
+			local tamperedFrame = corpseData and corpseData.tamperedFrame
+			if corpseDefData and not wasTamperedRecently(tamperedFrame) then
+				local framesRemaining = framesUntilResurrectCompletes(
+					featureID,
+					resurrectSpeedByFeatureID[featureID],
+					corpseDefData.buildTime
+				)
+				if framesRemaining and framesRemaining <= FRAMES.REZ_HIJACK_LEAD then
+					spawnZombiesFromFeature(featureID, corpseDefData.unitDefID, wasZombieCorpse(featureID, corpseData))
+				end
 			end
+			resurrectSpeedByFeatureID[featureID] = nil
 		end
 		interceptFeatureIDs[interceptIndex] = nil
-		resurrectSpeedByFeatureID[featureID] = nil
 	end
 end
 
