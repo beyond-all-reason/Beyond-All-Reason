@@ -246,7 +246,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		for optionIndex = 1, #unitDef.buildOptions do
 			local optionDefID = unitDef.buildOptions[optionIndex]
 			local optionDef = UnitDefs[optionDefID]
-			local hasBuildpower = optionDef and (optionDef.buildSpeed or 0) > 0
+			local hasBuildpower = optionDef and optionDef.buildSpeed > 0
 			local isExcluded = optionDef and optionDef.customParams.zombie_factory_exclude
 			if not isExcluded and not hasBuildpower and unitDefWeaponRanges[optionDefID] then
 				wantedOptions[#wantedOptions + 1] = optionDefID

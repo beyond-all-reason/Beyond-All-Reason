@@ -1576,6 +1576,9 @@ local function pollWatchedBuilders()
 							+ builderDefData.resurrectSpeedPerFrame
 					end
 				end
+			-- Patrol and guard reclaim wrecks without a new UnitCommand, and GetUnitWorkerTask
+			-- stays empty until that reclaim starts. Stay watched until the queue is empty so
+			-- the poll still sees the reclaim.
 			elseif spring.GetUnitCommandCount(unitID) == 0 then
 				unwatchBuilder(unitID)
 			end
@@ -2304,6 +2307,9 @@ function gadget:UnitCommand(unitID, unitDefID, _, cmdID, cmdParams)
 		return
 	end
 	if cmdID == CMD.INSERT then
+		-- Shift-queued orders arrive as CMD.INSERT. Param 1 is the queue index and param 2 is the
+		-- real command id, stored as a float. Floor it so the corpse-command check below still
+		-- matches reclaim, resurrect, fight, or patrol. A missing param becomes 0, which does not.
 		cmdID = floor(cmdParams and cmdParams[2] or 0)
 	end
 	if CORPSE_COMMANDS[cmdID] then
