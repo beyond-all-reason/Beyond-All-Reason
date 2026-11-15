@@ -24,15 +24,16 @@ local REFRESH_FRAMES = 15
 local words = VFS.Include("luaui/Include/transport_strings.lua")
 
 -- gameplay values the Transport Handler gadget takes live; step = what one click changes
+-- min and max mirror the gadget's clamp; below 0 is "per transport"
 local GAMEPLAY = {
-	{ key = "enemyLoadMode", step = 1 },
-	{ key = "loadRadius", step = 16 },
-	{ key = "unloadRadius", step = 8 },
-	{ key = "enemyRadiusMult", step = 0.05 },
-	{ key = "enemyLoadFrames", step = 15 },
-	{ key = "speedModMode", step = 1 },
-	{ key = "speedModStrength", step = 0.05 },
-	{ key = "comSpeedModStrength", step = 0.05 },
+	{ key = "enemyLoadMode", step = 1, min = 1, max = 5 },
+	{ key = "loadRadius", step = 16, min = 32, max = 512 },
+	{ key = "unloadRadius", step = 8, min = 16, max = 256 },
+	{ key = "enemyRadiusMult", step = 0.05, min = 0.1, max = 1 },
+	{ key = "enemyLoadFrames", step = 15, min = 1, max = 600 },
+	{ key = "speedModMode", step = 1, min = -1, max = 2 },
+	{ key = "speedModStrength", step = 0.05, min = -1, max = 1 },
+	{ key = "comSpeedModStrength", step = 0.05, min = -1, max = 1 },
 }
 
 local TOGGLES = { "ghosts", "rings", "claimLines", "rightClickLoad" }
@@ -41,7 +42,7 @@ local TOGGLES = { "ghosts", "rings", "claimLines", "rightClickLoad" }
 local settings = { ghosts = true, rings = true, claimLines = true, rightClickLoad = true }
 local open = true
 
-local rmlContext, document, dm ---@type table?, table?, table?
+local rmlContext, document, dm ---@type table?, table?, table
 
 local function rulesValue(key)
 	return Spring.GetGameRulesParam("tractorbeam_" .. key)
@@ -76,9 +77,6 @@ end
 local shown = {} -- last values put in the model, so it only changes when something did
 
 local function refresh()
-	if not dm then
-		return
-	end
 	local cheats = Spring.IsCheatingEnabled()
 	if cheats ~= shown.cheats then
 		shown.cheats = cheats
@@ -103,37 +101,34 @@ local function step(_, key, direction)
 	end
 	for _, g in ipairs(GAMEPLAY) do
 		if g.key == key then
-			local value = rulesValue(key) or 0
-			local new
-			if value < 0 then
-				new = direction > 0 and 0 or value -- leave "per transport" upward only
-			else
+			local value = tonumber(rulesValue(key)) or 0
+			local new = value
+			if value >= 0 then
 				-- back onto the step grid: rules params come back as 32 bit floats
 				new = math.floor((value + direction * g.step) / g.step + 0.5) * g.step
-				if new < 0 and (key == "speedModMode" or key:find("Strength")) then
+				if new < 0 then
 					new = -1
 				end
+			elseif direction > 0 then
+				new = 0 -- leave "per transport" upward only
 			end
-			Spring.SendLuaRulesMsg(string.format("tractorbeam_set %s %.4f", key, new))
+			new = math.clamp(new, g.min, g.max)
+			if math.abs(new - value) >= g.step * 0.5 then
+				Spring.SendLuaRulesMsg(string.format("tractorbeam_set %s %.4f", key, new))
+			end
 			return
 		end
 	end
 end
 
 local function toggle(_, key)
-	if not dm or settings[key] == nil then
-		return
-	end
 	settings[key] = not settings[key]
 	dm[key] = settings[key]
 end
 
 local function toggleOpen()
 	open = not open
-	if dm then
-		dm.open = open
-		dm.chevron = open and "-" or "+"
-	end
+	dm.open = open
 end
 
 function widget:Initialize()
@@ -149,7 +144,6 @@ function widget:Initialize()
 		previewTitle = words.settingsPreview,
 		cheatHint = words.settingsNeedsCheats,
 		open = open,
-		chevron = open and "-" or "+",
 		cheats = Spring.IsCheatingEnabled(),
 		rows = buildRows(),
 		step = step,
@@ -193,7 +187,6 @@ function widget:Shutdown()
 	end
 	if rmlContext and dm then
 		rmlContext:RemoveDataModel(MODEL_NAME)
-		dm = nil
 	end
 	WG.TransportSettings = nil
 end

@@ -1123,7 +1123,7 @@ end
 local killCountCache = {}
 local killCountCacheTime = 0
 
--- tractor beam transports: seats in use, shown as each passenger's seat size
+-- tractor beam transports: cargo drawn one slot per seat
 local tractorCargo = {
 	MAX_ROW_SEATS = 6, -- more seats than this go in two rows
 	slotsFor = nil, -- the transport cellRect was last filled for by drawSlots
@@ -1566,11 +1566,8 @@ end
 
 function tractorCargo.hasCargo(unitID)
 	local units = Spring.GetUnitIsTransporting(unitID)
-	if units and #units > 0 then
-		return true
-	end
 	local seats, usedSeats = tractorCargo.seats(unitID)
-	return seats ~= nil and usedSeats > 0
+	return (units and #units > 0) or (seats ~= nil and usedSeats > 0)
 end
 
 -- units the beam is lifting into this transport right now (not in its cargo list until they arrive)
@@ -1590,11 +1587,11 @@ function tractorCargo.incoming(unitID)
 	return list
 end
 
--- one unit-icon slot per seat; a unit taking several seats fills its first slot and fades the rest,
--- units flying in fade too. cellRect[i] is the first slot of units[i]. Returns false for other transports.
+-- one icon slot per seat, a big unit's extra seats and units flying in faded; false for other transports
 function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	local seats, usedSeats = tractorCargo.seats(unitID)
-	if not seats then
+	local api = WG.TransportAPI
+	if not (seats and api) then
 		return false
 	end
 	tractorCargo.slotsFor = unitID
@@ -1604,21 +1601,13 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	cellsize = math_floor(math_min(areaWidth / cols, (gridHeight - labelSize * 1.4) / rows) + 0.5)
 	cellPadding = math_floor((cellsize * 0.022) + 0.5)
 	cornerSize = math_max(1, cellPadding * 0.9)
-	if not cellRect then
-		cellRect = {}
-	else
-		for i = #cellRect, 1, -1 do
-			cellRect[i] = nil
-		end
-	end
+	cellRect = {}
 
-	-- what sits in each seat: { unitID, first slot of that unit, faded }
 	local slots = {}
 	local function seat(passengerID, index, faded)
-		local size = WG.TransportAPI.GetPassengerSize(passengerID)
-		for s = 1, math_max(1, size) do
+		for s = 1, math_max(1, api.GetPassengerSize(passengerID)) do
 			if #slots < seats then
-				slots[#slots + 1] = { passengerID, s == 1 and index, faded or s > 1 }
+				slots[#slots + 1] = { unitID = passengerID, first = s == 1 and index, faded = faded or s > 1 }
 			end
 		end
 	end
@@ -1644,21 +1633,22 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	for k = 1, seats do
 		local r = slotRect(k)
 		local x1, y1, x2, y2 = r[1] + cellPadding, r[2] + cellPadding, r[3], r[4]
-		local s = slots[k]
-		if s then
-			local uDefID = spGetUnitDefID(s[1])
+		local slot = slots[k]
+		if slot then
+			local uDefID = spGetUnitDefID(slot.unitID)
 			if uDefID then
 				local iconType = unitDefInfo[uDefID].icontype
 				local icon = iconType and ":l:" .. iconType or nil
 				local cost = { unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost }
 				local pad, group = cellPadding * 1.3, groups[unitGroup[uDefID]]
 				UiUnit(x1, y1, x2, y2, pad, 1, 1, 1, 1, 0.1, nil, nil, "#" .. uDefID, icon, group, cost)
-				if s[3] then
+				if slot.faded then
 					RectRound(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, { 0, 0, 0, 0.6 })
 				end
 			end
-			if s[2] then
-				cellRect[s[2]] = r
+			if slot.first then
+				r.unitID = slot.unitID -- clicks and overlays hit the unit drawn here, not a newer cargo list
+				cellRect[slot.first] = r
 			end
 		else
 			-- empty seat, or one still held by a unit just set down (brighter edge)
@@ -1678,12 +1668,18 @@ function tractorCargo.drawSlots(unitID, units, area, areaWidth, areaHeight)
 	return true
 end
 
--- a health bar along the bottom of each wounded passenger's slot
-function tractorCargo.drawHealth(units)
-	for cellID, unitID in pairs(units or {}) do
-		local r = cellRect[cellID]
-		local health, maxHealth = spGetUnitHealth(unitID)
-		if r and health and maxHealth and health < maxHealth then
+-- amber on the passenger waiting for the unload command, a health bar on each wounded one
+function tractorCargo.drawOverlays()
+	local dropPassenger = WG.UnloadSnap and select(2, WG.UnloadSnap.GetDrop())
+	for _, r in pairs(cellRect) do
+		if r.unitID == dropPassenger then
+			local amber = { 1, 0.85, 0.1, 0.28 }
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(r[1] + cellPadding, r[2] + cellPadding, r[3], r[4], cellPadding * 0.9, 1, 1, 1, 1, amber, amber)
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+		local health, maxHealth = spGetUnitHealth(r.unitID)
+		if health and maxHealth and health < maxHealth then
 			local share = math.clamp(health / maxHealth, 0, 1)
 			local color = bfcolormap[math_floor(share * 100)]
 			local x1, y1, x2 = r[1] + cellPadding * 2, r[2] + cellPadding * 2, r[3] - cellPadding
@@ -1704,6 +1700,19 @@ function tractorCargo.showTooltip(unitID)
 	tractorCargo.words = tractorCargo.words or VFS.Include("luaui/Include/transport_strings.lua")
 	local text = tooltipTextColor .. tractorCargo.words.slotClick .. "\n" .. tractorCargo.words.slotCtrlClick
 	WG.tooltip.ShowTooltip("info", text, nil, nil, unitDefInfo[unitDefID].translatedHumanName)
+end
+
+-- redraw the cargo slots as soon as the shown transport loads or unloads
+function widget:UnitLoaded(_, _, _, transportID)
+	if transportID == displayUnitID then
+		doUpdate = true
+	end
+end
+
+function widget:UnitUnloaded(_, _, _, transportID)
+	if transportID == displayUnitID then
+		doUpdate = true
+	end
 end
 
 local function drawUnitInfo()
@@ -2934,6 +2943,7 @@ function widget:MouseRelease(x, y, button)
 						)
 					then
 						local alt, ctrl, meta, shift = spGetModKeyState()
+						unitID = cellRect[cellID].unitID or unitID
 						-- tractor beam transports: a click sets the unit down here, ctrl + click picks the spot
 						local snap = WG.UnloadSnap
 						if snap and ctrl and snap.DropUnit(displayUnitID, unitID) then
@@ -3083,31 +3093,8 @@ function widget:DrawScreen()
 		dlistGuishader = nil
 	end
 
-	-- the cargo unit waiting to be placed with the unload command
-	if
-		WG.UnloadSnap
-		and infoShows
-		and displayMode == "unit"
-		and cellRect
-		and tractorCargo.slotsFor == displayUnitID
-	then
-		local dropTransport, dropPassenger = WG.UnloadSnap.GetDrop()
-		local units = dropTransport == displayUnitID and Spring.GetUnitIsTransporting(displayUnitID)
-		if units then
-			for cellID, unitID in pairs(units) do
-				local r = cellRect[cellID]
-				if unitID == dropPassenger and r then
-					local amber = { 1, 0.85, 0.1, 0.28 }
-					local x1, y1 = r[1] + cellPadding, r[2] + cellPadding
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(x1, y1, r[3], r[4], cellPadding * 0.9, 1, 1, 1, 1, amber, amber)
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				end
-			end
-		end
-	end
 	if infoShows and displayMode == "unit" and cellRect and tractorCargo.slotsFor == displayUnitID then
-		tractorCargo.drawHealth(Spring.GetUnitIsTransporting(displayUnitID))
+		tractorCargo.drawOverlays()
 	end
 
 	-- widget hovered
@@ -3305,7 +3292,7 @@ function widget:DrawScreen()
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 						if tractorCargo.slotsFor == displayUnitID then
-							tractorCargo.showTooltip(unitID)
+							tractorCargo.showTooltip(cellRect[cellID].unitID)
 						end
 						break
 					end

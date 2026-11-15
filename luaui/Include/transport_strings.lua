@@ -1,4 +1,4 @@
--- Tractor beam transport UI words. English only until they move into language/*.json.
+-- Tractor beam transport UI words.
 return {
 	seat = "seat",
 	seats = "seats",

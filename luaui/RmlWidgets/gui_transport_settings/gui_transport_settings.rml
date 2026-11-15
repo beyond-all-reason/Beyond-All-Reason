@@ -6,7 +6,7 @@
 	<div class="ts-panel">
 		<div class="ts-header" data-event-click="toggleOpen()">
 			<div class="ts-title">{{title}}</div>
-			<div class="ts-chevron">{{chevron}}</div>
+			<div class="ts-chevron">{{open ? '-' : '+'}}</div>
 		</div>
 		<div class="ts-body" data-if="open">
 			<div class="ts-section">{{gameplayTitle}}</div>
