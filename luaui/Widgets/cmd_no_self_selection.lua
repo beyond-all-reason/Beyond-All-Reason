@@ -238,9 +238,19 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param includeSky boolean? (default: `false`)
 ---@param ignoreWater boolean? (default: `false`)
 ---@param heightOffset number? (default: `0`)
----@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
+---@param includeGhosts boolean? (default: `false`)
+---@return ("unit"|"feature"|"ground"|"sky"|"ghost")? description of traced object or position
 ---@return (integer|xyz|string|number|nil)? result unitID or featureID (integer), or position triple (xyz)
-local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+local function traceScreenRay(
+	screenX,
+	screenY,
+	onlyCoords,
+	useMinimap,
+	includeSky,
+	ignoreWater,
+	heightOffset,
+	includeGhosts
+)
 	-- Explicitly check onlyCoords because `TraceScreenRay` accepts arguments (screenX, screenY, heightOffset).
 	local hiddenID = (onlyCoords ~= true) and not useMinimap and isVolumeHidden and selectedUnitID
 
@@ -248,8 +258,16 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result =
-		sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local description, result = sp_TraceScreenRay(
+		screenX,
+		screenY,
+		onlyCoords,
+		useMinimap,
+		includeSky,
+		ignoreWater,
+		heightOffset,
+		includeGhosts
+	)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)

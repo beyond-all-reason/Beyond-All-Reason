@@ -54,6 +54,19 @@ describe("Ghost Target single clicks", function()
 			assert.same({ id, { 110, 80, 105 }, 33 }, orders[#orders])
 		end
 	end)
+	it("retains ghost picking through the Ignore Self ray wrapper", function()
+		local ignoreSelf = {}
+		env.widget = ignoreSelf
+		env.UnitDefs = {}
+		env.WG = {}
+		env.widgetHandler.RegisterGlobal = function() end
+		setfenv(assert(loadfile("luaui/Widgets/cmd_no_self_selection.lua")), env)()
+		ignoreSelf:Initialize()
+		env.widget = widget
+
+		assert.is_true(click())
+		assert.same({ 20, { 110, 80, 105 }, 33 }, orders[1])
+	end)
 	it("leaves visible units, radar contacts, and terrain to existing command handling", function()
 		for _, targetKind in ipairs({ "unit", "ground", "feature" }) do
 			kind = targetKind
