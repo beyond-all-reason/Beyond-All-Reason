@@ -336,6 +336,7 @@ for weaponDefID = 0, #WeaponDefs do
 		* minIntensity
 		* directHitQualifyingMultiplier
 
+	-- See DIRECT_EXPLOSION_DAMAGE_SPEED_SCALE
 	explosionLatency[weaponDefID] = mathMax(math.floor(weaponDef.damageAreaOfEffect / weaponDef.explosionSpeed) - 3, 0)
 end
 
