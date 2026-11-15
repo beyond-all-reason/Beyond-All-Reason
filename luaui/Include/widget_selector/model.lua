@@ -38,7 +38,7 @@ local look = {}
 ---@field onContentChanged fun()
 local model = {
 	look = look,
-	hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, clr = 0, dat = 0, star = 0, btn = "", dlg = "" },
+	hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, catBar = 0, clr = 0, dat = 0, star = 0, btn = "", dlg = "" },
 	-- every widget the panel can show, by name, and what the column and the list show of them
 	entries = {},
 	entryByName = {},

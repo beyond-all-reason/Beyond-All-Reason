@@ -3,9 +3,7 @@
 
 piece  base, lwing, rwing, bwing, lblades, rblades, bblades, lflare, rflare;
 
-static-var gun, docked;
-
-#define SIG_AIM				2
+static-var gun_1, docked;
 
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
@@ -20,7 +18,7 @@ static-var gun, docked;
 
 Create()
 {
-	gun = 0;
+	gun_1 = 0;
 	hide lflare;
 	hide rflare;
 	
@@ -57,43 +55,42 @@ Deactivate()
 	turn bwing to x-axis <-45> speed <30>;
 }
 
-QueryPrimary(piecenum)
-{	
-	if (gun == 0)
-	{
-		piecenum = lflare;
-		gun = 1;
-	}
-	if (gun == 1)
-	{
-		piecenum = rflare;
-		gun = 0;
-	}
-}
-
-AimFromPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
+	if (gun_1 == 0)
+	{
+		pieceIndex = lflare;
+		gun_1 = 1;
+	}
+	if (gun_1 == 1)
+	{
+		pieceIndex = rflare;
+		gun_1 = 0;
+	}
 }
 
-AimPrimary(heading, pitch)
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimWeapon1(heading, pitch)
 {
 	return (!docked);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	gun = !gun;
-	return (1);
+	gun_1 = !gun_1;
 }
 
 Shot1(zero)
 {
-	if(gun == 0)
+	if(gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from rflare;
 	}
-	if(gun == 1)
+	if(gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from lflare;
 	}

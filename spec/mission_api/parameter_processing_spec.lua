@@ -117,6 +117,42 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("Color", function()
+		it("turns { r, g, b } fields into the engine's array", function()
+			local parameters = processAction({
+				type = actionTypes.SetMapLighting,
+				parameters = {
+					tint = { r = 1, g = 0.5, b = 0 },
+					groundDiffuseColor = { r = 0.2, g = 0.3, b = 0.9 },
+				},
+			})
+
+			assert.are.same({ 1, 0.5, 0 }, parameters.tint)
+			assert.are.same({ 0.2, 0.3, 0.9 }, parameters.groundDiffuseColor)
+		end)
+	end)
+
+	describe("CameraKeyframes", function()
+		it("fills in the ground height for keyframe positions that have no y", function()
+			local parameters = processAction({
+				type = actionTypes.PlayCameraSequence,
+				parameters = {
+					keyframes = {
+						{ position = { x = 10, z = 20 }, lookAtPosition = { x = 1, z = 2 } },
+						{ position = { x = 10, y = 500, z = 20 } },
+						{ unitName = "hero", lookAtUnitName = "boss" },
+					},
+				},
+			})
+
+			local keyframes = parameters.keyframes
+			assert.are.same({ x = 10, y = GROUND_HEIGHT, z = 20 }, keyframes[1].position)
+			assert.are.same({ x = 1, y = GROUND_HEIGHT, z = 2 }, keyframes[1].lookAtPosition)
+			assert.are.equal(500, keyframes[2].position.y)
+			assert.are.same({ unitName = "hero", lookAtUnitName = "boss" }, keyframes[3])
+		end)
+	end)
+
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({

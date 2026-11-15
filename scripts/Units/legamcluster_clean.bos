@@ -1,9 +1,8 @@
 #include "../recoil_common_includes.h"
 
-//piece  base, flare, turret, sleeve, barrel;
 piece base, tracks, turret, sleeve, cannon, flare;
 
-static-var  restore_delay, wpnheading, isAiming;
+static-var  restore_delay;
 static-var  out_of_arc_count;
 
 #define TURRET_SPEED_WEAPONS 1
@@ -12,7 +11,6 @@ static-var  out_of_arc_count;
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-
 
 
 #define BASEPIECE base
@@ -36,8 +34,6 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
-	wpnheading = 0;
-	isAiming = 0;
 	call-script TB_Init();
 }
 
@@ -54,11 +50,9 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
-
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
 static-var  Stunned;
@@ -69,8 +63,6 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.0> speed <50.005495>;
 	turn sleeve to x-axis <0.0> speed <50.005495>;
-	wpnheading = 0;
-	isAiming = 0;
 }
 SetStunned(State)
 {
@@ -88,8 +80,6 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
-
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
@@ -119,24 +109,21 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
- 	emit-sfx 1024 + 0 from flare;
- 	move cannon to z-axis [-3.0] speed [1250.0];
- 	wait-for-move cannon along z-axis;
- 	move cannon to z-axis [0.0] speed [7.500000];
+	emit-sfx 1024 + 0 from flare;
+	move cannon to z-axis [-3.0] speed [1250.0];
+	wait-for-move cannon along z-axis;
+	move cannon to z-axis [0.0] speed [7.500000];
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-	//return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	//return (0);
 }
-
 
 
 Killed(severity, corpsetype)

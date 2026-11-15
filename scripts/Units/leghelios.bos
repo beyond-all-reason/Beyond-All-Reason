@@ -1,14 +1,12 @@
 #include "../recoil_common_includes.h"
 
+// Signal definitions
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
 
-piece 		base, tracks, turret, barrel, flare;
+piece  base, tracks, turret, barrel, flare;
 
 static-var  restore_delay, shotcount, lastpitch;
-
-// Signal definitions
-#define SIGNAL_AIM		1
-#define SIGNAL_MOVE		2
-
 
 #define BASEPIECE base
 #define HITSPEED <65.0>
@@ -30,6 +28,7 @@ Create()
 	restore_delay = 3000;
 	
 	call-script TB_Init();
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 StartMoving(reversing)
@@ -47,9 +46,9 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -58,7 +57,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn turret to y-axis <0.0> speed <90.0>;
 	turn barrel to x-axis <0> speed <60>;
 }
 SetStunned(State)
@@ -74,10 +73,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	lastpitch = pitch;
 
@@ -95,7 +94,7 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	++shotcount;
 	emit-sfx 1024 + 0 from flare;
@@ -108,19 +107,14 @@ FirePrimary()
 	sleep 33;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrel;
+	pieceIndex = barrel;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

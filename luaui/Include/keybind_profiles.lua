@@ -182,27 +182,69 @@ local function chainTaps(keyset)
 	return keybindModel.splitChain(keybindModel.canonicalKeyset(keyset))
 end
 
--- Moves every bind whose keyset chain is a strict suffix of another's to just after it,
--- preserving byPriority's order otherwise. The dependency graph is sparse (most binds share no
--- key at all), so a few hundred binds cost this pass nothing worth measuring.
+-- Orders that wait for a target, which CGuiHandler::KeyPressed picks by cycling: each repeat
+-- of the key starts its search one past where the last order sat in the matched list. Engine
+-- ones from CommandAI and its subclasses, the rest from BAR's own command descriptions.
+local CYCLED_ORDERS = {
+	attack = true,
+	areaattack = true,
+	manualfire = true,
+	deathwait = true,
+	move = true,
+	patrol = true,
+	fight = true,
+	guard = true,
+	loadonto = true,
+	loadunits = true,
+	unloadunits = true,
+	repair = true,
+	assist = true,
+	reclaim = true,
+	restore = true,
+	resurrect = true,
+	capture = true,
+	manuallaunch = true,
+	settarget = true,
+	settargetnoground = true,
+	quicksharetotarget = true,
+	areamex = true,
+	blueprint_place = true,
+}
+
+local function isCycledOrder(action)
+	local command = (action:match("^%S+") or ""):lower()
+
+	return CYCLED_ORDERS[command] or command:sub(1, 10) == "buildunit_"
+end
+
+-- Moves every bind whose keyset chain is a strict suffix of another's to just after it, or
+-- just before it when the suffix is a cycled order, whose repeat tap searches from one past it.
+-- byPriority's order holds otherwise. The dependency graph is sparse (most binds share no key
+-- at all), so a few hundred binds cost this pass nothing worth measuring.
 local function byChainSpecificity(ordered)
 	local n = #ordered
-	local taps = {}
+	local taps, cycled = {}, {}
 	for i = 1, n do
 		taps[i] = chainTaps(ordered[i].keyset)
+		cycled[i] = isCycledOrder(ordered[i].action)
 	end
 
-	local mustFollow = {}
+	local mustFollow, placed = {}, {}
 	for i = 1, n do
 		for j = 1, n do
 			if i ~= j and chainFitsAsTail(taps[i], taps[j]) then
-				mustFollow[i] = mustFollow[i] or {}
-				mustFollow[i][j] = true
+				local later, earlier = i, j
+				if cycled[i] then
+					later, earlier = j, i
+				end
+
+				mustFollow[later] = mustFollow[later] or {}
+				mustFollow[later][earlier] = true
 			end
 		end
 	end
 
-	local placed, out = {}, {}
+	local out = {}
 	while #out < n do
 		for i = 1, n do
 			if not placed[i] then

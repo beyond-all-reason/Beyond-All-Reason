@@ -1,4 +1,14 @@
 # November
+- [Zombies]
+  - Spidergeddon is removed for being too spooky.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or heap is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place a heap. That heap will only ever spawn 1 unit.
+  - Heaps in all zombie modes now become corpses after 2x the zombie resurrection time. A heap -> corpse -> zombie takes 3x the normal resurrection time in total.
+  - Resurrection time, pack size, and veterancy now follow the clock and the wreck's power. Cheap wrecks rise sooner and roll more copies. Expensive wrecks rise later and roll fewer. Player tech no longer holds that back.
+  - Hydra mode packs now start at 2-6 and escalate over the course of the game.
+  - Veterancy is 0 before minute 25 and reaches 0.8 at minute 45 for every unit.
+  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. A heap still waits twice that unit's time.
+- [Controls]
+  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
 - [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
@@ -12,18 +22,16 @@
   - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
   - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
   - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
-  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
-  - Commanders, Cacophony, Dragon's Jaw, Bastion, and Sol Invictus flak now swap targets immediately
-  - Faster re-aim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
-  - T2 ships now use heavy ship armor, Scylla now counts as a ship
-  - Placeholder mass removed: Incinerator 5001 -> 2300, Inferno 5001 -> 1700, Praetorian 200000 -> 7000
-  - Cannons no longer change arc with map gravity: Phobos, Phalanx, Leocampus, Sol Invictus, Cetus, Triton, Keres, Sapper, Enyo, Venator, Chimera, Dragon's Jaw
+  - Faster reaim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
+  - T2 ships now use heavy ship armor, and Scylla counts as a ship
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
+  - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.

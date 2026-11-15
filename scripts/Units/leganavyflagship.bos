@@ -48,37 +48,24 @@ piece
     frontRailgun2Flare,
     rearRailgun1Flare,
     rearRailgun2Flare,
-	toroidFireFlare,
-	cableHolders
-,
-	torus3firepoint;
+    toroidFireFlare,
+    cableHolders,
+    torus3firepoint;
 
 
 static-var
-    frontRailgun1WhichBarrel,
-    frontRailgun2WhichBarrel,
-    rearRailgun1WhichBarrel,
-    rearRailgun2WhichBarrel,
     mainTurretHeadingVar,
-    restore_delay, 
-	aimAdj, 
-	oldsteerheading,
-	shotcount, 
-	isfiring, 
-	delayed
+    restore_delay,
+    aimAdj,
+    oldsteerheading,
+    isfiring,
+    delayed,
+    Stunned
 ;
 
 // Signal definitions
-    #define SIGNAL_MOVE 1
-    #define SIGNAL_AIM1 4
-    #define SIGNAL_AIM2 8
-    #define SIGNAL_AIM3 16
-    #define SIGNAL_AIM4 32
-    #define SIGNAL_AIM5 64
-    #define SIGNAL_AIM6 128
-	#define SIGNAL_AIM7 256
-	#define SIGNAL_DELAY 512
-
+#define SIGNAL_AIM7 16384
+#define SIGNAL_DELAY 32768
 
 
 #define RB_MASS 60
@@ -86,8 +73,6 @@ static-var
 #define RB_WIDTH 6
 #define RB_PITCH_ACCELERATION 30
 #define RB_ROLL_ACCELERATION 8
-#define RB_RECOIL_ENERGY_1 100
-#define RB_RECOIL_ENERGY_2 100
 #define RB_WAKE_PIECE wake
 #define RB_WAKE_PIECE2 engineSpurt
 #define RB_WAKE_CEG 1024 + 1
@@ -99,12 +84,11 @@ static-var
 
 //////////////////////////////////////////////////////////////// CREATE FUNCTION
 
-Steering(heading, steery, currentSpeed)
+Steering(heading)
 {
 	while(1)
 	{
 		heading = get HEADING;
-		//get PRINT(isfiring,delayed);
 		aimAdj = (heading - oldsteerheading);
 		sleep 33;
 		oldsteerheading = heading;
@@ -132,19 +116,14 @@ Create()
 	turn rearRailgun2Rail2 to z-axis <-120> now;
 
 	hide toroidFireFlare;
-    frontRailgun1WhichBarrel = 0;
-    frontRailgun2WhichBarrel = 0;
-    rearRailgun1WhichBarrel = 0;
-    rearRailgun2WhichBarrel = 0;
 
 	restore_delay = 3000;
-	aimAdj = 0;	
-	shotcount = 0;
+	aimAdj = 0;
 	isfiring = 0;
 	delayed = 0;
-	
-    turn rearRailgun1HeadingPivot to y-axis <-180> now;
-    turn rearRailgun2HeadingPivot to y-axis <-180> now;
+
+	turn rearRailgun1HeadingPivot to y-axis <-180> now;
+	turn rearRailgun2HeadingPivot to y-axis <-180> now;
 
 	start-script CATT1_Init();
 	start-script InitRockBoat();
@@ -161,138 +140,125 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-static-var  Stunned;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
-
-#define AIMY1_RESTORE_SPEED <1.0>
 //aiming system restore
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-	turn targetingWeaponPitchPivot to x-axis <0.0> speed <45.0>;
-	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
-		if (aimy1position > 0 ) {
-			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
-			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
-            sleep 1;
-		}
-		else
-		{
-			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
-			aimy1velocity = AIMY1_RESTORE_SPEED;
-            sleep 1;
-		}
-		turn targetingWeaponHeadingPivot to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-		sleep 30;
+	if (Stunned) {
+		return (1);
 	}
-	aimy1velocity = 0;
-	aimAdj = 0;	
+	turn targetingWeaponPitchPivot to x-axis <0.0> speed <45.0>;
+	aimAdj = 0;
 }
 
 // heatray restores
-ExecuteRestoreAfterDelayHR1(){
-    isfiring = 0;
+ExecuteRestoreAfterDelayHR1()
+{
+	isfiring = 0;
 	delayed = 0;
 	if (Stunned) {
-        return (1);
-    }
-    sleep 1;
+		return (1);
+	}
+	sleep 1;
 	turn heatrayRightPitchPivot to y-axis <0> speed <60>;
-    turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
+	turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
 }
 
-ExecuteRestoreAfterDelayHR2(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
+ExecuteRestoreAfterDelayHR2()
+{
+	if (Stunned) {
+		return (1);
+	}
+	sleep 1;
 	turn heatrayLeftPitchPivot to y-axis <0> speed <60>;
-    turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
+	turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
 }
 
 // railgun restores
-ExecuteRestoreAfterDelayFRRG(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    turn frontRailgun1HeadingPivot to y-axis <0> speed <30>;
+ExecuteRestoreAfterDelayFRRG()
+{
+	if (Stunned) {
+		return (1);
+	}
+	sleep 1;
+	turn frontRailgun1HeadingPivot to y-axis <0> speed <30>;
 	turn frontRailgun1PitchPivot to x-axis <0> speed <15>;
 }
 
-ExecuteRestoreAfterDelayFLRG(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    turn frontRailgun2HeadingPivot to y-axis <0> speed <30>;
+ExecuteRestoreAfterDelayFLRG()
+{
+	if (Stunned) {
+		return (1);
+	}
+	sleep 1;
+	turn frontRailgun2HeadingPivot to y-axis <0> speed <30>;
 	turn frontRailgun2PitchPivot to x-axis <0> speed <15>;
 }
 
-ExecuteRestoreAfterDelayRRRG(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    turn rearRailgun1HeadingPivot to y-axis <180> speed <30>;
+ExecuteRestoreAfterDelayRRRG()
+{
+	if (Stunned) {
+		return (1);
+	}
+	sleep 1;
+	turn rearRailgun1HeadingPivot to y-axis <180> speed <30>;
 	turn rearRailgun1PitchPivot to x-axis <0> speed <15>;
 }
 
-ExecuteRestoreAfterDelayRLRG(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    turn rearRailgun2HeadingPivot to y-axis <180> speed <30>;
+ExecuteRestoreAfterDelayRLRG()
+{
+	if (Stunned) {
+		return (1);
+	}
+	sleep 1;
+	turn rearRailgun2HeadingPivot to y-axis <180> speed <30>;
 	turn rearRailgun2PitchPivot to x-axis <0> speed <15>;
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-        start-script ExecuteRestoreAfterDelayHR1();
-        start-script ExecuteRestoreAfterDelayHR2();
-        start-script ExecuteRestoreAfterDelayFRRG();
-        start-script ExecuteRestoreAfterDelayFLRG();
-        start-script ExecuteRestoreAfterDelayRRRG();
-        start-script ExecuteRestoreAfterDelayRLRG();
+		start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelayHR1();
+		start-script ExecuteRestoreAfterDelayHR2();
+		start-script ExecuteRestoreAfterDelayFRRG();
+		start-script ExecuteRestoreAfterDelayFLRG();
+		start-script ExecuteRestoreAfterDelayRRRG();
+		start-script ExecuteRestoreAfterDelayRLRG();
 	}
 }
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
+
 RestoreAfterDelayHR1()
 {
 	sleep restore_delay;
 	hide toroidFireFlare;
 	start-script ExecuteRestoreAfterDelayHR1();
 }
+
 RestoreAfterDelayHR2()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayHR2();
 }
+
 RestoreAfterDelayFRRG()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayFRRG();
 }
+
 RestoreAfterDelayFLRG()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayFLRG();
 }
+
 RestoreAfterDelayRRRG()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayRRRG();
 }
+
 RestoreAfterDelayRLRG()
 {
 	sleep restore_delay;
@@ -326,20 +292,6 @@ DelayedFire(){
 	isfiring = 2;
 }
 
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
-        sleep 1;
-	}
-}
-
 StartMoving(reversing)
 {
 
@@ -367,7 +319,7 @@ QueryWeapon1(pieceIndex)
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
+// A high precision requirement can result in overshoots if desired
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
 #define CATT1_PIECE_Y targetingWeaponHeadingPivot
@@ -377,20 +329,15 @@ QueryWeapon1(pieceIndex)
 #define CATT1_JERK <0.5>
 #define CATT1_PRECISION <1.2>
 #define CATT1_RESTORE_SPEED <1.0>
-#define CATT1_PITCH_SPEED <45>
 
 #include "../constant_acceleration_turret_turning_1.h"
 
 
-
-// #define SIGNAL_AIM1 256
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	mainTurretHeadingVar = heading + 2*aimAdj;
-	//We can do this any time
-	//turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	if (isfiring == 0 AND delayed == 0)
 	{
 		start-script DelayedFire();
@@ -422,12 +369,9 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	start-script SpinFiring();
-    //wait-for-turn targetingWeaponHeadingPivot around y-axis;
-    turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
-    turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
+	turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
+	turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	show toroidFireFlare;
-    //wait-for-turn heatrayRightPitchPivot around y-axis;
-    //wait-for-turn targetingWeaponPitchPivot around x-axis;
 	start-script RestoreAfterDelayHR1();
 	if (isfiring == 0)
 	{
@@ -456,12 +400,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-    // wait-for-turn targetingWeaponHeadingPivot around y-axis;
-    turn heatrayLeftPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
-    turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
-    // wait-for-turn targetingWeaponHeadingPivot around y-axis;
-    //wait-for-turn heatrayLeftPitchPivot around y-axis;
-    //wait-for-turn targetingWeaponPitchPivot around x-axis;
+	turn heatrayLeftPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
+	turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	start-script RestoreAfterDelayHR2();
 	if (isfiring == 0)
 	{
@@ -491,17 +431,17 @@ AimWeapon4(heading, pitch)
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
 
-    if (heading < <15> AND heading > <-165>){
-        turn frontRailgun1HeadingPivot to y-axis heading speed <150.0>;
-        turn frontRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
-        wait-for-turn frontRailgun1HeadingPivot around y-axis;
-        wait-for-turn frontRailgun1PitchPivot around x-axis;
-        start-script RestoreAfterDelayFRRG();
-        return (1);
-    }
-    else{
-        return (0);
-    }
+	if (heading < <15> AND heading > <-165>){
+		turn frontRailgun1HeadingPivot to y-axis heading speed <150.0>;
+		turn frontRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+		wait-for-turn frontRailgun1HeadingPivot around y-axis;
+		wait-for-turn frontRailgun1PitchPivot around x-axis;
+		start-script RestoreAfterDelayFRRG();
+		return (1);
+	}
+	else{
+		return (0);
+	}
 }
 
 FireWeapon4()
@@ -536,17 +476,17 @@ AimWeapon5(heading, pitch)
 	signal SIGNAL_AIM5;
 	set-signal-mask SIGNAL_AIM5;
 
-    if (heading > <-15> AND heading < <165>){
-        turn frontRailgun2HeadingPivot to y-axis heading speed <150.0>;
-        turn frontRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
-        wait-for-turn frontRailgun2HeadingPivot around y-axis;
-        wait-for-turn frontRailgun2PitchPivot around x-axis;
-        start-script RestoreAfterDelayFLRG();
-        return (1);
-    }
-    else{
-        return (0);
-    }
+	if (heading > <-15> AND heading < <165>){
+		turn frontRailgun2HeadingPivot to y-axis heading speed <150.0>;
+		turn frontRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+		wait-for-turn frontRailgun2HeadingPivot around y-axis;
+		wait-for-turn frontRailgun2PitchPivot around x-axis;
+		start-script RestoreAfterDelayFLRG();
+		return (1);
+	}
+	else{
+		return (0);
+	}
 }
 
 FireWeapon5()
@@ -585,9 +525,9 @@ AimWeapon6(heading, pitch)
 		return (0);
 	}
 	turn rearRailgun1HeadingPivot to y-axis heading speed <150.0>;
-    turn rearRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+	turn rearRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
 	wait-for-turn rearRailgun1HeadingPivot around y-axis;
-    wait-for-turn rearRailgun1PitchPivot around x-axis;
+	wait-for-turn rearRailgun1PitchPivot around x-axis;
 	start-script RestoreAfterDelayRRRG();
 	return (1);
 }
@@ -628,9 +568,9 @@ AimWeapon7(heading, pitch)
 		return (0);
 	}
 	turn rearRailgun2HeadingPivot to y-axis heading speed <150.0>;
-    turn rearRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+	turn rearRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
 	wait-for-turn rearRailgun2HeadingPivot around y-axis;
-    wait-for-turn rearRailgun2PitchPivot around x-axis;
+	wait-for-turn rearRailgun2PitchPivot around x-axis;
 	start-script RestoreAfterDelayRLRG();
 	return (1);
 }
@@ -657,70 +597,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode tur4 type BITMAPONLY | NOHEATCLOUD;
-		// explode sleeves4 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare4a type BITMAPONLY | NOHEATCLOUD;
-		// explode flare4b type BITMAPONLY | NOHEATCLOUD;
-		// explode tur3 type BITMAPONLY | NOHEATCLOUD;
-		// explode sleeves3 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare3a type BITMAPONLY | NOHEATCLOUD;
-		// explode flare3b type BITMAPONLY | NOHEATCLOUD;
-		// explode tur6 type BITMAPONLY | NOHEATCLOUD;
-		// explode sleeves6 type BITMAPONLY | NOHEATCLOUD;
-		// explode gun6 type BITMAPONLY | NOHEATCLOUD;
-		// explode barrel6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode tur4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare4a type FALL | NOHEATCLOUD;
-		// explode flare4b type FALL | NOHEATCLOUD;
-		// explode tur3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare3a type FALL | NOHEATCLOUD;
-		// explode flare3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode tur6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode gun6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode tur4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare4a type SMOKE | FALL | NOHEATCLOUD;
-		// explode flare4b type SMOKE | FALL | NOHEATCLOUD;
-		// explode tur3 type SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves3 type SMOKE | FALL | NOHEATCLOUD;
-		// explode flare3a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare3b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode tur6 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode gun6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrel6 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode tur4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare4a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode flare4b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode tur3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode sleeves3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare3a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flare3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode tur6 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode sleeves6 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode gun6 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode barrel6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

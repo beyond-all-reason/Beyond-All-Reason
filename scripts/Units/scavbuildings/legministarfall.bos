@@ -1,5 +1,4 @@
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece
 	turretHeadingPivot,
@@ -47,20 +46,20 @@ piece
 	baseSmoke2
 ;
 
-static-var whichBarrel, revolverCount, last_heading, last_pitch, shotcount, restore_delay, issmoking, ischarging, isspooling;
+static-var whichBarrel, revolverCount, shotcount, restore_delay, issmoking, isspooling, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_FIRE			4
-#define SIG_POWERING		16
+#define SIGNAL_AIM1 256
+#define SIGNAL_SHOOT1 16
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
-	turn turretPitchPivot1 to x-axis <-45> now; 
-	turn turretPitchPivot2 to x-axis <0> now; 
+	turn turretPitchPivot1 to x-axis <-45> now;
+	turn turretPitchPivot2 to x-axis <0> now;
 	turn barrelBackSmoke to z-axis <0> now;
 	turn barrelBackSmoke to y-axis <180> now;
 
@@ -73,20 +72,18 @@ Create()
 	whichBarrel = 0;
 	restore_delay = 5;
 	issmoking = 0;
-	ischarging = 0;
 	isspooling = 0;
-
-	last_heading = -1000000;
-	last_pitch = 0;
-	return (0);
 }
 
-PowerUp(){
+PowerUp()
+{
 	emit-sfx 1024 + 2 from shellCasing;
 	show shellHead;
 	show shellCasing;
-	if(isspooling == 1){
-		while (isspooling < 50){
+	if (isspooling == 1)
+	{
+		while (isspooling < 50)
+		{
 			shotcount = shotcount + 1;
 			call-script lua_UnitScriptLight(13, shotcount);
 			call-script lua_UnitScriptLight(14, shotcount);
@@ -100,59 +97,65 @@ PowerUp(){
 	}
 }
 
-Smoking(){
-	if(issmoking == 1){
+Smoking()
+{
+	if (issmoking == 1)
+	{
 		hide shellCasing;
 		hide shellHead;
-		while (issmoking < 56){
-			emit-sfx 1024+6 from baseSmoke1;
-			emit-sfx 1024+6 from baseSmoke2;
-			emit-sfx 1024+6 from barrelBackSmoke;
-			emit-sfx 1024+6 from barrelBackSmoke;
+		while (issmoking < 56)
+		{
+			emit-sfx 1024 + 6 from baseSmoke1;
+			emit-sfx 1024 + 6 from baseSmoke2;
+			emit-sfx 1024 + 6 from barrelBackSmoke;
+			emit-sfx 1024 + 6 from barrelBackSmoke;
 
-			emit-sfx 1024+8 from flare1;
-			emit-sfx 1024+8 from flare2;
-			emit-sfx 1024+8 from flare3;
-			emit-sfx 1024+8 from flare4;
-			emit-sfx 1024+8 from flare5;
-			emit-sfx 1024+8 from flare6;
-			emit-sfx 1024+8 from flare7;
+			emit-sfx 1024 + 8 from flare1;
+			emit-sfx 1024 + 8 from flare2;
+			emit-sfx 1024 + 8 from flare3;
+			emit-sfx 1024 + 8 from flare4;
+			emit-sfx 1024 + 8 from flare5;
+			emit-sfx 1024 + 8 from flare6;
+			emit-sfx 1024 + 8 from flare7;
 			issmoking = issmoking + 1;
 			sleep 500;
 		}
 	}
-	if (issmoking == 55){
+	if (issmoking == 55)
+	{
 		issmoking = 0;
 	}
 	sleep 1;
 }
 
-lua_UnitScriptLight(lightIndex, count) 
+lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
 }
-static-var Stunned;
+
 RestoreAfterDelay()
 {
-
 	sleep restore_delay;
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned)
+	{
+		return (1);
+	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	turn turretHeadingPivot to y-axis heading speed <15>;
-	if (pitch > <70>){
+	if (pitch > <70>)
+	{
 		move turretPitchPivot1 to z-axis [-4] speed [5];
 		turn turretPitchPivot1 to x-axis (-0.5 * pitch) speed <15>;
 		turn turretPitchPivot2 to x-axis (-1 * pitch) speed <20>;
 	}
-	else {
+	else
+	{
 		move turretPitchPivot1 to z-axis [0] speed [5];
 		turn turretPitchPivot1 to x-axis (-1 * pitch) speed <15>;
 		turn turretPitchPivot2 to x-axis <0> speed <20>;
@@ -162,14 +165,12 @@ AimPrimary(heading, pitch)
 	wait-for-turn turretPitchPivot1 around x-axis;
 	wait-for-turn turretPitchPivot2 around x-axis;
 
-	last_heading = heading;
-	last_pitch = pitch;
-
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary() {
+FireWeapon1()
+{
 	whichBarrel = 0;
 	issmoking = 0;
 	revolverCount = 0;
@@ -180,35 +181,35 @@ FirePrimary() {
 	emit-sfx 4096 + 1 from base;
 	start-script PowerUp();
 	move powerCell1 to y-axis [0] speed [6];
-	sleep 500;
+	wait-for-move powerCell1 along y-axis;
 	move powerCell2 to y-axis [0] speed [6];
-	sleep 500;
+	wait-for-move powerCell2 along y-axis;
 	move powerCell3 to y-axis [0] speed [6];
-	sleep 500;
+	wait-for-move powerCell3 along y-axis;
 	move powerCell4 to y-axis [0] speed [6];
-	sleep 500;
+	wait-for-move powerCell4 along y-axis;
 	move powerCell5 to y-axis [0] speed [6];
-	sleep 500;
+	wait-for-move powerCell5 along y-axis;
 	stop-spin barrelSpinPivot around z-axis decelerate <9>;
 
-	// FirePrimary controls animation right after firing
-	// but after 1 second, AimPrimary should regain control over spindle animation
-	// and last_primary_heading and last_primary_pitch should be reset
-	signal SIG_FIRE;
-	set-signal-mask SIG_FIRE;
+	// FireWeapon1 controls animation right after firing
+	// but after 1 second, AimWeapon1 should regain control over spindle animation
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	sleep 1000;
-	last_heading = -1000000;
-	last_pitch = 0;
 }
 
-Shot1(zero) {
-	if(whichBarrel == 3 OR whichBarrel == 6){
+Shot1(zero)
+{
+	if (whichBarrel == 3 OR whichBarrel == 6)
+	{
 		emit-sfx 1024 + 1 from barrelBackSmoke;
 		emit-sfx 1024 + 2 from shellCasing;
 		explode shellCasing type FALL | NOHEATCLOUD;
 	}
 
-	if(whichBarrel == 6){
+	if (whichBarrel == 6)
+	{
 		//barrels
 		call-script lua_UnitScriptLight(1, shotcount);
 		call-script lua_UnitScriptLight(2, shotcount);
@@ -223,75 +224,88 @@ Shot1(zero) {
 		call-script lua_UnitScriptLight(20, shotcount);
 	}
 
-	if(revolverCount == 1){
+	if (revolverCount == 1)
+	{
 		move powerCell1 to y-axis [-6] speed [500];
 	}
-	if(revolverCount == 3){
+	if (revolverCount == 3)
+	{
 		move powerCell2 to y-axis [-6] speed [500];
 	}
-	if(revolverCount == 5){
+	if (revolverCount == 5)
+	{
 		move powerCell3 to y-axis [-6] speed [500];
 	}
-	if(revolverCount == 7){
+	if (revolverCount == 7)
+	{
 		move powerCell4 to y-axis [-6] speed [500];
 	}
-	if(revolverCount == 8){
+	if (revolverCount == 8)
+	{
 		move powerCell5 to y-axis [-6] speed [500];
 	}
 
-	if (revolverCount == 8){
+	if (revolverCount == 8)
+	{
 		isspooling = 0;
 		issmoking = 1;
 		start-script Smoking();
 	}
 
-	if(revolverCount == 0){
-		//do something with powercells
-		if(whichBarrel == 0){
+	if (revolverCount == 0)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -299,53 +313,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 1){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 1)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-5] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -353,53 +374,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 2){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 2)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-7.5] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -407,53 +435,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 3){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 3)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -461,53 +496,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 4){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 4)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-10] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -515,53 +557,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 5){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 5)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-12.5] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -569,53 +618,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 6){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 6)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-15] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -623,53 +679,60 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 7){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 7)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-16] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
@@ -677,114 +740,123 @@ Shot1(zero) {
 		}
 	}
 
-	else if(revolverCount == 8){
-		//do something with powercells
-		if(whichBarrel == 0){
+	else if (revolverCount == 8)
+	{
+		if (whichBarrel == 0)
+		{
 			move barrel1 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare1;
+			emit-sfx 1024 + 0 from flare1;
 			sleep 1;
 			move barrel1 to z-axis [0] speed [5];
 			whichBarrel = 1;
 		}
-		else if(whichBarrel == 1){
+		else if (whichBarrel == 1)
+		{
 			move barrel2 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare2;
+			emit-sfx 1024 + 0 from flare2;
 			sleep 1;
 			move barrel2 to z-axis [0] speed [5];
 			whichBarrel = 2;
 		}
-		else if(whichBarrel == 2){
+		else if (whichBarrel == 2)
+		{
 			move barrel3 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare3;
+			emit-sfx 1024 + 0 from flare3;
 			sleep 1;
 			move barrel3 to z-axis [0] speed [5];
 			whichBarrel = 3;
 		}
-		else if(whichBarrel == 3){
+		else if (whichBarrel == 3)
+		{
 			move barrel4 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare4;
+			emit-sfx 1024 + 0 from flare4;
 			sleep 1;
 			move barrel4 to z-axis [0] speed [5];
 			whichBarrel = 4;
 		}
-		else if(whichBarrel == 4){
+		else if (whichBarrel == 4)
+		{
 			move barrel5 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare5;
+			emit-sfx 1024 + 0 from flare5;
 			sleep 1;
 			move barrel5 to z-axis [0] speed [5];
 			whichBarrel = 5;
 		}
-		else if(whichBarrel == 5){
+		else if (whichBarrel == 5)
+		{
 			move barrel6 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare6;
+			emit-sfx 1024 + 0 from flare6;
 			sleep 1;
 			move barrel6 to z-axis [0] speed [5];
 			whichBarrel = 6;
 		}
-		else if(whichBarrel == 6){
+		else if (whichBarrel == 6)
+		{
 			move barrel7 to z-axis [-17.5] now;
-			emit-sfx 1024 + 0  from flare7;
+			emit-sfx 1024 + 0 from flare7;
 			sleep 1;
 			move barrel7 to z-axis [0] speed [5];
 			whichBarrel = 0;
 			revolverCount = 0;
 		}
 	}
-
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if(whichBarrel == 0){
-		pieceNum = flare1;
+	if (whichBarrel == 0)
+	{
+		pieceIndex = flare1;
 	}
-	else if(whichBarrel == 1){
-		pieceNum = flare2;
+	else if (whichBarrel == 1)
+	{
+		pieceIndex = flare2;
 	}
-	else if(whichBarrel == 2){
-		pieceNum = flare3;
+	else if (whichBarrel == 2)
+	{
+		pieceIndex = flare3;
 	}
-	else if(whichBarrel == 3){
-		pieceNum = flare4;
+	else if (whichBarrel == 3)
+	{
+		pieceIndex = flare4;
 	}
-	else if(whichBarrel == 4){
-		pieceNum = flare5;
+	else if (whichBarrel == 4)
+	{
+		pieceIndex = flare5;
 	}
-	else if(whichBarrel == 5){
-		pieceNum = flare6;
+	else if (whichBarrel == 5)
+	{
+		pieceIndex = flare6;
 	}
-	else if(whichBarrel == 6){
-		pieceNum = flare7;
+	else if (whichBarrel == 6)
+	{
+		pieceIndex = flare7;
 	}
-
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretHeadingPivot;
+	pieceIndex = turretHeadingPivot;
 }
 
-AimWeapon2(){
+AimWeapon2()
+{
 	return (0);
 }
 
-FireWeapon2(){
-	return(1);
-}
-
-SweetSpot(piecenum)
+FireWeapon2()
 {
-	piecenum = base;
+	return (1);
 }
 
 Killed(severity, corpsetype)
 {
-	if( severity <= 25 )
+	if (severity <= 25)
 	{
 		corpsetype = 1 ;
 		return(corpsetype);
 	}
-	if( severity <= 50 )
+	if (severity <= 50)
 	{
 		corpsetype = 2 ;
 		return(corpsetype);

@@ -1,4 +1,3 @@
-
 #include "../recoil_common_includes.h"
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
@@ -223,9 +222,8 @@ UnitSpeed(){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
   animSpeed = 1+ ((maxSpeed * 4) / animSpeed); 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<2) animSpeed=2;
-  if (animspeed>8) animSpeed = 8;
+  if (animSpeed>8) animSpeed = 8;
   sleep 131;
  }
 }
@@ -258,7 +256,6 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	isMoving=TRUE;
-	hide flare;
 	restore_delay = 3000;
 	animSpeed = 4;
 	wpn1_lasthead = 0;
@@ -266,13 +263,11 @@ Create()
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
  	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
  	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	return (0);
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
 
@@ -280,13 +275,11 @@ SetMaxReloadTime(reloadMS)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = head;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	return (0);
 }
 
 static-var  Stunned;
@@ -333,7 +326,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 4096 + 1 from barrel;
-	move barrel to z-axis [-2] speed [62.500000];
+	move barrel to z-axis [-2] speed [62.5];
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.0] speed [4.0];
 }
@@ -347,11 +340,6 @@ Killed(severity, corpsetype)
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode head type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
-		
-		
-		
-		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -361,11 +349,6 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		
-		
-		
-		
-		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -376,10 +359,6 @@ Killed(severity, corpsetype)
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
-		
-		
-		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -387,10 +366,5 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
-		
-		
-		
-		
 	return corpsetype;
 }

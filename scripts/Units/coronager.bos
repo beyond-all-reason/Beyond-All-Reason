@@ -3,15 +3,7 @@
 
 piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom, prop;
 
-static-var Stunned, restore_delay, timeLeft;
-
-// Signal definitions
-#define SIGNAL_AIM1				2
-#define SIGNAL_MOVE				4
-#define SIGNAL_RESTORE			8
-#define SIGNAL_TURNON			16
-
-
+static-var Stunned;
 
 static-var  gun_1;
 
@@ -23,37 +15,24 @@ static-var  gun_1;
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <30.0> 
+#define TB_BASE base
+#define TB_TURNRATE <30.0>
 #define TB_TILT_X <-0.32>
 #define TB_BANK_Z <0.5> // Do not define this if you dont want banking
 #define TB_WAKE_PIECE base
 #define TB_WAKE_FOAM 1024 + 1
 #include "../tilt_bank_submarine.h"
 
-// Signal definitions
-#define SIGNAL_AIM1				2
-#define SIGNAL_MOVE				4
-#define SIGNAL_AIM2				8
-
-
-
-Create ()
+Create()
 {
-	//spin prop around z-axis speed <400>;
 	hide wake;
 	hide flare1;
 	hide flare2;
-	gun_1 = 0;//0
-	
-	restore_delay = 3000;
-	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
-	call-script TB_Init ();
-
-	
+	gun_1 = 0;
+	call-script TB_Init();
 }
 
-Propcontrol ()
+Propcontrol()
 {
 	var currentSpeed;
 	while (1)
@@ -64,15 +43,12 @@ Propcontrol ()
 	}
 }
 
-
-
-
-StartMoving (reversing)
+StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	START_TILTBANK;
-	start-script Propcontrol ();
+	start-script Propcontrol();
 	while ( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -81,38 +57,32 @@ StartMoving (reversing)
 		emit-sfx 1024 + 1 from wake;
 		sleep 250;
 	}
-	
 }
 
-StopMoving ()
+StopMoving()
 {
 	signal SIGNAL_MOVE;
 	STOP_TILTBANK;
 	stop-spin prop around z-axis decelerate <10.0>;
 }
 
-
-
-SetStunned (State)
+SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 }
 
-
-
-AimWeapon1 (heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-AimFromWeapon1 (piecenum)
+AimFromWeapon1(pieceIndex)
 {
-    piecenum=aimfrom;
+	pieceIndex = aimfrom;
 }
 
-FireWeapon1 ()
+FireWeapon1()
 {
-	
 	if ( gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from flare1;
@@ -131,25 +101,24 @@ FireWeapon1 ()
 		emit-sfx 1024 + 0 from flare2;
 		emit-sfx 1024 + 1 from flare2;
 	}
-	
 }
 
-Shot1 () {
+Shot1()
+{
 	gun_1 = !gun_1;
 }
 
-QueryWeapon1 (piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if ( gun_1 == 0)
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	} else {
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 
-
-Killed (severity, corpsetype)
+Killed(severity, corpsetype)
 {
 	if ( severity <= 25 )
 	{
@@ -166,7 +135,6 @@ Killed (severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rtube type NOHEATCLOUD;
 		explode ltube type FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if ( severity <= 99 )
@@ -175,13 +143,11 @@ Killed (severity, corpsetype)
 		explode base type FIRE | SMOKE | NOHEATCLOUD;
 		explode rtube type FIRE | SMOKE | NOHEATCLOUD;
 		explode ltube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode rtube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode ltube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

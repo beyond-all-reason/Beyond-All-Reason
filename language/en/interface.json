@@ -189,11 +189,15 @@
 			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
 		},
 		"tooltip": {
+			"veryLow": "Very low",
 			"low": "Low",
 			"medium": "Medium",
 			"high": "High",
+			"veryHigh": "Very high",
+			"verySlow": "Very slow",
 			"slow": "Slow",
-			"fast": "Fast"
+			"fast": "Fast",
+			"veryFast": "Very fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -888,6 +892,8 @@
 			"shortAggression": "Aggr.",
 			"shortActionsPerMinute": "APM",
 			"resourceIncome": "Income",
+			"resourceReclaimIncome": "Reclaim income",
+			"shortReclaimIncome": "Reclaim",
 			"resourceExpense": "Expense",
 			"resourceLevel": "Level",
 			"industry": "Industry",
@@ -974,7 +980,8 @@
 				"buildPowerUse": "How much of the team's build power was at work, over the game.",
 				"conversion": "How much of the team's energy conversion was running, over the game.",
 				"energyExpense": "Energy going out per second, over the game.",
-				"energyIncome": "Energy coming in per second, over the game.",
+				"energyIncome": "Energy coming in per second, over the game, reclaim left out.",
+				"energyReclaimIncome": "Energy reclaimed per second, over the game.",
 				"energyLevel": "How full the energy storage was, over the game.",
 				"energyStored": "Energy in storage, over the game.",
 				"frontLine": "How far out the side's army stood, over the game: 0% at its own start, 100% at the nearest enemy start.",
@@ -982,7 +989,8 @@
 				"idleLabs": "Factories with nothing queued, over the game.",
 				"jammerCoverage": "How much of the map the side's radar jammers covered, over the game.",
 				"metalExpense": "Metal going out per second, over the game.",
-				"metalIncome": "Metal coming in per second, over the game.",
+				"metalIncome": "Metal coming in per second, over the game, reclaim left out.",
+				"metalReclaimIncome": "Metal reclaimed per second, over the game.",
 				"metalLevel": "How full the metal storage was, over the game.",
 				"metalStored": "Metal in storage, over the game.",
 				"radarCoverage": "How much of the map the side's radar covered, over the game.",
@@ -1028,10 +1036,12 @@
 				"energyStored": "Energy in storage right now.",
 				"aggressionLevel": "Damage dealt for the resources gathered, on a scale where higher is more aggressive.",
 				"actionsPerMinute": "Commands given per minute of game time.",
-				"metalIncome": "Metal coming in per second right now.",
+				"metalIncome": "Metal coming in per second right now from extractors, converters and units. Reclaim is counted apart.",
+				"metalReclaimIncome": "Metal reclaimed per second right now from wrecks, rocks and other features. Not part of income.",
 				"metalExpense": "Metal going out per second right now.",
 				"metalLevel": "How full the metal storage is right now.",
-				"energyIncome": "Energy coming in per second right now.",
+				"energyIncome": "Energy coming in per second right now from generators and units. Reclaim is counted apart.",
+				"energyReclaimIncome": "Energy reclaimed per second right now from trees and other features. Not part of income.",
 				"energyExpense": "Energy going out per second right now.",
 				"energyLevel": "How full the energy storage is right now.",
 				"conversion": "How much of the team's energy conversion is running right now.",
@@ -1596,6 +1606,10 @@
 			"resist": "Resist",
 			"immune": "Immune",
 			"exp": "Exp",
+			"bonusTitle": "Experience bonus",
+			"xpHealthTip": "+%{percent}% maximum health from its %{xp} experience.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"xpDamageTip": "+%{percent}% damage per second from its %{xp} experience: its weapons reload faster.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"bonusOtherTip": "+%{percent}% over its unit type's, from effects on this unit (not experience)",
 			"open": "Open",
 			"closed": "Closed",
 			"maxhp": "max HP",
@@ -1679,6 +1693,8 @@
 			"rangeLabel": "Range",
 			"areaOfEffect": "Area of effect",
 			"edgeEffectiveness": "Edge effectiveness",
+			"alphaDamage": "Alpha damage",
+			"damageFalloff": "Damage fall-off",
 			"paralyzeTime": "Paralyze time",
 			"stockpileTime": "Stockpile time",
 			"interceptRange": "Interception range",
@@ -1836,7 +1852,7 @@
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
 			"shieldrechargecost": "Recharge cost",
-			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"cellHowto": "Click: select, right click: remove\nMiddle click: view them (Ctrl: all of this type)",
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
@@ -1871,6 +1887,9 @@
 				"cloak": "Cloaking costs energy per second",
 				"cloakMoving": "Cloaking costs energy per second, standing still / moving",
 				"progress": "Under construction",
+				"conversion": "Converts energy into metal per second (energy : metal)",
+				"xpHealth": "Health gained from experience",
+				"xpDamage": "Damage per second gained from experience (its weapons reload faster)",
 				"stealth": "Stealthy: radar does not show it",
 				"amphib": "Amphibious",
 				"allTerrain": "All-terrain",
@@ -3617,7 +3636,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -4391,10 +4410,6 @@
 				"akumu": {
 					"name": "Akumu",
 					"desc": "Basic, Wraith, and Hydra combined."
-				},
-				"spidergeddon": {
-					"name": "Spidergeddon (LIMITED TIME)",
-					"desc": "A modified Akumu mode, but zombies resurrect as Spiders."
 				}
 			}
 		},

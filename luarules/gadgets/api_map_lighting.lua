@@ -29,7 +29,7 @@ end
 	Hour 12 (0 to 24) is the lighting above; other hours move the sun and dim the light without changing its
 	colours, with a dim light from the other side of the sky at night.
 	dayLength (seconds per 24 hours) keeps the clock running once the hour is reached.
-	texture is a DDS cubemap; rotation turns the sky about the vertical axis, in degrees.
+	texture is a DDS cubemap; rotation turns the sky clockwise seen from above, in compass degrees like sunAzimuth.
 	Durations are game seconds, default 0. Reset returns to the map's own lighting.
 	Callers validate the values; the mission API does so when it loads a mission.
 
@@ -352,7 +352,8 @@ else
 		local brightness, tint = params.brightness, params.tint
 		local multiplier = { brightness * tint[1], brightness * tint[2], brightness * tint[3] }
 		local sunLighting, atmosphere = lightingFor(params, timeOfDayFactors(hour), multiplier)
-		atmosphere.skyAxisAngle = skybox.rotation and { 0, 1, 0, rad(skybox.rotation) } or base.skyAxisAngle
+		-- negated so the rotation turns clockwise, as compass degrees do
+		atmosphere.skyAxisAngle = skybox.rotation and { 0, 1, 0, rad(-skybox.rotation) } or base.skyAxisAngle
 
 		local azimuth, elevation = sunPath(hour, params.sunAzimuth, params.sunElevation)
 		local x, y, z = directionFromAngles(azimuth, elevation)

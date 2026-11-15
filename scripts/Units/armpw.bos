@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
-static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, burst1, weaponReady ;
+static-var  isMoving, isAiming, gun_1, restore_delay, burst1, weaponReady ;
 
 static-var curHead1, curPitch1;
 
@@ -337,7 +337,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 65;

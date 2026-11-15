@@ -1,299 +1,214 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 //piece  base, flare, turret, sleeve, barrel, gun, turretl, barrell, flarel, turretr, barrelr, flarer;
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
-piece base, turretBase, turretStrut, gun, flarer, flarel;
+piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun;
+static-var whichGun, isFiring, fireTime, reloadTime, aimAdj, oldsteerheading, cooldown, restore_delay, gun_lasthead, gun_lastpitch;
+
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions
-#define SIG_AIM				2
-// #define SIG_AIM_2			4
-// #define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 1
+#include "../vehicle_dirt_cegs.h"
+
+Steering(heading)
+{
+	while(1)
+	{
+		if (isFiring)
+		{
+			cooldown = cooldown + 1;
+			if (cooldown > reloadTime)
+			{
+				whichGun = !whichGun;
+				cooldown = 0;
+				isFiring = 0;
+			}
+		}
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+		oldsteerheading = heading;
+	}
+}
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 4
+#define UNITSIZE 7
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-InitState()
+
+#define TB_BASE base 
+#define TB_TURNRATE <12.0> 
+#define TB_TILT_X <0.20>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+RestoreAfterDelay()
 {
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	set-signal-mask SIGNAL_AIM1;
+	sleep restore_delay;
+	start-script RestoreAfterDelayGun();
 }
 
-RequestState(requestedstate, currentstate)
+RestoreAfterDelayGun()
 {
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script deploy();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script undeploy();
-			currentstate = 1;		
-		}
-	}
-	statechg_StateChanging = FALSE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
+	gun_lasthead = -1000000;
+	gun_lastpitch = -1000000;
+	aimAdj = 0;
+	turn turretBase to y-axis <0.0> speed <90.0>;
+	turn turretStrut to x-axis <0.0> speed <50.0>;
 }
-
-deploy(){
-
-	return (0);
-	
-}
-
-undeploy(){
-
-}
-
-// //rock the unit
-// RockUnit(anglex, anglez)
-// {
-// 	turn base to x-axis anglex speed <25.000000>;
-// 	turn base to z-axis <0> - anglez speed <25.000000>;
-// 	wait-for-turn base around z-axis;
-// 	wait-for-turn base around x-axis;
-// 	turn base to z-axis <0.000000> speed <10.000000>;
-// 	turn base to x-axis <0.000000> speed <10.000000>;
-// }
 
 Create()
 {
-	//hide flare;
-	// hide flarer;
-	// hide flarel;
-	restore_delay = 3000;
+	Weapon1TurretX = <50.0>;
+	Weapon1TurretY = <65.0>;
+	start-script Steering();
+	restore_delay = 500;
+	oldsteerheading = get HEADING;
+	aimAdj = 0;
+	cooldown = 0;
+	isFiring = 0;
+	fireTime = 54;
 	whichGun = 0;
-	start-script RestoreAfterDelay();
-	return (0);
+	call-script TB_Init();
 }
 
-lua_UnitScriptLight(lightIndex, count)
+SetMaxReloadTime(reloadMS)
 {
-	return 0;
+	reloadTime = reloadMS; // FIXME: xp scaling
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	fireTime = fireTimeValue;
+	reloadTime = reloadTimeValue;
 }
 
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
+StartMoving(reversing)
 {
-    if (Stunned) {
-        return (1);
-    }
-	turn turretBase to y-axis <0.000000> speed <40>;
-	turn turretStrut to x-axis <0.000000> speed <40>;
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	wait-for-turn turretBase around y-axis;
-	start-script RequestState(1);
-	call-script undeploy();
-	// turn turretr to y-axis <0.000000> speed <120>;
-	// turn turretl to y-axis <0.000000> speed <120>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	START_TILTBANK;
 }
-SetStunned(State)
+
+
+StopMoving()
 {
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+
+AimWeapon1(heading, pitch)
+{
+	var pitchSpeed, deltaHeading;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// Turn the pitch and heading together
+	pitchSpeed = Weapon1TurretX;
+	deltaHeading = get ABS(gun_lasthead - heading);
+	if ((deltaHeading > <1>) AND (deltaHeading < <20>))
+	{
+		pitchSpeed = Weapon1TurretY * (get ABS(gun_lastpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > Weapon1TurretX) pitchSpeed = Weapon1TurretX;
+		if (pitchSpeed < <5>) pitchSpeed = <5>;
 	}
-}
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
-
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	//start-script RequestState(0);
-	call-script deploy();
-	turn turretBase to y-axis heading speed <80>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <80>;
+	turn turretBase to y-axis heading - aimAdj speed Weapon1TurretY;
+	turn turretStrut to x-axis <0.0> - pitch speed pitchSpeed;
+	start-script RestoreAfterDelay();
+	if (cooldown > fireTime)
+	{
+		return (0);
+	}
+	if ( (get ABS(gun_lasthead - heading)< <20>) AND (get ABS(gun_lastpitch - pitch)< <20>) )
+	{
+		gun_lasthead = heading;
+		gun_lastpitch = pitch;
+		return (1);
+	}
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretStrut around x-axis;
-	start-script RestoreAfterDelay();
+	gun_lasthead = heading;
+	gun_lastpitch = pitch;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	
-	if (whichGun == 0){
-		//emit-sfx 1024 + 0  from flarer;
-		call-script lua_UnitScriptLight(1, whichGun);
-		whichGun = 1;
-		return(0);
+	isFiring = 1;
+	if (whichGun == 0)
+	{
+		sleep 2000;
+		return (0);
 	}
 
-	if (whichGun == 1){
-		//emit-sfx 1024 + 0  from flarel;
-		call-script lua_UnitScriptLight(2, whichGun);
-		whichGun = 0;
-		return(0);
+	if (whichGun == 1)
+	{
+		sleep 2000;
+		return (0);
 	}
-	//emit-sfx 1024 + 0 from flare;
-
-	// move sleeve to z-axis [-3.000000] speed [1250.000000];
-	// move barrel to z-axis [-6.000000] speed [1250.000000];
-	// wait-for-move sleeve along z-axis;
-	// move barrel to z-axis [0.000000] speed [7.500000];
-	// move sleeve to z-axis [0.000000] speed [7.500000];
-	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun;
-	return (0);
-}
-
-QueryPrimary(piecenum)
-{
-	if (whichGun == 0){
-		piecenum = flarer;
-		//whichGun = 1;
+	if (whichGun == 0)
+	{
+		pieceIndex = flarer;
 	}
 
-	if (whichGun == 1){
-		piecenum = flarel;
-		//whichGun = 0;
+	if (whichGun == 1)
+	{
+		pieceIndex = flarel;
 	}
-	return (0);
 }
 
-// AimSecondary(heading, pitch)
-// {
-// 	signal SIG_AIM_2;
-// 	set-signal-mask SIG_AIM_2;
-// 	turn turretl to y-axis heading speed <180>;
-// 	turn barrell to x-axis <0.000000> - pitch speed <60>;
-// 	wait-for-turn turretl around y-axis;
-// 	wait-for-turn barrell around x-axis;
-// 	start-script RestoreAfterDelay();
-// 	return (1);
-// }
-
-// FireSecondary()
-// {
-// 	show flarel;
-// 	sleep 100;
-// 	hide flarel;
-// }
-
-// AimFromSecondary(piecenum)
-// {
-// 	piecenum = barrell;
-// 	return (0);
-// }
-
-// QuerySecondary(piecenum)
-// {
-// 	piecenum = flarel;
-// 	return (0);
-// }
-
-// AimTertiary(heading, pitch)
-// {
-// 	signal SIG_AIM_3;
-// 	set-signal-mask SIG_AIM_3;
-// 	turn turretr to y-axis heading speed <180>;
-// 	turn barrelr to x-axis <0.000000> - pitch speed <60>;
-// 	wait-for-turn turretr around y-axis;
-// 	wait-for-turn barrelr around x-axis;
-// 	start-script RestoreAfterDelay();
-// 	return (1);
-// }
-
-// FireTertiary()
-// {
-// 	show flarer;
-// 	sleep 100;
-// 	hide flarer;
-// }
-
-// AimFromTertiary(piecenum)
-// {
-// 	piecenum = barrelr;
-// 	return (0);
-// }
-
-// QueryTertiary(piecenum)
-// {
-// 	piecenum = flarer;
-// 	return (0);
-// }
-
-SweetSpot(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	if (whichGun == 0)
+	{
+		pieceIndex = flarer;
+	}
+
+	if (whichGun == 1)
+	{
+		pieceIndex = flarel;
+	}
 }
+
 
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turretBase type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelPivot type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelMid type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelBack type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		// explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode turretBase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelPivot type FALL | NOHEATCLOUD;
-		// explode barrelMid type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelBack type FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		// explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode turretBase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelPivot type SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelMid type SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelBack type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		// explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode turretBase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode barrelPivot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode barrelMid type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode barrelBack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

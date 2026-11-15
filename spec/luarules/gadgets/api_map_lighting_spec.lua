@@ -511,7 +511,7 @@ describe("api_map_lighting", function()
 			)
 			assert.same({ "SetSkyBoxTexture", "maps/sky.dds" }, world.calls[1])
 			assert.same({ "SetAtmosphere", { fogStart = 0.5, fogEnd = 1.2 } }, world.calls[2])
-			assertColor({ 0, 1, 0, math.pi / 2 }, world.calls[3][2].skyAxisAngle)
+			assertColor({ 0, 1, 0, -math.pi / 2 }, world.calls[3][2].skyAxisAngle) -- 90 degrees clockwise
 		end)
 
 		it("ignores a skybox texture that is not a cubemap", function()
