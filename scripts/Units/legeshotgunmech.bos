@@ -784,6 +784,7 @@ FireWeapon2()
         move lArmPump to z-axis [0] speed [8];
         return (1);
 	}
+    return (0);
 }
 
 

@@ -140,6 +140,7 @@ RestoreAfterDelay()
 	{
 		return (1);
 	}
+	return (0);
 }
 
 AimWeapon1(heading, pitch)
