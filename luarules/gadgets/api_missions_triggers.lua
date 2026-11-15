@@ -40,6 +40,7 @@ local stockpileState = {}
 local dwellingUnitsInAreas = {}
 local revealedLocations = {}
 local gatheredUnitsInAreas = {}
+local occupiedAreas = {}
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures = {}
@@ -272,6 +273,7 @@ function gadget:Initialize()
 		DwellingUnitsInAreas = dwellingUnitsInAreas,
 		RevealedLocations = revealedLocations,
 		GatheredUnitsInAreas = gatheredUnitsInAreas,
+		OccupiedAreas = occupiedAreas,
 		GetReclaimIncomeSnapshot = function(teamID)
 			return teamReclaimIncomeSnapshot[teamID]
 		end,
