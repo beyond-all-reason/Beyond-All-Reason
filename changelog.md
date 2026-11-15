@@ -33,6 +33,7 @@
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
   - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
   - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
+  - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
