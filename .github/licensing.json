@@ -68,13 +68,13 @@
     "LicenseRef-BAR-CLA-1.0": {
       "name": "BAR Project License (CLA)",
       "label": "license: BAR-CLA",
-      "blurb": "restricted to BAR; you keep copyright.",
+      "blurb": "restricted to BAR; you keep copyright.", "consent_blurb": "BAR may use the work as part of the game, in trailers, streams and approved mods; it stays restricted to BAR; you keep your copyright.",
       "doc": "legal/CLA_SUMMARY.md"
     },
     "CC-BY-SA-4.0": {
       "name": "CC-BY-SA 4.0",
       "label": "license: CC-BY-SA-4.0",
-      "blurb": "openly reusable by anyone with attribution. Cannot be revoked once recorded.",
+      "blurb": "openly reusable by anyone with attribution. Cannot be revoked once recorded.", "consent_blurb": "anyone may reuse the work with attribution under the same license; you keep your copyright. Cannot be revoked once recorded.",
       "doc": "legal/CC-BY-SA-OPT-IN.md"
     },
     "GPL-2.0-or-later": {
