@@ -56,7 +56,7 @@ local buildFrameOwners = {}
 local constructionStarts = {}
 local detections = {}
 local detectionCount = 0
-local undetected = {}
+local undetectedUnits = {}
 local capturedUnits = {}
 
 ----------------------------------------------------------------
@@ -200,7 +200,7 @@ local function inFactory(buildeeID)
 end
 
 -- ConstructionStarted sees a buildee from both UnitCreated and BuildAssisted.
--- Each trigger fires once per buildee from the callin the first activates it.
+-- Each trigger fires once per buildee from the callin that first activates it.
 local function claimConstructionStart(buildeeID, triggerID)
 	local claims = constructionStarts[buildeeID]
 	if claims then
@@ -243,9 +243,9 @@ function gadget:GameFrame(frameNumber)
 	dispatchTriggerCallin("GameFrame", frameNumber)
 
 	if frameNumber % seismicIntervalFrames == 0 then
-		local n = seismicContacts.UpdateContacts(undetected)
+		local n = seismicContacts.UpdateContacts(undetectedUnits)
 		for i = 1, n do
-			markDetectionDirty(undetected[i])
+			markDetectionDirty(undetectedUnits[i])
 		end
 	end
 end
