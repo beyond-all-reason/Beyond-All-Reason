@@ -23,11 +23,14 @@ end
 local checkFrames = 300
 local squareSize = Game.squareSize
 local heightParam = "explosion_foundation_height"
+---@type table<UnitID, {height: number, restoreAfter: number, minx: number, maxx: number, minz: number, maxz: number}>
 local structures = {}
+---@type table<number, UnitID[]>
 local buckets = {}
+---@type { [1]: UnitID, [2]: UnitDefID }[]
 local pending = {}
 local deformingWeapons = {}
-local maxHalfSize = 0
+local maxHalfSize = 0.0
 for _, ud in pairs(UnitDefs) do
 	if ud.isImmobile and ud.levelGround then
 		maxHalfSize = math.max(maxHalfSize, ud.xsize * squareSize / 2, ud.zsize * squareSize / 2)
@@ -45,7 +48,7 @@ end
 
 local function registerStructure(unitID, unitDefID)
 	local ud = UnitDefs[unitDefID]
-	if not ud.isImmobile or not ud.levelGround or ud.customParams.mobilebuilding then
+	if not ud or not ud.isImmobile or not ud.levelGround or ud.customParams["mobilebuilding"] then
 		return
 	end
 	local x, _, z = Spring.GetUnitPosition(unitID)
@@ -53,11 +56,15 @@ local function registerStructure(unitID, unitDefID)
 		return
 	end
 	local halfX, halfZ = ud.xsize * squareSize / 2, ud.zsize * squareSize / 2
-	if Spring.GetUnitBuildFacing(unitID) % 2 == 1 then
+	local facing = Spring.GetUnitBuildFacing(unitID)
+	if not facing then
+		return
+	end
+	if facing % 2 == 1 then
 		halfX, halfZ = halfZ, halfX
 	end
 	-- Capture only after initial engine/builder terraforming, not in UnitCreated.
-	local height = Spring.GetUnitRulesParam(unitID, heightParam) or Spring.GetGroundHeight(x, z)
+	local height = tonumber(Spring.GetUnitRulesParam(unitID, heightParam)) or Spring.GetGroundHeight(x, z)
 	Spring.SetUnitRulesParam(unitID, heightParam, height, { private = true })
 	structures[unitID] = {
 		height = height,
@@ -72,7 +79,7 @@ local function registerStructure(unitID, unitDefID)
 	buckets[phase][#buckets[phase] + 1] = unitID
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
+local function unitCreated(_, unitID, unitDefID)
 	if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
 		return
 	end
@@ -82,6 +89,8 @@ function gadget:UnitCreated(unitID, unitDefID)
 		pending[#pending + 1] = { unitID, unitDefID }
 	end
 end
+
+gadget.UnitCreated = unitCreated
 
 function gadget:UnitDestroyed(unitID)
 	for i = #pending, 1, -1 do
@@ -155,7 +164,8 @@ function gadget:GameFrame(frame)
 		local s = structures[unitID]
 		-- Do not bypass the builder's paid, gradual foundation terraforming.
 		if
-			frame >= s.restoreAfter
+			s
+			and frame >= s.restoreAfter
 			and not Spring.GetUnitIsDead(unitID)
 			and not Spring.GetUnitIsBeingBuilt(unitID)
 			and needsRestoration(s)
@@ -174,6 +184,6 @@ function gadget:Initialize()
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		self:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		unitCreated(self, unitID, Spring.GetUnitDefID(unitID))
 	end
 end

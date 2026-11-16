@@ -104,6 +104,7 @@ local function loadGadget(state)
 		create = function(id, def, facing, progress)
 			state.units[id] = { x = 128, z = 128, def = def or 1, facing = facing or 0, progress = progress or 1 }
 			env.gadget:UnitCreated(id, def or 1)
+			return state.units[id]
 		end,
 		tick = function(frame)
 			state.frame = frame
@@ -119,12 +120,12 @@ describe("Explosion foundation restoration", function()
 		t.state.defaultHeight = 20 -- engine flattening happens after UnitCreated
 		t.tick(1)
 		assert.same({ true, false, true, false, true, false, false }, t.state.units[1].blocking)
-		assert.equals(0, #t.state.levels)
+		assert.equal(0, #t.state.levels)
 		t.state.terrain["144,160"] = 17 -- center remains unchanged
 		t.tick(301)
 		assert.same({ { 112, 96, 144, 160, 20 } }, t.state.levels)
 		t.tick(601)
-		assert.equals(1, #t.state.levels)
+		assert.equal(1, #t.state.levels)
 	end)
 
 	it("rotates rectangular foundations with build facing", function()
@@ -146,10 +147,10 @@ describe("Explosion foundation restoration", function()
 		t.tick(2)
 		t.state.terrain["128,128"] = 17
 		t.tick(301)
-		assert.equals(0, #t.state.levels)
+		assert.equal(0, #t.state.levels)
 		t.state.units[1].progress = 1
 		t.tick(601)
-		assert.equals(20, t.state.levels[1][5])
+		assert.equal(20, t.state.levels[1][5])
 	end)
 
 	it("preserves the recorded height across gadget reload", function()
@@ -159,7 +160,7 @@ describe("Explosion foundation restoration", function()
 		t.state.terrain["128,128"] = 7
 		local reloaded = loadGadget(t.state)
 		reloaded.tick(301)
-		assert.equals(10, t.state.levels[1][5])
+		assert.equal(10, t.state.levels[1][5])
 	end)
 
 	it("does not restore destroyed buildings, including pending ones and reused IDs", function()
@@ -174,10 +175,10 @@ describe("Explosion foundation restoration", function()
 		t.state.units[1] = nil
 		t.state.terrain["128,128"] = 7
 		t.tick(301)
-		assert.equals(0, #t.state.levels)
-		t.create(1)
+		assert.equal(0, #t.state.levels)
+		local unit = t.create(1)
 		t.tick(302) -- new building records its own height
-		assert.equals(7, t.state.units[1].explosion_foundation_height)
+		assert.equal(7, unit.explosion_foundation_height)
 	end)
 
 	it("defers restoration past delayed explosion damage and cancels it on death", function()
@@ -188,11 +189,11 @@ describe("Explosion foundation restoration", function()
 		t.state.terrain["128,128"] = 7
 		t.gadget:Explosion(1, 128, 10, 128)
 		t.tick(301)
-		assert.equals(0, #t.state.levels)
+		assert.equal(0, #t.state.levels)
 		t.gadget:UnitDestroyed(1)
 		t.state.units[1] = nil
 		t.tick(601)
-		assert.equals(0, #t.state.levels)
+		assert.equal(0, #t.state.levels)
 	end)
 
 	it("restores a survivor after its explosion damage window", function()
@@ -204,7 +205,7 @@ describe("Explosion foundation restoration", function()
 		t.gadget:Explosion(1, 128, 10, 128)
 		t.tick(301)
 		t.tick(601)
-		assert.equals(1, #t.state.levels)
+		assert.equal(1, #t.state.levels)
 	end)
 
 	it("does not let distant explosions delay restoration", function()
@@ -215,7 +216,7 @@ describe("Explosion foundation restoration", function()
 		t.state.terrain["128,128"] = 7
 		t.gadget:Explosion(1, 900, 10, 900)
 		t.tick(301)
-		assert.equals(1, #t.state.levels)
+		assert.equal(1, #t.state.levels)
 	end)
 
 	it("leaves mobiles and floating buildings' seabeds alone", function()
@@ -227,7 +228,7 @@ describe("Explosion foundation restoration", function()
 		t.state.terrain["128,128"] = -30
 		t.tick(301)
 		t.tick(302)
-		assert.equals(0, #t.state.levels)
+		assert.equal(0, #t.state.levels)
 	end)
 
 	it("disables itself when map deformation is disabled", function()
