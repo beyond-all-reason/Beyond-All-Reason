@@ -1,7 +1,3 @@
-if BAR.Utilities.Gametype.IsSinglePlayer() then
-	return
-end
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -198,7 +194,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function refuseTake(cmd, line, words, playerID)
+		SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
+	end
+
 	function gadget:Initialize()
+		if BAR.Utilities.Gametype.IsSinglePlayer() then
+			gadgetHandler:AddChatAction(
+				takeCommand,
+				refuseTake,
+				"Take control of units and resources from inactive players"
+			)
+			-- AIs cannot be abandoned so there is nothing to take.
+			gadgetHandler:RemoveCallIn("GameFrame")
+			gadgetHandler:RemoveCallIn("RecvLuaMsg")
+			gadgetHandler:RemoveCallIn("AllowResourceTransfer")
+			gadgetHandler:RemoveCallIn("AllowUnitTransfer")
+			return
+		end
 		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
 	end
@@ -388,6 +401,14 @@ else -- UNSYNCED
 	end
 
 	function gadget:Initialize()
+		if BAR.Utilities.Gametype.IsSinglePlayer() then
+			gadgetHandler:AddSyncAction("NotifyError", notifyError)
+			gadgetHandler:RemoveCallIn("Update")
+			gadgetHandler:RemoveCallIn("MousePress")
+			gadgetHandler:RemoveCallIn("MouseWheel")
+			gadgetHandler:RemoveCallIn("KeyPress")
+			return
+		end
 		gadgetHandler:AddSyncAction("OnGameStart", onGameStart)
 		gadgetHandler:AddSyncAction("NotifyError", notifyError)
 		gadgetHandler:AddSyncAction("PlayerLagging", playerLagging)
