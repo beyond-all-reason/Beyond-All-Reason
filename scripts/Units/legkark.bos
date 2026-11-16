@@ -603,12 +603,14 @@ AimWeapon2(heading, pitch)
 
 ShotgunRetraction()
 {
-	move lbarrel to z-axis [-2] speed [100];
-	sleep 400;
-	start-script SecondShotgunFire();
-	move lbarrel to z-axis [-5] speed [100];
-	sleep 500;
-	move lbarrel to z-axis [0] speed [20];
+	move lbarrel to z-axis [-2] speed [120];
+	sleep 350;
+	
+	start-script FireSecondBarrel();
+
+	move lbarrel to z-axis [-5] speed [120];
+	sleep 250;
+	move lbarrel to z-axis [0] speed [120];
 }
 
 FireWeapon2()
@@ -632,7 +634,7 @@ FireWeapon2()
 	
 }
 
-SecondShotgunFire()
+FireSecondBarrel()
 {
 	if(gun_1)
 	{
