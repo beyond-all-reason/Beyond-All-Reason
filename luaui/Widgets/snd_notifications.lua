@@ -1032,15 +1032,15 @@ function widget:Update(dt)
 			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
-		-- process sound queue
-		if sec >= nextSoundQueued and sec >= suspendUntilSec then
-			playNextSound()
-		end
-
 		if sec <= clearUntilSec then
 			for i = 1, #soundQueue do
 				soundQueue[i] = {}
 			end
+		end
+
+		-- process sound queue
+		if sec >= nextSoundQueued and sec >= suspendUntilSec then
+			playNextSound()
 		end
 
 		-- check idle status
