@@ -79,18 +79,16 @@ if gadgetHandler:IsSyncedCode() then
 		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
 		for _, teamID in ipairs(GetTeamList()) do --initialize team count
-			local aiShortName
 			if select(4, GetTeamInfo(teamID, false)) then
 				-- store who hosts that engine ai, team will be controlled if player is present
-				local _, _, aiHost, shortName = GetAIInfo(teamID)
-				aiShortName = shortName
+				local aiHost = select(3, GetAIInfo(teamID))
 				local hostedAis = aiOwners[aiHost] or {}
 				hostedAis[#hostedAis + 1] = teamID
 				aiOwners[aiHost] = hostedAis
 			end
-			-- lua ai, NullAI placeholders, and gaia are always controlled
+			-- lua ai and gaia are always controlled
 			local luaAI = GetTeamLuaAI(teamID)
-			if teamID == gaiaTeamID or (luaAI and luaAI ~= "") or aiShortName == "NullAI" then
+			if teamID == gaiaTeamID or (luaAI and luaAI ~= "") then
 				TeamToRemainingPlayers[teamID] = 1
 			else
 				TeamToRemainingPlayers[teamID] = 0
