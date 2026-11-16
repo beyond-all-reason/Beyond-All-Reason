@@ -351,13 +351,14 @@ else -- UNSYNCED
 	-- same "<name> Allies: > key:params" line as game_message, so gui_chat translates it for each reader
 	local function teamTaken(_, playerID, teamID, units, energy, metal)
 		local takerName, _, _, _, takerAllyTeamID = Spring.GetPlayerInfo(playerID, false)
-		local _, leaderID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
-		local takenName
-		if isAiTeam then
-			-- an ai team's leader is the player who hosted it
-			takenName = Spring.GetGameRulesParam("ainame_" .. teamID) or select(2, Spring.GetAIInfo(teamID))
-		else
-			takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+		local takenName = Spring.GetGameRulesParam("ainame_" .. teamID)
+		if not takenName then
+			local _, leaderID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+			if isAiTeam then
+				takenName = select(2, Spring.GetAIInfo(teamID)) -- use the player name hosting the AI
+			else
+				takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+			end
 		end
 		if not takerName or not takenName then
 			return
