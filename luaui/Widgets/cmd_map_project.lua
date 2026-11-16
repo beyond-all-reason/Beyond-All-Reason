@@ -10,28 +10,21 @@ function widget:GetInfo()
 	}
 end
 
--- Save orchestration for map projects (see doc: map-project-format-draft.md).
--- One project = one folder under MapProjects/<slug>/ with a versioned manifest
--- (project.lua, written LAST as the commit marker) plus per-section files in the
--- existing tools' formats. Filenames are fixed and serialization is deterministic:
--- git history is the versioning, so a re-save of unchanged state must produce a
--- zero diff except the manifest's `modified` field.
+-- Save and load of map projects. One project = one folder MapProjects/<slug>/
+-- with a versioned manifest (project.lua, written last as the commit marker) plus
+-- per-section files in the tools' own formats. Serialization is deterministic:
+-- git is the history, so re-saving unchanged state changes only `modified`.
 --
--- The save runs as a small state machine pumped from widget:DrawScreen (the
--- codebase's pattern for deferred work, and the env snapshot needs a draw
--- context for gl.Get*): heightmap sampling is millions of GetGroundHeight calls
--- (chunked here), and the splat PNG is written by the splat painter inside its
--- own draw pump (requested, then polled).
+-- SAVE is a state machine pumped from widget:DrawScreenPost (the env snapshot
+-- needs a draw context): heightmap sampling is chunked over ticks, and painter
+-- files (splat, surface, diffuse) are requested from their widgets and polled.
 --
--- LOAD: opening a project restarts the engine into a blank map of the project's
--- recorded size (the UI builds the start script and writes a pointer file),
--- then a post-restart driver here replays every section in phase order. The
--- pointer file carries a phase journal: it is updated after each completed
--- phase and only deleted when the load finishes (or is aborted), so a
--- /luaui reload mid-load RESUMES instead of dying — every phase is an
--- idempotent replay. The driver consumes the pointer ONLY when the session
--- matches the recorded map (blank-map name, exact size, map damage enabled,
--- local singleplayer); on mismatch it deletes the pointer and explains itself.
+-- LOAD restarts the engine into a blank map of the recorded size (the UI writes
+-- a pointer file), then replays every section in phase order. The pointer keeps
+-- a phase journal and is deleted only when the load ends, so a /luaui reload
+-- mid-load resumes (every phase is an idempotent replay). The pointer is consumed
+-- only when the session matches it (blank-map name, size, map damage, local
+-- singleplayer); otherwise it is deleted with an explanation.
 
 -- Engine globals as chunk locals: the CI analyzer counts every bare engine
 -- global as an undefined-global finding (same table objects, no behaviour change).
@@ -40,18 +33,20 @@ local VFS = VFS
 local Echo = Spring.Echo
 
 local PROJECTS_DIR = "MapProjects/"
+-- FILE > EXPORT MAP output: Terraform Brush/Exports/<map file base>/ (archive/, compile/, report)
+local EXPORTS_DIR = "Terraform Brush/Exports/"
 local FORMAT_VERSION = 1
 local ELMOS_PER_UNIT = 512
 local POINTER_PATH = "Terraform Brush/pending_project.lua"
 local ACK_PARAM = "tfb_import_done" -- rules param set by the terraform gadget after $terraform_import_end$
 
--- Chunk budgets per Update tick (keep the UI responsive during save)
+-- Chunk budgets per draw tick (keep the UI responsive during save)
 local HEIGHT_ROWS_PER_TICK = 32
 local METAL_ROWS_PER_TICK = 128
 local SPLAT_TIMEOUT_TICKS = 300
 
 -- Load driver pacing (all in draw-frame ticks unless noted)
-local CHEAT_RESEND_TICKS = 150 -- min gap between /cheat sends ("cheat" TOGGLES — never double-send)
+local CHEAT_RESEND_TICKS = 150 -- min gap between /cheat sends ("cheat" toggles: never double-send)
 local CHEAT_MAX_SENDS = 8 -- then abort loudly
 local DNTS_WAIT_TICKS = 300 -- wait for splat normals to appear before splat load
 local SPLAT_LOAD_TIMEOUT = 600
@@ -61,18 +56,80 @@ local DIFFUSE_TIMEOUT_TICKS = 3600 -- full-map diffuse capture/load is many chun
 local UNITS_TIMEOUT_TICKS = 300 -- synced units export round-trip
 local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a replace
 
-local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
--- Shared with the DIMENSIONS tools: the tileset section round-trips the WORLD
--- PATTERN FRAME, and what counts as "no frame at all" is defined there.
+---@type table?
+local heightmapPNG = nil -- lazy require of the shared 16-bit PNG codec
+-- Shared with the DIMENSIONS tools: it defines when a world pattern frame is identity.
 local MapTransform = VFS.Include("luaui/Include/map_transform.lua")
+-- Project -> map archive files; the same module runs without the game in tools/map_export.
+local MapExport = VFS.Include("common/map_export.lua")
 
--- The two job tables are declared nil and built by startSave / maybeStartLoad;
--- every step function runs only while its job exists. Typed as tables so the
--- analyzer reads the steps' field access as such rather than as nil.
----@type table
+-- Built by startSave / maybeStartLoad; steps run only while their job exists.
+-- Typed as tables so the analyzer does not read the steps' field access as nil.
+---@class MapProjectSaveReceipt
+---@field slug string
+---@field done boolean
+---@field ok boolean?
+---@field uploadReady boolean?
+
+---@class MapProjectDntsRecord
+---@field textures table<integer, string>
+---@field scales table
+---@field mults table
+---@field diffuse_alpha number?
+---@field set string?
+---@field detail string?
+
+---@class MapProjectSaveJob
+---@field slug string
+---@field result MapProjectSaveReceipt
+---@field dir string
+---@field step integer
+---@field cursor table per-step chunk state, reset between steps
+---@field sections table[]
+---@field skipped table[]
+---@field warnings string[]
+---@field saveUnits boolean
+---@field autosave boolean
+---@field internal boolean
+---@field uploadBlocked boolean?
+---@field prev table? the manifest of the previous save, if any
+---@field mapOptions table<string, any>
+---@field heightRange { min: number, max: number }?
+---@field diffuse table?
+---@field diffuseOnDiskUnloaded boolean?
+---@field diffuseStateEmpty boolean?
+---@field unitsCount integer?
+---@field grassPatchResolution number?
+---@field dnts MapProjectDntsRecord?
+---@field assetDecals table?
+---@field failed string?
+---@field minimapSize { w: integer, h: integer }?
+
+---@class MapProjectLoadJob
+---@field slug string
+---@field dir string
+---@field sizeX number
+---@field sizeZ number
+---@field transform table?
+---@field manifest table
+---@field phase integer
+---@field cursor table per-phase state, reset between phases
+---@field loaded table
+---@field skipped table
+---@field byteWarned table
+---@field missingWarned table
+---@field autosaveOf string?
+---@field transformOf string?
+---@field cheatTicks integer?
+---@field cheatSends integer?
+---@field cheatLastSend integer?
+
+--- `|any`: nil while idle, but the steps only run while their job exists.
+---@type MapProjectSaveJob|any
 local job = nil -- active save job, nil when idle
----@type table
+---@type MapProjectLoadJob|any
 local loadJob = nil -- active load job, nil when idle (never both at once)
+---@type { batches: string[], done: boolean, denied: string? }?
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
 ---@type table?
 local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
@@ -82,32 +139,36 @@ local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
 ---@type string?
 local currentSlug = nil
 
--- Outcome of the most recent save ({ok, slug}), for the UI's transient
--- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
--- running save disappears.
+-- Outcome of the most recent save ({ok, slug}) for the UI's "SAVED: <name>"
+-- readout, read once saveProgress() stops reporting a running save.
+---@type MapProjectSaveReceipt?
 local lastSaveInfo = nil
--- Unsaved-changes flag: how many edits were reported since the last save or
--- load. Tools report through WG.MapProject.markDirty; the count is cleared by
--- a finished save or load, and ignored for a few seconds after either, while
--- the engine's own heightmap updates are still trickling in.
+-- Edits reported through WG.MapProject.markDirty since the last save or load.
+-- Ignored for a few seconds after either, while the engine's own heightmap
+-- updates trickle in.
 local dirtyCount = 0
 local dirtyGraceUntil = 0.0
--- The project whose diffuse/ squares the painter is known to hold: set when a
--- load's diffuse phase delivered them (or the project had none) and when a
--- save's capture left the folder exact. A save over a project whose squares
--- this session never loaded (the phase skipped, failed or timed out) must not
--- treat the painter's empty state as "no paint" and delete them.
+-- The project whose diffuse/ squares the painter is known to hold. A save over a
+-- project whose squares this session never loaded must not read the painter's
+-- empty state as "no paint" and delete them.
+---@type string?
 local diffuseLoadedSlug = nil
+-- What the last load could not put on this canvas, carried to every save of the
+-- session so open + save never drops data. features: placements whose FeatureDef
+-- this session lacks (a captured map's own trees on a blank canvas). metal: the
+-- project's amounts by cell (mz * width + mx), which the canvas may clamp at
+-- maxMetal * 255 and truncate to maxMetal steps; a cell still within one step of
+-- its clamped source is saved as the source. env: the loaded environment.lua, whose keys
+-- this build does not write are saved back as they came. Widget memory: /luaui reload drops it.
+---@type { features: table[]?, metal: table<integer, number>?, metalW: integer?, env: table? }
+local loadCarry = {}
 
--- Autosave (Settings > General): a snapshot of the open project every few
--- minutes while it has unsaved changes, into MapProjects/_autosave/ as
--- <project>-YYYYMMDDHHMM. The panel pushes the settings through setAutosave;
--- until it does, the defaults stand (configureAutosave fills the table, so
--- its fields type from that assignment rather than from literals here).
+-- Autosave (Settings > General): snapshots of the open project while it has
+-- unsaved changes, in MapProjects/_autosave/<project>-YYYYMMDDHHMM. Settings
+-- come from the panel through setAutosave (configureAutosave fills the table).
 local AUTOSAVE_DIR = "_autosave"
--- Scratch projects written by the map transform (cmd_map_transform.lua):
--- the session's capture and the transformed copy it boots into. Hidden from
--- the browser like the snapshots, and swept once the transformed map is in.
+-- Scratch projects of the map transform (cmd_map_transform.lua). Hidden from the
+-- browser like the snapshots and swept once the transformed map is in.
 local TRANSFORM_DIR = "_transform"
 local autosaveCfg = {}
 local autosaveNextAt = 0.0 -- os.clock() of the next attempt
@@ -153,12 +214,10 @@ local RESERVED_NAMES = {
 	lpt9 = true,
 }
 
--- A project name may carry folders ("campaign/cm09", "maps-repo/teizer/duel"):
--- each segment follows the single-name rules, the depth is capped and the whole
--- path stays short. Folders are what let a git clone of a maps repository sit
--- inside MapProjects/ and list as a tree in the Open Project dialog. Returns
--- the normalized slug (forward slashes, no leading or trailing separator);
--- callers must use the returned value, not their argument.
+-- A project name may carry folders ("campaign/cm09") so a git clone of a maps
+-- repository can sit inside MapProjects/ as a tree. Each segment follows the
+-- single-name rules and depth and length are capped. Callers must use the
+-- returned normalized slug (forward slashes, no edge separators).
 local MAX_SLUG_DEPTH = 4
 local function validateSlug(slug)
 	if type(slug) ~= "string" or slug == "" then
@@ -262,33 +321,15 @@ local function basename(path)
 	return path:match("([^/\\]+)$") or path
 end
 
--- Read a previously saved manifest (created timestamp + canonical height range
--- must survive re-saves). Raw io.open, never VFS: fresh files can be invisible
--- or stale in the VFS view within a session. Also the load-side manifest reader.
-local function readPrevManifest(dir)
-	local f = io.open(dir .. "project.lua", "r")
-	if not f then
-		return nil
-	end
-	local raw = f:read("*a")
-	f:close()
-	local chunk = loadstring(raw, nil, {})
-	if not chunk then
-		return nil
-	end
-	local ok, data = pcall(chunk)
-	if not ok or type(data) ~= "table" then
-		return nil
-	end
-	return data
+-- The tileset shader's ramp library: it is a user widget, which reads raw files only under LuaUI/.
+local function rampDir()
+	local T = WG.TilesetTerrain
+	return (T and T.getRampDir and T.getRampDir()) or "LuaUI/Config/TilesetRamps/"
 end
 
--- Recently opened or saved projects, newest first: written by raw io to the
--- write dir, read back by the Open Project list. Two jobs: RECENT ordering by
--- last touch rather than last save, and a second discovery path for folders
--- the VFS snapshot cannot see yet (a project saved this session, a fresh git
--- clone): a manifest raw io can read gets listed even when VFS.SubDirs misses
--- its folder.
+-- Recently opened or saved projects, newest first, read by the Open Project list.
+-- It orders RECENT by last touch, and lists folders the VFS snapshot cannot see
+-- yet (saved this session, a fresh git clone) when raw io can read their manifest.
 local RECENT_PATH = "Terraform Brush/recent_projects.lua"
 local RECENT_MAX = 40
 
@@ -342,6 +383,8 @@ local function readLuaFile(path)
 	end
 	local raw = f:read("*a")
 	f:close()
+	-- A text editor may save the file with a UTF-8 byte order mark, which Lua cannot parse.
+	raw = raw:gsub("^\239\187\191", "")
 	local chunk, err = loadstring(raw, nil, {})
 	if not chunk then
 		return nil, "parse error: " .. tostring(err)
@@ -354,6 +397,12 @@ local function readLuaFile(path)
 		return nil, "not a table"
 	end
 	return data
+end
+
+-- Read a previously saved manifest (created timestamp + canonical height range
+-- must survive re-saves), or nil. Also the load-side manifest reader.
+local function readPrevManifest(dir)
+	return (readLuaFile(dir .. "project.lua"))
 end
 
 -- TGA header dims (18-byte header: width LE at offset 12, height LE at 14).
@@ -428,9 +477,8 @@ local function stepPrepare()
 	return true
 end
 
--- Sampling is chunked over ticks; the encode runs in the same step's final tick
--- (one step — the pump resets job.cursor between steps, so sample state must
--- not cross a step boundary).
+-- Sampling is chunked over ticks and the encode runs in this step's final tick:
+-- the pump resets job.cursor between steps, so samples cannot cross a step.
 local function stepHeightmap()
 	local sq = Game.squareSize
 	local c = job.cursor
@@ -441,16 +489,20 @@ local function stepHeightmap()
 		c.minH, c.maxH = math.huge, -math.huge
 		c.w = Game.mapSizeX / sq + 1
 		c.h = Game.mapSizeZ / sq + 1
+		-- the far column and row need the exact read (GetGroundHeight clamps there)
+		c.edgeHeight = VFS.Include("common/vertex_height.lua")(Spring.GetGroundHeight)
 	end
 	if c.z <= Game.mapSizeZ then
 		local rows = 0
 		local heights, idx = c.heights, c.idx
 		local minH, maxH = c.minH, c.maxH
 		local GetGroundHeight = Spring.GetGroundHeight
-		while c.z <= Game.mapSizeZ and rows < HEIGHT_ROWS_PER_TICK do
+		local edgeHeight = c.edgeHeight
+		local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+		while c.z <= mapZ and rows < HEIGHT_ROWS_PER_TICK do
 			local z = c.z
-			for x = 0, Game.mapSizeX, sq do
-				local gh = GetGroundHeight(x, z)
+			for x = 0, mapX, sq do
+				local gh = (x < mapX and z < mapZ) and GetGroundHeight(x, z) or edgeHeight(x, z)
 				if gh < minH then
 					minH = gh
 				end
@@ -467,15 +519,17 @@ local function stepHeightmap()
 		if c.z <= Game.mapSizeZ then
 			return false
 		end
-		-- Sampling complete; encode next tick (known hitch: the codec's per-pixel
-		-- loop is one synchronous call — announce it so the freeze is explained).
+		-- Encode next tick. The codec's per-pixel loop is one synchronous call,
+		-- so announce the freeze.
 		echoP("encoding heightmap PNG (" .. c.w .. "x" .. c.h .. ")...")
 		return false
 	end
 	-- Canonical range: previous manifest range auto-widened to live extremes,
 	-- rounded outward to integers so an unchanged terrain re-quantizes to the
 	-- exact same PNG bytes. Never clip terrain (silent data loss).
+	---@type number
 	local minH = math.floor(c.minH)
+	---@type number
 	local maxH = math.ceil(c.maxH)
 	local prevRange = job.prev and job.prev.map and job.prev.map.height_range
 	if prevRange and prevRange.min and prevRange.max then
@@ -510,6 +564,7 @@ local function stepHeightmap()
 		samples[i] = floor(norm * 65535 + 0.5)
 	end
 
+	---@cast heightmapPNG table
 	local png = heightmapPNG.encodeGray16(c.w, c.h, samples, minH, maxH)
 	if not png then
 		warn("heightmap PNG encode failed; section skipped")
@@ -528,10 +583,13 @@ local function stepHeightmap()
 end
 
 local function stepSplat()
+	---@type table?
 	local sp = WG.SplatPainter
 	local c = job.cursor
 	if not c.requested then
-		if not (sp and sp.hasSplatState and sp.hasSplatState()) then
+		local hasState = sp and sp.hasSplatState and sp.hasSplatState()
+		local mapHas = sp and sp.hasMapDistribution and sp.hasMapDistribution()
+		if not (hasState or mapHas) then
 			sectionSkip("splat", "no splat paint state (painter inactive or blank map without DNTS)")
 			return true
 		end
@@ -541,6 +599,11 @@ local function stepSplat()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not sp then
+		warn("splat painter was turned off during the save")
+		sectionSkip("splat", "painter turned off during the save")
+		return true
+	end
 	if sp.isSavePending() then
 		if c.ticks > SPLAT_TIMEOUT_TICKS then
 			warn("splat save timed out (painter draw pump never ran)")
@@ -563,16 +626,12 @@ end
 -- slots serialize as "" and load back as nil.
 local MAX_SURFACE_SLOTS = 8
 
--- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
--- mask PNG like the splat, plus a small surface.lua carrying biome + slot
--- assignment — the mask channels are meaningless without knowing WHICH top
--- variants they weight. Same request/poll shape as the splat step.
--- The painter writes a second "surface_v4.png" beside the first whenever
--- variant 4 carries paint (its weights do not fit the first mask's RGBA); it
--- needs no manifest entry — the loader looks for the sibling itself.
--- The painter is a user widget, and the user widget sandbox only lets it write
--- and read loose files under LuaUI/, so the mask is staged here on its way into
--- or out of a project folder.
+-- SURFACE variant mask (dev_surface_painter.lua): a mask PNG plus surface.lua with
+-- biome and slot assignment, without which the channels mean nothing. Same
+-- request/poll shape as the splat step. Variant 4 paint goes to a sibling
+-- surface_v4.png with no manifest entry; the loader looks for it.
+-- The painter is a user widget and its sandbox only reaches loose files under
+-- LuaUI/, so the mask is staged there on its way into or out of a project.
 local surfaceStage = {
 	dir = "LuaUI/Config/TilesetSurface/project_stage/",
 	main = "LuaUI/Config/TilesetSurface/project_stage/surface.png",
@@ -585,6 +644,7 @@ function surfaceStage.clear()
 end
 
 local function stepSurface()
+	---@type table?
 	local sp = WG.SurfacePainter
 	local c = job.cursor
 	if not c.requested then
@@ -602,6 +662,12 @@ local function stepSurface()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not sp then
+		surfaceStage.clear()
+		warn("surface painter was turned off during the save")
+		sectionSkip("surface", "painter turned off during the save")
+		return true
+	end
 	if sp.isSavePending() then
 		if c.ticks > SPLAT_TIMEOUT_TICKS then
 			warn("surface mask save timed out (painter draw pump never ran)")
@@ -686,13 +752,10 @@ local function stepSurface()
 	return true
 end
 
--- Full tileset configuration. surface.lua records only biome + variant slot
--- picks, and only when a mask was ever painted; this section owns the rest of
--- the scene setup — every tuning knob, the metal-spot style and glow lights,
--- and the slot-4 EXTRA LAYER material — so a project round-trips the whole
--- TILESET window. Deliberately NOT in SECTION_FILES: a save run without the
--- write-dir tileset widget must keep the previous tileset.lua (the state it
--- describes cannot have changed without the widget), not delete it as stale.
+-- Full tileset configuration (knobs, metal-spot style and lights, slot-4 extra
+-- layer, ramp, tints, pattern frame), so a project round-trips the TILESET window.
+-- Not in SECTION_FILES on purpose: a save without the tileset widget keeps the
+-- previous tileset.lua (its state cannot have changed) instead of deleting it.
 local function stepTileset()
 	local T = WG.TilesetTerrain
 	if not (T and T.getKnobs and T.getActiveBiome) then
@@ -717,10 +780,22 @@ local function stepTileset()
 			lines[#lines + 1] = string.format("\tslot4_material = %q,", tostring(s4.material))
 		end
 	end
-	-- HEIGHT TINT ramp image (tileset shader 0.27): the gradient's basename,
-	-- Lua-side state like the biome key rather than a knob
+	-- HEIGHT TINT ramp image: the gradient's basename, Lua-side state like the
+	-- biome key rather than a knob
 	if T.getRamp then
 		local rampFile = T.getRamp()
+		if type(rampFile) == "string" and rampFile:find("^mapconfig/") then
+			-- a ramp the loaded map ships: copy it into the ramp library, where the project finds it by name
+			local lib = rampDir() .. basename(rampFile)
+			if not fileSize(lib) then
+				local data = VFS.LoadFile(rampFile, VFS.MAP)
+				if data then
+					Spring.CreateDir(rampDir())
+					writeFile(lib, data)
+				end
+			end
+			rampFile = basename(rampFile)
+		end
 		if rampFile and rampFile ~= "" then
 			lines[#lines + 1] = string.format("\tramp = %q,", tostring(rampFile))
 		end
@@ -750,11 +825,8 @@ local function stepTileset()
 			lines[#lines + 1] = "\t},"
 		end
 	end
-	-- WORLD PATTERN FRAME (see patternXZ in dev_tileset_terrain.lua): the affine
-	-- that takes this map's world XZ back to the XZ it was authored in, so the
-	-- shader's automatic placement patterns turn with a map MAP TRANSFORM
-	-- turned. Written only when it says something - a map that was never
-	-- transformed carries identity, and no key at all.
+	-- World pattern frame (MapTransform:composeFrame): written only when it is
+	-- not identity, so an untransformed map carries no key.
 	if T.getPatternFrame then
 		local m00, m01, m10, m11, tx, tz = T.getPatternFrame()
 		if type(m00) == "number" and not MapTransform.isIdentityFrame(m00, m01, m10, m11, tx, tz) then
@@ -795,16 +867,12 @@ local function stepTileset()
 	return true
 end
 
--- Baked diffuse capture (per-square PNGs + enabled shading channels).
--- On real (compiled) maps EVERY square is captured, so a map whose diffuse was
--- generated externally (World Machine workflow) carries its full texture in
--- the project; blank canvases save only painted squares. Layers/masks are NOT
--- serialized — the project records the baked result, and post-load painting
--- extends it (same ownership semantics as the splat section).
--- Failure skips (widget missing, busy, timeout, all captures failed) must NOT
--- delete the diffuse dir or drop the section — hours of paint could live
--- there. Carry the previous manifest section forward so the loader still sees
--- the old files; only a genuine "no paint state" marks the dir as deletable.
+-- Baked diffuse capture (per-square PNGs + enabled shading channels). Compiled
+-- maps capture every square so external diffuse travels with the project; blank
+-- canvases save only painted squares. Layers are not saved, only the baked result.
+-- A failed capture must not delete diffuse/ or drop the section: the previous
+-- manifest section is carried forward so the loader still sees the old files.
+-- Only a genuine "no paint state" marks the folder deletable.
 local function diffuseFailSkip(reason, notLoaded)
 	local prev = job.prev and job.prev.sections and job.prev.sections.diffuse
 	if prev or reason ~= "diffuse painter widget not loaded" then
@@ -830,16 +898,15 @@ local function diffuseFailSkip(reason, notLoaded)
 end
 
 local function stepDiffuse()
+	---@type table?
 	local dp = WG.DiffusePainter
 	local c = job.cursor
 	if not c.requested then
 		if not (dp and dp.saveProject) then
 			return diffuseFailSkip("diffuse painter widget not loaded")
 		end
-		-- Saving over the open project while its diffuse squares on disk were
-		-- never loaded this session (the load phase skipped, failed or timed
-		-- out). A Save As over some other project is that project being
-		-- replaced on purpose, so only the session's own project is guarded.
+		-- Guard the open project when its squares on disk were never loaded this
+		-- session. A Save As over another project replaces it on purpose.
 		local prevDiffuse = job.prev and job.prev.sections and job.prev.sections.diffuse
 		local guarded = prevDiffuse and prevDiffuse.dir and job.slug == currentSlug
 		job.diffuseOnDiskUnloaded = (guarded and diffuseLoadedSlug ~= job.slug) and true or false
@@ -847,9 +914,8 @@ local function stepDiffuse()
 		local isBlank = (mo.blank_map_x or mo.blank_map_y) and true or false
 		if isBlank and not (dp.hasProjectState and dp.hasProjectState()) then
 			if job.diffuseOnDiskUnloaded then
-				-- The project on disk has squares this session never loaded;
-				-- the painter's empty state says nothing about them, and the
-				-- cleanup step would delete them. Carry the section forward.
+				-- The painter's empty state says nothing about squares never
+				-- loaded, and cleanup would delete them: carry the section forward.
 				return diffuseFailSkip(
 					"diffuse/ holds "
 						.. (tonumber(job.prev.sections.diffuse.squares) or 0)
@@ -873,6 +939,9 @@ local function stepDiffuse()
 		return false
 	end
 	c.ticks = c.ticks + 1
+	if not dp then
+		return diffuseFailSkip("diffuse painter was turned off during the save")
+	end
 	if dp.isProjectSavePending() then
 		if c.ticks > DIFFUSE_TIMEOUT_TICKS then
 			return diffuseFailSkip("timed out (painter draw pump never finished)")
@@ -883,10 +952,8 @@ local function stepDiffuse()
 	if not res or res.error or #(res.squares or {}) == 0 then
 		return diffuseFailSkip((res and res.error) or "no squares captured")
 	end
-	-- Stale files inside diffuse/ from a previous save would be resurrected by
-	-- the loader's glob — remove anything this save did not write. (VFS listing
-	-- of files created earlier THIS session is unpinned; cross-session staleness
-	-- is what this reliably covers.)
+	-- The loader globs diffuse/, so remove anything this save did not write. The
+	-- VFS listing reliably covers files from earlier sessions, not this one.
 	local writtenSet = {}
 	for _, f in ipairs(res.squares) do
 		writtenSet[f] = true
@@ -961,10 +1028,20 @@ local function stepMetal()
 	local lines = c.lines
 	local GetMetalAmount = Spring.GetMetalAmount
 	local format = string.format
+	-- Untouched cells keep the loaded project's amount (see loadCarry). The cap
+	-- comes from the metal gadget ($metal_cap$, sent by the load); without it
+	-- the live values are all there is.
+	local src = loadCarry.metalW == mmX and loadCarry.metal or nil
+	local cap = src and tonumber(Spring.GetGameRulesParam("mb_square_cap"))
+	local stepTol = cap and (cap / 255) * 1.001
 	while c.mz < mmZ and rows < METAL_ROWS_PER_TICK do
 		local mz = c.mz
 		for mx = 0, mmX - 1 do
 			local amount = GetMetalAmount(mx, mz)
+			local was = stepTol and src[mz * mmX + mx]
+			if was and math.abs(amount - math.min(was, cap)) <= stepTol then
+				amount = was
+			end
 			if amount > 0.001 then
 				local wx = mx * METAL_SQ + METAL_SQ * 0.5
 				local wz = mz * METAL_SQ + METAL_SQ * 0.5
@@ -994,35 +1071,34 @@ local function stepMetal()
 	return true
 end
 
--- Features come from the feature placer's synced export, not from a local walk
--- of Spring.GetAllFeatures(). Spring.GetFeatureRotation called from LuaUI reads
--- transMatrix[0], which FeatureDrawerData only refreshes for features that were
--- actually drawn this frame, so an unsynced walk reports zero rotation for
--- everything off screen -- the saved bytes would depend on where the camera
--- happened to be pointing. The gadget runs synced, where the transform is always
--- current, and it is also the thing that decides whether a feature is merely
--- ground-aligned or genuinely gizmo-tilted.
---
--- Same request/poll shape as stepUnits.
+-- Features come from the feature placer's synced export: unsynced
+-- GetFeatureRotation reads a matrix refreshed only for features drawn this frame,
+-- so off-screen features would save with zero rotation. The gadget also decides
+-- whether a feature is ground-aligned or gizmo-tilted. Same request/poll shape
+-- as stepUnits.
 local FEATURES_TIMEOUT_TICKS = 300
+---@type { entries: table?, err: any, done: boolean }?
 local featuresRx = nil
 
--- Fallback for when the synced export is unavailable (it needs /cheat, and
--- nothing can have been gizmo-transformed without /cheat either). Reads what the
--- old code read and writes the same 4-field records, deliberately never emitting
--- a transform tail: unsynced rotation is camera-dependent, so guessing from it
--- would be worse than omitting it.
+-- Fallback when the synced export is unavailable (it needs /cheat, as does any
+-- gizmo transform). Writes 4-field records with no transform tail: unsynced
+-- rotation is camera-dependent, so guessing from it is worse than omitting it.
 local function writeFeaturesUnsynced(reason)
 	local featureIDs = Spring.GetAllFeatures()
 	local entries = {}
 	for i = 1, #featureIDs do
 		local fid = featureIDs[i]
 		local defID = Spring.GetFeatureDefID(fid)
+		---@type table?
 		local def = defID and FeatureDefs[defID]
+		---@type number?, number?, number?
 		local x, _, z = Spring.GetFeaturePosition(fid)
 		if def and x then
 			entries[#entries + 1] = { name = def.name, x = x, z = z, rot = Spring.GetFeatureHeading(fid) or 0 }
 		end
+	end
+	for _, e in ipairs(loadCarry.features or {}) do
+		entries[#entries + 1] = e -- unspawnable placements from the load
 	end
 	if #entries == 0 then
 		sectionSkip("features", "no features on map")
@@ -1098,15 +1174,16 @@ local function stepFeatures()
 	end
 
 	local entries = rx.entries
+	for _, e in ipairs(loadCarry.features or {}) do
+		entries[#entries + 1] = e -- unspawnable placements from the load
+	end
 	if #entries == 0 then
 		sectionSkip("features", "no features on map")
 		return true
 	end
 
-	-- Feature IDs are transient (re-assigned every load), so order by content.
-	-- The comparator has to stay total across every field that is written, or two
-	-- features differing only in tilt could swap places between saves and produce
-	-- a spurious diff.
+	-- Feature IDs change every load, so order by content. The comparator must be
+	-- total over every written field or saves could swap entries and diff.
 	local function num(v)
 		return v or 0
 	end
@@ -1143,9 +1220,8 @@ local function stepFeatures()
 	}
 	local format = string.format
 	for _, e in ipairs(entries) do
-		-- The tails are present exactly when the gadget decided this feature was
-		-- transformed or scaled, so an unedited map writes the same 4-field
-		-- records it always did.
+		-- Tails appear only when the gadget reports a transform or scale, so an
+		-- unedited map writes plain 4-field records.
 		local scaleField = e.scale and format(", scale = %.3f", e.scale) or ""
 		if e.pitch and e.roll and e.y then
 			lines[#lines + 1] = format(
@@ -1205,6 +1281,7 @@ end
 -- One-shot unit-list read for other widgets (Terraform Brush Capture builds its
 -- SVG unit layer from this). Same synced round-trip as the save path, so it sees
 -- units outside the player's LOS; refused while a save/load job owns the buffer.
+---@type function?
 local unitsWaiter = nil
 local unitsWaiterTicks = 0
 
@@ -1251,12 +1328,10 @@ local function pollUnitsWaiter()
 	end
 end
 
--- Units loadout (opt-in via the Save Project dialog toggle). Collection is a
--- synced gadget round-trip (cmd_map_project_units.lua): the unsynced unit view
--- is LOS-limited, so reading Spring.GetAllUnits here would silently drop every
--- enemy unit outside the player's own LOS — exactly the units a mission draft
--- cares about. The gadget streams begin/data/end into the globals registered
--- in Initialize; this step polls the buffer (same request/poll shape as splat).
+-- Units loadout (opt-in in the Save Project dialog). Collected through the synced
+-- gadget cmd_map_project_units.lua because the unsynced unit view is LOS-limited.
+-- The gadget streams begin/data/end into globals registered in Initialize and
+-- this step polls the buffer.
 local function stepUnits()
 	if not job.saveUnits then
 		if job.prev and job.prev.sections and job.prev.sections.units then
@@ -1367,6 +1442,7 @@ local function stepLights()
 		sectionSkip("lights", "light placer not loaded")
 		return true
 	end
+	---@type number
 	local count = lp.getPlacedCount and lp.getPlacedCount() or 0
 	if count == 0 then
 		sectionSkip("lights", "no placed lights")
@@ -1430,11 +1506,28 @@ local function stepEnvironment()
 		sectionSkip("environment", "terraform UI not loaded")
 		return true
 	end
+	-- A sky the loaded map ships (maps/...) is gone once the project reopens on a canvas: copy it
+	-- into the skybox library, where the reopen and the export look a skybox up by name.
+	local sky = ui.getCurrentSkybox and ui.getCurrentSkybox()
+	if type(sky) == "string" and sky:find("^maps/") and ui.setCurrentSkybox then
+		local lib = "Terraform Brush/SkyBoxes/" .. basename(sky)
+		if not fileSize(lib) then
+			local data = VFS.LoadFile(sky, VFS.MAP)
+			if data then
+				Spring.CreateDir("Terraform Brush/SkyBoxes")
+				writeFile(lib, data)
+			end
+		end
+		if fileSize(lib) then
+			ui.setCurrentSkybox(lib)
+		end
+	end
 	local content = ui.buildEnvConfigContent({ nodate = true })
 	if type(content) ~= "string" then
 		sectionSkip("environment", "snapshot failed", true)
 		return true
 	end
+	content = MapExport.carryKeys(content, loadCarry.env)
 	local bytes = writeFile(job.dir .. "environment.lua", content)
 	if bytes then
 		sectionOk("environment", "environment.lua", bytes)
@@ -1455,10 +1548,9 @@ local function stepWeather()
 		sectionSkip("weather", "no persistent weather spawners")
 		return true
 	end
-	-- Absolute frame fields are session-local; persist remaining lifetime in
-	-- seconds (-1 = permanent) and rebase at load. NOTE: finite spawners recompute
-	-- persistence against the current frame, so re-saves churn weather.lua by
-	-- design; permanent spawners (the common case) are stable.
+	-- Absolute frame fields are session-local; persist the configured lifetime in
+	-- seconds (-1 = permanent) and rebase at load. Not the time left: that shrinks
+	-- by however long the session ran, on every save.
 	local now = Spring.GetGameFrame()
 	local gameSpeed = Game.gameSpeed or 30
 	local format = string.format
@@ -1468,7 +1560,10 @@ local function stepWeather()
 	local blocks = {}
 	for _, s in ipairs(spawners) do
 		local persistence = -1
-		if s.expireFrame then
+		if s.durationS then
+			persistence = math.max(1, math.floor(s.durationS + 0.5))
+		elseif s.expireFrame then
+			-- an older weather widget without durationS: the time left is all there is
 			persistence = math.max(1, math.floor((s.expireFrame - now) / gameSpeed + 0.5))
 		end
 		local cegParts = {}
@@ -1511,6 +1606,30 @@ local function stepWeather()
 	return true
 end
 
+-- The map edge extension's look, when the widget can hand it over. The map pins its style
+-- (mapconfig/edge_extension.lua in an export); without the section the widget keeps its own.
+local function stepEdgeExtension()
+	---@type table?
+	local ee = WG.mapedgeextension
+	if not (ee and ee.getProjectSettings) then
+		sectionSkip("edge_extension", "edge extension widget has no project settings")
+		return true
+	end
+	local settings = ee.getProjectSettings()
+	if type(settings) ~= "table" or next(settings) == nil then
+		sectionSkip("edge_extension", "no settings")
+		return true
+	end
+	local path = job.dir .. "edge_extension.lua"
+	local bytes = writeFile(path, "return " .. MapExport.serialize(settings) .. "\n")
+	if bytes then
+		sectionOk("edge_extension", "edge_extension.lua", bytes)
+	else
+		sectionSkip("edge_extension", "write failed")
+	end
+	return true
+end
+
 local function stepGrass()
 	local api = WG.grassgl4
 	if not api then
@@ -1533,9 +1652,8 @@ local function stepGrass()
 	return true
 end
 
--- Read a live engine texture into a PNG (GL context required — the save pump
--- runs in DrawScreen). Plain fixed-function blit, alpha preserved (DNTS normal
--- alpha carries the diffuse-blend weight).
+-- Read a live engine texture into a PNG (needs GL: the save pump runs in
+-- DrawScreenPost). Alpha is kept: DNTS normal alpha is the diffuse-blend weight.
 local function captureLiveTexture(texName, destPath)
 	local info = gl.TextureInfo(texName)
 	if not (info and info.xsize and info.xsize > 1) then
@@ -1553,6 +1671,7 @@ local function captureLiveTexture(texName, destPath)
 	if not fbo then
 		return nil
 	end
+	---@type boolean?
 	local ok
 	gl.RenderToTexture(fbo, function()
 		gl.Blending(false)
@@ -1571,6 +1690,7 @@ local function stepAssets()
 	-- DNTS set: copy the resolved textures INTO the project (libraries mutate
 	-- over months; projects must stay self-contained) and record the resolved
 	-- scales/mults so load does not depend on the library.
+	---@type MapProjectDntsRecord?
 	local dnts = nil
 	local seenSource = {} -- dest name -> source path (detects basename collisions across sets)
 	for ch = 1, 4 do
@@ -1637,11 +1757,9 @@ local function stepAssets()
 		dnts.set = firstTex:match("([^/\\]+)[/\\][^/\\]+$")
 	end
 
-	-- Compiled maps carry no blank_map_splat* options — their splat setup lives
-	-- in mapinfo. Capture the LIVE engine textures instead, so the project is
-	-- self-contained and the saved splat.png has textures to modulate on load
-	-- (without a dnts record, a splat section saved from a compiled map is
-	-- unloadable on the blank canvas).
+	-- Compiled maps have no blank_map_splat* options (their splat setup is in
+	-- mapinfo), so capture the live engine textures: without a dnts record their
+	-- splat section cannot load on the blank canvas.
 	if not dnts then
 		local scR, scG, scB, scA = gl.GetMapRendering("splatTexScales")
 		local muR, muG, muB, muA = gl.GetMapRendering("splatTexMults")
@@ -1651,23 +1769,25 @@ local function stepAssets()
 			local name = "capture_normals" .. ch .. ".png"
 			if captureLiveTexture("$ssmf_splat_normals:" .. (ch - 1), job.dir .. "assets/dnts/" .. name) then
 				dnts = dnts or { textures = {}, scales = {}, mults = {} }
+				---@cast dnts MapProjectDntsRecord
 				dnts.textures[ch] = "assets/dnts/" .. name
 				dnts.scales[ch] = tonumber(scales[ch]) or 0
 				dnts.mults[ch] = tonumber(mults[ch]) or 0
 			end
 		end
-		-- Legacy SSMF maps modulate a single grayscale detail texture instead of
-		-- (or in addition to) DNTS normals — capture it too. A canvas without a
-		-- DNTS set names a placeholder (gui_terraform_brush buildBlankMapStartScript)
-		-- whose grey fallback is not worth keeping: the next open names it again.
+		-- SSMF maps may modulate a grayscale detail texture instead of or beside
+		-- DNTS normals: capture it too. Skip the placeholder a canvas without DNTS
+		-- names (buildBlankMapStartScript): the next open names it again.
 		local placeholderDetail = mo.blank_map_splatdetailtex == "tf_no_splat_detail.png"
 		if
 			not placeholderDetail
 			and captureLiveTexture("$ssmf_splat_detail", job.dir .. "assets/dnts/capture_detail.png")
 		then
 			dnts = dnts or { textures = {}, scales = scales, mults = mults }
+			---@cast dnts MapProjectDntsRecord
 			dnts.detail = "assets/dnts/capture_detail.png"
 		end
+		---@cast dnts MapProjectDntsRecord?
 		if dnts then
 			dnts.set = "live-capture"
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
@@ -1685,6 +1805,7 @@ local function stepAssets()
 	-- strings carry the capture name). Install state is whether the capture also
 	-- lives in the game archive's decal atlas source.
 	job.assetDecals = {}
+	---@type string?
 	local decalsContent = nil
 	do
 		local f = io.open(job.dir .. "decals.lua", "rb")
@@ -1722,9 +1843,8 @@ end
 -- file-presence loader would resurrect deleted state.
 local SECTION_FILES = {
 	heightmap = { "heightmap.png" },
-	-- The thumbnail too: a save whose minimap step skipped (engine texture
-	-- not ready) used to keep the picture of two saves ago, so the browser
-	-- showed terrain the project no longer had.
+	-- The thumbnail too: when the minimap step skips, an older picture would
+	-- show terrain the project no longer has.
 	minimap = { "minimap.png" },
 	splat = { "splat.png" },
 	metal = { "metal.lua" },
@@ -1751,10 +1871,9 @@ local function stepCleanupStale()
 			end
 		end
 	end
-	-- Dir-based diffuse section: clear its folder ONLY when the state is
-	-- genuinely empty (paint deleted). Failure skips carry the previous section
-	-- forward instead — wiping a dir of up to thousands of square PNGs because
-	-- the painter widget happened to be disabled would be data loss.
+	-- Clear diffuse/ only when the paint state is genuinely empty. Failure skips
+	-- carry the previous section forward: wiping it because the painter was
+	-- disabled would lose data.
 	if not findSection("diffuse") and job.diffuseStateEmpty then
 		local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
 		for _, p in ipairs(existing) do
@@ -1772,6 +1891,7 @@ end
 ---@field modified string date time
 ---@field game_version string|"unknown"
 ---@field autosave_of string? Only in autosaves: the project the snapshot belongs to, `""` for a canvas without one.
+---@field transform_of string? Only in a map transform's staged copy: the project it opens as.
 ---@field map MapProjectManifestMap
 ---@field sections MapProjectManifestSections
 ---@field assets {decals: {name: string, file: string, installed: boolean}[]}
@@ -1811,9 +1931,8 @@ local function stepManifest()
 	local mo = job.mapOptions
 	local prev = job.prev
 	local created = (prev and prev.created) or isoNow()
-	-- The name is the leaf: the folder is where the project is, not what it
-	-- is called. A manifest that carried the whole path listed as
-	-- "Random_maps/pojpjo"; one written that way is corrected on re-save.
+	-- The name is the leaf: the folder is where the project is, not what it is
+	-- called. A saved name holding a whole path is corrected on re-save.
 	local name = prev and prev.name
 	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
 		name = job.slug:match("([^/]+)$") or job.slug
@@ -1849,9 +1968,13 @@ local function stepManifest()
 	if cr and cg and cb then
 		add(string.format("\t\tbase_color = { %s, %s, %s },", fmtNum(cr), fmtNum(cg), fmtNum(cb)))
 	end
-	-- only an explicit per-map choice: a canvas booted on the old engine-default radius (500) reopens
-	-- on the canvas default instead of carrying it forward
+	-- only an explicit per-map choice: a canvas booted on the engine-default radius (500) reopens on
+	-- the canvas default instead of carrying it forward
 	local mexRadius = tonumber(mo.blank_map_extractorradius)
+	if not mexRadius and not (mo.blank_map_x or mo.blank_map_y) then
+		-- a real map (compiled or legacy) declares its own radius in mapinfo: the engine's value is it
+		mexRadius = tonumber(Game.extractorRadius)
+	end
 	if mexRadius then
 		add(string.format("\t\textractor_radius = %d,", mexRadius))
 	end
@@ -1921,6 +2044,7 @@ local function stepManifest()
 		"labels",
 		"environment",
 		"weather",
+		"edge_extension",
 		"grass",
 	}
 	for _, name in ipairs(order) do
@@ -1999,17 +2123,10 @@ local function stepManifest()
 	return true
 end
 
--- Minimap thumbnail, so a project can be recognised by its picture in the
--- browsers rather than by its name. The engine keeps the map's colour in
--- $minimap and its lighting in $shading, and the minimap everyone knows is the
--- two multiplied -- exactly what the in-game minimap shader computes
--- (minimapColor.rgb * shadingColor.rgb) -- so a second pass with a multiply
--- blend reproduces it without a shader of our own.
---
--- $minimap is square whatever the map's proportions are, so the thumbnail takes
--- its aspect from the map and the whole texture is sampled into it. Blit
--- conventions (TexRect coordinates, SaveImage yflip) are captureLiveTexture's,
--- which is the pattern already writing correct images from this file.
+-- Minimap thumbnail for the project browsers. The in-game minimap is $minimap
+-- times $shading, so a second pass with a multiply blend reproduces it.
+-- $minimap is square whatever the map's proportions, so the thumbnail takes the
+-- map's aspect. Blit conventions match captureLiveTexture.
 local MINIMAP_LONG_EDGE = 512
 
 local function stepMinimap()
@@ -2043,6 +2160,7 @@ local function stepMinimap()
 		return true
 	end
 	local path = job.dir .. "minimap.png"
+	---@type boolean?
 	local ok
 	gl.RenderToTexture(fbo, function()
 		gl.Blending(false)
@@ -2089,6 +2207,7 @@ local STEPS = {
 	{ name = "startpos", run = stepStartPos },
 	{ name = "environment", run = stepEnvironment },
 	{ name = "weather", run = stepWeather },
+	{ name = "edge_extension", run = stepEdgeExtension },
 	{ name = "grass", run = stepGrass },
 	{ name = "assets", run = stepAssets },
 	{ name = "cleanup", run = stepCleanupStale },
@@ -2127,8 +2246,8 @@ local function finishSave()
 	-- Any finished save, either kind, starts the autosave interval over.
 	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
 	if job.internal then
-		-- Same reasoning as a snapshot, one step further: the staging copy is
-		-- not even a snapshot the user can open, so it leaves no trace at all.
+		-- The staging copy is not even a snapshot the user can open: it leaves
+		-- no trace at all.
 		echoP("staged the session at " .. job.dir)
 	elseif job.autosave then
 		-- A snapshot changes nothing about the session: the project is still
@@ -2223,8 +2342,7 @@ end
 -- opened or saved through this widget).
 local function projectEntry(slug, manifest, touchedAt)
 	local m = manifest.map or {}
-	-- A manifest name that carries a path (saves made before the leaf rule)
-	-- lists by its leaf like every other project.
+	-- A saved name that carries a path lists by its leaf like every other project.
 	local name = manifest.name
 	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
 		name = slug:match("([^/]+)$") or slug
@@ -2242,13 +2360,9 @@ local function projectEntry(slug, manifest, touchedAt)
 	}
 end
 
--- One project's listing entry, read straight from its manifest, or nil if there
--- is no project at that path. The listing walks folders with VFS.SubDirs, which
--- cannot see a directory created during this session, so a project that has
--- just been downloaded is missing from it until the next reload -- and the
--- journal fallback does not cover it either, because a download is not an open
--- or a save. Anything that knows the slug it wants can ask here instead: the
--- manifest is read with raw io, which is disk truth.
+-- One project's listing entry from its manifest (raw io), or nil. VFS.SubDirs
+-- cannot see folders created this session and a download is not in the recent
+-- journal, so callers that know the slug ask here.
 local function describeProject(slug)
 	local ok = validateSlug(slug)
 	if not ok then
@@ -2288,14 +2402,10 @@ local function walkProjects(rel, depth, out, seen, touchedAt)
 	end
 end
 
--- Enumerate projects with manifest details for the Open Project dialog.
--- VFS.SubDirs sees the folders (walked as a tree, see walkProjects); manifests
--- are read via raw io (same-session folders may be invisible/stale in the VFS
--- view — SubDirs RAW semantics for folders created THIS session are unpinned).
--- The recent-projects journal then adds any project the snapshot missed whose
--- manifest raw io can read, so a project saved this session or a fresh clone
--- that was opened once still lists. Sorted newest-modified first; the dialog
--- re-sorts per its own control.
+-- Projects with manifest details for the Open Project dialog. VFS.SubDirs walks
+-- the folders, manifests are read with raw io, and the recent journal adds
+-- projects the VFS snapshot misses (folders created this session). Sorted
+-- newest-modified first; the dialog re-sorts.
 local function listProjectsDetailed()
 	local out, seen, touchedAt = {}, {}, {}
 	local recent = readRecent()
@@ -2340,13 +2450,10 @@ local function listProjects()
 	return #found
 end
 
--- Delete a project folder. validateSlug only admits letter/digit/_/- segments
--- joined by "/", so the target is always a folder under PROJECTS_DIR (never
--- "..", never an absolute path), and a readable manifest is required — never
--- delete a folder this widget did not write. Parent folders of a nested
--- project are left alone. The manifest goes first on purpose: if a file is
--- locked and the sweep leaves junk behind, the project has already stopped
--- listing (both list paths need project.lua) instead of showing up half-deleted.
+-- Delete a project folder. validateSlug admits only letter/digit/space/_/-
+-- segments, so the target is always under PROJECTS_DIR, and a readable manifest
+-- is required. Parent folders are left alone. The manifest goes first so a
+-- locked file leaves a folder that no longer lists, not a half-deleted project.
 local function deleteProject(slug)
 	if mapLibrary and mapLibrary.isBusy() then
 		echoP("cannot delete while the map library is transferring a project")
@@ -2415,9 +2522,9 @@ local function deleteProject(slug)
 	return true
 end
 
--- Remove both transform scratch projects and the folder holding them. The
--- browser never shows them, so nothing asks: this runs when a transform starts
--- (clearing an aborted run) and again once the transformed session has loaded.
+-- Remove both transform scratch projects and their folder. The browser never
+-- shows them, so nothing asks. Runs from Initialize when no load is pending; a
+-- new transform wipes its own folders as it starts.
 local function clearTransformStaging()
 	local removed = 0
 	for _, leaf in ipairs({ "source", "staged" }) do
@@ -2430,12 +2537,9 @@ local function clearTransformStaging()
 	return removed
 end
 
--- Delete a folder under MapProjects/ and every project inside it. The browser
--- asks twice before calling this. Each project goes through deleteProject, so
--- the same guards apply to every one of them (validated path, readable
--- manifest, never a folder this widget did not write); the folders themselves
--- are only removed once they are empty, so anything unexpected inside is left
--- alone rather than swept away with it.
+-- Delete a folder under MapProjects/ and every project inside it (the browser
+-- asks twice). Each project goes through deleteProject's guards, and folders are
+-- removed only once empty, so anything unexpected inside stays.
 local function deleteFolder(path)
 	if mapLibrary and mapLibrary.isBusy() then
 		echoP("cannot delete while the map library is transferring a project")
@@ -2489,14 +2593,10 @@ local function deleteFolder(path)
 	return true
 end
 
--- Move a project to another folder under MapProjects/ (the browser's drag and
--- drop). Both ends go through validateSlug, so source and destination are
--- always folders under PROJECTS_DIR, never ".." and never absolute; the source
--- must hold a readable manifest, so this never moves a folder this widget did
--- not write; and the destination must not exist, so a move never overwrites a
--- project. os.rename does the whole thing in one step where the filesystem
--- allows it (same volume, no handle open); the copy path is the fallback, and
--- it only deletes the source once every file has been written.
+-- Move a project to another folder under MapProjects/ (browser drag and drop).
+-- Both ends pass validateSlug, the source needs a readable manifest and the
+-- destination must not exist. os.rename where the filesystem allows it; the copy
+-- fallback deletes the source only after every file is written.
 local function moveProject(slug, target)
 	if mapLibrary and mapLibrary.isBusy() then
 		echoP("cannot move while the map library is transferring a project")
@@ -2568,9 +2668,8 @@ local function moveProject(slug, target)
 					local output = io.open(toDir .. rel, "wb")
 					if not output then
 						echoP("cannot move '" .. from .. "': could not write " .. toDir .. rel)
-						-- Take the half-made copy back out. Without a project.lua it
-						-- never listed, but its files were in the way of the next
-						-- move to this path.
+						-- Take the half-made copy back out: it does not list without
+						-- project.lua, but its files would block the next move here.
 						for _, done in ipairs(written) do
 							os.remove(done)
 						end
@@ -2666,12 +2765,6 @@ local function renameProject(slug, newLeaf)
 	return true, target
 end
 
-----------------------------------------------------------------
--- Load: pointer file (restart survivor with phase journal)
-----------------------------------------------------------------
-
--- Raw io ONLY for the pointer: VFS caches stale content for files created or
--- rewritten within a session (the reason pending_newmap.lua does the same).
 ----------------------------------------------------------------
 -- Autosave
 ----------------------------------------------------------------
@@ -2870,13 +2963,17 @@ local function autosaveTick()
 	autosaveNextAt = now + (ok and autosaveCfg.minutes * 60 or 30)
 end
 
+----------------------------------------------------------------
+-- Load: pointer file (restart survivor with phase journal)
+----------------------------------------------------------------
+
+-- Raw io only for the pointer: VFS caches stale content for files created or
+-- rewritten within a session (pending_newmap.lua does the same).
 local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
-	-- The transform rides in the pointer rather than in the staged manifest: it
-	-- describes how to REPLAY the recorded sections onto this session's canvas,
-	-- which is a property of the pending load, not of the project on disk. The
-	-- heightmap phase is its only consumer (the masks and tables were already
-	-- rewritten when the staging copy was written).
+	-- The transform belongs to the pending load, not the project on disk, so it
+	-- rides in the pointer. Only the heightmap phase reads it: masks and tables
+	-- were already rewritten in the staging copy.
 	local xf = ""
 	if type(t.transform) == "table" and type(t.transform.placements) == "table" then
 		local x = t.transform
@@ -3023,10 +3120,9 @@ local function loadSkip(name, reason)
 	echoP("SKIPPED " .. name .. ": " .. reason)
 end
 
--- Resolve a section to its on-disk file. Absent from the manifest => nil,nil
--- (section legitimately empty — silent). Listed but missing on disk => loud
--- skip, ONCE (multi-tick phases re-poll every tick). Byte mismatch => warn,
--- load best-effort (incomplete-save policy).
+-- Resolve a section to its on-disk file. Absent from the manifest => nil, silent
+-- (legitimately empty). Listed but missing => loud skip, once (phases re-poll
+-- every tick). Byte mismatch => warn and load best-effort.
 local function sectionFile(key)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections[key]
 	if not (sec and sec.file) then
@@ -3109,10 +3205,9 @@ local function phaseHeightmap(c)
 		return true
 	end
 	if not c.sawBusy then
-		-- Import never observed in-flight: the importer rejected the file
-		-- before streaming (decode failure — its own console message says
-		-- why). Only conclude that once game frames have advanced past the
-		-- send, so a frozen sim can never journal a false skip.
+		-- Never seen in flight: the importer rejected the file (its own message
+		-- says why). Conclude that only once game frames passed the send, so a
+		-- frozen sim cannot journal a false skip.
 		if c.ticks > IMPORT_START_TICKS and Spring.GetGameFrame() > (c.frameAtSend or 0) then
 			loadSkip("heightmap", "import never started (see the terraform brush messages above)")
 			return true
@@ -3204,11 +3299,10 @@ local function phaseDntsSplat(c)
 	return true
 end
 
--- Phase 2b: SURFACE variant mask. Restores the tileset biome + variant slot
--- assignment from surface.lua first (the mask channels only mean something
--- against those), then blits surface.png into the painter's mask — same
--- request/poll shape as the splat phase. Soft-skips when the write-dir
--- widgets (dev_tileset_terrain / dev_surface_painter) are not loaded.
+-- Phase 2b: SURFACE variant mask. Restores biome and slot assignment from
+-- surface.lua first (the channels only mean something against those), then loads
+-- surface.png like the splat phase. Soft-skips without the write-dir widgets
+-- (dev_tileset_terrain / dev_surface_painter).
 local function phaseSurface(c)
 	local maskPath = sectionFile("surface")
 	if not maskPath then
@@ -3222,6 +3316,7 @@ local function phaseSurface(c)
 	if not c.surfMetaDone then
 		c.surfMetaDone = true
 		local meta = readLuaFile(loadJob.dir .. "surface.lua")
+		---@type table?
 		local T = WG.TilesetTerrain
 		if meta and T then
 			if meta.biome and meta.biome ~= "" and T.setBiome then
@@ -3235,7 +3330,7 @@ local function phaseSurface(c)
 				end
 				sp.applySlots(picks)
 			end
-			-- per-texture INFLUENCE profiles (absent in older projects = none)
+			-- per-texture INFLUENCE profiles (absent key = none)
 			if sp.setInfluenceTable then
 				sp.setInfluenceTable(meta.influence)
 			end
@@ -3286,10 +3381,8 @@ local function phaseSurface(c)
 end
 
 -- Tileset tuning (tileset.lua). Runs after the surface phase because setBiome
--- resets every biome-tuned knob to the recipe and clears the slot-4 material —
--- the saved values must land on top. Apply order matters for the same reason
--- WITHIN the phase: biome and metal style both reseed knobs, so they go first
--- and the knob table is restored over them.
+-- resets biome knobs and the slot-4 material, and the saved values must land on
+-- top. Within the phase, biome and metal style reseed knobs, so they go first.
 local function phaseTileset(c)
 	local path = sectionFile("tileset")
 	if not path then
@@ -3318,9 +3411,8 @@ local function phaseTileset(c)
 		c.ticks = c.ticks + 1
 		return false
 	end
-	-- WORLD PATTERN FRAME: applied before the knobs, and ALWAYS - a project
-	-- without the key is a map that was never transformed, and has to clear
-	-- whatever frame the previous scene left in the widget.
+	-- World pattern frame: always applied, before the knobs. A missing key means
+	-- never transformed and clears any frame the previous scene left.
 	if T.setPatternFrame then
 		local f = (type(d.pattern_frame) == "table") and d.pattern_frame or {}
 		if not T.setPatternFrame(f[1] or 1, f[2] or 0, f[3] or 0, f[4] or 1, f[5] or 0, f[6] or 0) then
@@ -3340,8 +3432,8 @@ local function phaseTileset(c)
 	if d.metal_style and d.metal_style ~= "" and T.setMetalStyle then
 		T.setMetalStyle(d.metal_style)
 	end
-	-- SURFACE > GRADING slot tints: the project's set REPLACES the live one. The tileset widget keeps tints in
-	-- its own config across sessions, so applying on top made every tint ever set leak into every project.
+	-- SURFACE > GRADING slot tints: the project's set replaces the live one. The tileset widget keeps tints in
+	-- its own config across sessions, so applying on top would leak every tint ever set into every project.
 	if T.getSlotTints and T.setSlotTint then
 		local live = {}
 		for a in pairs(T.getSlotTints() or {}) do
@@ -3391,10 +3483,9 @@ local function phaseTileset(c)
 	return true
 end
 
--- Phase 3: diffuse. Per-square PNGs blitted into painter-owned seed+composite
--- textures (later paint bakes over the loaded state), channel PNGs into the
--- painter's channel textures. Files discovered by glob — the save side keeps
--- the diffuse/ dir exact.
+-- Phase 3: diffuse. Square PNGs go into the painter's seed and composite
+-- textures (later paint bakes over them), channel PNGs into its channel
+-- textures. Files are found by glob; the save side keeps diffuse/ exact.
 local function phaseDiffuse(c)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections.diffuse
 	if not (sec and sec.dir) then
@@ -3487,7 +3578,19 @@ local function phaseMetal(c)
 		end
 		c.spots = data.spots
 		c.i = 1
+		-- Remember the amounts for the save (loadCarry), and have the gadget
+		-- publish this canvas's per-square cap (mb_square_cap) to compare against.
+		local width = tonumber(data.width)
+		local carry = {}
+		for _, s in ipairs(data.spots) do
+			local mx, mz, amount = tonumber(s.mx), tonumber(s.mz), tonumber(s.amount)
+			if width and mx and mz and amount then
+				carry[mz * width + mx] = amount
+			end
+		end
+		loadCarry.metal, loadCarry.metalW = carry, width
 		Spring.SendLuaRulesMsg("$metal_clear$")
+		Spring.SendLuaRulesMsg("$metal_cap$")
 		return false
 	end
 	local parts = {}
@@ -3511,6 +3614,24 @@ local function phaseMetal(c)
 		Spring.SendLuaRulesMsg("$metal_load$" .. table.concat(parts, " "))
 	end
 	if c.i > #c.spots then
+		-- Say so when the canvas cannot hold the project's metal (a New Map canvas
+		-- on an engine that ignores blank_map_maxmetal keeps maxMetal 0.02).
+		local cap = tonumber(Spring.GetGameRulesParam("mb_square_cap"))
+		local over = 0
+		for _, s in ipairs(c.spots) do
+			if cap and (tonumber(s.amount) or 0) > cap + 0.001 then
+				over = over + 1
+			end
+		end
+		if over > 0 then
+			echoP(
+				string.format(
+					"WARNING: %d metal square(s) exceed this canvas's cap of %s per square: they show clamped, and save back unchanged unless edited",
+					over,
+					fmtNum(cap)
+				)
+			)
+		end
 		loadOk("metal", #c.spots .. " spots")
 		return true
 	end
@@ -3528,18 +3649,55 @@ local function phaseFeatures(c)
 		loadSkip("features", "feature placer widget not loaded")
 		return true
 	end
+	-- The gadget skips names this session has no FeatureDef for (a captured map's
+	-- own features on a blank canvas). Keep those placements for the save.
+	local data = readLuaFile(path)
+	local list = data and (data.objectlist or data) or {}
+	local carried, missing = {}, {}
+	for i = 1, #list do
+		local f = list[i]
+		if type(f) == "table" and type(f.name) == "string" and not FeatureDefNames[f.name] then
+			local x, z = tonumber(f.x), tonumber(f.z)
+			if x and z then
+				carried[#carried + 1] = {
+					name = f.name,
+					x = x,
+					z = z,
+					rot = tonumber(f.rot or f.heading) or 0,
+					pitch = tonumber(f.pitch),
+					roll = tonumber(f.roll),
+					y = tonumber(f.y),
+					scale = tonumber(f.scale),
+				}
+				missing[f.name] = (missing[f.name] or 0) + 1
+			end
+		end
+	end
+	loadCarry.features = carried
 	Spring.SendLuaRulesMsg("$feature_clearall$")
 	fp.load(path)
+	if #carried > 0 then
+		local names = {}
+		for name, n in pairs(missing) do
+			names[#names + 1] = name .. " x" .. n
+		end
+		table.sort(names)
+		echoP(
+			string.format(
+				"WARNING: %d feature(s) use defs this game does not have, so they are not shown; saves keep them: %s",
+				#carried,
+				table.concat(names, ", ")
+			)
+		)
+	end
 	loadOk("features", "replaying (applies over the next frames)")
 	return true
 end
 
--- Phase 6: units. Streamed to the units gadget, which replaces the map's
--- units atomically (spawn saved loadout, then remove pre-existing units —
--- including the session's freshly spawned commanders, which the saved loadout
--- itself contains from save time). Runs after the sim-acked heightmap so
--- ground snap uses final heights. Completion is a rules-param ack, pause-aware
--- like the heightmap phase.
+-- Phase 6: units. Streamed to the units gadget, which replaces the map's units
+-- in one go (spawn the loadout, then remove the units already there, including
+-- the session's fresh commanders). Runs after the acked heightmap so ground snap
+-- uses final heights. Completion is a rules-param ack, pause-aware.
 local function phaseUnits(c)
 	local path = sectionFile("units")
 	if not path then
@@ -3621,11 +3779,12 @@ local function phaseUnits(c)
 	return false
 end
 
--- Phase 7: decals + lights + map labels (client-side; all three need the final
--- heights — light Y and label dots are both projected onto the loaded terrain).
+-- Phase 7: decals + lights + map labels (client-side; all need the final heights:
+-- light Y and label dots are projected onto the loaded terrain).
 local function phaseDecalsLights(c)
 	local decalPath = sectionFile("decals")
 	if decalPath then
+		---@type table?
 		local dp = WG.DecalPlacer
 		if dp and dp.load then
 			for _, a in ipairs((loadJob.manifest.assets and loadJob.manifest.assets.decals) or {}) do
@@ -3651,6 +3810,7 @@ local function phaseDecalsLights(c)
 	end
 	local lightPath = sectionFile("lights")
 	if lightPath then
+		---@type table?
 		local lp = WG.LightPlacer
 		if lp and lp.load then
 			if lp.load(lightPath) then
@@ -3663,6 +3823,7 @@ local function phaseDecalsLights(c)
 		end
 	end
 	local labelPath = sectionFile("labels")
+	---@type table?
 	local ml = WG.MapLabels
 	if labelPath then
 		if ml and ml.loadProject then
@@ -3706,6 +3867,7 @@ local function phaseEnvironment(c)
 			return true
 		end
 		c.cfg = data
+		loadCarry.env = data
 		c.countdown = 15
 		return false
 	end
@@ -3715,6 +3877,20 @@ local function phaseEnvironment(c)
 	end
 	ui.applyEnvConfig(c.cfg)
 	loadOk("environment", nil)
+	local edgePath = sectionFile("edge_extension")
+	---@type table?
+	local ee = WG.mapedgeextension
+	if edgePath and ee and ee.setProjectSettings then
+		local settings, err = readLuaFile(edgePath)
+		if type(settings) == "table" then
+			ee.setProjectSettings(settings)
+			loadOk("edge_extension", nil)
+		else
+			loadSkip("edge_extension", "unreadable edge_extension.lua (" .. tostring(err) .. ")")
+		end
+	elseif edgePath then
+		loadSkip("edge_extension", "edge extension widget has no project settings")
+	end
 	return true
 end
 
@@ -3725,6 +3901,7 @@ local function phaseWeather(c)
 	if not path then
 		return true
 	end
+	---@type table?
 	local wb = WG.WeatherBrush
 	if not (wb and wb.addSpawnerRaw) then
 		loadSkip("weather", "weather brush widget not loaded (or too old — needs addSpawnerRaw)")
@@ -3751,6 +3928,7 @@ end
 -- Phase 10: startpos + startboxes + grass (all need sim-acked terrain: slope
 -- validation and patch ground-snap read final heights).
 local function phaseStartposGrass(c)
+	---@type table?
 	local st = WG.StartPosTool
 	local posPath = sectionFile("startpos")
 	if posPath then
@@ -3806,6 +3984,11 @@ local function phaseStartposGrass(c)
 				-- whose MousePress swallows EVERY world click (no commander
 				-- placement, no terraform). Restore the prior mode.
 				local wasEdit = api.isEditMode and api.isEditMode() or false
+				-- The saved look first: blade sizes decide how the grid's bytes load.
+				local gc = grassSec.config and api.applyProjectConfig and readLuaFile(loadJob.dir .. grassSec.config)
+				if type(gc) == "table" and type(gc.custom) == "table" then
+					api.applyProjectConfig(gc.custom.grassConfig)
+				end
 				api.loadGrass(grassPath)
 				if not wasEdit and api.disableEditMode then
 					api.disableEditMode()
@@ -3817,6 +4000,7 @@ local function phaseStartposGrass(c)
 	return true
 end
 
+---@type { name: string, run: function }[]
 local LOAD_PHASES = {
 	{ name = "heightmap", run = phaseHeightmap },
 	{ name = "dnts+splat", run = phaseDntsSplat },
@@ -3851,18 +4035,10 @@ local function finishLoad()
 	dirtyGraceUntil = os.clock() + 8
 	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
 
-	-- Leave pregame, or the whole map is unclickable above the canvas base height.
-	--
-	-- The engine clips every ground ray at readMap->GetCurrMaxHeight()
-	-- (CGround::LineGroundCol -> ClampInMapHeight). That bound is only refreshed
-	-- from CReadMap::Update(), which runs per SIM FRAME — and the entire project
-	-- load happens in pregame at f=-1, where no sim frames run. So the bound
-	-- stays at the blank canvas's flat base height while the imported terrain
-	-- towers above it: clicks over anything higher find no ground at all, which
-	-- kills commander placement AND every editor tool that traces the cursor.
-	-- The engine fixes the bound itself the moment pregame ends — CGame does a
-	-- full UpdateHeightBounds() with the comment "needed in case pre-game
-	-- terraform changed the map" — so starting the game is the cure.
+	-- Leave pregame, or the map is unclickable above the canvas base height. The
+	-- engine clips ground rays at GetCurrMaxHeight(), refreshed only per sim frame,
+	-- and the load runs in pregame where none run. Pregame ending triggers a full
+	-- UpdateHeightBounds(), so starting the game is the cure.
 	if Spring.GetGameFrame() <= 0 then
 		echoP(
 			"starting the game: terrain taller than the canvas base is unclickable in pregame (engine clips ground rays at the last known max height, which only updates once sim frames run)"
@@ -3870,8 +4046,8 @@ local function finishLoad()
 		Spring.SendCommands("forcestart")
 	end
 
-	-- A loaded project is there to be edited: bring the Terraformer up
-	-- (requested by PtaQ 2026-09-04). The panel widget owns the how.
+	-- A loaded project is there to be edited: bring the Terraformer up. The panel
+	-- widget owns the how.
 	---@type table?
 	local ui = WG.TerraformBrushUI
 	if ui and ui.openEditor then
@@ -3885,13 +4061,10 @@ local function abortLoad(reason)
 	loadJob = nil
 end
 
--- One pump tick. The cheat gate is a PRECONDITION, not a journaled phase: the
--- synced gadgets ($terraform_import$, $metal_load$, $feature_load$) all require
--- live cheat outside map-editor sessions (where a $c$-certified message is
--- accepted instead), and cheat resets across engine restart AND can be toggled
--- off by the user mid-load, so it is re-verified on every tick. "cheat"
--- TOGGLES — only (re)send while observed OFF, with a generous gap so an
--- in-flight send cannot be doubled.
+-- One pump tick. Cheat is a precondition checked every tick, not a journaled
+-- phase: the synced replay gadgets need it outside map-editor sessions, it resets
+-- across restarts and the user can turn it off mid-load. "cheat" toggles, so send
+-- only while it is observed off, with a gap so an in-flight send is not doubled.
 local function runLoadTick()
 	if not Spring.IsCheatingEnabled() then
 		local c = loadJob
@@ -3951,12 +4124,10 @@ local function runLoadTick()
 	end
 end
 
--- Consume the pointer at widget init — but ONLY when this session actually is
--- the blank map the restart was supposed to produce. Anything else (restart
--- failed, user aborted, joined a multiplayer game, plain /luaui reload on an
--- unrelated map) deletes the pointer with a loud explanation and touches
--- nothing (critique blocker: a stale pointer must never replay onto the wrong
--- session, and must not survive to ambush a future matching one).
+-- Consume the pointer at widget init, but only when this session is the blank map
+-- the restart was meant to produce. Anything else deletes the pointer with an
+-- explanation and touches nothing: a stale pointer must never replay onto the
+-- wrong session or survive to a later matching one.
 local function maybeStartLoad()
 	local ptr = readPointer()
 	if not ptr then
@@ -4026,10 +4197,8 @@ local function maybeStartLoad()
 		echoP("phase journal was written by a different version; restarting the load from the beginning")
 		startPhase = 0
 	end
-	-- The pointer's path is PROJECTS_DIR .. slug .. "/". Take the slug back out
-	-- WHOLE: keeping only the leaf turned "Other/CM01Draft1" into "CM01Draft1",
-	-- so the next FILE > Save wrote a new root project and the OPEN badge never
-	-- found its row.
+	-- The pointer's path is PROJECTS_DIR .. slug .. "/". Take the whole slug back
+	-- out, folders included, or FILE > Save writes a new root project.
 	local pointerSlug = tostring(ptr.path):gsub("\\", "/"):gsub("/+$", "")
 	if pointerSlug:sub(1, #PROJECTS_DIR) == PROJECTS_DIR then
 		pointerSlug = pointerSlug:sub(#PROJECTS_DIR + 1)
@@ -4049,6 +4218,7 @@ local function maybeStartLoad()
 		byteWarned = {},
 		missingWarned = {},
 	}
+	loadCarry.env = nil
 	currentSlug = loadJob.slug
 	-- A snapshot opens as the project it was taken from: FILE > Save writes
 	-- back to that project, the snapshot itself is never a Save target, and
@@ -4064,9 +4234,8 @@ local function maybeStartLoad()
 				or "this is an autosave of an unsaved canvas: FILE > Save asks for a name"
 		)
 	end
-	-- A transformed copy opens as the project it came from, the same way a
-	-- snapshot does: FILE > Save writes the new orientation and size back to
-	-- that project, and a transform of a canvas with no project still has none.
+	-- A transformed copy opens as the project it came from, like a snapshot; a
+	-- canvas with no project still has none.
 	if type(manifest.transform_of) == "string" then
 		local origin = validateSlug(manifest.transform_of)
 		loadJob.transformOf = origin or ""
@@ -4172,11 +4341,9 @@ local function openProject(slug, opts)
 	return true
 end
 
--- Job driver. DrawScreenPost, NOT DrawScreen: the widget handler skips
--- DrawScreen while the interface is hidden and the Terraformer's FOCUS MODE
--- hides it on purpose, so a Save / Open started there would sit until the HUD
--- came back. Nothing here grabs the screen (the thumbnail step renders to its
--- own FBO), so running after the UI pass changes nothing.
+-- Job driver. DrawScreenPost, not DrawScreen: the handler skips DrawScreen while
+-- the interface is hidden, which FOCUS MODE does on purpose. Nothing here reads
+-- the screen (the thumbnail renders to its own FBO).
 function widget:DrawScreenPost()
 	if unitsWaiter then
 		pollUnitsWaiter()
@@ -4212,6 +4379,113 @@ function widget:DrawScreenPost()
 end
 
 ----------------------------------------------------------------
+-- Map export
+----------------------------------------------------------------
+
+-- The export's file access: plain io inside the write dir, like the project files.
+local exportIO = {
+	read = function(path)
+		local f = io.open(path, "rb")
+		if not f then
+			-- not in the write dir: a library the game ships, or another data folder's copy
+			return VFS.LoadFile(path, VFS.RAW_FIRST)
+		end
+		local data = f:read("*a")
+		f:close()
+		return data
+	end,
+	write = function(path, data)
+		return writeFile(path, data) ~= nil
+	end,
+	exists = function(path)
+		return fileSize(path) ~= nil
+	end,
+	mkdir = function(path)
+		Spring.CreateDir(path)
+	end,
+}
+
+-- FILE > EXPORT MAP: the SAVED project translated to map archive files under EXPORTS_DIR
+-- (common/map_export.lua). Unsaved edits are not in it: the panel saves first.
+-- opts: { name, version, description, author }. Returns the report, or nil and why.
+local function exportProject(slug, opts)
+	opts = opts or {}
+	if job or loadJob then
+		return nil, "a project save or load is running"
+	end
+	slug = slug or currentSlug
+	if not slug then
+		return nil, "no project: save the map as a project first"
+	end
+	local valid, err = validateSlug(slug)
+	if not valid then
+		return nil, err
+	end
+	local dir = PROJECTS_DIR .. valid .. "/"
+	local manifest = readPrevManifest(dir)
+	if not manifest then
+		return nil, "no readable project.lua in " .. dir
+	end
+	local name = (opts.name and opts.name ~= "") and opts.name or manifest.name or valid:match("([^/]+)$")
+	local version = (opts.version and opts.version ~= "") and opts.version or "1.0"
+	local out = EXPORTS_DIR .. MapExport.fileBase(name, version) .. "/"
+
+	-- A re-export replaces the last one: remove exactly the files it wrote (a raw listing can
+	-- miss files written earlier this session), so a section deleted since does not linger.
+	local listPath = out .. "export_files.lua"
+	local previous = readLuaFile(listPath)
+	if type(previous) == "table" then
+		for _, path in ipairs(previous) do
+			if type(path) == "string" and path:sub(1, #out) == out then
+				os.remove(path)
+			end
+		end
+	end
+	Spring.CreateDir(out)
+
+	local report = MapExport.run({
+		project = dir,
+		out = out,
+		io = exportIO,
+		name = name,
+		version = version,
+		description = opts.description,
+		author = opts.author,
+		assetDirs = { "Terraform Brush/SkyBoxes", rampDir() },
+	})
+	-- What the game can check and the translator cannot: the named feature defs exist.
+	local refs = report.references
+	for _, kind in ipairs({ "features", "blockout models" }) do
+		for _, defName in ipairs(refs[kind] or {}) do
+			if not FeatureDefNames[defName] then
+				report.missing[#report.missing + 1] = "feature def " .. defName .. " (not in this game)"
+			end
+		end
+	end
+	writeFile(out .. "export_report.txt", MapExport.formatReport(report))
+	writeFile(listPath, "return " .. MapExport.serialize(report.files) .. "\n")
+	report.path = out
+	echoP(
+		string.format(
+			"exported '%s' as %s to %s: %d archive files, %d missing, %d errors",
+			valid,
+			report.name,
+			out,
+			#report.written,
+			#report.missing,
+			#report.errors
+		)
+	)
+	for _, line in ipairs(report.errors) do
+		echoP("  export error: " .. line)
+	end
+	for _, line in ipairs(report.missing) do
+		echoP("  missing: " .. line)
+	end
+	return report
+end
+
+----------------------------------------------------------------
 -- Widget interface
 ----------------------------------------------------------------
 
@@ -4232,9 +4506,16 @@ local function mapProjectAction(_, optLine, params)
 		end
 	elseif sub == "prune" then
 		pruneAutosaves()
+	elseif sub == "export" then
+		-- /mapproject export [version] [project]: the project may hold spaces, so it is the rest
+		local slug = params[3] and table.concat(params, " ", 3) or nil
+		local report, why = exportProject(slug, { version = params[2] })
+		if not report then
+			echoP("export not started: " .. tostring(why))
+		end
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune  |  /mapproject export [version] [project]"
 		)
 	end
 end
@@ -4294,8 +4575,12 @@ function widget:Initialize()
 		rename = renameProject,
 		hasUnitsSection = projectHasUnits,
 		exists = projectExists,
+		-- export(slug?, { name, version, description, author }) -> report | nil, why: the saved
+		-- project as map archive files (FILE > EXPORT MAP); slug defaults to current().
+		export = exportProject,
+		exportsDir = EXPORTS_DIR,
 		-- Slug of the project this session was loaded from or last saved to
-		-- (nil until one of those happens) — the FILE > Save target.
+		-- (nil until then): the FILE > Save target.
 		current = function()
 			return currentSlug
 		end,
@@ -4321,9 +4606,8 @@ function widget:Initialize()
 			local entry = LOAD_PHASES[index] or {}
 			return index, #LOAD_PHASES, entry.name or ""
 		end,
-		-- (step, total, stepName, kind) of the running save, nil when idle —
-		-- drives the status-strip segment bar in the terraform UI; kind is
-		-- "save" or "autosave", which the strip labels differently.
+		-- (step, total, stepName, kind) of the running save, nil when idle, for
+		-- the status-strip bar; kind is "save" or "autosave".
 		saveProgress = function()
 			if not job then
 				return nil
@@ -4356,13 +4640,39 @@ function widget:Initialize()
 			return loadJob ~= nil
 		end,
 	}
-	-- A transform's staging folder has to outlive its own load: the session it
-	-- produced still resolves its DNTS textures out of it (the start script
-	-- points there) until the map is saved into a project of its own. So it is
-	-- swept on the next start that is NOT a project load, and again when the
-	-- next transform begins.
+	-- A transform's staging folder must outlive its own load: the start script
+	-- points the session's DNTS textures there until the map is saved elsewhere.
+	-- So it is swept on the next start that is not a project load.
 	if not readPointer() then
 		clearTransformStaging()
+		-- A compiled map's placements whose feature def this game lacks were skipped by the
+		-- feature gadget: carry them into every save of this session, as a project load does.
+		local mapSet = "mapconfig/featureplacer/set.lua"
+		local ok, set = false, nil
+		if VFS.FileExists(mapSet, VFS.MAP) then
+			ok, set = pcall(VFS.Include, mapSet, {}, VFS.MAP)
+		end
+		if ok and type(set) == "table" and set.exporter == "terraform-brush" then
+			local carried = {}
+			for _, f in ipairs(type(set.objectlist) == "table" and set.objectlist or {}) do
+				local x, z = type(f) == "table" and tonumber(f.x), type(f) == "table" and tonumber(f.z)
+				if x and z and type(f.name) == "string" and not FeatureDefNames[f.name] then
+					carried[#carried + 1] = {
+						name = f.name,
+						x = x,
+						z = z,
+						rot = tonumber(f.rot) or 0,
+						pitch = tonumber(f.pitch),
+						roll = tonumber(f.roll),
+						y = tonumber(f.y),
+						scale = tonumber(f.scale),
+					}
+				end
+			end
+			if #carried > 0 then
+				loadCarry.features = carried
+			end
+		end
 	end
 	maybeStartLoad()
 end

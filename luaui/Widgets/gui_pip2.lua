@@ -3,7 +3,7 @@
 
 pipNumber = 2
 
-require("luaui/Widgets/gui_pip")
+require("luaui/Widgets/gui_pip/gui_pip")
 
 -- Override GetInfo to change the name and layer
 widget.GetInfo = function()

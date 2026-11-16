@@ -1,7 +1,7 @@
 return {
 	corforge = {
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		energycost = 4700,
 		metalcost = 330,
 		buildpic = "CORFORGE.DDS",

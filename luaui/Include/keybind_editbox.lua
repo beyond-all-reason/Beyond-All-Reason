@@ -3,7 +3,18 @@
 
 local utf8 = require("common/luaUtilities/utf8")
 
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_A = Spring.GetKeyCode("a")
+local KEY_C = Spring.GetKeyCode("c")
+local KEY_X = Spring.GetKeyCode("x")
+local KEY_V = Spring.GetKeyCode("v")
+local KEY_ESCAPE = Spring.GetKeyCode("esc")
+local KEY_RETURN = Spring.GetKeyCode("return")
+local KEY_BACKSPACE = Spring.GetKeyCode("backspace")
+local KEY_DELETE = Spring.GetKeyCode("delete")
+local KEY_LEFT = Spring.GetKeyCode("left")
+local KEY_RIGHT = Spring.GetKeyCode("right")
+local KEY_HOME = Spring.GetKeyCode("home")
+local KEY_END = Spring.GetKeyCode("end")
 local text = require("luaui/Include/keybind_text")
 
 -- Declared rather than inferred: the fields live on the instance new() builds, which is not
@@ -20,6 +31,8 @@ local text = require("luaui/Include/keybind_text")
 ---@field onChange any
 ---@field outline any
 ---@field clearable any
+---@field plain any
+---@field keepPlaceholder any
 ---@field rect any
 ---@field fontSize any
 ---@field pad any
@@ -72,6 +85,10 @@ function Editbox.new(opts)
 	self.outline = opts.outline
 	-- Asked for rather than given: a field whose text is not a filter has nothing to clear to.
 	self.clearable = opts.clearable
+	-- On a panel of the host's: no fill or hover light of its own.
+	self.plain = opts.plain
+	-- A field focused from the moment it shows would otherwise never say what it is for.
+	self.keepPlaceholder = opts.keepPlaceholder
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -217,6 +234,24 @@ function Editbox:indexFromX(x)
 	return n
 end
 
+-- Takes clipboard text at the caret, replacing any selection, as much of it as the field holds.
+function Editbox:paste(clip)
+	clip = (clip or ""):gsub("[\r\n\t]+", " "):gsub("%c", "")
+	if clip == "" then
+		return false
+	end
+
+	self:deleteSelection()
+
+	local room = self.maxChars - utf8.len(self.text)
+	clip = room > 0 and utf8.sub(clip, 1, room) or ""
+	self.text = utf8.sub(self.text, 1, self.caret) .. clip .. utf8.sub(self.text, self.caret + 1)
+	self.caret = self.caret + utf8.len(clip)
+	self.selAnchor = nil
+
+	return true
+end
+
 -- Takes a typed character, replacing any selection.
 function Editbox:textInput(char)
 	if not self.focused then
@@ -249,12 +284,22 @@ function Editbox:keyPress(key)
 	local _, ctrl, _, shift = Spring.GetModKeyState()
 	local changed = false
 
-	if ctrl and key == KEYSYMS.A then
+	if ctrl and key == KEY_A then
 		self.selAnchor = 0
 		self.caret = utf8.len(self.text)
-	elseif key == KEYSYMS.ESCAPE or key == KEYSYMS.RETURN then
+	elseif ctrl and (key == KEY_C or key == KEY_X) then
+		if self:hasSelection() then
+			local a, b = self:selRange()
+			Spring.SetClipboard(utf8.sub(self.text, a + 1, b))
+			if key == KEY_X then
+				changed = self:deleteSelection()
+			end
+		end
+	elseif ctrl and key == KEY_V then
+		changed = self:paste(Spring.GetClipboard())
+	elseif key == KEY_ESCAPE or key == KEY_RETURN then
 		self:blur()
-	elseif key == KEYSYMS.BACKSPACE then
+	elseif key == KEY_BACKSPACE then
 		if not self:deleteSelection() then
 			if ctrl then
 				local p = self:prevWord()
@@ -268,20 +313,20 @@ function Editbox:keyPress(key)
 			end
 		end
 		changed = true
-	elseif key == KEYSYMS.DELETE then
+	elseif key == KEY_DELETE then
 		if not self:deleteSelection() then
 			if self.caret < utf8.len(self.text) then
 				self.text = utf8.sub(self.text, 1, self.caret) .. utf8.sub(self.text, self.caret + 2)
 			end
 		end
 		changed = true
-	elseif key == KEYSYMS.LEFT then
+	elseif key == KEY_LEFT then
 		self:setCaret(ctrl and self:prevWord() or self.caret - 1, shift)
-	elseif key == KEYSYMS.RIGHT then
+	elseif key == KEY_RIGHT then
 		self:setCaret(ctrl and self:nextWord() or self.caret + 1, shift)
-	elseif key == KEYSYMS.HOME then
+	elseif key == KEY_HOME then
 		self:setCaret(0, shift)
-	elseif key == KEYSYMS.END then
+	elseif key == KEY_END then
 		self:setCaret(utf8.len(self.text), shift)
 	end
 
@@ -436,11 +481,12 @@ function Editbox:draw()
 	local cy = floor((y1 + y2) * 0.5)
 	local ty = text.baseline(font, y1, y2, self.fontSize)
 
-	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
-
 	local mx, my = Spring.GetMouseState()
-	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-		WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+	if not self.plain then
+		R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
+		if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+			WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+		end
 	end
 
 	gl.Scissor(floor(x1 + self.pad), floor(y1), floor(math.max(0, room)), floor(y2 - y1))
@@ -455,7 +501,7 @@ function Editbox:draw()
 
 	-- The coloured string is kept until the text changes, not rebuilt every frame.
 	local shown
-	if self.text == "" and not self.focused then
+	if self.text == "" and (not self.focused or self.keepPlaceholder) then
 		shown = self.placeholderShown
 		if not shown then
 			shown = colorDim .. self.placeholder

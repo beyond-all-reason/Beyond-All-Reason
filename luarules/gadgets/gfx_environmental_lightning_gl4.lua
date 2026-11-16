@@ -217,6 +217,45 @@ local lightningConfigs = {
 		-- lightLensflare   = 0.0,
 	},
 
+	zombiestrike = {
+		r = 0.50,
+		g = 0.4,
+		b = 1.00,
+		coreR = 0.88,
+		coreG = 0.78,
+		coreB = 1.00,
+		lifeFrames = 14,
+		intensity = 0.4,
+		feather = 0.4,
+		baseWidth = 3.2,
+		reach = 520,
+		branchCount = 1,
+		childCount = 2,
+		childDecay = 0.5,
+		maxDepth = 3,
+		segments = 10,
+		jitterAmp = 14,
+		glowBrightness = 0.5,
+		vbias = 1.0,
+		spread = 0.9,
+		growFrac = 0.12,
+		flowFrac = 0.05,
+		tipTaper = 0.3,
+		rootTaper = 0.6,
+		sizeVarMin = 0.9,
+		sizeVarMax = 1.1,
+		intensityVar = 0.2,
+		lifeVar = 0.2,
+		maxStrikes = 2,
+		strikeOverlap = 0.3,
+		restrikeChance = 1.0,
+		lightRadius = 520,
+		lightBrightness = 0.14,
+		lightSustainFrac = 0.5,
+		lightColor = { 0.88, 0.5, 1.0 },
+		lightModelFactor = 0.5,
+		lightScattering = 1.0,
+	},
 	junoareastorm = {
 		r = 0.44,
 		g = 0.94,
@@ -1736,6 +1775,18 @@ function gadget:Initialize()
 	end
 	updateViewCache()
 	gadgetHandler:AddSyncAction("envLightningSpawn", handleSpawn)
+	---Spawns a configured lightning effect for this client only, with no line-of-sight check.
+	---@param configName string
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param sizeScale number? Defaults to `1.0`.
+	---@param intensityScale number? Defaults to `1.0`.
+	GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale)
+		if lightningConfigs[configName] then
+			requestLightning(configName, x, y, z, sizeScale or 1.0, intensityScale or 1.0)
+		end
+	end
 end
 
 function gadget:PlayerChanged()
@@ -1744,6 +1795,7 @@ end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("envLightningSpawn")
+	GG.SpawnEnvironmentalLightning = nil
 	cleanupGL4()
 end
 

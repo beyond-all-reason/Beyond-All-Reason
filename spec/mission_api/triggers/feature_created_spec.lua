@@ -1,0 +1,65 @@
+local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
+local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
+MissionApiBuilder.new():Install()
+
+local featureDefs = FeatureDefsBuilder.new():WithFeatureDefs({
+	[1] = { name = "treetype1" },
+	[2] = { name = "rock1" },
+})
+env.FeatureDefs = featureDefs:GetFeatureDefsByID()
+
+local featureCreated = MissionSpecEnv.include(env, "luarules/mission_api/triggers/feature_created.lua")
+local onFeatureCreated = featureCreated.callins.FeatureCreated
+
+describe("mission_api.triggers.feature_created", function()
+	local function trigger(parameters)
+		return TriggerBuilder.new():WithParameters(parameters):Build()
+	end
+
+	local function newContext()
+		local context = TriggerContextBuilder.new():Build()
+		return context, context.timesFired
+	end
+
+	local triggerID = "t"
+
+	it("declares its type and parameters", function()
+		assert.are.equal("FeatureCreated", featureCreated.type)
+		local names = {}
+		for _, parameter in ipairs(featureCreated.parameters) do
+			names[parameter.name] = true
+		end
+		assert.is_true(names.featureDefName)
+		assert.is_true(names.area)
+		assert.are.same({ "featureDefName", "area" }, featureCreated.parameters.requiresOneOf)
+	end)
+
+	it("filters by featureDefName", function()
+		local context, fired = newContext()
+		-- featureDefID 1 = treetype1
+		onFeatureCreated(trigger({ featureDefName = "rock1" }), triggerID, context, 100, 1)
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters by area", function()
+		local context, fired = newContext()
+		context.IsFeatureInArea = function()
+			return false
+		end
+		onFeatureCreated(trigger({ area = { x = 0, z = 0, radius = 10 } }), triggerID, context, 100, 1)
+		assert.are.equal(0, fired())
+	end)
+
+	it("fires for a matching feature", function()
+		local context, fired = newContext()
+		onFeatureCreated(trigger({ featureDefName = "treetype1" }), triggerID, context, 100, 1)
+		assert.are.equal(1, fired())
+	end)
+end)

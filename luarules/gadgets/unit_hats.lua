@@ -57,17 +57,11 @@ local PlayerCosmeticList = {
 	[641] = { -- ZLO
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
-	[694] = { -- Raghna
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[915] = { -- PRO_rANDY
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
 	},
 	[975] = { -- StarDoM
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
-	},
-	[1172] = { -- PtaQ
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[1332] = { -- Flash
 		"SilverMedalNecklace", -- Last Season Top2 Finisher
@@ -83,21 +77,20 @@ local PlayerCosmeticList = {
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 	},
-	[3913] = { -- [teh]Teddy
-		"VikingHat", -- Omega Series 4 Winner
-	},
-	[5467] = { -- HelsHound
-		"VikingHat", -- Omega Series 4 Winner
-	},
 	[8069] = { -- BRRRRRRRRRRRRRRRRRRR
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
+	[9133] = { -- TM_DDDDDDDD
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[42178] = { -- [pretor]
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
+	[49494] = { -- TM_Spodie99
+		"VikingHat", -- Omega Series 5 Winner
+	},
 	[50820] = { -- Emre
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[52043] = { -- scag
@@ -107,12 +100,10 @@ local PlayerCosmeticList = {
 	[53682] = { -- PROt_Fiddler112
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
-	[59340] = { -- TM_MightySheep
+	[59340] = { -- TM_MightySheep, TM_Austin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
 		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
-	},
-	[59916] = { -- Kuchy
-		"VikingHat", -- Omega Series 4 Winner
 	},
 	[64215] = { -- PRO_RevanXFL
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
@@ -123,11 +114,13 @@ local PlayerCosmeticList = {
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82263] = { -- TM_autopilot
+		"VikingHat", -- Omega Series 5 Winner
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 		"KingCrownHat",
 		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[82811] = { -- TM_SlickLikeVik
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -151,6 +144,7 @@ local PlayerCosmeticList = {
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 	},
 	[139750] = { -- TM_Sashkorin
+		"VikingHat", -- Omega Series 5 Winner
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
@@ -161,7 +155,6 @@ local PlayerCosmeticList = {
 		"LegionChampionHat", -- Legion Fight Night winner
 	},
 	[151863] = { -- Blodir
-		"VikingHat", -- Omega Series 4 Winner
 		"GoldMedalNecklace", -- Last Season Top1 Finisher
 	},
 	[168232] = { -- Leohvm
@@ -579,17 +572,13 @@ function gadget:GameFrame(gf)
 			if DEBUG then
 				accountID = 9999999999
 			end
-			if not spec then
+			local teamUnits = spGetTeamUnits(teamID)
+			if not spec and teamUnits and teamUnits[1] then
 				-- Process Player
 				local playerCosmeticOptions =
 					{ hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
-				local playerFaction = ""
+				local playerFaction = stringSub(UnitDefs[spGetUnitDefID(teamUnits[1])].name, 1, 3)
 				local createdCosmetics = {}
-				if true then
-					local units = spGetTeamUnits(teamID) or {}
-					local unitDefID = spGetUnitDefID(units[1])
-					playerFaction = stringSub(UnitDefs[unitDefID].name, 1, 3)
-				end
 
 				-- Collect all possible cosmetics for this player
 				if PlayerCosmeticList[accountID] then
@@ -686,13 +675,15 @@ function gadget:GameFrame(gf)
 
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
 	if gf % 61 == 1 and next(unitsWearingHats) ~= nil then
-		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = spGetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
-			if health and maxHealth and hatMaxHealth then
-				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
-			else
-				unitsWearingHats[unitID] = nil
+		for unitID, _ in pairs(unitsWearingHats) do
+			for _, hatID in pairs(unitsWearingHats[unitID]) do
+				local health, maxHealth = spGetUnitHealth(unitID)
+				local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
+				if health and maxHealth and hatMaxHealth then
+					Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+				else
+					unitsWearingHats[unitID] = nil
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
@@ -718,6 +709,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)
 	end
+
+	if unitDefCanWearHats[unitDefID] then
+		unitsWearingHats[unitID] = {}
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -728,49 +723,46 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		Hats[unitID] = nil
 	end
 	if unitsWearingHats[unitID] ~= nil then
-		local hatID = unitsWearingHats[unitID]
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was destroyed, freeing hat",
-				unitID,
-				unitDefID,
-				teamID,
-				attackerID,
-				attackerDefID,
-				attackerTeamID
-			)
-		end
-		unitsWearingHats[unitID] = nil
-		if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
-			Spring.DestroyUnit(hatID)
-		else
-			Spring.UnitDetachFromAir(hatID)
-			Spring.UnitDetach(hatID)
-			Hats[hatID] = -1
-			Spring.SetUnitNoSelect(hatID, false)
-			SendToUnsynced("setUnitNoGroup", hatID, false)
-			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-			local px, py, pz = Spring.GetUnitPosition(unitID)
-			if px and pz then
-				Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(
+					"A hat wearing unit was destroyed, freeing hat",
+					unitID,
+					unitDefID,
+					teamID,
+					attackerID,
+					attackerDefID,
+					attackerTeamID
+				)
+			end
+			if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
+				Spring.DestroyUnit(hatID)
+			else
+				Spring.UnitDetachFromAir(hatID)
+				Spring.UnitDetach(hatID)
+				Hats[hatID] = -1
+				Spring.SetUnitNoSelect(hatID, false)
+				SendToUnsynced("setUnitNoGroup", hatID, false)
+				Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				if px and pz then
+					Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+				end
 			end
 		end
 		UpdateGameFrameCallIn()
+		unitsWearingHats[unitID] = nil
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		if DEBUG then
-			Spring.Echo(
-				"A hat wearing unit was given, destroying hat",
-				unitID,
-				unitDefID,
-				unitTeam,
-				unitsWearingHats[unitID]
-			)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, hatID)
+			end
+			Spring.DestroyUnit(hatID)
 		end
-		Spring.DestroyUnit(unitsWearingHats[unitID])
 		unitsWearingHats[unitID] = nil
 	end
 	if Hats[unitID] then
@@ -820,7 +812,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					SendToUnsynced("setUnitNoGroup", hatID, true)
 					--Spring.MoveCtrl.Disable(unitID)
 					--Spring.SetUnitLoadingTransport(unitID, nearunitID)
-					unitsWearingHats[nearunitID] = hatID
+
+					unitsWearingHats[nearunitID][hatID] = hatID
 					Hats[hatID] = nearunitID
 					UpdateGameFrameCallIn()
 					return
@@ -838,9 +831,11 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
 		local health, maxHealth = spGetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
-		if hatHealth and health and maxHealth and hatMaxHealth then
-			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatID)
+			if hatHealth and health and maxHealth and hatMaxHealth then
+				Spring.SetUnitHealth(hatID, (health / maxHealth) * hatMaxHealth)
+			end
 		end
 	end
 end
@@ -848,12 +843,25 @@ end
 -- also cloak hat
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 1)
+		if DEBUG then
+			Spring.Echo(unitsWearingHats[unitID])
+		end
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
+			Spring.SetUnitCloak(hatID, 1)
+		end
 	end
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
-		Spring.SetUnitCloak(unitsWearingHats[unitID], 0)
+		for _, hatID in pairs(unitsWearingHats[unitID]) do
+			if DEBUG then
+				Spring.Echo(hatID)
+			end
+			Spring.SetUnitCloak(hatID, 0)
+		end
 	end
 end

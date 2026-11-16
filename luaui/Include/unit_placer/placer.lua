@@ -1,16 +1,13 @@
--- The world half of the shared unit placer (refactor plan, Phase U1): arming, the drag, the
--- keys, and what is drawn while placing. The mission editor and the terraform brush each own
--- one; neither knows about the other.
+-- The world half of the shared unit placer: arming, the drag, the keys, and what is drawn
+-- while placing. The mission editor and the terraform brush each own one; neither knows about
+-- the other.
 --
--- THE GAME ALREADY DOES THIS (PtaQ, 2026-09-27: "grid and line drawing are established and
--- optimised actions in game"): BAR's Blueprint API (luaui/Widgets/api_blueprint.lua, on by
--- default, what the player's own blueprint tool uses) lays out SINGLE / LINE / SNAPLINE /
--- GRID / BOX exactly as the engine's build drag does, and draws the ghosts and the footprint
--- outlines itself -- instanced, GPU-drawn outlines tinted red where the ground refuses, cached
--- per position so a growing drag only adds and removes what changed. So the placer hands it a
--- BLUEPRINT (one unit, or a group for a paste) and draws nothing of its own. What it keeps:
--- the gestures, the keys, and turning the API's positions into placements the same way the
--- API's own createBuildings does (rotate, offset, Pos2BuildPos).
+-- BAR's Blueprint API (luaui/Widgets/api_blueprint.lua, on by default) already lays out
+-- SINGLE / LINE / SNAPLINE / GRID / BOX as the engine's build drag does, and draws the ghosts
+-- and footprint outlines (instanced, red where the ground refuses, cached per position). So
+-- the placer hands it a BLUEPRINT (one unit, or a group for a paste) and draws nothing of its
+-- own. It keeps the gestures, the keys, and turning the API's positions into placements the
+-- way the API's own createBuildings does (rotate, offset, Pos2BuildPos).
 --
 -- Without the Blueprint API (a user who turned it off) it falls back to unit_placer/layout.lua
 -- for the positions and draws nothing but still places.
@@ -18,8 +15,8 @@
 -- It hands back PLACEMENTS: { unitDefName, team, facing, spots } or, for a group,
 -- { group = true, team, units = { { unitDefName, x, z, facing, index } } }.
 --
--- KEYS while armed: R turns clockwise a quarter (Shift+R back) -- a single unit, or a whole
--- group; Tab cycles the shape. Right-click cancels.
+-- KEYS while armed: R turns a single unit or a whole group a quarter clockwise (Shift+R
+-- back); Tab cycles the shape. Right-click cancels.
 --
 -- The Blueprint API is ONE shared preview. The player's blueprint tool only touches it while
 -- its own mode is on, and the placer clears it on disarm. Builders are set to none, which

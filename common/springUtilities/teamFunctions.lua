@@ -232,4 +232,14 @@ return {
 	GetRaptorAllyTeamID = function()
 		return getSettings().raptorAllyTeamID
 	end,
+	---@param teamID TeamID
+	---@param unitCount integer
+	---@return boolean
+	CanTeamReceiveUnits = function(teamID, unitCount)
+		return Spring.IsCheatingEnabled()
+			or (
+				unitCount + Spring.GetTeamUnitCount(teamID) --[[@as integer]]
+				<= Spring.GetTeamMaxUnits(teamID)
+			)
+	end,
 }

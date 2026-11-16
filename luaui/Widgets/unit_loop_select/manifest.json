@@ -1,0 +1,9 @@
+{
+	"id": "unit_loop_select",
+	"display_name": "Loop Select",
+	"keybindings": [
+		{ "action": "selectloop", "label": "actions.selection.loopActivate", "alwaysModifier": "any", "defaultKeysets": ["space"] },
+		{ "action": "selectloop_add", "label": "actions.selection.loopAdd", "alwaysModifier": "any", "defaultKeysets": ["shift"] },
+		{ "action": "selectloop_deselect", "label": "actions.selection.loopDeselect", "alwaysModifier": "any", "defaultKeysets": ["ctrl"] }
+	]
+}

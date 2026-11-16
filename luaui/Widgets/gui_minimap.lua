@@ -371,7 +371,7 @@ function widget:DrawScreen()
 				mathFloor(backgroundRect[4] - backgroundRect[2]),
 				{
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				}
 			)
