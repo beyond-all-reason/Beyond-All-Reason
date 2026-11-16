@@ -24,6 +24,7 @@ end
 local BUILDINGS_PER_FRAME = 32 -- budgeted updates
 local BACKSTOP_INTERVAL = 5 * Game.gameSpeed -- for capturing jammer changes that have no callin
 local WATCHED_DURATION = 2 * Game.gameSpeed -- minimum frames a jammer is checked after a callin
+local SETTLE_FRAMES = 20 -- frames a set-down building can still be pushed (unit_stack_hack_fix.lua: up to 16)
 
 local math_abs = math.abs
 local math_floor = math.floor
@@ -39,6 +40,7 @@ local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
+local spGetUnitTransporter = Spring.GetUnitTransporter
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
@@ -81,6 +83,7 @@ local jamming = {} ---@type table<UnitID, true?> jammers that are on
 local edgeBands = {} ---@type table<UnitID, table<UnitID, true?>>
 local bandCounts = {} ---@type table<UnitID, number?> bands a building sits in
 local edgeJammed = {} ---@type table<UnitID, true?>
+local settleFrames = {} ---@type table<UnitID, integer?> set-down buildings -> frame to place them again on
 
 for _, allyTeamID in ipairs(allyTeamList) do
 	jammerCells[allyTeamID] = {}
@@ -176,13 +179,20 @@ local function queueBuildingCheck(unitID)
 	end
 end
 
+---A building in a transport is off the build grid, so the cell line rule does not apply to it.
+local function isCarried(unitID)
+	return spGetUnitTransporter(unitID) ~= nil
+end
+
 local function updateEdgeJammed(unitID)
-	local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 	local jammed ---@type true?
-	for jammerID, cells in pairs(jammerCells[spGetUnitAllyTeam(unitID)]) do
-		if jamming[jammerID] and isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
-			jammed = true
-			break
+	if not isCarried(unitID) then
+		local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
+		for jammerID, cells in pairs(jammerCells[spGetUnitAllyTeam(unitID)]) do
+			if jamming[jammerID] and isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
+				jammed = true
+				break
+			end
 		end
 	end
 	if edgeJammed[unitID] ~= jammed then
@@ -239,6 +249,7 @@ local function buildEdgeBand(jammerID)
 			buildingDefs[spGetUnitDefID(unitID)]
 			and spGetUnitAllyTeam(unitID) == allyTeamID
 			and not spGetUnitIsDead(unitID)
+			and not isCarried(unitID)
 		then
 			local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
@@ -337,10 +348,12 @@ local function updateWatchedJammers(frame)
 end
 
 local function addBuilding(unitID, allyTeamID)
-	local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
-	for jammerID, cells in pairs(jammerCells[allyTeamID]) do
-		if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
-			addToEdgeBand(jammerID, unitID)
+	if not isCarried(unitID) then
+		local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
+		for jammerID, cells in pairs(jammerCells[allyTeamID]) do
+			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
+				addToEdgeBand(jammerID, unitID)
+			end
 		end
 	end
 	updateEdgeJammed(unitID)
@@ -386,6 +399,16 @@ function gadget:GameFrame(frame)
 			moveJammer(jammerID)
 		end
 	end
+	for unitID, settleFrame in pairs(settleFrames) do
+		if frame >= settleFrame then
+			settleFrames[unitID] = nil
+			if spGetUnitIsDead(unitID) == false then
+				local allyTeamID = spGetUnitAllyTeam(unitID)
+				removeBuilding(unitID, allyTeamID)
+				addBuilding(unitID, allyTeamID)
+			end
+		end
+	end
 	drainQueue()
 	updateWatchedJammers(frame)
 	for jammerID in pairs(jammerTurns[frame % BACKSTOP_INTERVAL]) do
@@ -414,6 +437,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	removeUnit(unitID, unitDefID, unitTeam)
 	edgeJammed[unitID] = nil
+	settleFrames[unitID] = nil
 end
 
 function gadget:UnitDamaged(unitID, unitDefID)
@@ -434,6 +458,26 @@ end
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	removeUnit(unitID, unitDefID, oldTeam)
 	addUnit(unitID, unitDefID)
+end
+
+-- Transportable buildings (construction turrets) leave their bands when picked up and join new ones when set down,
+-- and once more after anything that pushes them off other buildings is done.
+function gadget:UnitLoaded(unitID, unitDefID)
+	if buildingDefs[unitDefID] then
+		settleFrames[unitID] = nil
+		removeBuilding(unitID, spGetUnitAllyTeam(unitID))
+		updateEdgeJammed(unitID)
+	end
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID)
+	if buildingDefs[unitDefID] then
+		addBuilding(unitID, spGetUnitAllyTeam(unitID))
+		settleFrames[unitID] = spGetGameFrame() + SETTLE_FRAMES
+	end
+	if jammerAllyTeams[unitID] then
+		moveJammer(unitID) -- a jammer building's band stays where it stood otherwise
+	end
 end
 
 function gadget:Initialize()
