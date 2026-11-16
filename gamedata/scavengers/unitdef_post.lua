@@ -107,7 +107,10 @@ local function scavUnitDef_Post(name, uDef)
 	-- Set autoheal of scav units
 	if uDef.health then
 		if not string.find(name, "scavbeacon") then
-			uDef.health = uDef.health * 1.25
+			-- anti-nuke health is tuned so that one spy EMP stuns for the full duration
+			if uDef.customparams.unitgroup ~= "antinuke" then
+				uDef.health = uDef.health * 1.25
+			end
 			if uDef.metalcost then
 				uDef.metalcost = uDef.metalcost * 1.1
 			end
