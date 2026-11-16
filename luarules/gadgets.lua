@@ -1464,6 +1464,43 @@ function gadgetHandler:Shutdown()
 	return
 end
 
+local gameFrameList = {} ---@type table[]
+local gameFrameNum = 0
+local gameFrameIndex = 0 -- next gadget to run; 0 once the list is done
+local gameFrameGadget ---@type table
+
+local function runGameFrames()
+	local list, frameNum = gameFrameList, gameFrameNum
+	-- while loops in the hot routers keep ipairs semantics without its per-gadget call
+	local i = gameFrameIndex
+	local g = list[i]
+	while g do
+		gameFrameIndex, gameFrameGadget = i, g
+		tracyZoneBeginN(g._tracyGameFrameName)
+		g:GameFrame(frameNum)
+		tracyZoneEnd()
+		i = i + 1
+		g = list[i]
+	end
+	gameFrameIndex = 0
+end
+
+-- Runs at the throw. debug is off in synced code, but error() can still resolve stack levels.
+local function describeGameFrameError(message)
+	local sites = {}
+	for level = 3, 10 do -- 1 is pcall, 2 is this function
+		local _, site = pcall(error, "", level)
+		---@cast site string
+		if site:find("gadgets.lua:", 1, true) then
+			break
+		elseif site ~= "" then
+			sites[#sites + 1] = site:sub(1, -3)
+		end
+	end
+	local name = "[" .. gameFrameGadget.ghInfo.name .. "] " .. tostring(message)
+	return sites[1] and (name .. " at " .. table.concat(sites, " < ")) or name
+end
+
 function gadgetHandler:GameFrame(frameNum)
 	if IsSyncedCode() and chatActionInitialSnapshotUpdates > 0 then
 		BroadcastChatActionSnapshot("synced", self.actionHandler.textActions)
@@ -1473,18 +1510,21 @@ function gadgetHandler:GameFrame(frameNum)
 	-- is ok. We set it to 1 so after the run it will be set to 0 again.
 	callinDepth = 1
 	tracyZoneBeginN("G:GameFrame")
-	-- while loops in the hot routers keep ipairs semantics without its per-gadget call
-	local list = self.GameFrameList ---@type table[]
-	local i, g = 1, list[1]
-	while g do
-		tracyZoneBeginN(g._tracyGameFrameName)
-		g:GameFrame(frameNum)
-		tracyZoneEnd()
-		i = i + 1
-		g = list[i]
+	gameFrameList, gameFrameNum, gameFrameIndex = self.GameFrameList, frameNum, 1
+	local failures ---@type string?
+	while gameFrameIndex > 0 do
+		-- A failing gadget must not cost the remaining gadgets their frame.
+		local ok, failure = xpcall(runGameFrames, describeGameFrameError)
+		if not ok then
+			tracyZoneEnd() -- the failed gadget's zone
+			failures = failures and (failures .. "; " .. failure) or failure
+			gameFrameIndex = gameFrameIndex + 1
+		end
 	end
 	tracyZoneEnd()
-	return
+	if failures then
+		error(failures, 0) -- the engine still logs and reports it
+	end
 end
 
 function gadgetHandler:GameFramePost(frameNum)

@@ -553,12 +553,15 @@ function gadget:RecvLuaMsg(msg, playerID)
 		end
 		local count = parseParts(rest)
 		local loaded = 0
+		-- The engine truncates to whole maxMetal steps (3.15 on a 0.02 step became
+		-- 3.14); half a step on top rounds to the nearest instead. 0 stays 0.
+		local half = metalMapStep() * 0.5
 		for i = 1, count - 2, 3 do
 			local mx = tonumber(scratchParts[i]) or 0
 			local mz = tonumber(scratchParts[i + 1]) or 0
 			local amount = tonumber(scratchParts[i + 2]) or 0
 			if mx >= 0 and mx < METAL_MAP_X and mz >= 0 and mz < METAL_MAP_Z then
-				spSetMetalAmount(mx, mz, amount)
+				spSetMetalAmount(mx, mz, amount > 0 and amount + half or 0)
 				loaded = loaded + 1
 			end
 		end

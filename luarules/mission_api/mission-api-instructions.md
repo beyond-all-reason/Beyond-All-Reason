@@ -62,6 +62,16 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   key. Synced code cannot translate, so entries are published as game rules params and
   `luaui/Widgets/api_mission_battle_log.lua` translates them into `WG.MissionAPI.BattleLog`; the
   `Spring.Echo` in `AddMessage` is a placeholder until a widget displays the log.
+- `GG.MapLighting` (`luarules/gadgets/api_map_lighting.lua`) runs the `actions/environment/` actions:
+  lighting, time of day, and skybox, blended on game time and lost on a `/luarules reload`.
+- Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
+  and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
+  `api_mission_camera.lua` gadget passes them to `luaui/Widgets/api_mission_camera.lua`, which
+  calls `WG.cinematicCamera`. `LockPlayerInput` and `UnlockPlayerInput` set the
+  `playerInputLock` game rules param, which `luaui/Widgets/api_player_input_lock.lua` follows.
+  Both act on every client, and their defaults live in the widgets.
+- Camera durations are real seconds, so a sequence also plays while the game is paused, unless
+  `clock = 'game'` runs it on game time, in step with `TimeElapsed`.
 
 ## Adding a trigger type
 
@@ -142,6 +152,8 @@ return {
 - Behavior an action cannot finish in one call (currently the per-second resource drip) lives in
   `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced); anything needing its
   own `GameFrame` accumulator goes there.
+- An action that calls a gadget's `GG` API (`GG.GamePause`, `GG.MapLighting`) looks it up inside
+  `actionFunction`, since specs load every action file through `actions_loader` without those gadgets.
 - `actions_dispatcher.Invoke` unpacks parameters positionally in schema order, trailing optionals
   included, so the schema order is the `actionFunction` signature, and reordering, inserting, or
   renaming a parameter breaks both the function and every mission using it.
@@ -160,17 +172,18 @@ return {
   a processed value). A dying unit keeps a valid ID until the engine removes it, so skip one only
   when the engine call would refuse it.
 - A skipped order counts as absent, and the next order keeps its own options.
-- Synced orders go straight to each unit, so what a player's client adds from its selection
-  (formation moves, group speed, wait commands) does not happen. Give a unit its whole list with
-  `Spring.GiveOrderArrayToUnit`.
+- Mission code gives orders through `Modules.Orders`, which sets an `issuingOrders` fence and turns
+  some commands into encoded ones synced code can give. Effects that a player's client adds from its
+  selection (formation moves, group speed) do not happen through this approach.
 
 ## Adding a parameter type
 
 - Declare types from `parameter_types.lua`, enums included (members of `Enums`, never a string),
   and add a new one only when no existing one fits.
 - A value with a unit gets its own type, since a bare `Number` hides its meaning from the editor:
-  positions are `Position`, never separate `Number`s, time is seconds, and units and teams are the
-  author's names, never IDs.
+  positions are `Position`, never separate `Number`s, angles are `CompassAngle` (clockwise from north,
+  as `Direction`'s angle) or `Elevation` (above the horizon), time is seconds, and units and teams
+  are the author's names, never IDs.
 - Register a validator in `validation/parameter_validators.lua`, shaped like the existing ones; an
   unvalidated type silently accepts anything. A value is checked there once, never downstream, and
   a validator writes no state.
@@ -179,9 +192,12 @@ return {
   calling `actionFunction` directly does not, so tests pass processed-shaped data.
 - The editor reads the schemas, not validators, so express mutual exclusion with `requiresOneOf` or
   one parameter taking both forms.
+- A list of records declares the record's fields in a schema file, as
+  `camera_keyframe_schema.lua` does for camera keyframes, so the editor reads those too.
 - `validation/references.lua` cross-checks unit, feature, marker, line, and effect names and
   countdown and cutscene IDs between creator and consumer; it reads the consuming types from the
-  schemas, so a new parameter of one of those types needs no listing.
+  schemas, so a new parameter of one of those types needs no listing, and neither does a
+  `UnitName` field of `camera_keyframe_schema.lua`.
 - Types and validators are generic, so neither the name nor the comments mention the action that
   prompted one.
 - Parameter names follow the existing ones (`teamName`, `unitName`, `markerName`), take the more
@@ -287,8 +303,8 @@ return {
 - Detection is by a non-nil `difficulties` key, not by Lua type, so table parameters (`Area`,
   `Orders`) work the same way.
 - Structural fields (`type`, `settings`, `actions`, an objective's `trigger`) and fields nested
-  inside loadout entries or orders do not support it; author the whole parameter per difficulty
-  instead.
+  inside loadout entries, orders, or camera keyframes do not support it; author the whole
+  parameter per difficulty instead.
 - Difficulties tables survive validation so every difficulty's value is checked, and the loaders run
   before the resolve, so a loader does not consume parameter values: `objectives_loader` leaves a
   difficulty-dependent `amount` alone, and the resolve pass derives `maxRepeats` from it.

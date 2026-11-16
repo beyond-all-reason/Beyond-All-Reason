@@ -24,7 +24,7 @@ locally and reproduce exactly. Run the ones your changes touch.
 
 | Check | Tool and pin | What it scopes | Local command |
 | --- | --- | --- | --- |
-| `busted` | lux-cli 0.28.3 | Whole spec suite, never a diff | `lx --lua-version 5.1 test` |
+| `busted` | lux-cli 0.54.0 | Whole spec suite, never a diff | `lx --lua-version 5.1 test` |
 | `stylua` | StyLua 2.5.2 | Only hunks overlapping lines you wrote | `stylua --check --respect-ignores <files>` |
 | `emmylua_check` | emmylua 0.24.0 | Whole tree, compared against the base | `emmylua_check -c .emmyrc.json .` |
 | `docker compose up (headless)` | stock engine | Whole game, headless | `tools/headless_testing/README.md` |
@@ -129,13 +129,10 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 ### Toolchain
 
 - Unit tests: busted, driven by lux. CI runs `lx --lua-version 5.1 test` (`.github/workflows/test_unit.yml` pins
-  `lux-cli` 0.28.3); configuration lives in `.busted` and `lux.toml`.
+  `lux-cli` 0.54.0); configuration lives in `.busted` and `lux.toml`.
 - `lux.lock` pins resolved test dependencies and `.emmyrc.json` records their paths; lux rewrites both together, so
   review them as a pair. A stale `.lux/` tree (gitignored) causes a dependency integrity error — delete `.lux/` and
   re-run rather than editing `lux.lock`.
-- lux 0.28.x appends duplicate `dependencies` and `entrypoints` entries to `lux.lock` on every cold sync (a run with
-  no `.lux/` tree), growing the file by ~13 lines each time without ever converging. Tests still pass. Do not commit
-  that churn: `git checkout -- lux.lock` afterwards, and only commit a lockfile change you made deliberately.
 - Lint: `luacheck` 1.2.0 with `.luacheckrc`. Treat `.luacheckrc` as a style record, not as a gate.
 - Format: StyLua 2.5.2 with `.stylua.toml` (tabs, indent width 4, 120 columns, CRLF, sorted requires) and
   `.styluaignore`; `.editorconfig` mirrors the indent and whitespace rules. The gate fails only on changed hunks.
@@ -153,7 +150,7 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 ### Commands
 
 ```sh
-lx --lua-version 5.1 test                           # full busted suite (what CI runs); needs lux-cli 0.28.3
+lx --lua-version 5.1 test                           # full busted suite (what CI runs); needs lux-cli 0.54.0
 busted --output=plainTerminal                       # same suite, when the .lux tree is already synced
 busted spec/common/lib_spline_spec.lua              # single spec file
 stylua --check --respect-ignores path/to/file.lua   # what the format gate sees; needs stylua 2.5.2

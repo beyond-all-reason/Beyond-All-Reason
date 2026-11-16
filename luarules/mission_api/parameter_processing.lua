@@ -98,12 +98,28 @@ local function processSoundFile(soundfile)
 	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
 
+local function processCameraKeyframes(keyframes)
+	for _, keyframe in ipairs(keyframes) do
+		if keyframe.position then
+			processPosition(keyframe.position)
+		end
+		if keyframe.lookAtPosition then
+			processPosition(keyframe.lookAtPosition)
+		end
+	end
+end
+
 local function processEnumSet(values)
 	local valueSet = {}
 	for _, value in ipairs(values) do
 		valueSet[value] = true
 	end
 	return valueSet
+end
+
+-- The engine's {r, g, b}
+local function processColor(color)
+	return { color.r, color.g, color.b }
 end
 
 local processors = {
@@ -117,6 +133,8 @@ local processors = {
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
+	[ParameterTypes.Color] = processColor,
+	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet

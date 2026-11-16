@@ -1,7 +1,0 @@
-All models in this directory whose corresponding units/*.lua:"artist" tag contains Cremuss, are licenced to Cremuss (C) CC-BY-SA 4.0
-
-All models in this directory whose corresponding units/*.lua:"artist" tag contains Beherith, Kaiser, Firestorm or Mr. Bob are licensed to Beherith (mysterme@gmail.com) (c) CC-BY-NC-ND 4.0
-
-All models in this directory whose corresponding units/*.lua:"artist" tag contains only an author not in the above list is licensed to that respective author (c) CC-BY-NC-ND 4.0
-
-

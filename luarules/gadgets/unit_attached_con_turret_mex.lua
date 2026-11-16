@@ -271,7 +271,10 @@ function gadget:UnitDamaged(
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	mexesToSwap[unitID] = nil
+	-- Runs nested inside the swap loop: a write to an absent key, even nil, breaks its pairs.
+	if mexesToSwap[unitID] then
+		mexesToSwap[unitID] = nil
+	end
 
 	if mexTurretDefID[unitDefID] then
 		createRemains(unitID, unitDefID, unitTeam)

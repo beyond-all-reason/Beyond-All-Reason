@@ -16,7 +16,7 @@ GG["MissionAPI"] = nil
 
 describe("mission_api.parameter_processing Gaia's team", function()
 	local function processLoadout(teamName)
-		local unitLoadout = { { unitDefName = "bot", x = 0, z = 0, teamName = teamName } }
+		local unitLoadout = { { unitDefName = "bot", teamName = teamName, position = { x = 0, z = 0 } } }
 		return parameterProcessing.ProcessValue(parameterTypes.Types.UnitLoadout, unitLoadout)
 	end
 

@@ -63,20 +63,21 @@ local showOnceMore = false -- used because of GUI shader delay
 local RectRound
 ---@type function
 local UiElement
----@type function
-local UiScroller
----@type function
-local UiScrollerAt
+---@type FlowUIScroller
+local listScroller
+---@type FlowUIScroller
+local catScroller
 ---@type function
 local Highlight
 local elementCorner
 local font, fontBold, fontMono
 local panelList, sidebarList, backgroundGuishader, show
+local panelBarKey, sidebarBarKey
 local titleText = ""
 
 -- The panel is laid out the way the keybind editor lays out its own: the same inset
 -- area, the title in the top-left corner over a darker card holding the month column,
--- and a 14 px scrollbar standing in its own channel against the right edge.
+-- and a scrollbar standing in its own channel against the right edge.
 local area = { x1 = 0, y1 = 0, x2 = 0, y2 = 0 }
 local metrics = {
 	sidePad = 12,
@@ -138,12 +139,7 @@ local totalH = 0
 local startRow = 1
 -- The highest startRow that still fills the band.
 local maxStart = 1
-local dragging = false
--- Where the thumb was taken hold of, as the distance from the cursor to its top edge, so
--- the thumb follows the cursor instead of jumping its middle to wherever the press landed.
-local dragGrab = 0
--- Lit while the cursor is on the thumb, and lit further while it is held.
-local barHover = false
+local barHover, catBarHover = false, false
 -- Month column state: the entry under the cursor and the one lit as current. The
 -- sidebar list is rebuilt whenever either changes.
 local hoverIdx, selectedIdx
@@ -216,47 +212,6 @@ end
 -- Where the text currently sits, in the pixels the scrollbar is drawn against.
 local function scrollPos()
 	return rows[startRow] and (rowTop[startRow] + rows[startRow].pad) or 0
-end
-
--- The thumb, where it is now. Nil when the whole text fits and no bar is drawn.
-local function scrollerThumb()
-	return UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, scrollPos())
-end
-
--- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
--- grab is what keeps this relative: the thumb moves with the cursor rather than centring
--- itself on it, so taking hold of it does not shift the text before the drag begins.
-local function scrollFromY(y)
-	local _, _, trackTop, travel = scrollerThumb()
-	if not travel or travel <= 0 then
-		return
-	end
-
-	local f = (trackTop - (y - dragGrab)) / travel
-	if f < 0 then
-		f = 0
-	elseif f > 1 then
-		f = 1
-	end
-	setStartRow(1 + mathFloor(f * (maxStart - 1) + 0.5))
-end
-
--- Takes hold of the bar. On the thumb that is a grab and the text stays put; on the track
--- either side the thumb jumps to the cursor first and is then dragged from its middle,
--- which is what a press on bare track is asking for.
-local function grabScroller(y)
-	local top, height = scrollerThumb()
-	if not top then
-		return
-	end
-
-	dragging = true
-	if y <= top and y >= top - height then
-		dragGrab = y - top
-	else
-		dragGrab = -mathFloor(height * 0.5)
-		scrollFromY(y)
-	end
 end
 
 -- The space a row takes below its text box: the gap to the next block. The last row
@@ -361,7 +316,7 @@ local function setLayout()
 	metrics.sidePad = mathFloor(12 * s)
 	metrics.catInset = mathFloor(4 * s)
 	metrics.catRowHeight = mathFloor(29 * s)
-	metrics.catBarW = mathMax(3, mathFloor(6 * s))
+	metrics.catBarW = WG.FlowUI.Scroller.width(s)
 	metrics.catFs = mathFloor(metrics.catRowHeight * 0.55 * 0.85)
 	metrics.headerH = mathFloor(34 * s)
 	metrics.headerGap = mathFloor(4 * s)
@@ -372,7 +327,7 @@ local function setLayout()
 	metrics.titleFs = mathFloor(mathFloor(24 * s) * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(200 * s)
-	metrics.barW = mathFloor(14 * s)
+	metrics.barW = WG.FlowUI.Scroller.width(s)
 	metrics.csPanel = mathFloor(elementCorner)
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
 
@@ -448,6 +403,18 @@ local function maxCatScroll()
 	return mathMax(0, #versions - catPageRows())
 end
 
+-- Over the entries, not over the whole card: the last row rarely lands exactly on the bottom,
+-- and a bar running past it reads as a column with dead space at its foot - and makes the
+-- thumb say more fits than does. No size at all while every entry fits.
+local function catBarRect()
+	if maxCatScroll() == 0 then
+		return 0, 0, 0, 0
+	end
+	local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+
+	return bx2 - metrics.catBarW, sidebarTop() - catPageRows() * metrics.catRowHeight, bx2, sidebarTop()
+end
+
 setCatScroll = function(n)
 	local m = maxCatScroll()
 	catScroll = (n < 0 and 0) or (n > m and m) or n
@@ -507,22 +474,8 @@ local function drawSidebar()
 	end
 	font:End()
 
-	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
-	-- there are more months than the card has room for.
-	if maxCatScroll() > 0 then
-		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
-		-- Over the entries, not over the whole card: the last row rarely lands exactly on the
-		-- bottom, and a bar running past it reads as a column with dead space at its foot -
-		-- and makes the thumb say more fits than does.
-		UiScroller(
-			bx2 - metrics.catBarW,
-			sidebarTop() - catPageRows() * metrics.catRowHeight,
-			bx2,
-			sidebarTop(),
-			#versions * metrics.catRowHeight,
-			catScroll * metrics.catRowHeight
-		)
-	end
+	catScroller:setRect(catBarRect())
+	catScroller:draw(catBarHover)
 end
 
 -- The panel: its backdrop, the title, the month card, the text and the scrollbar. Baked
@@ -571,7 +524,8 @@ local function drawPanel()
 		Markdown.draw(rows, startRow, lastRowFrom(startRow), listX1, listTop, ctx)
 	end
 
-	UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, scrollPos(), barHover, dragging)
+	listScroller:setRect(barX1, listBottom, area.x2 - metrics.edgeInset, listTop)
+	listScroller:draw(barHover)
 end
 
 function widget:ViewResize()
@@ -591,8 +545,12 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiScroller = WG.FlowUI.Draw.Scroller
-	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
+	listScroller = WG.FlowUI.Scroller.new(function()
+		return totalH, scrollPos(), maxStart - 1
+	end)
+	catScroller = WG.FlowUI.Scroller.new(function()
+		return #versions * metrics.catRowHeight, catScroll * metrics.catRowHeight, maxCatScroll()
+	end)
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 
 	titleText = colorText .. BAR.I18N("ui.changelog.title")
@@ -601,6 +559,17 @@ function widget:ViewResize()
 	layoutRows()
 	dropLists()
 	deleteGuishader()
+end
+
+-- Which of its three looks a bar is in: a list it is baked into has to be baked again when that changes.
+local function barLook(scroller, lit)
+	if scroller:isDragging() then
+		return 2
+	elseif lit then
+		return 1
+	end
+
+	return 0
 end
 
 function widget:DrawScreen()
@@ -612,35 +581,36 @@ function widget:DrawScreen()
 	gl.Texture(false) -- some other widget left it on
 
 	local mx, my, lmb = spGetMouseState()
-	if dragging then
-		if lmb then
-			scrollFromY(my)
-		else
-			dragging = false
-		end
+	local step = listScroller:drag(my, lmb)
+	if step then
+		setStartRow(1 + step)
+	end
+	local catStep = catScroller:drag(my, lmb)
+	if catStep then
+		setCatScroll(catStep)
 	end
 
-	hoverIdx = show and sidebarIndexAt(mx, my) or nil
+	hoverIdx = show and not math_isInRect(mx, my, catBarRect()) and sidebarIndexAt(mx, my) or nil
 
-	-- Only the thumb, not the track: it is the part that can be taken hold of, so it is the
-	-- part that lights up.
-	local wasHovered, wasDragging = barHover, dragging
-	barHover = false
-	if show and mx >= barX1 and mx <= area.x2 then
-		local top, height = scrollerThumb()
-		barHover = top ~= nil and my <= top and my >= top - height
-	end
-
-	-- The bar is painted into the panel list, so a change in how it is lit is a change to
-	-- what that list holds.
-	if panelList and (barHover ~= wasHovered or dragging ~= wasDragging) then
+	barHover = show == true and listScroller:isOverThumb(mx, my)
+	catBarHover = show == true and catScroller:isOverThumb(mx, my)
+	local panelKey = barLook(listScroller, barHover)
+	local sidebarKey = barLook(catScroller, catBarHover)
+	if panelList and panelKey ~= panelBarKey then
 		panelList = glDeleteList(panelList)
 	end
+	panelBarKey = panelKey
 
 	if not panelList then
 		panelList = glCreateList(drawPanel)
 	end
-	if not sidebarList or hoverIdx ~= sidebarHover or selectedIdx ~= sidebarSelected or catScroll ~= sidebarScroll then
+	if
+		not sidebarList
+		or hoverIdx ~= sidebarHover
+		or selectedIdx ~= sidebarSelected
+		or catScroll ~= sidebarScroll
+		or sidebarKey ~= sidebarBarKey
+	then
 		if sidebarList then
 			glDeleteList(sidebarList)
 		end
@@ -648,6 +618,7 @@ function widget:DrawScreen()
 		sidebarHover = hoverIdx
 		sidebarSelected = selectedIdx
 		sidebarScroll = catScroll
+		sidebarBarKey = sidebarKey
 	end
 
 	glCallList(panelList)
@@ -731,14 +702,23 @@ local function mouseEvent(x, y, button, release)
 	if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 		if not release and button == 1 then
 			local i = sidebarIndexAt(x, y)
-			if i then
+			-- Ahead of the entries, which reach under the bar and would take the press as a pick.
+			if math_isInRect(x, y, catBarRect()) then
+				local step = catScroller:press(y)
+				if step then
+					setCatScroll(step)
+				end
+			elseif i then
 				setStartRow(versions[i], i)
 				if playSounds then
 					Spring.PlaySoundFile(buttonclick, 0.6, "ui")
 				end
 			elseif math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
 				-- The strip between the bar and the panel edge stays grabbable too.
-				grabScroller(y)
+				local step = listScroller:press(y)
+				if step then
+					setStartRow(1 + step)
+				end
 			end
 		end
 
