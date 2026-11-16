@@ -81,6 +81,7 @@ CallInsList = {
 
 	"DrawGenesis",
 	"DrawWorld",
+	"DrawGhost",
 	"DrawWorldPreUnit",
 	"DrawWorldPreParticles",
 	"DrawWorldShadow",
