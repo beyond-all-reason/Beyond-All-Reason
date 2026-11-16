@@ -149,6 +149,7 @@ local function processNotificationDefs()
 
 		notification[notifID] = {
 			delay = notifDef.delay or 2,
+			priority = notifDef.priority or "normal",
 			stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
 			textID = notifTexts[1],
 			notext = notifDef.notext,
@@ -266,7 +267,16 @@ LastPlay.YouAreWastingEnergy = spGetGameFrame()
 LastPlay.WholeTeamWastingMetal = spGetGameFrame()
 LastPlay.WholeTeamWastingEnergy = spGetGameFrame()
 
-local soundQueue = {}
+local soundQueue = {
+	["low"] = {},
+	["normal"] = {},
+	["high"] = {},
+	["top"] = {},
+}
+local function soundQueueLength()
+	return #soundQueue["low"] + #soundQueue["normal"] + #soundQueue["high"] + #soundQueue["top"]
+end
+
 local nextSoundQueued = 0
 local hasBuildMex = false
 local hasBuildEnergy = false
@@ -426,8 +436,10 @@ end
 
 local function isInQueue(event)
 	for i, v in pairs(soundQueue) do
-		if v == event then
-			return true
+		for i2, v2 in pairs(soundQueue[i]) do
+			if v == event then
+				return true
+			end
 		end
 	end
 	return false
@@ -479,7 +491,7 @@ local function queueNotification(event, forceplay)
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
 						if checkNotificationRules(notification[event]) then
-							soundQueue[#soundQueue + 1] = event
+							soundQueue[notification[event].priority][#soundQueue[notification[event].priority] + 1] = event
 							applyNotificationRules(notification[event])
 						else
 							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2) * 30)
@@ -917,13 +929,30 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 end
 
 local function getSoundDuration(soundFile)
-	Spring.Echo(soundFile, wavFileLengths[string.sub(soundFile, 8)])
 	return wavFileLengths[string.sub(soundFile, 8)] or 3
 end
 
 local function playNextSound()
-	if #soundQueue > 0 then
-		local event = soundQueue[1]
+	if soundQueueLength() > 0 then
+		local event
+		--Spring.Echo("Top", #soundQueue["top"], "High", #soundQueue["high"], "Normal", #soundQueue["normal"], "Low", #soundQueue["low"])
+		if #soundQueue["top"] > 0 then
+			event = soundQueue["top"][1] .. ""
+			table.remove(soundQueue["top"], 1)
+		elseif #soundQueue["high"] > 0 then
+			event = soundQueue["high"][1] .. ""
+			table.remove(soundQueue["high"], 1)
+		elseif #soundQueue["normal"] > 0 then
+			event = soundQueue["normal"][1] .. ""
+			table.remove(soundQueue["normal"], 1)
+		elseif #soundQueue["low"] > 0 then
+			event = soundQueue["low"][1] .. ""
+			table.remove(soundQueue["low"], 1)
+		else
+			Spring.Echo("Error: [NOTIFICATIONS] All queues are empty but it's still attempting to play a notification. FIX ME!")
+			return
+		end
+
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
 				if Spring.GetGameFrame() < 30 then
@@ -968,17 +997,6 @@ local function playNextSound()
 			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
 			tutorialPlayedThisGame[event] = true
 		end
-
-		-- drop current played notification from the table
-		local newQueue = {}
-		local newQueuecount = 0
-		for i, v in pairs(soundQueue) do
-			if i ~= 1 then
-				newQueuecount = newQueuecount + 1
-				newQueue[newQueuecount] = v
-			end
-		end
-		soundQueue = newQueue
 	end
 end
 
