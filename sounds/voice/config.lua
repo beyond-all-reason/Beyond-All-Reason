@@ -154,7 +154,7 @@ return {
 		priority = "low",
 	},
 	GameUnpaused = {
-		delay = 1,
+		delay = -1,
 		priority = "low",
 	},
 	BattleEnded = {
@@ -173,7 +173,7 @@ return {
 		soundEffect = "GameEnd",
 	},
 	GamePaused = {
-		delay = 1,
+		delay = -1,
 		priority = "low",
 	},
 	["Dominion/EnemyTeamEliminated"] = {
