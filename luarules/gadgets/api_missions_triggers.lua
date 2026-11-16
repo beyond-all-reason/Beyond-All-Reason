@@ -281,15 +281,19 @@ function gadget:TeamDied(teamID)
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	-- Other gadgets may create units within a spawn action. Assign loadout names only to loadout units.
+	local mapi = GG.MissionAPI
+	if mapi.nameOfUnitBeingSpawned and mapi.unitIDBeingSpawned == nil then
+		mapi.unitIDBeingSpawned = unitID
+	end
+
 	dispatchTriggerCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
 
-	-- Set in spawnUnit() in loadout.lua
-	local nameOfUnitBeingSpawned = GG["MissionAPI"].nameOfUnitBeingSpawned
-	if nameOfUnitBeingSpawned then
-		unitNames[nameOfUnitBeingSpawned] = true
+	if mapi.unitIDBeingSpawned == unitID then
+		unitNames[mapi.nameOfUnitBeingSpawned] = true
 	end
 	statistics.Increment(triggerTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
