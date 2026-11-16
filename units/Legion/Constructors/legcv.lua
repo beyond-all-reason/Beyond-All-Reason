@@ -19,7 +19,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		leavetracks = true,
-		health = 1330,
+		health = 1150,
 		maxslope = 16,
 		speed = 57.0,
 		maxwaterdepth = 19,
