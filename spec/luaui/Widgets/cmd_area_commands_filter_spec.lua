@@ -2,7 +2,15 @@
 local widgetPath = "luaui/Widgets/cmd_area_commands_filter.lua"
 
 describe("Area Command Filter drag origin", function()
-	local widget, env, orders, orderDetails, traceType, traceID, activeCommand, held
+	---@type table<string, any>
+	local widget
+	---@type table<string, any>
+	local env
+	---@type integer[]
+	local orders
+	---@type { units: integer[], command: integer, options: string[] }[]
+	local orderDetails
+	local traceType, traceID, activeCommand, held
 	local function notify(options, params, command)
 		return widget:CommandNotify(command or 20, params or { 100, 0, 100, 200 }, options or { alt = true })
 	end
@@ -108,11 +116,15 @@ describe("Area Command Filter drag origin", function()
 		}, { __index = _G })
 		env.require = function(name)
 			if name == "modules/split_targets" then
-				return setfenv(assert(loadfile(name .. ".lua")), env)()
+				local chunk = assert(loadfile(name .. ".lua"))
+				setfenv(chunk, env)
+				return chunk()
 			end
 			return require(name)
 		end
-		setfenv(assert(loadfile(widgetPath)), env)()
+		local chunk = assert(loadfile(widgetPath))
+		setfenv(chunk, env)
+		chunk()
 		widget:Initialize()
 	end)
 
