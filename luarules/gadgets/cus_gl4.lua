@@ -1060,12 +1060,19 @@ local brdfLUT = "modelmaterials_gl4/brdf_0.png"
 
 local existingfilecache = {} -- this speeds up the VFS calls
 
+-- lowercased path -> first spelling seen (false when missing): named textures are cached by exact path,
+-- so another casing would load the same file again
+local normalTexPaths = {} ---@type table<string, string|false>
+
 -- A missing file binds no texture, so that batch samples whatever normal map the previous one left bound
-local function NormalTexExists(normaltex)
-	if existingfilecache[normaltex] == nil and VFS.FileExists(normaltex) then
-		existingfilecache[normaltex] = normaltex
+---@param normaltex string
+---@return string?
+local function NormalTexPath(normaltex)
+	local key = normaltex:lower()
+	if normalTexPaths[key] == nil then
+		normalTexPaths[key] = VFS.FileExists(normaltex) and normaltex
 	end
-	return existingfilecache[normaltex] ~= nil
+	return normalTexPaths[key] or nil
 end
 
 local function GetNormal(unitDef, featureDef)
@@ -1084,7 +1091,8 @@ local function GetNormal(unitDef, featureDef)
 		end
 
 		local normaltex = unitDef.customParams and unitDef.customParams.normaltex
-		if normaltex and NormalTexExists(normaltex) then
+		normaltex = normaltex and NormalTexPath(normaltex)
+		if normaltex then
 			return normaltex
 		end
 	end
@@ -1102,7 +1110,8 @@ local function GetNormal(unitDef, featureDef)
 		end
 
 		local normaltex = featureDef.customParams and featureDef.customParams.normaltex
-		if normaltex and NormalTexExists(normaltex) then
+		normaltex = normaltex and NormalTexPath(normaltex)
+		if normaltex then
 			return normaltex
 		end
 

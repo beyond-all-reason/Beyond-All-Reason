@@ -414,6 +414,7 @@ specialEffectFunction.retarget = function(_, projectileID)
 	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + ownerDefID * hashBaseDefs] or 1
 	---@diagnostic disable-next-line: param-type-mismatch -- OK: owner is alive
 	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
+	---@cast ownerTargetType TargetType
 	if ownerTargetType == 1 and ownerTarget == target then
 		return false -- the launcher has not switched away from the crashing unit yet
 	end
@@ -749,7 +750,7 @@ function gadget:Initialize()
 
 	if next(weaponDefEffect) then
 		for weaponDefID in pairs(weaponDefEffect) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 		gameFrame = Spring.GetGameFrame()
 	else
@@ -759,9 +760,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
-	end
+	projectiles[projectileID] = weaponDefEffect[weaponDefID]
 end
 
 function gadget:ProjectileDestroyed(projectileID)

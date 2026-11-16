@@ -33,6 +33,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/leganavalsonarstation_aoplane.dds",
+			juno_kill = true,
 			model_author = "ZephyrSkies (Model), JjackVII (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

@@ -9,9 +9,6 @@ piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake,
 
 static-var  gun_1, gun_2, gun_3, restore_delay,   aimDir1;
 
-// Signal definitions
-#define SIGNAL_MOVE 1
-
 
 #define RB_MASS 60
 #define RB_LENGTH 12
@@ -77,29 +74,13 @@ SetMaxReloadTime(reloadMS)
 }
 
 static-var  Stunned;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 
-#define AIMY1_RESTORE_SPEED <1.0>
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
 	turn sleeves1 to x-axis <0.0> speed <45.0>;
-	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
-		if (aimy1position > 0 ) {
-			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
-			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
-		}
-		else
-		{
-			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
-			aimy1velocity = AIMY1_RESTORE_SPEED;
-		}
-		turn tur1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-		sleep 30;
-	}
-	aimy1velocity = 0;
 }
 
 SetStunned(State)
@@ -130,19 +111,6 @@ RestoreAfterDelay3()
 	turn sleeves3 to x-axis <0.0> speed <125.0>;
 	turn tur4 to y-axis <0.0> speed <125.0>;
 	turn sleeves4 to x-axis <0.0> speed <125.0>;
-}
-
-waveSplash()
-{
-	while( TRUE )
-	{
-		turn base to x-axis <-1.0> speed <1.0>;
-		move base to y-axis [0.23] speed [0.17];
-		wait-for-turn base around x-axis;
-		turn base to x-axis <0.0> speed <1.0>;
-		move base to y-axis [0.0] speed [0.17];
-		wait-for-turn base around x-axis;
-	}
 }
 
 StartMoving(reversing)

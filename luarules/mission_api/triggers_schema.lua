@@ -1,71 +1,21 @@
-local triggerTypes = {
-	TimeElapsed = 1,
-	UnitExists = 2,
-	UnitNotExists = 3,
-	ConstructionStarted = 4,
-	ConstructionFinished = 5,
-	UnitKilled = 6,
-	UnitCaptured = 7,
-	UnitResurrected = 8,
-	UnitEnteredLocation = 9,
-	UnitLeftLocation = 10,
-	UnitDwellLocation = 11,
-	UnitSpotted = 12,
-	UnitUnspotted = 13,
-	FeatureNotExists = 14,
-	FeatureReclaimed = 15,
-	FeatureDestroyed = 16,
-	ResourceStored = 17,
-	ResourceProduction = 18,
-	TotalUnitsLost = 19,
-	TotalUnitsBuilt = 20,
-	TotalUnitsKilled = 21,
-	TotalUnitsCaptured = 22,
-	TeamDestroyed = 23,
-	Victory = 24,
-	Defeat = 25,
-}
+---
+--- The settings every trigger shares, regardless of its type, kept as data so that tools,
+--- the mission editor included, have a single source of truth for them. A trigger's own
+--- parameters are declared by its file in triggers/, and collected by triggers_loader.lua.
+---
 
-local parameters = {
-	[triggerTypes.TimeElapsed] = {
-		[1] = {
-			name = "gameFrame",
-			required = true,
-			type = "number",
-		},
-		[2] = {
-			name = "interval",
-			required = false,
-			type = "number",
-		},
-	},
-	[triggerTypes.UnitExists] = {},
-	[triggerTypes.UnitNotExists] = {},
-	[triggerTypes.ConstructionStarted] = {},
-	[triggerTypes.ConstructionFinished] = {},
-	[triggerTypes.UnitKilled] = {},
-	[triggerTypes.UnitCaptured] = {},
-	[triggerTypes.UnitResurrected] = {},
-	[triggerTypes.UnitEnteredLocation] = {},
-	[triggerTypes.UnitLeftLocation] = {},
-	[triggerTypes.UnitDwellLocation] = {},
-	[triggerTypes.UnitSpotted] = {},
-	[triggerTypes.UnitUnspotted] = {},
-	[triggerTypes.FeatureNotExists] = {},
-	[triggerTypes.FeatureReclaimed] = {},
-	[triggerTypes.FeatureDestroyed] = {},
-	[triggerTypes.ResourceStored] = {},
-	[triggerTypes.ResourceProduction] = {},
-	[triggerTypes.TotalUnitsLost] = {},
-	[triggerTypes.TotalUnitsBuilt] = {},
-	[triggerTypes.TotalUnitsKilled] = {},
-	[triggerTypes.TotalUnitsCaptured] = {},
-	[triggerTypes.TeamDestroyed] = {},
-	[triggerTypes.Victory] = {},
-	[triggerTypes.Defeat] = {},
+local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
+
+local settings = {
+	prerequisites = Types.TriggerIDs,
+	repeating = Types.Boolean,
+	maxRepeats = Types.Quantity,
+	difficulties = Types.Difficulties,
+	coop = Types.Boolean,
+	active = Types.Boolean,
+	stages = Types.StageIDs,
 }
 
 return {
-	Types = triggerTypes,
-	Parameters = parameters,
+	Settings = settings,
 }

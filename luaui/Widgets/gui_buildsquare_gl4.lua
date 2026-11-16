@@ -127,23 +127,17 @@ local STATUS_RECLAIMABLE = 2
 local STATUS_OPEN = 3
 
 local STATUS_COLORS = {
-	[STATUS_BLOCKED] = { 1.0, 0.1, 0.3, 0.33 },
-	[STATUS_OCCUPIED] = { 0.75, 1.0, 0.15, 0.33 },
-	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN] = { 0.70, 0.90, 0.10, 0.33 },
+	[STATUS_BLOCKED] = { 0.8, 0.1, 0.3, 0.33 },
+	[STATUS_OCCUPIED] = { 0.55, 0.7, 0.2, 0.33 },
+	[STATUS_RECLAIMABLE] = { 0.3, 0.7, 0.30, 0.33 },
+	[STATUS_OPEN] = { 0.55, 0.65, 0.2, 0.33 },
 }
-local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.37 }
--- local STATUS_OUTLINE_COLORS = {
--- 	[STATUS_BLOCKED]     = { 0.85, 0.05, 0.15, 0.5 },
--- 	[STATUS_OCCUPIED]    = { 0.18, 0.25, 0.02, 0.7 },
--- 	[STATUS_RECLAIMABLE] = { 0.60, 1.00, 0.33, 0.7 },
--- 	[STATUS_OPEN]        = { 0.85, 1.00, 0.50, 0.7 },
--- }
+local VALID_FOOTPRINT_COLOR = { 0.0, 0.85, 0.3, 0.37 }
 local STATUS_OUTLINE_COLORS = {
-	[STATUS_BLOCKED] = { 0.50, 0.05, 0.05, 0.4 },
-	[STATUS_OCCUPIED] = { 0.66, 0.15, 0.05, 0.4 },
-	[STATUS_RECLAIMABLE] = { 0.55, 0.20, 0.05, 0.4 },
-	[STATUS_OPEN] = { 0.30, 0.30, 0.05, 0.4 },
+	[STATUS_BLOCKED] = { 0.45, 0.05, 0.2, 0.4 },
+	[STATUS_OCCUPIED] = { 0.5, 0.15, 0.15, 0.4 },
+	[STATUS_RECLAIMABLE] = { 0.5, 0.20, 0.15, 0.4 },
+	[STATUS_OPEN] = { 0.25, 0.30, 0.15, 0.4 },
 }
 local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.45 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
@@ -942,20 +936,22 @@ void main() {
 	v_queuedFootprintConflict = step(31.5, packedFootprintData);
 	v_mode = mode;
 	v_externalEdges = a_cellExtra.z;
-	// Merged blocks measure distances relative to the inset footprint, exactly like the simplified quad of the
-	// whole footprint would, so a fully placeable footprint looks identical to the simplified rendering.
+	// Merged blocks and simplified quads share one distance unit, so a fully placeable footprint looks identical to
+	// the simplified rendering. The unit is the average footprint side on both axes: rectangular footprints keep the
+	// same outline width on every side and circular corners.
 	vec2 quadUnits = vec2(1.0);
 	vec2 cellToUnit = vec2(1.0);
 	float simplifiedSizeScale = 1.0;
 	if (simplified || merged) {
 		vec2 footprintInsetSize = max(a_footprintSize * cellSize - 2.0 * cellInset, vec2(0.001));
+		float footprintUnit = (footprintInsetSize.x + footprintInsetSize.y) * 0.5;
 		// Corner radius and outline width grow with the footprint but with diminishing returns: unchanged at the
 		// reference size, scaled by (reference / footprint) ^ falloff elsewhere (falloff 0 = proportional, 1 = constant).
 		float referenceInsetSize = max(simplifiedReferenceCells * cellSize - 2.0 * cellInset, 0.001);
-		simplifiedSizeScale = pow(referenceInsetSize / min(footprintInsetSize.x, footprintInsetSize.y), simplifiedSizeFalloff);
+		simplifiedSizeScale = pow(referenceInsetSize / footprintUnit, simplifiedSizeFalloff);
+		quadUnits = insetQuadSize / footprintUnit;
 		if (merged) {
-			quadUnits = insetQuadSize / footprintInsetSize;
-			cellToUnit = (cellSize - 2.0 * cellInset) / footprintInsetSize;
+			cellToUnit = vec2((cellSize - 2.0 * cellInset) / footprintUnit);
 		}
 	}
 	v_quadUnits = quadUnits;
@@ -1034,10 +1030,10 @@ void main() {
 		0.5
 	);
 	float outlineWidth = 0.045 * mix(1.0, simplifiedOutlineScale * v_simplifiedSizeScale, simplifiedMix);
-	// Distances are measured in inset-quad units for cells and simplified quads (the quad is one unit) and in
-	// inset-footprint units for merged blocks (v_quadUnits = block size relative to the footprint), whose edges
-	// shared with a same-styled neighbour are ignored so adjacent blocks join seamlessly.
-	vec2 quadUnits = merged ? v_quadUnits : vec2(1.0);
+	// Distances are measured in inset-quad units for cells (the quad is one unit) and in average footprint sides for
+	// simplified quads and merged blocks (v_quadUnits = quad size in that unit). Merged block edges shared with a
+	// same-styled neighbour are ignored so adjacent blocks join seamlessly.
+	vec2 quadUnits = v_quadUnits;
 	vec2 quadPos = v_cellUV * quadUnits;
 	float distanceToEdge;
 	if (merged) {
@@ -1082,8 +1078,10 @@ void main() {
 			distanceToEdge = max(distanceToEdge, reflexDistance * v_cellToUnit.x);
 		}
 	} else {
-		vec2 cornerDistance = abs(v_cellUV - vec2(0.5)) - vec2(0.5 - scaledCornerRadius);
-		distanceToEdge = length(max(cornerDistance, 0.0)) - scaledCornerRadius;
+		// The rounding has to fit the short side of a narrow simplified quad.
+		float quadCornerRadius = min(scaledCornerRadius, min(quadUnits.x, quadUnits.y) * 0.5);
+		vec2 cornerDistance = abs(quadPos - quadUnits * 0.5) - (quadUnits * 0.5 - vec2(quadCornerRadius));
+		distanceToEdge = length(max(cornerDistance, 0.0)) - quadCornerRadius;
 	}
 	float antialiasWidth = fwidth(distanceToEdge);
 	float coverage = 1.0 - smoothstep(0.0, antialiasWidth, distanceToEdge);
@@ -2104,6 +2102,67 @@ local function collectPregameBuildSquare()
 	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
 end
 
+-- A placed blueprint's buildings (api_blueprint), drawn as single buildings' previews with predicted
+-- statuses (as the pregame one's). A new spot starts all open or all blocked (the blueprint's own build
+-- test); the spots are checked round the list, the new ones first, up to a cell budget per frame
+local blueprintSquares = { spots = {}, nextCheck = 1, budget = 0 }
+
+-- a spot's statuses predicted again (its cells off the frame's budget)
+function blueprintSquares.check(spot)
+	local b = spot.building
+	local unitDef = UnitDefs[b.unitDefID]
+	local footprint = getFootprintData(b.unitDefID, b.facing)
+	if unitDef and footprint then
+		local valid = b.buildable and spTestBuildOrder(b.unitDefID, b.x, b.y, b.z, b.facing) ~= 0
+		fillPredictedStatuses(spot.statuses, unitDef, b.x, b.y, b.z, footprint, valid)
+		blueprintSquares.budget = blueprintSquares.budget - footprint.cellCount
+	end
+end
+
+local function collectBlueprintBuildSquares()
+	local api = WG.api_blueprint
+	local buildings = api and api.getPreviewBuildings and api.getPreviewBuildings()
+	local count = buildings and #buildings or 0
+	if count == 0 then
+		return
+	end
+	local spots, firstNew = blueprintSquares.spots, nil
+	for i = 1, count do
+		local b, spot = buildings[i], spots[i]
+		if not spot then
+			spot = { statuses = {} }
+			spots[i] = spot
+		end
+		if spot.building ~= b then
+			spot.building = b
+			firstNew = firstNew or i
+			local footprint = getFootprintData(b.unitDefID, b.facing)
+			local cellCount = footprint and footprint.cellCount or 0
+			local statuses, status = spot.statuses, b.valid and STATUS_OPEN or STATUS_BLOCKED
+			for c = 1, cellCount do
+				statuses[c] = status
+			end
+			for c = cellCount + 1, #statuses do
+				statuses[c] = nil
+			end
+		end
+	end
+	local index, checked = firstNew or blueprintSquares.nextCheck, 0
+	blueprintSquares.budget = TARGET_STATUS_CELLS_PER_GAME_FRAME
+	while blueprintSquares.budget > 0 and checked < count do
+		if index > count then
+			index = 1
+		end
+		blueprintSquares.check(spots[index])
+		index, checked = index + 1, checked + 1
+	end
+	blueprintSquares.nextCheck = index
+	for i = 1, count do
+		local b = buildings[i]
+		widget:DrawBuildSquare(b.unitDefID, b.x, b.z, b.facing, spots[i].statuses)
+	end
+end
+
 local function rebuildBatchBuffer()
 	tracy.ZoneBeginN("W:BuildSquare:BuildBatch")
 	local dataIndex = 0
@@ -2316,6 +2375,7 @@ end
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
 	collectPregameBuildSquare()
+	collectBlueprintBuildSquares()
 	if collectedPreviewCount == 0 or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
 		batchInstanceCount = 0
 		minimapInstanceCount = 0

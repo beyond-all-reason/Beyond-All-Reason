@@ -2176,7 +2176,7 @@ function CreateBackground()
 		if not mainListBgTex and width > 0 and height > 0 then
 			mainListBgTex = gl.CreateTexture(width, height, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderToTexture(mainListBgTex, function()
@@ -2415,9 +2415,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			local width, height =
 				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
 			if width > 0 and height > 0 then
-				mainListTex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
+				local ss = WG.FlowUI.supersample or 1 -- the rows' pictures sharper (see gui_flowui)
+				mainListTex = gl.CreateTexture(width * ss, height * ss, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2443,9 +2444,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			local width, height =
 				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
 			if width > 0 and height > 0 then
-				mainList2Tex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
+				local ss = WG.FlowUI.supersample or 1
+				mainList2Tex = gl.CreateTexture(width * ss, height * ss, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2473,7 +2475,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			if width > 0 and height > 0 then
 				mainList3Tex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end

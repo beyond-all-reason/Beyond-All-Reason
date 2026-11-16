@@ -105,12 +105,20 @@ local function distance(point1, point2)
 	if not point1 or not point2 then
 		return -1
 	end
+	local x1, y1, z1 = point1[1], point1[2], point1[3]
+	local x2, y2, z2 = point2[1], point2[2], point2[3]
+	if not x1 or not y1 or not z1 or not x2 or not y2 or not z2 then
+		return -1
+	end
 
-	return math.diag(point1[1] - point2[1], point1[2] - point2[2], point1[3] - point2[3])
+	return math.diag(x1 - x2, y1 - y2, z1 - z2)
 end
 
 local function timeToTarget(start, endpoint, speed)
 	local dist = distance(start, endpoint)
+	if dist < 0 then
+		return math.huge
+	end
 	return dist / speed
 end
 
@@ -475,6 +483,13 @@ end
 function widget:UnitCommandNotify(unitID, cmdID, cmdParams, cmdOpts)
 	-- Callin from formations widget. If we're ordering in formation, it's definitely not a guard order.
 	if isTransport(unitID) and not cmdOpts.shift then
+		inactivateTransport(unitID)
+		pendingGuardTransports[unitID] = nil
+	end
+end
+
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if (cmdID == CMD.REMOVE or cmdID == CMD.STOP) and activeTransportToUnit[unitID] then
 		inactivateTransport(unitID)
 		pendingGuardTransports[unitID] = nil
 	end

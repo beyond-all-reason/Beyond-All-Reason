@@ -49,6 +49,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
 local realTex = "$grass"
 local colorTex = (mapBorderStyle == "texture" and realTex) or gridTex
+local forwardNormalTex = "$ssmf_normals" -- "$normals" on maps without a normalTex, see Initialize
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -212,12 +213,12 @@ void main() {
 
 	// Note that normals are Z up in textures, but Y up in the world
 	vec3 mapNormal;
-	#ifdef DEFERRED_MODE
+	#ifdef SSMF_NORMALS
+		mapNormal = texture(mapNormalTex, clamp(uv, MINIMAP_HALF_TEXEL / 4.0, 1.0 - (MINIMAP_HALF_TEXEL / 4.0))).rbg * 2.0 - 1.0;
+	#else // $normals, the terrain normals: x and z
 		mapNormal.xz = texture(mapNormalTex, clampeduv).ra;
 		// clamp before sqrt to prevent NaN when xz values are out of [-1,1] range
 		mapNormal.y = sqrt(max(0.0, 1.0 - dot(mapNormal.xz, mapNormal.xz)));
-	#else
-		mapNormal = texture(mapNormalTex, clamp(uv, MINIMAP_HALF_TEXEL / 4.0, 1.0 - (MINIMAP_HALF_TEXEL / 4.0))).rbg * 2.0 - 1.0;
 	#endif
 
 	// faded out past the curvature falloff
@@ -459,7 +460,7 @@ function widget:DrawWorldPreUnit()
 
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
-	DrawMirrors(mapExtensionShader, mirrorMesh, "$ssmf_normals")
+	DrawMirrors(mapExtensionShader, mirrorMesh, forwardNormalTex)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 end
@@ -547,9 +548,16 @@ function widget:Initialize()
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 
+	-- Without a map normalTex $ssmf_normals is texture 0, which gl.Texture does not bind: the mirrors
+	-- were lit by whatever an earlier pass left on the unit (Decals GL4's $info, LOS shaped patches)
+	local ssmfNormals = gl.TextureInfo("$ssmf_normals")
+	local hasSSMFNormals = ssmfNormals ~= nil and (ssmfNormals.id or 0) ~= 0
+	forwardNormalTex = hasSSMFNormals and "$ssmf_normals" or "$normals"
+
 	mapExtensionShader = MakeShader(
 		"Map Extension Shader2",
 		string.format("#define GRID_SIZE %.1f\n#define EDGE_TIGHTENING 0.0\n", gridSize)
+			.. (hasSSMFNormals and "#define SSMF_NORMALS 1\n" or "")
 	)
 	mapExtensionShaderDeferred = MakeShader(
 		"Map Extension Shader Deferred",
