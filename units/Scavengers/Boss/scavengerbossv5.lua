@@ -794,8 +794,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 22230,
-					default = 133380,
+					commanders = 20452,
+					default = 122710,
 				},
 			},
 			railrapid = {
@@ -838,8 +838,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 484,
-					default = 2915,
+					commanders = 440,
+					default = 2653,
 				},
 			},
 			shotgunarm = {

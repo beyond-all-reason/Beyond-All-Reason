@@ -136,10 +136,11 @@ function gadget:GameFrame(frame)
 	end
 	---@type number, number, number
 	local hunger, meal, heat = -1, -1, -1
-	local venting = false
+	local venting, shielded = false, false
 	for unitID in pairs(bosses) do
 		heat = math.max(heat, Spring.GetUnitRulesParam(unitID, "scavboss_heat") or 0)
 		venting = venting or Spring.GetUnitRulesParam(unitID, "scavboss_venting") == 1
+		shielded = shielded or Spring.GetUnitRulesParam(unitID, "scavboss_healshield") == 1
 		local bossHunger = Spring.GetUnitRulesParam(unitID, "scavboss_hunger") or 0
 		hunger = math.max(hunger, tonumber(bossHunger) or 0)
 		if (Spring.GetUnitRulesParam(unitID, "scavboss_feed_state") or 0) > 0 then
@@ -151,6 +152,7 @@ function gadget:GameFrame(frame)
 	GG.ScavBossEconomyLost = economy.lostCost / math.max(1, economy.lostCost + economy.standingCost)
 	Spring.SetGameRulesParam("scavBossHunger", hunger)
 	Spring.SetGameRulesParam("scavBossMeal", meal)
+	Spring.SetGameRulesParam("scavBossHealShield", shielded and 1 or 0)
 	if heat >= 0 then
 		Spring.SetGameRulesParam("scavBossStaggerPercentage", 100 - heat)
 		Spring.SetGameRulesParam("scavBossStaggerActive", venting)

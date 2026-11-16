@@ -105,6 +105,7 @@ local rules = {
 	"scavBossHealth",
 	"scavBossHunger",
 	"scavBossMeal",
+	"scavBossHealShield",
 	"lagging",
 	"scavDifficulty",
 	"scavCount",
@@ -251,7 +252,15 @@ local function CreatePanelDisplayList()
 
 			local overheats = Spring.GetGameRulesParam("scavBossOverheats") == 1
 			local staggerText = overheats and "ui.scavs.bossOverheat" or "ui.scavs.bossStagger"
-			if Spring.GetGameRulesParam("scavBossStaggerActive") == false then
+			if Spring.GetGameRulesParam("scavBossHealShield") == 1 then
+				font:Print(
+					"\255\255\255\0" .. BAR.I18N("ui.scavs.bossHealShield", { count = nBosses }),
+					panelMarginX,
+					PanelRow(2),
+					panelFontSize,
+					""
+				)
+			elseif Spring.GetGameRulesParam("scavBossStaggerActive") == false then
 				font:Print(
 					textColor
 						.. BAR.I18N(

@@ -2739,6 +2739,7 @@ HEAL.Run = function(lost)
 	end
 	ShieldOn()
 	HEAL.absorbing, HEAL.absorbed = true, 0
+	Spring.SetUnitRulesParam(unitID, "scavboss_healshield", 1)
 	local absorb = HEAL.absorbSeconds
 	local stop = Spring.GetGameFrame() + math.random(absorb[1] * Game.gameSpeed, absorb[2] * Game.gameSpeed)
 	while Spring.GetGameFrame() < stop do
@@ -2749,6 +2750,7 @@ HEAL.Run = function(lost)
 		Sleep(HEAL.stepMs)
 	end
 	HEAL.absorbing = false
+	Spring.SetUnitRulesParam(unitID, "scavboss_healshield", 0)
 	ShieldOff()
 	HEAL.ready = Spring.GetGameFrame() + HEAL.cooldown * Game.gameSpeed
 	HEAL.active = false

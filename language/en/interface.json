@@ -1267,6 +1267,10 @@
 				"other": "Boss Healths: %{health}%%"
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
+			"bossHealShield": {
+				"one": "Boss Heal Shield is Active!",
+				"other": "Boss Heal Shields are Active!"
+			},
 			"bossHunger": "Boss Hunger",
 			"bossHunting": "Boss Hunting",
 			"bossFeeding": "Boss Feeding",
