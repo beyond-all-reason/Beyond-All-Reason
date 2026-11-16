@@ -53,6 +53,7 @@ Activate()
 	if (Stunned){
 		return (0);
 	}
+	return (0);
 }
 
 openAbm()
