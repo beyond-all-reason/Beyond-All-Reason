@@ -82,16 +82,18 @@ if gadgetHandler:IsSyncedCode() then
 		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
 		for _, teamID in ipairs(GetTeamList()) do --initialize team count
+			local aiShortName
 			if select(4, GetTeamInfo(teamID, false)) then
 				-- store who hosts that engine ai, team will be controlled if player is present
-				local aiHost = select(3, GetAIInfo(teamID))
+				local _, _, aiHost, shortName = GetAIInfo(teamID)
+				aiShortName = shortName
 				local hostedAis = aiOwners[aiHost] or {}
 				hostedAis[#hostedAis + 1] = teamID
 				aiOwners[aiHost] = hostedAis
 			end
-			-- lua ai and gaia are always controlled
+			-- lua ai, NullAI placeholders, and gaia are always controlled
 			local luaAI = GetTeamLuaAI(teamID)
-			if teamID == gaiaTeamID or (luaAI and luaAI ~= "") then
+			if teamID == gaiaTeamID or (luaAI and luaAI ~= "") or aiShortName == "NullAI" then
 				TeamToRemainingPlayers[teamID] = 1
 			else
 				TeamToRemainingPlayers[teamID] = 0
@@ -161,8 +163,7 @@ if gadgetHandler:IsSyncedCode() then
 		local numTaken = 0
 		for _, teamID in ipairs(teamList) do
 			local luaAI = GetTeamLuaAI(teamID)
-			local isAiTeam = select(4, GetTeamInfo(teamID, false))
-			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+			if (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
@@ -344,8 +345,14 @@ else -- UNSYNCED
 	-- same "<name> Allies: > key:params" line as game_message, so gui_chat translates it for each reader
 	local function teamTaken(_, playerID, teamID, units, energy, metal)
 		local takerName, _, _, _, takerAllyTeamID = Spring.GetPlayerInfo(playerID, false)
-		local leaderID = select(2, Spring.GetTeamInfo(teamID, false))
-		local takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+		local _, leaderID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+		local takenName
+		if isAiTeam then
+			-- an ai team's leader is the player who hosted it
+			takenName = Spring.GetGameRulesParam("ainame_" .. teamID) or select(2, Spring.GetAIInfo(teamID))
+		else
+			takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+		end
 		if not takerName or not takenName then
 			return
 		end
