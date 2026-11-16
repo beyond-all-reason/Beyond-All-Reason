@@ -196,7 +196,7 @@ if gadgetHandler:IsSyncedCode() then
 				respawn_stun_duration = tonumber(udcp.respawn_stun_duration),
 			}
 
-			if respawnMetaList[unitID].effigy ~= "none" then
+			if respawnMetaList[unitID].effigy ~= "none" and spGetUnitRulesParam(unitID, "resurrected") ~= 1 then
 				local blockedIncrement = 1
 				for i = 1, 500, blockedIncrement do
 					local x, y, z = spGetUnitPosition(unitID)

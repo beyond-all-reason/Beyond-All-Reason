@@ -385,10 +385,12 @@ local function refreshShareQueues()
 		local unitID = selectedUnits[i]
 		-- for factories this is the queue given to the units they build
 		local commands = GetUnitCommands(unitID, -1)
-		for j = 1, #commands do
-			if commands[j].id == cmdQuickShareToTargetId then
-				shareQueues[unitID] = commands
-				break
+		if commands then
+			for j = 1, #commands do
+				if commands[j].id == cmdQuickShareToTargetId then
+					shareQueues[unitID] = commands
+					break
+				end
 			end
 		end
 	end

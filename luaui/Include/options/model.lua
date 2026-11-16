@@ -1289,6 +1289,12 @@ function model.syncValues(isHeld)
 		if option.widget ~= nil and option.type == "bool" and option.value ~= GetWidgetToggleValue(option.widget) then
 			option.value = GetWidgetToggleValue(option.widget)
 			changes = true
+		elseif option.current then -- (a value its owner changes too: the guide closed by its own button)
+			local value = option.current()
+			if value ~= option.value then
+				option.value = value
+				changes = true
+			end
 		end
 	end
 	local resolution = getOption("resolution")

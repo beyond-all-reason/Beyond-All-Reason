@@ -706,6 +706,7 @@ local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg
 		refreshInterval = refreshInterval,
 		startFrame = startFrame,
 		expireFrame = expireFrame, -- nil = permanent
+		durationS = expireFrame and durationSeconds or nil, -- the lifetime a project saves
 		nextFrame = startFrame,
 		spawnCycles = 0,
 		saturationCycles = saturationCycles,
@@ -1064,6 +1065,7 @@ local function getPersistentSpawners()
 			interval = s.interval,
 			refreshInterval = s.refreshInterval,
 			expireFrame = s.expireFrame,
+			durationS = s.durationS,
 		}
 	end
 	return out
@@ -1107,6 +1109,7 @@ local function addSpawnerRaw(entry)
 		refreshInterval = refreshInterval,
 		startFrame = now,
 		expireFrame = expireFrame, -- nil = permanent
+		durationS = expireFrame and max(1, persistence) or nil,
 		nextFrame = now,
 		spawnCycles = 0,
 		saturationCycles = max(1, floor(refreshInterval / interval)),
@@ -1415,6 +1418,17 @@ function widget:Initialize()
 		getPersistentSpawners = getPersistentSpawners,
 		addSpawnerRaw = addSpawnerRaw,
 	}
+
+	-- The editor open on a map exported with weather: start from the map's spawners, so they show,
+	-- can be edited and are saved with a project (map_weather_loader stands down in the editor).
+	-- A project load clears the spawners first, so nothing doubles.
+	local mapFile = "mapconfig/weather.lua"
+	if next(wb.persistentSpawners) == nil and VFS.FileExists(mapFile, VFS.MAP) then
+		local ok, data = pcall(VFS.Include, mapFile, {}, VFS.MAP)
+		for _, s in ipairs(ok and type(data) == "table" and type(data.spawners) == "table" and data.spawners or {}) do
+			addSpawnerRaw(s)
+		end
+	end
 end
 
 function widget:Shutdown()
