@@ -37,7 +37,7 @@ local useDefaultVoiceFallback = Spring.GetConfigInt("NotificationsSubstitute", 0
 local playWelcome = Spring.GetConfigInt("WelcomeMessagePlayed", 0) == 0
 local playedWelcome = false
 
-local silentTime = 0.7 -- silent time between queued notifications
+local silentTime = 0.2 -- silent time between queued notifications
 local globalVolume = 0.7
 local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
@@ -917,6 +917,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 end
 
 local function getSoundDuration(soundFile)
+	Spring.Echo(soundFile, wavFileLengths[string.sub(soundFile, 8)])
 	return wavFileLengths[string.sub(soundFile, 8)] or 3
 end
 
@@ -935,6 +936,7 @@ local function playNextSound()
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
 					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFilesRare[mRare]) + silentTime
+					
 				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFiles[m]) + silentTime
