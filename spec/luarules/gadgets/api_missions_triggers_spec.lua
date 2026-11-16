@@ -100,10 +100,13 @@ describe("api_missions_triggers loadout names", function()
 			:WithModule("SeismicContacts", { UpdateInterval = 15 })
 			:Install(env)
 
-		local chunk = assert(loadfile(GADGET_PATH)) ---@diagnostic disable-line -- return_overload doesn't work here
+		---@diagnostic disable -- return_overload doesn't work here, emmylua has no idea what our lua builtins are
+		local chunk = assert(loadfile(GADGET_PATH))
 		setfenv(chunk, env)
 		chunk()
-		gadget = env.gadget
+		---@diagnostic enable
+
+		gadget = env.gadget ---@as Gadget
 		gadget:Initialize()
 
 		loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
