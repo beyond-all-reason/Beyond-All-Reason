@@ -574,8 +574,6 @@ QueryWeapon2(pieceIndex)
 	pieceIndex = lflare1 + gun_1;
 }
 
-// Shotgun
-
 AimWeapon2(heading, pitch)
 {
 	var relativeHeading;
@@ -609,14 +607,14 @@ ShotgunRetraction()
 	move lbarrel to z-axis [-5] speed [100];
 	sleep 500;
 	move lbarrel to z-axis [0] speed [20];
+	
+	return(1); // Allows flares to cycle between barrels
 }
 
 FireWeapon2()
 {
 
 	isAiming = TRUE;
-
-	// wait-for-turn lbarrel around y-axis;
 
 	if(gun_1)
 	{
@@ -626,8 +624,6 @@ FireWeapon2()
 	{
 		emit-sfx 1024 + 0 from lflare2;
 	}
-
-	// Shotgun retraction animation
 
 	start-script ShotgunRetraction();
 
