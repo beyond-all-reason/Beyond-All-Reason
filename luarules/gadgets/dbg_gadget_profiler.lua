@@ -15,7 +15,8 @@ function gadget:GetInfo()
 	}
 end
 
--- use 'luarules profile' to switch on the profiler
+-- use 'luarules profile' to switch on the profiler: its figures show in LuaUI's window (the widget Gadget Profiler FlowUI2,
+--   switched on for it) when the game has that, else in this gadget's own list; 'luarules profile text' asks for the list
 -- future use of 'luarules profile' acts as a toggle to show/hide the on-screen profiling data (without touching the hooks)
 -- use 'luarules kill_profiler' to switch off the profiler for *everyone* currently using it (and remove the hooks)
 
@@ -207,12 +208,13 @@ else
 		local ds = new_s - s
 
 		local gadgetCallinStats = ValueForKey_SetDefaultInOriginalTable(callinStats, gadgetName, {})
-		local stats = ValueForKey_SetDefaultInOriginalTable(gadgetCallinStats, callinName, { 0, 0, 0, 0 })
+		local stats = ValueForKey_SetDefaultInOriginalTable(gadgetCallinStats, callinName, { 0, 0, 0, 0, 0 })
 
 		stats[1] = stats[1] + dt
 		stats[2] = stats[2] + dt
 		stats[3] = stats[3] + ds
 		stats[4] = stats[4] + ds
+		stats[5] = stats[5] + 1 -- calls this tick
 	end
 end
 
@@ -253,6 +255,12 @@ Hook = function(gadget, callinName)
 end
 
 local hookset = false
+
+-- A synced callin is timed in unsynced, between the two messages its hook sends there: the time read includes what
+-- passing them costs, which makes cheap callins read heavier than they are. Starting sends CALIBRATION_CALLS such
+-- pairs with nothing between them, under this name; the unsynced side takes their average off every synced call.
+local CALIBRATION = "#calibration"
+local CALIBRATION_CALLS = 500
 
 local dummyTable = {} -- Avoid re-creating an empty table that will never be given elements
 
@@ -331,6 +339,13 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 
 	ProfilerEcho("hooked UpdateCallin")
 
+	if SendToUnsynced ~= nil then
+		for _ = 1, CALIBRATION_CALLS do
+			hookPreRealFunction(CALIBRATION, "pass")
+			hookPostRealFunction(CALIBRATION, "pass")
+		end
+	end
+
 	return false -- allow the unsynced chataction to execute too
 end
 
@@ -392,6 +407,58 @@ else
 
 	local startTickTimer
 
+	-- LuaUI's window (Gadget Profiler FlowUI2), while it listens: each tick's figures go to it in place of being
+	-- drawn here. It asks for its tick and for the gadget whose callins to smooth through config values.
+	-- Starting asks LuaUI for that window when the game has it (its widget switched on), and draws nothing here
+	-- while it comes up: this gadget's own list shows only without it (no FlowUI2, the widget unable to start) or
+	-- when asked for ("/luarules profile text").
+	local UI_STATS = "GadgetProfilerStats"
+	local UI_WIDGET = "Gadget Profiler FlowUI2"
+	local UI_WIDGET_FILE = "luaui/Widgets/dbg_gadget_profiler_flowui2.lua"
+	local UI_WAIT = 1.5 -- seconds given to the window to start listening
+	local uiWaitTimer = nil -- the window was asked for: at this time
+	local ownList = false -- "/luarules profile text"
+	local uiDetail = nil -- the gadget it has open, by its plain name (selectedSynced: which half)
+	local syncedPass = 0 -- seconds passing one synced callin to unsynced costs (see CALIBRATION)
+	local plainNames = {}
+
+	-- whether the figures go to LuaUI's window; nil while it is waited for (nothing drawn)
+	local function ToUI()
+		if ownList then
+			return false
+		elseif Script.LuaUI(UI_STATS) then
+			uiWaitTimer = nil
+			return true
+		elseif uiWaitTimer then
+			if spDiffTimers(spGetTimer(), uiWaitTimer, nil, highres) < UI_WAIT then
+				return nil
+			end
+			uiWaitTimer = nil
+		end
+		return false
+	end
+
+	-- a gadget's name without its prefix, colour codes and padding (a synced one's arrives from synced with them)
+	local function PlainName(gname)
+		local plain = plainNames[gname]
+		if not plain then
+			plain = gname2name[gname] or stringMatch(gname, "\255...([^\255]*)$") or gname
+			plain = stringMatch(plain, "^(.-)%s*$")
+			plainNames[gname] = plain
+		end
+		return plain
+	end
+
+	local function ReadUIDetail()
+		local side, name = stringMatch(Spring.GetConfigString("profiler_gadget_detail", ""), "^([su]):(.+)$")
+		local synced = side == "s"
+		if name ~= uiDetail or (name and synced ~= selectedSynced) then
+			uiDetail, selectedSynced = name, synced
+			selectedGadget = nil
+			selectedCallinAvgs = {} -- start a fresh smoothing window
+		end
+	end
+
 	local function SetDrawCallin(drawCallin)
 		-- when the profiler isn't running, the profiler gadget should have *no* draw callin
 		gadget.DrawScreen = drawCallin
@@ -437,7 +504,17 @@ else
 		elseif pID == Spring.GetLocalPlayerID() then
 			running = true
 
-			tick = (words and words[1] and tonumber(words[1])) or tick
+			-- "/luarules profile [seconds] [text]"
+			ownList = false
+			for _, word in ipairs(words or {}) do
+				tick = tonumber(word) or tick
+				ownList = ownList or word == "text"
+			end
+			uiWaitTimer = nil
+			if not ownList and not Script.LuaUI(UI_STATS) and VFS.FileExists(UI_WIDGET_FILE) then
+				Spring.SendCommands("luaui enablewidget " .. UI_WIDGET)
+				uiWaitTimer = spGetTimer()
+			end
 
 			if highres and true then -- this tests the timers for correctness
 				local starttime = Spring.GetTimer()
@@ -479,6 +556,10 @@ else
 			selectedCallinAvgs = {}
 
 			startTickTimer = nil
+
+			if Script.LuaUI(UI_STATS) then
+				Script.LuaUI.GadgetProfilerStats(false) -- stopped
+			end
 
 			ProfilerEcho("luarules profiler killed (player " .. pID .. ")")
 		end
@@ -595,7 +676,8 @@ else
 		return timeColourString, spaceColourString
 	end
 
-	local function ProcessCallinStats(stats, timeLoadAvgs, spaceloadAvgs, redStr, deltaTime, isSynced)
+	-- `out` (LuaUI's window listening): every gadget's figures appended to its parallel arrays
+	local function ProcessCallinStats(stats, timeLoadAvgs, spaceloadAvgs, redStr, deltaTime, isSynced, out)
 		local allOverTime = 0
 		local allOverSpace = 0
 		local n = 1
@@ -604,13 +686,26 @@ else
 
 		-- Only smooth the per-callin breakdown for the gadget being drilled into,
 		-- and only in the list (unsynced/synced) it was selected from.
-		local captureThisList = selectedGadget and (isSynced == selectedSynced)
+		local captureThisList = (selectedGadget or uiDetail) and (isSynced == selectedSynced)
 
 		local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
 		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
 
+		-- the synced callins' passing cost, measured when it started; taken off each of their calls below
+		local pass = 0
+		if isSynced then
+			local measured = stats[CALIBRATION] and stats[CALIBRATION].pass
+			if measured then
+				if measured[5] > 0 then
+					syncedPass = measured[1] / measured[5]
+				end
+				stats[CALIBRATION] = nil
+			end
+			pass = syncedPass
+		end
+
 		-- Cache FPS and frame calculation
-		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
+		local frames = mathMin(1 / tick, mathMax(1, Spring.GetFPS())) * retainSortTime -- (0 fps: a division by 0)
 		local framesMinusOne = frames - 1
 
 		for gname, callins in pairs(stats) do
@@ -621,10 +716,15 @@ else
 			local cmax_space = 0
 			local cmaxname_space = "-"
 
-			local captureGadget = captureThisList and gname == selectedGadget
+			local captureGadget = captureThisList
+				and (gname == selectedGadget or (uiDetail ~= nil and PlainName(gname) == uiDetail))
 
 			for cname, c in pairs(callins) do
-				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
+				local c1, c2, c3, c4, calls = c[1], c[2], c[3], c[4], c[5] or 0
+				c[5] = 0
+				if pass > 0 then
+					c1 = mathMax(0, c1 - calls * pass)
+				end
 				t = t + c1
 				if c2 > cmax_t then
 					cmax_t = c2
@@ -642,12 +742,14 @@ else
 				if captureGadget then
 					local relT = 100 * c1 / deltaTime
 					local relS = c3 / deltaTime
+					local relC = calls / deltaTime -- calls a second
 					local prev = selectedCallinAvgs[cname]
 					if prev then
 						prev[1] = CalcLoad(prev[1], relT, averageTime)
 						prev[2] = CalcLoad(prev[2], relS, averageTime)
+						prev[3] = CalcLoad(prev[3] or relC, relC, averageTime)
 					else
-						selectedCallinAvgs[cname] = { relT, relS }
+						selectedCallinAvgs[cname] = { relT, relS, relC }
 					end
 				end
 			end
@@ -668,6 +770,12 @@ else
 				avgTLoad[gname] = tLoad * 0.7
 			end
 			avgTLoad[gname] = ((avgTLoad[gname] * framesMinusOne) + tLoad) / frames
+			if out then
+				local i = out.n + 1
+				out.n = i
+				out.names[i], out.load[i], out.space[i] = PlainName(gname), tLoad, sLoad
+				out.share[i], out.heavy[i] = tTime, cmaxname_t
+			end
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
 			if avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
 				sorted[n] = {
@@ -1072,23 +1180,78 @@ else
 			return
 		end
 
+		local toUI = ToUI()
+		if toUI == nil then
+			return
+		elseif toUI then
+			local wanted = Spring.GetConfigFloat("profiler_gadget_tick", 0)
+			if wanted > 0 then
+				tick = wanted
+			end
+		end
+
 		local deltaTime = spDiffTimers(spGetTimer(), startTickTimer, nil, highres)
 
 		if deltaTime >= tick then
 			startTickTimer = spGetTimer()
 
+			local out
+			if toUI then
+				ReadUIDetail()
+				out = { n = 0, names = {}, load = {}, space = {}, share = {}, heavy = {} }
+			end
+
 			sortedList =
-				ProcessCallinStats(callinStats, timeLoadAverages, spaceLoadAverages, redStrength, deltaTime, false)
+				ProcessCallinStats(callinStats, timeLoadAverages, spaceLoadAverages, redStrength, deltaTime, false, out)
+			local unsyncedCount = out and out.n
 			sortedListSYNCED = ProcessCallinStats(
 				callinStatsSYNCED,
 				timeLoadAveragesSYNCED,
 				spaceLoadAveragesSYNCED,
 				redStrengthSYNCED,
 				deltaTime,
-				true
+				true,
+				out
 			)
 
 			luarulesMemory, _, globalMemory, _, unsyncedMemory, _, syncedMemory, _ = spGetLuaMemUsage()
+
+			if out then
+				-- parallel arrays (cross-state calls copy their arguments; arrays copy cheapest): the unsynced
+				-- gadgets first, then the synced; the open gadget's callins
+				local callins, callinTime, callinSpace, callinCalls = {}, {}, {}, {}
+				if uiDetail then
+					local c = 0
+					for cname, avg in pairs(selectedCallinAvgs) do
+						c = c + 1
+						callins[c], callinTime[c], callinSpace[c], callinCalls[c] = cname, avg[1], avg[2], avg[3] or 0
+					end
+				end
+				Script.LuaUI.GadgetProfilerStats(
+					out.names,
+					unsyncedCount,
+					out.load,
+					out.space,
+					out.share,
+					out.heavy,
+					deltaTime,
+					tick,
+					luarulesMemory,
+					globalMemory,
+					unsyncedMemory,
+					syncedMemory,
+					callins,
+					callinTime,
+					callinSpace,
+					callinCalls,
+					syncedPass
+				)
+			end
+		end
+
+		if toUI then
+			clickableRowCount = 0 -- (nothing drawn here: nothing to click)
+			return
 		end
 
 		currentLineIndex = 0

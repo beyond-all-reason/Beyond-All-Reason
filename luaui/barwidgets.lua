@@ -1112,6 +1112,7 @@ function widgetHandler:Initialize()
 	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
 	self:UpdateCallIns()
 	insertingStartupWidgets = true
+	self.startingUp = true -- (a widget's Initialize can tell it was on already from being switched on)
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -1129,6 +1130,7 @@ function widgetHandler:Initialize()
 		end
 	end
 	insertingStartupWidgets = false
+	self.startingUp = false
 	-- Kept, the list would hold every startup widget in memory after it is switched off.
 	unsortedWidgets = {}
 
