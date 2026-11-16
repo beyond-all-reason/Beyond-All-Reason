@@ -53,6 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 	local resourceList = { "metal", "energy" }
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
+	local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 	local validation = string.randomString(2)
 	_G.validationIdle = validation
@@ -141,7 +142,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function takeTeam(cmd, line, words, playerID)
-		if not CheckPlayerState(playerID) then
+		if not isSinglePlayer and not CheckPlayerState(playerID) then
 			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
 			return -- exclude taking rights from lagged players, etc
 		end
@@ -158,9 +159,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local numTaken = 0
 		for _, teamID in ipairs(teamList) do
-			local luaAI = GetTeamLuaAI(teamID)
-			if (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-				-- transfer all units
+			if not isSinglePlayer and GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+				--
+			elseif teamID ~= takerID then
+				-- Transfer all units and unit limit. Kill an emptied AI team.
 				local teamUnits = GetTeamUnits(teamID)
 				local unitsTaken = 0
 				for i = 1, #teamUnits do
@@ -187,6 +189,10 @@ if gadgetHandler:IsSyncedCode() then
 					numTaken = numTaken + 1
 					SendToUnsynced("TeamTaken", playerID, teamID, unitsTaken, taken.energy, taken.metal)
 				end
+				local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+				if isAiTeam and #GetTeamUnits(teamID) == 0 then
+					Spring.KillTeam(teamID) -- game_end won't eliminate an empty AI team -- FIXME?
+				end
 			end
 		end
 		if numTaken == 0 then
@@ -194,25 +200,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function refuseTake(cmd, line, words, playerID)
-		SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
-	end
-
 	function gadget:Initialize()
-		if BAR.Utilities.Gametype.IsSinglePlayer() then
-			gadgetHandler:AddChatAction(
-				takeCommand,
-				refuseTake,
-				"Take control of units and resources from inactive players"
-			)
-			-- AIs cannot be abandoned so there is nothing to take.
+		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
+		if isSinglePlayer then
 			gadgetHandler:RemoveCallIn("GameFrame")
 			gadgetHandler:RemoveCallIn("RecvLuaMsg")
 			gadgetHandler:RemoveCallIn("AllowResourceTransfer")
 			gadgetHandler:RemoveCallIn("AllowUnitTransfer")
 			return
 		end
-		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
 	end
 
@@ -403,6 +399,7 @@ else -- UNSYNCED
 	function gadget:Initialize()
 		if BAR.Utilities.Gametype.IsSinglePlayer() then
 			gadgetHandler:AddSyncAction("NotifyError", notifyError)
+			gadgetHandler:AddSyncAction("TeamTaken", teamTaken)
 			gadgetHandler:RemoveCallIn("Update")
 			gadgetHandler:RemoveCallIn("MousePress")
 			gadgetHandler:RemoveCallIn("MouseWheel")
