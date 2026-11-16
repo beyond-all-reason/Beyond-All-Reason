@@ -34,6 +34,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
+			restrictions_inclusion = "_nosea_",
 			subfolder = "ArmBuildings/SeaDefence",
 			unitgroup = "sub",
 			usebuildinggrounddecal = true,
