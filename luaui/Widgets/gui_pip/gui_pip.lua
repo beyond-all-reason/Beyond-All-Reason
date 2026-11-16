@@ -14273,12 +14273,26 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 	local tracking = interactionState.trackingPlayerID ~= nil
 	local highlightSelected = not tracking
 
+	-- the minimap rotation is applied by the surrounding matrix; passing it lets the engine
+	-- turn each icon back so it stays upright (engines before that argument ignore it)
+	local rotation = render.minimapRotation or 0
+
 	-- other perspectives (tracked player / LOS view) are only permitted with a full-read
 	-- handle (fullview spectating); otherwise render our own view
 	if checkAllyTeamID and (isFullview or checkAllyTeamID == myAllyTeam) then
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false, highlightSelected)
+		gl.DrawMiniMapIcons(
+			worldL,
+			worldT,
+			worldR,
+			worldB,
+			iconSizeElmos,
+			checkAllyTeamID,
+			false,
+			highlightSelected,
+			rotation
+		)
 	else
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected, rotation)
 	end
 
 	glFunc.PopMatrix()
@@ -14291,12 +14305,27 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 		if uvs and defaultUV then
 			local unitDefCacheTbl = gl4Icons.unitDefCache
 			local cacheUnitIcon = cache.unitIcon
+			-- like the engine's icons, stay upright on a rotated minimap: undo the surrounding
+			-- rotation and turn the positions instead
+			local rotS, rotC = math.sin(rotation), math.cos(rotation)
+			local cx = render.dim.l + (render.dim.r - render.dim.l) / 2
+			local cy = render.dim.b + (render.dim.t - render.dim.b) / 2
+			if rotation ~= 0 then
+				glFunc.PushMatrix()
+				glFunc.Translate(cx, cy, 0)
+				glFunc.Rotate(-rotation * 180 / math.pi, 0, 0, 1)
+				glFunc.Translate(-cx, -cy, 0)
+			end
 			glFunc.Texture("$icons")
 			glFunc.Color(1, 1, 1, 1)
 			for uID in pairs(trackedSelectedSet) do
 				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
 				if ux and ux >= worldL and ux <= worldR and uz >= worldT and uz <= worldB then
 					local px, py = WorldToPipCoords(ux, uz)
+					if rotation ~= 0 then
+						local dx, dy = px - cx, py - cy
+						px, py = cx + dx * rotC - dy * rotS, cy + dx * rotS + dy * rotC
+					end
 					local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
 					local uv = (uDefID and uvs[uDefID]) or defaultUV
 					local icon = uDefID and cacheUnitIcon[uDefID]
@@ -14305,6 +14334,9 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 				end
 			end
 			glFunc.Texture(false)
+			if rotation ~= 0 then
+				glFunc.PopMatrix()
+			end
 		end
 	end
 
