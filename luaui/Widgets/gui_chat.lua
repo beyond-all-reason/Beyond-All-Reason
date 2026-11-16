@@ -964,7 +964,7 @@ state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitFor
 	state.mapmarkTriggerKey = triggerKey
 	state.mapmarkTriggerScanCode = triggerScanCode
 	state.mapmarkPressedKeys = waitForTriggerRelease and Spring.GetPressedKeys() or nil
-	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans and Spring.GetPressedScans() or nil
+	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans() or nil
 	state.mapmarkTriggerIdentityCaptured = triggerKey ~= nil
 		or triggerScanCode ~= nil
 		or (state.mapmarkPressedKeys and next(state.mapmarkPressedKeys) ~= nil)
@@ -998,7 +998,7 @@ state.areMapmarkTriggerKeysPressed = function()
 		end
 	end
 
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	local pressedScans = Spring.GetPressedScans()
 	if state.mapmarkTriggerScanCode and pressedScans[state.mapmarkTriggerScanCode] then
 		return true
 	end
@@ -1157,6 +1157,13 @@ state.stopMapDraw = function()
 	state.mapDrawScanCode = nil
 	state.mapDrawLastX = nil
 	state.mapDrawLastZ = nil
+end
+
+state.isMapDrawKeyPressed = function()
+	if state.mapDrawKey and Spring.GetKeyState(state.mapDrawKey) then
+		return true
+	end
+	return state.mapDrawScanCode ~= nil and Spring.GetPressedScans()[state.mapDrawScanCode] and true or false
 end
 
 local function ensureInputHistoryDraft()
@@ -2111,6 +2118,11 @@ end
 function widget:Update(dt)
 	if gameOver and not Spring.IsReplay() then
 		state.watchServerLink(dt)
+	end
+
+	-- The key's release can go to a text owner or RmlUi instead of reaching this widget.
+	if state.mapDrawActive and not state.isMapDrawKeyPressed() then
+		state.stopMapDraw()
 	end
 
 	if inputMode == "label" and state.mapmarkTriggerDown then
