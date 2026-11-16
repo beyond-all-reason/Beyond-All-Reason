@@ -110,7 +110,7 @@ return {
 				name = "BattleshipCannon",
 				noselfdamage = true,
 				range = 1050,
-				reloadtime = 4,
+				reloadtime = 4.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
