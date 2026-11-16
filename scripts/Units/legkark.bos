@@ -581,6 +581,8 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	isAiming = TRUE;
 	
+	wait-for-turn torso around y-axis;
+	
 	turn lshoulder to y-axis <-5> speed <25>;
 
 	// Restrict secondary weapons firing angles relative to the primary weapons heading
@@ -607,8 +609,6 @@ ShotgunRetraction()
 	move lbarrel to z-axis [-5] speed [100];
 	sleep 500;
 	move lbarrel to z-axis [0] speed [20];
-	
-	return(1); // Allows flares to cycle between barrels
 }
 
 FireWeapon2()
