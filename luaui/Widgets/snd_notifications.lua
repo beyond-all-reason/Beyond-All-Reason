@@ -1038,7 +1038,6 @@ function widget:Update(dt)
 		end
 
 		if sec <= clearUntilSec then
-			Spring.Echo("PlayerChanged, clearing queues")
 			for i = 1, #soundQueue do
 				soundQueue[i] = {}
 			end
