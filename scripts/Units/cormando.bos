@@ -448,21 +448,24 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	start-script BarrelSpin();
 
-	//SleeveDeploy animation
+	//DeploySleeve animation
 
 	if (DEPLOYING)
 	{
 	
-	turn sleeve to x-axis <160> speed <225.0>;
+		turn sleeve to x-axis <160> speed <225.0>;
 
+			if (!aimReady)
+			{
+				
+				wait-for-turn sleeve around x-axis;
+				aimReady = 1;
+
+			}
 	}
-
-	if (!aimReady)
+	else
 	{
-		
-		wait-for-turn sleeve around x-axis;
-		
-		aimReady = 1;
+		return(1);
 	}
 
 	// if(aimReady)
