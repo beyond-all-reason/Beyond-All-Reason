@@ -146,6 +146,13 @@ local zombieModeSettings = {
 ---@field wraithRespawns boolean?
 ---@field multipleSpawns boolean?
 
+---@class ZombieBuilderUnitDef
+---@field isFactory boolean
+---@field canReclaim boolean
+---@field canResurrect boolean
+---@field resurrectSpeed number
+---@field buildTime number
+
 ---@type table<ZombieMode, ZombieModeFeatures>
 local ZOMBIE_MODE_FEATURES = {
 	basic = {},
@@ -194,6 +201,7 @@ local FRAMES = {
 	SUBSTITUTE_FAIR_ROLL = Game.gameSpeed * 60 * 20,
 	RECENT_TAMPER = Game.gameSpeed,
 	BUILD_STEP_CHECK = floor(Game.gameSpeed / 2),
+	BUILDER_POLL = floor(Game.gameSpeed / 2),
 	REZ_HIJACK_LEAD = 30,
 	PENDING_DEATH_TIMEOUT = Game.gameSpeed * 3,
 	VANISHED_DEATH_CHECK = 15,
@@ -220,7 +228,6 @@ local DAMAGE = {
 }
 
 local gameFrame = 0
-local runFeatureBuildStepCheck = false
 local tooLong = false
 local factoryBuildpowerMultiplier = 1
 local currentTechLevel = 1
@@ -238,7 +245,7 @@ local WRAITH = {
 	UNIT_NAME = "scavwraith",
 	MIN_FLEE_TIME = Game.gameSpeed * 5,
 	MAX_FLEE_TIME = Game.gameSpeed * 7,
-	EXPIRATION_TIME = Game.gameSpeed * 480,
+	EXPIRATION_TIME = Game.gameSpeed * 20,
 	MAP_MARGIN = 16,
 	SPAWN_ATTEMPT_COUNT = 3,
 	SPAWN_OFFSET_DISTANCE = 100,
@@ -277,9 +284,7 @@ local zombieCorpseDefs = {} ---@type table<FeatureDefID, table?>
 local zombieHeapDefs = {} ---@type table<FeatureDefID, table?>
 local trackedFeatures = {}
 local featureCheckFrames = {}
-local rezzedCorpses = {}
 local zombieRezChecks = {}
-local pendingTamperedFrames = {}
 local pendingDeaths = {}
 local pendingWreckSwaps = {}
 local suppressedDeaths = {}
@@ -288,6 +293,17 @@ local pendingZombieCaptures = {}
 local unitTamperFrames = {}
 local zombiesBeingBuilt = {}
 local zombieUnitIDs = {}
+local watchedBuilderIDs = {} ---@type table<integer, UnitID?>
+local watchedBuilderIndex = {}
+local resurrectSpeedByFeatureID = {}
+local interceptFeatureIDs = {} ---@type table<integer, FeatureID?>
+local maxUnits = Game.maxUnits
+local CORPSE_COMMANDS = {
+	[CMD.RECLAIM] = true,
+	[CMD.RESURRECT] = true,
+	[CMD.FIGHT] = true,
+	[CMD.PATROL] = true,
+}
 
 do
 	local deathNamesBlockingWraiths = {
@@ -301,6 +317,7 @@ do
 		TurnedIntoFeature = true,
 		KilledByLua = true,
 		SelfD = true,
+		UnitScript = true,
 		Water = true,
 	}
 	for deathName, damageTypeID in pairs(Game.envDamageTypes) do
@@ -517,6 +534,7 @@ do
 
 		local rezPower = math.max(1, unitDef.power or 1)
 		local isPoolMember = customParams.zombie_wraith_respawn_pool and true or false
+		local builderUnitDef = unitDef ---@as ZombieBuilderUnitDef
 		local unitDefData = {
 			unitDefID = unitDefID,
 			rezPower = rezPower,
@@ -529,6 +547,11 @@ do
 			excludedFromWraithSpawn = isExcludedFromWraithSpawn(unitDef),
 			scavVariantUnitDefID = getScavVariantUnitDefID(unitDef, unitDefID),
 			spawnExplosionCeg = getSpawnExplosionCeg(unitDef),
+			canWorkCorpses = not builderUnitDef.isFactory
+					and (builderUnitDef.canReclaim or builderUnitDef.canResurrect)
+				or false,
+			resurrectSpeedPerFrame = (builderUnitDef.resurrectSpeed or 0) / Game.gameSpeed,
+			buildTime = builderUnitDef.buildTime or 0,
 		}
 
 		local customRespawnTime = tonumber(customParams.zombie_respawn_time)
@@ -940,6 +963,18 @@ local function publishPushedSpawn(featureID, corpseData)
 	GG.ZombieWreckEffects.Arm(featureID, gameFrame, shownSpawnFrame)
 end
 
+local function restartCorpseTimer(featureID, corpseData)
+	if corpseData.tamperedFrame == gameFrame then
+		return
+	end
+	corpseData.tamperedFrame = gameFrame
+	local restartPushback = gameFrame + (corpseData.spawnDelayFrames or 0) - (corpseData.spawnFrame or gameFrame)
+	if restartPushback > (corpseData.pushbackFrames or 0) then
+		corpseData.pushbackFrames = restartPushback
+	end
+	publishPushedSpawn(featureID, corpseData)
+end
+
 local function rollFor(keep, rollCount, minimum, maximum)
 	local result = random(minimum, maximum)
 	for _ = 2, rollCount do
@@ -1192,6 +1227,7 @@ local function createWraith(spawnData)
 		expirationFrame = gameFrame + WRAITH.EXPIRATION_TIME,
 		payloadUnitDefID = spawnData.payloadUnitDefID,
 		payloadCount = spawnData.payloadCount or 0,
+		isSubstitute = spawnData.isSubstitute == true,
 	}
 	local attackerX, attackerZ = getLiveAttackerPosition(spawnData.attackerID, spawnData.attackerX, spawnData.attackerZ)
 	if GG.ZombieAI then
@@ -1394,6 +1430,11 @@ local function updateWraiths()
 		if wraithData then
 			local wraithX, wraithY, wraithZ = spring.GetUnitPosition(unitID)
 			if not wraithX or gameFrame >= wraithData.expirationFrame or (wraithData.payloadCount or 0) <= 0 then
+				refundSubstitutePayload(
+					wraithData.payloadUnitDefID,
+					wraithData.payloadCount or 0,
+					wraithData.isSubstitute
+				)
 				removeWraith(unitID)
 			else
 				local enemyNearby = false
@@ -1460,12 +1501,15 @@ local function wasTamperedRecently(tamperedFrame)
 	return tamperedFrame and gameFrame - tamperedFrame < FRAMES.RECENT_TAMPER
 end
 
-local function framesUntilResurrectCompletes(featureID, buildStepFraction)
+local function framesUntilResurrectCompletes(featureID, resurrectSpeedPerFrame, buildTime)
 	local _, _, resurrectProgress = spring.GetFeatureHealth(featureID)
-	if not resurrectProgress or buildStepFraction <= 0 then
+	if not resurrectProgress then
 		return nil
 	end
-	local progressPerFrame = buildStepFraction
+	local progressPerFrame = 0.0
+	if buildTime > 0 then
+		progressPerFrame = resurrectSpeedPerFrame / buildTime
+	end
 	local rezCheck = zombieRezChecks[featureID]
 	if rezCheck and rezCheck.frame < gameFrame then
 		local measuredProgressPerFrame = (resurrectProgress - rezCheck.progress) / (gameFrame - rezCheck.frame)
@@ -1473,53 +1517,94 @@ local function framesUntilResurrectCompletes(featureID, buildStepFraction)
 			progressPerFrame = measuredProgressPerFrame
 		end
 	end
-	if not rezCheck or rezCheck.frame ~= gameFrame then
-		zombieRezChecks[featureID] = { frame = gameFrame, progress = resurrectProgress }
-	end
+	zombieRezChecks[featureID] = { frame = gameFrame, progress = resurrectProgress }
 	if progressPerFrame <= 0 then
 		return nil
 	end
 	return (1 - resurrectProgress) / progressPerFrame
 end
 
-function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, buildStepFraction)
-	if not runFeatureBuildStepCheck then
-		return true
+local function watchBuilder(unitID)
+	if watchedBuilderIndex[unitID] then
+		return
 	end
-	if isZombieTeam(builderTeam) then
-		if buildStepFraction <= 0 or not zombieUnitIDs[builderID] then
-			return true
-		end
-		local corpseDefData = zombieCorpseDefs[featureDefID]
-		if not corpseDefData then
-			return true
-		end
-		if rezzedCorpses[featureID] then
-			return false
-		end
-		local corpseData = trackedFeatures[featureID]
-		local tamperedFrame = pendingTamperedFrames[featureID]
-		if not tamperedFrame and corpseData then
-			tamperedFrame = corpseData.tamperedFrame
-		end
-		if wasTamperedRecently(tamperedFrame) then
-			return true
-		end
-		local framesRemaining = framesUntilResurrectCompletes(featureID, buildStepFraction)
-		if not framesRemaining or framesRemaining > FRAMES.REZ_HIJACK_LEAD then
-			return true
-		end
-		rezzedCorpses[featureID] = true
-		if spawnZombiesFromFeature(featureID, corpseDefData.unitDefID, wasZombieCorpse(featureID, corpseData)) then
-			return false
-		end
-		rezzedCorpses[featureID] = nil
-		return true
+	local watchIndex = #watchedBuilderIDs + 1
+	watchedBuilderIDs[watchIndex] = unitID
+	watchedBuilderIndex[unitID] = watchIndex
+end
+
+local function unwatchBuilder(unitID)
+	local watchIndex = watchedBuilderIndex[unitID]
+	if not watchIndex then
+		return
 	end
-	if trackedFeatures[featureID] then
-		pendingTamperedFrames[featureID] = gameFrame
+	local lastBuilderID = watchedBuilderIDs[#watchedBuilderIDs]
+	watchedBuilderIDs[watchIndex] = lastBuilderID
+	watchedBuilderIDs[#watchedBuilderIDs] = nil
+	watchedBuilderIndex[unitID] = nil
+	if lastBuilderID and lastBuilderID ~= unitID then
+		watchedBuilderIndex[lastBuilderID] = watchIndex
 	end
-	return true
+end
+
+local function pollWatchedBuilders()
+	for watchIndex = #watchedBuilderIDs, 1, -1 do
+		local unitID = watchedBuilderIDs[watchIndex]
+		if unitID then
+			local commandID, targetID = spring.GetUnitWorkerTask(unitID)
+			local featureID = nil
+			if targetID and targetID >= maxUnits then
+				featureID = targetID - maxUnits
+			end
+			if featureID ~= nil and (commandID == CMD.RECLAIM or commandID == CMD.RESURRECT) then
+				local unitTeam = spring.GetUnitTeam(unitID)
+				if not isZombieTeam(unitTeam) then
+					local corpseData = trackedFeatures[featureID] ---@as table?
+					if corpseData then
+						restartCorpseTimer(featureID, corpseData)
+					end
+				elseif commandID == CMD.RESURRECT and zombieUnitIDs[unitID] then
+					local unitDefID = spring.GetUnitDefID(unitID)
+					local builderDefData = unitDefID and zombieUnitDefs[unitDefID] ---@as table?
+					if builderDefData then
+						local resurrectSpeedPerFrame = resurrectSpeedByFeatureID[featureID]
+						if not resurrectSpeedPerFrame then
+							interceptFeatureIDs[#interceptFeatureIDs + 1] = featureID
+							resurrectSpeedPerFrame = 0
+						end
+						resurrectSpeedByFeatureID[featureID] = resurrectSpeedPerFrame
+							+ builderDefData.resurrectSpeedPerFrame
+					end
+				end
+			-- Patrol and guard reclaim wrecks without a new UnitCommand, and GetUnitWorkerTask
+			-- stays empty until that reclaim starts. Stay watched until the queue is empty so
+			-- the poll still sees the reclaim.
+			elseif spring.GetUnitCommandCount(unitID) == 0 then
+				unwatchBuilder(unitID)
+			end
+		end
+	end
+	for interceptIndex = 1, #interceptFeatureIDs do
+		local featureID = interceptFeatureIDs[interceptIndex]
+		if featureID then
+			local featureDefID = spring.GetFeatureDefID(featureID)
+			local corpseDefData = featureDefID and zombieCorpseDefs[featureDefID]
+			local corpseData = trackedFeatures[featureID]
+			local tamperedFrame = corpseData and corpseData.tamperedFrame
+			if corpseDefData and not wasTamperedRecently(tamperedFrame) then
+				local framesRemaining = framesUntilResurrectCompletes(
+					featureID,
+					resurrectSpeedByFeatureID[featureID],
+					corpseDefData.buildTime
+				)
+				if framesRemaining and framesRemaining <= FRAMES.REZ_HIJACK_LEAD then
+					spawnZombiesFromFeature(featureID, corpseDefData.unitDefID, wasZombieCorpse(featureID, corpseData))
+				end
+			end
+			resurrectSpeedByFeatureID[featureID] = nil
+		end
+		interceptFeatureIDs[interceptIndex] = nil
+	end
 end
 
 local function isWraithFeedingDeath(unitID, unitDefID, weaponDefID)
@@ -1832,43 +1917,9 @@ local function topUpGaiaResources()
 	end
 end
 
-local function publishPendingTamperedCorpses()
-	if next(pendingTamperedFrames) == nil then
-		return
-	end
-	local featureIDs = {}
-	for featureID in pairs(pendingTamperedFrames) do
-		featureIDs[#featureIDs + 1] = featureID
-	end
-	table.sort(featureIDs)
-	for featureIndex = 1, #featureIDs do
-		local featureID = featureIDs[featureIndex]
-		local tamperedFrame = pendingTamperedFrames[featureID]
-		pendingTamperedFrames[featureID] = nil
-		local corpseData = trackedFeatures[featureID]
-		if corpseData then
-			corpseData.tamperedFrame = tamperedFrame
-			local delayFrames = corpseData.spawnDelayFrames or 0
-			local restartPushback = gameFrame + delayFrames - (corpseData.spawnFrame or gameFrame)
-			if restartPushback < 0 then
-				restartPushback = 0
-			end
-			if (corpseData.pushbackFrames or 0) < restartPushback then
-				corpseData.pushbackFrames = restartPushback
-			end
-			publishPushedSpawn(featureID, corpseData)
-		end
-	end
-end
-
 function gadget:GameFrame(frame)
 	gameFrame = frame
 	refreshCachedHighestPlayerTeamPower()
-	if frame % FRAMES.BUILD_STEP_CHECK == 5 then
-		runFeatureBuildStepCheck = true
-	else
-		runFeatureBuildStepCheck = false
-	end
 
 	processWreckSwaps()
 	if frame % FRAMES.VANISHED_DEATH_CHECK == 0 then
@@ -1885,7 +1936,6 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % FRAMES.CHECK_INTERVAL == 0 then
-		publishPendingTamperedCorpses()
 		updateTooLong(frame)
 		if currentModeFeatures.wraithRespawns then
 			updateWraiths()
@@ -1893,6 +1943,9 @@ function gadget:GameFrame(frame)
 		topUpGaiaResources()
 	end
 
+	if frame % FRAMES.BUILDER_POLL == 5 then
+		pollWatchedBuilders()
+	end
 	processDueCorpses(frame)
 	if next(createdFeaturesByPosition) then
 		createdFeaturesByPosition = {}
@@ -2229,9 +2282,7 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 		trackedFeatures[featureID] = nil
 		disarmCorpseEffects(featureID, corpseData)
 	end
-	rezzedCorpses[featureID] = nil
 	zombieRezChecks[featureID] = nil
-	pendingTamperedFrames[featureID] = nil
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -2251,7 +2302,23 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:UnitCommand(unitID, unitDefID, _, cmdID, cmdParams)
+	if not zombieUnitDefs[unitDefID].canWorkCorpses then
+		return
+	end
+	if cmdID == CMD.INSERT then
+		-- Shift-queued orders arrive as CMD.INSERT. Param 1 is the queue index and param 2 is the
+		-- real command id, stored as a float. Floor it so the corpse-command check below still
+		-- matches reclaim, resurrect, fight, or patrol. A missing param becomes 0, which does not.
+		cmdID = floor(cmdParams and cmdParams[2] or 0)
+	end
+	if CORPSE_COMMANDS[cmdID] then
+		watchBuilder(unitID)
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	unwatchBuilder(unitID)
 	local wasWraith = wraiths[unitID] ~= nil
 	wraiths[unitID] = nil
 
@@ -2632,7 +2699,6 @@ local function saveReloadState()
 			trackedFeatures = trackedFeatures,
 			featureCheckFrames = featureCheckFrames,
 			zombieRezChecks = zombieRezChecks,
-			pendingTamperedFrames = pendingTamperedFrames,
 			pendingDeaths = pendingDeaths,
 			pendingWreckSwaps = pendingWreckSwaps,
 			pendingZombieCaptures = pendingZombieCaptures,
@@ -2672,7 +2738,6 @@ local function restoreReloadState()
 	end
 	featureCheckFrames = reloadState.featureCheckFrames
 	zombieRezChecks = reloadState.zombieRezChecks
-	pendingTamperedFrames = reloadState.pendingTamperedFrames or {}
 	pendingDeaths = reloadState.pendingDeaths
 	pendingWreckSwaps = reloadState.pendingWreckSwaps
 	pendingZombieCaptures = reloadState.pendingZombieCaptures
@@ -2713,6 +2778,19 @@ function gadget:Initialize()
 			for _, featureID in ipairs(features) do
 				gadget:FeatureCreated(featureID)
 			end
+		end
+	end
+	gadgetHandler:RegisterUnitCommand(CMD.RECLAIM)
+	gadgetHandler:RegisterUnitCommand(CMD.RESURRECT)
+	gadgetHandler:RegisterUnitCommand(CMD.FIGHT)
+	gadgetHandler:RegisterUnitCommand(CMD.PATROL)
+	gadgetHandler:RegisterUnitCommand(CMD.INSERT)
+	local units = spring.GetAllUnits()
+	for unitIndex = 1, #units do
+		local unitID = units[unitIndex]
+		local unitDefID = spring.GetUnitDefID(unitID)
+		if unitDefID and zombieUnitDefs[unitDefID].canWorkCorpses then
+			watchBuilder(unitID)
 		end
 	end
 	indexExistingResurrectableWrecks()
