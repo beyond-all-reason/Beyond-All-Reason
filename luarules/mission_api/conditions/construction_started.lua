@@ -27,6 +27,7 @@ end
 
 return {
 	type = 'ConstructionStarted',
+	kind = 'event',
 	parameters = {
 		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },

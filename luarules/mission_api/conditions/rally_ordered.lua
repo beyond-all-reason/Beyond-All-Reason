@@ -26,6 +26,7 @@ end
 
 return {
 	type = 'RallyOrdered',
+	kind = 'event',
 	parameters = {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },

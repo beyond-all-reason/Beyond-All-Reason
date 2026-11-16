@@ -6,6 +6,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'TransportUnloaded',
+	kind = 'event',
 	parameters = {
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },

@@ -1,10 +1,10 @@
-local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnCons1 = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 			maxRepeats = 3,
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	spawnEnergyGrid1 = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -24,7 +24,7 @@ local triggers = {
 	},
 
 	killCons = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -32,7 +32,7 @@ local triggers = {
 	},
 
 	selfDestructCons = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 16,
 		},
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	reclaimCons = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 25,
 		},
@@ -48,7 +48,7 @@ local triggers = {
 	},
 
 	transferCons1 = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -56,7 +56,7 @@ local triggers = {
 	},
 
 	transferCons2 = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -64,7 +64,7 @@ local triggers = {
 	},
 
 	despawnEnergyGrid1 = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 43,
 		},
@@ -72,7 +72,7 @@ local triggers = {
 	},
 
 	doNotKillCons = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
@@ -80,7 +80,7 @@ local triggers = {
 	},
 
 	explosionOnFusions = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 50,
 		},
@@ -88,7 +88,7 @@ local triggers = {
 	},
 
 	gameEnd = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 57,
 		},

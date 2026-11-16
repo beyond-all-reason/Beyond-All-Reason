@@ -13,7 +13,6 @@ describe("mission_api.difficulty", function()
 			Difficulty = currentDifficulty,
 			Modules = GG["MissionAPI"].Modules,
 			ObjectiveTriggers = {},
-			ManagedObjectives = {},
 			Triggers = {},
 		}
 	end
@@ -131,6 +130,18 @@ describe("mission_api.difficulty", function()
 			assert.are.equal(5, triggers.t.parameters.interval)
 		end)
 
+		it("resolves wrapped thresholds on the trigger itself", function()
+			withDifficulty(HARD)
+			local triggers = {
+				t = { count = { difficulties = { Easy = 2, Hard = 6 } }, atMost = 10, settings = {} },
+			}
+
+			difficulty.ResolveTriggers(triggers)
+
+			assert.are.equal(6, triggers.t.count)
+			assert.are.equal(10, triggers.t.atMost)
+		end)
+
 		it("converts the settings difficulties names into difficulty values in place", function()
 			local triggers = {
 				t = { settings = { difficulties = { "Easy", "Hard" } } },
@@ -197,35 +208,42 @@ describe("mission_api.difficulty", function()
 			assert.are.equal(45, parameters.seconds)
 		end)
 
-		it("fills in the maxRepeats that the loader derived from a wrapped amount", function()
+		it("copies a wrapped amount onto the objective's condition record as its count", function()
 			withDifficulty(HARD)
 			GG["MissionAPI"].ObjectiveTriggers.o = "__objective_o"
-			GG["MissionAPI"].Triggers.__objective_o = { settings = { repeating = true } }
+			GG["MissionAPI"].Triggers.__objective_o = { settings = {} }
 			local objectives = { o = { amount = { difficulties = { Easy = 2, Hard = 4 } } } }
 
 			difficulty.ResolveObjectives(objectives)
 
 			assert.are.equal(4, objectives.o.amount)
-			assert.are.equal(3, GG["MissionAPI"].Triggers.__objective_o.settings.maxRepeats)
+			assert.are.equal(4, objectives.o.target)
+			assert.are.equal(4, GG["MissionAPI"].Triggers.__objective_o.count)
 		end)
 
-		it("resolves wrapped amount and nextStage in managed objective metadata", function()
-			withDifficulty(HARD)
-			GG["MissionAPI"].ManagedObjectives = {
-				[7] = {
-					{
-						objectiveID = "kills",
-						amount = { difficulties = { Easy = 2, Hard = 5 } },
-						nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
-					},
-				},
+		it("sets a target of one on an objective without an amount", function()
+			local objectives = { o = { textKey = "t" } }
+
+			difficulty.ResolveObjectives(objectives)
+
+			assert.are.equal(1, objectives.o.target)
+		end)
+
+		it("copies a wrapped amount onto a metric condition record as its atLeast", function()
+			withDifficulty(EASY)
+			GG["MissionAPI"].ConditionDefinitions = { Kinds = { owned = "metric" } }
+			GG["MissionAPI"].ObjectiveTriggers.o = "__objective_o"
+			GG["MissionAPI"].Triggers.__objective_o = { settings = {} }
+			local objectives = {
+				o = { amount = { difficulties = { Easy = 500, Hard = 2000 } }, trigger = { type = "owned" } },
 			}
 
-			difficulty.ResolveObjectives({})
+			difficulty.ResolveObjectives(objectives)
 
-			local metadata = GG["MissionAPI"].ManagedObjectives[7][1]
-			assert.are.equal(5, metadata.amount)
-			assert.are.equal("s2", metadata.nextStage)
+			local record = GG["MissionAPI"].Triggers.__objective_o
+			assert.are.equal(500, record.atLeast)
+			assert.is_nil(record.count)
+			assert.are.equal(500, objectives.o.target)
 		end)
 
 		it("leaves the trigger field itself untouched, even when shaped like a difficulties table", function()

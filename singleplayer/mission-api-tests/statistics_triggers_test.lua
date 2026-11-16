@@ -2,7 +2,8 @@
 --- Statistics triggers test mission.
 ---
 
-local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -10,7 +11,7 @@ local triggers = {
 	-- ── Spawns ────────────────────────────────────────────────────────────────
 
 	spawnBots = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +19,7 @@ local triggers = {
 	},
 
 	killFriendlyBot = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -26,7 +27,7 @@ local triggers = {
 	},
 
 	spawnCapture = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -34,7 +35,7 @@ local triggers = {
 	},
 
 	orderCapture = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 9,
 		},
@@ -42,7 +43,7 @@ local triggers = {
 	},
 
 	spawnBuilders = {
-		type = conditionTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 17,
 		},
@@ -52,98 +53,88 @@ local triggers = {
 	-- ── Statistics triggers ───────────────────────────────────────────────────
 
 	totalUnitsKilledReached = {
-		type = conditionTypes.TotalUnitsKilled,
+		type = eventTypes.TotalUnitsKilled,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilled' },
 	},
 
 	totalUnitsKilledNamedReached = {
-		type = conditionTypes.TotalUnitsKilled,
+		type = eventTypes.TotalUnitsKilled,
 		parameters = {
 			teamName = 'player',
 			unitName = 'enemyBot',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilledNamed' },
 	},
 
 	totalUnitsKilledAliasReached = {
-		type = conditionTypes.TotalUnitsKilled,
+		type = eventTypes.TotalUnitsKilled,
 		parameters = {
 			teamName = 'player',
 			unitName = 'enemyScout',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilledAlias' },
 	},
 
 	totalUnitsLostReached = {
-		type = conditionTypes.TotalUnitsLost,
+		type = eventTypes.TotalUnitsLost,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLost' },
 	},
 
 	totalUnitsLostNamedReached = {
-		type = conditionTypes.TotalUnitsLost,
+		type = eventTypes.TotalUnitsLost,
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLostNamed' },
 	},
 
 	totalUnitsLostAliasReached = {
-		type = conditionTypes.TotalUnitsLost,
+		type = eventTypes.TotalUnitsLost,
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyAce',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLostAlias' },
 	},
 
 	totalUnitsCapturedReached = {
-		type = conditionTypes.TotalUnitsCaptured,
+		type = eventTypes.TotalUnitsCaptured,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCaptured' },
 	},
 
 	totalUnitsCapturedNamedReached = {
-		type = conditionTypes.TotalUnitsCaptured,
+		type = eventTypes.TotalUnitsCaptured,
 		parameters = {
 			teamName = 'player',
 			unitName = 'capturableSolar',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCapturedNamed' },
 	},
 
 	totalUnitsCapturedNamedByDefReached = {
-		type = conditionTypes.TotalUnitsCaptured,
+		type = eventTypes.TotalUnitsCaptured,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armsolar',
 			unitName = 'capturePrize',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCapturedNamedByDef' },
 	},
 
 	totalUnitsBuiltReached = {
-		type = conditionTypes.TotalUnitsBuilt,
+		type = eventTypes.TotalUnitsBuilt,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsBuilt' },
 	},
@@ -151,31 +142,31 @@ local triggers = {
 	-- ── UnitsOwned triggers ───────────────────────────────────────────────────
 
 	unitsOwnedReached = {
-		type = conditionTypes.UnitsOwned,
+		type = metricTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwned' },
 	},
 
 	unitsOwnedByNameReached = {
-		type = conditionTypes.UnitsOwned,
+		type = metricTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwnedByName' },
 	},
 
 	unitsOwnedByDefReached = {
-		type = conditionTypes.UnitsOwned,
+		type = metricTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armck',
-			quantity = 4,
 		},
+		atLeast = 4,
 		actions = { 'messageUnitsOwnedByDef' },
 	},
 
@@ -183,26 +174,26 @@ local triggers = {
 	-- The same message appearing twice in the log confirms milestone advancement
 	-- without re-firing at an already-passed milestone.
 	unitsOwnedByDefRepeating = {
-		type = conditionTypes.UnitsOwned,
+		type = metricTypes.UnitsOwned,
 		settings = {
 			repeating = true,
 		},
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armck',
-			quantity = 2,
 		},
+		atLeast = 2,
 		actions = { 'messageUnitsOwnedByDefRepeating' },
 	},
 
 	unitsOwnedByNameAndDefReached = {
-		type = conditionTypes.UnitsOwned,
+		type = metricTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
 			unitDefName = 'armwar',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwnedByNameAndDef' },
 	},
 }

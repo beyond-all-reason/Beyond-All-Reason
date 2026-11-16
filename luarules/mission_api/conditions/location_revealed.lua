@@ -9,6 +9,7 @@ local CHECK_INTERVAL_FRAMES = math.floor(0.5 * Game.gameSpeed)
 
 return {
 	type = 'LocationRevealed',
+	kind = 'event',
 	parameters = {
 		{ name = 'position',           required = true, type = ParameterTypes.Position },
 		{ name = 'sensorAllianceName', required = true, type = ParameterTypes.AllianceName },
