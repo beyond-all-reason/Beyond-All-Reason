@@ -1,7 +1,7 @@
 local vssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.vert.glsl")
-local fssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.frag.glsl")
+local fssrc = assert(VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.frag.glsl"))
 fssrc = fssrc:gsub("//__HOVER_SHIMMER__", function()
-	return VFS.LoadFile("modelmaterials_gl4/templates/hover_shimmer.glsl")
+	return assert(VFS.LoadFile("modelmaterials_gl4/templates/hover_shimmer.glsl"))
 end)
 
 local shaderTemplate = {

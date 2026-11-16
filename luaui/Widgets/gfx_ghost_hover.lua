@@ -11,7 +11,9 @@ function widget:GetInfo()
 	}
 end
 
+---@type integer?
 local shader
+---@type table<string, GL>
 local uniforms = {}
 
 function widget:Initialize()
@@ -20,11 +22,18 @@ function widget:Initialize()
 		return
 	end
 	local fragment = VFS.LoadFile("luaui/Shaders/ghost_hover.frag.glsl")
+	local vertex = VFS.LoadFile("luaui/Shaders/ghost_hover.vert.glsl")
+	local shimmer = VFS.LoadFile("modelmaterials_gl4/templates/hover_shimmer.glsl")
+	if not (fragment and vertex and shimmer) then
+		Spring.Echo("[Ghost Hover] Missing shader source; keeping engine rendering")
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	fragment = fragment:gsub("//__HOVER_SHIMMER__", function()
-		return VFS.LoadFile("modelmaterials_gl4/templates/hover_shimmer.glsl")
+		return shimmer
 	end)
 	shader = gl.CreateShader({
-		vertex = VFS.LoadFile("luaui/Shaders/ghost_hover.vert.glsl"),
+		vertex = vertex,
 		fragment = fragment,
 		uniformInt = { diffuseTex = 0, shadingTex = 1 },
 	})
@@ -46,12 +55,15 @@ function widget:DrawGhost(info)
 	end
 	gl.UseShader(shader)
 	gl.UniformMatrix(uniforms.viewInverse, "viewinverse")
-	gl.Uniform(uniforms.ghostColor, unpack(info.color))
-	gl.Uniform(uniforms.teamColor, unpack(info.teamColor))
-	gl.Uniform(uniforms.sunDir, gl.GetSun("pos"))
-	gl.Uniform(uniforms.sunAmbient, gl.GetSun("ambient", "unit"))
-	gl.Uniform(uniforms.sunDiffuse, gl.GetSun("diffuse", "unit"))
-	gl.Uniform(uniforms.simFrame, Spring.GetGameFrame() + Spring.GetFrameTimeOffset())
+	gl.Uniform(uniforms.ghostColor, info.color[1], info.color[2], info.color[3], info.color[4])
+	gl.Uniform(uniforms.teamColor, info.teamColor[1], info.teamColor[2], info.teamColor[3], info.teamColor[4])
+	local sunDirX, sunDirY, sunDirZ = gl.GetSun("pos", "unit")
+	gl.Uniform(uniforms.sunDir, assert(sunDirX), assert(sunDirY), assert(sunDirZ))
+	local sunAmbientR, sunAmbientG, sunAmbientB = gl.GetSun("ambient", "unit")
+	gl.Uniform(uniforms.sunAmbient, assert(sunAmbientR), assert(sunAmbientG), assert(sunAmbientB))
+	local sunDiffuseR, sunDiffuseG, sunDiffuseB = gl.GetSun("diffuse", "unit")
+	gl.Uniform(uniforms.sunDiffuse, assert(sunDiffuseR), assert(sunDiffuseG), assert(sunDiffuseB))
+	gl.Uniform(uniforms.simFrame, Spring.GetGameFrame() + (Spring.GetFrameTimeOffset() or 0))
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

@@ -145,6 +145,8 @@ local Spring = copyTable(Spring)
 local Json = copyTable(Json)
 
 local widgetHandler = {
+	---@type Widget[]
+	DrawGhostList = {},
 	widgets = {},
 
 	configData = {},
@@ -180,6 +182,7 @@ local widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
+	---@type boolean
 	chobbyInterface = false, -- will be true when chobby interface is on top
 
 	xViewSize = 1,
