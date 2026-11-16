@@ -2536,7 +2536,7 @@ local fedMetal = 0
 
 local function IsPrey(otherID)
 	local team = Spring.GetUnitTeam(otherID)
-	if not DEFS.EnemyTeam(team) or Spring.GetUnitIsDead(otherID) then
+	if not team or Spring.AreTeamsAllied(team, myTeam) or Spring.GetUnitIsDead(otherID) then
 		return false
 	end
 	local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
