@@ -32,7 +32,6 @@ local triggers = {
 		type = eventTypes.UnitOrdered,
 		settings = {
 			repeating = true,
-			maxRepeats = 10,
 		},
 		parameters = {
 			command = CMD.ANY,

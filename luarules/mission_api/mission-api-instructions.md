@@ -116,10 +116,12 @@ return {
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the
   matching `needs*` check or silently never fires.
 - Never fire actions yourself. `context.ActivateTrigger(trigger)` enforces the `settings` keys
-  `active`, `prerequisites`, `stages`, `repeating` with `maxRepeats`, `count`, and `difficulties` (see
-  Objectives and stages, and Difficulty), and returns `false` when the trigger was not eligible:
-  `active`, `prerequisites`, and `stages` can pass later, `maxRepeats` and `difficulties` never
-  will. Record a firing only on `true`, and decide what happens for each kind of refusal.
+  `active`, `prerequisites`, `stages`, `repeating`, `count`, and `difficulties` (see Objectives and
+  stages, and Difficulty), and returns `false` when the trigger was not eligible: `active`,
+  `prerequisites`, and `stages` can pass later, a fired non-repeating trigger and `difficulties`
+  never will. Record a firing only on `true`, and decide what happens for each kind of refusal.
+- There is no repeat cap: a repeating trigger fires every time, so stop it with prerequisites,
+  stages, or an action.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
   `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.
