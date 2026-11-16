@@ -1,4 +1,4 @@
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- One squad of fast and slow bots marching on a timer. Each march shows one parameter.

@@ -9,7 +9,7 @@
 --- Removing the eastern tower takes them away again, since Block Jamming can only hide from radar.
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {

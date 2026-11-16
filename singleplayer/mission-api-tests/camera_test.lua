@@ -6,7 +6,7 @@
 --- the camera back where it ends. Each step is announced in the chat.
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {

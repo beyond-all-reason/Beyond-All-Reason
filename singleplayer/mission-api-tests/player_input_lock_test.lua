@@ -4,7 +4,7 @@
 --- Locks input from 3 s to 20 s. Only Esc and the menu buttons should work in between.
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
