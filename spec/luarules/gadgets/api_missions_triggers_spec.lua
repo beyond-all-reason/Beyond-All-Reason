@@ -12,11 +12,11 @@ local unitDefs = {
 	[OUTPOST] = { id = OUTPOST, name = "outpost", xsize = 2, zsize = 2 },
 	[TURRET] = { id = TURRET, name = "turret" },
 }
-local unitDefNames = { outpost = unitDefs[OUTPOST], turret = unitDefs[TURRET] }
+local unitDefNames = { outpost = unitDefs[OUTPOST], turret = unitDefs[TURRET] } ---@type table<string, table>
 -- Unit types that create another unit in their own UnitCreated, as pve_attachments.lua does.
-local attachments = { [OUTPOST] = TURRET }
+local attachments = { [OUTPOST] = TURRET } ---@type table<UnitDefID, UnitDefID?>
 
-local gadget
+local gadget ---@type Gadget
 local lastUnitID = 0
 
 -- gadgetHandler:UnitCreated, which runs MetaUnitAdded first.
@@ -66,7 +66,7 @@ env.UnitDefNames = unitDefNames
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
 
 describe("api_missions_triggers loadout names", function()
-	local missionApi, loadout
+	local missionApi, loadout ---@type table, table
 
 	local function unitsOwned(unitName, quantity)
 		return {
@@ -100,7 +100,7 @@ describe("api_missions_triggers loadout names", function()
 			:WithModule("SeismicContacts", { UpdateInterval = 15 })
 			:Install(env)
 
-		local chunk = assert(loadfile(GADGET_PATH))
+		local chunk = assert(loadfile(GADGET_PATH)) ---@diagnostic disable-line -- return_overload doesn't work here
 		setfenv(chunk, env)
 		chunk()
 		gadget = env.gadget
