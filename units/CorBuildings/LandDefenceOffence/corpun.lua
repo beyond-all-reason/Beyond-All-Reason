@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = false,
 		buildangle = 8192,
 		buildpic = "CORPUN.DDS",
-		buildtime = 20000,
+		buildtime = 22000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
