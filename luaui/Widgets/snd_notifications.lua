@@ -294,6 +294,7 @@ local commandersDamages = {}
 local passedTime = 0
 local sec = 0
 local suspendUntilSec = 0
+local clearUntilSec = 0
 
 local windNotGood = windFunctions.isWindBad()
 
@@ -534,6 +535,10 @@ function widget:RecvLuaMsg(message)
 end
 
 function widget:PlayerChanged(playerID)
+	if myPlayerID == playerID then
+		clearUntilSec = sec + 1
+	end
+
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myPlayerID = Spring.GetLocalPlayerID()
@@ -1030,6 +1035,13 @@ function widget:Update(dt)
 		-- process sound queue
 		if sec >= nextSoundQueued and sec >= suspendUntilSec then
 			playNextSound()
+		end
+
+		if sec <= clearUntilSec then
+			Spring.Echo("PlayerChanged, clearing queues")
+			for i = 1, #soundQueue do
+				soundQueue[i] = {}
+			end
 		end
 
 		-- check idle status
