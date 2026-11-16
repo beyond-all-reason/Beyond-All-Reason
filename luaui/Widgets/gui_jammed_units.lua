@@ -19,7 +19,8 @@ end
 -- those from radar and marks them with the "jammed" unit rules param.
 -- Only units a jammer can reach get checked: a coarse grid holds where each allyteam's jammers reach, and every unit
 -- is looked up in it once per VISIT_FRAMES game frames. Buildings in reach are checked on that visit, moving units
--- in reach once per POLL_FRAMES. A toggle or view change redoes all of it over a few draw frames. A change
+-- in reach once per POLL_FRAMES. A building in a transport counts as a moving unit until shortly after it is set
+-- down. A toggle or view change redoes all of it over a few draw frames. A change
 -- writes a time stamp into unit buffer uniform #7 (Spring.GetDrawSeconds, which is the shaders' timeInfo.y):
 -- positive = jammed since then, negative = unjammed since then, 0 = never jammed. The CUS model shaders
 -- (modelmaterials_gl4/templates/cus_gl4.vert/frag.glsl, JAMMED_* tunables) fade a red tint and rim in or out
@@ -38,6 +39,7 @@ local RANGE_MARGIN = 192 -- elmos on top of a jammer's range: radar cells round 
 local MIN_JAMMER_RANGE = 32 -- a smaller range covers no radar cell, see unit_jammed_fix.lua
 local SWEEP_FRAMES = 8 -- draw frames that a check of all units is spread over
 local SWEEP_MIN_UNITS = 64 -- units such a check handles per draw frame at least
+local SETTLE_FRAMES = 20 -- game frames a set-down building can still be pushed (unit_stack_hack_fix.lua: up to 16)
 local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shaders read
 local OUTLINE_OWNER = "jammed"
 -- width and blur in pixels at 1080p, see gfx_outline_shader_gl4.lua
@@ -50,6 +52,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitTransporter = Spring.GetUnitTransporter
+local spGetGameFrame = Spring.GetGameFrame
 local spGetDrawSeconds = Spring.GetDrawSeconds
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 local mathAbs = math.abs
@@ -84,8 +88,9 @@ local trackedUnits = {} ---@type table<integer, integer?> index -> unitID, check
 local trackedIndex = {} ---@type table<integer, integer?> unitID -> index in trackedUnits
 local trackedCount = 0
 local unitAllyTeam = {} ---@type table<integer, integer?> unitID -> allyteam whose jammers can hide it
-local fixedX = {} ---@type table<integer, number?> unitID -> position of a building
+local fixedX = {} ---@type table<integer, number?> unitID -> position of a building, unless it is in a transport
 local fixedZ = {} ---@type table<integer, number?>
+local settleFrame = {} ---@type table<integer, integer?> unitID -> game frame after which a set-down building stays put
 local jammerReach = {} ---@type table<integer, number?> unitID -> reach, for jammers
 local nearUnits = {} ---@type table<integer, integer?> index -> unitID of moving units in jammer reach, checked in turn
 local nearIndex = {} ---@type table<integer, integer?> unitID -> index in nearUnits
@@ -158,7 +163,8 @@ local function isJammed(unitID, x, z)
 	if inJammer == true then
 		return true
 	end
-	return fixedX[unitID] ~= nil and spGetUnitRulesParam(unitID, "jammed") == 1
+	local isBuilding = fixedX[unitID] ~= nil or settleFrame[unitID] ~= nil
+	return isBuilding and spGetUnitRulesParam(unitID, "jammed") == 1
 end
 
 local function checkUnit(unitID, now, x, z)
@@ -233,6 +239,13 @@ local function visitUnit(unitID, now, isSweep)
 	if not isBuilding then
 		local _
 		x, _, z = spGetUnitPosition(unitID)
+		local settled = settleFrame[unitID]
+		if x and settled and spGetGameFrame() > settled then
+			settleFrame[unitID] = nil
+			fixedX[unitID], fixedZ[unitID] = x, z
+			isBuilding = true
+			setNear(unitID, false)
+		end
 	end
 	local near = false
 	if x then
@@ -297,7 +310,7 @@ local function addUnit(unitID)
 	unitAllyTeam[unitID] = allyTeam
 	local unitDefID = spGetUnitDefID(unitID)
 	jammerReach[unitID] = jammerDefReach[unitDefID]
-	if isBuildingDef[unitDefID] then
+	if isBuildingDef[unitDefID] and spGetUnitTransporter(unitID) == nil then
 		local x, _, z = spGetUnitPosition(unitID)
 		fixedX[unitID], fixedZ[unitID] = x, z
 	end
@@ -324,6 +337,7 @@ local function removeUnit(unitID, now)
 	trackedIndex[unitID] = nil
 	unitAllyTeam[unitID] = nil
 	fixedX[unitID], fixedZ[unitID] = nil, nil
+	settleFrame[unitID] = nil
 	jammerReach[unitID] = nil
 	setNear(unitID, false)
 	if jammed[unitID] then
@@ -441,6 +455,27 @@ end
 
 function widget:UnitTaken(unitID)
 	unitChangedTeam(unitID)
+end
+
+-- a building in a transport moves with it, and Snap Jam's cell line rule no longer applies to it
+function widget:UnitLoaded(unitID)
+	if fixedX[unitID] or settleFrame[unitID] then
+		fixedX[unitID], fixedZ[unitID] = nil, nil
+		settleFrame[unitID] = nil
+		if shown then
+			visitUnit(unitID, drawTime(), true)
+		end
+	end
+end
+
+-- followed like a moving unit until it can no longer be pushed, then its position is cached on a visit
+function widget:UnitUnloaded(unitID, unitDefID)
+	if trackedIndex[unitID] and isBuildingDef[unitDefID] then
+		settleFrame[unitID] = spGetGameFrame() + SETTLE_FRAMES
+		if shown then
+			visitUnit(unitID, drawTime(), true)
+		end
+	end
 end
 
 -- called for every player's change, only the viewer's full view and allyteam matter here
