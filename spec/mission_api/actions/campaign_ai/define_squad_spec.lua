@@ -37,7 +37,7 @@ describe("mission_api.actions.define_squad", function()
 		assert.are.same({
 			type = "DefineSquad",
 			squadName = "SquadName!",
-			teamName = "TeamName!",
+			teamName = "AiTeamName!",
 			position = "Position!",
 			gatherRange = "Quantity!",
 			composition = "UnitDefCounts!",

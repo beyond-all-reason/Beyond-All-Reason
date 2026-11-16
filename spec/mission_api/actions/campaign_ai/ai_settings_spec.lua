@@ -38,7 +38,7 @@ describe("mission_api.actions.ai_settings", function()
 	describe("SetAiMexCap", function()
 		it("declares its type and parameters", function()
 			assert.are.same(
-				{ type = "SetAiMexCap", teamName = "TeamName!", share = "Fraction!", countsAllies = "Boolean" },
+				{ type = "SetAiMexCap", teamName = "AiTeamName!", share = "Fraction!", countsAllies = "Boolean" },
 				summarizeSchema(setAiMexCap)
 			)
 		end)
@@ -58,7 +58,7 @@ describe("mission_api.actions.ai_settings", function()
 		it("declares its type and parameters", function()
 			assert.are.same({
 				type = "SetAiMilitaryQuota",
-				teamName = "TeamName!",
+				teamName = "AiTeamName!",
 				scouts = "Quantity",
 				attackPower = "Quantity",
 				raidPower = "Quantity",
@@ -77,13 +77,13 @@ describe("mission_api.actions.ai_settings", function()
 			assert.are.same({
 				type = "SetUnitDefRetreatThreshold",
 				unitDefName = "UnitDefName!",
+				teamName = "AiTeamName!",
 				threshold = "Fraction!",
-				teamName = "TeamName!",
 			}, summarizeSchema(setUnitDefRetreatThreshold))
 		end)
 
 		it("sets the threshold for the unit def by its ID", function()
-			setUnitDefRetreatThreshold.actionFunction("corak", 0.4, TEAM_ID)
+			setUnitDefRetreatThreshold.actionFunction("corak", TEAM_ID, 0.4)
 			assert.are.same({ { "retreat", 7, 0.4, TEAM_ID } }, sent)
 		end)
 	end)

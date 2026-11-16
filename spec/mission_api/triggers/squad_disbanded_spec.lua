@@ -20,7 +20,7 @@ describe("mission_api.triggers.squad_disbanded", function()
 		assert.are.same({
 			type = "SquadDisbanded",
 			squadName = "SquadName",
-			teamName = "TeamName",
+			teamName = "AiTeamName",
 			requiresOneOf = { "squadName", "teamName" },
 		}, summarizeSchema(squadDisbanded))
 	end)

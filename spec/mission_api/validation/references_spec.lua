@@ -489,6 +489,13 @@ describe("mission_api.validation.references", function()
 	end)
 
 	describe("squad names", function()
+		-- DefineSquad takes a team that an AI runs.
+		before_each(function()
+			V.env.Spring.GetAIInfo = function(teamID)
+				return 0, "AI", 0
+			end
+		end)
+
 		it("passes a squad that is defined, with a trigger waiting for it", function()
 			V.assertValid(V.validate(V.mission()
 				:WithTrigger("start", {

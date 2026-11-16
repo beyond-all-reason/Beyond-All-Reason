@@ -324,6 +324,13 @@ describe("mission_api.validation.parameter_validators", function()
 	end)
 
 	describe("UnitDefCounts", function()
+		-- DefineSquad takes a team that an AI runs.
+		before_each(function()
+			V.env.Spring.GetAIInfo = function(teamID)
+				return 0, "AI", 0
+			end
+		end)
+
 		local function validateComposition(composition)
 			return V.validateAction({
 				type = V.actionTypes.DefineSquad,
@@ -881,6 +888,47 @@ describe("mission_api.validation.parameter_validators", function()
 				}),
 				"Invalid teamName: nobody. Action: a, Parameter: newTeamName"
 			)
+		end)
+	end)
+
+	describe("AiTeamName", function()
+		local function validateAiTeamName(teamName)
+			return V.validateAction({ type = V.actionTypes.ActivateAI, parameters = { teamName = teamName } })
+		end
+
+		before_each(function()
+			V.missionAPI().Teams =
+				{ rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists", raptors = 2, [2] = "raptors" }
+			V.env.Spring.GetAIInfo = function(teamID)
+				if teamID > 0 then
+					return teamID, "AI", 0
+				end
+			end
+			V.env.Spring.GetTeamLuaAI = function(teamID)
+				return teamID == 2 and "RaptorsAI" or nil
+			end
+		end)
+
+		it("accepts a team that a skirmish AI runs", function()
+			V.assertNoMessageContaining(validateAiTeamName("loyalists"), "Parameter:")
+		end)
+
+		it("rejects a team without an AI", function()
+			V.assertMessage(
+				validateAiTeamName("rebels"),
+				"Team is not run by a skirmish AI: rebels. Action: a, Parameter: teamName"
+			)
+		end)
+
+		it("rejects a team that a Lua AI runs", function()
+			V.assertMessage(
+				validateAiTeamName("raptors"),
+				"Team is not run by a skirmish AI: raptors. Action: a, Parameter: teamName"
+			)
+		end)
+
+		it("rejects an unknown team name", function()
+			V.assertMessage(validateAiTeamName("nobody"), "Invalid teamName: nobody. Action: a, Parameter: teamName")
 		end)
 	end)
 

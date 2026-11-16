@@ -42,7 +42,7 @@ describe("mission_api.actions.build_area", function()
 			assert.are.same({
 				type = "DefineBuildArea",
 				buildAreaName = "BuildAreaName!",
-				teamName = "TeamName!",
+				teamName = "AiTeamName!",
 				area = "Area!",
 				unitDefName = "UnitDefName!",
 				facing = "Facing",

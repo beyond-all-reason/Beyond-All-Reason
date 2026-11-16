@@ -1,6 +1,6 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
-local DEFAULT_BUILDS_AT_ONCE = 3 -- all at once, the AI's own default, can wall its builders in
+local DEFAULT_BUILDS_AT_ONCE = 3 -- the AI's own default, 0, builds them all at once
 
 local function defineBuildArea(buildAreaName, teamID, area, unitDefName, facing, buildsAtOnce)
 	if not UnitDefNames[unitDefName].isImmobile then
@@ -27,7 +27,7 @@ return {
 		type = "DefineBuildArea",
 		parameters = {
 			{ name = "buildAreaName", required = true, type = ParameterTypes.BuildAreaName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 			{ name = "area", required = true, type = ParameterTypes.Area },
 			{ name = "unitDefName", required = true, type = ParameterTypes.UnitDefName },
 			{ name = "facing", required = false, type = ParameterTypes.Facing },

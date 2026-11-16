@@ -43,7 +43,7 @@ describe("mission_api.actions.ai_region", function()
 			assert.are.same({
 				type = "DefineAiRegion",
 				regionName = "RegionName!",
-				teamName = "TeamName!",
+				teamName = "AiTeamName!",
 				area = "Area!",
 			}, summarizeSchema(defineAiRegion))
 		end)

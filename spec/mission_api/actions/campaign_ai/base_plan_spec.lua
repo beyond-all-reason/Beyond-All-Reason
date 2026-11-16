@@ -42,7 +42,7 @@ describe("mission_api.actions.base_plan", function()
 			assert.are.same({
 				type = "AddToBasePlan",
 				basePlanName = "BasePlanName!",
-				teamName = "TeamName!",
+				teamName = "AiTeamName!",
 				unitDefName = "UnitDefName!",
 				position = "Position!",
 				rebuild = "Boolean",

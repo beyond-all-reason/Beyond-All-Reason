@@ -25,7 +25,7 @@ return {
 		type = "EnableProduction",
 		parameters = {
 			{ name = "unitName", required = true, type = ParameterTypes.UnitName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 		},
 		actionFunction = enableProduction,
 	},
@@ -33,7 +33,7 @@ return {
 		type = "DisableProduction",
 		parameters = {
 			{ name = "unitName", required = true, type = ParameterTypes.UnitName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 		},
 		actionFunction = disableProduction,
 	},

@@ -67,7 +67,9 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 - `GG.CampaignAI` (`luarules/gadgets/api_campaign_ai.lua`) runs the `actions/campaign_ai/` actions by
   sending messages to a team's campaign AI. The engine creates the AI after the loadout spawns, so
   a message from before the game starts reaches it when the game starts. The AI's signals come
-  back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay.
+  back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay. Their team
+  parameters are `AiTeamName`: validation rejects a team that no skirmish AI runs. Synced code cannot
+  read which AI that is, so the gadget's unsynced half checks it on the AI's host before it sends.
 - `Modules.Squads` (`squads.lua`) knows each squad by the name a mission gave it and by the ID the
   team's campaign AI has for it. A squad action asks it for that ID, with the function for the
   squad states the AI takes its message in, and sends nothing when it gets none.

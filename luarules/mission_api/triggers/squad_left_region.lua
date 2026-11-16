@@ -5,7 +5,7 @@ return {
 	parameters = {
 		{ name = 'regionName', required = false, type = ParameterTypes.RegionName },
 		{ name = 'squadName', required = false, type = ParameterTypes.SquadName },
-		{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
+		{ name = 'teamName', required = false, type = ParameterTypes.AiTeamName },
 		requiresOneOf = { 'regionName', 'squadName', 'teamName' },
 	},
 	callins = {

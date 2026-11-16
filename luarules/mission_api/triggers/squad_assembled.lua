@@ -4,7 +4,7 @@ return {
 	type = 'SquadAssembled',
 	parameters = {
 		{ name = 'squadName', required = false, type = ParameterTypes.SquadName },
-		{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
+		{ name = 'teamName', required = false, type = ParameterTypes.AiTeamName },
 		requiresOneOf = { 'squadName', 'teamName' },
 	},
 	callins = {

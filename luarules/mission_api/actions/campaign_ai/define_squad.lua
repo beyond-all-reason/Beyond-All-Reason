@@ -19,7 +19,7 @@ return {
 		type = "DefineSquad",
 		parameters = {
 			{ name = "squadName", required = true, type = ParameterTypes.SquadName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 			{ name = "position", required = true, type = ParameterTypes.Position },
 			{ name = "gatherRange", required = true, type = ParameterTypes.Quantity }, -- elmos
 			{ name = "composition", required = true, type = ParameterTypes.UnitDefCounts },

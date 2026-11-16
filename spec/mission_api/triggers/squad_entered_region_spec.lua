@@ -24,7 +24,7 @@ describe("mission_api.triggers.squad_entered_region", function()
 			type = "SquadEnteredRegion",
 			regionName = "RegionName",
 			squadName = "SquadName",
-			teamName = "TeamName",
+			teamName = "AiTeamName",
 			requiresOneOf = { "regionName", "squadName", "teamName" },
 		}, summarizeSchema(squadEnteredRegion))
 	end)

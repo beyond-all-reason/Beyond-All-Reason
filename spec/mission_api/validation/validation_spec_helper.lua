@@ -58,6 +58,9 @@ function helper.mockEngineGlobals()
 	env.Spring.GetAllyTeamList = function()
 		return { 0 }
 	end
+	-- No team is run by an AI.
+	env.Spring.GetAIInfo = function() end
+	env.Spring.GetTeamLuaAI = function() end
 	env.UnitDefNames = { armwar = { id = 1 } }
 	env.FeatureDefNames = { rockdef = { id = 1 } }
 	env.WeaponDefNames = {}

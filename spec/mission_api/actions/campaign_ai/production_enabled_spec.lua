@@ -32,14 +32,14 @@ describe("mission_api.actions.production_enabled", function()
 
 	it("declares EnableProduction's type and parameters", function()
 		assert.are.same(
-			{ type = "EnableProduction", unitName = "UnitName!", teamName = "TeamName!" },
+			{ type = "EnableProduction", unitName = "UnitName!", teamName = "AiTeamName!" },
 			summarizeSchema(enableProduction)
 		)
 	end)
 
 	it("declares DisableProduction's type and parameters", function()
 		assert.are.same(
-			{ type = "DisableProduction", unitName = "UnitName!", teamName = "TeamName!" },
+			{ type = "DisableProduction", unitName = "UnitName!", teamName = "AiTeamName!" },
 			summarizeSchema(disableProduction)
 		)
 	end)

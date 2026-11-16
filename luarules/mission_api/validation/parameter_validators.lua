@@ -208,6 +208,18 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
 		return context.Teams[teamName]
 	end)
+	-- Synced code cannot read which skirmish AI runs a team, only that one does.
+	parameterValidators[Types.AiTeamName] = function(teamName)
+		local teamResult = parameterValidators[Types.TeamName](teamName)
+		if teamResult then
+			return teamResult
+		end
+
+		local teamID = context.Teams[teamName]
+		if not Spring.GetAIInfo(teamID) or (Spring.GetTeamLuaAI(teamID) or "") ~= "" then
+			return { { message = "Team is not run by a skirmish AI: " .. teamName } }
+		end
+	end
 	parameterValidators[Types.AllianceName] = getLookupValidator(validateString, "allianceName", function(allianceName)
 		return context.Alliances[allianceName]
 	end)

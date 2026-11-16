@@ -13,14 +13,14 @@ return {
 	{
 		type = "ActivateAI",
 		parameters = {
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 		},
 		actionFunction = activateAI,
 	},
 	{
 		type = "DeactivateAI",
 		parameters = {
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 		},
 		actionFunction = deactivateAI,
 	},

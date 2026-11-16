@@ -21,7 +21,7 @@ return {
 		type = "DefineAiRegion",
 		parameters = {
 			{ name = "regionName", required = true, type = ParameterTypes.RegionName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 			{ name = "area", required = true, type = ParameterTypes.Area },
 		},
 		actionFunction = defineAiRegion,

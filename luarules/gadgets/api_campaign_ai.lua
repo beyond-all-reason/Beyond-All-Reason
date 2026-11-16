@@ -278,13 +278,28 @@ if gadgetHandler:IsSyncedCode() then
 		GG.CampaignAI = nil
 	end
 else
+	local AI_SHORT_NAME = "CampaignAI"
+
 	-- The engine creates the AIs after GamePreload, so a message from before the game starts has to wait.
 	local aisExist = false
 	local heldMessages = {}
+	local warnedTeams = {}
+
+	-- A player can read the short name of the AIs they host only, the same AIs their messages reach.
+	local function send(teamID, message)
+		local _, _, _, shortName = Spring.GetAIInfo(teamID)
+		if shortName == AI_SHORT_NAME then
+			Spring.SendSkirmishAIMessage(teamID, message)
+		elseif shortName and shortName ~= "UNKNOWN" and not warnedTeams[teamID] then
+			warnedTeams[teamID] = true
+			local warning = "Team " .. teamID .. " is run by " .. shortName .. ", not by the campaign AI"
+			Spring.Log("Campaign AI API", LOG.WARNING, warning)
+		end
+	end
 
 	local function sendToAI(_, teamID, message)
 		if aisExist then
-			Spring.SendSkirmishAIMessage(teamID, message)
+			send(teamID, message)
 		else
 			heldMessages[#heldMessages + 1] = { teamID, message }
 		end
@@ -294,7 +309,7 @@ else
 		aisExist = true
 
 		for _, held in ipairs(heldMessages) do
-			Spring.SendSkirmishAIMessage(held[1], held[2])
+			send(held[1], held[2])
 		end
 
 		heldMessages = {}

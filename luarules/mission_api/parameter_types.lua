@@ -38,6 +38,7 @@ local types = {
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
 	TeamName = "TeamName",
+	AiTeamName = "AiTeamName",
 	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
@@ -93,6 +94,7 @@ local types = {
 -- Authored mission types may be processed into a different type internally.
 local internalTypes = {
 	[types.TeamName] = "TeamID",
+	[types.AiTeamName] = "TeamID",
 	[types.AllianceName] = "AllyTeamID",
 	[types.AllianceNames] = "AllyTeamIDs",
 }

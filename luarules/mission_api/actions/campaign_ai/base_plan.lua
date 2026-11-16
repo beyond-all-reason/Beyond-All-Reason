@@ -26,7 +26,7 @@ return {
 		type = "AddToBasePlan",
 		parameters = {
 			{ name = "basePlanName", required = true, type = ParameterTypes.BasePlanName },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 			{ name = "unitDefName", required = true, type = ParameterTypes.UnitDefName },
 			{ name = "position", required = true, type = ParameterTypes.Position },
 			{ name = "rebuild", required = false, type = ParameterTypes.Boolean }, -- whenever it is destroyed
