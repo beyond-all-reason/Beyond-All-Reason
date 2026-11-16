@@ -1,12 +1,14 @@
 # November
 - [Zombies]
+  - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.
-  - Complete rework of Wraiths. They're now created when a unit, corpse, or heap is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place a heap. That heap will only ever spawn 1 unit.
-  - Heaps in all zombie modes now become corpses after 2x the zombie resurrection time. A heap -> corpse -> zombie takes 3x the normal resurrection time in total.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or debris is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place debris. That debris will only ever spawn 1 unit.
+  - Wraiths are immune to EMP.
+  - Debris in all zombie modes now becomes a corpse after 2x the zombie resurrection time. Debris -> corpse -> zombie takes 3x the normal resurrection time in total.
   - Resurrection time, pack size, and veterancy now follow the clock and the wreck's power. Cheap wrecks rise sooner and roll more copies. Expensive wrecks rise later and roll fewer. Player tech no longer holds that back.
   - Hydra mode packs now start at 2-6 and escalate over the course of the game.
   - Veterancy is 0 before minute 25 and reaches 0.8 at minute 45 for every unit.
-  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. A heap still waits twice that unit's time.
+  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. Debris still waits twice that unit's time.
 - [Controls]
   - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
 - [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
@@ -32,6 +34,8 @@
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
   - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
+  - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
+  - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
