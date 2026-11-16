@@ -83,6 +83,9 @@ local shells = VFS.Include("effects/genericshellexplosion.lua")
 local STREAM_HIT_SCALE, STREAM_TURBO_HIT_SCALE = 1.5, 2.25
 local RAIN_HIT_SCALE = 1.5
 local BLAST_LOOK_STEP = 10
+local FIRE_ZONE_SIZE, FIRE_ZONE_SECONDS = 1330, 13.5
+local FIRE_ZONE_GLOW = "0.6 0.15 1 0.3"
+local FIRE_ZONE_PULSE_SECONDS, FIRE_ZONE_PULSE_START = 2, 0.05
 local STAR_MARKS, STAR_MARK_SIZE, STAR_MARK_TAPER = 8, 80, 0.5
 
 local effects = {
@@ -121,5 +124,49 @@ for i = 1, STAR_MARKS do
 		},
 	}
 end
+
+local fireZoneColors = { "0.6 0.15 1 0.01" }
+for _ = 1, FIRE_ZONE_SECONDS * 2 - 1 do
+	fireZoneColors[#fireZoneColors + 1] = FIRE_ZONE_GLOW
+end
+fireZoneColors[#fireZoneColors + 1] = "0.6 0.15 1 0.01"
+
+effects.scavbossfirezone = {
+	zone = {
+		class = [[CSimpleGroundFlash]],
+		count = 1,
+		air = true,
+		ground = true,
+		water = true,
+		properties = {
+			alwaysvisible = true,
+			colormap = table.concat(fireZoneColors, "   "),
+			rotParams = [[0, 0, 0 d1]],
+			size = FIRE_ZONE_SIZE,
+			sizegrowth = 0,
+			ttl = FIRE_ZONE_SECONDS * 30,
+			texture = [[scavbossfirezone]],
+		},
+	},
+}
+
+effects.scavbossfirezonepulse = {
+	pulse = {
+		class = [[CSimpleGroundFlash]],
+		count = 1,
+		air = true,
+		ground = true,
+		water = true,
+		properties = {
+			alwaysvisible = true,
+			colormap = [[0.6 0.15 1 0.7   0.6 0.15 1 0.6   0.6 0.15 1 0.45   0.6 0.15 1 0.01]],
+			rotParams = [[0, 0, 0 d1]],
+			size = FIRE_ZONE_SIZE * FIRE_ZONE_PULSE_START,
+			sizegrowth = FIRE_ZONE_SIZE * (1 - FIRE_ZONE_PULSE_START) / (FIRE_ZONE_PULSE_SECONDS * 30),
+			ttl = FIRE_ZONE_PULSE_SECONDS * 30,
+			texture = [[scavbossfirezone]],
+		},
+	},
+}
 
 return effects

@@ -85,12 +85,17 @@ local function SetShield(unitID, on)
 	Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { on and 1 or 0 }, 0)
 end
 
+local function AddBoss(unitID)
+	if not next(bosses) then
+		WatchEconomy(unitID)
+		Spring.SetGameRulesParam("scavBossOverheats", 1)
+	end
+	bosses[unitID] = true
+end
+
 function gadget:UnitCreated(unitID, unitDefID)
 	if eaters[unitDefID] then
-		if not next(bosses) then
-			WatchEconomy(unitID)
-		end
-		bosses[unitID] = true
+		AddBoss(unitID)
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		Spring.SetUnitMaxHealth(unitID, maxHealth * mapHealthScale)
 		Spring.SetUnitHealth(unitID, health * mapHealthScale)
@@ -149,17 +154,13 @@ function gadget:GameFrame(frame)
 	if heat >= 0 then
 		Spring.SetGameRulesParam("scavBossStaggerPercentage", 100 - heat)
 		Spring.SetGameRulesParam("scavBossStaggerActive", venting)
-		Spring.SetGameRulesParam("scavBossOverheats", 1)
 	end
 end
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if eaters[Spring.GetUnitDefID(unitID)] then
-			if not next(bosses) then
-				WatchEconomy(unitID)
-			end
-			bosses[unitID] = true
+			AddBoss(unitID)
 		end
 	end
 	GG.ScavBossFeedingEffect = FeedingEffect

@@ -1512,7 +1512,6 @@ local TURBO = {
 	stale = 5,
 	volleyDamage = 2,
 	beamDamage = 2,
-	volleyImpulse = 1.8,
 	volleyHealth = 0.75,
 	raiseHealth = 0.6,
 	raiseWrecks = 3,
@@ -1540,8 +1539,12 @@ local NAPALM = {
 	spacing = 250,
 	sound = "sounds/raptors/bigraptorroar.wav",
 	burnRate = 0.08,
-	sparkChance = 0.3,
-	sparkSize = 0.5,
+	zoneTurn = 90,
+	zonePulses = 2,
+	sparkChance = 0.15,
+	sparkTicks = 4,
+	none = {},
+	sparkSize = 1.5,
 	patches = {},
 	spreading = false,
 	running = false,
@@ -1604,6 +1607,7 @@ local HEAL = {
 }
 ---@type table<string, any>
 local SHOCK = {
+	overheat = { radius = 900, push = 28.7, sound = "newboom", ripple = 7 },
 	big = { radius = 900, push = 25.2, sound = "newboom", ripple = 7 },
 	gentle = { radius = 600, push = 17.5, sound = "xplolrg2", ripple = 6 },
 	lift = 0.12,
@@ -1615,7 +1619,7 @@ local SHOCK = {
 	ready = 0,
 }
 ---@type table<string, any>
-local HASTE = { health = 0.15, speed = 3, rate = 1 }
+local HASTE = { health = 0.15, lowHealthRate = 3, rate = 1 }
 ---@type table<string, any>
 local HEAT = {
 	value = 0,
@@ -1674,7 +1678,11 @@ local HEAT = {
 	},
 }
 
-local DEFS = { unit = {}, feature = {}, wreck = {}, weapon = {} }
+local DEFS = { unit = {}, feature = {}, wreck = {}, weapon = {}, gaiaTeam = Spring.GetGaiaTeamID() }
+
+DEFS.EnemyTeam = function(team)
+	return team ~= nil and team ~= DEFS.gaiaTeam and not Spring.AreTeamsAllied(team, myTeam)
+end
 
 DEFS.Unit = function(otherDefID)
 	local info = DEFS.unit[otherDefID]
@@ -1733,10 +1741,10 @@ DEFS.Weapon = function(num)
 	return info
 end
 
-TURBO.Boost = function(num, mult, impulse)
+TURBO.Boost = function(num, mult)
 	local damages = DEFS.Weapon(num).damages
 	---@type any
-	local set = { impulseFactor = impulse or damages.impulseFactor }
+	local set = {}
 	for armor = 0, #Game.armorTypes do
 		if damages[armor] then
 			set[armor] = damages[armor] * mult
@@ -1960,7 +1968,7 @@ local podStreamStart = -1
 local podLastFire = { -1000, -1000, side = 2 }
 
 HASTE.Set = function(on)
-	HASTE.rate = on and HASTE.speed or 1
+	HASTE.rate = on and HASTE.lowHealthRate or 1
 	for num, mode in pairs(podModeOf) do
 		if mode ~= POD_BARRAGE then
 			local def = DEFS.Weapon(num)
@@ -2069,7 +2077,7 @@ AA.Unleash = function()
 	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, AA.range)) do
 		local team = Spring.GetUnitTeam(otherID)
 		local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
-		if team and def and def.canFly and not Spring.AreTeamsAllied(team, myTeam) then
+		if def and def.canFly and DEFS.EnemyTeam(team) then
 			targets[#targets + 1] = otherID
 			if #targets >= AA.volley then
 				break
@@ -2203,8 +2211,8 @@ local function VolleyLoadout(turbo)
 	VolleyHold(volley.left)
 	volley.left = turbo and VOLLEY.turboLeft or VOLLEY.left
 	volley.right = turbo and VOLLEY.turboRight or VOLLEY.right
-	TURBO.Boost(VOLLEY.finaleLeft, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
-	TURBO.Boost(VOLLEY.finaleRight, turbo and TURBO.volleyDamage or 1, turbo and TURBO.volleyImpulse)
+	TURBO.Boost(VOLLEY.finaleLeft, turbo and TURBO.volleyDamage or 1)
+	TURBO.Boost(VOLLEY.finaleRight, turbo and TURBO.volleyDamage or 1)
 	volley.phase, volley.turn = "armed", volley.left
 	Spring.SetUnitWeaponState(unitID, volley.left, "reloadFrame", Spring.GetGameFrame())
 end
@@ -2528,13 +2536,7 @@ local fedMetal = 0
 
 local function IsPrey(otherID)
 	local team = Spring.GetUnitTeam(otherID)
-	if
-		not team
-		or not myTeam
-		or team == myTeam
-		or Spring.AreTeamsAllied(team, myTeam)
-		or Spring.GetUnitIsDead(otherID)
-	then
+	if not DEFS.EnemyTeam(team) or Spring.GetUnitIsDead(otherID) then
 		return false
 	end
 	local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
@@ -2826,7 +2828,7 @@ end
 SHOCK.Pushable = function(otherID)
 	local team = Spring.GetUnitTeam(otherID)
 	local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
-	if team and def and not def.canFly and not def.immobile and not Spring.AreTeamsAllied(team, myTeam) then
+	if def and not def.canFly and not def.immobile and DEFS.EnemyTeam(team) then
 		return def
 	end
 end
@@ -2884,10 +2886,10 @@ HEAT.FillSeconds = function()
 end
 
 HEAT.Vent = function()
-	ACT.overheating = true
 	while ACT.busy or NAPALM.running or HEAL.active do
 		Sleep(500)
 	end
+	ACT.overheating = true
 	for _ = 1, HEAT.warning * 2 do
 		HEAL.Spark()
 		HEAL.Spark()
@@ -2905,7 +2907,7 @@ HEAT.Vent = function()
 		Sleep(500)
 	end
 	Spring.SetUnitHealth(unitID, { paralyze = 0 })
-	SHOCK.Run(SHOCK.big)
+	SHOCK.Run(SHOCK.overheat)
 	HEAT.LeavePose()
 	HEAT.venting, ACT.overheating, HEAT.value = false, false, 0
 	Spring.SetUnitRulesParam(unitID, "scavboss_venting", 0)
@@ -3320,7 +3322,7 @@ TURBO.Pick = function(health)
 	local score = { air = 0, volley = 0, far = 0, swarm = 0, beam = 0 }
 	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, math.max(TURBO.range, TURBO.volleyRange))) do
 		local team = Spring.GetUnitTeam(otherID)
-		if team and myTeam and team ~= myTeam and not Spring.AreTeamsAllied(team, myTeam) then
+		if DEFS.EnemyTeam(team) then
 			local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
 			local distance = Spring.GetUnitSeparation(unitID, otherID, true) or 0
 			local heavy = def.metalCost >= TURBO.heavyCost
@@ -3489,8 +3491,11 @@ end
 
 NAPALM.Burn = function()
 	local patches = NAPALM.patches
+	local tick = 0
 	while NAPALM.spreading or #patches > 0 do
-		Sleep(1000)
+		Sleep(1000 / NAPALM.sparkTicks)
+		tick = tick + 1
+		local damaging = tick % NAPALM.sparkTicks == 0
 		local frame = Spring.GetGameFrame()
 		local burned = {}
 		for index = #patches, 1, -1 do
@@ -3499,19 +3504,17 @@ NAPALM.Burn = function()
 				table.remove(patches, index)
 			else
 				if GG.SpawnEnvironmentalLightning and math.random() < NAPALM.sparkChance then
-					local groundY = math.max(0, Spring.GetGroundHeight(patch[1], patch[2]))
-					GG.SpawnEnvironmentalLightning("scavradiation", patch[1], groundY, patch[2], NAPALM.sparkSize)
+					local sparkX = patch[1] + (math.random() - 0.5) * NAPALM.burnRadius
+					local sparkZ = patch[2] + (math.random() - 0.5) * NAPALM.burnRadius
+					local groundY = math.max(0, Spring.GetGroundHeight(sparkX, sparkZ))
+					GG.SpawnEnvironmentalLightning("scavradiation", sparkX, groundY, sparkZ, NAPALM.sparkSize)
 				end
-				for _, otherID in ipairs(Spring.GetUnitsInCylinder(patch[1], patch[2], NAPALM.burnRadius)) do
+				local victims = damaging and Spring.GetUnitsInCylinder(patch[1], patch[2], NAPALM.burnRadius)
+					or NAPALM.none
+				for _, otherID in ipairs(victims) do
 					local team = Spring.GetUnitTeam(otherID)
 					local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
-					if
-						not burned[otherID]
-						and team
-						and def
-						and not def.canFly
-						and not Spring.AreTeamsAllied(team, myTeam)
-					then
+					if not burned[otherID] and def and not def.canFly and DEFS.EnemyTeam(team) then
 						burned[otherID] = true
 						local _, maxHealth = Spring.GetUnitHealth(otherID)
 						Spring.AddUnitDamage(otherID, maxHealth * NAPALM.burnRate, 0, unitID, NAPALM.params.weaponDef)
@@ -3528,7 +3531,7 @@ NAPALM.Crowded = function()
 	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, NAPALM.crowdRange)) do
 		local team = Spring.GetUnitTeam(otherID)
 		local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
-		if team and def and not def.canFly and not Spring.AreTeamsAllied(team, myTeam) then
+		if def and not def.canFly and DEFS.EnemyTeam(team) then
 			count = count + 1
 			if count > NAPALM.crowd then
 				return true
@@ -3565,11 +3568,16 @@ NAPALM.Run = function()
 	StartThread(NAPALM.Flare)
 	local x, y, z = Here()
 	Spring.PlaySoundFile(NAPALM.sound, 1, x, y, z)
+	local firstWedge = math.random() * 2 * math.pi
+	local zoneTurn = (NAPALM.zoneTurn - math.deg(firstWedge)) % 360
+	Spring.SpawnCEG("scavbossfirezone", x, math.max(0, Spring.GetGroundHeight(x, z)), z, 0, 1, 0, 0, zoneTurn)
 	ACT.want.fire = Spring.GetGameFrame()
-	Sleep(NAPALM.telegraph * 1000)
+	for _ = 1, NAPALM.zonePulses do
+		Spring.SpawnCEG("scavbossfirezonepulse", x, math.max(0, Spring.GetGroundHeight(x, z)), z, 0, 1, 0, 0, zoneTurn)
+		Sleep(NAPALM.telegraph * 1000 / NAPALM.zonePulses)
+	end
 	NAPALM.spreading = true
 	StartThread(NAPALM.Burn)
-	local firstWedge = math.random() * 2 * math.pi
 	for ring = 1, NAPALM.rings do
 		ACT.want.fire = Spring.GetGameFrame()
 		local radius = NAPALM.inner + (NAPALM.outer - NAPALM.inner) * (ring - 1) / (NAPALM.rings - 1)
