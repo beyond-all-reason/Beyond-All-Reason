@@ -231,8 +231,8 @@ widget.UnitEnteredRadar = unitAccessGained
 --
 -- This method is an override of the engine-provided TraceScreenRay,
 -- and can peek selection volumes hidden by `cmd_no_self_selection`.
----@param screenX number position on x axis in mouse coordinates (origin on left border of view)
----@param screenY number position on y axis in mouse coordinates (origin on top border of view)
+---@param screenX integer position on x axis in mouse coordinates (origin on left border of view)
+---@param screenY integer position on y axis in mouse coordinates (origin on top border of view)
 ---@param onlyCoords boolean? (default: `false`) `result` includes only coordinates
 ---@param useMinimap boolean? (default: `false`) if position arguments are contained by minimap, use the minimap corresponding world position
 ---@param includeSky boolean? (default: `false`)
@@ -240,7 +240,8 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param heightOffset number? (default: `0`)
 ---@param includeGhosts boolean? (default: `false`)
 ---@return ("unit"|"feature"|"ground"|"sky"|"ghost")? description of traced object or position
----@return (integer|xyz|string|number|nil)? result unitID or featureID (integer), or position triple (xyz)
+---@return UnitID|FeatureID|xyz|nil result Unit or feature ID, world coordinates, or the frozen ghost aimpoint
+---@return xyz? ghostAimPos Last observed aimpoint for a remembered model with radar contact
 local function traceScreenRay(
 	screenX,
 	screenY,
@@ -258,16 +259,9 @@ local function traceScreenRay(
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result, ghostAimPos = sp_TraceScreenRay(
-		screenX,
-		screenY,
-		onlyCoords,
-		useMinimap,
-		includeSky,
-		ignoreWater,
-		heightOffset,
-		includeGhosts
-	)
+	local trace = sp_TraceScreenRay ---@type GhostTraceScreenRay
+	local description, result, ghostAimPos =
+		trace(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset, includeGhosts)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)

@@ -30,14 +30,17 @@ end
 function widget:MousePress(x, y, button)
 	press = nil
 	local _, command = Spring.GetActiveCommand()
-	if button == 1 and commands[command] and not Spring.IsAboveMiniMap(x, y) then
+	if button == 1 and commands[command] and not Spring.IsAboveMiniMap(math.floor(x), math.floor(y)) then
 		press = { x = x, y = y, command = command }
 	end
 	return false
 end
 
+---@param x integer
+---@param y integer
 local function traceTarget(x, y)
-	return Spring.TraceScreenRay(x, y, false, false, false, false, 0, true)
+	local traceScreenRay = Spring.TraceScreenRay ---@type GhostTraceScreenRay
+	return traceScreenRay(x, y, false, false, false, false, 0, true)
 end
 
 function widget:Shutdown()
@@ -82,7 +85,7 @@ function widget:Update()
 end
 
 function widget:CommandNotify(command, params, options)
-	if not press or press.command ~= command then
+	if not keepHeight or not press or press.command ~= command then
 		return false
 	end
 	local click = press
@@ -96,14 +99,18 @@ function widget:CommandNotify(command, params, options)
 		return false
 	end
 	local kind, target, ghostAimPos = traceTarget(x, y)
+	---@type CreateCommandParams
 	local replacementParams
 	local replacementOptions = table.copy(options)
 	if kind == "ghost" then
-		replacementParams = target
+		---@cast target xyz
+		replacementParams = { target[1], target[2], target[3] }
 		replacementOptions.keepheight = true
 		replacementOptions.coded = math.bit_or(options.coded or 0, keepHeight)
 	elseif kind == "unit" and ghostAimPos then
-		replacementParams = { target }
+		replacementParams = {
+			target --[[@as UnitID]],
+		}
 	else
 		return false
 	end

@@ -1,5 +1,19 @@
 describe("Ghost Target single clicks", function()
-	local widget, env, orders, command, kind, x, y, held, minimap, intercepted, highlights, radarContact
+	---@type table<string, any>
+	local widget = {}
+	---@type table
+	local env = {}
+	---@type table[]
+	local orders = {}
+	---@type number[][]
+	local highlights = {}
+	---@type integer?
+	local command
+	---@type string
+	local kind
+	---@type boolean
+	local radarContact
+	local x, y, held, minimap, intercepted
 	before_each(function()
 		widget, orders, highlights = {}, {}, {}
 		radarContact = false
@@ -33,7 +47,7 @@ describe("Ghost Target single clicks", function()
 					return minimap
 				end,
 				TraceScreenRay = function(...)
-					assert.equals(true, select(8, ...))
+					assert.is_true(select(8, ...) == true)
 					if radarContact then
 						return "unit", 321, { 110, 80, 105 }
 					end
@@ -58,7 +72,9 @@ describe("Ghost Target single clicks", function()
 				end,
 			},
 		}, { __index = _G })
-		setfenv(assert(loadfile("luaui/Widgets/cmd_ghost_target.lua")), env)()
+		local chunk = assert(loadfile("luaui/Widgets/cmd_ghost_target.lua"))
+		setfenv(chunk, env)
+		chunk()
 	end)
 	local function click(params, options)
 		widget:MousePress(100, 100, 1)
@@ -72,12 +88,15 @@ describe("Ghost Target single clicks", function()
 		end
 	end)
 	it("retains ghost picking through the Ignore Self ray wrapper", function()
+		---@type table<string, any>
 		local ignoreSelf = {}
 		env.widget = ignoreSelf
 		env.UnitDefs = {}
 		env.WG = {}
 		env.widgetHandler.RegisterGlobal = function() end
-		setfenv(assert(loadfile("luaui/Widgets/cmd_no_self_selection.lua")), env)()
+		local chunk = assert(loadfile("luaui/Widgets/cmd_no_self_selection.lua"))
+		setfenv(chunk, env)
+		chunk()
 		ignoreSelf:Initialize()
 		env.widget = widget
 
