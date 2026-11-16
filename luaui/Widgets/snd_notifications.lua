@@ -40,7 +40,7 @@ local playedWelcome = false
 local silentTime = 0.2 -- silent time between queued notifications
 local globalVolume = 0.7
 local muteWhenIdle = true
-local idleTime = 10        -- after this much sec: mark user as idle
+local idleTime = 10 -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30 -- (in gameframes)
@@ -177,7 +177,7 @@ local function processNotificationDefs()
 			muteForAFK = notifDef.muteForAFK,
 		}
 
-		for i = 1,notification[notifID].priority do
+		for i = 1, notification[notifID].priority do
 			if not soundQueue[notification[notifID].priority] then
 				soundQueue[notification[notifID].priority] = {}
 			end
@@ -471,7 +471,7 @@ local function checkNotificationRules(notifDef)
 		end
 	end
 
-	if notifDef.playOnlyForAFK and (not isIdle) then
+	if notifDef.playOnlyForAFK and not isIdle then
 		return false
 	end
 
@@ -507,7 +507,8 @@ local function queueNotification(event, forceplay)
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
 						if checkNotificationRules(notification[event]) then
-							soundQueue[notification[event].priority][#soundQueue[notification[event].priority] + 1] = event
+							soundQueue[notification[event].priority][#soundQueue[notification[event].priority] + 1] =
+								event
 							applyNotificationRules(notification[event])
 						else
 							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2) * 30)
@@ -952,7 +953,7 @@ local function playNextSound()
 	if getSoundQueueLength() > 0 then
 		local event
 		--Spring.Echo("soundQueue", soundQueue)
-		for i = 1,#soundQueue do
+		for i = 1, #soundQueue do
 			if #soundQueue[i] > 0 then
 				event = soundQueue[i][1] .. ""
 				table.remove(soundQueue[i], 1)
@@ -960,7 +961,9 @@ local function playNextSound()
 			end
 		end
 		if not event then
-			Spring.Echo("Error: [NOTIFICATIONS] All queues are empty but it's still attempting to play a notification. FIX ME!")
+			Spring.Echo(
+				"Error: [NOTIFICATIONS] All queues are empty but it's still attempting to play a notification. FIX ME!"
+			)
 			return
 		end
 
@@ -976,7 +979,7 @@ local function playNextSound()
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
 					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFilesRare[mRare]) + silentTime
-					
+
 				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFiles[m]) + silentTime
