@@ -176,27 +176,6 @@ body {
 	height: 12dp;
 }
 
-.le-unit {
-	font-size: 1.125rem;
-	color: #ffd88f;
-	margin-bottom: 1dp;
-}
-
-.le-mode {
-	margin-top: 1dp;
-	margin-bottom: 3dp;
-}
-
-.le-status {
-	font-size: 1rem;
-	color: #d1d5db;
-	background-color: #16161edc;
-	border: 1dp #3a3a4860;
-	border-radius: 4dp;
-	padding: 2dp 5dp;
-	margin-bottom: 2dp;
-}
-
 /* === Body: scrolls, the header and the hint stay === */
 .le-body {
 	overflow-x: hidden;
@@ -273,11 +252,6 @@ body {
 	overflow: hidden;
 }
 
-.le-value-dim {
-	font-size: 0.95rem;
-	color: #9ca3af;
-}
-
 .le-note {
 	font-size: 0.95rem;
 	color: #ffd88f;
@@ -336,17 +310,6 @@ body {
 	color: #ffd88f;
 	border-color: #fdc04c;
 	decorator: vertical-gradient(#3c3018 #1a1208);
-}
-
-/* Undo and redo read as off until there is something to step to. */
-.le-chip-dim {
-	color: #777b86;
-}
-
-.le-chip-dim.active {
-	color: #d8dce4;
-	border-color: #50505a50;
-	decorator: vertical-gradient(#4e4e5a #2c2c34);
 }
 
 .le-chip-danger:hover {
@@ -439,27 +402,6 @@ body {
 	white-space: nowrap;
 }
 
-/* Light type letter: P, C or B. */
-.le-badge {
-	flex: 0 0 13dp;
-	height: 13dp;
-	line-height: 13dp;
-	text-align: center;
-	font-size: 0.85rem;
-	font-weight: bold;
-	color: #13131c;
-	background-color: #b0b4c0;
-	border-radius: 7dp;
-}
-
-.le-badge.cone {
-	background-color: #f0c060;
-}
-
-.le-badge.beam {
-	background-color: #6fb8ff;
-}
-
 .le-dot {
 	flex: 0 0 10dp;
 	height: 10dp;
@@ -470,10 +412,6 @@ body {
 /* Team colour has no fixed colour to show. */
 .le-dot.team {
 	decorator: horizontal-gradient(#ff5050 #5080ff);
-}
-
-.le-row-gap {
-	margin-top: 4dp;
 }
 
 /* === Picker: a row that opens its list (piece, size, colour set) === */
@@ -664,7 +602,7 @@ body {
 }
 
 .le-num {
-	flex: 0 0 52dp;
+	flex: 0 0 44dp;
 	text-align: right;
 }
 
@@ -739,4 +677,360 @@ body {
 	border: 1dp #3a3a4860;
 	border-radius: 4dp;
 	overflow: hidden;
+}
+
+/* === Wordmark: also the drag handle === */
+.le-handle {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+}
+
+.le-gem {
+	width: 4dp;
+	height: 18dp;
+	flex-shrink: 0;
+	border-radius: 2dp;
+	decorator: vertical-gradient(#ffe2a0 #d99a28);
+	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
+}
+
+.le-title-main,
+.le-title-accent {
+	flex-shrink: 0;
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 1.5dp;
+	color: #eef1f6;
+}
+
+.le-title-accent {
+	color: #fdc04c;
+}
+
+/* === Rail: file actions left, focus and keys right === */
+.le-rail {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+	margin: 4dp 0dp 3dp 0dp;
+	padding: 3dp 4dp;
+	border-radius: 8dp;
+	border: 1dp #ffffff0e;
+	background-color: #12121a;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000070, inset 0dp -1dp 0dp 0dp #ffffff08;
+}
+
+.le-rail-spacer {
+	flex: 1;
+}
+
+.le-rail-sep {
+	width: 1dp;
+	height: 16dp;
+	flex-shrink: 0;
+	background-color: #ffffff14;
+	margin: 0dp 2dp;
+}
+
+.le-rail-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	cursor: pointer;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+
+.le-rail-btn:hover {
+	background-color: #ffffff16;
+	border-color: #ffffff22;
+}
+
+.le-rail-icon {
+	width: 14dp;
+	height: 14dp;
+	image-color: #c8d0d8;
+}
+
+/* Undo and redo stay grey until there is a step to take */
+.le-rail-step .le-rail-icon {
+	image-color: #565c66;
+}
+
+.le-rail-step.active .le-rail-icon {
+	image-color: #c8d0d8;
+}
+
+.le-rail-save {
+	height: 22dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	padding: 0dp 8dp;
+	flex-shrink: 0;
+	cursor: pointer;
+	border-radius: 6dp;
+	border: 1dp #50505a50;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.le-rail-save:hover {
+	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+}
+
+.le-rail-save.active {
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#3c3018 #1a1208);
+}
+
+.le-rail-save-text {
+	font-size: 1rem;
+	font-weight: bold;
+	color: #d8dce4;
+}
+
+.le-rail-save.active .le-rail-save-text {
+	color: #ffd88f;
+}
+
+.le-rail-text {
+	height: 22dp;
+	line-height: 22dp;
+	padding: 0dp 5dp;
+	flex-shrink: 0;
+	font-size: 0.95rem;
+	font-weight: bold;
+	color: #9ca3af;
+	cursor: pointer;
+	border-radius: 6dp;
+	border: 1dp transparent;
+}
+
+.le-rail-text:hover {
+	color: #e5e7eb;
+	background-color: #ffffff16;
+	border-color: #ffffff22;
+}
+
+/* === Orbit row under the rail === */
+.le-orbit {
+	margin-bottom: 3dp;
+}
+
+.le-orbit-label {
+	margin: 1dp 0dp 0dp 48dp;
+	font-size: 0.9rem;
+	color: #9ca3af;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+/* === Status strip: unit and counts, a message takes its place for a while === */
+.le-strip {
+	height: 20dp;
+	margin-bottom: 4dp;
+	padding: 0dp 6dp;
+	background-color: #12121a;
+	border-radius: 4dp;
+	border: 1dp #ffffff0a;
+	overflow: hidden;
+}
+
+.le-strip-sum,
+.le-strip-msg {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+	height: 20dp;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.le-strip-unit {
+	font-size: 1rem;
+	font-weight: bold;
+	color: #ffd88f;
+}
+
+.le-strip-sep {
+	font-size: 1rem;
+	color: #ffffff22;
+}
+
+.le-strip-val {
+	font-size: 1rem;
+	color: #d1d5db;
+}
+
+.le-strip-warn {
+	font-size: 1rem;
+	color: #fdc04c;
+}
+
+.le-strip-msg {
+	font-size: 1rem;
+	color: #a2f2e2;
+}
+
+/* === Segmented control: one lit === */
+.le-seg {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	height: 20dp;
+	border: 1dp #3e3e4a;
+	border-radius: 5dp;
+	background-color: #22232c;
+	overflow: hidden;
+}
+
+.le-seg-btn {
+	flex: 1 1 0dp;
+	min-width: 0dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 3dp;
+	border-left: 1dp #3e3e4a;
+	cursor: pointer;
+	transition: background-color 0.1s;
+}
+
+.le-seg-btn:first-child {
+	border-left-width: 0dp;
+}
+
+.le-seg-btn:hover {
+	background-color: #2e2f3a;
+}
+
+.le-seg-btn.active {
+	background-color: #2b2113;
+}
+
+.le-seg-text {
+	font-size: 0.95rem;
+	color: #a8afbd;
+	white-space: nowrap;
+}
+
+.le-seg-btn:hover .le-seg-text {
+	color: #e5e7eb;
+}
+
+.le-seg-btn.active .le-seg-text {
+	color: #ffd88f;
+}
+
+.le-seg-icon {
+	width: 11dp;
+	height: 11dp;
+	image-color: #a8afbd;
+}
+
+.le-seg-btn.active .le-seg-icon {
+	image-color: #ffd88f;
+}
+
+/* the mode tabs under the strip */
+.le-root > .le-seg {
+	flex: 0 0 auto;
+	height: 22dp;
+	margin-bottom: 2dp;
+}
+
+/* === Light type icons in the lists === */
+.le-type-icon {
+	flex: 0 0 12dp;
+	width: 12dp;
+	height: 12dp;
+	image-color: #c8ccd6;
+}
+
+.le-type-cone {
+	image-color: #f0c060;
+}
+
+.le-type-beam {
+	image-color: #6fb8ff;
+}
+
+.le-chip-icon {
+	width: 11dp;
+	height: 11dp;
+	image-color: #c8d0d8;
+}
+
+.le-chip-danger:hover .le-chip-icon {
+	image-color: #ff9999;
+}
+
+/* === Section count === */
+.le-frame-count {
+	font-size: 0.85rem;
+	font-weight: bold;
+	color: #9ca3af;
+	background-color: #2a2a34;
+	border-radius: 6dp;
+	padding: 0dp 4dp;
+}
+
+/* === A value that differs from the saved light: gold label, a click puts it back === */
+.le-label-rev {
+	cursor: pointer;
+}
+
+.le-label-rev:hover {
+	color: #e5e7eb;
+}
+
+.le-label.le-changed {
+	color: #fdc04c;
+}
+
+.le-label.le-changed:hover {
+	color: #ffe2a0;
+}
+
+/* === View toggles: teal when on, any number at once === */
+.le-view {
+	margin-bottom: 3dp;
+}
+
+.le-toggle.active {
+	color: #a2f2e2;
+	border-color: #40e0c0;
+	decorator: vertical-gradient(#14403a #0b241f);
+}
+
+.le-strip-msg-text {
+	font-size: 1rem;
+	color: #a2f2e2;
+	white-space: nowrap;
+}
+
+.le-handle {
+	flex: 1;
+}
+
+.le-rail .le-head-btn {
+	margin-right: 0dp;
+	border-color: transparent;
+}
+
+.le-rail .le-head-btn:hover {
+	background-color: #ffffff16;
+	border-color: #ffffff22;
 }

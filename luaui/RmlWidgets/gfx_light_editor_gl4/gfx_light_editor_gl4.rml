@@ -14,89 +14,65 @@
 <body data-model="light_editor_model">
 <div id="le-root" class="le-root widget-shadow rounded-md bg-darkest">
 	<div class="le-head">
-		<div id="le-handle" class="le-handle" data-event-dragstart="dragStart()" data-event-drag="dragMove()" data-event-dragend="dragEnd()">LIGHT EDITOR</div>
-		<div id="le-focus-btn" class="le-head-btn le-focus-btn" data-class-active="focus" data-event-click="act('focus')" data-event-mouseover="tip('focus')"><img class="le-icon-md" src="/luaui/images/terraform_brush/eye.png" data-attr-src="focus ? '/luaui/images/terraform_brush/eye_slash.png' : '/luaui/images/terraform_brush/eye.png'" /></div>
-		<div id="le-keys-btn" class="le-head-btn" data-class-active="keysOpen" data-event-click="act('keys')" data-event-mouseover="tip('keys')"><div class="le-head-btn-text">KEYS</div></div>
+		<div id="le-handle" class="le-handle" data-event-dragstart="dragStart()" data-event-drag="dragMove()" data-event-dragend="dragEnd()">
+			<div class="le-gem"></div><div class="le-title-main">LIGHT</div><div class="le-title-accent">EDITOR</div>
+		</div>
 		<div id="le-close" class="le-close" data-event-click="act('close')"><img class="le-icon-md" src="/luaui/images/terraform_brush/close.png" /></div>
 	</div>
-	<div class="le-unit">{{unitLabel}}</div>
-	<div class="le-chips le-mode" data-event-mouseover="tip('mode')">
-		<div class="le-chip" data-class-active="!weaponMode" data-event-click="act('mode', 'unit')"><div class="le-chip-text">UNIT LIGHTS</div></div>
-		<div class="le-chip" data-class-active="weaponMode" data-event-click="act('mode', 'weapon')"><div class="le-chip-text">WEAPON LIGHTS</div></div>
+	<div class="le-rail">
+		<div id="le-save" class="le-rail-save" data-class-active="dirtyCount > 0" data-event-click="act('save')" data-event-mouseover="tip('save')"><div class="le-rail-save-text">SAVE</div><div class="le-chip-count" data-if="dirtyCount > 0">{{dirtyCount}}</div></div>
+		<div class="le-rail-btn le-rail-step" data-class-active="canUndo" data-event-click="act('undo')" data-event-mouseover="tip('undo')"><img class="le-rail-icon" src="/luaui/images/terraform_brush/undo.png" /></div>
+		<div class="le-rail-btn le-rail-step" data-class-active="canRedo" data-event-click="act('redo')" data-event-mouseover="tip('redo')"><img class="le-rail-icon" src="/luaui/images/terraform_brush/redo.png" /></div>
+		<div class="le-rail-btn" data-event-click="act('reload')" data-event-mouseover="tip('reload')"><img class="le-rail-icon" src="/luaui/images/terraform_brush/rot_ccw.png" /></div>
+		<div class="le-rail-text" data-event-click="act('copy')" data-event-mouseover="tip('copy')">COPY</div>
+		<div class="le-rail-spacer"></div>
+		<div class="le-rail-sep"></div>
+		<div id="le-focus-btn" class="le-head-btn le-focus-btn" data-class-active="focus" data-event-click="act('focus')" data-event-mouseover="tip('focus')"><img class="le-icon-md" src="/luaui/images/terraform_brush/eye.png" data-attr-src="focus ? '/luaui/images/terraform_brush/eye_slash.png' : '/luaui/images/terraform_brush/eye.png'" /></div>
+		<div id="le-keys-btn" class="le-head-btn" data-class-active="keysOpen" data-event-click="act('keys')" data-event-mouseover="tip('keys')"><div class="le-head-btn-text">KEYS</div></div>
 	</div>
-	<div class="le-status" data-if="status != ''">{{status}}</div>
-
-	<div class="le-body">
-		<div class="le-frame" data-class-le-collapsed="fold_file">
-			<div class="le-frame-title" data-event-click="fold('file')">
-				<img class="le-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="fold_file ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
-				<div class="le-frame-label">FILE</div>
-			</div>
-			<div class="le-frame-body" data-if="!fold_file">
-				<div class="le-chips">
-					<div class="le-chip le-chip-save" data-class-active="dirtyCount > 0" data-event-click="act('save')" data-event-mouseover="tip('save')"><div class="le-chip-text">SAVE</div><div class="le-chip-count" data-if="dirtyCount > 0">{{dirtyCount}}</div></div>
-					<div class="le-chip" data-event-click="act('reload')" data-event-mouseover="tip('reload')"><div class="le-chip-text">RELOAD</div></div>
-					<div class="le-chip le-chip-dim" data-class-active="canUndo" data-event-click="act('undo')" data-event-mouseover="tip('undo')"><div class="le-chip-text">UNDO</div></div>
-					<div class="le-chip le-chip-dim" data-class-active="canRedo" data-event-click="act('redo')" data-event-mouseover="tip('redo')"><div class="le-chip-text">REDO</div></div>
-					<div class="le-chip" data-event-click="act('copy')" data-event-mouseover="tip('copy')"><div class="le-chip-text">COPY</div></div>
-				</div>
-				<div class="le-row le-row-gap" data-event-mouseover="tip('night')">
-					<div class="le-label">VIEW</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="!night" data-event-click="act('night', 'off')"><div class="le-chip-text">DAY</div></div>
-						<div class="le-chip" data-class-active="night" data-event-click="act('night', 'on')"><div class="le-chip-text">NIGHT</div></div>
-					</div>
-				</div>
-				<div class="le-row le-row-gap" data-event-mouseover="tip('flat')">
-					<div class="le-label">UNIT</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="!flat" data-event-click="act('flat', 'off')"><div class="le-chip-text">TEXTURED</div></div>
-						<div class="le-chip" data-class-active="flat" data-event-click="act('flat', 'on')"><div class="le-chip-text">FLAT</div></div>
-					</div>
-				</div>
-				<div class="le-row le-row-gap" data-event-mouseover="tip('canvas')">
-					<div class="le-label">SCENE</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="!canvas" data-event-click="act('canvas', 'off')"><div class="le-chip-text">MAP</div></div>
-						<div class="le-chip" data-class-active="canvas" data-event-click="act('canvas', 'on')"><div class="le-chip-text">CANVAS</div></div>
-					</div>
-				</div>
-				<div class="le-row le-row-gap" data-event-mouseover="tip('camera')">
-					<div class="le-label">CAMERA</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="!orbit" data-event-click="act('camera', 'game')"><div class="le-chip-text">GAME</div></div>
-						<div class="le-chip" data-class-active="orbit" data-event-click="act('camera', 'orbit')"><div class="le-chip-text">ORBIT</div></div>
-					</div>
-				</div>
-				<div class="le-row le-row-gap" data-event-mouseover="tip('pivot')">
-					<div class="le-label">PIVOT</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="pivotAuto" data-event-click="act('pivot', 'auto')"><div class="le-chip-text">AUTO</div></div>
-						<div class="le-chip" data-class-active="pivotLight" data-event-click="act('pivot', 'light')"><div class="le-chip-text">LIGHT</div></div>
-						<div id="le-pivot-piece" class="le-chip" data-class-active="pivotPiece" data-event-click="fold('pivot')"><div class="le-chip-text">PIECE</div></div>
-					</div>
-				</div>
-				<div class="le-row" data-event-mouseover="tip('pivot')">
-					<div class="le-label"></div>
-					<div id="le-pivot-label" class="le-value le-value-dim">{{pivotLabel}}</div>
-					<div class="le-chip le-chip-small" data-class-active="pickMode == 'pivot'" data-event-click="act('piecepick', 'pivot')" data-event-mouseover="tip('pivotpick')"><div class="le-chip-text">PICK</div></div>
-				</div>
-				<div class="le-list le-list-pieces" data-if="!fold_pivot" data-event-mouseover="tip('pivot')">
-					<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.pivot" data-event-click="pickPivot(p.name)" data-event-mouseover="pieceHover(p.name)" data-event-mouseout="pieceHover('')">
-						<div class="le-item-name">{{p.label}}</div>
-					</div>
-				</div>
+	<div class="le-row le-view">
+		<div class="le-label">VIEW</div>
+		<div class="le-chips le-chips-inline">
+			<div class="le-chip le-toggle" data-class-active="night" data-event-click="act('night', 'toggle')" data-event-mouseover="tip('night')"><div class="le-chip-text">NIGHT</div></div>
+			<div class="le-chip le-toggle" data-class-active="flat" data-event-click="act('flat', 'toggle')" data-event-mouseover="tip('flat')"><div class="le-chip-text">FLAT</div></div>
+			<div class="le-chip le-toggle" data-class-active="canvas" data-event-click="act('canvas', 'toggle')" data-event-mouseover="tip('canvas')"><div class="le-chip-text">CANVAS</div></div>
+		</div>
+	</div>
+	<div class="le-orbit" data-event-mouseover="tip('pivot')">
+		<div class="le-row">
+			<div class="le-label">ORBIT</div>
+			<div class="le-seg"><div class="le-seg-btn" data-class-active="!orbit" data-event-click="act('camera', 'game')"><div class="le-seg-text">OFF</div></div><div class="le-seg-btn" data-class-active="pivotAutoOn" data-event-click="act('pivot', 'auto')"><div class="le-seg-text">AUTO</div></div><div class="le-seg-btn" data-class-active="pivotLight" data-event-click="act('pivot', 'light')"><div class="le-seg-text">LIGHT</div></div><div class="le-seg-btn" id="le-pivot-piece" data-class-active="pivotPiece" data-event-click="fold('pivot')"><div class="le-seg-text">PIECE</div></div></div>
+			<div class="le-chip le-chip-small" data-class-active="pickMode == 'pivot'" data-event-click="act('piecepick', 'pivot')" data-event-mouseover="tip('pivotpick')"><div class="le-chip-text">PICK</div></div>
+		</div>
+		<div id="le-pivot-label" class="le-orbit-label" data-if="pinShown">around {{pivotLabel}}</div>
+		<div class="le-list le-list-pieces" data-if="!fold_pivot">
+			<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.pivot" data-event-click="pickPivot(p.name)" data-event-mouseover="pieceHover(p.name)" data-event-mouseout="pieceHover('')">
+				<div class="le-item-name">{{p.label}}</div>
 			</div>
 		</div>
+	</div>
+	<div class="le-strip">
+		<div class="le-strip-sum" data-if="status == ''">
+			<div class="le-strip-unit">{{unitName}}</div>
+			<div class="le-strip-sep">|</div>
+			<div class="le-strip-val">{{countLabel}}</div>
+			<div class="le-strip-sep" data-if="dirtyCount > 0">|</div>
+			<div class="le-strip-warn" data-if="dirtyCount > 0">{{dirtyCount}} unsaved</div>
+		</div>
+		<div class="le-strip-msg" data-if="status != ''"><div class="le-strip-msg-text">{{status}}</div></div>
+	</div>
+	<div class="le-seg" data-event-mouseover="tip('mode')"><div class="le-seg-btn" data-class-active="!weaponMode" data-event-click="act('mode', 'unit')"><div class="le-seg-text">UNIT LIGHTS</div></div><div class="le-seg-btn" data-class-active="weaponMode" data-event-click="act('mode', 'weapon')"><div class="le-seg-text">WEAPON LIGHTS</div></div></div>
+
+	<div class="le-body">
 		<div class="le-frame" data-class-le-collapsed="fold_lights" data-if="hasUnit">
 			<div class="le-frame-title" data-event-click="fold('lights')">
 				<img class="le-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="fold_lights ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
-				<div class="le-frame-label">LIGHTS</div>
+				<div class="le-frame-label">LIGHTS</div><div class="le-frame-count">{{lightCount}}</div>
 			</div>
 			<div class="le-frame-body" data-if="!fold_lights">
 				<div class="le-list le-list-lights" data-event-mouseover="tip('lights')">
 					<div data-for="l : lights" class="le-item" data-class-blank="l.blank" data-class-selected="l.selected" data-event-click="pickLight(l.name)">
-						<div class="le-badge" data-class-cone="l.kind == 'cone'" data-class-beam="l.kind == 'beam'">{{l.letter}}</div>
+						<img class="le-type-icon" src="/luaui/images/terraform_brush/lt_point.png" data-if="l.kind == 'point'" /><img class="le-type-icon le-type-cone" src="/luaui/images/terraform_brush/lt_cone.png" data-if="l.kind == 'cone'" /><img class="le-type-icon le-type-beam" src="/luaui/images/terraform_brush/lt_beam.png" data-if="l.kind == 'beam'" />
 						<div class="le-item-name">{{l.name}}</div>
 						<div class="le-item-edited" data-if="l.edited">EDITED</div>
 						<div class="le-item-piece">{{l.piece}}</div>
@@ -107,13 +83,13 @@
 					<div data-if="weaponMode">The weapons of this unit have no lights.</div>
 				</div>
 				<div class="le-chips" data-if="!weaponMode">
-					<div class="le-chip" data-event-click="act('add', 'point')" data-event-mouseover="tip('addpoint')"><div class="le-chip-text">+ POINT</div></div>
-					<div class="le-chip" data-event-click="act('add', 'cone')" data-event-mouseover="tip('addcone')"><div class="le-chip-text">+ CONE</div></div>
-					<div class="le-chip" data-event-click="act('add', 'beam')" data-event-mouseover="tip('addbeam')"><div class="le-chip-text">+ BEAM</div></div>
+					<div class="le-chip" data-event-click="act('add', 'point')" data-event-mouseover="tip('addpoint')"><img class="le-chip-icon" src="/luaui/images/terraform_brush/lt_point.png" /><div class="le-chip-text">+ POINT</div></div>
+					<div class="le-chip" data-event-click="act('add', 'cone')" data-event-mouseover="tip('addcone')"><img class="le-chip-icon" src="/luaui/images/terraform_brush/lt_cone.png" /><div class="le-chip-text">+ CONE</div></div>
+					<div class="le-chip" data-event-click="act('add', 'beam')" data-event-mouseover="tip('addbeam')"><img class="le-chip-icon" src="/luaui/images/terraform_brush/lt_beam.png" /><div class="le-chip-text">+ BEAM</div></div>
 				</div>
 				<div class="le-chips" data-if="!weaponMode">
 					<div class="le-chip" data-event-click="act('duplicate')" data-event-mouseover="tip('duplicate')"><div class="le-chip-text">DUPLICATE</div></div>
-					<div class="le-chip le-chip-danger" data-event-click="act('delete')" data-event-mouseover="tip('delete')"><div class="le-chip-text">DELETE</div></div>
+					<div class="le-chip le-chip-danger" data-event-click="act('delete')" data-event-mouseover="tip('delete')"><img class="le-chip-icon" src="/luaui/images/terraform_brush/trash.png" /><div class="le-chip-text">DELETE</div></div>
 				</div>
 				<div class="le-chips" data-if="weaponMode" data-event-mouseover="tip('weaponlights')">
 					<div class="le-chip" data-event-click="act('preview')" data-event-mouseover="tip('preview')"><div class="le-chip-text">PREVIEW</div></div>
@@ -144,11 +120,7 @@
 				</div>
 				<div class="le-row" data-event-mouseover="tip('type')">
 					<div class="le-label">TYPE</div>
-					<div class="le-chips le-chips-inline">
-						<div class="le-chip" data-class-active="lightType == 'point'" data-event-click="act('type', 'point')"><div class="le-chip-text">POINT</div></div>
-						<div class="le-chip" data-class-active="lightType == 'cone'" data-event-click="act('type', 'cone')"><div class="le-chip-text">CONE</div></div>
-						<div class="le-chip" data-class-active="lightType == 'beam'" data-event-click="act('type', 'beam')"><div class="le-chip-text">BEAM</div></div>
-					</div>
+					<div class="le-seg"><div class="le-seg-btn" data-class-active="lightType == 'point'" data-event-click="act('type', 'point')"><img class="le-seg-icon" src="/luaui/images/terraform_brush/lt_point.png" /><div class="le-seg-text">POINT</div></div><div class="le-seg-btn" data-class-active="lightType == 'cone'" data-event-click="act('type', 'cone')"><img class="le-seg-icon" src="/luaui/images/terraform_brush/lt_cone.png" /><div class="le-seg-text">CONE</div></div><div class="le-seg-btn" data-class-active="lightType == 'beam'" data-event-click="act('type', 'beam')"><img class="le-seg-icon" src="/luaui/images/terraform_brush/lt_beam.png" /><div class="le-seg-text">BEAM</div></div></div>
 				</div>
 				<div class="le-row" data-event-mouseover="tip('piece')">
 					<div class="le-label">PIECE</div>
@@ -179,7 +151,7 @@
 				<div class="le-list le-list-presets" data-event-mouseover="tip('preset')">
 					<div data-for="p : presets" class="le-item" data-class-blank="p.blank" data-class-selected="p.active" data-event-click="pickPreset(p.name)">
 						<div class="le-dot" data-style-background-color="p.swatch"></div>
-						<div class="le-badge" data-class-cone="p.kind == 'cone'" data-class-beam="p.kind == 'beam'">{{p.letter}}</div>
+						<img class="le-type-icon" src="/luaui/images/terraform_brush/lt_point.png" data-if="p.kind == 'point'" /><img class="le-type-icon le-type-cone" src="/luaui/images/terraform_brush/lt_cone.png" data-if="p.kind == 'cone'" /><img class="le-type-icon le-type-beam" src="/luaui/images/terraform_brush/lt_beam.png" data-if="p.kind == 'beam'" />
 						<div class="le-item-name">{{p.name}}</div>
 					</div>
 				</div>
@@ -193,7 +165,7 @@
 				<div class="le-list le-list-presets" data-if="!fold_looks" data-event-mouseover="tip('looks')">
 					<div data-for="o : looks" class="le-item" data-class-blank="o.blank" data-event-click="pickLook(o.index)">
 						<div class="le-dot" data-style-background-color="o.swatch" data-class-team="o.team"></div>
-						<div class="le-badge" data-class-cone="o.kind == 'cone'" data-class-beam="o.kind == 'beam'">{{o.letter}}</div>
+						<img class="le-type-icon" src="/luaui/images/terraform_brush/lt_point.png" data-if="o.kind == 'point'" /><img class="le-type-icon le-type-cone" src="/luaui/images/terraform_brush/lt_cone.png" data-if="o.kind == 'cone'" /><img class="le-type-icon le-type-beam" src="/luaui/images/terraform_brush/lt_beam.png" data-if="o.kind == 'beam'" />
 						<div class="le-item-name">{{o.name}}</div>
 						<div class="le-item-piece">{{o.count}}</div>
 					</div>
@@ -219,22 +191,22 @@
 			</div>
 			<div class="le-frame-body" data-if="!fold_position">
 				<div class="le-row" data-if="!weaponMode" data-event-mouseover="tip('posx')">
-					<div class="le-label">X</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_posx" data-event-click="revert('posx')">X</div>
 					<input type="range" id="le-sl-posx" class="le-slider le-ch-r" min="-500" max="500" step="1" data-value="sl_posx" data-event-change="slide('posx')" />
 					<input type="text" class="le-num" data-value="num_posx" data-event-change="num('posx')" data-event-focus="numFocus('posx')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-if="!weaponMode" data-event-mouseover="tip('posy')">
-					<div class="le-label">Y</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_posy" data-event-click="revert('posy')">Y</div>
 					<input type="range" id="le-sl-posy" class="le-slider le-ch-g" min="-500" max="500" step="1" data-value="sl_posy" data-event-change="slide('posy')" />
 					<input type="text" class="le-num" data-value="num_posy" data-event-change="num('posy')" data-event-focus="numFocus('posy')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-if="!weaponMode" data-event-mouseover="tip('posz')">
-					<div class="le-label">Z</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_posz" data-event-click="revert('posz')">Z</div>
 					<input type="range" id="le-sl-posz" class="le-slider le-ch-b" min="-500" max="500" step="1" data-value="sl_posz" data-event-change="slide('posz')" />
 					<input type="text" class="le-num" data-value="num_posz" data-event-change="num('posz')" data-event-focus="numFocus('posz')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('radius')">
-					<div class="le-label">RADIUS</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_radius" data-event-click="revert('radius')">RADIUS</div>
 					<input type="range" id="le-sl-radius" class="le-slider" min="0" max="1000" step="1" data-value="sl_radius" data-event-change="slide('radius')" />
 					<input type="text" class="le-num" data-value="num_radius" data-event-change="num('radius')" data-event-focus="numFocus('radius')" data-event-blur="numBlur()" />
 				</div>
@@ -260,27 +232,27 @@
 			</div>
 			<div class="le-frame-body" data-if="!fold_aim">
 				<div class="le-row" data-event-mouseover="tip('dirx')">
-					<div class="le-label" data-if="lightType != 'point'">DIR X</div><div class="le-label" data-if="lightType == 'point'">SPEED X</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_dirx" data-event-click="revert('dirx')" data-if="lightType != 'point'">DIR X</div><div class="le-label le-label-rev" data-class-le-changed="ch_dirx" data-event-click="revert('dirx')" data-if="lightType == 'point'">SPEED X</div>
 					<input type="range" id="le-sl-dirx" class="le-slider le-ch-r" min="-100" max="100" step="1" data-value="sl_dirx" data-event-change="slide('dirx')" />
 					<input type="text" class="le-num" data-value="num_dirx" data-event-change="num('dirx')" data-event-focus="numFocus('dirx')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('diry')">
-					<div class="le-label" data-if="lightType != 'point'">DIR Y</div><div class="le-label" data-if="lightType == 'point'">SPEED Y</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_diry" data-event-click="revert('diry')" data-if="lightType != 'point'">DIR Y</div><div class="le-label le-label-rev" data-class-le-changed="ch_diry" data-event-click="revert('diry')" data-if="lightType == 'point'">SPEED Y</div>
 					<input type="range" id="le-sl-diry" class="le-slider le-ch-g" min="-100" max="100" step="1" data-value="sl_diry" data-event-change="slide('diry')" />
 					<input type="text" class="le-num" data-value="num_diry" data-event-change="num('diry')" data-event-focus="numFocus('diry')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('dirz')">
-					<div class="le-label" data-if="lightType != 'point'">DIR Z</div><div class="le-label" data-if="lightType == 'point'">SPEED Z</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_dirz" data-event-click="revert('dirz')" data-if="lightType != 'point'">DIR Z</div><div class="le-label le-label-rev" data-class-le-changed="ch_dirz" data-event-click="revert('dirz')" data-if="lightType == 'point'">SPEED Z</div>
 					<input type="range" id="le-sl-dirz" class="le-slider le-ch-b" min="-100" max="100" step="1" data-value="sl_dirz" data-event-change="slide('dirz')" />
 					<input type="text" class="le-num" data-value="num_dirz" data-event-change="num('dirz')" data-event-focus="numFocus('dirz')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-if="lightType != 'point'" data-event-mouseover="tip('theta')">
-					<div class="le-label">ANGLE</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_theta" data-event-click="revert('theta')">ANGLE</div>
 					<input type="range" id="le-sl-theta" class="le-slider" min="-160" max="160" step="1" data-value="sl_theta" data-event-change="slide('theta')" />
 					<input type="text" class="le-num" data-value="num_theta" data-event-change="num('theta')" data-event-focus="numFocus('theta')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-if="lightType == 'point'" data-event-mouseover="tip('dist')">
-					<div class="le-label">DISTANCE</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_dist" data-event-click="revert('dist')">DISTANCE</div>
 					<input type="range" id="le-sl-dist" class="le-slider" min="-500" max="500" step="1" data-value="sl_dist" data-event-change="slide('dist')" />
 					<input type="text" class="le-num" data-value="num_dist" data-event-change="num('dist')" data-event-focus="numFocus('dist')" data-event-blur="numBlur()" />
 				</div>
@@ -301,17 +273,17 @@
 					</div>
 				</div>
 				<div class="le-row" data-event-mouseover="tip('pos2x')">
-					<div class="le-label">END X</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_pos2x" data-event-click="revert('pos2x')">END X</div>
 					<input type="range" id="le-sl-pos2x" class="le-slider le-ch-r" min="-1000" max="1000" step="1" data-value="sl_pos2x" data-event-change="slide('pos2x')" />
 					<input type="text" class="le-num" data-value="num_pos2x" data-event-change="num('pos2x')" data-event-focus="numFocus('pos2x')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('pos2y')">
-					<div class="le-label">END Y</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_pos2y" data-event-click="revert('pos2y')">END Y</div>
 					<input type="range" id="le-sl-pos2y" class="le-slider le-ch-g" min="-1000" max="1000" step="1" data-value="sl_pos2y" data-event-change="slide('pos2y')" />
 					<input type="text" class="le-num" data-value="num_pos2y" data-event-change="num('pos2y')" data-event-focus="numFocus('pos2y')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('pos2z')">
-					<div class="le-label">END Z</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_pos2z" data-event-click="revert('pos2z')">END Z</div>
 					<input type="range" id="le-sl-pos2z" class="le-slider le-ch-b" min="-1000" max="1000" step="1" data-value="sl_pos2z" data-event-change="slide('pos2z')" />
 					<input type="text" class="le-num" data-value="num_pos2z" data-event-change="num('pos2z')" data-event-focus="numFocus('pos2z')" data-event-blur="numBlur()" />
 				</div>
@@ -331,7 +303,7 @@
 					</div>
 				</div>
 				<div class="le-row" data-event-mouseover="tip('a')">
-					<div class="le-label">BRIGHT</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_a" data-event-click="revert('a')">BRIGHT</div>
 					<input type="range" id="le-sl-a" class="le-slider" min="0" max="1000" step="1" data-value="sl_a" data-event-change="slide('a')" />
 					<input type="text" class="le-num" data-value="num_a" data-event-change="num('a')" data-event-focus="numFocus('a')" data-event-blur="numBlur()" />
 				</div>
@@ -351,7 +323,7 @@
 					</div>
 				</div>
 				<div class="le-row" data-event-mouseover="tip('colortime')">
-					<div class="le-label">TIME</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_colortime" data-event-click="revert('colortime')">TIME</div>
 					<input type="range" id="le-sl-colortime" class="le-slider" min="-50" max="3000" step="1" data-value="sl_colortime" data-event-change="slide('colortime')" />
 					<input type="text" class="le-num" data-value="num_colortime" data-event-change="num('colortime')" data-event-focus="numFocus('colortime')" data-event-blur="numBlur()" />
 				</div>
@@ -364,22 +336,22 @@
 			</div>
 			<div class="le-frame-body" data-if="!fold_surface">
 				<div class="le-row" data-event-mouseover="tip('modelfactor')">
-					<div class="le-label">ON UNITS</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_modelfactor" data-event-click="revert('modelfactor')">ON UNITS</div>
 					<input type="range" id="le-sl-modelfactor" class="le-slider" min="-200" max="300" step="1" data-value="sl_modelfactor" data-event-change="slide('modelfactor')" />
 					<input type="text" class="le-num" data-value="num_modelfactor" data-event-change="num('modelfactor')" data-event-focus="numFocus('modelfactor')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('specular')">
-					<div class="le-label">SPECULAR</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_specular" data-event-click="revert('specular')">SPECULAR</div>
 					<input type="range" id="le-sl-specular" class="le-slider" min="-200" max="300" step="1" data-value="sl_specular" data-event-change="slide('specular')" />
 					<input type="text" class="le-num" data-value="num_specular" data-event-change="num('specular')" data-event-focus="numFocus('specular')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('scattering')">
-					<div class="le-label">GLOW</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_scattering" data-event-click="revert('scattering')">GLOW</div>
 					<input type="range" id="le-sl-scattering" class="le-slider" min="0" max="2000" step="1" data-value="sl_scattering" data-event-change="slide('scattering')" />
 					<input type="text" class="le-num" data-value="num_scattering" data-event-change="num('scattering')" data-event-focus="numFocus('scattering')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('lensflare')">
-					<div class="le-label">FLARE</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_lensflare" data-event-click="revert('lensflare')">FLARE</div>
 					<input type="range" id="le-sl-lensflare" class="le-slider" min="0" max="2000" step="1" data-value="sl_lensflare" data-event-change="slide('lensflare')" />
 					<input type="text" class="le-num" data-value="num_lensflare" data-event-change="num('lensflare')" data-event-focus="numFocus('lensflare')" data-event-blur="numBlur()" />
 				</div>
@@ -392,17 +364,17 @@
 			</div>
 			<div class="le-frame-body" data-if="!fold_time">
 				<div class="le-row" data-event-mouseover="tip('lifetime')">
-					<div class="le-label">LIFETIME</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_lifetime" data-event-click="revert('lifetime')">LIFETIME</div>
 					<input type="range" id="le-sl-lifetime" class="le-slider" min="0" max="600" step="1" data-value="sl_lifetime" data-event-change="slide('lifetime')" />
 					<input type="text" class="le-num" data-value="num_lifetime" data-event-change="num('lifetime')" data-event-focus="numFocus('lifetime')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('sustain')">
-					<div class="le-label">SUSTAIN</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_sustain" data-event-click="revert('sustain')">SUSTAIN</div>
 					<input type="range" id="le-sl-sustain" class="le-slider" min="0" max="6000" step="1" data-value="sl_sustain" data-event-change="slide('sustain')" />
 					<input type="text" class="le-num" data-value="num_sustain" data-event-change="num('sustain')" data-event-focus="numFocus('sustain')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('selfshadowing')">
-					<div class="le-label">SHADOW</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_selfshadowing" data-event-click="revert('selfshadowing')">SHADOW</div>
 					<input type="range" id="le-sl-selfshadowing" class="le-slider" min="0" max="8" step="1" data-value="sl_selfshadowing" data-event-change="slide('selfshadowing')" />
 					<input type="text" class="le-num" data-value="num_selfshadowing" data-event-change="num('selfshadowing')" data-event-focus="numFocus('selfshadowing')" data-event-blur="numBlur()" />
 				</div>
@@ -424,6 +396,7 @@
 			<div class="le-key-row"><div class="le-key-badge">LMB drag</div><div class="le-key-action">Gizmo: arrows move, rings turn, white ring sizes</div></div>
 			<div class="le-key-row"><div class="le-key-badge">Alt+drag</div><div class="le-key-action">Copy the selection, then move the copy</div></div>
 			<div class="le-key-row"><div class="le-key-badge">PICK, LMB</div><div class="le-key-action">Pick a piece; again on the spot for the one behind</div></div>
+			<div class="le-key-row"><div class="le-key-badge">Gold label</div><div class="le-key-action">Changed since the save: click it to put it back</div></div>
 			<div class="le-key-sep"><div class="le-key-sep-label">CAMERA</div><div class="le-key-sep-line"></div></div>
 			<div class="le-key-row"><div class="le-key-badge">RMB drag</div><div class="le-key-action">Circle the light, or the unit</div></div>
 			<div class="le-key-row"><div class="le-key-badge">MMB drag</div><div class="le-key-action">Pan</div></div>
@@ -465,34 +438,34 @@
 		<div class="le-key-sep"><div class="le-key-sep-label">RGB</div><div class="le-key-sep-line"></div></div>
 		<div data-if="cpWhich == 'color'">
 				<div class="le-row" data-event-mouseover="tip('r')">
-					<div class="le-label">RED</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_r" data-event-click="revert('r')">RED</div>
 					<input type="range" id="le-sl-r" class="le-slider le-ch-r" min="-200" max="300" step="1" data-value="sl_r" data-event-change="slide('r')" />
 					<input type="text" class="le-num" data-value="num_r" data-event-change="num('r')" data-event-focus="numFocus('r')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('g')">
-					<div class="le-label">GREEN</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_g" data-event-click="revert('g')">GREEN</div>
 					<input type="range" id="le-sl-g" class="le-slider le-ch-g" min="-200" max="300" step="1" data-value="sl_g" data-event-change="slide('g')" />
 					<input type="text" class="le-num" data-value="num_g" data-event-change="num('g')" data-event-focus="numFocus('g')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('b')">
-					<div class="le-label">BLUE</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_b" data-event-click="revert('b')">BLUE</div>
 					<input type="range" id="le-sl-b" class="le-slider le-ch-b" min="-200" max="300" step="1" data-value="sl_b" data-event-change="slide('b')" />
 					<input type="text" class="le-num" data-value="num_b" data-event-change="num('b')" data-event-focus="numFocus('b')" data-event-blur="numBlur()" />
 				</div>
 		</div>
 		<div data-if="cpWhich == 'fade'">
 				<div class="le-row" data-event-mouseover="tip('color2r')">
-					<div class="le-label">RED</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_color2r" data-event-click="revert('color2r')">RED</div>
 					<input type="range" id="le-sl-color2r" class="le-slider le-ch-r" min="-300" max="300" step="1" data-value="sl_color2r" data-event-change="slide('color2r')" />
 					<input type="text" class="le-num" data-value="num_color2r" data-event-change="num('color2r')" data-event-focus="numFocus('color2r')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('color2g')">
-					<div class="le-label">GREEN</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_color2g" data-event-click="revert('color2g')">GREEN</div>
 					<input type="range" id="le-sl-color2g" class="le-slider le-ch-g" min="-300" max="300" step="1" data-value="sl_color2g" data-event-change="slide('color2g')" />
 					<input type="text" class="le-num" data-value="num_color2g" data-event-change="num('color2g')" data-event-focus="numFocus('color2g')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('color2b')">
-					<div class="le-label">BLUE</div>
+					<div class="le-label le-label-rev" data-class-le-changed="ch_color2b" data-event-click="revert('color2b')">BLUE</div>
 					<input type="range" id="le-sl-color2b" class="le-slider le-ch-b" min="-300" max="300" step="1" data-value="sl_color2b" data-event-change="slide('color2b')" />
 					<input type="text" class="le-num" data-value="num_color2b" data-event-change="num('color2b')" data-event-focus="numFocus('color2b')" data-event-blur="numBlur()" />
 				</div>

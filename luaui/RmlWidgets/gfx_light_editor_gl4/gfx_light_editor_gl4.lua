@@ -784,6 +784,39 @@ function F.keepBaseline()
 	end
 end
 
+-- The light as it was loaded or last saved, nil for a new one.
+function F.savedLight(name)
+	if S.mode == "weapon" then
+		return S.weaponBase[name]
+	end
+	return S.baseline[S.defLights] and S.baseline[S.defLights][name]
+end
+
+function F.fieldChanged(light, saved, key)
+	local now, was = light.config[key] or 0, saved.config[key] or 0
+	return abs(now - was) > 1e-5 * max(1, abs(was))
+end
+
+-- Puts one field of the selected lights back to its saved value.
+function F.revertField(key)
+	local names = F.selectedNames()
+	local reverted = 0
+	F.endStep()
+	F.beginStep()
+	for i = 1, #names do
+		local light, saved = S.work[names[i]], F.savedLight(names[i])
+		if light and saved and F.fieldChanged(light, saved, key) then
+			light.config[key] = saved.config[key]
+			F.commit(names[i])
+			reverted = reverted + 1
+		end
+	end
+	F.endStep()
+	if reverted > 0 then
+		F.setStatus("Reverted " .. key .. (reverted > 1 and (" on " .. reverted .. " lights") or ""))
+	end
+end
+
 function F.dirtyCount()
 	local n = 0
 	for _ in pairs(S.weaponDirty) do
@@ -2258,6 +2291,11 @@ function F.refreshModel()
 			.. (#names == 1 and " light" or " lights")
 	end
 	dm.unitLabel = unitLabel
+	dm.unitName = S.unitName or "no unit selected"
+	dm.lightCount = #names
+	dm.countLabel = S.unitName
+			and (#names .. (S.mode == "weapon" and " weapon" or "") .. (#names == 1 and " light" or " lights"))
+		or "select a unit"
 	dm.hasUnit = S.unitName ~= nil
 	dm.hasLight = light ~= nil
 	dm.noLights = S.unitName ~= nil and #names == 0
@@ -2320,6 +2358,8 @@ function F.refreshModel()
 	dm.pieceLabel = light and (light.pieceName or NO_PIECE) or ""
 	dm.pickMode = S.pickMode or ""
 	dm.pivotAuto = pin == nil
+	dm.pivotAutoOn = pin == nil and S.cam ~= nil
+	dm.pinShown = pin ~= nil
 	dm.pivotLight = pin ~= nil and pin.kind == "light"
 	dm.pivotPiece = pinPiece
 	local pivotLabel = "the selected light, else the unit"
@@ -2453,9 +2493,11 @@ function F.refreshModel()
 		dm.lightName = S.primary or ""
 		S.nameText = S.primary or ""
 	end
+	local saved = light and F.savedLight(S.primary)
 	for i = 1, #FIELDS do
 		local field = FIELDS[i]
 		local value = config[field.field] or 0
+		dm["ch_" .. field.key] = saved ~= nil and F.fieldChanged(light, saved, field.field)
 		dm["sl_" .. field.key] = F.clampRaw(field.key, floor(value * field.scale + 0.5))
 		if S.focusField ~= field.key then
 			dm["num_" .. field.key] = F.formatValue(value)
@@ -2701,6 +2743,11 @@ function F.buildModel()
 			{ name = "", letter = "", kind = "", swatch = "#000000", active = false, blank = true }
 		),
 		pieceLabel = "",
+		unitName = "",
+		lightCount = 0,
+		countLabel = "",
+		pivotAutoOn = false,
+		pinShown = false,
 		pickMode = "",
 		sizes = F.padRows({}, SIZE_ROWS, { name = "", value = "", active = false, blank = true }),
 		sizeLabel = "custom",
@@ -2754,6 +2801,7 @@ function F.buildModel()
 	for i = 1, #FIELDS do
 		model["sl_" .. FIELDS[i].key] = 0
 		model["num_" .. FIELDS[i].key] = "0"
+		model["ch_" .. FIELDS[i].key] = false
 	end
 
 	model.act = function(_, action, arg)
@@ -2771,6 +2819,9 @@ function F.buildModel()
 	end
 	model.tip = function(_, key)
 		local hint = HINTS[key] or ""
+		if S.model and S.model["ch_" .. key] then
+			hint = hint .. " Changed since the last save: click the gold label to put it back."
+		end
 		if hint ~= S.hint then
 			S.hint = hint
 			if S.model then
@@ -2794,6 +2845,12 @@ function F.buildModel()
 	end
 	model.pickPivot = function(_, name)
 		F.setPivot("piece", name)
+	end
+	model.revert = function(_, key)
+		local field = FIELD_BY_KEY[key]
+		if field then
+			F.revertField(field.field)
+		end
 	end
 	model.pieceHover = function(_, name)
 		S.pieceHover = name ~= "" and name or nil
@@ -2961,15 +3018,15 @@ function F.act(action, arg)
 	elseif action == "loop" then
 		F.setPreviewLoop(arg)
 	elseif action == "night" then
-		F.setNight(arg == "on")
+		F.setNight(arg == "on" or (arg == "toggle" and not S.night))
 	elseif action == "keys" then
 		S.keysOpen = not S.keysOpen
 	elseif action == "focus" then
 		F.setFocus(not S.focus)
 	elseif action == "flat" then
-		S.flat = arg == "on"
+		S.flat = arg == "on" or (arg == "toggle" and not S.flat)
 	elseif action == "canvas" then
-		S.canvas = arg == "on"
+		S.canvas = arg == "on" or (arg == "toggle" and not S.canvas)
 	elseif action == "pivot" then
 		F.setPivot(arg)
 	elseif action == "piecepick" then
