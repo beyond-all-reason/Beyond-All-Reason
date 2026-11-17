@@ -272,6 +272,8 @@ local enableProjectileLightFlares = false -- set to true to show lens flare text
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
+local lightPresets -- named looks for the light editor
+local lightSizes, lightColorSets -- named radii and colours, shared with the light editor
 local muzzleFlashLights -- one light per weaponDefID
 local projectileDefLights -- one light per weaponDefID
 local explosionLights -- one light per weaponDefID
@@ -1600,6 +1602,7 @@ local function LoadLightConfig()
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
 		featureDefLights = result.featureDefLights
+		lightPresets = result.lightPresets
 		--projectileDefLights = result.projectileDefLights
 	else
 		spEcho("Failed to load GL4 Unit light config", success, result)
@@ -1611,6 +1614,7 @@ local function LoadLightConfig()
 		gibLight = result2.gibLight
 		InitializeLight(gibLight)
 
+		lightSizes, lightColorSets = result2.sizeRadius, result2.colorSets
 		muzzleFlashLights = result2.muzzleFlashLights
 		for weaponID, lightTable in pairs(muzzleFlashLights) do
 			InitializeLight(lightTable)
@@ -2711,6 +2715,37 @@ function widget:Initialize()
 	WG.lightsgl4.AddLight = AddLight
 	WG.lightsgl4.RemoveLight = RemoveLight
 	WG.lightsgl4.GetLightVBO = GetLightVBO
+
+	-- For the light editor: the live tables, not copies.
+	WG.lightsgl4.GetUnitDefLights = function()
+		return unitDefLights
+	end
+	WG.lightsgl4.GetUnitLightVBOMap = function()
+		return unitLightVBOMap
+	end
+	WG.lightsgl4.GetLightPresets = function()
+		return lightPresets
+	end
+	WG.lightsgl4.GetVisibleUnits = function()
+		return visibleUnits
+	end
+	WG.lightsgl4.GetLightSizes = function()
+		return lightSizes
+	end
+	WG.lightsgl4.GetLightColorSets = function()
+		return lightColorSets
+	end
+	WG.lightsgl4.GetWeaponLights = function()
+		return { muzzle = muzzleFlashLights, projectile = projectileDefLights, explosion = explosionLights }
+	end
+	WG.lightsgl4.ReloadConfig = function()
+		if not LoadLightConfig() then
+			return false
+		end
+		unitAttachedLights = {}
+		widget:VisibleUnitsChanged(visibleUnits, nil)
+		return true
+	end
 
 	WG.lightsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value

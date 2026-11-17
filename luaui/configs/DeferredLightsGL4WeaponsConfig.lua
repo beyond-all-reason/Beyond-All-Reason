@@ -2596,4 +2596,6 @@ return {
 	projectileDefLights = projectileDefLights,
 	explosionLights = explosionLights,
 	gibLight = gibLight,
+	sizeRadius = SizeRadius,
+	colorSets = ColorSets,
 }
