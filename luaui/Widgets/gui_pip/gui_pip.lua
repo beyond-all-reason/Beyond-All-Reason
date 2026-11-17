@@ -2038,6 +2038,102 @@ local gl4Prim = {
 	lineUniformLocs = {},
 }
 
+-- Line segments with a per-instance pixel width (laser beams, missile and plasma trails),
+-- drawn in one call where the immediate-mode lines used to be drawn.
+---@class PipSegmentBatch
+---@field STEP integer floats per instance: x1, z1, x2, z2, r, g, b, a1, a2, width, 0, 0
+---@field MAX integer
+---@field enabled boolean
+---@field data number[]
+---@field count integer
+---@field vbo VBO?
+---@field vao VAO?
+---@field shader integer?
+---@field uniformLocs table<string, integer>?
+gl4Prim.segments = {
+	STEP = 12,
+	MAX = 16384,
+	enabled = false,
+	data = {},
+	count = 0,
+}
+
+-- One explosion instance ring (fields described in gl4Prim.explosions.NewRing)
+---@class PipExplosionRing
+---@field vbo VBO
+---@field vao VAO
+---@field data number[]
+---@field owner table<integer, table>
+---@field expiry table<integer, integer>
+---@field used number
+---@field head number
+---@field tail number
+---@field liveCount number
+---@field dirtyFirst number
+---@field dirtyCount number
+---@field wheel table<integer, number[]> radii of the explosions that expire at frame % WHEEL
+---@field wheelLightning table<integer, integer>
+---@field counts table<number, integer>
+---@field radii number[]
+---@field radiiDirty boolean
+---@field alive number
+---@field lightning number
+---@field lastFrame number?
+---@field losKey integer|false
+---@field stamp integer?
+
+-- Explosions: each one is written once into an instance ring when it happens; the shader
+-- animates every layer from the game frame, so the per-refresh cost does not grow with the
+-- number of explosions. `live` holds game explosions, `hist` the ones replayed while rewinding.
+---@class PipExplosionBatches
+---@field STEP integer floats per instance: 4 x vec4
+---@field CAPACITY integer
+---@field WHEEL integer expiry wheel slots (game frames); explosions live at most 63 frames
+---@field MAIN_FIRST integer mesh vertex ranges, 6 vertices per quad: 6 layered circles,
+---@field MAIN_COUNT integer
+---@field SPARK_FIRST integer 9 lightning sparks,
+---@field SPARK_COUNT integer
+---@field OVERLAY_FIRST integer 2 above-icons glow circles
+---@field OVERLAY_COUNT integer
+---@field enabled boolean
+---@field baseInstance boolean
+---@field shader integer?
+---@field uniformLocs table<string, integer>?
+---@field meshVBO VBO?
+---@field live PipExplosionRing?
+---@field hist PipExplosionRing?
+---@field pendingRing PipExplosionRing? ring to draw in this refresh's GL4FlushEffects
+---@field pendingFrame number
+---@field pendingMinRadius number
+---@field pendingSparks boolean
+---@field histAlive integer
+---@field histOverlay integer
+---@field histLightning integer
+---@field histCounts table<number, integer>
+---@field histRadii number[]
+---@field [string] any
+gl4Prim.explosions = {
+	STEP = 16,
+	CAPACITY = 4096,
+	WHEEL = 128,
+	MAIN_FIRST = 0,
+	MAIN_COUNT = 36,
+	SPARK_FIRST = 36,
+	SPARK_COUNT = 54,
+	OVERLAY_FIRST = 90,
+	OVERLAY_COUNT = 12,
+	enabled = false,
+	baseInstance = false,
+	pendingFrame = 0,
+	pendingMinRadius = 0,
+	pendingSparks = false,
+	histAlive = 0,
+	histOverlay = 0,
+	histLightning = 0,
+	histCounts = {},
+	histRadii = {},
+}
+
 -- One preallocated instance per active builder and one draw call for the layer.
 -- Worker tasks are sampled at sim cadence; UV motion stays smooth between scans.
 gl4Prim.nanoStreams = {
@@ -2137,7 +2233,6 @@ local cache = {
 	radiusSqs = {},
 	featureRadiusSqs = {},
 	projectileSizes = {},
-	explosions = {},
 	laserBeams = {},
 	laserBeamIndices = {},
 	iconShatters = {},
@@ -4165,6 +4260,255 @@ gl4Prim.lineShaderCode = {
 	]],
 }
 
+-- Segment shader: one instance per line segment with its own pixel width (beams, trails).
+-- Expanded along the minor axis to the rounded width, like a GL wide line, so it covers the
+-- same pixels.
+gl4Prim.segmentShaderCode = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 segPos;   // x1, z1, x2, z2 (world)
+		layout(location = 2) in vec4 segColor; // r, g, b, alpha at the first end
+		layout(location = 3) in vec4 segExtra; // alpha at the second end, width (px), 0, 0
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec4 f_color;
+
+		vec2 toPip(vec2 w) {
+			vec2 p = wtp_offset + w * wtp_scale;
+			vec2 d = p - rotCenter;
+			return rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+		}
+
+		void main() {
+			vec2 p1 = toPip(segPos.xy);
+			vec2 p2 = toPip(segPos.zw);
+			vec2 d = p2 - p1;
+			float hw = max(1.0, floor(segExtra.y + 0.5)) * 0.5;
+			vec2 off = abs(d.x) >= abs(d.y) ? vec2(0.0, hw) : vec2(hw, 0.0);
+			float along = quadPos.x * 0.5 + 0.5;
+			vec2 p = mix(p1, p2, along) + off * quadPos.y;
+			gl_Position = vec4(p * ndcScale - 1.0, 0.0, 1.0);
+			f_color = vec4(segColor.rgb, mix(segColor.a, segExtra.x, along));
+		}
+	]],
+	fragment = gl4Prim.lineShaderCode.fragment,
+}
+
+-- Explosion shader: each explosion is uploaded once and animated here from the game frame.
+-- Mesh vertex (corner.xy, kind, index): kind 0 = the layered circles of the normal pass,
+-- 1 = lightning sparks, 2 = the additive above-icons overlay. Unused layers collapse off-screen.
+gl4Prim.explosionShaderCode = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec4 meshV;
+		layout(location = 1) in vec4 expA; // x, z, startFrame, lifetime (s)
+		layout(location = 2) in vec4 expB; // radius, effective radius, dim factor, flags
+		layout(location = 3) in vec4 expC; // r, g, b, core r (lightning: spark seed in x)
+		layout(location = 4) in vec4 expD; // core g, core b, overlay g, 0
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+		uniform vec4 expParams; // frame, min radius, overlay alpha, spark width (px)
+
+		out vec2 f_localCoord;
+		out vec4 f_coreColor;
+		out vec4 f_edgeColor;
+
+		// Old sparks moved v/30 per units-texture refresh, which runs at 60 Hz when zoomed in
+		const float SPARK_TRAVEL = 2.0;
+
+		vec2 toPip(vec2 w) {
+			vec2 p = wtp_offset + w * wtp_scale;
+			vec2 d = p - rotCenter;
+			return rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+		}
+
+		uint hashU(uint x) {
+			x = x * 747796405u + 2891336453u;
+			x = ((x >> ((x >> 28u) + 4u)) ^ x) * 277803737u;
+			return (x >> 22u) ^ x;
+		}
+
+		float rand01(uint x) {
+			return float(hashU(x) & 0xFFFFFFu) / 16777216.0;
+		}
+
+		void main() {
+			f_localCoord = vec2(0.0);
+			f_coreColor = vec4(0.0);
+			f_edgeColor = vec4(0.0);
+			gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
+
+			float lifetime = expA.w;
+			float age = (expParams.x - expA.z) / 30.0;
+			if (age < 0.0 || age > lifetime) return;
+			float ap = age / lifetime;
+			float progress = 0.3 + ap * 0.7;
+			int flags = int(expB.w + 0.5);
+			bool isLightning = (flags & 1) != 0;
+			bool isJuno = (flags & 2) != 0;
+			bool isParalyze = (flags & 4) != 0;
+			bool isBigFlash = (flags & 8) != 0;
+			float radius = expB.x;
+			float effR = expB.y;
+			int ki = int(meshV.z + 0.5);
+			int li = int(meshV.w + 0.5);
+
+			float R;
+			vec4 core;
+			vec4 edge;
+			if (ki == 1) {
+				if (!isLightning || radius < expParams.y) return;
+				uint sbase = uint(expC.x * 1000.0) * 64u;
+				float count = 6.0 + floor(rand01(sbase) * 4.0);
+				float fi = float(li);
+				if (fi >= count) return;
+				uint s = sbase + uint(li) * 4u + 1u;
+				float angle = (fi / count) * 6.2831853 + (rand01(s) - 0.5) * 0.8;
+				float speed = 15.0 + rand01(s + 1u) * 20.0;
+				float pp = age / (0.3 + rand01(s + 2u) * 0.2);
+				if (pp >= 1.0) return;
+				vec2 v = vec2(cos(angle), sin(angle)) * speed;
+				vec2 m = v * age * SPARK_TRAVEL;
+				vec2 dir = v * 0.3;
+				vec2 p1 = toPip(expA.xy + vec2(m.x - dir.x, dir.y - m.y));
+				vec2 p2 = toPip(expA.xy + vec2(m.x + dir.x, -dir.y - m.y));
+				vec2 d = p2 - p1;
+				float hw = max(1.0, floor(expParams.w + 0.5)) * 0.5;
+				vec2 off = abs(d.x) >= abs(d.y) ? vec2(0.0, hw) : vec2(hw, 0.0);
+				vec2 p = mix(p1, p2, meshV.x * 0.5 + 0.5) + off * meshV.y;
+				gl_Position = vec4(p * ndcScale - 1.0, 0.0, 1.0);
+				f_coreColor = vec4(0.9, 0.95, 1.0, (1.0 - pp) * 0.9);
+				f_edgeColor = f_coreColor;
+				return;
+			} else if (ki == 2) {
+				if (isLightning) return;
+				float baseR = effR * (0.27 + progress * 1.8);
+				float oA = (1.0 - ap) * expParams.z;
+				vec3 oc = isJuno ? vec3(0.15, 0.8, 0.25) : (isParalyze ? vec3(0.25, 0.35, 0.9) : vec3(0.95, expD.z, 0.05));
+				if (li == 0) {
+					R = baseR;
+					core = vec4(oc, oA);
+					edge = vec4(oc * vec3(0.55, 0.4, 0.2), oA * 0.5);
+				} else {
+					if (!isBigFlash || ap >= 0.75) return;
+					float ft = ap / 0.75;
+					float inv = 1.0 - ft;
+					float fa = min(1.0, inv * inv * inv * 1.2 + inv * 0.12) * expParams.z * 0.6;
+					R = effR * (1.8 + ft * 1.5);
+					core = vec4(1.0, 1.0, 1.0, fa);
+					edge = vec4(0.95, 0.93, 0.88, fa * 0.2);
+				}
+			} else if (isLightning) {
+				if (radius < expParams.y) return;
+				float baseR = 16.2 * (0.5 + progress * 2.0);
+				float a = (1.0 - progress) * (1.0 - progress);
+				if (li == 0) {
+					R = baseR * 1.8;
+					core = vec4(0.63, 0.665, 0.8, a * 0.5);
+					edge = vec4(0.36, 0.38, 0.5, 0.0);
+				} else if (li == 1) {
+					R = baseR * 0.4;
+					core = vec4(1.0, 1.0, 1.0, a * 0.95);
+					edge = vec4(0.72, 0.76, 1.0, a * 0.5);
+				} else {
+					return;
+				}
+			} else {
+				if (radius < expParams.y) return;
+				vec3 col = expC.rgb;
+				float baseR = effR * (0.27 + progress * 1.8);
+				float a = (1.0 - progress) * expB.z;
+				float coreA = a;
+				float edgeA = a * 0.7;
+				if (radius > 150.0) {
+					coreA = min(1.0, a * 1.2);
+					edgeA = min(1.0, a * 0.95);
+				} else if (radius > 80.0) {
+					coreA = min(1.0, a * 1.1);
+					edgeA = min(1.0, a * 0.85);
+				}
+				if (li == 0) {
+					R = baseR;
+					core = vec4(col, coreA);
+					edge = vec4(col * vec3(0.4, 0.25, 0.15), edgeA * 0.5);
+				} else if (li == 1) {
+					R = baseR * 0.5;
+					core = vec4(expC.a, expD.x, expD.y, min(1.0, coreA * 1.15));
+					edge = vec4(col, coreA * 0.8);
+				} else if (li == 2) {
+					if (ap >= 0.2) return;
+					float ft = ap / 0.2;
+					float fa = (1.0 - ft * ft) * 0.95;
+					R = baseR * (0.8 + ft * 0.9);
+					if (isJuno) {
+						core = vec4(0.7, 1.0, 0.75, fa);
+						edge = vec4(0.4, 0.85, 0.5, fa * 0.4);
+					} else if (isParalyze) {
+						core = vec4(0.85, 0.9, 1.0, fa);
+						edge = vec4(0.65, 0.75, 1.0, fa * 0.4);
+					} else {
+						core = vec4(1.0, 1.0, 1.0, fa);
+						edge = vec4(1.0, 0.95, 0.7, fa * 0.35);
+					}
+				} else if (li == 3) {
+					if (radius <= 150.0 || ap >= 0.5) return;
+					float fa = (1.0 - ap / 0.5) * a * 0.6;
+					R = baseR * 0.85;
+					core = vec4(1.0, 1.0, 1.0, fa);
+					edge = vec4(1.0, 0.95, 0.8, fa * 0.4);
+				} else {
+					if (!isBigFlash || ap >= 0.75) return;
+					float ft = ap / 0.75;
+					if (li == 4) {
+						float inv = 1.0 - ft;
+						float fa = min(1.0, inv * inv * inv * 1.2 + inv * 0.12);
+						R = effR * (1.8 + ft * 1.5);
+						core = vec4(1.0, 1.0, 1.0, fa * 0.85);
+						edge = vec4(1.0, 0.97, 0.92, fa * 0.25);
+					} else {
+						if (ft >= 0.45) return;
+						float cft = ft / 0.45;
+						float cfa = (1.0 - cft * cft) * 0.95;
+						R = effR * (0.4 + cft * 0.6);
+						core = vec4(1.0, 1.0, 1.0, cfa);
+						edge = vec4(1.0, 1.0, 0.97, cfa * 0.5);
+					}
+				}
+			}
+
+			vec2 center = toPip(expA.xy) * ndcScale - 1.0;
+			vec2 halfSizeNDC = vec2(R * abs(wtp_scale.x)) * ndcScale;
+			gl_Position = vec4(center + meshV.xy * halfSizeNDC, 0.0, 1.0);
+			f_localCoord = meshV.xy;
+			f_coreColor = core;
+			f_edgeColor = edge;
+		}
+	]],
+	fragment = [[
+		#version 330
+		in vec2 f_localCoord;
+		in vec4 f_coreColor;
+		in vec4 f_edgeColor;
+		out vec4 fragColor;
+
+		void main() {
+			float dist = length(f_localCoord);
+			if (dist > 1.0) discard;
+			fragColor = mix(f_coreColor, f_edgeColor, smoothstep(0.0, 1.0, dist));
+		}
+	]],
+}
+
 -- Initialize GL4 icon rendering: use engine $icons atlas, create VBO, shader
 -- atlasUVs is keyed by unitDefID for uniform lookup.
 local function InitGL4Icons()
@@ -4811,11 +5155,14 @@ local function InitGL4Primitives()
 		end
 	end
 
+	gl4Prim.InitEffectBatches()
+
 	gl4Prim.enabled = true
 	--Spring.Echo("[PIP] GL4 primitive rendering enabled (circles, quads, lines)")
 end
 
 local function DestroyGL4Primitives()
+	gl4Prim.DestroyEffectBatches()
 	local nano = gl4Prim.nanoStreams
 	if nano.shader then
 		gl.DeleteShader(nano.shader)
@@ -4874,6 +5221,7 @@ local function GL4ResetPrimCounts()
 	gl4Prim.glowLines.count = 0
 	gl4Prim.coreLines.count = 0
 	gl4Prim.normLines.count = 0
+	gl4Prim.segments.count = 0
 end
 
 -- Helper: add a gradient circle (explosion, plasma, etc.)
@@ -4974,6 +5322,30 @@ local function GL4AddNormLine(x1, z1, x2, z2, r, g, b, a, r2, g2, b2, a2)
 	GL4AddLineToCategory(gl4Prim.normLines, x1, z1, x2, z2, r, g, b, a, r2, g2, b2, a2)
 end
 
+-- Helper: add a line segment with its own pixel width (beams, trails); drawn by FlushSegments
+local function GL4AddSegment(x1, z1, x2, z2, r, g, b, a1, a2, width)
+	local s = gl4Prim.segments ---@type PipSegmentBatch
+	local n = s.count
+	if n >= s.MAX then
+		return
+	end
+	local off = n * 12
+	local d = s.data
+	d[off + 1] = x1
+	d[off + 2] = z1
+	d[off + 3] = x2
+	d[off + 4] = z2
+	d[off + 5] = r
+	d[off + 6] = g
+	d[off + 7] = b
+	d[off + 8] = a1
+	d[off + 9] = a2
+	d[off + 10] = width
+	d[off + 11] = 0
+	d[off + 12] = 0
+	s.count = n + 1
+end
+
 -- Set shared uniforms on a shader
 local function GL4SetPrimUniforms(shader, ulocs)
 	gl.UseShader(shader)
@@ -5012,6 +5384,13 @@ local function GL4FlushEffects()
 			c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
 		end
 		gl.UseShader(0)
+	end
+
+	-- Explosions (same place in the order as their circles used to be)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local exRing = ex.pendingRing
+	if exRing then
+		ex.Draw(exRing, ex.MAIN_FIRST, ex.MAIN_COUNT, ex.pendingFrame, ex.pendingMinRadius, 0)
 	end
 
 	-- Quads
@@ -5062,25 +5441,14 @@ local function GL4FlushEffects()
 		glFunc.LineWidth(1 * resScale)
 		gl.UseShader(0)
 	end
-end
 
--- Flush only circles with a caller-controlled blend mode (used for explosion overlay)
-local function GL4FlushCirclesOnly()
-	if not gl4Prim.enabled then
-		return
+	-- Lightning sparks (thin lines, drawn last like the line pass they replace)
+	if exRing then
+		if ex.pendingSparks then
+			ex.Draw(exRing, ex.SPARK_FIRST, ex.SPARK_COUNT, ex.pendingFrame, ex.pendingMinRadius, 0)
+		end
+		ex.pendingRing = nil
 	end
-	if gl4Prim.circles.count == 0 then
-		return
-	end
-	local c = gl4Prim.circles
-	c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
-	GL4SetPrimUniforms(c.shader, c.uniformLocs)
-	if gl4Prim.useGeometryShader then
-		c.vao:DrawArrays(GL.POINTS, c.count)
-	else
-		c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
-	end
-	gl.UseShader(0)
 end
 
 -- Flush only command lines (called at end of DrawCommandQueuesOverlay)
@@ -5103,6 +5471,680 @@ local function GL4FlushCommandLines()
 
 	glFunc.LineWidth(1 * resScale)
 	gl.UseShader(0)
+end
+
+-- Draw the collected segments at the point where the immediate-mode lines used to be drawn,
+-- keeping the blend state the caller has set
+function gl4Prim.FlushSegments()
+	local s = gl4Prim.segments ---@type PipSegmentBatch
+	if s.count == 0 then
+		return
+	end
+	local vbo, vao = s.vbo, s.vao
+	if s.enabled and vbo and vao then
+		vbo:Upload(s.data, nil, 0, 1, s.count * s.STEP)
+		GL4SetPrimUniforms(s.shader, s.uniformLocs)
+		vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, s.count)
+		gl.UseShader(0)
+	end
+	s.count = 0
+end
+
+-- Explosions ---------------------------------------------------------------------------------------
+
+-- Write one explosion's 16 floats at data[off + 1 .. off + 16] (everything that does not
+-- change with age; the shader derives the rest). Returns its lifetime in seconds.
+function gl4Prim.explosions.Pack(e, d, off)
+	local radius = e.radius
+	local isLightning = e.isLightning
+	local lifetime = 0.4 + radius / 200
+	if isLightning then
+		lifetime = 0.25
+	elseif radius > 150 then
+		lifetime = math.min(1.5, lifetime * 2) -- nukes linger
+	elseif radius > 80 then
+		lifetime = math.min(1.0, lifetime * 1.5)
+	else
+		lifetime = math.min(0.8, lifetime)
+	end
+	-- big explosions are drawn 25% smaller; unit deaths are 33% larger and last 40% longer
+	local effRadius = radius > 80 and radius * 0.75 or radius
+	if e.isUnitExplosion then
+		lifetime = lifetime * 1.4
+		effRadius = effRadius * 1.33
+	end
+
+	local flags = 0
+	local r, g, b, cr, cg, cb, overlayG
+	local seed = e.randomSeed
+	if isLightning then
+		flags = 1
+		-- colours are fixed in the shader; r carries the spark pattern
+		r, g, b, cr, cg, cb, overlayG = seed, 0, 0, 0, 0, 0, 0.4
+	else
+		-- per-explosion tint variation (computed here: float sin of these large arguments is imprecise)
+		local s1 = math.sin(seed * 12.9898)
+		overlayG = 0.4 + s1 * 0.08
+		if e.isJuno then
+			flags = 2
+			r, g, b = 0.3, 0.75, 0.35
+			cr, cg, cb = 0.6, 1, 0.65
+		elseif e.isParalyze then
+			flags = 4
+			r, g, b = 0.5, 0.6, 0.85
+			cr, cg, cb = 0.8, 0.9, 1
+		else
+			local rVar = s1 * 0.06
+			local gVar = math.sin(seed * 78.233) * 0.08
+			local bVar = math.sin(seed * 43.758) * 0.03
+			if radius > 150 then
+				r, g, b = 0.9 + rVar, 0.55 + gVar, 0.15 + bVar
+				cr, cg, cb = 1, 0.95, 0.7
+			elseif radius > 80 then
+				r, g, b = 0.92 + rVar, 0.5 + gVar, 0.1 + bVar
+				cr, cg, cb = 1, 0.88 + gVar * 0.5, 0.4 + bVar
+			else
+				local sizeRatio = radius / 200
+				r, g, b = 0.92 + rVar, 0.55 - sizeRatio * 0.15 + gVar, 0.05 + bVar
+				cr, cg, cb = 1, 0.92 - sizeRatio * 0.25 + gVar * 0.5, 0.2 + bVar
+			end
+		end
+		if e.isBigFlash then
+			flags = flags + 8
+		end
+	end
+
+	d[off + 1] = e.x
+	d[off + 2] = e.z
+	d[off + 3] = e.startFrame
+	d[off + 4] = lifetime
+	d[off + 5] = radius
+	d[off + 6] = effRadius
+	d[off + 7] = e.dimFactor or 1
+	d[off + 8] = flags
+	d[off + 9] = r
+	d[off + 10] = g
+	d[off + 11] = b
+	d[off + 12] = cr
+	d[off + 13] = cg
+	d[off + 14] = cb
+	d[off + 15] = overlayG
+	d[off + 16] = 0
+	e.gpuLifetime = lifetime
+	return lifetime
+end
+
+---@param vbo VBO
+---@param vao VAO
+---@return PipExplosionRing
+function gl4Prim.explosions.NewRing(vbo, vao)
+	local wheel, wheelLightning = {}, {}
+	for b = 0, gl4Prim.explosions.WHEEL - 1 do
+		wheel[b], wheelLightning[b] = {}, 0
+	end
+	return {
+		vbo = vbo,
+		vao = vao,
+		data = {}, -- CPU copy of the instance data, 16 floats per slot
+		owner = {}, -- hist ring: [slot] = the replayed explosion entry in it
+		expiry = {}, -- live ring: [slot] = first game frame its explosion is gone
+		used = 0, -- slots ever written (the draw range without base instances)
+		head = 0, -- next slot to write
+		tail = 0, -- oldest slot that may still be drawn
+		liveCount = 0, -- slots from tail up to head
+		dirtyFirst = 0,
+		dirtyCount = 0,
+		-- live ring: alive counts per radius for the size cap, expired through a frame wheel
+		wheel = wheel,
+		wheelLightning = wheelLightning,
+		counts = {},
+		radii = {},
+		radiiDirty = false,
+		alive = 0,
+		lightning = 0,
+		lastFrame = nil,
+		losKey = false,
+	}
+end
+
+-- Take the next slot (overwriting the oldest one when the ring is full) and mark it dirty
+---@param ring PipExplosionRing
+---@return number
+function gl4Prim.explosions.TakeSlot(ring)
+	local cap = gl4Prim.explosions.CAPACITY
+	local slot = ring.head
+	ring.head = (slot + 1) % cap
+	if ring.used < cap then
+		ring.used = ring.used + 1
+	end
+	if ring.liveCount == cap then
+		ring.tail = ring.head
+	else
+		ring.liveCount = ring.liveCount + 1
+	end
+	if ring.dirtyCount == 0 then
+		ring.dirtyFirst = slot
+	end
+	ring.dirtyCount = ring.dirtyCount + 1
+	return slot
+end
+
+-- A live explosion (VisibleExplosion): written once, then animated by the shader
+function gl4Prim.explosions.AddLive(e)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local ring = ex.live
+	if not ring then
+		return
+	end
+	local slot = ex.TakeSlot(ring)
+	local lifetime = ex.Pack(e, ring.data, slot * ex.STEP)
+	local expireFrame = e.startFrame + math.floor(lifetime * 30) + 1
+	ring.expiry[slot] = expireFrame
+
+	local b = expireFrame % ex.WHEEL
+	local bucket = ring.wheel[b]
+	local radius = e.radius
+	bucket[#bucket + 1] = radius
+	local counts = ring.counts
+	local c = counts[radius]
+	if not c then
+		c = 0
+		ring.radiiDirty = true
+	end
+	counts[radius] = c + 1
+	ring.alive = ring.alive + 1
+	if e.isLightning then
+		ring.lightning = ring.lightning + 1
+		ring.wheelLightning[b] = ring.wheelLightning[b] + 1
+	end
+end
+
+-- Expire live explosions up to `frame`: alive counts and the old end of the draw range
+---@param ring PipExplosionRing
+---@param frame number
+function gl4Prim.explosions.Advance(ring, frame)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local last = ring.lastFrame
+	ring.lastFrame = frame
+	if not last or frame <= last then
+		return
+	end
+	local counts, wheel, wheelLightning = ring.counts, ring.wheel, ring.wheelLightning
+	if frame - last >= ex.WHEEL then
+		-- longer than any lifetime: everything logged so far is gone
+		for _, bucket in pairs(wheel) do
+			for i = #bucket, 1, -1 do
+				bucket[i] = nil
+			end
+		end
+		for k in pairs(wheelLightning) do
+			wheelLightning[k] = 0
+		end
+		for r in pairs(counts) do
+			counts[r] = 0
+		end
+		ring.alive, ring.lightning = 0, 0
+	else
+		local wheelSize = ex.WHEEL
+		for f = last + 1, frame do
+			local b = f % wheelSize
+			local bucket = wheel[b]
+			local n = #bucket
+			for i = n, 1, -1 do
+				local r = bucket[i]
+				counts[r] = counts[r] - 1
+				bucket[i] = nil
+			end
+			ring.alive = ring.alive - n
+			ring.lightning = ring.lightning - wheelLightning[b]
+			wheelLightning[b] = 0
+		end
+	end
+	local cap, expiry = ex.CAPACITY, ring.expiry
+	local tail, count = ring.tail, ring.liveCount
+	while count > 0 and expiry[tail] <= frame do
+		tail = (tail + 1) % cap
+		count = count - 1
+	end
+	ring.tail, ring.liveCount = tail, count
+end
+
+-- Hide every explosion in the ring (their data is marked dead, as the fallback draw covers all slots)
+---@param ring PipExplosionRing
+function gl4Prim.explosions.Clear(ring)
+	local step, d = gl4Prim.explosions.STEP, ring.data
+	for slot = 0, ring.used - 1 do
+		d[slot * step + 4] = -1 -- lifetime: never alive
+	end
+	ring.tail, ring.liveCount = ring.head, 0
+	ring.dirtyFirst, ring.dirtyCount = 0, ring.used
+end
+
+-- The LOS view filter is applied when an explosion happens; when it becomes stricter, drop
+-- the ones logged before it
+---@param ring PipExplosionRing
+function gl4Prim.explosions.CheckLosView(ring)
+	local key = state.losViewEnabled and state.losViewAllyTeam or false
+	if key ~= ring.losKey then
+		ring.losKey = key
+		if key then
+			gl4Prim.explosions.Clear(ring)
+		end
+	end
+end
+
+-- Size cap: the radius of the maxCount-th largest alive explosion (0 = draw all)
+---@param counts table<number, integer> alive explosions per radius
+---@param radii number[] the radii in counts, largest first
+---@param alive integer
+---@param maxCount integer
+---@return number
+function gl4Prim.explosions.Threshold(counts, radii, alive, maxCount)
+	if alive <= maxCount then
+		return 0
+	end
+	local acc = 0
+	for i = 1, #radii do
+		local r = radii[i]
+		acc = acc + counts[r]
+		if acc >= maxCount then
+			return r
+		end
+	end
+	return 0
+end
+
+-- Replayed explosions (rewind): each listed entry keeps its slot while it stays listed. An
+-- entry that leaves the list while it could still show (visibility filter) is hidden; a jump
+-- back in time restarts the ring. Also counts the alive entries for the size cap.
+---@param list table[] the replayed explosion entries (miscState.hist.explosions)
+---@param frame number the viewed frame
+function gl4Prim.explosions.SyncHist(list, frame)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local ring = ex.hist
+	if not ring then
+		return
+	end
+	local step, cap = ex.STEP, ex.CAPACITY
+	local owner, d = ring.owner, ring.data
+	if not ring.lastFrame or frame < ring.lastFrame then
+		for slot, e in pairs(owner) do
+			e.gpuSlot = nil
+			owner[slot] = nil
+		end
+		ring.used, ring.head, ring.tail, ring.liveCount, ring.dirtyCount = 0, 0, 0, 0, 0
+	end
+	ring.lastFrame = frame
+	local stamp = (ring.stamp or 0) + 1
+	ring.stamp = stamp
+	local counts, radii = ex.histCounts, ex.histRadii
+	for r in pairs(counts) do
+		counts[r] = nil
+	end
+	local nRadii, alive, overlay, lightning = 0, 0, 0, 0
+	for i, e in ipairs(list) do
+		if i > cap then
+			break
+		end
+		local slot = e.gpuSlot
+		if not slot or owner[slot] ~= e then
+			slot = ex.TakeSlot(ring)
+			local previous = owner[slot]
+			if previous then
+				previous.gpuSlot = nil
+			end
+			owner[slot] = e
+			e.gpuSlot = slot
+			ex.Pack(e, d, slot * step)
+		end
+		e.gpuStamp = stamp
+		local age = frame - e.startFrame
+		if age >= 0 and age <= e.gpuLifetime * 30 then
+			alive = alive + 1
+			local r = e.radius
+			local c = counts[r]
+			if not c then
+				c = 0
+				nRadii = nRadii + 1
+				radii[nRadii] = r
+			end
+			counts[r] = c + 1
+			if e.isLightning then
+				lightning = lightning + 1
+			else
+				overlay = overlay + 1
+			end
+		end
+	end
+	for i = nRadii + 1, #radii do
+		radii[i] = nil
+	end
+	if nRadii > 1 then
+		table.sort(radii, sortDescending)
+	end
+	for slot, e in pairs(owner) do
+		if e.gpuStamp ~= stamp then
+			owner[slot] = nil
+			e.gpuSlot = nil
+			if frame - e.startFrame <= e.gpuLifetime * 30 then
+				local off = slot * step
+				d[off + 4] = -1
+				ring.vbo:Upload(d, nil, slot, off + 1, off + step)
+			end
+		end
+	end
+	-- draw range: from the oldest listed slot up to head
+	local head = ring.head
+	local oldest = -1 ---@type number
+	for _, e in ipairs(list) do
+		local slot = e.gpuSlot
+		if slot then
+			local dist = (head - 1 - slot) % cap
+			if dist > oldest then
+				oldest = dist
+			end
+		end
+	end
+	ring.liveCount = oldest + 1
+	ring.tail = (head - ring.liveCount) % cap
+	ex.histAlive, ex.histOverlay, ex.histLightning = alive, overlay, lightning
+end
+
+-- Upload the slots written since the last draw
+---@param ring PipExplosionRing
+function gl4Prim.explosions.Upload(ring)
+	local n = ring.dirtyCount
+	if n == 0 then
+		return
+	end
+	ring.dirtyCount = 0
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local cap, step, d, vbo = ex.CAPACITY, ex.STEP, ring.data, ring.vbo
+	if n >= ring.used then
+		vbo:Upload(d, nil, 0, 1, ring.used * step)
+		return
+	end
+	local first = ring.dirtyFirst
+	local run = math.min(n, cap - first)
+	vbo:Upload(d, nil, first, first * step + 1, (first + run) * step)
+	if run < n then
+		vbo:Upload(d, nil, 0, 1, (n - run) * step)
+	end
+end
+
+-- Draw one mesh range (main layers, sparks or overlay) for the ring's explosions
+---@param ring PipExplosionRing
+---@param vertFirst integer
+---@param vertCount integer
+---@param frame number
+---@param minRadius number
+---@param overlayAlpha number
+function gl4Prim.explosions.Draw(ring, vertFirst, vertCount, frame, minRadius, overlayAlpha)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	ex.Upload(ring)
+	local n = ring.liveCount
+	local ulocs = ex.uniformLocs
+	if n == 0 or not ulocs then
+		return
+	end
+	GL4SetPrimUniforms(ex.shader, ulocs)
+	gl.UniformFloat(ulocs.expParams, frame, minRadius, overlayAlpha, render.contentScale or 1)
+	local vao = ring.vao
+	if ex.baseInstance then
+		local tail = ring.tail
+		local run = math.min(n, ex.CAPACITY - tail)
+		vao:DrawArrays(GL.TRIANGLES, vertCount, vertFirst, run, tail)
+		if run < n then
+			vao:DrawArrays(GL.TRIANGLES, vertCount, vertFirst, n - run, 0)
+		end
+	else
+		vao:DrawArrays(GL.TRIANGLES, vertCount, vertFirst, ring.used, 0)
+	end
+	gl.UseShader(0)
+end
+
+-- Per units-texture refresh: expire, pick the ring and size cap for GL4FlushEffects
+---@param histMode any truthy while rewinding
+function gl4Prim.explosions.Prepare(histMode)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	ex.pendingRing = nil
+	local live, histRing = ex.live, ex.hist
+	if not (ex.enabled and live and histRing) then
+		return
+	end
+	local gameFrame = Spring.GetGameFrame()
+	ex.Advance(live, gameFrame)
+	ex.CheckLosView(live)
+	local maxCount = GetDetailCap(150)
+	local ring, frame = live, gameFrame ---@type PipExplosionRing, number
+	local minRadius, sparks
+	if histMode then
+		local hist = miscState.hist
+		if not hist.ready then
+			return
+		end
+		ring, frame = histRing, hist.viewFrame
+		ex.SyncHist(hist.explosions, frame)
+		minRadius = ex.Threshold(ex.histCounts, ex.histRadii, ex.histAlive, maxCount)
+		sparks = ex.histLightning > 0
+	else
+		if live.radiiDirty then
+			live.radiiDirty = false
+			local radii = live.radii
+			for i = #radii, 1, -1 do
+				radii[i] = nil
+			end
+			for r in pairs(live.counts) do
+				radii[#radii + 1] = r
+			end
+			table.sort(radii, sortDescending)
+		end
+		minRadius = ex.Threshold(live.counts, live.radii, live.alive, maxCount)
+		sparks = live.lightning > 0
+	end
+	if ring.liveCount == 0 then
+		return
+	end
+	ex.pendingRing, ex.pendingFrame, ex.pendingMinRadius, ex.pendingSparks = ring, frame, minRadius, sparks
+end
+
+-- Ring for the above-icons overlay, or nil when it has nothing to draw. The hist ring is synced
+-- by Prepare earlier in the same refresh.
+---@param histMode any truthy while rewinding
+---@return PipExplosionRing?
+function gl4Prim.explosions.OverlayTarget(histMode)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local live, histRing = ex.live, ex.hist
+	if not (ex.enabled and live and histRing) then
+		return nil
+	end
+	local ring, frame, count = live, Spring.GetGameFrame(), 0 ---@type PipExplosionRing, number, number
+	if histMode then
+		if not miscState.hist.ready then
+			return nil
+		end
+		ring, frame, count = histRing, miscState.hist.viewFrame, ex.histOverlay
+	else
+		ex.Advance(live, frame)
+		ex.CheckLosView(live)
+		count = live.alive - live.lightning
+	end
+	if count <= 0 or ring.liveCount == 0 then
+		return nil
+	end
+	return ring
+end
+
+-- Additive glow above the icons; `normalBasePass` first draws it with normal blending (the
+-- engine-minimap fallback)
+---@param ring PipExplosionRing from OverlayTarget
+---@param histMode any truthy while rewinding
+---@param alpha number
+---@param normalBasePass boolean?
+function gl4Prim.explosions.DrawOverlay(ring, histMode, alpha, normalBasePass)
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local frame = histMode and miscState.hist.viewFrame or Spring.GetGameFrame()
+	gl.DepthTest(false)
+	if normalBasePass then
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		ex.Draw(ring, ex.OVERLAY_FIRST, ex.OVERLAY_COUNT, frame, 0, alpha)
+	end
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	ex.Draw(ring, ex.OVERLAY_FIRST, ex.OVERLAY_COUNT, frame, 0, alpha)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+-- Explosions alive in the game (for the workload counters)
+function gl4Prim.explosions.AliveCount()
+	local live = gl4Prim.explosions.live ---@type PipExplosionRing?
+	return live and live.alive or 0
+end
+
+-- Create the segment and explosion resources (part of InitGL4Primitives). A failure only
+-- disables that effect.
+function gl4Prim.InitEffectBatches()
+	local quadVBO = gl4Prim.quadVBO
+	if not quadVBO then
+		quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then
+			return
+		end
+		quadVBO:Define(4, { { id = 0, name = "quadPos", size = 2 } })
+		quadVBO:Upload({ -1, -1, 1, -1, -1, 1, 1, 1 })
+		gl4Prim.quadVBO = quadVBO
+	end
+	local function primUniforms(shader)
+		return {
+			wtp_scale = gl.GetUniformLocation(shader, "wtp_scale"),
+			wtp_offset = gl.GetUniformLocation(shader, "wtp_offset"),
+			ndcScale = gl.GetUniformLocation(shader, "ndcScale"),
+			rotSC = gl.GetUniformLocation(shader, "rotSC"),
+			rotCenter = gl.GetUniformLocation(shader, "rotCenter"),
+		}
+	end
+
+	local seg = gl4Prim.segments ---@type PipSegmentBatch
+	local segShader = gl.CreateShader(gl4Prim.segmentShaderCode)
+	if segShader then
+		local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+		local vao = vbo and gl.GetVAO()
+		if vbo and vao then
+			vbo:Define(seg.MAX, {
+				{ id = 1, name = "segPos", size = 4 },
+				{ id = 2, name = "segColor", size = 4 },
+				{ id = 3, name = "segExtra", size = 4 },
+			})
+			vao:AttachVertexBuffer(quadVBO)
+			vao:AttachInstanceBuffer(vbo)
+			seg.vbo, seg.vao, seg.shader = vbo, vao, segShader
+			seg.uniformLocs = primUniforms(segShader)
+			seg.enabled = true
+		else
+			if vbo then
+				vbo:Delete()
+			end
+			gl.DeleteShader(segShader)
+		end
+	else
+		Spring.Echo("[PIP] GL4 segment shader failed: " .. tostring(gl.GetShaderLog()))
+	end
+
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	local exShader = gl.CreateShader(gl4Prim.explosionShaderCode)
+	if not exShader then
+		Spring.Echo("[PIP] GL4 explosion shader failed: " .. tostring(gl.GetShaderLog()))
+		return
+	end
+	local meshVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not meshVBO then
+		gl.DeleteShader(exShader)
+		return
+	end
+	-- 6 main layers, 9 sparks, 2 overlay layers; two triangles per quad
+	local corners = { -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1 }
+	local mesh = {}
+	for _, part in ipairs({ { 0, 6 }, { 1, 9 }, { 2, 2 } }) do
+		for index = 0, part[2] - 1 do
+			for c = 1, 12, 2 do
+				mesh[#mesh + 1] = corners[c]
+				mesh[#mesh + 1] = corners[c + 1]
+				mesh[#mesh + 1] = part[1]
+				mesh[#mesh + 1] = index
+			end
+		end
+	end
+	meshVBO:Define(#mesh / 4, { { id = 0, name = "meshV", size = 4 } })
+	meshVBO:Upload(mesh)
+	local layout = {
+		{ id = 1, name = "expA", size = 4 },
+		{ id = 2, name = "expB", size = 4 },
+		{ id = 3, name = "expC", size = 4 },
+		{ id = 4, name = "expD", size = 4 },
+	}
+	local rings = {}
+	for i = 1, 2 do
+		local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+		local vao = vbo and gl.GetVAO()
+		if not (vbo and vao) then
+			if vbo then
+				vbo:Delete()
+			end
+			for _, ring in ipairs(rings) do
+				ring.vao:Delete()
+				ring.vbo:Delete()
+			end
+			meshVBO:Delete()
+			gl.DeleteShader(exShader)
+			return
+		end
+		vbo:Define(ex.CAPACITY, layout)
+		vao:AttachVertexBuffer(meshVBO)
+		vao:AttachInstanceBuffer(vbo)
+		rings[i] = ex.NewRing(vbo, vao)
+	end
+	ex.live, ex.hist = rings[1], rings[2]
+	ex.meshVBO, ex.shader = meshVBO, exShader
+	local ulocs = primUniforms(exShader)
+	ulocs.expParams = gl.GetUniformLocation(exShader, "expParams")
+	ex.uniformLocs = ulocs
+	ex.baseInstance = gl.HasExtension and gl.HasExtension("GL_ARB_base_instance") or false
+	ex.enabled = true
+end
+
+function gl4Prim.DestroyEffectBatches()
+	local seg = gl4Prim.segments ---@type PipSegmentBatch
+	if seg.vao then
+		seg.vao:Delete()
+		seg.vao = nil
+	end
+	if seg.vbo then
+		seg.vbo:Delete()
+		seg.vbo = nil
+	end
+	if seg.shader then
+		gl.DeleteShader(seg.shader)
+		seg.shader = nil
+	end
+	seg.enabled, seg.count = false, 0
+
+	local ex = gl4Prim.explosions ---@type PipExplosionBatches
+	for _, key in ipairs({ "live", "hist" }) do
+		local ring = ex[key]
+		if ring then
+			ring.vao:Delete()
+			ring.vbo:Delete()
+			ex[key] = nil
+		end
+	end
+	if ex.meshVBO then
+		ex.meshVBO:Delete()
+		ex.meshVBO = nil
+	end
+	if ex.shader then
+		gl.DeleteShader(ex.shader)
+		ex.shader = nil
+	end
+	ex.enabled, ex.pendingRing = false, nil
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -6026,21 +7068,6 @@ local function DrawFeature(fID, noTextures)
 	glFunc.PopMatrix()
 end
 
--- Shared state for beam line drawing (avoids per-beam closure allocation)
-local _line = {}
-local function drawLine()
-	glFunc.Vertex(_line.x1, _line.y1, 0)
-	glFunc.Vertex(_line.x2, _line.y2, 0)
-end
-
--- Shared state for per-vertex-colored line drawing (plasma trails)
-local function drawColoredLine()
-	glFunc.Color(_line.r, _line.g, _line.b, _line.a1)
-	glFunc.Vertex(_line.x1, _line.y1, 0)
-	glFunc.Color(_line.r, _line.g, _line.b, _line.a2)
-	glFunc.Vertex(_line.x2, _line.y2, 0)
-end
-
 -- rewind passes recorded velocities instead of engine ones
 local function ProjVelocity(pID, hx, hvx, hvz)
 	if hx then
@@ -6619,56 +7646,58 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 					else
 						trailColorR, trailColorG, trailColorB = 0.22, 0.22, 0.22
 					end
-					local wcx, wcz = cameraState.wcx, cameraState.wcz
 					local positions = trail.positions
 					local head = trail.head
 					local trailNow = pools.projClock or os.clock()
 
-					-- Set line width proportional to missile body size
+					-- Line width proportional to missile body size
 					-- Missile bodies bypass zoomScale (fixed world-unit size), so trails should too
 					-- Gentle zoom factor: thin when zoomed out (matching tiny missile dots),
 					-- slightly wider when zoomed in
 					local resScale = render.contentScale or 1
 					local trailZoom = 0.8 + cameraState.zoom * 2 -- 0.85 at zoom 0.024, 1.0 at 0.1, 1.8 at 0.5
 					local trailWidth = math.max(1.0 * resScale, trail.size * 0.5 * trailZoom * resScale)
-					glFunc.LineWidth(trailWidth)
 
-					-- Batch all trail lines in a single BeginEnd call
-					glFunc.BeginEnd(glConst.LINES, function()
-						for i = 0, trailCount - 2 do
-							-- Ring buffer indexing: head is newest, go backwards
-							local idx1 = head - i
-							if idx1 < 1 then
-								idx1 = idx1 + maxTrailLength
+					for i = 0, trailCount - 2 do
+						-- Ring buffer indexing: head is newest, go backwards
+						local idx1 = head - i
+						if idx1 < 1 then
+							idx1 = idx1 + maxTrailLength
+						end
+						local idx2 = head - i - 1
+						if idx2 < 1 then
+							idx2 = idx2 + maxTrailLength
+						end
+
+						local p1 = positions[idx1]
+						local p2 = positions[idx2]
+						if p1 and p2 then
+							-- Calculate fade based on wall-clock time
+							local fade1 = 1 - (trailNow - p1.time) * invTrailLifetime
+							local fade2 = 1 - (trailNow - p2.time) * invTrailLifetime
+							if fade1 < 0 then
+								fade1 = 0
 							end
-							local idx2 = head - i - 1
-							if idx2 < 1 then
-								idx2 = idx2 + maxTrailLength
+							if fade2 < 0 then
+								fade2 = 0
 							end
 
-							local p1 = positions[idx1]
-							local p2 = positions[idx2]
-							if p1 and p2 then
-								-- Calculate fade based on wall-clock time
-								local fade1 = 1 - (trailNow - p1.time) * invTrailLifetime
-								local fade2 = 1 - (trailNow - p2.time) * invTrailLifetime
-								if fade1 < 0 then
-									fade1 = 0
-								end
-								if fade2 < 0 then
-									fade2 = 0
-								end
-
-								if fade1 > 0 or fade2 > 0 then
-									glFunc.Color(trailColorR, trailColorG, trailColorB, 0.7 * fade1)
-									glFunc.Vertex(p1.x - wcx, wcz - p1.z, 0)
-									glFunc.Color(trailColorR, trailColorG, trailColorB, 0.7 * fade2)
-									glFunc.Vertex(p2.x - wcx, wcz - p2.z, 0)
-								end
+							if fade1 > 0 or fade2 > 0 then
+								GL4AddSegment(
+									p1.x,
+									p1.z,
+									p2.x,
+									p2.z,
+									trailColorR,
+									trailColorG,
+									trailColorB,
+									0.7 * fade1,
+									0.7 * fade2,
+									trailWidth
+								)
 							end
 						end
-					end)
-					glFunc.LineWidth(1 * resScale)
+					end
 				end
 			end
 		end -- showTrail
@@ -6826,7 +7855,6 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 			if trailCount >= 2 then
 				local invLife = 1 / trail.trailLifeFrames
 				local tR, tG, tB = trailColor[1], trailColor[2], trailColor[3]
-				local wcx, wcz = cameraState.wcx, cameraState.wcz
 				local positions = trail.positions
 				local head = trail.head
 				local maxLen = trail.maxLen
@@ -6839,7 +7867,6 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 				end
 				local minSegW = 1.35 * resScale
 				local segDecay = 1.0
-				_line.r, _line.g, _line.b = tR, tG, tB
 
 				for j = 0, trailCount - 2 do
 					local idx1 = head - j
@@ -6866,24 +7893,17 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 							if segWidth < minSegW then
 								segWidth = minSegW
 							end
-							_line.x1 = p1.x - wcx
-							_line.y1 = wcz - p1.z
-							_line.x2 = p2.x - wcx
-							_line.y2 = wcz - p2.z
-							_line.a1 = 0.75 * fade1
-							_line.a2 = 0.75 * fade2
-							glFunc.LineWidth(segWidth)
-							glFunc.BeginEnd(glConst.LINES, drawColoredLine)
+							GL4AddSegment(p1.x, p1.z, p2.x, p2.z, tR, tG, tB, 0.75 * fade1, 0.75 * fade2, segWidth)
 						end
 					end
 					segDecay = segDecay * 0.85
 				end
-				glFunc.LineWidth(1 * resScale)
 			end
 		end
 	else
 		GL4AddQuad(px, pz, width, height, angle, color[1], color[2], color[3], color[4], atlasSprites.shell)
 	end
+	return px, pz
 end
 
 local function DrawLaserBeams()
@@ -6900,7 +7920,6 @@ local function DrawLaserBeams()
 	-- Zoom-dependent beam width: scale down when zoomed out so beams don't dominate the view
 	-- At zoom 0.024 (full map): ~0.55, at zoom 0.1: ~0.85, at zoom 0.3+: ~1.0
 	local zoomScale = mMin(1.0, 0.4 + cameraState.zoom * 4)
-	local wcz_cached = cameraState.wcz -- Cache for loop
 
 	-- Cache world boundaries for culling
 	local worldLeft = render.world.l
@@ -6912,7 +7931,7 @@ local function DrawLaserBeams()
 	local beamLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
 
 	while i <= n do
-		local beam = cache.laserBeams[i]
+		local beam = cache.laserBeams[i] ---@type table
 		local age = gameTime - beam.startTime
 
 		-- Remove beams older than 0.15 seconds (swap-to-end compaction)
@@ -6929,110 +7948,52 @@ local function DrawLaserBeams()
 		elseif beamLosAlly and not spFunc.IsPosInLos(beam.ox, 0, beam.oz, beamLosAlly) then
 			i = i + 1
 		else
-			-- Check if beam is within visible world bounds
-			local beamMinX, beamMaxX, beamMinZ, beamMaxZ
-			if beam.isLightning then
-				-- For lightning, check all segments
-				beamMinX, beamMaxX = math.huge, -math.huge
-				beamMinZ, beamMaxZ = math.huge, -math.huge
-				for j = 1, #beam.segments do
-					local seg = beam.segments[j]
-					if seg.x < beamMinX then
-						beamMinX = seg.x
-					end
-					if seg.x > beamMaxX then
-						beamMaxX = seg.x
-					end
-					if seg.z < beamMinZ then
-						beamMinZ = seg.z
-					end
-					if seg.z > beamMaxZ then
-						beamMaxZ = seg.z
-					end
-				end
-			else
-				-- For regular beams, check origin and target
-				beamMinX = beam.ox < beam.tx and beam.ox or beam.tx
-				beamMaxX = beam.ox > beam.tx and beam.ox or beam.tx
-				beamMinZ = beam.oz < beam.tz and beam.oz or beam.tz
-				beamMaxZ = beam.oz > beam.tz and beam.oz or beam.tz
-			end
-
 			-- Skip if beam is completely outside visible area
 			-- Check that at least one endpoint (origin OR target) overlaps the visible area
 			-- (with small margin for beam thickness)
+			local ox, oz, tx, tz = beam.ox, beam.oz, beam.tx, beam.tz
 			local beamMargin = 200
 			if
-				beamMaxX < worldLeft - beamMargin
-				or beamMinX > worldRight + beamMargin
-				or beamMaxZ < worldTop - beamMargin
-				or beamMinZ > worldBottom + beamMargin
+				(ox > tx and ox or tx) < worldLeft - beamMargin
+				or (ox < tx and ox or tx) > worldRight + beamMargin
+				or (oz > tz and oz or tz) < worldTop - beamMargin
+				or (oz < tz and oz or tz) > worldBottom + beamMargin
 			then
 				i = i + 1
 			else
-				-- Check if this is a lightning bolt (segmented) or regular laser beam
-				if beam.isLightning then
-					-- Draw lightning bolt with jagged segments
-					local alpha = 1 - (age / 0.15) -- Fade out over lifetime
-					local glowLW = mMax(1, beam.thickness * 4.5 * zoomScale * resScale)
-					local coreLW = mMax(1, beam.thickness * 1.4 * zoomScale * resScale)
-					local coreR = 0.9 + beam.r * 0.1
-					local coreG = 0.9 + beam.g * 0.1
-					local coreB = 0.95 + beam.b * 0.05
+				-- Laser beam as a line with a glow: one batched segment per layer
+				local alpha = 1 - (age / 0.15) -- Fade out over lifetime
+				local thickness = beam.thickness or 2
+				-- Scale thickness: thin beams stay thin, thick beams get moderate presence
+				local scaledThickness = (0.4 + thickness * 0.3) * zoomScale
+				local r, g, b = beam.r, beam.g, beam.b
 
-					for j = 1, #beam.segments - 1 do
-						local seg1 = beam.segments[j]
-						local seg2 = beam.segments[j + 1]
-						local avgBrightness = (seg1.brightness + seg2.brightness) * 0.5
-						_line.x1 = seg1.x - cameraState.wcx
-						_line.y1 = cameraState.wcz - seg1.z
-						_line.x2 = seg2.x - cameraState.wcx
-						_line.y2 = cameraState.wcz - seg2.z
+				-- Glow layer (outer, colored, additive-like via alpha)
+				local glowAlpha = alpha * 0.35
+				local glowWidth = mMax(1, mMin(8 * resScale, scaledThickness * 2.8 * resScale))
+				GL4AddSegment(ox, oz, tx, tz, r, g, b, glowAlpha, glowAlpha, glowWidth)
 
-						glFunc.LineWidth(glowLW)
-						glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.4 * avgBrightness)
-						glFunc.BeginEnd(GL.LINES, drawLine)
-						glFunc.LineWidth(coreLW)
-						glFunc.Color(coreR, coreG, coreB, alpha * 0.98 * avgBrightness)
-						glFunc.BeginEnd(GL.LINES, drawLine)
-					end
-				else
-					-- Draw regular laser beam as a line with glow effect
-					local alpha = 1 - (age / 0.15) -- Fade out over lifetime
-					local thickness = beam.thickness or 2
-					-- Scale thickness: thin beams stay thin, thick beams get moderate presence
-					local scaledThickness = (0.4 + thickness * 0.3) * zoomScale
-
-					-- Transform world coords to PushMatrix local coords
-					_line.x1 = beam.ox - cameraState.wcx
-					_line.y1 = cameraState.wcz - beam.oz
-					_line.x2 = beam.tx - cameraState.wcx
-					_line.y2 = cameraState.wcz - beam.tz
-
-					-- Glow layer (outer, colored, additive-like via alpha)
-					local glowWidth = mMax(1, mMin(8 * resScale, scaledThickness * 2.8 * resScale))
-					glFunc.LineWidth(glowWidth)
-					glFunc.Color(beam.r, beam.g, beam.b, alpha * 0.35)
-					glFunc.BeginEnd(GL.LINES, drawLine)
-
-					-- Core layer (inner, whitened, bright) — use higher proportion for big lasers
-					local whiteness = 0.4 + (thickness / 10) * 0.4
-					local coreR = beam.r * (1 - whiteness) + whiteness
-					local coreG = beam.g * (1 - whiteness) + whiteness
-					local coreB = beam.b * (1 - whiteness) + whiteness
-					local coreWidth = mMax(1, mMin(3 * resScale, scaledThickness * 1.2 * resScale))
-					glFunc.LineWidth(coreWidth)
-					glFunc.Color(coreR, coreG, coreB, alpha * 0.98)
-					glFunc.BeginEnd(GL.LINES, drawLine)
-				end
+				-- Core layer (inner, whitened, bright) — use higher proportion for big lasers
+				local whiteness = 0.4 + (thickness / 10) * 0.4
+				local coreAlpha = alpha * 0.98
+				local coreWidth = mMax(1, mMin(3 * resScale, scaledThickness * 1.2 * resScale))
+				GL4AddSegment(
+					ox,
+					oz,
+					tx,
+					tz,
+					r * (1 - whiteness) + whiteness,
+					g * (1 - whiteness) + whiteness,
+					b * (1 - whiteness) + whiteness,
+					coreAlpha,
+					coreAlpha,
+					coreWidth
+				)
 
 				i = i + 1
 			end
 		end
 	end
-
-	-- Reset line width once at the end
-	glFunc.LineWidth(1 * resScale)
 end
 
 -- Shared state for fragment quad drawing (avoids per-fragment closure allocation)
@@ -7444,570 +8405,6 @@ local function DrawSeismicPings()
 	end
 
 	glFunc.Color(1, 1, 1, 1)
-end
-
--- Remove expired explosions from cache.explosions.
--- Extracted from DrawExplosions so it can also run during engine minimap fallback
--- (where DrawExplosions is never called, causing unbounded table growth).
-local function ExpireExplosions()
-	local n = #cache.explosions
-	if n == 0 then
-		return
-	end
-	local currentFrame = Spring.GetGameFrame()
-	local i = 1
-	while i <= n do
-		local explosion = cache.explosions[i]
-		if not explosion or not explosion.x then
-			cache.explosions[i] = cache.explosions[n]
-			cache.explosions[n] = nil
-			n = n - 1
-		else
-			local age = (currentFrame - explosion.startFrame) / 30
-			local lifetime = 0.4 + explosion.radius / 200
-			if explosion.isLightning then
-				lifetime = 0.25
-			elseif explosion.radius > 150 then
-				lifetime = math.min(1.5, lifetime * 2)
-			elseif explosion.radius > 80 then
-				lifetime = math.min(1.0, lifetime * 1.5)
-			else
-				lifetime = math.min(0.8, lifetime)
-			end
-			if explosion.isUnitExplosion then
-				lifetime = lifetime * 1.4
-			end
-			if age > lifetime then
-				cache.explosions[i] = cache.explosions[n]
-				cache.explosions[n] = nil
-				n = n - 1
-			else
-				i = i + 1
-			end
-		end
-	end
-end
-
-local function DrawExplosions()
-	if #cache.explosions == 0 then
-		return
-	end
-
-	local resScale = render.contentScale or 1
-	local i = 1
-	local wcz_cached = cameraState.wcz
-
-	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
-	local expLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
-
-	mapInfo.rad2deg = 57.29577951308232 -- Precompute radians to degrees conversion
-
-	-- Cache world boundaries for culling
-	local worldLeft = render.world.l
-	local worldRight = render.world.r
-	local worldTop = render.world.t
-	local worldBottom = render.world.b
-
-	-- When too many explosions, compute minimum radius threshold to keep ~cap
-	local MAX_EXPLOSIONS = GetDetailCap(150)
-	local explosionMinRadius = 0
-	if #cache.explosions > MAX_EXPLOSIONS then
-		-- Collect all radii, sort descending, pick threshold
-		local radii = pools.explosionRadii
-		if not radii then
-			radii = {}
-			pools.explosionRadii = radii
-		end
-		local rCount = 0
-		for j = 1, #cache.explosions do
-			local e = cache.explosions[j]
-			if e and e.x then
-				rCount = rCount + 1
-				radii[rCount] = e.radius
-			end
-		end
-		table.sort(radii, sortDescending)
-		explosionMinRadius = radii[MAX_EXPLOSIONS] or 0
-		for j = rCount + 1, #radii do
-			radii[j] = nil
-		end
-	end
-
-	local currentFrame = miscState.hist.mode and miscState.hist.viewFrame or Spring.GetGameFrame()
-
-	local n = #cache.explosions
-	while i <= n do
-		local explosion = cache.explosions[i]
-		if not explosion or not explosion.x then
-			cache.explosions[i] = cache.explosions[n]
-			cache.explosions[n] = nil
-			n = n - 1
-		else
-			-- Age in seconds derived from game frames (freezes when paused)
-			local age = (currentFrame - explosion.startFrame) / 30
-
-			-- Remove explosions older than 0.8 seconds (longer for large explosions)
-			local lifetime = 0.4 + explosion.radius / 200 -- Base lifetime calculation
-
-			-- Lightning explosions have shorter lifetime
-			if explosion.isLightning then
-				lifetime = 0.25 -- Short, snappy lightning flash
-			-- Nuke explosions linger much longer
-			elseif explosion.radius > 150 then
-				lifetime = math.min(1.5, lifetime * 2) -- Nukes last up to 1.5 seconds
-			elseif explosion.radius > 80 then
-				lifetime = math.min(1.0, lifetime * 1.5) -- Large explosions up to 1 second
-			else
-				lifetime = math.min(0.8, lifetime) -- Normal explosions up to 0.8 seconds
-			end
-
-			-- Unit death explosions last 40% longer
-			if explosion.isUnitExplosion then
-				lifetime = lifetime * 1.4
-			end
-
-			if age > lifetime then
-				cache.explosions[i] = cache.explosions[n]
-				cache.explosions[n] = nil
-				n = n - 1
-			-- Skip small explosions when over budget (but still expire them above)
-			elseif explosionMinRadius > 0 and explosion.radius < explosionMinRadius then
-				i = i + 1
-			-- LOS view filter: skip explosions outside the viewed allyteam's LOS
-			elseif expLosAlly and not spFunc.IsPosInLos(explosion.x, 0, explosion.z, expLosAlly) then
-				i = i + 1
-			else
-				-- Check if explosion is within visible world bounds
-				local explosionRadius = explosion.radius * 2 -- Account for expansion
-				if
-					explosion.x + explosionRadius < worldLeft
-					or explosion.x - explosionRadius > worldRight
-					or explosion.z + explosionRadius < worldTop
-					or explosion.z - explosionRadius > worldBottom
-				then
-					-- Skip invisible explosion
-					i = i + 1
-				else
-					-- Draw explosion as expanding, fading circle
-					local actualProgress = (age / lifetime)
-					local progress = 0.3 + (age / lifetime) * 0.7 -- Start at 33%, end at 100%
-
-					-- Calculate segments based on explosion size and progress
-					-- Smaller early explosions use fewer segments, larger/progressed use more
-					local baseRadius = explosion.radius * (0.3 + progress * 1.7)
-					local segments = math.max(8, math.min(32, math.floor(8 + baseRadius * 0.15)))
-					local angleStep = (2 * math.pi) / segments
-
-					-- Check if this is a lightning explosion
-					if explosion.isLightning then
-						-- Lightning explosion: small white-blue flash with sparks
-						local baseRadius = 16.2 * (0.5 + progress * 2.0) -- 35% larger (12 * 1.35 = 16.2)
-						local alpha = (1 - progress) * (1 - progress) -- Faster fade
-						local r, g, b = 0.9, 0.95, 1
-
-						if gl4Prim.enabled then
-							-- GL4 path: two gradient circles (glow + core)
-							local glowAlpha = alpha * 0.5
-							local glowRadius = baseRadius * 1.8
-							GL4AddCircle(
-								explosion.x,
-								explosion.z,
-								glowRadius,
-								glowAlpha,
-								r * 0.7,
-								g * 0.7,
-								b * 0.8,
-								r * 0.4,
-								g * 0.4,
-								b * 0.5,
-								0,
-								0
-							)
-							local coreAlpha = alpha * 0.95
-							local edgeAlpha = alpha * 0.5
-							local coreRadius = baseRadius * 0.4
-							GL4AddCircle(
-								explosion.x,
-								explosion.z,
-								coreRadius,
-								coreAlpha,
-								1,
-								1,
-								1,
-								r * 0.8,
-								g * 0.8,
-								b,
-								edgeAlpha,
-								0
-							)
-							-- GL4 sparks as norm lines
-							for k = 1, #explosion.particles do
-								local particle = explosion.particles[k]
-								local particleLife = particle.life or particle.lifetime
-								if particle.vx and particle.vz and particleLife and particleLife > 0 then
-									local particleAge = age
-									local particleProgress = particleAge / particleLife
-									if particleProgress < 1 then
-										particle.x = particle.x + particle.vx * (1 / 30)
-										particle.z = particle.z + particle.vz * (1 / 30)
-										local sparkAlpha = (1 - particleProgress) * 0.9
-										local sparkDirX = particle.vx * 0.3
-										local sparkDirZ = particle.vz * 0.3
-										-- Sparks use PIP-local Y coords (= -worldZ), so flip Z for GL4 world coords
-										GL4AddNormLine(
-											explosion.x + particle.x - sparkDirX,
-											explosion.z - particle.z + sparkDirZ,
-											explosion.x + particle.x + sparkDirX,
-											explosion.z - particle.z - sparkDirZ,
-											r,
-											g,
-											b,
-											sparkAlpha
-										)
-									end
-								end
-							end
-						end
-					else
-						-- Normal explosion rendering
-						-- Scale down big explosions by 25% (multiply radius by 0.75)
-						local effectiveRadius = explosion.radius
-						if explosion.radius > 80 then
-							effectiveRadius = explosion.radius * 0.75
-						end
-
-						-- Unit death explosions are 33% larger
-						if explosion.isUnitExplosion then
-							effectiveRadius = effectiveRadius * 1.33
-						end
-
-						-- Fireball radius (20% smaller than before)
-						local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
-						local alpha = (1 - progress) * (explosion.dimFactor or 1) -- Fades out, dimmed for rapid-fire
-
-						-- Color: outer fireball (darker, smoky edge) and inner core (bright, hot)
-						-- Per-explosion random tint variation using stored seed
-						local seed = explosion.randomSeed
-						local rVar = math.sin(seed * 12.9898) * 0.06 -- ±0.06
-						local gVar = math.sin(seed * 78.233) * 0.08 -- ±0.08 (more warmth variety)
-						local bVar = math.sin(seed * 43.758) * 0.03 -- ±0.03
-
-						local r, g, b -- Outer fireball color
-						local cr, cg, cb -- Inner core color (hotter)
-						if explosion.isJuno then
-							r, g, b = 0.3, 0.75, 0.35
-							cr, cg, cb = 0.6, 1, 0.65
-						elseif explosion.isParalyze then
-							r, g, b = 0.5, 0.6, 0.85
-							cr, cg, cb = 0.8, 0.9, 1
-						elseif explosion.radius > 150 then
-							-- Nuke: bright orange-yellow
-							r = 0.9 + rVar
-							g = 0.55 + gVar
-							b = 0.15 + bVar
-							cr, cg, cb = 1, 0.95, 0.7
-						elseif explosion.radius > 80 then
-							-- Large: warm orange (less red than before)
-							r = 0.92 + rVar
-							g = 0.5 + gVar
-							b = 0.1 + bVar
-							cr = 1
-							cg = 0.88 + gVar * 0.5
-							cb = 0.4 + bVar
-						else
-							-- Small-to-medium: orange with gentle red shift (much less than before)
-							local sizeRatio = explosion.radius / 200
-							r = 0.92 + rVar
-							g = 0.55 - sizeRatio * 0.15 + gVar -- Gentle shift (was 0.5 - sizeRatio)
-							b = 0.05 + bVar
-							cr = 1
-							cg = 0.92 - sizeRatio * 0.25 + gVar * 0.5
-							cb = 0.2 + bVar
-						end
-
-						-- Bigger explosions are more opaque
-						local coreAlpha = alpha
-						local edgeAlpha = alpha * 0.7
-						if explosion.radius > 150 then
-							coreAlpha = math.min(1, alpha * 1.2)
-							edgeAlpha = math.min(1, alpha * 0.95)
-						elseif explosion.radius > 80 then
-							coreAlpha = math.min(1, alpha * 1.1)
-							edgeAlpha = math.min(1, alpha * 0.85)
-						end
-
-						if gl4Prim.enabled then
-							-- Layer 1: Outer fireball body (dark edge → mid color)
-							GL4AddCircle(
-								explosion.x,
-								explosion.z,
-								baseRadius,
-								coreAlpha,
-								r,
-								g,
-								b,
-								r * 0.4,
-								g * 0.25,
-								b * 0.15,
-								edgeAlpha * 0.5,
-								0
-							)
-
-							-- Layer 2: Inner hot core (bright center → fireball color)
-							local coreRadius = baseRadius * 0.5
-							local innerAlpha = math.min(1, coreAlpha * 1.15)
-							GL4AddCircle(
-								explosion.x,
-								explosion.z,
-								coreRadius,
-								innerAlpha,
-								cr,
-								cg,
-								cb,
-								r,
-								g,
-								b,
-								coreAlpha * 0.8,
-								0
-							)
-
-							-- Layer 3: Initial flash (fast white-hot burst, first 20% of lifetime)
-							if actualProgress < 0.2 then
-								local flashT = actualProgress / 0.2
-								local flashAlpha = (1 - flashT * flashT) * 0.95 -- Quadratic falloff, brighter peak
-								local flashRadius = baseRadius * (0.8 + flashT * 0.9)
-								if explosion.isJuno then
-									GL4AddCircle(
-										explosion.x,
-										explosion.z,
-										flashRadius,
-										flashAlpha,
-										0.7,
-										1,
-										0.75,
-										0.4,
-										0.85,
-										0.5,
-										flashAlpha * 0.4,
-										0
-									)
-								elseif explosion.isParalyze then
-									GL4AddCircle(
-										explosion.x,
-										explosion.z,
-										flashRadius,
-										flashAlpha,
-										0.85,
-										0.9,
-										1,
-										0.65,
-										0.75,
-										1,
-										flashAlpha * 0.4,
-										0
-									)
-								else
-									GL4AddCircle(
-										explosion.x,
-										explosion.z,
-										flashRadius,
-										flashAlpha,
-										1,
-										1,
-										1,
-										1,
-										0.95,
-										0.7,
-										flashAlpha * 0.35,
-										0
-									)
-								end
-							end
-
-							-- Layer 4: Nuke secondary flash (lingers longer)
-							if explosion.radius > 150 and actualProgress < 0.5 then
-								local flashProgress = actualProgress / 0.5
-								local flashAlpha = (1 - flashProgress) * alpha * 0.6
-								local flashRadius = baseRadius * 0.85
-								GL4AddCircle(
-									explosion.x,
-									explosion.z,
-									flashRadius,
-									flashAlpha,
-									1,
-									1,
-									1,
-									1,
-									0.95,
-									0.8,
-									flashAlpha * 0.4,
-									0
-								)
-							end
-
-							-- Layer 5: Big white flash (nukes, commanders, fusions)
-							-- Fades fast initially (cubic) then lingers slightly (linear tail)
-							-- Flash runs at 1.7x speed so it fades out before the fireball ends
-							if explosion.isBigFlash and actualProgress < 0.75 then
-								local ft = actualProgress / 0.75 -- compress into 75% of explosion lifetime
-								-- Cubic decay + small linear tail for gentle linger
-								local fa = math.min(1, (1 - ft) * (1 - ft) * (1 - ft) * 1.2 + (1 - ft) * 0.12)
-								-- Outer white pulse: starts large, expands slowly
-								local flashR = effectiveRadius * (1.8 + ft * 1.5)
-								GL4AddCircle(
-									explosion.x,
-									explosion.z,
-									flashR,
-									fa * 0.85,
-									1,
-									1,
-									1,
-									1,
-									0.97,
-									0.92,
-									fa * 0.25,
-									0
-								)
-								-- Inner bright core: tight, fades faster
-								if ft < 0.45 then
-									local cft = ft / 0.45
-									local cfa = (1 - cft * cft) * 0.95
-									local coreR = effectiveRadius * (0.4 + cft * 0.6)
-									GL4AddCircle(
-										explosion.x,
-										explosion.z,
-										coreR,
-										cfa,
-										1,
-										1,
-										1,
-										1,
-										1,
-										0.97,
-										cfa * 0.5,
-										0
-									)
-								end
-							end
-						end
-					end
-					i = i + 1
-				end
-			end
-		end -- end of "if not explosion" else block
-	end
-	glFunc.LineWidth(1 * resScale)
-end
-
--- Simplified re-render of active explosions for the above-icons overlay pass.
--- Does NOT remove expired entries (DrawExplosions already handled that this frame).
--- Adds a single soft glow circle per explosion at reduced opacity.
-local function DrawExplosionOverlay()
-	if #cache.explosions == 0 then
-		return
-	end
-	if not gl4Prim.enabled then
-		return
-	end
-
-	local currentFrame = miscState.hist.mode and miscState.hist.viewFrame or Spring.GetGameFrame()
-
-	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
-	local expLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
-
-	for i = 1, #cache.explosions do
-		local explosion = cache.explosions[i]
-		if explosion and explosion.x and not explosion.isLightning then
-			-- LOS view filter: skip explosions outside the viewed allyteam's LOS
-			if expLosAlly and not spFunc.IsPosInLos(explosion.x, 0, explosion.z, expLosAlly) then
-				-- skip
-			else
-				local age = (currentFrame - explosion.startFrame) / 30
-
-				-- Replicate lifetime logic from DrawExplosions
-				local lifetime = 0.4 + explosion.radius / 200
-				if explosion.radius > 150 then
-					lifetime = math.min(1.5, lifetime * 2)
-				elseif explosion.radius > 80 then
-					lifetime = math.min(1.0, lifetime * 1.5)
-				else
-					lifetime = math.min(0.8, lifetime)
-				end
-
-				-- Unit death explosions last 40% longer
-				if explosion.isUnitExplosion then
-					lifetime = lifetime * 1.4
-				end
-
-				if age <= lifetime then
-					local progress = 0.3 + (age / lifetime) * 0.7
-					local effectiveRadius = explosion.radius
-					if effectiveRadius > 80 then
-						effectiveRadius = effectiveRadius * 0.75
-					end
-					if explosion.isUnitExplosion then
-						effectiveRadius = effectiveRadius * 1.33
-					end
-					local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
-					local fade = 1 - (age / lifetime)
-
-					-- Saturated colored glow (additive blend adds these to the scene)
-					-- Use low green/blue to avoid washing out to white
-					local overlayAlpha = fade * config.explosionOverlayAlpha
-					local r, g, b
-					if explosion.isJuno then
-						r, g, b = 0.15, 0.8, 0.25 -- Green tint
-					elseif explosion.isParalyze then
-						r, g, b = 0.25, 0.35, 0.9 -- Blue-purple tint
-					else
-						-- Warm orange-red: high R, moderate G, minimal B
-						local seed = explosion.randomSeed
-						local hueShift = math.sin(seed * 12.9898) * 0.08
-						r = 0.95
-						g = 0.4 + hueShift -- 0.32-0.48: orange range
-						b = 0.05 -- Very little blue keeps it saturated
-					end
-					GL4AddCircle(
-						explosion.x,
-						explosion.z,
-						baseRadius,
-						overlayAlpha,
-						r,
-						g,
-						b,
-						r * 0.55,
-						g * 0.4,
-						b * 0.2,
-						overlayAlpha * 0.5,
-						0
-					)
-
-					-- Big flash overlay: white glow above icons for nukes/commanders/fusions
-					-- Flash runs at 1.7x speed matching Layer 5 timing
-					if explosion.isBigFlash and age / lifetime < 0.75 then
-						local ft = (age / lifetime) / 0.75 -- compress into 75% of explosion lifetime
-						local fa = math.min(1, (1 - ft) * (1 - ft) * (1 - ft) * 1.2 + (1 - ft) * 0.12)
-						local flashR = effectiveRadius * (1.8 + ft * 1.5)
-						local flashAlpha = fa * config.explosionOverlayAlpha * 0.6
-						GL4AddCircle(
-							explosion.x,
-							explosion.z,
-							flashR,
-							flashAlpha,
-							1,
-							1,
-							1,
-							0.95,
-							0.93,
-							0.88,
-							flashAlpha * 0.2,
-							0
-						)
-					end
-				end
-			end -- LOS view filter else
-		end
-	end
 end
 
 local function GetUnitAtPoint(wx, wz)
@@ -13876,12 +14273,26 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 	local tracking = interactionState.trackingPlayerID ~= nil
 	local highlightSelected = not tracking
 
+	-- the minimap rotation is applied by the surrounding matrix; passing it lets the engine
+	-- turn each icon back so it stays upright (engines before that argument ignore it)
+	local rotation = render.minimapRotation or 0
+
 	-- other perspectives (tracked player / LOS view) are only permitted with a full-read
 	-- handle (fullview spectating); otherwise render our own view
 	if checkAllyTeamID and (isFullview or checkAllyTeamID == myAllyTeam) then
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false, highlightSelected)
+		gl.DrawMiniMapIcons(
+			worldL,
+			worldT,
+			worldR,
+			worldB,
+			iconSizeElmos,
+			checkAllyTeamID,
+			false,
+			highlightSelected,
+			rotation
+		)
 	else
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected, rotation)
 	end
 
 	glFunc.PopMatrix()
@@ -13894,12 +14305,27 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 		if uvs and defaultUV then
 			local unitDefCacheTbl = gl4Icons.unitDefCache
 			local cacheUnitIcon = cache.unitIcon
+			-- like the engine's icons, stay upright on a rotated minimap: undo the surrounding
+			-- rotation and turn the positions instead
+			local rotS, rotC = math.sin(rotation), math.cos(rotation)
+			local cx = render.dim.l + (render.dim.r - render.dim.l) / 2
+			local cy = render.dim.b + (render.dim.t - render.dim.b) / 2
+			if rotation ~= 0 then
+				glFunc.PushMatrix()
+				glFunc.Translate(cx, cy, 0)
+				glFunc.Rotate(-rotation * 180 / math.pi, 0, 0, 1)
+				glFunc.Translate(-cx, -cy, 0)
+			end
 			glFunc.Texture("$icons")
 			glFunc.Color(1, 1, 1, 1)
 			for uID in pairs(trackedSelectedSet) do
 				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
 				if ux and ux >= worldL and ux <= worldR and uz >= worldT and uz <= worldB then
 					local px, py = WorldToPipCoords(ux, uz)
+					if rotation ~= 0 then
+						local dx, dy = px - cx, py - cy
+						px, py = cx + dx * rotC - dy * rotS, cy + dx * rotS + dy * rotC
+					end
 					local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
 					local uv = (uDefID and uvs[uDefID]) or defaultUV
 					local icon = uDefID and cacheUnitIcon[uDefID]
@@ -13908,6 +14334,9 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, track
 				end
 			end
 			glFunc.Texture(false)
+			if rotation ~= 0 then
+				glFunc.PopMatrix()
+			end
 		end
 	end
 
@@ -14604,62 +15033,23 @@ end
 
 -- Effect builders shared by the live callins and playback ----------------------------------------
 
+-- The explosion record handed to the GPU explosion rings (gl4Prim.explosions.Pack); lightning
+-- sparks are generated in the shader from randomSeed
 function miscState.hist.BuildExplosion(px, py, pz, weaponID, radius, isUnitExplosion, isBigFlash, startFrame, rand)
-	local isLightning = weaponID and cache.weaponIsLightning[weaponID]
-	local explosion = {
+	return {
 		x = px,
 		y = py,
 		z = pz,
 		radius = radius,
 		startFrame = startFrame, -- game-frame based: freezes when paused
 		randomSeed = rand() * 1000,
-		rotationSpeed = (rand() - 0.5) * 4,
-		particles = {},
-		isLightning = isLightning,
+		isLightning = weaponID and cache.weaponIsLightning[weaponID],
 		isParalyze = weaponID and cache.weaponIsParalyze[weaponID],
 		isJuno = weaponID and cache.weaponIsJuno[weaponID],
-		isAA = false,
 		isUnitExplosion = isUnitExplosion,
 		isBigFlash = isBigFlash,
 		dimFactor = weaponID and cache.weaponExplosionDim[weaponID] or 1,
 	}
-
-	-- Lightning sparks (skip during engine minimap: only the circle overlay is drawn)
-	if isLightning and not miscState.engineMinimapActive then
-		local sparkCount = 6 + math.floor(rand() * 4)
-		for i = 1, sparkCount do
-			local angle = (i / sparkCount) * 2 * math.pi + (rand() - 0.5) * 0.8
-			local speed = 15 + rand() * 20
-			explosion.particles[i] = {
-				x = 0,
-				z = 0,
-				vx = math.cos(angle) * speed,
-				vz = math.sin(angle) * speed,
-				life = 0.3 + rand() * 0.2,
-				size = 2 + rand() * 2,
-			}
-		end
-	elseif radius > 30 and not miscState.engineMinimapActive then
-		-- Debris for larger explosions; nukes get more, faster and bigger particles
-		local particleCount = math.min(12, math.floor(radius / 10))
-		local speedMultiplier, sizeMultiplier = 1, 1
-		if radius > 150 then
-			particleCount = math.min(24, math.floor(radius / 8))
-			speedMultiplier, sizeMultiplier = 4, 1.5
-		elseif radius > 80 then
-			particleCount = math.min(18, math.floor(radius / 9))
-			speedMultiplier, sizeMultiplier = 2.5, 1.25
-		end
-		for i = 1, particleCount do
-			explosion.particles[i] = {
-				angle = (i / particleCount) * 2 * math.pi + (rand() - 0.5) * 0.5,
-				speed = (20 + rand() * 30) * speedMultiplier,
-				size = (2 + rand() * 3) * 2 * sizeMultiplier,
-				lifetime = speedMultiplier * 1.5,
-			}
-		end
-	end
-	return explosion
 end
 
 function miscState.hist.BuildShatter(unitDefID, unitTeam, ux, uz, unitVelX, unitVelZ, flashIntensity, rand)
@@ -15080,7 +15470,7 @@ function miscState.hist.SyncFrame()
 		outIndex[outId[i]] = i
 	end
 
-	-- explosions live at most ~2.1 s (see ExpireExplosions); deaths shatter for ~1.5 s
+	-- explosions live at most ~2.1 s (see gl4Prim.explosions.Pack); deaths shatter for ~1.5 s
 	-- a hit flashes for 0.4 s of real time whatever the playback speed
 	local flashSpan = math.ceil(store.opts.flashFrames * (hist.speed or 1))
 	-- order lines fade over the live FX duration of real time too (up to 15 s of game time);
@@ -15670,17 +16060,6 @@ function miscState.hist.DrawEffects()
 			end
 		end
 	end
-end
-
-function miscState.hist.DrawExplosionsAt()
-	local hist = miscState.hist
-	if not hist.ready then
-		return
-	end
-	local saved = cache.explosions
-	cache.explosions = hist.explosions
-	DrawExplosions()
-	cache.explosions = saved
 end
 
 -- Exported through WG["pip<n>"] (copied into pipApi at Initialize)
@@ -16408,29 +16787,51 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				-- When too many projectiles, compute a minimum explosion radius threshold
 				-- so only the ~150 biggest-damage ones are drawn
 				local minRadius = 0
+				local defIDs -- weapon def per projectile, fetched by the radius pass
 				if overloadedProjectiles then
 					skipProjectileTrails = true
 				elseif projectileCount > MAX_PROJECTILES then
-					-- Collect explosion radii for all projectiles
+					-- Count projectiles per explosion radius (few distinct values) and walk the
+					-- radii from the largest down to the MAX_PROJECTILES-th projectile
 					tracy.ZoneBeginN("W:PIP:Projectiles:RadiusBudget")
+					defIDs = pools.projectileDefIDs
+					local counts = pools.projectileRadiusCounts
 					local radii = pools.projectileRadii
-					if not radii then
-						radii = {}
-						pools.projectileRadii = radii
+					if not defIDs then
+						defIDs, counts, radii = {}, {}, {}
+						pools.projectileDefIDs, pools.projectileRadiusCounts, pools.projectileRadii =
+							defIDs, counts, radii
 					end
-					local rCount = 0
-					for i = 1, projectileCount do
-						local pDefID = spFunc.GetProjectileDefID(projectiles[i])
-						local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
-						rCount = rCount + 1
-						radii[rCount] = r
+					for r in pairs(counts) do
+						counts[r] = nil
 					end
-					-- Sort descending and pick the threshold at MAX_PROJECTILES
-					table.sort(radii, sortDescending)
-					minRadius = radii[MAX_PROJECTILES] or 0
-					-- Clear excess entries
-					for i = rCount + 1, #radii do
+					local nRadii = 0
+					local getDefID = spFunc.GetProjectileDefID
+					local explosionRadius = cache.weaponExplosionRadius
+					for i, pID in ipairs(projectiles) do
+						local pDefID = getDefID(pID)
+						defIDs[i] = pDefID or false
+						local r = pDefID and explosionRadius[pDefID] or 10
+						local c = counts[r]
+						if c then
+							counts[r] = c + 1
+						else
+							counts[r] = 1
+							nRadii = nRadii + 1
+							radii[nRadii] = r
+						end
+					end
+					for i = nRadii + 1, #radii do
 						radii[i] = nil
+					end
+					table.sort(radii, sortDescending)
+					local acc = 0
+					for i = 1, nRadii do
+						acc = acc + counts[radii[i]]
+						if acc >= MAX_PROJECTILES then
+							minRadius = radii[i]
+							break
+						end
 					end
 					tracy.ZoneEnd()
 				end
@@ -16440,8 +16841,13 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 
 				tracy.ZoneBeginN("W:PIP:Projectiles:Loop")
 				for i = 1, projectileCount, projectileStep do
-					local pID = projectiles[i]
-					local pDefID = spFunc.GetProjectileDefID(pID)
+					local pID = projectiles[i] ---@type ProjectileID
+					local pDefID
+					if defIDs then
+						pDefID = defIDs[i] or nil
+					else
+						pDefID = spFunc.GetProjectileDefID(pID)
+					end
 					-- Filter small projectiles when over budget
 					-- Always draw lasers/lightning/blasters (they're visually important beams)
 					local shouldDraw = pDefID ~= nil
@@ -16466,13 +16872,17 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 							shouldDraw = false
 						end
 					end
+					local ppx, ppz
 					if shouldDraw then
-						DrawProjectile(pID, pDefID)
+						ppx, ppz = DrawProjectile(pID, pDefID)
 					end
 					-- Count projectiles with trails inside the actual PIP viewport for EMA
 					if trailThreshold > 0 then
 						if pDefID and (cache.weaponIsMissile[pDefID] or cache.weaponIsPlasma[pDefID]) then
-							local ppx, _, ppz = spFunc.GetProjectilePosition(pID)
+							if not ppx then
+								local x, _, z = spFunc.GetProjectilePosition(pID)
+								ppx, ppz = x, z
+							end
 							if ppx and ppx >= worldL and ppx <= worldR and ppz >= worldT and ppz <= worldB then
 								visibleThisFrame = visibleThisFrame + 1
 							end
@@ -16514,9 +16924,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			end
 			tracy.ZoneEnd()
 
-			-- Draw laser beams
+			-- Draw laser beams, then every batched trail and beam segment
 			tracy.ZoneBeginN("W:PIP:Projectiles:LaserBeams")
 			DrawLaserBeams()
+			gl4Prim.FlushSegments()
 			tracy.ZoneEnd()
 		end
 
@@ -16541,6 +16952,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		gl.Blending(true)
 		gl.DepthTest(false)
 		miscState.hist.DrawEffects()
+		gl4Prim.FlushSegments()
 		gl.DepthTest(true)
 		gl.Blending(false)
 	end
@@ -16549,20 +16961,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	perfTimers.projectiles = perfTimers.projectiles + PERF_SMOOTH * ((t2 - t1) - perfTimers.projectiles)
 	tracy.ZoneEnd()
 
-	-- Draw explosions independently (graduated visibility based on radius)
+	-- Explosions are drawn by the GPU in GL4FlushEffects; here only expiry and the size cap
 	tracy.ZoneBeginN("W:PIP:DrawExplosions")
 	if config.drawExplosions then
-		gl.Blending(true)
-		gl.DepthTest(false)
-		glFunc.Texture(false)
-		if histMode then
-			ExpireExplosions()
-			miscState.hist.DrawExplosionsAt()
-		else
-			DrawExplosions()
-		end
-		gl.DepthTest(true)
-		gl.Blending(false)
+		gl4Prim.explosions.Prepare(histMode)
 	end
 
 	glFunc.PopMatrix()
@@ -17069,28 +17471,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Explosion overlay: re-render explosions on top of icons with additive blend
 	-- This creates a "units engulfed in fire" effect using a single soft glow per explosion
 	-- Skip under high workload to save GPU time
-	local overlayList = histMode and miscState.hist.explosions or cache.explosions
-	if
-		config.explosionOverlay
-		and config.drawExplosions
-		and #overlayList > 0
-		and gl4Prim.enabled
-		and perfTimers.itemCount < 800
-	then
-		GL4ResetPrimCounts()
-		if histMode then
-			local savedExplosions = cache.explosions
-			cache.explosions = overlayList
-			DrawExplosionOverlay()
-			cache.explosions = savedExplosions
-		else
-			DrawExplosionOverlay()
-		end
-		if gl4Prim.circles.count > 0 then
-			gl.Blending(GL.SRC_ALPHA, GL.ONE) -- Additive blend
-			gl.DepthTest(false)
-			GL4FlushCirclesOnly()
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- Restore
+	if config.explosionOverlay and config.drawExplosions and perfTimers.itemCount < 800 then
+		local exRing = gl4Prim.explosions.OverlayTarget(histMode)
+		if exRing then
+			gl4Prim.explosions.DrawOverlay(exRing, histMode, config.explosionOverlayAlpha)
 		end
 	end
 
@@ -17188,7 +17572,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Update total timer and item count
 	local tEnd = os.clock()
 	perfTimers.total = perfTimers.total + PERF_SMOOTH * ((tEnd - t0) - perfTimers.total)
-	perfTimers.itemCount = unitCount + #cache.explosions + (miscState.pipFeatures and #miscState.pipFeatures or 0)
+	perfTimers.itemCount = unitCount
+		+ gl4Prim.explosions.AliveCount()
+		+ (miscState.pipFeatures and #miscState.pipFeatures or 0)
 
 	-- Debug echo every 2 seconds
 	if config.showPipTimers and tEnd - perfTimers.lastEchoTime > 2.0 then
@@ -21322,41 +21708,24 @@ function widget:DrawScreen()
 		DrawDecalsOverlay(config.engineMinimapDecalStrength)
 
 		-- Explosion overlay on engine minimap (stronger than normal PIP overlay)
-		ExpireExplosions() -- must run here: DrawExplosions (the normal cleanup path) is skipped
-		if
-			config.engineMinimapExplosionOverlay
-			and config.drawExplosions
-			and #cache.explosions > 0
-			and gl4Prim.enabled
-		then
-			GL4ResetPrimCounts()
-			local savedAlpha = config.explosionOverlayAlpha
-			config.explosionOverlayAlpha = 1.0
-			DrawExplosionOverlay()
-			config.explosionOverlayAlpha = savedAlpha
-			if gl4Prim.circles.count > 0 then
-				-- Set viewport to PIP rect so NDC [-1,1] maps to our area;
-				-- adjust wtp offsets to 0-based coords for the shader
-				gl.Viewport(render.dim.l, render.dim.b, pipWidth, pipHeight)
-				gl.Scissor(render.dim.l, render.dim.b, pipWidth, pipHeight)
-				local savedOffX, savedOffZ = wtp.offsetX, wtp.offsetZ
-				wtp.offsetX = wtp.offsetX - render.dim.l
-				wtp.offsetZ = wtp.offsetZ - render.dim.b
-				-- Pass 1: normal blend for solid colored base (visible against bright backgrounds)
-				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-				gl.DepthTest(false)
-				GL4FlushCirclesOnly()
-				-- Pass 2: additive glow on top (re-upload same data)
-				local c = gl4Prim.circles
-				c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
-				gl.Blending(GL.SRC_ALPHA, GL.ONE)
-				GL4FlushCirclesOnly()
-				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-				-- Restore
-				wtp.offsetX, wtp.offsetZ = savedOffX, savedOffZ
-				gl.Viewport(0, 0, render.vsx, render.vsy)
-				gl.Scissor(false)
-			end
+		local exRing
+		if config.engineMinimapExplosionOverlay and config.drawExplosions then
+			exRing = gl4Prim.explosions.OverlayTarget(false)
+		end
+		if exRing then
+			-- Set viewport to PIP rect so NDC [-1,1] maps to our area;
+			-- adjust wtp offsets to 0-based coords for the shader
+			gl.Viewport(render.dim.l, render.dim.b, pipWidth, pipHeight)
+			gl.Scissor(render.dim.l, render.dim.b, pipWidth, pipHeight)
+			local savedOffX, savedOffZ = wtp.offsetX, wtp.offsetZ
+			wtp.offsetX = wtp.offsetX - render.dim.l
+			wtp.offsetZ = wtp.offsetZ - render.dim.b
+			-- A normal-blend base (visible against bright backgrounds), then the additive glow
+			gl4Prim.explosions.DrawOverlay(exRing, false, 1.0, true)
+			-- Restore
+			wtp.offsetX, wtp.offsetZ = savedOffX, savedOffZ
+			gl.Viewport(0, 0, render.vsx, render.vsy)
+			gl.Scissor(false)
 		end
 		tracy.ZoneEnd()
 	else
@@ -24125,7 +24494,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		Spring.GetGameFrame(), -- game-frame based: freezes when paused
 		math.random
 	)
-	table.insert(cache.explosions, explosion)
+	gl4Prim.explosions.AddLive(explosion)
 
 	-- TV mode: explosion event — weight based on radius
 	if miscState.tvEnabled and radius >= 20 then

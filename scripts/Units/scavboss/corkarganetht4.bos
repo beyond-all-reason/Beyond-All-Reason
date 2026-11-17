@@ -667,6 +667,7 @@ FireWeapon1()
 		gun_1 = 1;
 		return (1);
 	}
+	return (0);
 }
 
 //use call-script DeathAnim(); from Killed()

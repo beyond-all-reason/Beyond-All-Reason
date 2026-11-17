@@ -738,6 +738,7 @@ FireWeapon2()
 		gun_2 = 1;
 		return (0);
 	}
+	return (0);
 }
 
 
