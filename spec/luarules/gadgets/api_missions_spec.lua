@@ -52,9 +52,10 @@ local function loadGadget(options, world)
 			end,
 		},
 		["luarules/mission_api/actions_loader.lua"] = { LoadActionDefinitions = noop, ProcessRawActions = noop },
-		["luarules/mission_api/triggers_loader.lua"] = {
-			LoadTriggerDefinitions = function()
+		["luarules/mission_api/conditions_loader.lua"] = {
+			LoadConditionDefinitions = function()
 				crashes("definitions")
+				return { Types = {} }
 			end,
 			ProcessRawTriggers = noop,
 		},
@@ -197,6 +198,19 @@ describe("api_missions load guard", function()
 		assert.is_true(world.spawned)
 		assert.is_nil(world.gameOver)
 		assert.is_nil(world.removed)
+	end)
+
+	it("still loads a mission that uses the old TriggerDefinitions name", function()
+		local env = start({
+			missionSource = [[
+				assert(GG["MissionAPI"].TriggerDefinitions.Types)
+				return { InitialStage = "s1", Stages = { s1 = {} } }
+			]],
+		})
+
+		assert.are.equal(env.GG.MissionAPI.ConditionDefinitions, env.GG.MissionAPI.TriggerDefinitions)
+		assert.are.equal(0, #world.logged)
+		assert.is_true(world.spawned)
 	end)
 
 	it("blames the mission file when it raises while loading", function()

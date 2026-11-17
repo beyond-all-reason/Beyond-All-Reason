@@ -93,7 +93,7 @@ describe("api_missions_triggers loadout names", function()
 
 	before_each(function()
 		missionApi = MissionApiBuilder.new()
-			:WithTriggerDefinitions({ Types = { UnitsOwned = UNITS_OWNED }, Callins = {} })
+			:WithConditionDefinitions({ Types = { UnitsOwned = UNITS_OWNED }, Callins = {} })
 			:WithActionDefinitions({ Functions = {}, Parameters = {} })
 			:WithTrigger("oneOutpost", unitsOwned("outpost", 1))
 			:WithTrigger("twoOutposts", unitsOwned("outpost", 2))
