@@ -23,8 +23,8 @@ M.ageText = ageText
 -- Result codes that are good news (green, and they fade out on their own).
 local SUCCESS = { published = true, downloaded = true, pulled = true, moved = true, removed = true, allLocal = true }
 -- Codes that are a state rather than an outcome: the strip says these, the
--- status slot does not repeat them.
-local QUIET = { offline = true, ready = true, working = true }
+-- status slot does not repeat them. Shader answers show on the TILESET row.
+local QUIET = { offline = true, ready = true, working = true, shader_synced = true, shader_update = true }
 local STATUS_HOLD = 8 -- seconds a success stays in the status slot
 -- The companion build the panel needs. An older one running (the files on
 -- disk were re-extracted, the process was not restarted) refuses newer

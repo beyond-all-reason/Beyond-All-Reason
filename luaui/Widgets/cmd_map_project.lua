@@ -1032,7 +1032,7 @@ local function stepMetal()
 	-- comes from the metal gadget ($metal_cap$, sent by the load); without it
 	-- the live values are all there is.
 	local src = loadCarry.metalW == mmX and loadCarry.metal or nil
-	local cap = src and tonumber(Spring.GetGameRulesParam("mb_square_cap"))
+	local cap = src and tonumber((Spring.GetGameRulesParam("mb_square_cap")))
 	local stepTol = cap and (cap / 255) * 1.001
 	while c.mz < mmZ and rows < METAL_ROWS_PER_TICK do
 		local mz = c.mz
@@ -3616,7 +3616,7 @@ local function phaseMetal(c)
 	if c.i > #c.spots then
 		-- Say so when the canvas cannot hold the project's metal (a New Map canvas
 		-- on an engine that ignores blank_map_maxmetal keeps maxMetal 0.02).
-		local cap = tonumber(Spring.GetGameRulesParam("mb_square_cap"))
+		local cap = tonumber((Spring.GetGameRulesParam("mb_square_cap"))) -- unset until the first metal write
 		local over = 0
 		for _, s in ipairs(c.spots) do
 			if cap and (tonumber(s.amount) or 0) > cap + 0.001 then
