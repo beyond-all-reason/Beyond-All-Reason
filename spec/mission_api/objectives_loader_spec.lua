@@ -74,6 +74,7 @@ describe("mission_api.objectives_loader", function()
 			assert.are.equal(0, rawTriggers.__objective_alpha.atMost)
 		end)
 
+		-- As a lower bound, 0 would be met before the player did anything.
 		it("defaults parameters to an empty table", function()
 			local _, rawTriggers = load({ alpha = { textKey = "a", type = types.TimeElapsed } })
 

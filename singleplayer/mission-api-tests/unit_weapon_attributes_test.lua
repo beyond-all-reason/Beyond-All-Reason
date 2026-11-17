@@ -1,9 +1,9 @@
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	spawnUnits = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	setRange = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	doubleDamage = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	boostDeathExplosion = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 18,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	clearDamage = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 24,
 		},

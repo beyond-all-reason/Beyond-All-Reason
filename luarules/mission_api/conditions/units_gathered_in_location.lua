@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 local matchingUnits = GG['MissionAPI'].Modules.UnitQuery.MatchingUnits
 
 -- A trigger refused while they are all inside (inactive, prerequisites, stage) asks again half a second later.
@@ -46,7 +47,7 @@ end
 -- one has walked out and they are all back, if it repeats.
 return {
 	type = 'UnitsGatheredInLocation',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'area',     required = true, type = ParameterTypes.Area },
 		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },

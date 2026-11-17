@@ -57,6 +57,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
@@ -87,9 +88,6 @@ local function setUpMissionAPI(gameSetup)
 
 	conditionsController = VFS.Include("luarules/mission_api/conditions_loader.lua")
 	GG["MissionAPI"].ConditionDefinitions = conditionsController.LoadConditionDefinitions()
-	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
-	-- stays for a release or two to keep those missions loading.
-	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes

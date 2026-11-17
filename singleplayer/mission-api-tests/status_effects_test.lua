@@ -9,13 +9,13 @@
 --- Removing the eastern tower takes them away again, since Block Jamming can only hide from radar.
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	setup = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -23,7 +23,7 @@ local triggers = {
 	},
 
 	applyDisableRadar = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -31,7 +31,7 @@ local triggers = {
 	},
 
 	clearDisableRadar = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -39,7 +39,7 @@ local triggers = {
 	},
 
 	applyTimedDisableRadar = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -47,7 +47,7 @@ local triggers = {
 	},
 
 	spawnJammer = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 22,
 		},
@@ -55,7 +55,7 @@ local triggers = {
 	},
 
 	applyBlockJamming = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 27,
 		},
@@ -63,7 +63,7 @@ local triggers = {
 	},
 
 	removeEastTower = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 32,
 		},

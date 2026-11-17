@@ -1,11 +1,12 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Return value index as on https://recoilengine.org/docs/lua-api/#Spring.GetTeamResources
 local RESOURCE_PULL_INDEX = 3
 
 return {
 	type = 'ResourcePull',
-	kind = 'metric',
+	kind = ConditionKinds.Metric,
 	parameters = {
 		{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 		{ name = 'resource', required = true, type = ParameterTypes.Resource },

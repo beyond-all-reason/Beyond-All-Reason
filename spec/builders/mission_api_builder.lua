@@ -456,6 +456,7 @@ function MB:Build(installed)
 		Sounds = sounds,
 		Stages = stages,
 		Objectives = objectives,
+		ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua"),
 	}
 
 	if self.realParameterTypes then

@@ -2,8 +2,7 @@
 --- Resource triggers and actions test mission.
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
-local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -11,7 +10,7 @@ local triggers = {
 	-- ── Bootstrap ─────────────────────────────────────────────────────────────
 
 	start = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -19,7 +18,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergy = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -27,7 +26,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyRemove = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -35,7 +34,7 @@ local triggers = {
 	},
 
 	waveMetalOnly = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -43,7 +42,7 @@ local triggers = {
 	},
 
 	waveMetalOnlyRemove = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -51,7 +50,7 @@ local triggers = {
 	},
 
 	waveEnergyOnly = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
@@ -59,7 +58,7 @@ local triggers = {
 	},
 
 	waveEnergyOnlyRemove = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 14,
 		},
@@ -67,7 +66,7 @@ local triggers = {
 	},
 
 	waveMex = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 16,
 		},
@@ -75,7 +74,7 @@ local triggers = {
 	},
 
 	waveFusion = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -83,7 +82,7 @@ local triggers = {
 	},
 
 	waveMetalMaker = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 24,
 		},
@@ -91,7 +90,7 @@ local triggers = {
 	},
 
 	waveNuke = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -99,7 +98,7 @@ local triggers = {
 	},
 
 	waveReclaim = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 32,
 		},
@@ -107,7 +106,7 @@ local triggers = {
 	},
 
 	orderIncomeReclaimer = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 33,
 		},
@@ -115,7 +114,7 @@ local triggers = {
 	},
 
 	waveUnitReclaim = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36,
 		},
@@ -123,7 +122,7 @@ local triggers = {
 	},
 
 	orderUnitIncomeReclaimer = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -131,7 +130,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecond = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -139,7 +138,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecondRemove = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
@@ -147,7 +146,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecond2 = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 53,
 		},
@@ -157,7 +156,7 @@ local triggers = {
 	-- ── ResourceStored ────────────────────────────────────────────────────────
 
 	enoughMetalStored = {
-		type = metricTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -167,7 +166,7 @@ local triggers = {
 	},
 
 	enoughEnergyStored = {
-		type = metricTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
 			resource = 'energy',
@@ -179,7 +178,7 @@ local triggers = {
 	-- A metric measures one value, so "metal AND energy" is two conditions
 	-- chained by a prerequisite rather than one condition with two thresholds.
 	enoughMetalForBoth = {
-		type = metricTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -189,7 +188,7 @@ local triggers = {
 	},
 
 	bothResourcesStored = {
-		type = metricTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
 			resource = 'energy',
@@ -204,7 +203,7 @@ local triggers = {
 	-- ── ResourceIncome ────────────────────────────────────────────────────────
 
 	metalIncomeReached = {
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -214,7 +213,7 @@ local triggers = {
 	},
 
 	energyIncomeReached = {
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'energy',
@@ -226,7 +225,7 @@ local triggers = {
 	-- ── ResourceIncome (sources) ──────────────────────────────────────────────
 
 	extractorMetalIncomeReached = {
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -238,7 +237,7 @@ local triggers = {
 
 	productionEnergyIncomeReached = {
 		-- Triggered once armfus (second 20) is generating production energy income.
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'energy',
@@ -250,7 +249,7 @@ local triggers = {
 
 	productionMetalIncomeReached = {
 		-- Triggered once armmmkr (second 24) is producing metal from energy.
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -262,7 +261,7 @@ local triggers = {
 
 	multipleSourcesMetalIncomeReached = {
 		-- Combined extractor + production metal income.
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -273,7 +272,7 @@ local triggers = {
 	},
 
 	reclaimMetalIncomeReached = {
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -284,7 +283,7 @@ local triggers = {
 	},
 
 	unitReclaimMetalIncomeReached = {
-		type = metricTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -297,7 +296,7 @@ local triggers = {
 	-- ── ResourcePull ──────────────────────────────────────────────────────────
 
 	metalPullReached = {
-		type = metricTypes.ResourcePull,
+		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
 			resource = 'metal',
@@ -307,7 +306,7 @@ local triggers = {
 	},
 
 	energyPullReached = {
-		type = metricTypes.ResourcePull,
+		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
 			resource = 'energy',

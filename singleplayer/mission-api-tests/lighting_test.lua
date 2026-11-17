@@ -6,14 +6,14 @@
 --- written by a short script (uncompressed BGRA DDS, DDSCAPS2_CUBEMAP, full mip chain).
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local SKYBOX = 'singleplayer/mission-api-tests/lighting_test_skybox.dds'
 
 local function at(seconds, actions)
 	return {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = seconds,
 		},

@@ -2,13 +2,13 @@
 --- Feature triggers test mission.
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnFeatures = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	orderReclaimerReclaimAndRes = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -25,7 +25,7 @@ local triggers = {
 	},
 
 	destroyRocks = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -33,7 +33,7 @@ local triggers = {
 	},
 
 	rockCreated = {
-		type = eventTypes.FeatureCreated,
+		type = conditionTypes.FeatureCreated,
 		parameters = {
 			featureDefName = 'rocks30_def_01',
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
@@ -42,7 +42,7 @@ local triggers = {
 	},
 
 	rockReclaimed = {
-		type = eventTypes.FeatureReclaimed,
+		type = conditionTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
 			teamName = 'player',
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	rockDestroyed = {
-		type = eventTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'theRocks',
 		},
@@ -59,7 +59,7 @@ local triggers = {
 	},
 
 	unitRessed = {
-		type = eventTypes.UnitResurrected,
+		type = conditionTypes.UnitResurrected,
 		parameters = {
 			featureName  = 'wreck-to-resurrect',
 			teamName = 'player',
@@ -68,7 +68,7 @@ local triggers = {
 	},
 
 	wreckDestroyed = {
-		type = eventTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'wreck-to-destroy',
 		},
@@ -76,7 +76,7 @@ local triggers = {
 	},
 
 	wreckDestroyedInZone = {
-		type = eventTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureDefName = 'armllt_dead',
 			area = { x = 2000, z = 2100, radius = 200 },

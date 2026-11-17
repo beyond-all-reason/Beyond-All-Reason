@@ -12,8 +12,8 @@
 --- Condition types come in two disjoint families. Which family a type belongs to
 --- is a property of the type itself, not of how you use it:
 ---
----   eventTypes.*   something happened. Tallied upwards.
----   metricTypes.*  a value right now. Can go up or down.
+---   conditionTypes.*   something happened. Tallied upwards.
+---   conditionTypes.*  a value right now. Can go up or down.
 ---
 --- The family decides how you write the threshold, and it is the same whether a
 --- trigger or an objective is doing the watching:
@@ -35,14 +35,8 @@
 ---              value 0. `atMost = 0` says it outright.
 ---
 
-local conditions = GG['MissionAPI'].ConditionDefinitions
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
-
--- Two filtered views over one canonical condition registry, so there is a single
--- source of truth internally. Picking from the right one tells you which
--- threshold to write.
-local eventTypes = conditions.EventTypes
-local metricTypes = conditions.MetricTypes
 
 local initialStage = 'firstStage'
 
@@ -65,7 +59,7 @@ local objectives = {
 		textKey = "wait_3_seconds",
 
 		-- Event type, no count: completes on the first occurrence.
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -79,7 +73,7 @@ local objectives = {
 
 		-- Event type with a count: completes on the sixth matching occurrence, which
 		-- is the last bot spawnNextBot produces.
-		type = eventTypes.UnitExists,
+		type = conditionTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
 			teamName = 'player',
@@ -97,7 +91,7 @@ local objectives = {
 
 		-- Metric type: watches a value that can move in both directions, so the
 		-- threshold needs a direction. Replaces `amount = 0`.
-		type = metricTypes.UnitsOwned,
+		type = conditionTypes.UnitsOwned,
 		parameters = {
 			unitName = 'bots',
 			teamName = 'player',
@@ -113,21 +107,21 @@ local triggers = {
 
 	-- Fired by the buildBots objective through its onCompleted hook.
 	buildBotsCompleted = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'spawnBotDestroyer' },
 	},
 
 	-- Fired by the wait3secs objective as secondStage begins: the first bot, and the
 	-- countdown to the next one.
 	startSpawningBots = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'spawnBot', 'restartBotCountdown' },
 	},
 
 	-- TimeElapsed fires only once, so a bot every two seconds is a countdown that
 	-- restarts itself each time it runs out.
 	spawnNextBot = {
-		type = eventTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'nextBot',
 		},
@@ -147,7 +141,7 @@ local triggers = {
 	-- `destroyBots` objective above: same type, parameters and threshold. Both
 	-- fire on the same edge; the objective completes and this announces it.
 	botsWipedOut = {
-		type = metricTypes.UnitsOwned,
+		type = conditionTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
 			unitName = 'bots',
@@ -162,7 +156,7 @@ local triggers = {
 	-- Triggers take `count` too, so "on the 4th one" no longer needs to be
 	-- expressed as a repeat stride.
 	fourthBotBuilt = {
-		type = eventTypes.UnitExists,
+		type = conditionTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
 			teamName = 'player',

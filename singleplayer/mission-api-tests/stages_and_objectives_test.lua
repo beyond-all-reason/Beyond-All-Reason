@@ -2,8 +2,7 @@
 --- Stages and objectives test mission.
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
-local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local initialStage = 'gate'
@@ -22,20 +21,20 @@ local objectives = {
 	-- Stage gate: quick and slow share a nextStage
 	quick = {
 		textKey = 'gate_quick',
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 2 },
 		nextStage = 'observer',
 		onActivated = 'quickActivated',
 	},
 	slow = {
 		textKey = 'gate_slow',
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 5 },
 		nextStage = 'observer',
 	},
 	bonus = {
 		textKey = 'gate_bonus',
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 3 },
 	},
 
@@ -43,7 +42,7 @@ local objectives = {
 	-- changes to failure first, so the gate stands down.
 	route = {
 		textKey = 'observer_route',
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 7 },
 		nextStage = 'decoy',
 		onCompleted = 'routeCompleted',
@@ -65,7 +64,7 @@ local objectives = {
 	},
 	partner = {
 		textKey = 'cancel_partner',
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 12 },
 		nextStage = 'activation',
 	},
@@ -81,7 +80,7 @@ local objectives = {
 	count = {
 		textKey = 'activation_count',
 		hidden = true,
-		type = metricTypes.UnitsOwned,
+		type = conditionTypes.UnitsOwned,
 		parameters = { unitName = 'probe', teamName = 'player' },
 		atLeast = 3,
 		onActivated = 'countActivated',
@@ -100,41 +99,41 @@ local triggers = {
 
 	-- Stage gate.
 	quickActivated = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportQuickActivated' },
 	},
 
 	-- Stage observer: route completes at 7 s.
 	routeCompleted = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'changeToFailure' },
 	},
 
 	-- Stage failure.
 	failDoomed = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'failure' } },
 		parameters = { seconds = 9 },
 		actions = { 'failDoomed' },
 	},
 	doomedFailed = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportDoomedFailed' },
 	},
 
 	-- Stage cancel: partner completes at 12 s.
 	cancelFlaky = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'cancel' } },
 		parameters = { seconds = 11 },
 		actions = { 'cancelFlaky' },
 	},
 	flakyCanceled = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportFlakyCanceled' },
 	},
 	completeFlaky = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'cancel' } },
 		parameters = { seconds = 14 },
 		actions = { 'completeFlaky' },
@@ -142,73 +141,73 @@ local triggers = {
 
 	-- Stage activation.
 	probeLingering = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 15 },
 		actions = { 'probeLingering' },
 	},
 	spawnFirstProbe = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 16 },
 		actions = { 'spawnOneProbe' },
 	},
 	probeBeforeActivation = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 17 },
 		actions = { 'probeCount', 'activateFuture' },
 	},
 	activateCount = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 18 },
 		actions = { 'activateCount', 'showCount' },
 	},
 	countActivated = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportCountActivated' },
 	},
 	spawnSecondProbe = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 19 },
 		actions = { 'spawnOneProbe' },
 	},
 	countProgressed = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportCountProgressed' },
 	},
 	spawnThirdProbe = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'activation' } },
 		parameters = { seconds = 20 },
 		actions = { 'spawnOneProbe' },
 	},
 	countCompleted = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'changeToFinal' },
 	},
 	lingeringCanceled = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportLingeringCanceled' },
 	},
 
 	-- Stage final.
 	probeAfterEntry = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'final' } },
 		parameters = { seconds = 21 },
 		actions = { 'probeFuture', 'probeLingering' },
 	},
 	completeFuture = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = { stages = { 'final' } },
 		parameters = { seconds = 22 },
 		actions = { 'completeFuture' },
 	},
 	futureCompleted = {
-		type = eventTypes.Event,
+		type = conditionTypes.Event,
 		actions = { 'reportComplete', 'victory' },
 	},
 }

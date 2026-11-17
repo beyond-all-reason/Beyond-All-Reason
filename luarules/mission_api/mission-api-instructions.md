@@ -43,12 +43,9 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 ### Type IDs
 
 - `conditions_loader` numbers condition types from `ipairs(VFS.DirList(...))`, and `actions_loader`
-  runs a counter over `VFS.SubDirs`. Missions author `type = eventTypes.TimeElapsed` or
-  `metricTypes.UnitsOwned`, so the string never reaches the runtime: `trigger.type` and
-  `action.type` are integers, and the schema tables (`Parameters`, `Kinds`, `Functions`, `Callins`)
-  are keyed by them.
-- `ConditionDefinitions.Types` holds every type; `EventTypes` and `MetricTypes` are views over it
-  split by kind.
+  runs a counter over `VFS.SubDirs`. Missions author `type = conditionTypes.TimeElapsed`, so the
+  string never reaches the runtime: `trigger.type` and `action.type` are integers, and the schema
+  tables (`Parameters`, `Kinds`, `Functions`, `Callins`) are keyed by them.
 - Adding or renaming a file renumbers types, so compare against `ConditionDefinitions.Types.X` or
   `actionTypes.X`, never a literal, and never persist, network, or hard-code an ID.
 
@@ -82,10 +79,11 @@ A condition is what a trigger or an objective waits for. One file per type in
 
 ```lua
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'UnitKilled',                                  -- PascalCase, unique, matches the file name
-	kind = 'event',                                       -- 'event' or 'metric', see below
+	kind = ConditionKinds.Event,                          -- Event or Metric, see below
 	parameters = {
 		{ name = 'unitName', required = false, type = ParameterTypes.UnitName },
 		requiresOneOf = { 'unitName', 'unitDefName' },    -- optional, on the array itself
@@ -99,9 +97,10 @@ return {
 }
 ```
 
-- `kind` is required; the loader logs an error without it. An event is an occurrence, counted
-  towards the trigger's `count` (default 1). A metric is a value sampled now that can move either
-  way; its handler calls `context.EvaluateMetric(trigger, value)` instead of `ActivateTrigger`, and
+- `kind` is required and comes from `ConditionKinds` (`condition_kinds.lua`); the loader logs an
+  error without it. An event is an occurrence, counted towards the trigger's `count` (default 1),
+  even while the trigger is blocked by its stage or prerequisites. A metric is a value sampled now
+  that can move either way; its handler calls `context.EvaluateMetric(trigger, value)` instead of `ActivateTrigger`, and
   the trigger fires when the value crosses `atLeast` or `atMost`. Validation rejects `count` on a
   metric and `atLeast` or `atMost` on an event.
 - A type that overlaps an existing one becomes a parameter on it, or is narrowed until they differ.

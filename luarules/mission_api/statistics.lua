@@ -14,6 +14,8 @@
 --- injected via Init() rather than imported.
 ---
 
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
+
 local statisticsTriggerCounts = {}
 local processTriggersOfType, activateTrigger, evaluateMetric, conditionKinds
 
@@ -27,7 +29,7 @@ end
 local function updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, direction)
 	unitNames = unitNames or {}
 
-	local isMetric = conditionKinds[conditionType] == "metric"
+	local isMetric = conditionKinds[conditionType] == ConditionKinds.Metric
 
 	processTriggersOfType(conditionType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamName then
