@@ -233,7 +233,7 @@
 				</div>
 				<div class="le-row" data-event-mouseover="tip('radius')">
 					<div class="le-label">RADIUS</div>
-					<input type="range" id="le-sl-radius" class="le-slider" min="0" max="600" step="1" data-value="sl_radius" data-event-change="slide('radius')" />
+					<input type="range" id="le-sl-radius" class="le-slider" min="0" max="1000" step="1" data-value="sl_radius" data-event-change="slide('radius')" />
 					<input type="text" class="le-num" data-value="num_radius" data-event-change="num('radius')" data-event-focus="numFocus('radius')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('size')">
@@ -272,10 +272,15 @@
 					<input type="range" id="le-sl-dirz" class="le-slider le-ch-b" min="-100" max="100" step="1" data-value="sl_dirz" data-event-change="slide('dirz')" />
 					<input type="text" class="le-num" data-value="num_dirz" data-event-change="num('dirz')" data-event-focus="numFocus('dirz')" data-event-blur="numBlur()" />
 				</div>
-				<div class="le-row" data-event-mouseover="tip('theta')">
-					<div class="le-label" data-if="lightType != 'point'">ANGLE</div><div class="le-label" data-if="lightType == 'point'">DISTANCE</div>
+				<div class="le-row" data-if="lightType != 'point'" data-event-mouseover="tip('theta')">
+					<div class="le-label">ANGLE</div>
 					<input type="range" id="le-sl-theta" class="le-slider" min="-160" max="160" step="1" data-value="sl_theta" data-event-change="slide('theta')" />
 					<input type="text" class="le-num" data-value="num_theta" data-event-change="num('theta')" data-event-focus="numFocus('theta')" data-event-blur="numBlur()" />
+				</div>
+				<div class="le-row" data-if="lightType == 'point'" data-event-mouseover="tip('dist')">
+					<div class="le-label">DISTANCE</div>
+					<input type="range" id="le-sl-dist" class="le-slider" min="-500" max="500" step="1" data-value="sl_dist" data-event-change="slide('dist')" />
+					<input type="text" class="le-num" data-value="num_dist" data-event-change="num('dist')" data-event-focus="numFocus('dist')" data-event-blur="numBlur()" />
 				</div>
 			</div>
 		</div>
@@ -325,7 +330,7 @@
 				</div>
 				<div class="le-row" data-event-mouseover="tip('a')">
 					<div class="le-label">BRIGHT</div>
-					<input type="range" id="le-sl-a" class="le-slider" min="0" max="300" step="1" data-value="sl_a" data-event-change="slide('a')" />
+					<input type="range" id="le-sl-a" class="le-slider" min="0" max="1000" step="1" data-value="sl_a" data-event-change="slide('a')" />
 					<input type="text" class="le-num" data-value="num_a" data-event-change="num('a')" data-event-focus="numFocus('a')" data-event-blur="numBlur()" />
 				</div>
 			</div>
@@ -345,7 +350,7 @@
 				</div>
 				<div class="le-row" data-event-mouseover="tip('colortime')">
 					<div class="le-label">TIME</div>
-					<input type="range" id="le-sl-colortime" class="le-slider" min="-300" max="600" step="1" data-value="sl_colortime" data-event-change="slide('colortime')" />
+					<input type="range" id="le-sl-colortime" class="le-slider" min="-50" max="3000" step="1" data-value="sl_colortime" data-event-change="slide('colortime')" />
 					<input type="text" class="le-num" data-value="num_colortime" data-event-change="num('colortime')" data-event-focus="numFocus('colortime')" data-event-blur="numBlur()" />
 				</div>
 			</div>
@@ -368,7 +373,7 @@
 				</div>
 				<div class="le-row" data-event-mouseover="tip('scattering')">
 					<div class="le-label">GLOW</div>
-					<input type="range" id="le-sl-scattering" class="le-slider" min="-200" max="2000" step="1" data-value="sl_scattering" data-event-change="slide('scattering')" />
+					<input type="range" id="le-sl-scattering" class="le-slider" min="0" max="2000" step="1" data-value="sl_scattering" data-event-change="slide('scattering')" />
 					<input type="text" class="le-num" data-value="num_scattering" data-event-change="num('scattering')" data-event-focus="numFocus('scattering')" data-event-blur="numBlur()" />
 				</div>
 				<div class="le-row" data-event-mouseover="tip('lensflare')">

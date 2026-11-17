@@ -114,6 +114,7 @@ local ORBIT = {
 }
 
 -- Slider fields: raw slider value = value * scale. Ranges live in the RML.
+-- `field` is the config key when it differs from the slider key; `min` also holds for typed values.
 local FIELDS = {
 	{ key = "posx", scale = 10 },
 	{ key = "posy", scale = 10 },
@@ -123,6 +124,7 @@ local FIELDS = {
 	{ key = "diry", scale = 100 },
 	{ key = "dirz", scale = 100 },
 	{ key = "theta", scale = 100 },
+	{ key = "dist", field = "theta", scale = 10 },
 	{ key = "pos2x", scale = 10 },
 	{ key = "pos2y", scale = 10 },
 	{ key = "pos2z", scale = 10 },
@@ -136,14 +138,16 @@ local FIELDS = {
 	{ key = "colortime", scale = 10 },
 	{ key = "modelfactor", scale = 100 },
 	{ key = "specular", scale = 100 },
-	{ key = "scattering", scale = 100 },
+	{ key = "scattering", scale = 100, min = 0 },
 	{ key = "lensflare", scale = 100 },
 	{ key = "lifetime", scale = 1 },
 	{ key = "sustain", scale = 100 },
 	{ key = "selfshadowing", scale = 1 },
 }
+---@type table<string, table>
 local FIELD_BY_KEY = {}
 for i = 1, #FIELDS do
+	FIELDS[i].field = FIELDS[i].field or FIELDS[i].key
 	FIELD_BY_KEY[FIELDS[i].key] = FIELDS[i]
 end
 
@@ -208,25 +212,26 @@ local HINTS = {
 	posx = "Position X in piece space. Negative is the unit's left.",
 	posy = "Position Y: height above the piece origin.",
 	posz = "Position Z: forward and back.",
-	radius = "Reach of the light in elmos. Bigger lights cost more.",
-	dirx = "Cone: where it points, X. Point: movement speed along X.",
-	diry = "Cone: where it points, Y (-1 is straight down). Point: movement speed along Y.",
-	dirz = "Cone: where it points, Z. Point: movement speed along Z.",
-	theta = "Cone: half angle in radians, small is a tight spot. Point: movement distance, negative loops.",
+	radius = "Reach of the light in elmos. Bigger lights cost more. The box takes values past the slider.",
+	dirx = "Cone: where it points, X. Point: movement speed along X, see DISTANCE.",
+	diry = "Cone: where it points, Y (-1 is straight down). Point: movement speed along Y, see DISTANCE.",
+	dirz = "Cone: where it points, Z. Point: movement speed along Z, see DISTANCE.",
+	theta = "Half angle of the cone in radians, small is a tight spot.",
+	dist = "Movement in elmos, 0 is still. Negative loops: the light swings that far each way and SPEED X/Y/Z is loops per second on that axis (0.5 = one swing every 2 s). Positive drifts off at SPEED elmos per frame and never stops: use it with a LIFETIME.",
 	pos2x = "Beam end X in piece space.",
 	pos2y = "Beam end Y.",
 	pos2z = "Beam end Z.",
 	r = "Red. Above 1 is overbright and blooms.",
 	g = "Green. Above 1 is overbright and blooms.",
 	b = "Blue. Above 1 is overbright and blooms.",
-	a = "Brightness.",
+	a = "Brightness. The box takes values past the slider.",
 	color2r = "Fade target red. The light blends from its colour to this one and back.",
 	color2g = "Fade target green.",
 	color2b = "Fade target blue. Negative values push the dark half of the pulse to black.",
-	colortime = "Fade time in frames, 0 is no fade. Negative follows the unit's texture pulse.",
+	colortime = "Fade time in frames, 0 is no fade. Negative follows the unit's texture pulse. The box takes values past the slider.",
 	modelfactor = "How much the light shows on unit surfaces.",
 	specular = "Strength of the shiny highlight.",
-	scattering = "Glow in the air around the light.",
+	scattering = "Glow in the air around the light, 0 is none.",
 	lensflare = "Lens flare strength, 0 is none.",
 	lifetime = "Frames the light lives, 0 is forever. Event lights use small values.",
 	sustain = "Frames at full brightness before the fade out. Needs a lifetime.",
@@ -2438,7 +2443,7 @@ function F.refreshModel()
 	end
 	for i = 1, #FIELDS do
 		local field = FIELDS[i]
-		local value = config[field.key] or 0
+		local value = config[field.field] or 0
 		dm["sl_" .. field.key] = F.clampRaw(field.key, floor(value * field.scale + 0.5))
 		if S.focusField ~= field.key then
 			dm["num_" .. field.key] = F.formatValue(value)
@@ -2824,17 +2829,18 @@ function F.buildModel()
 			return
 		end
 		-- the echo of a value this widget set carries no news
-		local current = light.config[key] or 0
+		local current = light.config[field.field] or 0
 		if raw == F.clampRaw(key, floor(current * field.scale + 0.5)) then
 			return
 		end
-		F.setField(key, raw / field.scale)
+		F.setField(field.field, raw / field.scale)
 	end
 	model.num = function(event, key)
+		local field = FIELD_BY_KEY[key]
 		local element = event and event.current_element
 		local value = element and tonumber(element:GetAttribute("value"))
-		if value and S.focusField == key then
-			F.setField(key, value)
+		if field and value and S.focusField == key then
+			F.setField(field.field, max(field.min or value, value))
 		end
 	end
 	model.numFocus = function(_, key)
@@ -4176,8 +4182,9 @@ function widget:KeyPress(key, mods)
 		local light = S.primary and S.work[S.primary]
 		if field and light and (key == KEY.up or key == KEY.down) then
 			local step = (key == KEY.up and 1 or -1) / field.scale
-			F.setField(field.key, F.roundTo((light.config[field.key] or 0) + step, field.scale))
-			S.model["num_" .. field.key] = F.formatValue(light.config[field.key])
+			local value = F.roundTo((light.config[field.field] or 0) + step, field.scale)
+			F.setField(field.field, max(field.min or value, value))
+			S.model["num_" .. field.key] = F.formatValue(light.config[field.field])
 			return true
 		end
 		return false
