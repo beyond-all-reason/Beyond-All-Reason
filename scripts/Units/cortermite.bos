@@ -326,6 +326,7 @@ FireWeapon1()
 		firing = 0;
 		return (0);
 	}
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
@@ -340,6 +341,7 @@ AimFromWeapon1(pieceIndex)
 		pieceIndex = centerpoint;
 		return (0);
 	}
+	return (0);
 }
 
 QueryWeapon1(pieceIndex)
@@ -355,6 +357,7 @@ QueryWeapon1(pieceIndex)
 		return (0);
 	}
 
+	return (0);
 }
 
 Killed(severity, corpsetype)

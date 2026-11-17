@@ -912,6 +912,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 	if (shieldPower <= 40000000){
 		return (100); //the return value is a percentage of the damage. 100 = 100%
 	}
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)

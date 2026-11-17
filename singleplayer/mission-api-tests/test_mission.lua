@@ -1,23 +1,22 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnCons1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 			maxRepeats = 3,
 		},
 		parameters = {
 			seconds = 0,
-			interval = 9,
 		},
 		actions = { 'spawnCons1' },
 	},
 
 	spawnEnergyGrid1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -25,7 +24,7 @@ local triggers = {
 	},
 
 	killCons = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -33,7 +32,7 @@ local triggers = {
 	},
 
 	selfDestructCons = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 16,
 		},
@@ -41,7 +40,7 @@ local triggers = {
 	},
 
 	reclaimCons = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 25,
 		},
@@ -49,7 +48,7 @@ local triggers = {
 	},
 
 	transferCons1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -57,7 +56,7 @@ local triggers = {
 	},
 
 	transferCons2 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -65,7 +64,7 @@ local triggers = {
 	},
 
 	despawnEnergyGrid1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 43,
 		},
@@ -73,7 +72,7 @@ local triggers = {
 	},
 
 	doNotKillCons = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
@@ -81,7 +80,7 @@ local triggers = {
 	},
 
 	explosionOnFusions = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 50,
 		},
@@ -89,7 +88,7 @@ local triggers = {
 	},
 
 	gameEnd = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 57,
 		},

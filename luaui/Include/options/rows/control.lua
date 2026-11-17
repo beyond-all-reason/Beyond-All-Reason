@@ -372,11 +372,8 @@ return function(model)
 				BAR.I18N("ui.settings.option.select_terrain"),
 				BAR.I18N("ui.settings.option.select_smooth"),
 			},
-			-- Smooth (2) once the engine tracks the smooth mesh properly (RecoilEngine #3012), else as before.
-			value = Spring.GetConfigInt(
-				"CamSpringTrackMapHeightMode",
-				Engine.FeatureSupport.smoothCameraHeightTracking and 2 or 0
-			) + 1,
+			-- The engine has its own default, so the one here is never used: springconfig.lua sets smooth.
+			value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 1) + 1,
 			description = BAR.I18N("ui.settings.option.springcamheightmode_descr"),
 			onchange = function(option, value)
 				Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)

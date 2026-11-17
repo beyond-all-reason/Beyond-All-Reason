@@ -3,13 +3,13 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
--- The real trigger definitions, so event triggers carry the real Event type.
+-- The real condition definitions, so event triggers carry the real Event type.
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 MissionApiBuilder.new():Install()
 MissionSpecEnv.registerModules(env)
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
-local T = triggerDefinitions.Types
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
+local T = conditionDefinitions.Types
 
 local Objectives = MissionSpecEnv.include(env, "luarules/mission_api/objectives.lua")
 
@@ -19,7 +19,7 @@ describe("mission_api.objectives", function()
 
 	-- A mission to build up with the mock's With* methods.
 	local function mission()
-		return MissionApiBuilder.new():WithTriggerDefinitions(triggerDefinitions)
+		return MissionApiBuilder.new():WithConditionDefinitions(conditionDefinitions)
 	end
 
 	local function install(builder)
