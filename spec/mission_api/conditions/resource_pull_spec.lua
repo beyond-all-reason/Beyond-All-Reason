@@ -1,3 +1,4 @@
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 local TeamBuilder = VFS.Include("spec/builders/team_builder.lua")
 local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
@@ -34,7 +35,7 @@ describe("mission_api.conditions.resource_pull", function()
 
 	it("declares its type, kind and parameters", function()
 		assert.are.equal("ResourcePull", resourcePull.type)
-		assert.are.equal("metric", resourcePull.kind)
+		assert.are.equal(ConditionKinds.Metric, resourcePull.kind)
 		local required = {}
 		for _, parameter in ipairs(resourcePull.parameters) do
 			required[parameter.name] = parameter.required

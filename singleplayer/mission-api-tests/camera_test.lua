@@ -6,13 +6,13 @@
 --- the camera back where it ends. Each step is announced in the chat.
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawn = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -20,7 +20,7 @@ local triggers = {
 	},
 
 	saveAndLock = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -28,7 +28,7 @@ local triggers = {
 	},
 
 	flyIn = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -36,7 +36,7 @@ local triggers = {
 	},
 
 	orbit = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -44,7 +44,7 @@ local triggers = {
 	},
 
 	follow = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 25,
 		},
@@ -52,7 +52,7 @@ local triggers = {
 	},
 
 	shake = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -60,7 +60,7 @@ local triggers = {
 	},
 
 	restore = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36,
 		},
@@ -68,7 +68,7 @@ local triggers = {
 	},
 
 	release = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 45,
 		},
@@ -76,7 +76,7 @@ local triggers = {
 	},
 
 	unlock = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 52,
 		},

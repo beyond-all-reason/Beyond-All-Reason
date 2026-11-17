@@ -1,4 +1,4 @@
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- A transport loads and unloads a named pawn. A construction vehicle with an attached turret is
@@ -8,7 +8,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -17,7 +17,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	orderTransport = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -25,7 +25,7 @@ local triggers = {
 	},
 
 	passengerLoaded = {
-		type = eventTypes.UnitLoaded,
+		type = conditionTypes.UnitLoaded,
 		parameters = {
 			passengerName = 'passenger',
 		},
@@ -33,7 +33,7 @@ local triggers = {
 	},
 
 	pawnLoadedByAtlas = {
-		type = eventTypes.UnitLoaded,
+		type = conditionTypes.UnitLoaded,
 		parameters = {
 			passengerDefName = 'armpw',
 			teamName = 'player',
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	passengerUnloaded = {
-		type = eventTypes.UnitUnloaded,
+		type = conditionTypes.UnitUnloaded,
 		parameters = {
 			unitName = 'passenger',
 			transportName = 'dropship',
@@ -53,7 +53,7 @@ local triggers = {
 
 	-- Never fires: the construction vehicle is not a transport.
 	turretAttached = {
-		type = eventTypes.UnitLoaded,
+		type = conditionTypes.UnitLoaded,
 		parameters = {
 			passengerDefName = 'corvacct',
 		},

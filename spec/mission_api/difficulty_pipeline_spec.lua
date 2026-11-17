@@ -46,8 +46,7 @@ local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
-local eventTypes = conditionDefinitions.EventTypes
-local metricTypes = conditionDefinitions.MetricTypes
+local conditionTypes = conditionDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
 -- Difficulties from luarules/mission_api/difficulties.json.
@@ -119,7 +118,7 @@ describe("mission_api difficulty pipeline", function()
 					textKey = "survive",
 					amount = { difficulties = { Easy = 2, Hard = 4 } },
 					trigger = {
-						type = eventTypes.TimeElapsed,
+						type = conditionTypes.TimeElapsed,
 						parameters = { seconds = { difficulties = { Easy = 90, Hard = 45 } } },
 					},
 				},
@@ -128,7 +127,7 @@ describe("mission_api difficulty pipeline", function()
 					amount = { difficulties = { Easy = 3, Hard = 6 } },
 					nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
 					trigger = {
-						type = eventTypes.TotalUnitsKilled,
+						type = conditionTypes.TotalUnitsKilled,
 						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
@@ -136,20 +135,20 @@ describe("mission_api difficulty pipeline", function()
 					textKey = "hold",
 					amount = { difficulties = { Easy = 1, Hard = 2 } },
 					trigger = {
-						type = metricTypes.UnitsOwned,
+						type = conditionTypes.UnitsOwned,
 						parameters = { teamName = "player", unitName = "bot" },
 					},
 				},
 			},
 			Triggers = {
 				wave = {
-					type = eventTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = { difficulties = { Easy = 120, Hard = 60 } } },
 					settings = { difficulties = { "Medium", "Hard" } },
 					actions = { "spawnBots", "announce" },
 				},
 				anyDifficulty = {
-					type = eventTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = 5 },
 					settings = { difficulties = {} },
 					actions = { "announce" },
@@ -257,7 +256,7 @@ describe("mission_api difficulty pipeline", function()
 		local _, result = loadMission({
 			Triggers = {
 				wave = {
-					type = eventTypes.TimeElapsed,
+					type = conditionTypes.TimeElapsed,
 					parameters = { seconds = { difficulties = { Easy = 120, Hard = "soon" } } },
 					actions = { "announce" },
 				},

@@ -1,10 +1,11 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Statistics condition: evaluated by the centralised statistics engine in
 -- statistics.lua (shared counting), so it declares no callins.
 return {
 	type = 'TotalUnitsCaptured',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'teamName',    required = true,  type = ParameterTypes.TeamName },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

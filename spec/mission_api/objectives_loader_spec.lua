@@ -87,6 +87,17 @@ describe("mission_api.objectives_loader", function()
 			assert.are.equal(1, rawTriggers.__objective_alpha.atLeast)
 		end)
 
+		-- As a lower bound, 0 would be met before the player did anything.
+		it("turns a metric amount of 0 into an upper bound of none", function()
+			local _, rawTriggers = load({
+				alpha = { textKey = "a", amount = 0, trigger = { type = types.UnitsOwned, parameters = {} } },
+			})
+			local record = rawTriggers.__objective_alpha
+
+			assert.are.equal(0, record.atMost)
+			assert.is_nil(record.atLeast)
+		end)
+
 		it("defaults parameters to an empty table", function()
 			local _, rawTriggers = load({ alpha = { textKey = "a", trigger = { type = types.TimeElapsed } } })
 

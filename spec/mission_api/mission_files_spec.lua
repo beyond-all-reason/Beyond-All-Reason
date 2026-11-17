@@ -18,7 +18,7 @@ local METRIC_TYPES = {
 -- break these rules on purpose.
 local INTENTIONALLY_INVALID = { validation_test = true }
 
--- Identity tables: a mission reading eventTypes.Foo gets back "Foo", so the
+-- Identity tables: a mission reading conditionTypes.Foo gets back "Foo", so the
 -- loaded data can be inspected without engine definitions.
 local function identityTable()
 	return setmetatable({}, {
@@ -51,8 +51,6 @@ local objectiveFields = MissionSpecEnv.include(env, "luarules/mission_api/object
 
 env.GG["MissionAPI"].ConditionDefinitions = {
 	Types = identityTable(),
-	EventTypes = identityTable(),
-	MetricTypes = identityTable(),
 }
 env.GG["MissionAPI"].ActionDefinitions = { Types = identityTable() }
 -- Missions may read their Options while loading; none are set here.

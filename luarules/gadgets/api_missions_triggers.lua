@@ -113,16 +113,22 @@ local function isTriggerValid(trigger)
 end
 
 local function activateTrigger(trigger)
+	-- Event conditions tally occurrences and fire once per `count` of them, so
+	-- `count = 4` fires on the 4th, then the 8th when repeating. `count` is nil
+	-- or 1 for the common "every occurrence" case.
+	-- The tally runs even while the trigger is blocked by its stage or
+	-- prerequisites, so what the player already did still counts once it opens.
+	local count = trigger.count
+	local isTallied = count and count > 1
+	if isTallied then
+		trigger.occurrences = (trigger.occurrences or 0) + 1
+	end
+
 	if not isTriggerValid(trigger) then
 		return false
 	end
 
-	-- Event conditions tally occurrences and fire once per `count` of them, so
-	-- `count = 4` fires on the 4th, then the 8th when repeating. `count` is nil
-	-- or 1 for the common "every occurrence" case.
-	local count = trigger.count
-	if count and count > 1 then
-		trigger.occurrences = (trigger.occurrences or 0) + 1
+	if isTallied then
 		if trigger.occurrences < (trigger.repeatCount + 1) * count then
 			if trigger.onProgress then
 				trigger.onProgress(trigger.occurrences)

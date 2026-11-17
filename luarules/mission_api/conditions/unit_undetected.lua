@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 
 -- Fires when a matching unit's detection level falls from the sensor set watched by the trigger.
@@ -28,7 +29,7 @@ end
 
 return {
 	type = 'UnitUndetected',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',           required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',        required = false, type = ParameterTypes.UnitDefName },

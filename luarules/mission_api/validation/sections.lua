@@ -8,6 +8,7 @@ local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.
 local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 local cutsceneFieldTypes = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
@@ -174,7 +175,7 @@ local function validateConditionThreshold(context, reporter, id, condition, vali
 	end
 
 	local kind = context.ConditionKinds[condition.type]
-	if kind == "metric" then
+	if kind == ConditionKinds.Metric then
 		if condition.count ~= nil then
 			reporter.Error(id, "Metric conditions are thresholded with atLeast/atMost, not count")
 		end
@@ -188,7 +189,7 @@ local function validateConditionThreshold(context, reporter, id, condition, vali
 		then
 			reporter.Error(id, "atLeast must not be greater than atMost")
 		end
-	elseif kind == "event" then
+	elseif kind == ConditionKinds.Event then
 		if condition.atLeast ~= nil or condition.atMost ~= nil then
 			reporter.Error(id, "Event conditions are thresholded with count, not atLeast/atMost")
 		end

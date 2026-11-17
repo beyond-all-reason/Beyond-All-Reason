@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local function getUnitStates(context, triggerID)
 	local constructionState = context.ConstructionState
@@ -12,7 +13,7 @@ end
 
 return {
 	type = 'ConstructionProgress',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

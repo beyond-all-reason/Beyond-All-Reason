@@ -1,4 +1,4 @@
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- A transport loads and unloads a pawn. A construction vehicle with an attached turret is spawned
@@ -9,7 +9,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	orderTransport = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	dropshipLoaded = {
-		type = eventTypes.TransportLoaded,
+		type = conditionTypes.TransportLoaded,
 		parameters = {
 			transportName = 'dropship',
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	atlasLoadedPawn = {
-		type = eventTypes.TransportLoaded,
+		type = conditionTypes.TransportLoaded,
 		parameters = {
 			transportDefName = 'armatlas',
 			teamName = 'player',
@@ -44,7 +44,7 @@ local triggers = {
 	},
 
 	dropshipUnloaded = {
-		type = eventTypes.TransportUnloaded,
+		type = conditionTypes.TransportUnloaded,
 		parameters = {
 			transportName = 'dropship',
 			passengerName = 'passenger',
@@ -54,7 +54,7 @@ local triggers = {
 
 	-- The construction vehicle is not a transport, so it counts only by its definition name.
 	constructorAttachedTurret = {
-		type = eventTypes.TransportLoaded,
+		type = conditionTypes.TransportLoaded,
 		parameters = {
 			transportDefName = 'corvac',
 			passengerDefName = 'corvacct',
@@ -64,7 +64,7 @@ local triggers = {
 
 	-- Never fires: a unit name alone does not make the construction vehicle a transport.
 	constructorByNameOnly = {
-		type = eventTypes.TransportLoaded,
+		type = conditionTypes.TransportLoaded,
 		parameters = {
 			transportName = 'constructor',
 		},

@@ -2,13 +2,13 @@
 --- Test mission demonstrating UnitLoadout and FeatureLoadout.
 ---
 
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes   = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes    = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	intro = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	movePlayerCon = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -24,7 +24,7 @@ local triggers = {
 	},
 
 	destroyWreck = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -32,7 +32,7 @@ local triggers = {
 	},
 
 	spawnReinforcements = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	actOnReinforcements = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -48,7 +48,7 @@ local triggers = {
 	},
 
 	victory = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},

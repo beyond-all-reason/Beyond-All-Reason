@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Captures belong to UnitCaptured.
 
@@ -7,7 +8,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'UnitReceived',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },

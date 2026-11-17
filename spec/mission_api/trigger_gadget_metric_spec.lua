@@ -1,20 +1,20 @@
 ---
---- Covers the trigger gadget's metric evaluation. `evaluateMetric` is a file
---- local, handed out through the dependency table the gadget injects into the
---- statistics module. Stubbing that module out captures the real function and
---- lets it be called directly.
+--- Covers the trigger gadget's metric evaluation and event counting.
+--- `evaluateMetric` and `activateTrigger` are file locals, handed out through
+--- the dependency table the gadget injects into the statistics module. Stubbing
+--- that module out captures the real functions and lets them be called directly.
 ---
---- The behaviour under test is that a metric reports progress only when it is
---- actually eligible to fire. An objective outside the current stage still has
---- its running value tracked, so it fires the moment the stage arrives, but it
---- must not report progress to the player before then.
+--- The behaviour under test is that a condition reports progress only when it is
+--- actually eligible to fire. A condition outside the current stage still has
+--- its value or tally tracked, so earlier play still counts once the stage
+--- arrives, but it must not report progress to the player before then.
 ---
 
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local STATISTICS_PATH = "luarules/mission_api/statistics.lua"
 
-local evaluateMetric
+local evaluateMetric, activateTrigger
 
 local function installMissionApi(currentStageID)
 	GG["MissionAPI"] = {
@@ -71,6 +71,7 @@ local function loadGadget()
 			[STATISTICS_PATH] = {
 				Init = function(dependencies)
 					evaluateMetric = dependencies.evaluateMetric
+					activateTrigger = dependencies.activateTrigger
 				end,
 				Increment = function() end,
 				Decrement = function() end,
@@ -139,5 +140,71 @@ describe("mission_api trigger gadget metric evaluation", function()
 
 		assert.are.equal(4, trigger.lastValue)
 		assert.is_false(trigger.metricSatisfied)
+	end)
+end)
+
+--- An event condition record with a `count`, shaped the way the loaders build them.
+local function eventTrigger(stages, count, reported, fired)
+	return {
+		type = "TotalUnitsKilled",
+		parameters = {},
+		count = count,
+		occurrences = 0,
+		triggered = false,
+		repeatCount = 0,
+		settings = { active = true, stages = stages, prerequisites = {} },
+		onProgress = function(occurrences)
+			reported[#reported + 1] = occurrences
+		end,
+		onActivate = function()
+			fired[#fired + 1] = true
+		end,
+	}
+end
+
+describe("mission_api trigger gadget event counting", function()
+	before_each(function()
+		installMissionApi("secondStage")
+		loadGadget()
+	end)
+
+	it("reports each occurrence and fires on the count", function()
+		local reported, fired = {}, {}
+		local trigger = eventTrigger({ "secondStage" }, 3, reported, fired)
+
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+
+		assert.are.same({ 1, 2 }, reported)
+		assert.are.equal(1, #fired)
+	end)
+
+	it("counts occurrences while out of stage, without reporting or firing", function()
+		local reported, fired = {}, {}
+		local trigger = eventTrigger({ "thirdStage" }, 3, reported, fired)
+
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+
+		assert.are.equal(3, trigger.occurrences)
+		assert.are.same({}, reported)
+		assert.are.same({}, fired)
+	end)
+
+	-- Kills made before the stage opened still count towards its objective, as
+	-- statistics conditions always have.
+	it("fires on the next occurrence once its stage arrives with the count already met", function()
+		local reported, fired = {}, {}
+		local trigger = eventTrigger({ "thirdStage" }, 3, reported, fired)
+
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+		activateTrigger(trigger)
+		GG["MissionAPI"].CurrentStageID = "thirdStage"
+		activateTrigger(trigger)
+
+		assert.are.equal(1, #fired)
 	end)
 end)
