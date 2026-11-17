@@ -290,6 +290,8 @@ return {
 - The objective's `amount` becomes the threshold: `count` for an event condition, `atLeast` for a
   metric one, or `atMost = 0` for a metric amount of 0; `objective.target` holds the value the UI
   counts towards.
+- Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
+  `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
 - Stage membership comes from `Stages[stageID].objectives` and is copied onto the objective's
   condition record as `settings.stages`; `stages_loader` is otherwise a pass-through.

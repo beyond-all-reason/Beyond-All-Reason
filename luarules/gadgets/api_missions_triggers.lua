@@ -89,7 +89,10 @@ local function isTriggerValid(trigger)
 		end
 	end
 
-	if next(settings.stages) and not table.contains(settings.stages, GG["MissionAPI"].CurrentStageID) then
+	if
+		next(settings.stages)
+		and not table.contains(settings.stages, GG["MissionAPI"].Modules.Stages.GetCurrentStageID())
+	then
 		return false
 	end
 
