@@ -45,7 +45,7 @@ describe("mission_api.triggers.unit_dwell_location", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitDwellLocation.parameters.requiresOneOf)
+		assert.are.same({ "unitName", "unitDefName", "teamName" }, unitDwellLocation.parameters.requiresOneOf)
 	end)
 
 	it("does not fire before the unit has dwelt for the full duration", function()

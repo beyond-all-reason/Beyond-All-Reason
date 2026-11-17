@@ -117,6 +117,14 @@ local function processEnumSet(values)
 	return valueSet
 end
 
+local function processUnitDefNames(unitDefNames)
+	local unitDefIDs = {}
+	for _, unitDefName in ipairs(unitDefNames) do
+		unitDefIDs[UnitDefNames[unitDefName].id] = true
+	end
+	return unitDefIDs
+end
+
 -- The engine's {r, g, b}
 local function processColor(color)
 	return { color.r, color.g, color.b }
@@ -132,6 +140,7 @@ local processors = {
 	[ParameterTypes.TeamName] = processTeamName,
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
+	[ParameterTypes.UnitDefNames] = processUnitDefNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 	[ParameterTypes.Color] = processColor,
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,

@@ -79,6 +79,16 @@ local triggers = {
 		actions = { 'messageBotEnteredLocation', 'spawnCapturable', 'spawnDecoy' },
 	},
 
+	anyPlayerUnitEnteredLocation = {
+		type = triggerTypes.UnitEnteredLocation,
+		parameters = {
+			teamName = 'player',
+			excludedUnitDefNames = { 'armflea' },
+			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
+		},
+		actions = { 'messageAnyPlayerUnitEnteredLocation' },
+	},
+
 	squadSetOff = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -382,6 +392,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Bot entered location!",
+		},
+	},
+
+	messageAnyPlayerUnitEnteredLocation = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "A player unit that is not a flea entered location!",
 		},
 	},
 

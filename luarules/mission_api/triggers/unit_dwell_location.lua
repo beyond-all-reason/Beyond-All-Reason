@@ -10,7 +10,8 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'excludedUnitDefNames', required = false, type = ParameterTypes.UnitDefNames },
+		requiresOneOf = { 'unitName', 'unitDefName', 'teamName' },
 	},
 	callins = {
 		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.
@@ -36,7 +37,7 @@ return {
 			local frameNumber = Spring.GetGameFrame()
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
-				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName) then
+				if context.DoesUnitMatch(unitID, parameters.unitName, parameters.unitDefName, parameters.excludedUnitDefNames) then
 					dwellingUnits[unitID] = frameNumber
 				end
 			end
