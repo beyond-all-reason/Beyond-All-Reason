@@ -1055,6 +1055,22 @@ function boxUndo.commit()
 	boxUndo.redo = {}
 end
 
+-- What an undo or redo step is called in the console. A redo entry holds the reverse op.
+function boxUndo.name(entry, isUndo)
+	if entry.mode == "startbox" then
+		local op = entry.op
+		if not isUndo and op ~= "edit" then
+			op = (op == "add") and "remove" or "add"
+		end
+		return ((op == "add" and "Add") or (op == "remove" and "Remove") or "Edit") .. " start box"
+	elseif entry.op == "move" then
+		return "Move start position"
+	elseif entry.op == "remove" then
+		return "Remove start position"
+	end
+	return "Place " .. #(entry.placed or {}) .. " start position(s)"
+end
+
 -- Applies one entry and returns its mirror, so undo and redo share this and the caller just
 -- moves the mirror onto the other stack.
 function boxUndo.apply(entry)
@@ -2781,6 +2797,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 		end
 		if not at then
+			Echo("[StartPos Tool] Nothing to " .. (isUndo and "undo" or "redo"))
 			return true
 		end
 
@@ -2789,6 +2806,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if not entry then
 			return true
 		end
+		Echo("[StartPos Tool] " .. (isUndo and "Undo" or "Redo") .. ": " .. boxUndo.name(entry, isUndo))
 		if entry.mode == "startbox" then
 			table.insert(toStack, boxUndo.apply(entry))
 		elseif entry.op == "move" then

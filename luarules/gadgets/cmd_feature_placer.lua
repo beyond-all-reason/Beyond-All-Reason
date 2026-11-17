@@ -762,8 +762,16 @@ local function destroyAll(features)
 	end
 end
 
+local HISTORY_NAMES = { place = "Place", remove = "Remove", transform = "Move" }
+
+local function echoHistory(step, entry, left)
+	local name = HISTORY_NAMES[entry.action] or "Edit"
+	Spring.Echo(string.format("[Feature Placer] %s: %s %d feature(s) (%d left)", step, name, #entry.features, left))
+end
+
 local function featureUndo()
 	if #undoStack == 0 then
+		Spring.Echo("[Feature Placer] Nothing to undo")
 		return
 	end
 	closeStroke()
@@ -784,10 +792,12 @@ local function featureUndo()
 
 	redoStack[#redoStack + 1] = entry
 	sendHistoryUpdate()
+	echoHistory("Undo", entry, #undoStack)
 end
 
 local function featureRedo()
 	if #redoStack == 0 then
+		Spring.Echo("[Feature Placer] Nothing to redo")
 		return
 	end
 	closeStroke()
@@ -808,6 +818,7 @@ local function featureRedo()
 
 	undoStack[#undoStack + 1] = entry
 	sendHistoryUpdate()
+	echoHistory("Redo", entry, #redoStack)
 end
 
 ----------------------------------------------------------------

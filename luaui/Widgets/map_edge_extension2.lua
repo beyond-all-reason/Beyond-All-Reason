@@ -60,6 +60,8 @@ local LuaShader = gl.LuaShader
 --------------------------------------------------------------------------------
 
 local restoreMapBorder = true
+-- loaded but not drawn: a scene can turn the mirrors off and on
+local hidden = false
 local mapExtensionShader ---@type LuaShader?
 local mapExtensionShaderDeferred ---@type LuaShader?
 local terrainVAO ---@type VAO?
@@ -86,7 +88,7 @@ layout (location = 0) in vec4 aMirrorParams;
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D heightTex;
-uniform vec4 shaderParams; // brightness, curvature, fog, unused
+uniform vec4 shaderParams; // brightness, curvature, fog, holes
 uniform vec4 meshParams; // cells along x and z: the whole map, then trimmed to the visible part
 
 #define curvature shaderParams.y
@@ -182,8 +184,9 @@ local fsSrc = [[
 
 uniform sampler2D colorTex;
 uniform sampler2D mapNormalTex;
+uniform sampler2D holeMaskTex; // terrain holes of the tileset shader
 
-uniform vec4 shaderParams;
+uniform vec4 shaderParams; // brightness, curvature, fog, holes
 #define brightness shaderParams.x
 
 in DataVS {
@@ -223,6 +226,12 @@ void main() {
 
 	// faded out past the curvature falloff
 	if (alphaFog.x < 0.05) discard;
+
+	// a hole in the map is a hole in its mirrors
+	if (shaderParams.w > 0.5) {
+		vec2 holeUV = (uv * mapSize.xy / 8.0 + 0.5) / vec2(textureSize(holeMaskTex, 0));
+		if (texture(holeMaskTex, holeUV).r > 0.5) discard;
+	}
 
 	float luma = dot(finalColor.rgb, LUMA);
 	finalColor.rgb += clamp(luma * brightness, 0.0, 1.0) - luma;
@@ -426,13 +435,18 @@ local function DrawMirrors(shader, mesh, normalTex)
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	gl.Texture(2, normalTex)
+	local tileset = WG.TilesetTerrain
+	local holeTex = tileset and tileset.getHoleMask and tileset.getHoleMask()
+	if holeTex then
+		gl.Texture(3, holeTex)
+	end
 	shader:Activate()
 	shader:SetUniform(
 		"shaderParams",
 		brightness * nightFactor,
 		(curvature and 1.0) or 0.0,
 		(fogEffect and 1.0) or 0.0,
-		0.0
+		(holeTex and 1.0) or 0.0
 	)
 	shader:SetUniform("meshParams", mesh.cols, mesh.rows, mesh.trimCols, mesh.trimRows)
 	terrainVAO:DrawArrays(GL.TRIANGLE_STRIP, mesh.vertexCount, 0, #mirrorParams / 4)
@@ -440,18 +454,24 @@ local function DrawMirrors(shader, mesh, normalTex)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
+	if holeTex then
+		gl.Texture(3, false)
+	end
 	gl.Culling(false) -- restore the default state, don't leak face culling into later draws
 end
 
 -- Needs AllowDrawMapDeferredEvents; writes the mirrors' normals and depth into the map G-buffer
 function widget:DrawGroundDeferred()
-	if #mirrorParams == 0 then
+	if hidden or #mirrorParams == 0 then
 		return
 	end
 	DrawMirrors(mapExtensionShaderDeferred, mirrorMeshDeferred, "$normals")
 end
 
 function widget:DrawWorldPreUnit()
+	if hidden then
+		return
+	end
 	UpdateMirrorParams()
 
 	if #mirrorParams == 0 then
@@ -486,6 +506,7 @@ local function MakeShader(name, defines)
 			colorTex = 0,
 			heightTex = 1,
 			mapNormalTex = 2,
+			holeMaskTex = 3,
 		},
 		uniformFloat = {
 			shaderParams = { brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0, 0.0 },
@@ -528,10 +549,23 @@ function widget:Initialize()
 
 	Spring.SendCommands("mapborder 1") --..(mapBorderStyle == 'cutaway' and "1" or "0"))
 
-	if gl.GetMapRendering("voidGround") or gl.GetMapRendering("voidWater") then
+	WG.mapedgeextension.getHidden = function()
+		return hidden
+	end
+	WG.mapedgeextension.setHidden = function(value)
+		hidden = value and true or false
+	end
+
+	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
+		WG.mapedgeextension = nil
 		widgetHandler:RemoveWidget()
 		return
+	end
+	-- a map without a water plane starts without mirrors
+	if gl.GetMapRendering("voidWater") then
+		restoreMapBorder = false
+		hidden = true
 	end
 
 	terrainVAO = gl.GetVAO()

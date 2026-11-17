@@ -47,14 +47,22 @@
 					</div>
 				</div>
 				<div class="tf-rail-spacer"></div>
+				<div id="btn-search" class="tf-header-btn tf-search-btn" data-class-active="searchOpen" data-event-mousedown="onTfSearchToggle()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/search.png" /></div>
 				<div id="btn-maplabels" class="tf-header-btn tf-maplabels-btn" data-class-active="mapLabelsOpen" data-event-mousedown="onToggleMapLabels()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/map_labels.png" /></div>
 				<div id="btn-capture" class="tf-header-btn tf-capture-btn" data-class-active="captureOpen" data-event-mousedown="onToggleCapture()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/camera.png" /></div>
 				<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
-				<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
+				<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/help.png" /></div>
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			</div>
 		</div>
 		</div>
+		<div id="tf-search-bar" class="tf-search-bar" data-class-hidden="!searchOpen">
+			<img class="tf-search-bar-icon" src="/luaui/images/terraform_brush/search.png" />
+			<input type="text" id="tf-search-input" class="tf-search-input" data-event-change="onTfSearch()" />
+			<div id="tf-search-hint" class="tf-search-hint">Search tools and controls</div>
+			<div id="btn-tf-search-clear" class="tf-search-clear" data-event-mousedown="onTfSearchClear()"><img class="tf-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div id="tf-search-results" class="tf-search-results hidden mb-1"></div>
 		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="frame-terrain">
 			<div id="btn-toggle-terrain" class="tf-section-title-row" style="cursor: pointer;">
@@ -5392,6 +5400,12 @@
 		<div id="section-env-buttons">
 
 		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-env-scenery" class="tf-env-btn" style="flex: 1;">
+				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_map.png" />
+				<div class="tf-env-btn-text">SCENERY</div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-env-skybox-library" class="tf-env-btn" style="flex: 1; position: relative;" data-event-mousedown="onEnvSkyboxLibToggle()">
 				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/env_skybox.png" />
 				<div class="tf-env-btn-text">SKYBOX LIBRARY</div>
@@ -6215,9 +6229,9 @@
 						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — hard strokes drive the legacy DNTS splats instead of tileset overrides. Flip the SHADER switch in the TILESET window (SCENE menu).</div>
 						<!-- NOW PAINTING (hard): what the next stroke forces -->
 						<div id="surf-hard-now-strip" class="surf-now-strip mb-1">
-							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-intermediate="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4"></div>
+							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-intermediate="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4" data-class-surf-hard-swatch-holes="surfHoles"></div>
 							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-intermediate="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4">{{surfHardNowName}}</div>
+								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-intermediate="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4" data-class-surf-hard-text-holes="surfHoles">{{surfHardNowName}}</div>
 								<div class="text-base text-light" style="opacity: 0.7;">{{surfHardNowDetail}}</div>
 							</div>
 						</div>
@@ -6237,6 +6251,31 @@
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. INTERMEDIATE / CLIFF / PLATEAU force that material where painted.</div>
+						<!-- HOLES: the surface painter cuts the ground while this panel stays open -->
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-surf-hard-holes" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHoles" data-event-mousedown="onLayersHolesToggle()">
+								<div class="tf-btn-text surf-hard-text-holes">HOLES</div>
+							</div>
+							<div id="btn-surf-hard-holes-walk" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHolesWalk" data-event-mousedown="onLayersHolesWalkToggle()">
+								<div class="tf-btn-text surf-hard-text-walk">WALKABLE</div>
+							</div>
+							<div id="btn-surf-hard-holes-soft" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHolesSoft" data-event-mousedown="onLayersHolesSoftToggle()">
+								<div class="tf-btn-text surf-hard-text-soft">SOFT EDGE</div>
+							</div>
+						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">HOLES cuts the ground away so the sky or a mesh below shows. The right button puts the ground back. Units cannot enter a hole, unless it is cut with WALKABLE on. SOFT EDGE fades the rim out instead of cutting it.</div>
+						<!-- whole-map hole actions, only while HOLES is on -->
+						<div class="flex flex-row gap-1 mb-1" data-if="surfHoles">
+							<div id="btn-surf-hard-holes-cutall" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onLayersHolesCutAll()">
+								<div class="tf-action-btn-text" data-if="!surfHolesCutArm">CUT EVERYTHING</div>
+								<div class="tf-action-btn-text" data-if="surfHolesCutArm">CONFIRM?</div>
+							</div>
+							<div id="btn-surf-hard-holes-restoreall" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onLayersHolesRestoreAll()">
+								<div class="tf-action-btn-text" data-if="!surfHolesRestoreArm">RESTORE EVERYTHING</div>
+								<div class="tf-action-btn-text" data-if="surfHolesRestoreArm">CONFIRM?</div>
+							</div>
+						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="surfHoles">For a floating map: CUT EVERYTHING, then paint the floors back with the right button.</div>
 						<!-- Smart filters: see the shared FILTERS section below -->
 						<!-- Undo / redo + save (Splat Painter history and export) -->
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">UNDO &amp; SAVE</div>
@@ -6269,19 +6308,19 @@
 					<div id="section-surf-palette">
 						<!-- NOW PAINTING: persistent readout of what the next stroke does -->
 						<div id="surf-now-strip" class="surf-now-strip mb-1" data-class-surf-now-erase="surfErase">
-							<div id="surf-now-thumb" class="surf-now-thumb"></div>
-							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2" data-class-surf-text-c3="surfSelSlot == 3">{{surfNowName}}</div>
-								<div class="text-base text-light" style="opacity: 0.7;">{{surfNowDetail}}</div>
+							<div class="surf-now-head">
+								<div id="surf-now-thumb" class="surf-now-thumb"></div>
+								<div class="surf-now-text">
+									<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2" data-class-surf-text-c3="surfSelSlot == 3" data-class-surf-text-c4="surfSelSlot == 4" data-class-surf-text-c5="surfSelSlot == 5" data-class-surf-text-c6="surfSelSlot == 6" data-class-surf-text-c7="surfSelSlot == 7">{{surfNowName}}</div>
+									<div class="text-base text-light" style="opacity: 0.7;">{{surfNowDetail}}</div>
+								</div>
 							</div>
-							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
-								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
-							</div>
-							<!-- FLIP acts on the SELECTED slot (BASE included): one always-present
-							     button instead of a per-tile one keeps PICK and X big enough
-							     to hit. -->
-							<div id="surf-flip-sel" class="tf-overlay-chip" style="margin-left: 4dp;">
-								<div class="tf-overlay-chip-label">FLIP</div>
+							<!-- What a stroke does, what the right button takes off, and FLIP for the
+							     selected slot's normal map (BASE included). -->
+							<div class="surf-now-actions">
+								<div id="surf-now-mode" class="surf-now-btn" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">{{surfNowMode}}</div>
+								<div id="surf-erase-one" class="surf-now-btn surf-now-btn-wide" data-class-active="surfEraseOne" data-event-mousedown="onSurfEraseOneToggle()">{{surfEraseOneLabel}}</div>
+								<div id="surf-flip-sel" class="surf-now-btn">FLIP</div>
 							</div>
 						</div>
 						<!-- SLOT RAIL. One tile per slot, thumbnail first: the texture is what
@@ -6379,7 +6418,7 @@
 							<div class="text-base text-light" style="opacity: 0.7;" data-if="surfPickerHasPaint">This slot already carries paint &#8212; picking re-skins those areas.</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasVariants">No top variants in this biome &#8212; pick Teizer-5 or Enborelde in the TILESET window (SCENE menu).</div>
-						<div class="text-base text-light" style="opacity: 0.7;">Dot lightly &#8212; the base stays dominant. Alt-click the map to eyedrop.</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Dot lightly: the base stays dominant. Right-drag erases, Alt-click the map eyedrops.</div>
 					</div>
 				</div><!-- /frame-surf-palette -->
 
@@ -9155,7 +9194,151 @@
 		</div><!-- /tf-panel-body -->
 	</div>
 
-	<!-- ============ WATER (floating window) ============ -->
+	<!-- ============ SCENERY (floating window) ============ -->
+	<div id="tf-env-scenery-root" class="tf-env-float-window widget-shadow rounded-md bg-darkest p-2-5" data-if="envSceneryVisible" style="left: 40vw; top: 14vh;">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-env-scenery-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Scenery</div>
+			<div id="btn-env-scenery-close" class="tf-header-btn tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-panel-body">
+		<div class="text-sm text-keybind mb-1">What surrounds the map, from its edge outward. A preset sets all of it at once.</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-preset-standard" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">STANDARD</div>
+			</div>
+			<div id="btn-scenery-preset-void" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">VOID</div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-preset-floating" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">FLOATING</div>
+			</div>
+			<div id="btn-scenery-preset-clouds" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">ABOVE CLOUDS</div>
+			</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">MAP BORDER</div>
+			</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<img id="btn-scenery-border" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<div class="text-sm text-light">mirrored border</div>
+		</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">AROUND THE MAP</div>
+			</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-open-blockout" class="tf-env-btn" style="flex: 1;">
+				<div class="tf-env-btn-text">BLOCKOUT RINGS</div>
+			</div>
+		</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">BELOW THE MAP</div>
+			</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-kind-none" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">NONE</div>
+			</div>
+			<div id="btn-scenery-kind-planet" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">PLANET</div>
+			</div>
+			<div id="btn-scenery-kind-clouds" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">CLOUDS</div>
+			</div>
+		</div>
+		<div id="scenery-looks-row" class="hidden">
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-look-terran" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">TERRAN</div>
+			</div>
+			<div id="btn-scenery-look-desert" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">DESERT</div>
+			</div>
+			<div id="btn-scenery-look-ice" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">ICE</div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-look-lava" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">LAVA</div>
+			</div>
+			<div id="btn-scenery-look-gas" class="tf-mode-btn tf-surf-ch-btn" style="flex: 1;">
+				<div class="tf-btn-text">GAS GIANT</div>
+			</div>
+		</div>
+		</div>
+		<div id="scenery-below-controls" class="hidden">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 62dp;">depth</div>
+			<div id="btn-scenery-depth-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-scenery-depth" class="tf-slider" min="500" max="60000" step="1" value="8000" />
+			<div id="btn-scenery-depth-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-scenery-depth-numbox" class="tf-slider-numbox" value="8000" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 62dp;">size</div>
+			<div id="btn-scenery-size-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-scenery-size" class="tf-slider" min="1" max="30" step="1" value="8" />
+			<div id="btn-scenery-size-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-scenery-size-numbox" class="tf-slider-numbox" value="8" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 62dp;">rotation</div>
+			<div id="btn-scenery-yaw-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-scenery-yaw" class="tf-slider" min="0" max="359" step="1" value="0" />
+			<div id="btn-scenery-yaw-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-scenery-yaw-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 62dp;">spin</div>
+			<div id="btn-scenery-spin-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-scenery-spin" class="tf-slider" min="-60" max="60" step="1" value="2" />
+			<div id="btn-scenery-spin-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-scenery-spin-numbox" class="tf-slider-numbox" value="2" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 62dp;">bright %</div>
+			<div id="btn-scenery-bright-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-scenery-bright" class="tf-slider" min="0" max="300" step="1" value="100" />
+			<div id="btn-scenery-bright-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-scenery-bright-numbox" class="tf-slider-numbox" value="100" />
+		</div>
+		</div>
+		<div class="text-sm text-keybind mb-1">Seen past the map edge and through holes (LAYERS, HOLES). Depth is how far below sea level it sits: closer shifts more as the camera moves.</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">SKY</div>
+			</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-scenery-open-skybox" class="tf-env-btn" style="flex: 1;" data-event-mousedown="onEnvSkyboxLibToggle()">
+				<div class="tf-env-btn-text">SKYBOX LIBRARY</div>
+			</div>
+		</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">WATER AND GROUND</div>
+			</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<img id="btn-scenery-water" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<div class="text-sm text-light">water plane</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<img id="btn-scenery-ground" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" />
+			<div class="text-sm text-light">ground</div>
+		</div>
+		</div>
+		</div><!-- /tf-panel-body -->
+	</div><!-- /tf-env-scenery-root -->
+
+	<!-- ============ BLOCKOUT (floating window) ============ -->
 	<div id="tf-env-blockout-root" class="tf-env-float-window widget-shadow rounded-md bg-darkest p-2-5" data-if="envBlockoutVisible" style="left: 44vw; top: 30vh;">
 		<div class="flex flex-row justify-between items-center mb-2">
 			<div id="tf-env-blockout-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Blockout</div>
@@ -10970,7 +11153,57 @@
 			<div class="tf-header-btn tf-quit-btn" data-event-mousedown="onCaptureClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
-		<div class="text-sm text-keybind">Map photo + one SVG layer per unit, for Figma.</div>
+		<div class="text-sm text-keybind">A free camera for photos of a view; below, the whole map top-down with SVG layers for Figma.</div>
+
+		<div class="tf-section-frame" id="capture-frame-cam">
+			<div id="btn-capture-toggle-cam" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-capture-toggle-cam" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">CINEMATIC CAM</div>
+			</div>
+			<div id="capture-section-cam">
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-cinecam-toggle" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamOn" data-event-mousedown="onCineCamToggle()"><div class="tf-overlay-chip-label" style="text-align: center;">Fly camera</div></div>
+					<div id="btn-cinecam-guides" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamGuides" data-event-mousedown="onCineCamFlag('guides')"><div class="tf-overlay-chip-label" style="text-align: center;">Guides</div></div>
+				</div>
+				<div class="tf-notice-banner mb-1" data-if="cineCamMissing">Enable the "Terraform Brush Cinematic Cam" widget.</div>
+				<div class="tf-capture-readout mb-1" data-if="cineCamOn">{{cineCamReadout}}</div>
+				<div class="flex flex-row gap-1 mb-1" data-if="cineCamOn">
+					<div id="btn-cinecam-hold" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamHold" data-event-mousedown="onCineCamDo('toggleHold')"><div class="tf-overlay-chip-label" style="text-align: center;">Hold height</div></div>
+					<div id="btn-cinecam-level" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-event-mousedown="onCineCamDo('level')"><div class="tf-overlay-chip-label" style="text-align: center;">Level</div></div>
+					<div id="btn-cinecam-home" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-event-mousedown="onCineCamDo('home')"><div class="tf-overlay-chip-label" style="text-align: center;">Home</div></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 40dp;">drag</div>
+					<div id="btn-cinecam-orbit" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamMiddle == 'orbit'" data-event-mousedown="onCineCamSet('middle', 'orbit')"><div class="tf-overlay-chip-label" style="text-align: center;">Orbit</div></div>
+					<div id="btn-cinecam-pan" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamMiddle == 'pan'" data-event-mousedown="onCineCamSet('middle', 'pan')"><div class="tf-overlay-chip-label" style="text-align: center;">Pan</div></div>
+					<div id="btn-cinecam-invert" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamInvert" data-event-mousedown="onCineCamFlag('invertDrag')"><div class="tf-overlay-chip-label" style="text-align: center;">Invert</div></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 40dp;">keys</div>
+					<div id="btn-cinecam-keys-wasd" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamScheme == 'wasd'" data-event-mousedown="onCineCamSet('scheme', 'wasd')"><div class="tf-overlay-chip-label" style="text-align: center;">WASD</div></div>
+					<div id="btn-cinecam-keys-arrows" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamScheme == 'arrows'" data-event-mousedown="onCineCamSet('scheme', 'arrows')"><div class="tf-overlay-chip-label" style="text-align: center;">Arrows</div></div>
+					<div id="btn-cinecam-keys-numpad" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="cineCamScheme == 'numpad'" data-event-mousedown="onCineCamSet('scheme', 'numpad')"><div class="tf-overlay-chip-label" style="text-align: center;">Numpad</div></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 40dp;">fly</div>
+					<input type="range" id="slider-cinecam-fly" class="tf-slider" min="25" max="400" step="25" value="100" />
+					<div class="tf-capture-slider-val">{{cineCamFlyStr}}</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 40dp;">look</div>
+					<input type="range" id="slider-cinecam-look" class="tf-slider" min="25" max="400" step="25" value="100" />
+					<div class="tf-capture-slider-val">{{cineCamLookStr}}</div>
+				</div>
+				<div id="btn-cinecam-shoot" class="tf-action-btn tf-save-btn mb-1" data-if="cineCamOn" data-event-mousedown="onCineCamDo('shoot')">
+					<div class="tf-action-btn-text">PHOTO OF THIS VIEW</div>
+				</div>
+				<div class="tf-capture-result mb-1" data-if="cineCamShot != ''">
+					<div class="tf-capture-result-head">SAVED</div>
+					<div class="tf-capture-result-path">{{cineCamShot}}</div>
+				</div>
+				<div class="text-sm text-keybind">{{cineCamKeysHelp}}. Shift fast, Ctrl precise. Right-drag looks, middle-drag orbits or pans, wheel dollies, Alt+wheel changes the lens. Space takes a photo, R levels, H flies home, Ctrl+1..9 saves a view and 1..9 flies to it. Esc leaves.</div>
+			</div>
+		</div>
 
 		<div class="tf-section-frame" id="capture-frame-output">
 			<div id="btn-capture-toggle-output" class="tf-section-title-row" style="cursor: pointer;">

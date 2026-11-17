@@ -474,6 +474,7 @@ end
 local function decalUndo()
 	local entry = dp.undoStack[#dp.undoStack]
 	if not entry then
+		Echo("[Decal Placer] Nothing to undo")
 		return
 	end
 	dp.undoStack[#dp.undoStack] = nil
@@ -487,6 +488,7 @@ local function decalUndo()
 	dp.redoStack[#dp.redoStack + 1] = { specs = specs }
 	dp.undoCount = #dp.undoStack
 	dp.redoCount = #dp.redoStack
+	Echo(string.format("[Decal Placer] Undo: Place %d decal(s) (%d left)", #specs, dp.undoCount))
 	---@type table?
 	local mp = WG.MapProject
 	if mp and mp.markDirty then
@@ -498,6 +500,7 @@ end
 local function decalRedo()
 	local entry = dp.redoStack[#dp.redoStack]
 	if not entry then
+		Echo("[Decal Placer] Nothing to redo")
 		return
 	end
 	dp.redoStack[#dp.redoStack] = nil
@@ -513,6 +516,7 @@ local function decalRedo()
 	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }
 	dp.undoCount = #dp.undoStack
 	dp.redoCount = #dp.redoStack
+	Echo(string.format("[Decal Placer] Redo: Place %d decal(s) (%d left)", #ids, dp.redoCount))
 	---@type table?
 	local mp = WG.MapProject
 	if mp and mp.markDirty then

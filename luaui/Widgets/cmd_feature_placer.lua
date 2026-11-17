@@ -1922,6 +1922,7 @@ local function getState()
 		selectMode = selectModeActive(),
 		selectionCount = #gz.selection,
 		gizmoDragging = gz.dragging,
+		gizmoHovered = gz.hovered,
 	}
 end
 

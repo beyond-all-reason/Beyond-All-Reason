@@ -26,7 +26,7 @@ The panel is one window with a header and folding sections. Click a section titl
 | X | Closes the editor |
 | Folder (FILE) | New Map..., Save, Save As..., Open Project..., Export Map... |
 | Map Labels | Shows the map comments and opens the Map Labels window |
-| Camera | Opens the Capture window |
+| Camera | Opens the Capture window: cinematic cam and map capture |
 | Speaker | Turns the panel's sounds on or off |
 | ? (Guide mode) | Shows a hint for whatever control is under the mouse |
 | Gear | Opens Settings |
@@ -40,6 +40,14 @@ The panel is one window with a header and folding sections. Click a section titl
 Under the header, the status strip shows what the active tool is doing and how a save is going.
 
 Some tools open floating windows (the libraries, Noise Parameters, every SCENE window, TILESET, Settings, Capture). They stay open while you switch tools, drag by their title bar, and remember where you left them. The brush does not paint through the panel or any of these windows: it steps aside while the mouse is over them.
+
+### Search
+
+The looking glass in the header opens the search field; it finds any tool or control. Click the looking glass again to close it. Type a word or two: a name ("slope"), or what you want to do ("photo").
+
+- The list under the field shows each match and where it lives. Click one: its tool or window opens and the control flashes.
+- While the field has text, the panel shows only the sections with a match and dims the tools without one.
+- The X in the field clears it and brings the whole panel back.
 
 ### Common controls
 
@@ -248,6 +256,27 @@ Forces a hard material anywhere through the tileset shader's override channels.
 | PLATEAU | 4 | Plateau material, whatever the height |
 
 Left drag paints the selected channel, right drag erases it. FILTERS and INFLUENCE work as in SURFACE (LAYERS keeps one influence profile per channel). The DISPLAY row adds a **Layer Map** chip. **SAVE SPLATS** exports the override texture to `Terraform Brush/Splats/`.
+
+#### Holes
+
+Holes also come from two places besides the brush, and all three are merged for drawing:
+
+- **Features.** A feature def with `customParams.terrainhole = 1` cuts the ground wherever its model lies below it (seen from straight above), so a model with a shaft or a pit opens the ground over it. `terrainhole_depth` sets how far below the ground a part must lie to count (default 4). The cut follows the feature when it is moved, turned, scaled or removed. It does not block units; the feature's own footprint does that. It is not written into the saved hole mask.
+- **The running game.** Another gadget can call `GG.TerrainHoles.Cut(x, z, radius)` and `GG.TerrainHoles.Restore(x, z, radius)`: the ground disappears for every player and the cells block units, like a painted hole.
+
+**HOLES**, under the four channel chips, cuts the ground away so the sky or a mesh placed below the map shows. Left drag cuts, right drag puts the ground back. The brush size is the LAYERS size. A channel chip, HOLES again or another tool ends it; undo and redo act on holes while it is on.
+
+| Control | What it does |
+|---|---|
+| HOLES | Turns hole cutting on and off |
+| WALKABLE | Holes cut while it is on let units cross, for an invisible bridge or a cutscene. Without it units path around a hole and nothing can be built in it |
+| SOFT EDGE | Holes cut while it is on fade out at the rim instead of ending in a hard line |
+| CUT EVERYTHING | The whole map becomes one hole, for a floating map: paint the floors back with the right button. Click twice |
+| RESTORE EVERYTHING | Fills every hole back in. Click twice |
+
+Cut over a hole again to change whether it is walkable or soft. Water stays out of a hole, the mirrored map border is cut the same way and the minimap shows holes dark. The ground still casts its shadow into a hole, and aircraft ignore holes.
+
+Holes are saved with the project (`surface_holes.png`), follow a MAP TRANSFORM, and an exported map keeps them: units are blocked through the map's own typemap.
 
 ### TILESET window
 
@@ -568,7 +597,7 @@ Ghost brushes show where every copy will land. Symmetry also applies to features
 
 ### Capture
 
-The camera button opens the **Capture** window. It flies the camera over the map tile by tile and writes a top-down photo of the whole map, plus SVG layers you can drop into Figma or similar tools, into `Terraform Brush/Captures/`.
+The camera button opens the **Capture** window: a cinematic cam for photos of a view, and the map capture. The map capture flies the camera over the map tile by tile and writes a top-down photo of the whole map, plus SVG layers you can drop into Figma or similar tools, into `Terraform Brush/Captures/`.
 
 | Section | Controls |
 |---|---|
@@ -578,6 +607,23 @@ The camera button opens the **Capture** window. It flies the camera over the map
 | EXTRA LAYERS | Features .svg, Comments .svg |
 
 **CAPTURE** starts; Esc or CANCEL stops it. `/tfcapture` starts a capture from the console (`/tfcapture <detail>` sets the detail first, `/tfcapture cancel` stops it).
+
+#### Cinematic cam
+
+**Fly camera** in the CINEMATIC CAM section turns on a free camera for framing a view, on or off the map. Esc or the chip turns it off and hands the view back to your camera.
+
+| Input | What it does |
+|---|---|
+| W A S D, Q / E | Fly, down and up (or the arrows, or the numpad: **keys**) |
+| Shift / Ctrl | Fast / precise |
+| Right-drag | Look |
+| Middle-drag | Orbit the point you look at, or pan (**drag**); **Invert** turns it round |
+| Wheel | Dolly; Alt+wheel changes the lens (5 to 90) |
+| Space | **PHOTO OF THIS VIEW**: saves the view without the interface into `Terraform Brush/Captures/Views/` |
+| R, H | Level the pitch to 5 degrees, fly home over the map's middle |
+| Ctrl+1..9, 1..9 | Save a view for this map, fly to it (press again to land at once) |
+
+**Hold height** keeps the height over the ground while flying. **Guides** shows the 16:9 frame and its thirds; they are never in the photo. **fly** and **look** set the speeds. `/tfcinecam` toggles the camera from the console.
 
 ### Map Labels
 
@@ -631,6 +677,23 @@ On desks that mix display scaling (for example a 150% 4K beside a 100% 1440p scr
 
 These are in the panel for the people building them. They are unfinished, may change or disappear without notice, and need assets that are not part of the game download, so on a normal install they show little or nothing.
 
+- **SCENERY** (SCENE > SCENERY): one window for what surrounds the map, from its edge outward.
+
+  | Control | What it does |
+  |---|---|
+  | STANDARD | Water plane, mirrored border, nothing below. |
+  | VOID | No water plane, no mirrored border: the sky shows around and below the map. |
+  | FLOATING | As VOID, with a planet below. |
+  | ABOVE CLOUDS | As VOID, with a cloud deck below. |
+  | mirrored border | The mirrored copies of the map past its edge. Off in the void presets; it can be turned back on. |
+  | BLOCKOUT RINGS | Opens the BLOCKOUT window. |
+  | NONE, PLANET, CLOUDS | The backdrop below the map. A planet comes as TERRAN, DESERT, ICE, LAVA or GAS GIANT. |
+  | depth | How far below sea level the backdrop sits. Closer shifts more against the map as the camera moves. |
+  | size, rotation, spin, bright % | The backdrop's size (in map widths), its turn, how fast it turns by itself (degrees a minute) and its brightness. |
+  | SKYBOX LIBRARY | Opens the skybox library. |
+  | water plane, ground | Turn the map's water plane and the terrain itself off and on. |
+
+  The backdrop is seen past the map edge and through holes (LAYERS, HOLES); the map's sun lights it. It is saved with the project and an exported map keeps it. Fog does not cover it, and it does not show in water reflections.
 - **BLOCKOUT** (SCENE > BLOCKOUT): a backdrop around the map, up to three layers of large scenery (near, middle and far ring), each picked from a list of blockout models and turned and scaled with its own sliders. The layers sit behind the map at sea level, are never culled or selected, and are covered by fog like the rest of the world. The game itself ships no blockout models, so the list only offers None. Layers are not saved with a project.
 - **Osemo** (the Osemo chip in the Asset Library): a separate feature pack for a biome in development. The chip only appears once that pack is installed.
 
@@ -685,6 +748,7 @@ All keys in the first table can be changed in Settings > Keybinds.
 | `/mapproject open <name>`, `/mapproject delete <name>`, `/mapproject list` | Open, delete or list projects |
 | `/mapproject autosave`, `/mapproject prune` | Take an autosave snapshot now, delete old snapshots now |
 | `/tfcapture [detail \| cancel]` | Start or cancel a Capture |
+| `/tfcinecam` | Cinematic cam on, off |
 | `/tfimage [file \| off]` | Image overlay: pick a file, toggle, or unload |
 | `/splatpaint`, `/splatpaintoff` | SPLAT on, off |
 | `/splatexport` | Save the splat texture |
@@ -716,6 +780,7 @@ All paths are relative to the game's data folder (the folder the game writes its
 | `Terraform Brush/TilesetPresets/` | TILESET presets |
 | `Terraform Brush/Overlays/` | Images for the Image Overlay |
 | `Terraform Brush/Captures/` | Capture output |
+| `Terraform Brush/Captures/Views/` | Cinematic cam photos |
 | `Terraform Brush/map_labels/` | Map comments, one file per map |
 | `Terraform Brush/textures/` | Optional texture packs: DIFFUSE materials, and DNTS detail sets in `dnts/` |
 | `lightmaps/` | Saved LIGHTS layouts, and `presets/` for your light presets |
@@ -739,6 +804,7 @@ All paths are relative to the game's data folder (the folder the game writes its
 | `grass_dist.tga`, `grass_config.lua` | Grass and its settings |
 | `splat.png` | The splat or LAYERS texture |
 | `surface.lua`, `surface.png` | SURFACE paint |
+| `surface_holes.png` | Terrain holes: red = hole, green = blocks units, blue = hard edge |
 | `tileset.lua` | The TILESET settings, biome and metal spot style |
 | `environment.lua` | The scene: sun, fog, lighting, water, skybox |
 | `diffuse/` | DIFFUSE paint |

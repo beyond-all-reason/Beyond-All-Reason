@@ -372,9 +372,17 @@ local function destroyStroke(stroke)
 	end
 end
 
+local HISTORY_NAMES = { place = "Place", remove = "Remove", mission = "Mission or live switch of", transform = "Move" }
+
+local function echoHistory(step, stroke, left)
+	local name = HISTORY_NAMES[stroke.kind] or "Edit"
+	Spring.Echo(string.format("[Unit Placer] %s: %s %d unit(s) (%d left)", step, name, #stroke.units, left))
+end
+
 local function undo()
 	local stroke = table.remove(undoStack)
 	if not stroke then
+		Spring.Echo("[Unit Placer] Nothing to undo")
 		return
 	end
 	if stroke.kind == "place" then
@@ -387,11 +395,13 @@ local function undo()
 		recreate(stroke, "before")
 	end
 	redoStack[#redoStack + 1] = stroke
+	echoHistory("Undo", stroke, #undoStack)
 end
 
 local function redo()
 	local stroke = table.remove(redoStack)
 	if not stroke then
+		Spring.Echo("[Unit Placer] Nothing to redo")
 		return
 	end
 	if stroke.kind == "place" then
@@ -404,6 +414,7 @@ local function redo()
 		recreate(stroke, "after")
 	end
 	undoStack[#undoStack + 1] = stroke
+	echoHistory("Redo", stroke, #redoStack)
 end
 
 local modOptions = Spring.GetModOptions() or {}

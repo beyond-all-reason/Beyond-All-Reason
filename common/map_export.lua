@@ -690,6 +690,14 @@ function MapExport.run(opts)
 			report.sections.blockout = format("mapconfig/blockout.lua (%d layers)", #layers)
 		end
 
+		-- the backdrop below the map, read by the Map Below widget
+		if type(env.below) == "table" and (env.below.kind == "planet" or env.below.kind == "clouds") then
+			local below = copyTable(env.below)
+			below.version = 1
+			emitTable("mapconfig/below.lua", header, below)
+			report.sections.below = format("mapconfig/below.lua (%s)", env.below.kind)
+		end
+
 		-- the skybox: the project names a file in the user's library; it ships inside the map
 		local sky = (type(env.skybox) == "string" and env.skybox ~= "" and env.skybox) or map.skybox
 		if type(sky) == "string" and sky ~= "" then
@@ -853,6 +861,22 @@ function MapExport.run(opts)
 				then
 					tileset.surface_v4 = "mapconfig/tileset/surface_v4.png"
 				end
+				-- terrain holes: the mask for the renderer, and for the binary step, which
+				-- writes the blocked cells into the typemap as terrain type 1
+				if
+					projectFile("surface_holes.png")
+					and copyFromProject("surface_holes.png", "mapconfig/tileset/surface_holes.png")
+				then
+					tileset.surface_holes = "mapconfig/tileset/surface_holes.png"
+					if copyFromProject("surface_holes.png", "holes.png", true) then
+						compile.holes = "holes.png"
+						mapinfo.terrainTypes[1] = {
+							name = "Hole",
+							receiveTracks = false,
+							moveSpeeds = { tank = 0, kbot = 0, hover = 0, ship = 0 },
+						}
+					end
+				end
 				local meta = type(surf.meta) == "string" and projectTable(surf.meta) or nil
 				if meta then
 					tileset.surface_slots = meta
@@ -871,6 +895,7 @@ function MapExport.run(opts)
 			emitTable("mapconfig/tileset/tileset.lua", header, tileset)
 			report.sections.tileset = "mapconfig/tileset/ (renderer = tileset)"
 				.. (tileset.surface and ", surface masks" or "")
+				.. (tileset.surface_holes and ", terrain holes" or "")
 				.. (tileset.ramp and tileset.ramp:find("/") and ", ramp image" or "")
 		else
 			fail("tileset: " .. tostring(err))

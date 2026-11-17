@@ -715,6 +715,7 @@ local djMode = false
 ---@field brushPulseTimer integer?
 ---@field stampWarmSig string?
 ---@field undoHoldStart number?
+---@field historyNote table?
 ---@field waterLevelShift number?
 ---@field waterPreviewLevel number?
 ---@field paramGroup string
@@ -4344,9 +4345,13 @@ function widget:Initialize()
 		saveKeybinds = saveKeybindsToDisk,
 	}
 
-	widgetHandler:RegisterGlobal("TerraformBrushStackUpdate", function(undoCount, redoCount)
+	widgetHandler:RegisterGlobal("TerraformBrushStackUpdate", function(undoCount, redoCount, action, label)
 		historyUndoCount = undoCount or 0
 		historyRedoCount = redoCount or 0
+		-- our own replay undos stay quiet
+		if action and not extraState.replayQueue then
+			extraState.noteHistory(action, label, action == "Undo" and historyUndoCount or historyRedoCount)
+		end
 		extraState.gadgetUndoCount = undoCount or 0
 		-- Cap baseline if gadget evicted old entries (not during our own undo phase)
 		if extraState.stickyUndoBaseline then
@@ -4945,7 +4950,33 @@ function extraState.drawAutorampPreview(suppressed)
 	end
 end
 
+-- Undo and redo steps of one operation in a row become one console line.
+function extraState.noteHistory(action, label, left)
+	local note = extraState.historyNote
+	if note and (note.action ~= action or note.label ~= label) then
+		extraState.flushHistoryNote()
+		note = nil
+	end
+	if not note then
+		note = { action = action, label = label, steps = 0 }
+		extraState.historyNote = note
+	end
+	note.steps = note.steps + 1
+	note.left = left
+end
+
+function extraState.flushHistoryNote()
+	local note = extraState.historyNote
+	if not note then
+		return
+	end
+	extraState.historyNote = nil
+	local steps = note.steps > 1 and (" x" .. note.steps) or ""
+	Echo(string.format("[Terraform Brush] %s: %s%s (%d left)", note.action, note.label or "Edit", steps, note.left))
+end
+
 function widget:Update(dt)
+	extraState.flushHistoryNote()
 	-- Camera hold: every frame and before the tool gates below, so it can always let go
 	do
 		local _, _, lmb, _, rmb = GetMouseState()
@@ -9649,15 +9680,15 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 			for _ = 1, count do
 				SendLuaRulesMsg(MSG.REDO)
 			end
-			if not isRepeat then
-				Echo("[Terraform Brush] Redo")
+			if not isRepeat and historyRedoCount == 0 then
+				Echo("[Terraform Brush] Nothing to redo")
 			end
 		else
 			for _ = 1, count do
 				SendLuaRulesMsg(MSG.UNDO)
 			end
-			if not isRepeat then
-				Echo("[Terraform Brush] Undo")
+			if not isRepeat and historyUndoCount == 0 then
+				Echo("[Terraform Brush] Nothing to undo")
 			end
 		end
 		return true

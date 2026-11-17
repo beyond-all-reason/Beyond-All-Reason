@@ -4,6 +4,22 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 2.0 - unreleased
+
+### New
+
+- **Scenery window.** SCENE > SCENERY gathers what surrounds the map in one window: the mirrored border, the blockout rings, the sky, the water plane, and a new backdrop below the map. The backdrop is a planet (terran, desert, ice, lava or gas giant) or a cloud deck; it shows past the map edge and through holes, shifts a little as the camera moves, and is lit by the map's sun. Four presets set everything at once: STANDARD, VOID, FLOATING, ABOVE CLOUDS. Saved with the project and kept by an exported map.
+- **Holes under features.** A feature whose def carries `customParams.terrainhole = 1` cuts the ground where its model lies below it, so a shaft or pit in the model shows what is under the ground. The cut follows the feature when it is moved, turned, scaled or removed, and is kept apart from painted holes.
+- **Terrain holes.** HOLES in the LAYERS tool cuts the ground away so the sky or a mesh below shows; the right button puts it back. Saved with the project. Units cannot enter a hole; cut it with WALKABLE on and they can cross, for an invisible bridge or a cutscene. SOFT EDGE fades the rim out instead of cutting it. CUT EVERYTHING turns the whole map into one hole, for a floating map: paint the floors back with the right button; the mirrored map border is cut the same way, and the minimap shows holes dark. An exported map keeps its holes and blocks units through its own typemap. The ground still casts its shadow into a hole. Water stays out of a hole, also over a mesh that sits below the water line.
+- **Search.** The looking glass in the header opens a field that finds every tool and control by name or by what it does. Results come in two groups, the panel's own and the ones that open a window; a click opens the tool or window, unfolds the section and flashes the control.
+- While you type, the panel keeps only the sections that hold a match and dims the tools that hold none.
+- **Cinematic cam** in the Capture window: a free camera for framing a view. Fly with WASD, arrows or the numpad, right-drag looks, middle-drag orbits or pans, the wheel dollies, Alt+wheel changes the lens.
+- **PHOTO OF THIS VIEW** (Space) saves the view without the interface into `Terraform Brush/Captures/Views/`.
+- Cinematic cam extras: Hold height, Level, Home, Guides (16:9 frame and thirds), fly and look speed, and nine saved views per map (Ctrl+1..9 saves, 1..9 flies there).
+- `/tfcinecam` turns the cinematic cam on and off.
+- SURFACE: **RMB CLEARS THIS LAYER** makes the right button (and ERASE) take off only the selected layer and leave the others; the palette strip has a row of its own for it.
+- Undo and redo say in the console what they stepped over and how many steps are left, in every tool: `Undo: Raise x5 (12 left)`, `Redo: Place 14 feature(s) (0 left)`.
+
 ## 1.20 - 2026-11-06
 
 Map export: a saved project becomes a map that plays without the editor, and comes back into it.

@@ -34,6 +34,7 @@ local SUITE_WIDGETS = {
 	"Splat Painter",
 	"Start Positions Tool",
 	"Terraform Brush Capture",
+	"Terraform Brush Cinematic Cam",
 	"Weather Brush",
 	"Water Type Overlay GL4",
 	"Terraform Image Overlay",
@@ -217,6 +218,9 @@ local function applyMapTileset(T, cfg)
 			T.setSurfaceMask(":l:" .. cfg.surface)
 			if cfg.surface_v4 then
 				T.setSurfaceMask2(":l:" .. cfg.surface_v4)
+			end
+			if cfg.surface_holes and T.setHoleMask then
+				T.setHoleMask(":l:" .. cfg.surface_holes)
 			end
 		end
 	end

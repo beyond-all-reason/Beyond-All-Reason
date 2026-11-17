@@ -1,5 +1,5 @@
 return {
-	name = "Beyond All Reason",
+	name = "Beyond All Reason tf21",
 	description = "Beyond All Reason",
 	shortName = "BYAR", -- 'BAR' is used by original bar project still
 	version = "$VERSION",

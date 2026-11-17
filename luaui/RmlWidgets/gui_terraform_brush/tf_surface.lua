@@ -478,7 +478,10 @@ local HARD_CHANNELS = {
 	{ "PLATEAU", "forcing the plateau cap where painted" },
 }
 
-local function syncHard(doc, ctx, setSummary)
+local HOLES_INFO = { "HOLES", "cutting the ground away, units cannot enter" }
+local HOLES_WALK_INFO = { "HOLES", "cutting the ground away, units can cross" }
+
+local function syncHard(doc, ctx, setSummary, surfState)
 	local sp = WG.SplatPainter
 	local spState = sp and sp.getState and sp.getState()
 	if not spState then
@@ -497,9 +500,21 @@ local function syncHard(doc, ctx, setSummary)
 	setDm("surfShaderOff", not (T and T.isActive and T.isActive()))
 
 	-- The NOW PAINTING strip says what the next stroke does.
-	local ch = spState.channel or 1
+	-- A hole session arms no channel: the surface painter cuts instead.
+	local holes = (widgetState.layersHoles and surfState and surfState.holeMode) and true or false
+	setDm("surfHoles", holes)
+	local walk = (surfState and surfState.holeWalkable) and true or false
+	setDm("surfHolesWalk", walk)
+	setDm("surfHolesSoft", (surfState and surfState.holeSoft) and true or false)
+	-- the whole-map confirms do not outlive the hole session
+	if not holes then
+		setDm("surfHolesCutArm", false)
+		setDm("surfHolesRestoreArm", false)
+	end
+	local ch = holes and 0 or (spState.channel or 1)
 	setDm("surfHardCh", ch)
-	local info = HARD_CHANNELS[ch] or HARD_CHANNELS[1]
+	local info = holes and (walk and HOLES_WALK_INFO or HOLES_INFO) or HARD_CHANNELS[ch] or HARD_CHANNELS[1]
+	local radius = holes and surfState.radius or spState.radius
 	setDm("surfHardNowName", info[1])
 	setDm("surfHardNowDetail", info[2])
 
@@ -547,7 +562,7 @@ local function syncHard(doc, ctx, setSummary)
 			stamped = true
 		end
 	end
-	ss("surf-slider-size", "surf-size", tostring(spState.radius or 100))
+	ss("surf-slider-size", "surf-size", tostring(radius or 100))
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((spState.strength or 0.15) * 100 + 0.5)))
 	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((spState.curve or 1.0) * 10 + 0.5)))
 	-- Every slider goes through the dirty-checked path: a stamp raises a change
@@ -566,7 +581,7 @@ local function syncHard(doc, ctx, setSummary)
 		local function nb(id, txt)
 			setAttrValueIfChanged(getCachedEl(doc, id), id, txt)
 		end
-		nb("surf-slider-size-numbox", tostring(spState.radius or 100))
+		nb("surf-slider-size-numbox", tostring(radius or 100))
 		nb("surf-slider-strength-numbox", string.format("%.2f", spState.strength or 0.15))
 		nb("surf-slider-falloff-numbox", string.format("%.1f", spState.curve or 1.0))
 		nb("surf-hard-slider-slope-max-numbox", tostring(sf.slopeMax or 45))
@@ -596,11 +611,11 @@ local function syncHard(doc, ctx, setSummary)
 			"",
 			info[1],
 			"R ",
-			tostring(spState.radius or 0),
+			tostring(radius or 0),
 			"Str ",
 			string.format("%.2f", spState.strength or 0),
 			"Undo ",
-			tostring(spState.undoCount or 0)
+			tostring((holes and surfState.undoCount or spState.undoCount) or 0)
 		)
 	end
 end
@@ -641,7 +656,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 
 	-- HARD mirrors the splat engine, not the variant mask.
 	if dm.surfMode == "hard" and WG.SplatPainter then
-		syncHard(doc, ctx, setSummary)
+		syncHard(doc, ctx, setSummary, surfState)
 		return
 	end
 	if not (surfState and WG.SurfacePainter) then
@@ -695,6 +710,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 	end
 	setDm("surfShaderOff", not surfState.shaderOn)
 	setDm("surfErase", surfState.eraseMode and true or false)
+	setDm("surfEraseOne", surfState.eraseOne and true or false)
+	setDm("surfEraseOneLabel", surfState.eraseOne and "RMB CLEARS THIS LAYER" or "RMB CLEARS ALL")
 	setDm("surfPreset", surfState.preset or "")
 	-- Soft smart filters and their warn chip
 	do
@@ -798,7 +815,10 @@ function M.sync(doc, ctx, surfState, setSummary)
 		local selSlot = surfState.selSlot or 0
 		setDm("surfSelSlot", selSlot)
 		local nowName, nowDetail
-		if surfState.eraseMode or selSlot == 0 then
+		if surfState.eraseMode and surfState.eraseOne and selSlot > 0 then
+			nowName = shortAsset(sel)
+			nowDetail = "strokes take off only slot " .. selSlot
+		elseif surfState.eraseMode or selSlot == 0 then
 			nowName = "BASE"
 			-- Painting BASE forces top_001 over the automatic choice (plateau
 			-- included). Erasing (RMB) withdraws the claim, back to automatic.

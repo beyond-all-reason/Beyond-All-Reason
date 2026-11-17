@@ -715,8 +715,14 @@ local function pushUndo(action, lights)
 	end
 end
 
+local function echoHistory(step, entry, left)
+	local name = entry.action == "add" and "Add" or "Remove"
+	Echo(string.format("[Light Placer] %s: %s %d light(s) (%d left)", step, name, #entry.lights, left))
+end
+
 local function doUndo()
 	if #undoStack == 0 then
+		Echo("[Light Placer] Nothing to undo")
 		return
 	end
 	local entry = undoStack[#undoStack]
@@ -741,10 +747,12 @@ local function doUndo()
 		end
 		redoStack[#redoStack + 1] = { action = "remove", lights = restored }
 	end
+	echoHistory("Undo", entry, #undoStack)
 end
 
 local function doRedo()
 	if #redoStack == 0 then
+		Echo("[Light Placer] Nothing to redo")
 		return
 	end
 	local entry = redoStack[#redoStack]
@@ -771,6 +779,7 @@ local function doRedo()
 		end
 		undoStack[#undoStack + 1] = { action = "remove", lights = removed }
 	end
+	echoHistory("Redo", entry, #redoStack)
 end
 
 ----------------------------------------------------------------
@@ -1944,16 +1953,13 @@ function widget:KeyPress(key, mods, isRepeat)
 	if mods.ctrl and (key == 0x7A or key == 0x5A) then -- z/Z
 		if mods.shift then
 			doRedo()
-			Echo("[Light Placer] Redo")
 		else
 			doUndo()
-			Echo("[Light Placer] Undo")
 		end
 		return true
 	end
 	if mods.ctrl and (key == 0x79 or key == 0x59) then -- y/Y
 		doRedo()
-		Echo("[Light Placer] Redo")
 		return true
 	end
 

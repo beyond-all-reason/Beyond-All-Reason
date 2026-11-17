@@ -653,6 +653,16 @@ local function applyHistoryEntry(entry)
 	end
 end
 
+-- One console line for the undo or redo steps taken this frame.
+local function echoHistory(step, steps, left)
+	if steps == 0 then
+		Echo("[Diffuse Painter] Nothing to " .. step:lower())
+		return
+	end
+	local times = steps > 1 and (" x" .. steps) or ""
+	Echo(string.format("[Diffuse Painter] %s: Paint stroke%s (%d left)", step, times, left))
+end
+
 local function runHistoryOps()
 	-- An undo mid-drag would rewrite masks the open snapshot already captured,
 	-- corrupting that stroke's "before" state; wait until the drag seals.
@@ -675,15 +685,25 @@ local function runHistoryOps()
 				steps[#steps + 1] = (delta > 0) and 1 or -1
 			end
 		end
+		local undone, redone = 0, 0
 		for j = 1, #steps do
 			if steps[j] < 0 and #undoStack > 0 then
 				local entry = table.remove(undoStack)
 				applyHistoryEntry(entry)
 				redoStack[#redoStack + 1] = entry
+				undone = undone + 1
 			elseif steps[j] > 0 and #redoStack > 0 then
 				local entry = table.remove(redoStack)
 				applyHistoryEntry(entry)
 				undoStack[#undoStack + 1] = entry
+				redone = redone + 1
+			end
+		end
+		if #steps > 0 then
+			if steps[1] < 0 then
+				echoHistory("Undo", undone, #undoStack)
+			else
+				echoHistory("Redo", redone, #redoStack)
 			end
 		end
 	end

@@ -16,9 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	-- Registered as a sync action (table lookup by message name) instead of a
 	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
 	-- message from every synced gadget. Returning true stops the broadcast.
-	local function onStacks(_, undoCount, redoCount)
+	-- action and label come only with an undo or redo step
+	local function onStacks(_, undoCount, redoCount, action, label)
 		if Script.LuaUI("TerraformBrushStackUpdate") then
-			Script.LuaUI.TerraformBrushStackUpdate(undoCount, redoCount)
+			Script.LuaUI.TerraformBrushStackUpdate(undoCount, redoCount, action, label)
 		end
 		return true
 	end
@@ -125,6 +126,8 @@ local undoStack = {}
 local redoStack = {}
 ---@type number
 local totalVertexCount = 0 -- track approximate memory usage
+-- what the next undo entry is called when undo or redo reports it
+local opLabel = "Edit"
 
 -- Import-completion counter, published as game rules param tfb_import_done. The
 -- map project loader waits on it because only the sim knows when the streamed
@@ -421,6 +424,7 @@ local function pushBboxSnapshot(snapshot)
 	redoStack = {}
 
 	snapshot.strokeId = currentStrokeId
+	snapshot.label = opLabel
 	undoStack[#undoStack + 1] = snapshot
 	totalVertexCount = totalVertexCount + vertexCount
 	if #undoStack > MAX_UNDO then
@@ -449,7 +453,7 @@ end
 -- Snapshot every heightmap vertex into one undo entry. Skips the per-call
 -- MAX_SNAPSHOT_VERTICES gate on purpose: whole-map edits are explicit user
 -- actions, and cells still at their original height cost only a mask entry.
-local function snapshotWholeMap()
+local function snapshotWholeMap(label)
 	local squareSize = Game.squareSize
 	local snapFlat = scratchSnapFlat
 	local vCount = 0
@@ -468,6 +472,7 @@ local function snapshotWholeMap()
 	redoStack = {}
 	local snapshot = flatToBboxSnapshot(snapFlat, vCount)
 	snapshot.strokeId = currentStrokeId
+	snapshot.label = label
 	undoStack[#undoStack + 1] = snapshot
 	totalVertexCount = totalVertexCount + vCount
 	if #undoStack > MAX_UNDO then
@@ -528,7 +533,7 @@ local function remapMapHeights(newMin, newMax, clampOnly)
 		return
 	end
 
-	snapshotWholeMap()
+	snapshotWholeMap("Height range")
 
 	Spring.SetHeightMapFunc(function()
 		for iz = 0, mapSizeZ, squareSize do
@@ -1077,6 +1082,12 @@ local function applyTerraform(
 	if standalone then
 		beginBatch()
 	end
+	opLabel = (localSmudge and "Smudge")
+		or (localBlur and "Smooth")
+		or (direction == 0 and "Level")
+		or (direction == 2 and "Random")
+		or (direction > 0 and "Raise")
+		or "Lower"
 
 	-- Clay mode: target plane at the reference height + full brush displacement.
 	local clayPlane = clayPlaneIn
@@ -1491,6 +1502,7 @@ local function applyRamp(startX, startZ, startY, endX, endZ, endY, width, clayMo
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Ramp"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -1619,6 +1631,7 @@ local function applySplineRamp(waypoints, width, clayMode, snapFull)
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Spline ramp"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -1680,6 +1693,7 @@ local function applyRestore(centerX, centerZ, radius, shape, angleDeg, curve, in
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Restore"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -1960,6 +1974,7 @@ local function applyNoise(
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Noise"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -2123,6 +2138,7 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Erode"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -2222,6 +2238,7 @@ local function applyAutoramp(
 	scratchHeightDataMax = hIdx
 	if hIdx > 0 then
 		applyHeightChanges(heightData, hIdx)
+		opLabel = "Auto ramp"
 		pushSnapshotFromFlat(snapFlat, sCount)
 	end
 end
@@ -2641,6 +2658,7 @@ local function applyFill(cx, cz)
 
 	if hIdx > 0 then
 		applyHeightChanges(hBuf, hIdx)
+		opLabel = "Fill"
 		pushSnapshotFromFlat(snapFlat, sCount)
 		spawnDust(cx, cz, min(400, hIdx * ss * 0.5))
 	end
@@ -2677,6 +2695,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local redoSnapshot = captureCurrentForSnapshot(snapshot)
 		redoSnapshot.strokeId = snapshot.strokeId
+		redoSnapshot.label = snapshot.label
 
 		applySnapshotHeights(snapshot)
 
@@ -2690,7 +2709,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		evictOldSnapshots()
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack, "Undo", snapshot.label)
 		return true
 	end
 
@@ -2724,6 +2743,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local vertexCount = entry.vertexCount or 0
 			local redoSnapshot = captureCurrentForSnapshot(entry)
 			redoSnapshot.strokeId = targetStrokeId
+			redoSnapshot.label = entry.label
 			applySnapshotHeights(entry)
 			redoStack[#redoStack + 1] = redoSnapshot
 			totalVertexCount = totalVertexCount + vertexCount
@@ -2750,6 +2770,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		local undoSnapshot = captureCurrentForSnapshot(snapshot)
 		undoSnapshot.strokeId = snapshot.strokeId
+		undoSnapshot.label = snapshot.label
 
 		applySnapshotHeights(snapshot)
 
@@ -2763,7 +2784,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		evictOldSnapshots()
-		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+		SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack, "Redo", snapshot.label)
 		return true
 	end
 
@@ -2909,7 +2930,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		local squareSize = Game.squareSize
 		local mapSizeX = Game.mapSizeX
 		local mapSizeZ = Game.mapSizeZ
-		snapshotWholeMap()
+		snapshotWholeMap("Full restore")
 		Spring.SetHeightMapFunc(function()
 			for iz = 0, mapSizeZ, squareSize do
 				for ix = 0, mapSizeX, squareSize do

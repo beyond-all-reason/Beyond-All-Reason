@@ -187,7 +187,7 @@ local function grassUndo()
 	if #redoStack > MAX_HISTORY then
 		table.remove(redoStack, 1)
 	end
-	Echo("[Grass Brush] Undo (" .. #patches .. " patches)")
+	Echo("[Grass Brush] Undo: Grass stroke, " .. #patches .. " patches (" .. #undoStack .. " left)")
 end
 
 local function grassRedo()
@@ -206,7 +206,7 @@ local function grassRedo()
 		api.setDensityAt(patches[i].x, patches[i].z, patches[i].after)
 	end
 	undoStack[#undoStack + 1] = patches
-	Echo("[Grass Brush] Redo (" .. #patches .. " patches)")
+	Echo("[Grass Brush] Redo: Grass stroke, " .. #patches .. " patches (" .. #redoStack .. " left)")
 end
 
 local function grassUndoToIndex(targetIdx)
