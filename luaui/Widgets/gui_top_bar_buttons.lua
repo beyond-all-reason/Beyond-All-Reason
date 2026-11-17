@@ -125,6 +125,8 @@ local quitscreenResignArea
 local quitscreenTeamResignArea
 ---@type any
 local showQuitscreen
+-- Set while the quit screen answers the window's close button or Alt+F4: when it was asked.
+local closeRequest
 ---@type any
 local hideQuitWindow
 ---@type boolean
@@ -410,8 +412,10 @@ local function drawQuitScreen()
 			local fontSize = h / 6
 			local text = BAR.I18N("ui.topbar.quit.reallyQuit")
 			teamResign = false
+			-- a close request leaves the game for good, so the lobby's variant does not apply
+			local lobby = chobbyLoaded and not closeRequest
 
-			if not spec then
+			if not spec and not closeRequest then
 				text = BAR.I18N("ui.topbar.quit.reallyQuitResign")
 				if not gameIsOver and chobbyLoaded then
 					if numPlayers < 3 then
@@ -511,7 +515,7 @@ local function drawQuitScreen()
 			fontSize = fontSize * 0.92
 
 			-- stay button
-			if gameIsOver or not chobbyLoaded then
+			if gameIsOver or not lobby then
 				if
 					mathIsInRect(
 						mx,
@@ -659,7 +663,7 @@ local function drawQuitScreen()
 			end
 
 			-- quit button
-			if gameIsOver or not chobbyLoaded then
+			if gameIsOver or not lobby then
 				if
 					mathIsInRect(
 						mx,
@@ -1004,6 +1008,7 @@ local function applyButtonAction(button)
 					end
 				end
 			else
+				closeRequest = nil
 				showQuitscreen = now
 			end
 		end
@@ -1192,7 +1197,7 @@ function widget:MousePress(x, y, button)
 					end
 				end
 				if
-					(gameIsOver or not chobbyLoaded)
+					(gameIsOver or not chobbyLoaded or closeRequest)
 					and mathIsInRect(
 						x,
 						y,
@@ -1206,7 +1211,7 @@ function widget:MousePress(x, y, button)
 						Spring.PlaySoundFile(leftclick, 0.75, "ui")
 					end
 
-					if not chobbyLoaded then
+					if closeRequest or not chobbyLoaded then
 						Spring.SendCommands("QuitForce") -- Exit the game completely
 					else
 						Spring.SendCommands("ReloadForce") -- Exit to the lobby
@@ -1282,6 +1287,26 @@ function widget:MousePress(x, y, button)
 	if hoveringButtons then
 		return true
 	end
+end
+
+-- The window's close button and Alt+F4 (engine 2026.09+): a player in a running game is asked first.
+-- Asking again once the dialog has been up for a moment quits; SDL can report one click twice.
+function widget:AllowQuit()
+	if spec or gameIsOver or not gameStarted or hideQuitWindow then
+		return true
+	end
+	-- nothing to ask with: the lobby covers the game, or the interface is hidden
+	if widgetHandler.chobbyInterface or Spring.IsGUIHidden() then
+		return true
+	end
+	if showQuitscreen and closeRequest then
+		return Spring.DiffTimers(Spring.GetTimer(), closeRequest) > 0.5
+	end
+
+	hideWindows()
+	closeRequest = Spring.GetTimer()
+	showQuitscreen = now
+	return false
 end
 
 function widget:MouseWheel(up, value) -- up = true/false , value = -1/1
