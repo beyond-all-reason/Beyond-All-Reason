@@ -12,7 +12,7 @@ return {
 		category = "CANBEUW",
 		canmove = false,
 		canSelfDestruct = false,
-		capturable = false,
+		capturable = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -42 0",
 		collisionvolumescales = "85 170 85",
