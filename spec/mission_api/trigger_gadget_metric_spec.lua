@@ -33,6 +33,11 @@ local function installMissionApi(currentStageID)
 			UnitQuery = { DoesUnitMatch = function() end },
 			AreaTracking = { TrackUnitsInArea = function() end },
 			DetectionLevels = {},
+			Stages = {
+				GetCurrentStageID = function()
+					return currentStageID
+				end,
+			},
 			Tracking = {
 				DoesUnitHaveName = function()
 					return false

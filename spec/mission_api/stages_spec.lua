@@ -43,9 +43,16 @@ describe("mission_api.stages", function()
 	end)
 
 	describe("SetInitialStage", function()
-		it("sets the current stage without announcing", function()
+		it("sets the current stage without activating its objectives", function()
+			local activated = {}
+			GG["MissionAPI"].Modules.Objectives.ActivateObjective = function(objectiveID)
+				activated[#activated + 1] = objectiveID
+			end
+
 			stages.SetInitialStage("second")
+
 			assert.are.equal("second", stages.GetCurrentStageID())
+			assert.are.same({}, activated)
 		end)
 	end)
 
@@ -56,20 +63,6 @@ describe("mission_api.stages", function()
 
 		it("returns nil for an unknown stage", function()
 			assert.is_nil(stages.GetStage("nope"))
-		end)
-	end)
-
-	describe("GetObjectiveIDs", function()
-		it("defaults to the current stage", function()
-			assert.are.same({ "a", "b" }, stages.GetObjectiveIDs())
-		end)
-
-		it("accepts an explicit stage", function()
-			assert.are.same({ "c" }, stages.GetObjectiveIDs("second"))
-		end)
-
-		it("returns an empty list for an unknown stage", function()
-			assert.are.same({}, stages.GetObjectiveIDs("nope"))
 		end)
 	end)
 end)

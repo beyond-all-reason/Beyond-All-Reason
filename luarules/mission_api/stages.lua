@@ -14,10 +14,6 @@ local function getObjectives()
 	return GG["MissionAPI"].Modules.Objectives
 end
 
-local function announce(stageID)
-	Spring.Echo("Stage set to: " .. stageID)
-end
-
 local function getCurrentStageID()
 	return GG["MissionAPI"].CurrentStageID
 end
@@ -36,12 +32,6 @@ local function getStage(stageID)
 	return GG["MissionAPI"].Stages[stageID]
 end
 
---- Objective IDs listed in the given stage (defaults to the current stage).
-local function getObjectiveIDs(stageID)
-	local stage = getStage(stageID or getCurrentStageID())
-	return stage and stage.objectives or {}
-end
-
 local function activateStage(stageID, carriedOver)
 	local stage = getStage(stageID)
 	if not stage then
@@ -49,7 +39,6 @@ local function activateStage(stageID, carriedOver)
 	end
 
 	GG["MissionAPI"].CurrentStageID = stageID
-	announce(stageID)
 
 	local objectives = getObjectives()
 	for _, objectiveID in ipairs(stage.objectives) do
@@ -116,7 +105,6 @@ return {
 	GetChangeCount = getChangeCount,
 	SetInitialStage = setInitialStage,
 	GetStage = getStage,
-	GetObjectiveIDs = getObjectiveIDs,
 	ActivateStage = activateStage,
 	ChangeStage = changeStage,
 }

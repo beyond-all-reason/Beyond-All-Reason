@@ -216,7 +216,8 @@ function gadget:GamePreload()
 	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	GG["MissionAPI"].Modules.Stages.ActivateStage(GG["MissionAPI"].CurrentStageID)
+	local stages = GG["MissionAPI"].Modules.Stages
+	stages.ActivateStage(stages.GetCurrentStageID())
 end
 
 function gadget:GameFrame(frameNumber)
