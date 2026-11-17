@@ -1,0 +1,159 @@
+[
+  {
+    "file": "icons/inverted/scavengerbossv5.png",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "icons/scavengerbossv5.png",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/scavboss/scavengerbossv5.s3o",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Tharsy",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command",
+    "proxy_submitter": "Egzothicki",
+    "proxy_status": "pending-author-confirmation"
+  },
+  {
+    "file": "objects3d/Units/scavboss/scavengerbossv5_dead.s3o",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Tharsy",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command",
+    "proxy_submitter": "Egzothicki",
+    "proxy_status": "pending-author-confirmation"
+  },
+  {
+    "file": "unitpics/scavengerbossv4.dds",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "unitpics/scavengerbossv5.dds",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "unitpics/scavengers/scavengerbossv5.dds",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armatlas_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armdfly_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armhvytrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corhvytrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corseah_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/corvalk_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/legatrans_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/leglts_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/legstronghold_tractorbeam.s3o",
+    "status": "intent",
+    "pr": 10031,
+    "github_username": "PtaQQ",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-15T19:44:56.253Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "bitmaps/groundfx/scavbossfirezone.png",
+    "status": "intent",
+    "pr": 9493,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-16T08:18:44.720Z",
+    "source": "confirm-license-command"
+  }
+]
