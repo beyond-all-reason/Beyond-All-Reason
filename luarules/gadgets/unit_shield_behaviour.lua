@@ -240,7 +240,9 @@ local distanceSquared = math.distance3dSquared
 local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
@@ -252,25 +254,29 @@ local spUseUnitResource = Spring.UseUnitResource
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitArmored = Spring.GetUnitArmored
 
+local unitDefWeaponDefs = {}
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
+local armoredUnitDefs = {}
+local explosionLatency = {} -- [weaponDefID] = frames until its last delayed damage
 local forceDeleteWeapons = {}
+local highestWeapDefDamages = {}
+local weaponIgnoreCoverage = {}
+local destroyedUnitData = {}
 local unitDefIDCache = {}
-local unitDefWeaponDefs = {}
 local unitCoverages = {} -- [unitID] = {[shieldUnitID] = true, ...}
 local shieldCoverages = {} -- [shieldUnitID] = {[unitID] = true, ...}
-local weaponIgnoreCoverage = {}
-local projectileIgnoreCoverage = {}
-local highestWeapDefDamages = {}
-local armoredUnitDefs = {}
-local destroyedUnitData = {}
-local hasDestroyedData = false
 local shieldsNeedingUpdate = {} -- shields that are disabled or recovering from overkill
+local projectileIgnoreCoverage = {}
+local projectileExplosions = {} -- [projectileID] = { x, y, z, team, weaponDefID, frame, wasStopped }
+local projectileStoppedByShield = {} -- [projectileID] = gameFrame
+local expiredExplosions = {}
 
 local gameFrame = 0
+local hasDestroyedData = false
 
 for weaponDefID = 0, #WeaponDefs do
-	local weaponDef = WeaponDefs[weaponDefID]
+	local weaponDef = WeaponDefs[weaponDefID] ---@type table
 
 	if weaponDef.type == "Flame" then -- flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
 		forceDeleteWeapons[weaponDefID] = weaponDef
@@ -329,6 +335,9 @@ for weaponDefID = 0, #WeaponDefs do
 		* beamtimeReductionMultiplier
 		* minIntensity
 		* directHitQualifyingMultiplier
+
+	-- See DIRECT_EXPLOSION_DAMAGE_SPEED_SCALE
+	explosionLatency[weaponDefID] = mathMax(math.floor(weaponDef.damageAreaOfEffect / weaponDef.explosionSpeed) - 3, 0)
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -512,20 +521,45 @@ local function activateShield(unitID, unitData)
 	end
 end
 
-local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
-	-- It is possible for attackerID to be nil, e.g. damage from death explosion
-	local unitShields = unitCoverages[unitID]
-	-- Empty shield lists are nil'd out, so existence implies non-empty
-	if unitShields and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
-		local attackerShields = unitCoverages[attackerID]
-		if not attackerShields then
-			return true
-		end
+-- Projectile IDs are reused, so most explosion records can belong to an earlier projectile.
+-- This is more frequent than you might expect, though the engine recycles IDs slowly, mostly.
+-- Explosion speeds in current BAR can take at most 24 frames to deal delayed damages.
+local function getExplosionFromSource(weaponDefID, projectileID)
+	local explosion = projectileExplosions[projectileID]
+	if
+		explosion
+		and (explosion.weaponDefID == weaponDefID and gameFrame - explosion.frame <= explosionLatency[weaponDefID])
+	then
+		return explosion
+	end
+end
 
-		-- The loop only ever checked one entry (break on match, return on mismatch), so use next() directly
-		local shieldUnitID = next(unitShields)
-		if shieldUnitID and not attackerShields[shieldUnitID] then
-			return true
+local function isExplosionInShield(explosion, shieldUnitID)
+	local x, y, z, radius = getUnitShieldWeaponPosition(shieldUnitID, shieldUnitsData[shieldUnitID])
+	return x and distanceSquared(explosion.x, explosion.y, explosion.z, x, y, z) < radius * radius
+end
+
+local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam, weaponDefID, projectileID)
+	local explosion = getExplosionFromSource(weaponDefID, projectileID)
+	local sourceTeam = explosion ~= nil and explosion.team or attackerTeam
+	-- Empty shield lists are nil'd out, so existence implies non-empty
+	if sourceTeam and not spAreTeamsAllied(unitTeam, sourceTeam) then
+		local unitShields = unitCoverages[unitID]
+		local attackerShields = unitCoverages[attackerID]
+		local wasStopped = explosion ~= nil and explosion.wasStopped
+		for shieldUnitID in pairs(unitShields) do
+			local isSourceInShield
+			if wasStopped then
+				isSourceInShield = false
+			elseif explosion then
+				isSourceInShield = isExplosionInShield(explosion, shieldUnitID)
+			else
+				isSourceInShield = attackerShields and attackerShields[shieldUnitID]
+			end
+			-- Shields are smart and stop only non-allied projectiles. This stops only non-allied explosions, too.
+			if not isSourceInShield and not spAreTeamsAllied(sourceTeam, spGetUnitTeam(shieldUnitID)) then
+				return true
+			end
 		end
 	end
 
@@ -665,6 +699,15 @@ function gadget:GameFrame(frame)
 		for proID in pairs(projectileIgnoreCoverage) do
 			projectileIgnoreCoverage[proID] = nil
 		end
+		for proID, explosion in pairs(projectileExplosions) do
+			if gameFrame - explosion.frame > explosionLatency[explosion.weaponDefID] then
+				projectileExplosions[proID] = nil
+				expiredExplosions[#expiredExplosions + 1] = explosion -- reuse tables
+			end
+		end
+		for proID in pairs(projectileStoppedByShield) do
+			projectileStoppedByShield[proID] = nil
+		end
 	end
 
 	if frame % 11 == 7 then
@@ -736,8 +779,27 @@ function gadget:UnitPreDamaged(
 		return
 	end
 
-	if shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam) then
+	if shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam, weaponDefID, projectileID) then
 		return 0, 0
+	end
+end
+
+function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
+	if projectileID > -1 and next(shieldUnitsData) then
+		local explosion = projectileExplosions[projectileID]
+		if not explosion then
+			local expiredCount = #expiredExplosions
+			explosion = expiredExplosions[expiredCount] or {}
+			expiredExplosions[expiredCount] = nil
+			projectileExplosions[projectileID] = explosion
+		end
+		explosion.x = x
+		explosion.y = y
+		explosion.z = z
+		explosion.team = spGetProjectileTeamID(projectileID)
+		explosion.weaponDefID = weaponDefID
+		explosion.frame = gameFrame
+		explosion.wasStopped = projectileStoppedByShield[projectileID] == gameFrame
 	end
 end
 
@@ -797,6 +859,7 @@ function gadget:ShieldPreDamaged(
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = spGetProjectileDefID(proID)
+		projectileStoppedByShield[proID] = gameFrame
 		local newShieldDamage = originalShieldDamages[weaponDefID] or 0
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 		if forceDeleteWeapons[weaponDefID] then
@@ -1071,6 +1134,13 @@ function gadget:Initialize()
 	GG.Shields.GetUnitShieldState = getUnitShieldState
 	GG.Shields.IsInShield = isInShield
 	GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
+
+	for weaponDefID = 0, #WeaponDefs do
+		local weaponType = WeaponDefs[weaponDefID].type
+		if not weaponIgnoreCoverage[weaponDefID] and weaponType ~= "BeamLaser" and weaponType ~= "LightningCannon" then
+			gadgetHandler:RegisterExplosion(weaponDefID)
+		end
+	end
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)

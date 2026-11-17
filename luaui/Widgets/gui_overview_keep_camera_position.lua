@@ -32,6 +32,10 @@ function widget:Initialize()
 	storeCamKeys()
 end
 
+function widget:KeyBindingsChanged()
+	storeCamKeys()
+end
+
 -- works only with single key binds
 local function isCamKey(keyNum)
 	local pressedSymbol = Spring.GetKeySymbol(keyNum):upper()

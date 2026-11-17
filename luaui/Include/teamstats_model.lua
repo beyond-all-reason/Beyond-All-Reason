@@ -173,8 +173,16 @@ local COLUMNS = {
 	-- What is happening right now, read fresh at every refresh: the economy from the engine
 	-- and the rest from the team stats gadget. None of these is a running total, so the
 	-- per-minute switch leaves them be. `of` names the two amounts a percentage is made of,
-	-- for its tooltip, and `count` the number of units behind a value.
+	-- for its tooltip, and `count` the number of units behind a value. The income leaves
+	-- reclaim out when the team stats gadget tells the two apart; its reclaim is beside it.
 	metalIncome = { group = "metal", stat = "resourceIncome", short = "resourceIncome", fmt = "si" },
+	metalReclaimIncome = {
+		group = "metal",
+		stat = "resourceReclaimIncome",
+		short = "shortReclaimIncome",
+		fmt = "si",
+		gadget = true,
+	},
 	metalExpense = { group = "metal", stat = "resourceExpense", short = "resourceExpense", fmt = "si" },
 	metalLevel = {
 		group = "metal",
@@ -184,6 +192,13 @@ local COLUMNS = {
 		of = { "metalCurrent", "metalStorage" },
 	},
 	energyIncome = { group = "energy", stat = "resourceIncome", short = "resourceIncome", fmt = "si" },
+	energyReclaimIncome = {
+		group = "energy",
+		stat = "resourceReclaimIncome",
+		short = "shortReclaimIncome",
+		fmt = "si",
+		gadget = true,
+	},
 	energyExpense = { group = "energy", stat = "resourceExpense", short = "resourceExpense", fmt = "si" },
 	energyLevel = {
 		group = "energy",
@@ -441,10 +456,12 @@ end
 -- it says so in words of its own (ui.teamStats.graphDesc).
 for _, key in ipairs({
 	"metalIncome",
+	"metalReclaimIncome",
 	"metalExpense",
 	"metalLevel",
 	"metalStored",
 	"energyIncome",
+	"energyReclaimIncome",
 	"energyExpense",
 	"energyLevel",
 	"energyStored",
@@ -474,9 +491,11 @@ local GROUPS = {
 		key = "live",
 		columns = {
 			"metalIncome",
+			"metalReclaimIncome",
 			"metalExpense",
 			"metalLevel",
 			"energyIncome",
+			"energyReclaimIncome",
 			"energyExpense",
 			"energyLevel",
 			"conversion",
@@ -606,10 +625,12 @@ local SUMMED = {
 	-- The live amounts, summed the same way; the ratios among them are derived from the
 	-- sums. A team the viewer may not see leaves its ally team's total unknown.
 	"metalIncome",
+	"metalReclaimIncome",
 	"metalExpense",
 	"metalCurrent",
 	"metalStorage",
 	"energyIncome",
+	"energyReclaimIncome",
 	"energyExpense",
 	"energyCurrent",
 	"energyStorage",
@@ -701,9 +722,9 @@ local CARD_LINES = {
 	{ "traded", { "killedValue", "lostValue", "valueEfficiency", "teamKillValue" } },
 	{ "commanders", { "comKills", "comLost" } },
 	{ "metal", { "metalProduced", "metalUsed", "metalExcess", "metalSent", "metalReceived", "metalStored" } },
-	{ "", { "metalIncome", "metalExpense", "metalLevel" } },
+	{ "", { "metalIncome", "metalReclaimIncome", "metalExpense", "metalLevel" } },
 	{ "energy", { "energyProduced", "energyUsed", "energyExcess", "energySent", "energyReceived", "energyStored" } },
-	{ "", { "energyIncome", "energyExpense", "energyLevel" } },
+	{ "", { "energyIncome", "energyReclaimIncome", "energyExpense", "energyLevel" } },
 	{ "industry", { "conversion", "buildPower", "buildPowerUse" } },
 	{ "value", { "valueArmy", "valueAir", "valueSea", "valueDefense", "valueStrategic" } },
 	{ "", { "valueFactories", "valueBuilders", "valueEconomy", "valueUtility" } },

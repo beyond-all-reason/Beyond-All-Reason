@@ -270,6 +270,7 @@ local flexCallIns = {
 	"FeatureCreated",
 	"FeatureDestroyed",
 	"UnsyncedHeightMapUpdate",
+	"KeyBindingsChanged",
 }
 if Engine.FeatureSupport.nanoParticleUpdateCallin then
 	flexCallIns[#flexCallIns + 1] = "NanoParticleUpdate"
@@ -1112,6 +1113,7 @@ function widgetHandler:Initialize()
 	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
 	self:UpdateCallIns()
 	insertingStartupWidgets = true
+	self.startingUp = true -- (a widget's Initialize can tell it was on already from being switched on)
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -1129,6 +1131,7 @@ function widgetHandler:Initialize()
 		end
 	end
 	insertingStartupWidgets = false
+	self.startingUp = false
 	-- Kept, the list would hold every startup widget in memory after it is switched off.
 	unsortedWidgets = {}
 
@@ -3219,6 +3222,15 @@ function widgetHandler:Update()
 	-- window that was opened by the input events just handled
 	self:UpdateModalState(deltaTime)
 
+	if self.keyBindingsDirty then
+		self.keyBindingsDirty = false
+		tracyZoneBeginN("W:KeyBindingsChanged")
+		for _, w in ipairs(self.KeyBindingsChangedList) do
+			w:KeyBindingsChanged()
+		end
+		tracyZoneEnd()
+	end
+
 	tracyZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
 		tracyZoneBeginN(w._tracyUpdateName)
@@ -4374,6 +4386,11 @@ function widgetHandler:LanguageChanged()
 		w:LanguageChanged()
 	end
 	tracyZoneEnd()
+end
+
+-- The engine calls this once per bind command; widgets hear it once, on the next Update.
+function widgetHandler:KeyBindingsChanged()
+	self.keyBindingsDirty = true
 end
 
 function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
