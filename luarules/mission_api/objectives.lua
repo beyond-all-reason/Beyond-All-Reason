@@ -1,6 +1,6 @@
 ---
 --- Objective lifecycle for the Mission API: activation, progress, completion, failure,
---- cancellation, and visibility.
+--- cancellation, and visibility. Stage state lives in stages.lua.
 ---
 --- An objective with a condition is watched by its condition record (see
 --- objectives_loader); this module only decides what activation, progress and

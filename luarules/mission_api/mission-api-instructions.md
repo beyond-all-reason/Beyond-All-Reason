@@ -296,6 +296,8 @@ return {
 - An objective's lifecycle hooks (`onActivated`, `onProgress`, `onCompleted`, `onFailed`,
   `onCanceled`, `onHidden`, `onShown`) name Event triggers to fire; `nextStage` moves to that stage
   on completion.
+- Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
+  `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
 - Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
   `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
