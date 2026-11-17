@@ -1,0 +1,742 @@
+/* GL4 Light Editor. Same look and sizes as the terraform brush windows: 290dp wide, dark
+   panel, framed sections that fold, gold for what is active. */
+
+body {
+	pointer-events: none;
+}
+
+.le-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 6dp;
+	top: 60dp;
+	width: 290dp;
+	z-index: 905;
+	padding: 6dp 5dp 5dp 5dp;
+}
+
+/* === Header === */
+.le-head {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 2dp;
+}
+
+.le-handle {
+	flex: 1;
+	display: block;
+	drag: drag;
+	cursor: move;
+	padding: 2dp 0dp;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #e5e7eb;
+	font-effect: outline(1dp #282828);
+}
+
+.le-close {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+
+.le-close:hover {
+	background-color: #4a2424;
+}
+
+.le-head-btn {
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	padding: 0 7dp;
+	margin-right: 3dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+	font-size: 1rem;
+	font-weight: bold;
+	color: #c8d0d8;
+	cursor: pointer;
+}
+
+.le-head-btn:hover {
+	background-color: #2a2a36;
+}
+
+.le-head-btn-text {
+	font-size: 1rem;
+	font-weight: bold;
+}
+
+.le-head-btn.active {
+	color: #ffd88f;
+	border-color: #ffd88f80;
+}
+
+/* Focus mode: the game interface is hidden, the editor stays */
+.le-focus-btn {
+	padding: 0 3dp;
+}
+
+.le-focus-btn.active img {
+	image-color: #ffd88f;
+}
+
+/* === Side windows (keybinds, colour): the widget docks them beside the panel === */
+.le-side {
+	position: absolute;
+	left: 306dp;
+	top: 60dp;
+	width: 240dp;
+	z-index: 905;
+	padding: 6dp 5dp 5dp 5dp;
+	pointer-events: auto;
+}
+
+.le-keys-title {
+	flex: 1;
+	padding: 2dp 0dp;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #e5e7eb;
+	font-effect: outline(1dp #282828);
+}
+
+.le-keys-list {
+	max-height: 70vh;
+	overflow-y: auto;
+}
+
+.le-key-sep {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+	padding: 7dp 0dp 2dp 0dp;
+}
+
+.le-key-sep-label {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #6b7280;
+	white-space: nowrap;
+}
+
+.le-key-sep-line {
+	flex: 1;
+	height: 1dp;
+	background-color: #44445060;
+}
+
+.le-key-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	min-height: 20dp;
+	padding: 3dp 2dp;
+	border-bottom: 1dp #34343e;
+}
+
+.le-key-row:hover {
+	background-color: #24242e;
+}
+
+.le-key-badge {
+	flex: 0 0 74dp;
+	padding: 2dp 4dp;
+	text-align: center;
+	white-space: nowrap;
+	font-size: 0.95rem;
+	font-weight: bold;
+	color: #d9c28a;
+	background-color: #1e1a12dc;
+	border: 1dp #55556040;
+	border-radius: 4dp;
+}
+
+.le-key-action {
+	flex: 1;
+	font-size: 0.95rem;
+	color: #d8dce4;
+}
+
+.le-icon-md {
+	width: 16dp;
+	height: 16dp;
+}
+
+.le-icon-sm {
+	width: 12dp;
+	min-width: 12dp;
+	height: 12dp;
+}
+
+.le-unit {
+	font-size: 1.125rem;
+	color: #ffd88f;
+	margin-bottom: 1dp;
+}
+
+.le-mode {
+	margin-top: 1dp;
+	margin-bottom: 3dp;
+}
+
+.le-status {
+	font-size: 1rem;
+	color: #d1d5db;
+	background-color: #16161edc;
+	border: 1dp #3a3a4860;
+	border-radius: 4dp;
+	padding: 2dp 5dp;
+	margin-bottom: 2dp;
+}
+
+/* === Body: scrolls, the header and the hint stay === */
+.le-body {
+	overflow-x: hidden;
+	overflow-y: auto;
+	max-height: 70vh;
+	padding-right: 2dp;
+}
+
+/* === Section frame: the title sits on the top border === */
+.le-frame {
+	position: relative;
+	margin-top: 12dp;
+	margin-bottom: 6dp;
+	padding: 7dp 3dp 3dp 3dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+.le-frame.le-collapsed {
+	border-left-width: 0;
+	border-right-width: 0;
+	border-bottom-width: 0;
+	border-radius: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-bottom: 4dp;
+}
+
+.le-frame-title {
+	position: absolute;
+	top: -9dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+	background-color: #1d1d1d;
+	padding: 0 4dp;
+	cursor: pointer;
+}
+
+.le-frame-label {
+	font-size: 1rem;
+	font-weight: bold;
+	color: #c8d0d8;
+	white-space: nowrap;
+}
+
+.le-frame-title:hover .le-frame-label {
+	color: #ffd88f;
+}
+
+/* === Rows === */
+.le-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	min-height: 22dp;
+}
+
+.le-label {
+	flex: 0 0 52dp;
+	font-size: 0.95rem;
+	color: #9ca3af;
+	white-space: nowrap;
+}
+
+.le-value {
+	flex: 1;
+	font-size: 1rem;
+	color: #e5e7eb;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.le-value-dim {
+	font-size: 0.95rem;
+	color: #9ca3af;
+}
+
+.le-note {
+	font-size: 0.95rem;
+	color: #ffd88f;
+	margin-bottom: 2dp;
+}
+
+.le-empty {
+	font-size: 0.95rem;
+	color: #9ca3af;
+	margin: 2dp 0dp 3dp 0dp;
+}
+
+/* === Chips: the brush's small button height === */
+.le-chips {
+	display: flex;
+	flex-direction: row;
+	gap: 2dp;
+	margin-top: 3dp;
+}
+
+.le-chips-inline {
+	flex: 1;
+	margin-top: 0;
+}
+
+.le-chip {
+	flex: 1;
+	height: 20dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 3dp;
+	padding: 0dp 3dp;
+	color: #d8dce4;
+	background-color: #393942;
+	border: 1dp #50505a50;
+	border-radius: 5dp;
+	cursor: pointer;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.le-chip-text {
+	font-size: 0.95rem;
+	white-space: nowrap;
+}
+
+.le-chip:hover {
+	border-color: #7878909a;
+	color: #ffffff;
+	decorator: vertical-gradient(#626270 #3a3a46);
+}
+
+.le-chip.active {
+	color: #ffd88f;
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#3c3018 #1a1208);
+}
+
+/* Undo and redo read as off until there is something to step to. */
+.le-chip-dim {
+	color: #777b86;
+}
+
+.le-chip-dim.active {
+	color: #d8dce4;
+	border-color: #50505a50;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+}
+
+.le-chip-danger:hover {
+	border-color: #ef4444;
+	decorator: vertical-gradient(#5a2a2a #341818);
+}
+
+.le-chip-small {
+	flex: 0 0 52dp;
+}
+
+.le-chip-count {
+	font-size: 0.9rem;
+	color: #1d1d1d;
+	background-color: #fdc04c;
+	border-radius: 7dp;
+	padding: 0dp 4dp;
+}
+
+/* === Lists: lights, pieces, presets === */
+.le-list {
+	overflow-x: hidden;
+	overflow-y: auto;
+	background-color: #13131c;
+	border: 1dp #3a3a4860;
+	border-radius: 4dp;
+	padding: 1dp;
+}
+
+.le-list-lights {
+	max-height: 146dp;
+}
+
+.le-list-pieces {
+	max-height: 122dp;
+	margin-top: 2dp;
+}
+
+.le-list-presets {
+	max-height: 122dp;
+	margin: 2dp 0dp;
+}
+
+.le-item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	height: 20dp;
+	padding: 0dp 4dp;
+	border-radius: 3dp;
+	border: 1dp #00000000;
+	cursor: pointer;
+}
+
+.le-item.blank {
+	display: none;
+}
+
+.le-item:hover {
+	background-color: #2a2a34;
+}
+
+.le-item.selected {
+	background-color: #2b2113;
+	border-color: #fdc04c;
+}
+
+.le-item-name {
+	flex: 1;
+	font-size: 1rem;
+	color: #e5e7eb;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.le-item.selected .le-item-name {
+	color: #ffd88f;
+}
+
+.le-item-piece {
+	font-size: 0.9rem;
+	color: #7f8794;
+	white-space: nowrap;
+}
+
+.le-item-edited {
+	font-size: 0.8rem;
+	color: #fdc04c;
+	white-space: nowrap;
+}
+
+/* Light type letter: P, C or B. */
+.le-badge {
+	flex: 0 0 13dp;
+	height: 13dp;
+	line-height: 13dp;
+	text-align: center;
+	font-size: 0.85rem;
+	font-weight: bold;
+	color: #13131c;
+	background-color: #b0b4c0;
+	border-radius: 7dp;
+}
+
+.le-badge.cone {
+	background-color: #f0c060;
+}
+
+.le-badge.beam {
+	background-color: #6fb8ff;
+}
+
+.le-dot {
+	flex: 0 0 10dp;
+	height: 10dp;
+	border-radius: 5dp;
+	border: 1dp #ffffff30;
+}
+
+/* Team colour has no fixed colour to show. */
+.le-dot.team {
+	decorator: horizontal-gradient(#ff5050 #5080ff);
+}
+
+.le-row-gap {
+	margin-top: 4dp;
+}
+
+/* === Picker: a row that opens its list (piece, size, colour set) === */
+.le-picker {
+	flex: 1;
+	height: 20dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+	padding: 0dp 5dp;
+	background-color: #1a1a22;
+	border: 1dp #4a4a4a80;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+
+.le-picker:hover,
+.le-picker.open {
+	border-color: #fdc04c;
+}
+
+.le-cp-open {
+	flex: 1;
+	height: 20dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+	padding: 0dp 3dp;
+	background-color: #1a1a22;
+	border: 1dp #4a4a4a80;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+
+.le-cp-open:hover,
+.le-cp-open.active {
+	border-color: #fdc04c;
+}
+
+.le-cp-chip {
+	width: 34dp;
+	height: 13dp;
+	border-radius: 2dp;
+	border: 1dp #00000080;
+}
+
+/* === Colour window: a square and hue strip as in Paint, the config's colour sets, RGB === */
+.le-cp-preview {
+	width: 22dp;
+	height: 14dp;
+	margin-right: 6dp;
+	border-radius: 2dp;
+	border: 1dp #00000080;
+}
+
+.le-cp-pick {
+	display: flex;
+	flex-direction: row;
+	margin: 3dp 0dp 2dp 0dp;
+}
+
+.le-cp-sv {
+	position: relative;
+	width: 200dp;
+	height: 120dp;
+	border: 1dp #00000080;
+	cursor: pointer;
+}
+
+.le-cp-sv-white {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	decorator: horizontal-gradient(#ffffffff #ffffff00);
+}
+
+.le-cp-sv-black {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	decorator: vertical-gradient(#00000000 #000000ff);
+}
+
+.le-cp-sv-dot {
+	position: absolute;
+	width: 8dp;
+	height: 8dp;
+	margin-left: -5dp;
+	margin-top: -5dp;
+	border: 1dp #ffffff;
+	border-radius: 5dp;
+	background-color: #00000040;
+}
+
+.le-cp-hue {
+	position: relative;
+	width: 16dp;
+	height: 120dp;
+	margin-left: 6dp;
+	display: flex;
+	flex-direction: column;
+	border: 1dp #00000080;
+	cursor: pointer;
+}
+
+.le-cp-hue-seg {
+	width: 100%;
+	height: 20dp;
+}
+
+.le-cp-hue-1 { decorator: vertical-gradient(#ff0000 #ffff00); }
+.le-cp-hue-2 { decorator: vertical-gradient(#ffff00 #00ff00); }
+.le-cp-hue-3 { decorator: vertical-gradient(#00ff00 #00ffff); }
+.le-cp-hue-4 { decorator: vertical-gradient(#00ffff #0000ff); }
+.le-cp-hue-5 { decorator: vertical-gradient(#0000ff #ff00ff); }
+.le-cp-hue-6 { decorator: vertical-gradient(#ff00ff #ff0000); }
+
+.le-cp-hue-mark {
+	position: absolute;
+	left: -3dp;
+	width: 20dp;
+	height: 2dp;
+	margin-top: -1dp;
+	background-color: #ffffff;
+}
+
+.le-cp-sets {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+	padding: 2dp 0dp;
+}
+
+.le-cp-set {
+	width: 16dp;
+	height: 16dp;
+	border-radius: 2dp;
+	border: 1dp #00000080;
+	cursor: pointer;
+}
+
+.le-cp-set:hover {
+	border-color: #ffffffc0;
+}
+
+.le-cp-set.active {
+	border: 2dp #fdc04c;
+}
+
+.le-cp-set.team {
+	decorator: horizontal-gradient(#ff3030 #3060ff);
+}
+
+.le-cp-set.blank {
+	display: none;
+}
+
+.le-picker-text {
+	flex: 1;
+	font-size: 1rem;
+	color: #e5e7eb;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+/* === Text and number fields === */
+.le-text,
+.le-num {
+	height: 20dp;
+	padding: 3dp 4dp 0dp 4dp;
+	font-size: 1rem;
+	color: #e5e7eb;
+	background-color: #1a1a22;
+	border: 1dp #4a4a4a80;
+	border-radius: 4dp;
+	flex: 0 0 38dp;
+}
+
+.le-text {
+	flex: 1;
+}
+
+.le-num {
+	flex: 0 0 52dp;
+	text-align: right;
+}
+
+.le-text:focus,
+.le-num:focus {
+	border-color: #fdc04c;
+}
+
+/* === Sliders === */
+.le-slider {
+	flex: 1;
+	height: 22dp;
+	tab-index: none;
+}
+
+.le-slider slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 9dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+
+.le-slider sliderbar {
+	width: 9dp;
+	height: 14dp;
+	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 4dp;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+}
+
+.le-slider sliderbar:hover {
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+}
+
+.le-slider sliderarrowdec,
+.le-slider sliderarrowinc {
+	display: none;
+}
+
+/* Axis and channel tints: x and red, y and green, z and blue. */
+.le-slider.le-ch-r sliderbar {
+	decorator: vertical-gradient(#ff9a9a #b84848);
+}
+
+.le-slider.le-ch-g sliderbar {
+	decorator: vertical-gradient(#a8f0a8 #4a9a4a);
+}
+
+.le-slider.le-ch-b sliderbar {
+	decorator: vertical-gradient(#a8c4ff #4a68c0);
+}
+
+.le-swatch {
+	height: 7dp;
+	border-radius: 3dp;
+	border: 1dp #ffffff30;
+	margin-bottom: 1dp;
+}
+
+/* === Hint: what the control under the pointer does === */
+.le-hint {
+	height: 46dp;
+	margin-top: 3dp;
+	padding: 2dp 5dp;
+	font-size: 0.95rem;
+	color: #9ca3af;
+	background-color: #16161edc;
+	border: 1dp #3a3a4860;
+	border-radius: 4dp;
+	overflow: hidden;
+}
