@@ -10854,6 +10854,12 @@ function widget:ViewResize()
 	UpdateGuishaderBlur()
 end
 
+function widget:KeyBindingsChanged()
+	for cacheKey in pairs(keyConfig._pipHotkeyCache) do
+		keyConfig._pipHotkeyCache[cacheKey] = nil
+	end
+end
+
 function widget:PlayerChanged(playerID)
 	-- Update LOS texture when player state changes (e.g., entering/exiting spec mode)
 	pipR2T.losNeedsUpdate = true
