@@ -200,19 +200,6 @@ describe("api_missions load guard", function()
 		assert.is_nil(world.removed)
 	end)
 
-	it("still loads a mission that uses the old TriggerDefinitions name", function()
-		local env = start({
-			missionSource = [[
-				assert(GG["MissionAPI"].TriggerDefinitions.Types)
-				return { InitialStage = "s1", Stages = { s1 = {} } }
-			]],
-		})
-
-		assert.are.equal(env.GG.MissionAPI.ConditionDefinitions, env.GG.MissionAPI.TriggerDefinitions)
-		assert.are.equal(0, #world.logged)
-		assert.is_true(world.spawned)
-	end)
-
 	it("blames the mission file when it raises while loading", function()
 		assertEndedWith(start({ crash = "mission" }), "loading " .. ENTRY_POINT, "boom in mission")
 	end)

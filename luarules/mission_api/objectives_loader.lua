@@ -40,12 +40,17 @@ end
 
 --- An objective's `amount` is how many events it counts, or for a metric such as
 --- UnitsOwned, the level it must reach. A missing amount completes on the first event.
+--- A metric amount of 0 means "down to none", such as owning no units of a kind, so it
+--- becomes an upper bound; as a lower bound it would be met before the player did anything.
 local function thresholdsOf(objective)
 	local amount = objective.amount
 	local trigger = objective.trigger
 	local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
 	local kind = type(trigger) == "table" and conditionDefinitions and conditionDefinitions.Kinds[trigger.type]
 	if kind == "metric" then
+		if amount == 0 then
+			return { atMost = 0 }
+		end
 		return { atLeast = amount or 1 }
 	end
 	return { count = amount }

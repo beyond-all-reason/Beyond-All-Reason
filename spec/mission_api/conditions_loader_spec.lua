@@ -117,7 +117,7 @@ describe("mission_api.conditions_loader", function()
 			}, definitions.Settings)
 		end)
 
-		it("returns only Types, EventTypes, MetricTypes, Kinds, Settings, Parameters, and Callins", function()
+		it("returns only Types, Kinds, Settings, Parameters, and Callins", function()
 			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha", kind = "event" } } })
 
 			local keys = {}
@@ -126,28 +126,11 @@ describe("mission_api.conditions_loader", function()
 			end
 			assert.are.same({
 				Types = true,
-				EventTypes = true,
-				MetricTypes = true,
 				Kinds = true,
 				Settings = true,
 				Parameters = true,
 				Callins = true,
 			}, keys)
-		end)
-
-		it("splits types into disjoint event and metric views", function()
-			local definitions = loadWith({
-				{ path = "a.lua", def = { type = "Alpha", kind = "event" } },
-				{ path = "b.lua", def = { type = "Beta", kind = "metric" } },
-			})
-
-			assert.is_not_nil(definitions.EventTypes.Alpha)
-			assert.is_nil(definitions.EventTypes.Beta)
-			assert.is_not_nil(definitions.MetricTypes.Beta)
-			assert.is_nil(definitions.MetricTypes.Alpha)
-			-- both views index into the same canonical registry
-			assert.are.equal(definitions.Types.Alpha, definitions.EventTypes.Alpha)
-			assert.are.equal(definitions.Types.Beta, definitions.MetricTypes.Beta)
 		end)
 
 		it("records the kind per type ID", function()

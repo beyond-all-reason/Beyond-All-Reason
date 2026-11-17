@@ -1,9 +1,9 @@
-local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	spawnAttackers = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	targets1 = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	targets2 = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 13,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	spawnEnergyGrid1 = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	reclaimEnergyGrid = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 27,
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	stop = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	reclaimWrecks = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -59,7 +59,7 @@ local triggers = {
 	},
 
 	artilleryAreaAttack = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
@@ -67,7 +67,7 @@ local triggers = {
 	},
 
 	gatherThenMoveOn = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 60,
 		},

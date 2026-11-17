@@ -23,7 +23,7 @@
 ---   15s: message: held finished (3 seconds later than it would have without the pause)
 ---
 
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local objectives = {
@@ -31,7 +31,7 @@ local objectives = {
 	surviveAlpha = {
 		textKey = 'survive_alpha_countdown',
 		trigger = {
-			type = eventTypes.CountdownFinished,
+			type = conditionTypes.CountdownFinished,
 			parameters = {
 				countdownID = 'alpha',
 			},
@@ -42,7 +42,7 @@ local objectives = {
 local triggers = {
 
 	addCountdowns = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -50,7 +50,7 @@ local triggers = {
 	},
 
 	pauseHeld = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -58,7 +58,7 @@ local triggers = {
 	},
 
 	cancelDoomed = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -66,7 +66,7 @@ local triggers = {
 	},
 
 	unpauseHeld = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -74,7 +74,7 @@ local triggers = {
 	},
 
 	setAdjusted = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -82,7 +82,7 @@ local triggers = {
 	},
 
 	addAdjustedTime = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -90,7 +90,7 @@ local triggers = {
 	},
 
 	removeAdjustedTime = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -98,7 +98,7 @@ local triggers = {
 	},
 
 	alphaReached = {
-		type = eventTypes.CountdownReached,
+		type = conditionTypes.CountdownReached,
 		parameters = {
 			countdownID = 'alpha',
 			timeRemaining = 2,
@@ -107,7 +107,7 @@ local triggers = {
 	},
 
 	heldReached = {
-		type = eventTypes.CountdownReached,
+		type = conditionTypes.CountdownReached,
 		parameters = {
 			countdownID = 'held',
 			timeRemaining = 8,
@@ -116,7 +116,7 @@ local triggers = {
 	},
 
 	heldFinished = {
-		type = eventTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'held',
 		},
@@ -124,7 +124,7 @@ local triggers = {
 	},
 
 	doomedFinished = {
-		type = eventTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'doomed',
 		},
@@ -132,7 +132,7 @@ local triggers = {
 	},
 
 	adjustedReached = {
-		type = eventTypes.CountdownReached,
+		type = conditionTypes.CountdownReached,
 		parameters = {
 			countdownID = 'adjusted',
 			timeRemaining = 1,
@@ -141,7 +141,7 @@ local triggers = {
 	},
 
 	adjustedFinished = {
-		type = eventTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'adjusted',
 		},
@@ -149,7 +149,7 @@ local triggers = {
 	},
 
 	hiddenFinished = {
-		type = eventTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'hidden',
 		},

@@ -14,8 +14,6 @@ local function loadConditionDefinitions()
 	local conditionFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
 	local types = {}
-	local eventTypes = {}
-	local metricTypes = {}
 	local kinds = {}
 	local parameters = {}
 	local callins = {}
@@ -41,14 +39,6 @@ local function loadConditionDefinitions()
 		kinds[typeID] = kind
 		parameters[typeID] = conditionDefinition.parameters or {}
 
-		-- Author-facing views over the same registry, so a mission picking from
-		-- metricTypes already knows to write atLeast/atMost rather than count.
-		if kind == "metric" then
-			metricTypes[conditionType] = typeID
-		else
-			eventTypes[conditionType] = typeID
-		end
-
 		for callinName, handler in pairs(conditionDefinition.callins or {}) do
 			callins[callinName] = callins[callinName] or {}
 			callins[callinName][typeID] = handler
@@ -60,8 +50,6 @@ local function loadConditionDefinitions()
 
 	return {
 		Types = types,
-		EventTypes = eventTypes,
-		MetricTypes = metricTypes,
 		Kinds = kinds,
 		Settings = settings,
 		Parameters = parameters,

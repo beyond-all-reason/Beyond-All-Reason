@@ -1,10 +1,10 @@
-local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnActors = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -13,7 +13,7 @@ local triggers = {
 
 	-- Orders issued by the mission itself are not visible, by default.
 	botsOrdered = {
-		type = eventTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -27,7 +27,7 @@ local triggers = {
 
 	-- Sometimes, though, we don't care who gave the order. See ignoreMissionActions below.
 	botsMoved = {
-		type = eventTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -41,7 +41,7 @@ local triggers = {
 	},
 
 	missionMovesBots = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -49,7 +49,7 @@ local triggers = {
 	},
 
 	conBuildOrdered = {
-		type = eventTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -63,7 +63,7 @@ local triggers = {
 	},
 
 	conSolarOrdered = {
-		type = eventTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -77,7 +77,7 @@ local triggers = {
 	},
 
 	missionOrdersSolar = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -85,7 +85,7 @@ local triggers = {
 	},
 
 	labRallied = {
-		type = eventTypes.RallyOrdered,
+		type = conditionTypes.RallyOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -99,7 +99,7 @@ local triggers = {
 	},
 
 	labExecuted = {
-		type = eventTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -113,7 +113,7 @@ local triggers = {
 	},
 
 	missionRalliesLab = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 22,
 		},
@@ -121,7 +121,7 @@ local triggers = {
 	},
 
 	missionTogglesLab = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 29,
 		},
@@ -129,7 +129,7 @@ local triggers = {
 	},
 
 	missionQueuesPawn = {
-		type = eventTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36,
 		},
