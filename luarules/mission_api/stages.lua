@@ -36,12 +36,6 @@ local function getStage(stageID)
 	return GG["MissionAPI"].Stages[stageID]
 end
 
---- Objective IDs listed in the given stage (defaults to the current stage).
-local function getObjectiveIDs(stageID)
-	local stage = getStage(stageID or getCurrentStageID())
-	return stage and stage.objectives or {}
-end
-
 local function activateStage(stageID, carriedOver)
 	local stage = getStage(stageID)
 	if not stage then
@@ -116,7 +110,6 @@ return {
 	GetChangeCount = getChangeCount,
 	SetInitialStage = setInitialStage,
 	GetStage = getStage,
-	GetObjectiveIDs = getObjectiveIDs,
 	ActivateStage = activateStage,
 	ChangeStage = changeStage,
 }

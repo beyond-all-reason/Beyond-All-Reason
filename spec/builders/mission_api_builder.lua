@@ -413,10 +413,6 @@ function MB:Build(installed)
 		GetStage = function(stageID)
 			return stateTable.Stages[stageID]
 		end,
-		GetObjectiveIDs = function(stageID)
-			local stage = stateTable.Stages[stageID or stateTable.CurrentStageID]
-			return stage and stage.objectives or {}
-		end,
 		ActivateStage = function(stageID)
 			activateStageCalls[#activateStageCalls + 1] = { stageID = stageID }
 			stateTable.CurrentStageID = stageID
