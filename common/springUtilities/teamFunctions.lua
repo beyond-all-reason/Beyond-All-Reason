@@ -2,7 +2,7 @@ local smallTeamThreshold = 4
 local initialized = false
 local settings = {}
 
-local holidaysList = VFS.Include("common/holidays.lua")
+local holidaysList = require("common/holidays")
 
 local function getSettings()
 	if initialized then
@@ -216,20 +216,30 @@ return {
 			return getSettings().isHoliday
 		end,
 	},
-	---@return integer? scavTeamID Team ID for the scavenger team.
+	---@return TeamID? scavTeamID
 	GetScavTeamID = function()
 		return getSettings().scavTeamID
 	end,
-	---@return integer? scavAllyTeamID Team ID for the scavenger ally team.
+	---@return AllyTeamID? scavAllyTeamID
 	GetScavAllyTeamID = function()
 		return getSettings().scavAllyTeamID
 	end,
-	---@return integer? raptorTeamID Team ID for the raptor team.
+	---@return TeamID? raptorTeamID
 	GetRaptorTeamID = function()
 		return getSettings().raptorTeamID
 	end,
-	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
+	---@return AllyTeamID? raptorAllyTeamID
 	GetRaptorAllyTeamID = function()
 		return getSettings().raptorAllyTeamID
+	end,
+	---@param teamID TeamID
+	---@param unitCount integer
+	---@return boolean
+	CanTeamReceiveUnits = function(teamID, unitCount)
+		return Spring.IsCheatingEnabled()
+			or (
+				unitCount + Spring.GetTeamUnitCount(teamID) --[[@as integer]]
+				<= Spring.GetTeamMaxUnits(teamID)
+			)
 	end,
 }

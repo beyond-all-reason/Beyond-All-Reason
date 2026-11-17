@@ -11,8 +11,6 @@ if success or mapinfo ~= nil then
 	voidWaterMap = mapinfo.voidwater
 end
 
-local gameSpeed = Game.gameSpeed
-
 local isLavaMap = false
 
 ----------------------------------------
@@ -24,14 +22,14 @@ local normalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 local level = 1 -- pre-game lava level
 local grow = 7.5 -- initial lava grow speed
 local damage = 100 -- damage per second or health proportion (0-1)
-local damageFeatures = false -- Lava also damages features when set, if set to float, it's proportional damage per second (0 to 1), if set to true sets default of 0.1
+local damageFeatures = true -- Lava also damages metal features when set
 local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
 local colorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
 local losDarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
 local swirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
 local swirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
 local specularExp = 64.0 -- the specular exponent of the lava plane
-local shadowStrength = 0.4 -- how much light a shadowed fragment can recieve
+local shadowStrength = 0.4 -- how much light a shadowed fragment can receive
 local coastWidth = 25.0 -- how wide the coast of the lava should be
 local coastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
 local coastLightBoost = 0.6 -- how much extra brightness should coastal areas get

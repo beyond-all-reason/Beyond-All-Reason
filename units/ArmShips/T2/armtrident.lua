@@ -1,8 +1,8 @@
 return {
 	armtrident = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
 		energycost = 10500,
 		metalcost = 1050,
@@ -23,7 +23,7 @@ return {
 		losemitheight = 56,
 		mass = 10000,
 		health = 3400,
-		maxvelocity = 2.25,
+		speed = 67.5,
 		minwaterdepth = 15,
 		movementclass = "BOAT9",
 		nochasecategory = "VTOL",

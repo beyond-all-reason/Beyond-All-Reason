@@ -30,7 +30,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1800,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "leghaca",
@@ -69,7 +69,7 @@ return {
 				footprintz = 12,
 				height = 20,
 				metal = 5101,
-				object = "Units/corplat_dead.s3o",
+				object = "Units/corhaap_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

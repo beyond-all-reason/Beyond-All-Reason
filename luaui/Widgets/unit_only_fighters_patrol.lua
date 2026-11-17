@@ -30,7 +30,7 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetLocalTeamID
 
-local stop_builders = true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
+local stop_builders = true -- Whether to stop builders or not. Set to true if you dont use factory guard widget.
 
 local GetUnitCommands = Spring.GetUnitCommands
 local myTeamID = spGetMyTeamID()

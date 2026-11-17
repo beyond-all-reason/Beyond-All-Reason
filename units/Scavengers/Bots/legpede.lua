@@ -1,15 +1,15 @@
 return {
 	legpede = {
 		maxacc = 0.03,
-		maxdec = 0.1,
+		maxdec = 0.2,
 		energycost = 80000,
 		metalcost = 5500,
 		buildpic = "LEGPEDE.DDS",
 		buildtime = 110000,
 		canattack = false,
 		canmove = true,
-		collisionvolumeoffsets = "0 5 -6",
-		collisionvolumescales = "26 28 144",
+		collisionvolumeoffsets = "0 13 -8.65",
+		collisionvolumescales = "29 28 127.9",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "explosiont3med",
@@ -34,6 +34,7 @@ return {
 		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = "weapon",
+			allow_set_target = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots/T2",

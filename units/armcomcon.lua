@@ -74,6 +74,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
+			tombstone = "armstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {

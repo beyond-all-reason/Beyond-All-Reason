@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Intergrated Hats",
+		name = "Integrated Hats",
 		desc = "Hides hats used for april and alike events, hats get baked into models swapped in in alldefs post",
 		author = "",
 		date = "1st Of April",
@@ -18,7 +18,7 @@ end
 --		the silver hornet; hats:
 --			hard hat, construction cone, jester, proppeler hat, sunhat(unused),
 
--- synced space only, the hats arent part of the modified models, hiding them is a synced animation action
+-- synced space only, the hats aren't part of the modified models, hiding them is a synced animation action
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -27,59 +27,18 @@ end
 local hatCounts = {}
 local unitCount = 0
 do
-	local hats
-
-	if BAR.Utilities.Gametype.GetCurrentHolidays().aprilfools then
-		hats = "april"
+	-- customparams.holidayhatcount is stamped in alldefs_post next to the holiday model swap
+	-- (unitbasedefs/holiday_models.lua), so it only exists while the matching holiday is active
+	local anyHats = false
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local numberOfHats = tonumber(unitDef.customParams.holidayhatcount)
+		if numberOfHats and numberOfHats > 0 then
+			hatCounts[unitDefID] = numberOfHats
+			anyHats = true
+		end
 	end
 
-	if BAR.Utilities.Gametype.GetCurrentHolidays().halloween then
-		hats = "halloween"
-	end
-
-	if hats then
-		-- count of how many hats a unit has for the hat mode
-		-- unit models should be swapped out to the appropate models via all defs post
-		local hatCountsTemp = {}
-		local hatTable = {
-			april = { -- objects3d/units/events/aprilfools, AprilFools hats
-				corak = 7,
-				corstorm = 7,
-				corck = 6,
-				corack = 6,
-				--correap=6,
-				corllt = 8,
-				corhllt = 8,
-				cordemon = 4,
-				armpw = 7,
-				armcv = 5,
-				armrock = 6,
-				armbull = 6,
-				armllt = 6,
-				corwin = 7,
-				armwin = 6,
-				armham = 5,
-				--corthud=6,
-			},
-			halloween = {
-				corcom = 2,
-			},
-		}
-
-		hatCountsTemp = hatTable[hats]
-		-- if we failed to find hats
-		if not hatCountsTemp then
-			return false
-		end
-
-		-- make sure we didn't blunder unit names, or the unit in question is loaded
-		for unitName, hatsNo in pairs(hatCountsTemp) do
-			local tmp = UnitDefNames[unitName]
-			if tmp and tmp.id then
-				hatCounts[tmp.id] = hatsNo
-			end
-		end
-	else
+	if not anyHats then
 		return false
 	end
 end
@@ -88,7 +47,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	-- we increment every time a unit is made, makes for a good rng in our case
 	unitCount = unitCount + 1
 
-	-- hide all but the choosen hat
+	-- hide all but the chosen hat
 	local numberOfHats = hatCounts[unitDefID]
 	if numberOfHats then
 		local unitPieceList = Spring.GetUnitPieceMap(unitID)

@@ -26,8 +26,8 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 local dotImage = "LuaUI/Images/formationDot.dds"
 
@@ -153,8 +153,6 @@ local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glScale = gl.Scale
-local glTranslate = gl.Translate
 local glLoadIdentity = gl.LoadIdentity
 
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -165,7 +163,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGiveOrder = Spring.GiveOrder
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -492,7 +489,7 @@ function widget:MousePress(mx, my, mButton)
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
-	-- Is this line a path candidate (We don't do a path off an overriden command)
+	-- Is this line a path candidate (We don't do a path off an overridden command)
 	pathCandidate = (not overriddenCmd) and selectedUnitsCount == 1 and (not shift or repeatForSingleUnit)
 
 	-- Initialize path positions tracking
@@ -536,7 +533,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if pathCandidate then
 			-- For the first path command, use raw shift state to decide whether to clear queue
 			-- This ensures queue is cleared unless user explicitly holds shift
-			local alt, ctrl, meta, _ = GetModKeys()
+			local _, ctrl, meta, _ = GetModKeys()
 			local _, _, _, rawShift = spGetModKeyState()
 			if spGetInvertQueueKey() then
 				rawShift = not rawShift
@@ -567,7 +564,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
 				-- Only add command if it's not too close to any previous position
 				if not tooClose then
-					local alt, ctrl, meta, shift = GetModKeys()
+					local _, ctrl, meta, _ = GetModKeys()
 					local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB)
 
 					GiveNotifyingOrder(usingCmd, pos, cmdOpts)
@@ -917,10 +914,14 @@ end
 function widget:GetConfigData() -- Saving
 	return {
 		maxHungarianUnits = maxHungarianUnits,
+		repeatForSingleUnit = repeatForSingleUnit,
 	}
 end
 function widget:SetConfigData(data) -- Loading
 	maxHungarianUnits = data.maxHungarianUnits or defaultHungarianUnits
+	if data.repeatForSingleUnit ~= nil then
+		repeatForSingleUnit = data.repeatForSingleUnit
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------
@@ -1146,7 +1147,7 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted, adjustLimit)
 		-- Delay is greater than desired, we have to reduce units
 		maxHungarianUnits = maxHungarianUnits - 1
 	elseif adjustLimit ~= false then
-		-- Delay is less than desired, so thats OK
+		-- Delay is less than desired, so that's OK
 		-- To make judgements we need number of units to be close to max
 		-- Because we are making predictions of time and we want them to be accurate
 		if #units > maxHungarianUnits * unitIncreaseThresh then

@@ -28,7 +28,7 @@ local spEcho = Spring.Echo
 
 -- Notes and TODO
 -- yes these are geometry shader decals
--- we are gonna try to smaple heightmap
+-- we are gonna try to sample heightmap
 -- atlasColor is diffuse + alpha
 -- The color is expected to blend up to 0.5,
 -- atlasNormals is normals + emission
@@ -68,7 +68,7 @@ local shaderConfig = {
 	LOSDARKNESS = 0.7, -- additional LOS darken factor
 	PARALLAX = 0, -- 1 for on, kinda broken, do not use
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
-	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
+	USEGLOW = 1, -- 1 for on, kinda weird at the moment
 	GLOWTHRESHOLD = 0.99,
 	FADEINTIME = 20, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
@@ -87,19 +87,23 @@ local largesizethreshold = 512 -- if min(width,height)> than this, then we use t
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000 -- used for the initial value of lifeTimeMult
 local lifeTimeMult = 0.7 + math.min(gpuMem / 6000, 2.3) -- A global lifetime multiplier for configurability
-local lifeTimeMultMult = 1.5 -- an additional liftime multiplier that isnt saved to user config, so changing thsi will affect everyones lifetiem regardless of their save config value
+local lifeTimeMultMult = 1.5 -- an additional lifetime multiplier that isn't saved to user config, so changing this will affect everyones lifetiem regardless of their save config value
 
 local autoupdate = false -- auto update shader, for debugging only!
 
--- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
-local saturationThreshold = 16 * areaResolution
+local cellArea = areaResolution * areaResolution
+-- Overdraw budget: the maximum accumulated decal area per map cell, expressed in full layers of coverage
+-- of that cell. When exceeded, the oldest decals in the cell get evicted. New decals draw on top of old
+-- ones anyway, so evicting the oldest (most faded) ones is visually near-free, but it bounds the worst-case
+-- GPU fill cost when zooming into fields of stacked decals.
+local maxDecalLayersPerCell = 16
 
 ------------------------ GL4 BACKEND -----------------------------------
 
 local atlasHeights = nil
 
-local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
+local atlas = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
 local upperkeys = {}
 for k, v in pairs(atlas) do
 	if type(v) == "table" then
@@ -127,8 +131,11 @@ end
 
 atlas.flip(atlas)
 
+---@type InstanceVBOTable?
 local decalVBO = nil
+---@type InstanceVBOTable?
 local decalLargeVBO = nil
+---@type InstanceVBOTable?
 local decalExtraLargeVBO = nil
 
 local decalShader = nil
@@ -153,6 +160,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements = InstanceVBOTable.uploadAllElements
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local compactInstanceVBO = InstanceVBOTable.compactInstanceVBO
@@ -255,10 +263,10 @@ local function initGL4(DPATname)
 	if decalUseGeometryShader then
 		local smallDecalVAO = gl.GetVAO()
 		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-		decalVBO.VAO = smallDecalVAO
+		decalVBO.VAO = InstanceVBOTable.fillVAOSlots(smallDecalVAO)
 	else
-		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
-		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4, 4)
+		local planeVBOsmall, _ = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
+		local planeIndexVBOsmall, _ = InstanceVBOTable.makePlaneIndexVBO(4, 4)
 		decalVBO.vertexVBO = planeVBOsmall
 		decalVBO.indexVBO = planeIndexVBOsmall
 		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(decalVBO.vertexVBO, decalVBO.instanceVBO, decalVBO.indexVBO)
@@ -318,6 +326,7 @@ end
 local decalIndex = 0
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
+local numDecalsToRemove = 0 -- how many decals in the VBOs are in decalRemoveList
 
 -- Lightweight table of active decals for external widget consumption (e.g. minimap overlays)
 -- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
@@ -391,10 +400,24 @@ local function initAreas()
 	for x = areaResolution / 2, Game.mapSizeX, areaResolution do
 		for z = areaResolution / 2, Game.mapSizeZ, areaResolution do
 			local gh = spGetGroundHeight(x, z)
-			areaDecals[hashPos(x, z)] = { instanceIDs = {}, totalarea = 0, x = x, y = gh, z = z, smoothness = 0 }
+			-- order[head..tail] lists the cell's decals oldest first (ids only grow), with removed ones left in
+			areaDecals[hashPos(x, z)] = {
+				instanceIDs = {},
+				count = 0,
+				order = {},
+				head = 1,
+				tail = 0,
+				totalarea = 0,
+				x = x,
+				y = gh,
+				z = z,
+				smoothness = 0,
+			}
 		end
 	end
 end
+
+local RemoveDecal -- forward declaration, defined below, needed for eviction in AddDecalToArea
 
 local function AddDecalToArea(instanceID, posx, posz, width, length)
 	local hash = hashPos(posx, posz)
@@ -402,36 +425,51 @@ local function AddDecalToArea(instanceID, posx, posz, width, length)
 	if maparea == nil then
 		return
 	end
-	local area = width * length
-	maparea.instanceIDs[instanceID] = area
+	-- cap the accounted area at one full cell, so a single giant decal counts as one layer, not dozens
+	local area = mathMin(width * length, cellArea)
+	local instanceIDs, order = maparea.instanceIDs, maparea.order
+	instanceIDs[instanceID] = area
 	maparea.totalarea = maparea.totalarea + area
+	maparea.count = maparea.count + 1
 	decalToArea[instanceID] = hash
+	local tail = maparea.tail + 1
+	order[tail] = instanceID
+	maparea.tail = tail
+
+	-- evict the oldest decals in this cell while the accumulated area exceeds the overdraw budget
+	local head = maparea.head
+	while maparea.totalarea > maxDecalLayersPerCell * cellArea and head < tail do
+		local oldest = order[head]
+		order[head] = nil
+		head = head + 1
+		if instanceIDs[oldest] then
+			RemoveDecal(oldest) -- updates maparea.totalarea via RemoveDecalFromArea
+		end
+	end
+	maparea.head = head
+
+	if tail - head > 2 * maparea.count + 64 then
+		local live = {}
+		for i = head, tail do
+			if instanceIDs[order[i]] then
+				live[#live + 1] = order[i]
+			end
+		end
+		maparea.order, maparea.head, maparea.tail = live, 1, #live
+	end
 end
 
 local function RemoveDecalFromArea(instanceID)
 	local hashpos = decalToArea[instanceID]
 	if hashpos then
 		local maparea = areaDecals[hashpos]
-		if maparea and maparea.instanceIDs[instanceID] then
-			maparea.totalarea = math.max(0, maparea.totalarea - maparea.instanceIDs[instanceID])
+		local area = maparea and maparea.instanceIDs[instanceID]
+		if area then
+			maparea.totalarea = math.max(0, maparea.totalarea - area)
 			maparea.instanceIDs[instanceID] = nil
+			maparea.count = maparea.count - 1
 		end
 		decalToArea[instanceID] = nil
-	end
-end
-
-local function CheckDecalAreaSaturation(posx, posz, width, length)
-	local hash = hashPos(posx, posz)
-	--spEcho(hash,posx,posz, next(areaDecals))
-	if not hash then
-		return false
-	else
-		local areaD = areaDecals[hashPos(posx, posz)]
-		if not areaD then
-			return false
-		else
-			return (math.sqrt(areaD.totalarea) > saturationThreshold)
-		end
 	end
 end
 
@@ -462,38 +500,46 @@ function widget:Update() -- this is pointlessly expensive!
 		return
 	end
 	local hash = hashPos(updatePositionX, updatePositionZ)
-	--spEcho("Updateing smoothness at",updatePositionX, updatePositionZ)
+	--spEcho("Updating smoothness at",updatePositionX, updatePositionZ)
 	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
-	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x, z)
 			totalsmoothness = totalsmoothness + abs(h - prevHeight)
 			prevHeight = h
 		end
-		prevX = prevHeight
 	end
 	areaDecals[hash].smoothness = totalsmoothness
 end
 
-local function DrawSmoothness()
-	gl.Color(1, 1, 1, 1)
-	for areaHash, areaInfo in pairs(areaDecals) do
-		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
-		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
-			gl.PushMatrix()
-			local text = string.format("Smoothness = %d", areaInfo.smoothness)
-			local w = gl.GetTextWidth(text) * 16.0
-			gl.Translate(areaInfo.x - w, areaInfo.y + 64, areaInfo.z)
-			gl.Text(text, 0, 0, 16, "n")
-			gl.PopMatrix()
-		end
+-----------------------------------------------------------------------------------------------
+
+-- New decals are appended without an upload; each VBO's first pending element (0 based) is kept
+-- here and the range goes up in one call before the next draw.
+local pendingUploadFrom = {}
+
+local function pushDecal(targetVBO, instanceData, instanceID)
+	local from = pendingUploadFrom[targetVBO]
+	if from == nil or targetVBO.usedElements < from then
+		pendingUploadFrom[targetVBO] = targetVBO.usedElements
 	end
+	pushElementInstance(targetVBO, instanceData, instanceID, true, true)
 end
 
------------------------------------------------------------------------------------------------
+-- uploads everything from `from` (or from the first pending decal, if that is earlier) to the end
+local function uploadDecalsFrom(vbo, from)
+	local pending = pendingUploadFrom[vbo]
+	if pending and (from == nil or pending < from) then
+		from = pending
+	end
+	if from and vbo.usedElements > from then
+		uploadElementRange(vbo, from, vbo.usedElements)
+	end
+	pendingUploadFrom[vbo] = nil
+	vbo.dirty = false
+end
 
 local dCT = {} -- decalCacheTable
 
@@ -529,7 +575,7 @@ local function AddDecal(
 	-- glowsustain: how many frames to elapse before glow starts to recede
 	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
 	-- fadeintime: how many frames it takes for a decal to reach its max alpha after spawning
-	-- spawnframe: really shouldnt be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
+	-- spawnframe: really shouldn't be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
@@ -539,14 +585,6 @@ local function AddDecal(
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
 	glowadd = glowadd or 0 -- how much additional additive glow to add
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
-
-	if CheckDecalAreaSaturation(posx, posz, width, length) then
-		if autoupdate then
-			spEcho("Map area is oversaturated with decals!", posx, posz, width, length)
-		end
-		return nil
-	else
-	end
 
 	spawnframe = spawnframe or spGetGameFrame()
 	--spEcho(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
@@ -560,7 +598,7 @@ local function AddDecal(
 		p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
 	end
 
-	local posy = Spring.GetGroundHeight(posx, posz)
+	local posy = spGetGroundHeight(posx, posz)
 	--spEcho (unitDefID,decalInfo.texfile, width, length, alpha)
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
@@ -577,18 +615,12 @@ local function AddDecal(
 	end
 
 	dCT[1], dCT[2], dCT[3], dCT[4] = length, width, rotation, maxalpha -- lengthwidthrotation maxalpha
-	dCT[5], dCT[6], dCT[7], dCT[8] = p, q, s, t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+	dCT[5], dCT[6], dCT[7], dCT[8] = p, q, s, t -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 	dCT[9], dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
 	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
 	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
 
-	pushElementInstance(
-		targetVBO, -- push into this Instance VBO Table
-		dCT, -- decalCacheTable
-		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
-		true, -- update existing element
-		false
-	) -- noupload, dont use unless you know what you want to batch push/pop
+	pushDecal(targetVBO, dCT, decalIndex)
 	if lifetime then
 		local deathtime = spawnframe + lifetime
 		if deathtime ~= deathtime then -- NaN check
@@ -622,6 +654,10 @@ local function DrawDecals()
 		glTexture(0, false)
 		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
 		glTexture(0, false)
+	end
+
+	for vbo in pairs(pendingUploadFrom) do
+		uploadDecalsFrom(vbo)
 	end
 
 	if skipdraw then
@@ -720,9 +756,12 @@ else
 	end
 end
 
-local function RemoveDecal(instanceID)
+function RemoveDecal(instanceID) -- assigns the forward-declared local above
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
+	if decalRemoveList[instanceID] then -- expired: invisible already, the next compaction drops it
+		return
+	end
 	local removed = false
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
@@ -739,16 +778,30 @@ local function RemoveDecal(instanceID)
 	end
 end
 
-local numDecalsToRemove = 0
+-- drops the listed decals in order and uploads what moved
+local function compactDecals(vbo)
+	local removed, firstChanged = compactInstanceVBO(vbo, decalRemoveList)
+	if firstChanged then
+		uploadDecalsFrom(vbo, firstChanged - 1)
+	end
+	return removed
+end
 
 function widget:GameFrame(n)
-	if decalRemoveQueue[n] then
-		for i = 1, #decalRemoveQueue[n] do
-			local decalID = decalRemoveQueue[n][i]
-			decalRemoveList[decalID] = true
+	local expiring = decalRemoveQueue[n]
+	if expiring then
+		for i = 1, #expiring do
+			local decalID = expiring[i]
 			footprintDecalSet[decalID] = nil
-			numDecalsToRemove = numDecalsToRemove + 1
-			--RemoveDecal(decalID)
+			-- evicted decals are gone already and must not count towards the next compaction
+			if
+				decalVBO.instanceIDtoIndex[decalID]
+				or decalLargeVBO.instanceIDtoIndex[decalID]
+				or decalExtraLargeVBO.instanceIDtoIndex[decalID]
+			then
+				decalRemoveList[decalID] = true
+				numDecalsToRemove = numDecalsToRemove + 1
+			end
 		end
 		decalRemoveQueue[n] = nil
 	end
@@ -762,10 +815,7 @@ function widget:GameFrame(n)
 		end
 
 		numDecalsToRemove = 0
-		local removed = 0
-		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
-		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
-		removed = removed + compactInstanceVBO(decalExtraLargeVBO, decalRemoveList)
+		local removed = compactDecals(decalVBO) + compactDecals(decalLargeVBO) + compactDecals(decalExtraLargeVBO)
 		decalRemoveList = {}
 		if removed > 0 then
 			decalVersion = decalVersion + 1
@@ -786,15 +836,6 @@ function widget:GameFrame(n)
 				"Rem=",
 				numDecalsToRemove
 			)
-		end
-		if decalVBO.dirty then
-			uploadAllElements(decalVBO)
-		end
-		if decalLargeVBO.dirty then
-			uploadAllElements(decalLargeVBO)
-		end
-		if decalExtraLargeVBO.dirty then
-			uploadAllElements(decalExtraLargeVBO)
 		end
 	end
 end
@@ -1196,6 +1237,9 @@ for weaponDefID = 0, #WeaponDefs do
 		if buildingExplosionPositionVariation[weaponDef.name] then
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
+		for i = 1, #textures do
+			textures[i] = groundscarsPath .. textures[i]
+		end
 
 		weaponConfig[weaponDefID] = {
 			--[[  1 ]]
@@ -1275,7 +1319,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	end
 
 	AddDecal(
-		groundscarsPath .. texture,
+		texture,
 		px, --posx
 		pz, --posz
 		random() * 6.28, -- rotation
@@ -1997,7 +2041,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 
 			decalCache[3] = decalTable.offsetrot + rotationradians
 			decalCache[13] = worldposx
-			decalCache[14] = Spring.GetGroundHeight(posx, posz)
+			decalCache[14] = spGetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
 
 			decalCache[10] = decalTable.alphadecay / (lifeTimeMult * lifeTimeMultMult)
@@ -2008,13 +2052,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			local lifetime = mathFloor(decalTable.alphastart / decalCache[10])
 			decalIndex = decalIndex + 1
 			--spEcho(decalIndex)
-			pushElementInstance(
-				decalVBO, -- push into this Instance VBO Table
-				decalCache, -- params
-				decalIndex, -- this is the key inside the VBO Table, should be unique per unit
-				true, -- update existing element
-				false
-			) -- noupload, dont use unless you know what you want to batch push/pop
+			pushDecal(decalVBO, decalCache, decalIndex)
 			local deathtime = spawnframe + lifetime
 			if decalRemoveQueue[deathtime] == nil then
 				decalRemoveQueue[deathtime] = { decalIndex }
@@ -2148,7 +2186,11 @@ function widget:Initialize()
 	end
 	WG.decalsgl4.RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
+	-- uploads pending decals first: callers may draw the instance VBOs themselves
 	WG.decalsgl4.GetVBOData = function()
+		for vbo in pairs(pendingUploadFrom) do
+			uploadDecalsFrom(vbo)
+		end
 		return vboTableCache, footprintDecalSet
 	end
 	WG.decalsgl4.GetVersion = function()
@@ -2232,8 +2274,6 @@ function widget:Initialize()
 
 							local posx = vboEntry[13]
 							local posz = vboEntry[15]
-							local rotation = vboEntry[3]
-							local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
 							AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
 							restoredCount = restoredCount + 1
 						end
@@ -2301,8 +2341,10 @@ function widget:Initialize()
 	end
 end
 
-function widget:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+function widget:UnitScriptDecalBatch(decals, count)
+	for i = 1, count, 6 do
+		UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+	end
 end
 
 function widget:SunChanged()
@@ -2435,5 +2477,16 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 			decals = savedDecals,
 			saveFrame = data.saveFrame or 0,
 		}
+	end
+end
+
+function widget:Shutdown()
+	if type(decalShader) == "table" then
+		decalShader:Finalize()
+		decalShader = nil
+	end
+	if type(decalLargeShader) == "table" then
+		decalLargeShader:Finalize()
+		decalLargeShader = nil
 	end
 end

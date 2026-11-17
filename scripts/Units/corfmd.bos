@@ -6,11 +6,12 @@
 piece  base, dbl, dbr, dtr, dtl, dummy,
 greendbr, greendtr, greendtl, greendbl, orangelight;
 
-static-var  restore_delay, missiles_stockpiled, isOpen;
+static-var  restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
+#include "../popup_openclose.h"
 
 Create()
 {
@@ -22,14 +23,13 @@ Create()
 	hide greendtr;
 	hide greendbl;
 	show orangelight;
-	isOpen = FALSE;
 }
 
 #define BASEPIECE base
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Activate()
+OpenAnim()
 {
 	move dbl to x-axis [-8] speed [8];
 	move dbl to z-axis [-8] speed [8];
@@ -42,9 +42,8 @@ Activate()
 	wait-for-move dtr along z-axis;
 }
 
-Deactivate()
+CloseAnim()
 {
-	isOpen = FALSE;
 	move dbl to x-axis [0] speed [8];
 	move dbl to z-axis [0] speed [8];
 	move dbr to x-axis [0] speed [8];
@@ -53,6 +52,7 @@ Deactivate()
 	move dtl to z-axis [0] speed [8];
 	move dtr to x-axis [0] speed [8];
 	move dtr to z-axis [0] speed [8];
+	wait-for-move dtr along z-axis;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -62,13 +62,14 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
+	start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	if( !isOpen )
+	// poll every frame so the interception is not delayed
+	while( !isOpen )
 	{
-		call-script Activate();
-		isOpen = TRUE;
+		sleep 1;
 	}
 
 	return (1);

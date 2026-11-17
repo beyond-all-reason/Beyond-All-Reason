@@ -19,7 +19,7 @@ local spEcho = Spring.Echo
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -56,11 +56,12 @@ local function GetPlayerColor(playerID)
 end
 
 -- GL4 Notes --
--- We arent going to use triangles to point, nor are we going to apply names to points
+-- We aren't going to use triangles to point, nor are we going to apply names to points
 -- but what we are going to do, is clamp the center of the crosshair to screen space
 -- and clamp the size of it to always be screensized
 -- GL4 Stuff --
 
+---@type InstanceVBOTable?
 local mapMarkInstanceVBO = nil
 local mapMarkShader = nil
 
@@ -287,8 +288,11 @@ local function initGL4()
 	mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
 	mapMarkInstanceVBO.numVertices = numVertices
 	mapMarkInstanceVBO.vertexVBO = markerVBO
-	mapMarkInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+	mapMarkInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 	mapMarkInstanceVBO.primitiveType = GL.LINES
 
 	if false then -- testing
@@ -338,6 +342,10 @@ end
 
 function widget:Shutdown()
 	WG.PointTracker = nil
+	if type(mapMarkShader) == "table" then
+		mapMarkShader:Finalize()
+		mapMarkShader = nil
+	end
 end
 
 function widget:DrawScreen()
@@ -354,6 +362,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 		label == "Start " .. playerTeam
 		or cmdType ~= "point"
 		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView))
+		or (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID))
 	then
 		return
 	end
@@ -374,7 +383,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 			gf,
 		},
 		instanceIDgen, -- key, generate me one if nil
-		true -- update exisiting
+		true -- update existing
 	)
 	if mapPoints[gf] then
 		mapPoints[gf][#mapPoints[gf] + 1] = instanceIDgen

@@ -23,8 +23,8 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 local vsx, vsy = spGetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -69,13 +69,13 @@ local facRect = { -1, -1, -1, -1 }
 local boptRect = { -1, -1, -1, -1 }
 
 -- the following vars make it very easy to use the same code to render the menus, whatever side they are
--- cause we simple take topleft_startcorner and add recursivly *_inext to it to access they next icon pos
+-- cause we simple take topleft_startcorner and add recursively *_inext to it to access they next icon pos
 local fac_inext = { 0, 0 }
 local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
-local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+local orgIconTypes = require("gamedata/icontypes")
 local unitIcon = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -100,7 +100,12 @@ local msz = Game.mapY * 512
 local groups, unitGroup = {}, {} -- retrieves from buildmenu in initialize
 local unitOrder = {} -- retrieves from buildmenu in initialize
 
-local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
+local bgpadding, font, dlistGuishader, dlistGuishader2, forceGuishader
+---@type ScreenRect?
+local backgroundRect
+---@type ScreenRect?
+local backgroundOptionsRect
+local buildoptionsArea
 local factoriesArea, cornerSize, setInfoDisplayUnitID, setInfoDisplayUnitDefID, factoriesAreaHovered
 
 -------------------------------------------------------------------------------
@@ -405,7 +410,7 @@ function widget:PlayerChanged()
 end
 
 -------------------------------------------------------------------------------
--- INITIALIZTION FUNCTIONS
+-- INITIALIZATION FUNCTIONS
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
@@ -881,7 +886,7 @@ function widget:Update(dt)
 				unitDefID = unitBuildDefID
 				-- Progress will be drawn separately every frame
 			elseif unfinished_facs[facInfo.unitID] then
-				local isBeingBuilt, progress = GetUnitIsBeingBuilt(facInfo.unitID)
+				local isBeingBuilt, _ = GetUnitIsBeingBuilt(facInfo.unitID)
 				-- Keep showing factory icon when it's being built
 				-- Progress for unfinished factory will be drawn separately
 				if not isBeingBuilt then
@@ -1470,7 +1475,7 @@ function widget:DrawScreen()
 			if not factoryTex and width > 0 and height > 0 then
 				factoryTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 				factoryTexW = width

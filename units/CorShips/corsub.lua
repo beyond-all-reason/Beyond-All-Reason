@@ -102,7 +102,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				cegtag = "torpedotrail-tiny",
+				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -137,8 +137,6 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "TORPEDO",
-				maindir = "0 0 1",
-				maxangledif = 90,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

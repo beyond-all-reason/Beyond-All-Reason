@@ -2,9 +2,6 @@
 #include "../recoil_common_includes.h"
 #include "../opencloseanim.h"
 
-// piece  rflare, lflare, torso, pelvis, lleg, rleg, lbarrel,
-//        rbarrel,head,lthigh,rthigh, aimx1, aimy1;
-
 piece
     barrel,
     turretOpener,
@@ -27,16 +24,11 @@ piece
     barrelFlare3;
 
 
-static-var  gun_3, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, wpn2_lasthead, whichBarrel, isOpen;//, last_primary_heading, last_primary_pitch;
+static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, wpn1_lasthead, whichBarrel, isOpen;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_MOVE 1
 #define SIGNAL_AIM3 1024
-
-
-//static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
-#define SIGNAL_MOVE 1
 Walk() {// Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
@@ -314,17 +306,18 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 2) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
-		if (animspeed>11) animSpeed = 11;
+		if (animspeed>5) animSpeed = 5;
 		sleep 193;
 	}
 }
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 2;
+	set-signal-mask SIGNAL_MOVE;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
@@ -343,19 +336,15 @@ StopMoving(){
 
 Create()
 {
-	// gun_3 = barrelFlare1;
 	restore_delay = 3000;
 	isMoving = FALSE;
-    whichBarrel = 0;
-    isOpen = 0;
-    //wpn2_lasthead = 0xbadface;
-    // last_primary_heading = -1000000;
-	// last_primary_pitch = -1000000;
+	whichBarrel = 0;
+	isOpen = 0;
+	animSpeed = 5;
 	start-script StopMoving();
 }
 
 
-//static-var isOpen;
 Open(){
     turn turretOpener to x-axis <40> speed <40>;
     isOpen = 1;
@@ -370,19 +359,15 @@ Close(){
 Activate()
 {
 	start-script OpenCloseAnim(1);
-    signal SIGNAL_AIM3;
-    wpn2_lasthead = 0xbadface;
-    // last_primary_heading = -1000000;
-    // last_primary_pitch = -1000000;
+	signal SIGNAL_AIM3;
+	wpn1_lasthead = 0xbadface;
 }
 
 Deactivate()
 {
 	start-script OpenCloseAnim(0);
-    signal SIGNAL_AIM3;
-    wpn2_lasthead = 0xbadface;
-    // last_primary_heading = -1000000;
-    // last_primary_pitch = -1000000;
+	signal SIGNAL_AIM3;
+	wpn1_lasthead = 0xbadface;
 }
 
 
@@ -418,13 +403,13 @@ AimWeapon1(heading, pitch)
     start-script OpenCloseAnim(1);
     signal SIGNAL_AIM3;
 	turn chassis to y-axis heading speed <225.0>;
-	turn turretPitchPivot to x-axis  (<0> - pitch + <40>) speed <225.000000>;
-	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
+	turn turretPitchPivot to x-axis  (<0> - pitch + <40>) speed <225.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <27>))
 	{
-		wpn2_lasthead = 0xbadface;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn chassis around y-axis;
 	}
-	wpn2_lasthead = heading;
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -448,22 +433,6 @@ FireWeapon1()
     }
 }
 
-Shot1(zero) {
-    if (whichBarrel == 0){
-        //emit-sfx 1024 + 0 from barrelFlare1;
-        whichBarrel = 1;
-    }
-    if (whichBarrel == 1){
-        //emit-sfx 1024 + 0 from barrelFlare2;
-        whichBarrel = 2;
-    }
-    if (whichBarrel == 2){
-        //emit-sfx 1024 + 0 from barrelFlare3;
-        whichBarrel = 0;
-    }
-    if (whichBarrel >= 3) whichBarrel = 0;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -471,9 +440,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn chassis to y-axis <0.0> speed <90.0>;
-	turn turretPitchPivot to x-axis <0.000000> speed <90.000000>;
+	turn turretPitchPivot to x-axis <0.0> speed <90.0>;
     start-script OpenCloseAnim(0);
-	wpn2_lasthead = 0xbadface;
+	wpn1_lasthead = 0xbadface;
 }
 
 SetStunned(State)

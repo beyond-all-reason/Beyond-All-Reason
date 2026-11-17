@@ -4,8 +4,8 @@ return {
 		buildpic = "CORSALA.DDS",
 		buildtime = 10500,
 		canmove = true,
-		collisionvolumeoffsets = "0 -5.5 0",
-		collisionvolumescales = "31 34 31",
+		collisionvolumeoffsets = "0 -0.7 -0.8",
+		collisionvolumescales = "33.3 18.4 34.6",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		energycost = 7000,
@@ -44,11 +44,10 @@ return {
 			model_author = "Itanthias, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.2,
+			reaimtime = 6,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 75,
 		},
 		featuredefs = {
 			dead = {
@@ -142,6 +141,10 @@ return {
 				tolerance = 4400,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 75,
+				},
 				damage = {
 					default = 18,
 				},

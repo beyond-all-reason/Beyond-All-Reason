@@ -88,6 +88,7 @@ return {
 		},
 		customparams = {
 			unitgroup = "builder",
+			canwearcosmetics = true,
 			combatradius = 600,
 			firestateoncloak = 0,
 			maxrange = 300,
@@ -95,7 +96,10 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
-			subfolder = "",
+			reaimtime = 5,
+			spawnpad_unit = "legnanotcbase",
+			subfolder = "Legion",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {
@@ -262,7 +266,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 1.2,
@@ -334,13 +338,15 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				def = "legcomlaser",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

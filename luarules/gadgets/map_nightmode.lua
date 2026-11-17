@@ -53,7 +53,7 @@ end
 -- Repeats: X times
 -- Fromtime : nil for now
 -- NO CONFLICTING CONFIGS ALLOWED YET!
--- cant have periodic + single being active at the same time!
+-- can't have periodic + single being active at the same time!
 
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
@@ -176,7 +176,7 @@ if not gadgetHandler:IsSyncedCode() then
 			)
 		end
 
-		-- This is disabled because these are all #defined params, so they cant be changed without recompiling the bumpwater shader
+		-- This is disabled because these are all #defined params, so they can't be changed without recompiling the bumpwater shader
 		-- The bumpwaterUseUniforms was deprecated in 2022.10 by ivand
 		--if lightandatmos.water then Spring.SetWaterParams(lightandatmos.water) end
 
@@ -259,8 +259,6 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if a.sunDir and b.sunDir then
-			local asun = a.sunDir
-			local bsun = b.sunDir
 
 			local aworldrot, aheight = SunDirToAzimuthHeight(a.sunDir)
 			local bworldrot, bheight = SunDirToAzimuthHeight(b.sunDir)
@@ -290,10 +288,6 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local initial_atmosphere_lighting = GetLightingAndAtmosphere()
-
-	local initlight
-	local endlight
-	local mixedlight
 
 	local function GetNightLight(fromlight, nightfactor, azimuth, altitude)
 		if fromlight == nil then
@@ -388,7 +382,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 		local newNightLight = GetNightLight(nil, { nightR, nightG, nightB, shadowfactor }, azimuth, altitude)
 		Spring.Echo(newNightLight)
-		-- If this command is recieved, immediately stop any existing nightModeConfig
+		-- If this command is received, immediately stop any existing nightModeConfig
 		transitionenabled = false
 		SetLightingAndAtmosphere(newNightLight)
 	end
@@ -410,7 +404,7 @@ if not gadgetHandler:IsSyncedCode() then
 		for i, nc in ipairs(nightModeConfig) do
 			local currentseconds = n / 30 - nc.startTime
 
-			-- see if this light can still have an effct
+			-- see if this light can still have an effect
 			if currentseconds < nc.repeats * nc.period then
 				--calculate phase:
 				local phase = math.fmod(currentseconds, nc.period)
@@ -427,7 +421,6 @@ if not gadgetHandler:IsSyncedCode() then
 						nc.mixedlight = tablecopy(nc.endLight)
 					end
 
-					local transitionfactor = 0
 					if phase <= nc.dayDuration + nc.transitionDuration then -- moving to night
 						mixfac = math.smoothstep(nc.dayDuration, nc.dayDuration + nc.transitionDuration, phase)
 					else

@@ -242,7 +242,7 @@ local definitions = {
 		},
 	},
 
-	--Blue inner ring gold outter ring
+	--Blue inner ring gold outer ring
 	fireworks_burst_1 = {
 		stars = {
 			air = true,

@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+---@type InstanceVBOTable?
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -70,8 +71,11 @@ local function initGL4()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitConf[unitDefID] == nil then
+		return
+	end
 	local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
-	if unitConf[unitDefID] == nil or not rezRulesParam or rezRulesParam == 0 then
+	if not rezRulesParam or rezRulesParam == 0 then
 		return
 	end
 
@@ -84,7 +88,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 			8,
 			unitConf[unitDefID].height, -- lengthwidthcornerheight
 			0, -- teamID
-			4, -- how many trianges should we make (2 = cornerrect)
+			4, -- how many triangles should we make (2 = cornerrect)
 			gf,
 			0,
 			0,
@@ -92,7 +96,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 			0,
 			1,
 			0,
-			1, -- These are our default UV atlas tranformations
+			1, -- These are our default UV atlas transformations
 			0,
 			0,
 			0,
@@ -108,7 +112,7 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(resurrectionHalosVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
 end
 
@@ -160,5 +164,12 @@ function widget:Initialize()
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end
+	end
+end
+
+function widget:Shutdown()
+	if type(resurrectionHalosShader) == "table" then
+		resurrectionHalosShader:Finalize()
+		resurrectionHalosShader = nil
 	end
 end

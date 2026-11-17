@@ -17,26 +17,26 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitWeaponState = Spring.GetUnitWeaponState
 
-	local forwardedFeatureIDs = {} -- so we only forward the start event once
+	-- Build-stepped features can be dead by dispatch, e.g. reclaimed to death.
+	local deadFeatureIDs = {}
+
 	local forwardedCaptureUnitIDs = {}
 	local weapondefsreload = {}
 	local unitreloadframe = {} -- maps unitID to next frame it can shoot its primary weapon, cause lasers retrigger projetileCreated every frame
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
-	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
-		-- VERY IMPORTANT: This also gets called on resurrect!, but its very hard to tell if its a reclaim, but we can make the mother of all assumptions:
-		-- features die at 100% metal value
-		-- step is negative if 'reclaiming'
-		-- step is large positive if refilling
-		-- step is small positive if rezzing
-
-		local gf = spGetGameFrame()
-		--Spring.Echo("AllowFeatureBuildStep",gf,builderID, builderTeam, featureID, featureDefID, step)
-		if forwardedFeatureIDs[featureID] == nil or forwardedFeatureIDs[featureID] < gf then
-			forwardedFeatureIDs[featureID] = gf
-			SendToUnsynced("featureReclaimFrame", featureID, step)
+	function gadget:FeatureBuildStepTotal(featureID, part)
+		if not deadFeatureIDs[featureID] then
+			SendToUnsynced("featureReclaimFrame", featureID, part)
 		end
-		return true
+	end
+
+	function gadget:FeatureCreated(featureID, allyTeamID)
+		deadFeatureIDs[featureID] = nil
+	end
+
+	function gadget:FeatureDestroyed(featureID, allyTeamID)
+		deadFeatureIDs[featureID] = true
 	end
 
 	function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
@@ -45,10 +45,6 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("unitCaptureFrame", unitID, part)
 		end
 		return true
-	end
-
-	function gadget:FeatureDestroyed(featureID, allyTeamID)
-		forwardedFeatureIDs[featureID] = nil
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -76,26 +72,20 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if watchweaponID and longestreloadtime > minReloadTime then
-				--Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime, watchweaponID, udefID)
 				weapondefsreload[watchweaponID] = longestreloadindex
-				Script.SetWatchProjectile(watchweaponID, true)
+				gadgetHandler:RegisterProjectile(watchweaponID)
 			end
+		end
+
+		if not next(weapondefsreload) then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
 		end
 	end
 
-	function gadget:ProjectileCreated(projectileID, ownerID, weaponID) -- needs: Script.SetWatchProjectile(weaponDefID, true)
-		--local unitDef = Spring.GetUnitDefID(ownerID)
-		--Spring.Echo("gadget:ProjectileCreated(",projectileID, ownerID, weaponID,weapondefsreload[weaponID],unitreloadframe[ownerID], ")")
-		local weaponIndex = weapondefsreload[weaponID]
-
-		if weaponIndex then
-			local gf = spGetGameFrame()
-			local reloadFrame = spGetUnitWeaponState(ownerID, weaponIndex, "reloadFrame")
-
-			if unitreloadframe[ownerID] == nil or unitreloadframe[ownerID] <= gf then
-				SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
-				unitreloadframe[ownerID] = reloadFrame
-			end
+	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
+		if (unitreloadframe[ownerID] or -1) <= spGetGameFrame() then
+			SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
+			unitreloadframe[ownerID] = spGetUnitWeaponState(ownerID, weapondefsreload[weaponID], "reloadFrame")
 		end
 	end
 else

@@ -18,8 +18,6 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local myshader = nil
 local myshaderDebgDrawLoc = nil
-local myshaderTexture0Loc = nil
-local dbgDraw = 0
 local depthCopyTex = nil
 
 local deferredbuffers = {
@@ -53,8 +51,6 @@ deferredbuffer_info = {
 	["$model_gbuffer_zvaltex"] = "contains the depth values (z-buffer) of the models in view. ",
 	depthcopy = "A copy of the current depth buffer. ",
 }
-
-local currentbuffer = 13 -- starts with model_gbuffer_normtex
 
 local function RemoveMe(msg)
 	spEcho(msg)
@@ -188,7 +184,6 @@ local function MakeShader()
 	end
 
 	myshaderDebgDrawLoc = gl.GetUniformLocation(myshader, "debugDraw")
-	--myshaderTexture0Loc = gl.GetUniformLocation(myshader, "texture0")
 end
 
 function widget:Initialize()
@@ -202,10 +197,8 @@ function widget:Initialize()
 		RemoveMe("[deferred buffer visualizer] removing widget, AllowDeferred Model and Map Rendering is required")
 	end
 	local vsx, vsy = spGetViewGeometry()
-	local GL_DEPTH_COMPONENT24 = 0x81A6
 
 	local GL_DEPTH_COMPONENT = 0x1902
-	local GL_DEPTH_COMPONENT32 = 0x81A7
 	depthCopyTex = gl.CreateTexture(vsx, vsy, {
 		target = GL_TEXTURE_2D,
 		format = GL_DEPTH_COMPONENT,

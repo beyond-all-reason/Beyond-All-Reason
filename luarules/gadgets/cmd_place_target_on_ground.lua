@@ -68,7 +68,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
 			if cmdDesc then
 				cmdDesc.type = CMDTYPE_ICON_MAP -- Forces attack commands to accept (x,y,z) spatial coordinates, and not allow unitIDs as valid parameters.
-				-- HOWEVER, this does not seem to propogate to default right click commands.
+				-- HOWEVER, this does not seem to propagate to default right click commands.
 				-- so the below AllowCommand function checks for any attacks just targeting a unitID and places the command on the floor.
 				spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
 			end
@@ -113,7 +113,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			if x ~= nil and (y < 0) and (x >= 0 and x <= mapx) and (z >= 0 and z <= mapz) then
 				return false
 			end
-		elseif #cmdParams == 1 then -- give an attack command at the ground, and deny the intial attack unit command
+		elseif #cmdParams == 1 then -- give an attack command at the ground, and deny the initial attack unit command
 			local basePointX, basePointY, basePointZ = spGetUnitPosition(cmdParams[1])
 			if basePointX and basePointZ then
 				local yGround = spGetGroundHeight(basePointX, basePointZ)

@@ -27,6 +27,6 @@ function widget:Initialize()
 		Spring.SendCommands(line)
 	end
 	if numLines > 0 then
-		Spring.Echo("Succesfully loaded LuaUI/Widgets/uikeys.txt")
+		Spring.Echo("Successfully loaded LuaUI/Widgets/uikeys.txt")
 	end
 end

@@ -18,11 +18,11 @@ end
 
 ---@class WadeUnitData
 ---@field id integer
----@field unitID integer
+---@field unitID UnitID
 ---@field h number
 ---@field ceg string
 
----@type table<integer, WadeUnitData>
+---@type table<integer, WadeUnitData?>
 local unit = {}
 local unitsCount = 0
 ---@type WadeUnitData[]
@@ -76,10 +76,11 @@ for unitDefID = 1, #UnitDefs do
 	end
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
+-- Only wadable units that are in water are listed (UnitEnteredWater/UnitLeftWater), so dry ones are never polled
+local function addUnit(unitID, unitDefID)
 	local maxDepth = wadeDepth[unitDefID]
 	local ceg = wadeCeg[unitDefID]
-	if maxDepth and ceg then
+	if maxDepth and ceg and not unit[unitID] then
 		unitsCount = unitsCount + 1
 		local data = { id = unitsCount, unitID = unitID, h = maxDepth, ceg = ceg }
 		unitsData[unitsCount] = data
@@ -87,7 +88,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+local function removeUnit(unitID)
 	local data = unit[unitID]
 	if data then
 		local unitIndex = data.id
@@ -102,6 +103,27 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitsData[unitsCount] = nil
 		unitsCount = unitsCount - 1
 	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID)
+	if wadeDepth[unitDefID] then
+		local _, y = spGetUnitPosition(unitID)
+		if y and y <= 0 then
+			addUnit(unitID, unitDefID)
+		end
+	end
+end
+
+function gadget:UnitEnteredWater(unitID, unitDefID)
+	addUnit(unitID, unitDefID)
+end
+
+function gadget:UnitLeftWater(unitID)
+	removeUnit(unitID)
+end
+
+function gadget:UnitDestroyed(unitID)
+	removeUnit(unitID)
 end
 
 function gadget:GameFrame(n)
@@ -132,7 +154,10 @@ end
 
 function gadget:Initialize()
 	local minHeight = Spring.GetGroundExtremes()
-	if minHeight > 20 then
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	local voidWater = success and mapinfo and mapinfo.voidwater
+	-- lava covers the water plane, and void water never spawns water CEGs
+	if minHeight > 20 or BAR.Lava.isLavaMap or voidWater then
 		gadgetHandler:RemoveGadget(self)
 		return
 	end

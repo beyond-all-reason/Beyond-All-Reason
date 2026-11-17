@@ -1,7 +1,7 @@
 return {
 	leglupara = {
 		maxacc = 0,
-		airsightdistance = 1000,
+		airsightdistance = 1200,
 		maxdec = 0,
 		buildangle = 65536,
 		energycost = 8200,
@@ -36,7 +36,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "Legion/defenses",
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {
@@ -122,7 +122,7 @@ return {
 				name = "Medium g2a Flak Blunderbuss",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 1125,
+				range = 1200,
 				reloadtime = 1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
@@ -146,6 +146,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LEGFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

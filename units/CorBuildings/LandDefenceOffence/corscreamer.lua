@@ -32,6 +32,7 @@ return {
 			buildinggrounddecaltype = "decals/corscreamer_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,

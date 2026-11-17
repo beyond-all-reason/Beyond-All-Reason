@@ -1,6 +1,5 @@
 return {
 	armlichet4 = {
-		acceleration = 0.15,
 		blocking = false,
 		maxdec = 0.05,
 		energycost = 240000,

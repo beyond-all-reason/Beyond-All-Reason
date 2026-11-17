@@ -40,6 +40,7 @@ local spSetUnitCloak = Spring.SetUnitCloak
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spUseUnitResource = Spring.UseUnitResource
@@ -65,6 +66,10 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
+---Forces a unit to decloak and blocks it from recloaking for a while.
+---Repeated calls extend the block rather than stacking.
+---@param unitID UnitID
+---@param duration integer? Frames to stay decloaked. Defaults to the gadget's decloak time.
 function PokeDecloakUnit(unitID, duration)
 	if recloakUnit[unitID] then
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
@@ -134,6 +139,36 @@ function gadget:GameFrame(n)
 	end
 end
 
+---Cloak energy drain (e/s) for the unit's current movement / area-cloak state.
+---Does not check whether the unit is currently cloaked — used by AllowUnitCloak billing.
+---@param unitID UnitID
+---@param unitDefID UnitDefID
+---@return number
+local function getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+	local areaCloaked = (spGetUnitRulesParam(unitID, "areacloaked") == 1)
+		and ((spGetUnitRulesParam(unitID, "cloak_shield") or 0) == 0)
+	if areaCloaked then
+		return 0
+	end
+	local speed = select(4, spGetUnitVelocity(unitID))
+	local moving = speed and speed > CLOAK_MOVE_THRESHOLD
+	return moving and canCloak[unitDefID][2] or canCloak[unitDefID][3]
+end
+
+---Energy/sec currently spent on cloak (0 if not cloaked, cannot cloak, or area-cloaked).
+---@param unitID UnitID
+---@param unitDefID UnitDefID?
+---@return number
+local function GetUnitCloakEnergyPerSec(unitID, unitDefID)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
+	if not canCloak[unitDefID] or not spGetUnitIsCloaked(unitID) then
+		return 0
+	end
+	return getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+end
+
+GG.GetUnitCloakEnergyPerSec = GetUnitCloakEnergyPerSec
+
 -- Only called with enemyID if an enemy is within decloak radius.
 function gadget:AllowUnitCloak(unitID, enemyID)
 	if enemyID then
@@ -157,13 +192,8 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 		return false
 	end
 
-	local areaCloaked = (spGetUnitRulesParam(unitID, "areacloaked") == 1)
-		and ((spGetUnitRulesParam(unitID, "cloak_shield") or 0) == 0)
-	if not areaCloaked then
-		local speed = select(4, spGetUnitVelocity(unitID))
-		local moving = speed and speed > CLOAK_MOVE_THRESHOLD
-		local cost = moving and canCloak[unitDefID][2] or canCloak[unitDefID][3]
-
+	local cost = getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+	if cost > 0 then
 		if not spUseUnitResource(unitID, "e", cost / 2) then -- SlowUpdate happens twice a second.
 			return false
 		end
@@ -176,6 +206,10 @@ function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
 	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
 end
 
+---Sets the unit's desired cloak state, updating its command description to match.
+---Does nothing for dead or missing units.
+---@param unitID UnitID?
+---@param state 0|1 `1` to request cloaking, `0` to request decloaking.
 local function SetWantedCloaked(unitID, state)
 	if not unitID or spGetUnitIsDead(unitID) then
 		return

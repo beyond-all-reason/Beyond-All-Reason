@@ -36,7 +36,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/gantry",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -53,6 +53,7 @@ FireWeapon1()
 		gun_1 = 0;
 		return (0);
 	}
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)

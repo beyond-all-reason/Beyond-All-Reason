@@ -84,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 			damage > 4
 			and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15)
 			and select(1, Spring.GetFeatureHealth(featureID)) > 0
-		then -- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged wont be called probably
+		then -- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged won't be called probably
 			local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 			if fx ~= nil then
 				local fdef = featureList[featureDefID]
@@ -126,9 +126,11 @@ if gadgetHandler:IsSyncedCode() then
 		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 		if fy ~= nil and fy + 15 > Spring.GetGroundHeight(fx, fz) then
 			local fdef = featureList[Spring.GetFeatureDefID(featureID)]
-			if fdef and fdef.minx then
+			local rm, mm, re, me, reclaimLeft = Spring.GetFeatureResources(featureID)
+			-- only reclaimed or destroyed features burst: Lua removals (the tree feller swaps every hit tree for a
+			-- falling copy and removes that later) and resurrections spawned up to ~30 CEGs each
+			if fdef and fdef.minx and reclaimLeft and (reclaimLeft <= 0 or Spring.GetFeatureHealth(featureID) <= 0) then
 				local x, y, z = fx, fy, fz
-				local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 				if me ~= nil and me > 0 then
 					local numFx = math.max(math.floor(me / 250), 15)
 					local posMultiplier = 0.5

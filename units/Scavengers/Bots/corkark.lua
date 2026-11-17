@@ -36,9 +36,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "Scavengers/Bots",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -123,6 +122,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 160,
 					vtol = 25,

@@ -72,7 +72,7 @@ end
 
 local function updatePosition(force)
 	if WG.advplayerlist_api ~= nil then
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx, _ = Spring.GetViewGeometry()
 		local margin = WG.FlowUI.elementPadding
 		xPos = vsx - margin
 		local prevPos = advplayerlistPos
@@ -154,14 +154,14 @@ function widget:MouseRelease(mx, my, mb)
 		if Script.LuaUI("ClearMapMarks") then
 			Script.LuaUI.ClearMapMarks()
 		end
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local _, ctrl, _, _ = Spring.GetModKeyState()
 		if ctrl then
 			continuouslyClean = not continuouslyClean
 			WG.clearmapmarks.continuous = continuouslyClean
 			if continuouslyClean then
-				spEcho("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
+				spEcho("clearmapmarks: continuously cleaning all mapmarks enabled (for current game)")
 			else
-				spEcho("clearmapmarks: continously cleaning all mapmarks disabled")
+				spEcho("clearmapmarks: continuously cleaning all mapmarks disabled")
 			end
 		end
 	end

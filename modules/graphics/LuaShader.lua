@@ -13,6 +13,14 @@ local glUniformArray = gl.UniformArray
 
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 
+-- OpenGL 3.2 took the geometry shader stage into the standard, and came with this shading language
+-- version. Drivers newer than that mostly no longer name the extensions the stage arrived through.
+local GLSL_VERSION_WITH_GEOMETRY_SHADERS = 150
+
+-- [Some] Mesa versions prior to this stalled for several seconds the first time a geometry shader
+-- was drawn due to emulation involving memory buffers.
+local OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS = 2601 -- major * 100 + minor, so Mesa 26.1
+
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
 	if type(logEntries) == "number" then
@@ -34,11 +42,37 @@ local function new(class, shaderParams, shaderName, logEntries)
 	}, class)
 end
 
-local function IsGeometryShaderSupported()
-	local hasGeometryShaderExtension = gl.HasExtension("GL_ARB_geometry_shader4")
+local function HasGeometryShaderStage()
+	local glslVersion = Platform and Platform.glslVersionNum or 0
+	local hasStage = glslVersion >= GLSL_VERSION_WITH_GEOMETRY_SHADERS
+		or gl.HasExtension("GL_ARB_geometry_shader4")
 		or gl.HasExtension("GL_EXT_geometry_shader4")
 		or gl.HasExtension("GL_OES_geometry_shader")
-	return hasGeometryShaderExtension and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+
+	-- an engine that can build a shader with a geometry stage lets a widget set that stage up
+	return hasStage and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+end
+
+--- Which Mesa this is, as major * 100 + minor, or nil on a driver that is not Mesa. Mesa names
+--- itself in the version string it answers with, as in "4.6 (Compatibility Profile) Mesa 26.1.7".
+local function MesaVersion()
+	local glVersion = Platform and Platform.glVersion
+	if not glVersion then
+		return nil
+	end
+
+	local major, minor = glVersion:match("Mesa (%d+)%.(%d+)")
+	---@diagnostic disable-next-line: need-check-nil
+	return major and (tonumber(major) * 100 + tonumber(minor)) or nil
+end
+
+--- Whether to take a geometry shader where there is a path with one and a path without.
+--- Older Mesa is left out although it has the stage, since it incurs long delays for
+--- shader compilation.
+local function IsGeometryShaderSupported()
+	local mesaVersion = MesaVersion()
+	local mesaExpensive = mesaVersion ~= nil and mesaVersion < OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS
+	return HasGeometryShaderStage() and not mesaExpensive
 end
 
 local function IsTesselationShaderSupported()
@@ -131,7 +165,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 teamColor[255]; //all team colors
 };
 
-// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
+// glsl rotate convenience funcs: https://github.com/dmnsgn/glsl-rotate
 
 mat3 rotation3dX(float angle) {
 	float s = sin(angle);
@@ -216,7 +250,7 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 //  Returns:
 //      < 0  – sphere at least partially inside the X-Y clip box
 //      = 0  – sphere exactly touches at least one edge
-//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+//      > 0  – sphere is more distance from the edge of frustum by that many NDC units
 //
 float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 {
@@ -247,7 +281,7 @@ float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 
 
 
-// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either.
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isn't needed either.
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
 	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
@@ -275,6 +309,12 @@ vec3 rgb2hsv(vec3 c){
 
 ]]
 
+	return eubs
+end
+
+-- Map-specific, so kept out of the shared UBO defs: shader text that differs per map misses the driver's shader cache.
+-- Shaders that need waterBlend() include it with //__WATERBLENDDEFS__
+local function GetWaterBlendDefs()
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
@@ -297,7 +337,7 @@ vec4 waterBlend(float fragmentheight){
 	return waterBlendResult;
 }
 ]]
-	waterUniforms = string.format(
+	return string.format(
 		waterUniforms,
 		waterAbsorbColorR,
 		waterAbsorbColorG,
@@ -309,9 +349,15 @@ vec4 waterBlend(float fragmentheight){
 		waterBaseColorG,
 		waterBaseColorB
 	)
-
-	return eubs .. waterUniforms
 end
+
+local function InsertWaterBlendDefs(src)
+	if src:find("//__WATERBLENDDEFS__", 1, true) then
+		return (src:gsub("//__WATERBLENDDEFS__", GetWaterBlendDefs()))
+	end
+	return src
+end
+
 local function GetQuaternionDefs()
 	-- For replacing //__QUATERNIONDEFS__ with the quaternion definitions
 	return [[
@@ -420,7 +466,7 @@ vec4 SLerp(vec4 qa, vec4 qb, float t) {
 	// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
 	// does not require special handling, however this usually represents
 	// "physically impossible" 180 degree turns with infinite speed so perhaps
-	// it can be handled in the following (cuurently disabled) special way
+	// it can be handled in the following (currently disabled) special way
 	#if 0
 	if (cosHalfTheta <= 0.005)
 		return mix(qa, qb, step(0.5, t));
@@ -523,6 +569,7 @@ LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
 LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
+LuaShader.GetWaterBlendDefs = GetWaterBlendDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
@@ -569,12 +616,17 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
 				if glslvariable then
+					-- shaderconfig.stripPrintf is convenience for reused megashaders (e.g. CUS_GL4) to only printf from one draw pass or bin
+					if shadersourcecache.shaderConfig.stripPrintf then 
+						Spring.Echo("Stripping printf from fragment shader line", i)
+						fsSrcNewLines[i] = ""
+					else
 					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
 					-- init our printf table
 
 					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
-					-- Figure out wether the glsl variable is a float, vec2-4
+					-- Figure out whether the glsl variable is a float, vec2-4
 					local glslvarcount = 1 -- default is 1
 					local dotposition = string.find(glslvariable, "%.")
 					local swizzle = "x"
@@ -606,6 +658,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					)
 					Spring.Echo(string.format("Replacing f:%d %s", i, line))
 					fsSrcNewLines[i] = replacementstring
+					end
 				end
 			end
 
@@ -665,8 +718,12 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				fsSrcNew = table.concat(fsSrcNewLines, "\n")
 				--Spring.Echo(fsSrcNew)
 			end
+
+			if shadersourcecache.shaderConfig.stripPrintf then fsSrcNew = table.concat(fsSrcNewLines, "\n") end
+
 			if vsSrcNew then
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = InsertWaterBlendDefs(vsSrcNew)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				vsSrcNew = vsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
@@ -674,6 +731,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 			if gsSrcNew then
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = InsertWaterBlendDefs(gsSrcNew)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				gsSrcNew = gsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
@@ -684,6 +742,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					"//__ENGINEUNIFORMBUFFERDEFS__",
 					(printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs)
 				)
+				fsSrcNew = InsertWaterBlendDefs(fsSrcNew)
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
@@ -1226,33 +1285,6 @@ local function isUpdateRequired(uniform, tbl)
 	return update
 end
 
-local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
-	if (u2 == nil) and (type(u1) == "string") then --named matrix
-		return true --no need to update cache
-	end
-
-	local update = false
-	local cachedValues = uniform.values
-
-	if u1 and cachedValues[1] ~= u1 then
-		update = true
-		cachedValues[1] = u1
-	end
-	if u2 and cachedValues[2] ~= u2 then
-		update = true
-		cachedValues[2] = u2
-	end
-	if u3 and cachedValues[3] ~= u3 then
-		update = true
-		cachedValues[3] = u3
-	end
-	if u4 and cachedValues[4] ~= u4 then
-		update = true
-		cachedValues[4] = u4
-	end
-
-	return update
-end
 -----------------============ End of friend LuaShader functions ============-----------------
 
 -----------------============ LuaShader uniform manipulation functions ============-----------------
@@ -1284,21 +1316,57 @@ function LuaShader:SetUniformAlways(name, u1, u2, u3, u4)
 	return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformImpl(uniform, u1, u2, u3, u4)
-	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
-		return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
+-- SetUniform and SetUniformInt run every frame in many widgets, so the cache check and the set are inlined here.
+-- A uniform the shader does not know yet, or a shader that may not be set, goes through getUniform as before.
+local function makeCachedUniformSetter(glSetUniform)
+	return function(self, name, u1, u2, u3, u4)
+		local uniform = self.uniforms[name]
+		if type(uniform) ~= "table" or not (self.active or self.ignoreActive) then
+			uniform = getUniform(self, name)
+			if not uniform then
+				return false
+			end
+		end
+
+		if (u2 ~= nil) or (type(u1) ~= "string") then -- a named matrix is always set
+			local cachedValues = uniform.values
+			local update = false
+			if u1 and cachedValues[1] ~= u1 then
+				update = true
+				cachedValues[1] = u1
+			end
+			if u2 and cachedValues[2] ~= u2 then
+				update = true
+				cachedValues[2] = u2
+			end
+			if u3 and cachedValues[3] ~= u3 then
+				update = true
+				cachedValues[3] = u3
+			end
+			if u4 and cachedValues[4] ~= u4 then
+				update = true
+				cachedValues[4] = u4
+			end
+			if not update then
+				return true
+			end
+		end
+
+		local location = uniform.location
+		if u4 ~= nil then
+			glSetUniform(location, u1, u2, u3, u4)
+		elseif u3 ~= nil then
+			glSetUniform(location, u1, u2, u3)
+		elseif u2 ~= nil then
+			glSetUniform(location, u1, u2)
+		else
+			glSetUniform(location, u1)
+		end
+		return true
 	end
-	return true
 end
 
-function LuaShader:SetUniform(name, u1, u2, u3, u4)
-	local uniform = getUniform(self, name)
-	if not uniform then
-		return false
-	end
-	return setUniformImpl(uniform, u1, u2, u3, u4)
-end
-
+LuaShader.SetUniform = makeCachedUniformSetter(glUniform)
 LuaShader.SetUniformFloat = LuaShader.SetUniform
 LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
@@ -1324,20 +1392,7 @@ function LuaShader:SetUniformIntAlways(name, u1, u2, u3, u4)
 	return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformIntImpl(uniform, u1, u2, u3, u4)
-	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
-		return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
-	end
-	return true
-end
-
-function LuaShader:SetUniformInt(name, u1, u2, u3, u4)
-	local uniform = getUniform(self, name)
-	if not uniform then
-		return false
-	end
-	return setUniformIntImpl(uniform, u1, u2, u3, u4)
-end
+LuaShader.SetUniformInt = makeCachedUniformSetter(glUniformInt)
 
 --FLOAT ARRAY UNIFORMS
 local function setUniformFloatArrayAlwaysImpl(uniform, tbl)

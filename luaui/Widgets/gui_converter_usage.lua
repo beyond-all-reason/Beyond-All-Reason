@@ -285,6 +285,8 @@ function widget:Initialize()
 	refreshTooltipText()
 
 	WG.converter_usage = {}
+	---Screen rectangle of the converter usage panel.
+	---@return ScreenRect area
 	WG.converter_usage.GetPosition = function()
 		return area
 	end

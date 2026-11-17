@@ -55,7 +55,7 @@ local function command(cmdID)
 		return ret
 	end
 
-	-- If not found, return UKNOWN with the cmdID
+	-- If not found, return UNKNOWN with the cmdID
 	return "UNKNOWN(" .. cmdID .. ")"
 end
 
@@ -134,6 +134,10 @@ else
 		end
 
 		return nil
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD.ANY)
 	end
 
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)

@@ -37,6 +37,7 @@ local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
@@ -50,6 +51,18 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spIsSphereInView = Spring.IsSphereInView
 local spGetCameraPosition = Spring.GetCameraPosition
+
+local Starburst = require("modules/starburst")
+local getStarburstWeapon = Starburst.getStarburstWeapon
+local stepStarburst = Starburst.stepStarburst
+
+local Verticalize = require("modules/verticalize")
+local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
+local getInFlightImpact = Verticalize.getInFlightImpact
+
+local MinimapUtils = require("luaui/Include/minimap_utils")
+local getCurrentMiniMapRotationOption = MinimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = MinimapUtils.ROTATION
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -153,7 +166,7 @@ local function BuildWeaponCache()
 		if wd.type == "StarburstLauncher" and wd.interceptor == 0 and not wd.tracks then
 			local aoe = wd.damageAreaOfEffect or 0
 			if aoe >= Config.minAoeThreshold then
-				local isNuke = wd.customParams and wd.customParams.nuclear
+				local isNuke = wd.customParams.nuclear ~= nil
 				local isParalyzer = wd.paralyzer or false
 				starburstWeapons[wdid] = {
 					aoe = aoe,
@@ -163,21 +176,20 @@ local function BuildWeaponCache()
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
-					weaponAcceleration = wd.weaponAcceleration or 0,
 					uptime = wd.uptime or 0,
-					turnRate = wd.turnRate or 0,
-					tracking = wd.tracks and (wd.turnRate or 0) or 0,
+					starburst = getStarburstWeapon(wd),
+					verticalize = getVerticalizeWeapon(wd),
+					waterWeapon = wd.waterWeapon,
 					leadLimit = wd.leadLimit or -1,
 					leadBonus = wd.leadBonus or 0,
 					initialTimeToLive = wd.flightTime or 0,
 					tracks = wd.tracks,
 				}
 				if starburstWeapons[wdid].initialTimeToLive == 0 then
-					starburstWeapons[wdid].initialTimeToLive = starburstWeapons[wdid].uptime * gameSpeed
-						+ wd.range / starburstWeapons[wdid].projectileSpeed
-						+ 100
+					local uptimeFrames = floor(starburstWeapons[wdid].uptime * gameSpeed)
+					starburstWeapons[wdid].initialTimeToLive =
+						floor(min(3000, uptimeFrames + wd.range / starburstWeapons[wdid].projectileSpeed + 100))
 				end
-				--Spring.Echo(wdid, wd.name, aoe, wd.range, isNuke, isParalyzer)
 			end
 		end
 	end
@@ -358,87 +370,59 @@ local function drawAllNukeGeometry()
 end
 
 --------------------------------------------------------------------------------
--- Batched nuke drawing (minimap) — single closures, manual Z-axis rotation
+-- Minimap nukes: the trefoil is only 5-40 px there, so it is a few static bands
+-- (display lists) animated through their color instead of per-frame vertices
 --------------------------------------------------------------------------------
-local minimapNukeBatch = {}
-local minimapNukeBatchSize = 0
+local MINIMAP_NUKE_BANDS = 6
+local minimapBandLists = {} -- [band] = display list of a unit-radius trefoil band
+local minimapBandWave = {} -- [band] = wave phase offset
+local minimapBandGradient = {} -- [band] = inner-to-outer brightness
+local minimapBandAlpha = {} -- [band] = wave * gradient, the same for every nuke in a frame
+local mmAX, mmBX, mmCX, mmAY, mmBY, mmCY = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 -- world (x, z) -> minimap pixels
 
-local function drawMinimapNukeLines()
-	glColor(1, 0.2, 0.2, 0.22)
-	for n = 1, minimapNukeBatchSize do
-		local nd = minimapNukeBatch[n]
-		glVertex(nd.projPX, nd.projPY, 0)
-		glVertex(nd.targPX, nd.targPY, 0)
-	end
-end
-
-local function drawMinimapNukeTrefoils()
-	local innerR = 0.18
-	local outerR = 0.85
-	local nukeSubLayerMin = Config.nukeSubLayerMin
-	local nukeSubLayerMax = Config.nukeSubLayerMax
-	local nukeSubLayerAoeDivisor = Config.nukeSubLayerAoeDivisor
-	local nukeSubLayerGap = Config.nukeSubLayerGap
-	local nukeWaveCount = Config.nukeWaveCount
-	local nukeGradientStrength = Config.nukeGradientStrength
-
-	for n = 1, minimapNukeBatchSize do
-		local nd = minimapNukeBatch[n]
-		local px, py = nd.targPX, nd.targPY
-		local size = nd.size
-		local cosR, sinR = nd.cosR, nd.sinR
-		local cr, cg, cb, ca = nd.cr, nd.cg, nd.cb, nd.ca
-		local trefoilOpacity = nd.opacity
-		local waveBase = nd.waveBase
-		local aoe = nd.aoe
-
-		local numLayers = max(nukeSubLayerMin, math.min(nukeSubLayerMax, floor(aoe / nukeSubLayerAoeDivisor)))
-		if minimapNukeBatchSize > 4 then
-			numLayers = max(nukeSubLayerMin, floor(numLayers * 4 / minimapNukeBatchSize))
-		end
-
-		local layerThickness = (outerR - innerR) / numLayers
-		local gap = layerThickness * nukeSubLayerGap
-		local invNumLayers = 1 / max(1, numLayers - 1)
-
-		for layer = 1, numLayers do
-			local layerInner = innerR + (layer - 1) * layerThickness + gap * 0.5
-			local layerOuter = innerR + layer * layerThickness - gap * 0.5
-
-			local normalizedPos = (layer - 1) * invNumLayers
-			local wavePhase = (waveBase + normalizedPos * nukeWaveCount) * tau
-			local waveBrightness = 0.25 + 0.75 * max(0, sin(wavePhase))
-			local gradientMul = 1 - nukeGradientStrength * (1 - normalizedPos)
-			local layerAlpha = ca * trefoilOpacity * waveBrightness * gradientMul
-
-			if layerAlpha > 0.005 then
-				glColor(cr, cg, cb, layerAlpha)
-				local rI = size * layerInner
-				local rO = size * layerOuter
-
+local function CreateMinimapNukeLists()
+	local innerR, outerR = 0.18, 0.85
+	local thickness = (outerR - innerR) / MINIMAP_NUKE_BANDS
+	for band = 1, MINIMAP_NUKE_BANDS do
+		local rI = innerR + (band - 1) * thickness
+		local rO = rI + thickness
+		minimapBandLists[band] = glCreateList(function()
+			glBeginEnd(GL_TRIANGLES, function()
 				for blade = 0, 2 do
 					local bg = bladeGeometryMini[blade]
 					for i = 0, BLADE_SEGMENTS_MINI - 1 do
-						local v0 = bg[i]
-						local v1 = bg[i + 1]
-						local c0, s0 = v0[1], v0[2]
-						local c1, s1 = v1[1], v1[2]
-						-- Manual Z-axis rotation for 2D minimap
-						local rc0 = c0 * cosR - s0 * sinR
-						local rs0 = c0 * sinR + s0 * cosR
-						local rc1 = c1 * cosR - s1 * sinR
-						local rs1 = c1 * sinR + s1 * cosR
-
-						glVertex(px + rI * rc0, py + rI * rs0)
-						glVertex(px + rO * rc0, py + rO * rs0)
-						glVertex(px + rI * rc1, py + rI * rs1)
-
-						glVertex(px + rI * rc1, py + rI * rs1)
-						glVertex(px + rO * rc0, py + rO * rs0)
-						glVertex(px + rO * rc1, py + rO * rs1)
+						local c0, s0 = bg[i][1], bg[i][2]
+						local c1, s1 = bg[i + 1][1], bg[i + 1][2]
+						glVertex(rI * c0, rI * s0)
+						glVertex(rO * c0, rO * s0)
+						glVertex(rI * c1, rI * s1)
+						glVertex(rI * c1, rI * s1)
+						glVertex(rO * c0, rO * s0)
+						glVertex(rO * c1, rO * s1)
 					end
 				end
-			end
+			end)
+		end)
+		local normalizedPos = (band - 1) / (MINIMAP_NUKE_BANDS - 1)
+		minimapBandWave[band] = normalizedPos * Config.nukeWaveCount
+		minimapBandGradient[band] = 1 - Config.nukeGradientStrength * (1 - normalizedPos)
+	end
+end
+
+local function DeleteMinimapNukeLists()
+	for band = 1, #minimapBandLists do
+		glDeleteList(minimapBandLists[band])
+		minimapBandLists[band] = nil
+	end
+end
+
+local function DrawMinimapNukeLines()
+	for _, data in pairs(trackedProjectiles) do
+		if data.weaponInfo.isNuke then
+			local x, z = data.projectileX, data.projectileZ
+			glVertex(mmAX * x + mmBX * z + mmCX, mmAY * x + mmBY * z + mmCY)
+			x, z = data.targetX, data.targetZ
+			glVertex(mmAX * x + mmBX * z + mmCX, mmAY * x + mmBY * z + mmCY)
 		end
 	end
 end
@@ -506,6 +490,7 @@ end
 --------------------------------------------------------------------------------
 -- Projectile tracking
 --------------------------------------------------------------------------------
+
 local function GetProjectileTargetPos(proID)
 	local targetType, targetData = spGetProjectileTarget(proID)
 
@@ -622,15 +607,6 @@ local function GetPredictedImpactPos(
 
 	local simX, simY, simZ = px, py, pz
 	local dirX, dirY, dirZ = vx / velocityLength, vy / velocityLength, vz / velocityLength
-	local speed = velocityLength
-	local maxSpeed = weaponInfo.projectileSpeed
-	local acceleration = weaponInfo.weaponAcceleration
-	local turnRate = weaponInfo.turnRate
-	if turnRate == 0 then
-		turnRate = 0.06
-	end
-	local tracking = weaponInfo.tracking
-	local maxGoodDif = cos(tracking * 0.6)
 	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
 	local targetMoves = weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
 
@@ -644,6 +620,10 @@ local function GetPredictedImpactPos(
 			turnToTarget = (dirX * targetDX + dirY * targetDY + dirZ * targetDZ) / targetLength <= 0.99
 		end
 	end
+
+	local starburstWeapon = weaponInfo.starburst
+	local speed = velocityLength
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
 	local maxFrames = min(remainingTimeToLive or 512, 512)
@@ -664,57 +644,29 @@ local function GetPredictedImpactPos(
 			return tx, ty, tz, false
 		end
 
-		if ascentFrames > 0 then
-			speed = min(speed + acceleration, maxSpeed)
-			ascentFrames = ascentFrames - 1
-		else
-			local targetDirX, targetDirY, targetDirZ =
-				targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
-			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
-			local steerRate
-			if turnToTarget then
-				if directionDotTarget > 0.99 then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-					turnToTarget = false
-				else
-					steerRate = turnRate
-				end
-			else
-				speed = min(speed + acceleration, maxSpeed)
-				if directionDotTarget > maxGoodDif then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-				elseif tracking > 0 then
-					steerRate = tracking
-				end
-			end
+		dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
+			starburstWeapon,
+			dirX,
+			dirY,
+			dirZ,
+			speed,
+			ascentFrames,
+			turnToTarget,
+			targetDX / targetLength,
+			targetDY / targetLength,
+			targetDZ / targetLength
+		)
 
-			if steerRate then
-				local turnX = targetDirX - dirX * directionDotTarget
-				local turnY = targetDirY - dirY * directionDotTarget
-				local turnZ = targetDirZ - dirZ * directionDotTarget
-				local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
-				if turnLength > 0 then
-					turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
-					dirX = dirX + turnX * steerRate
-					dirY = dirY + turnY * steerRate
-					dirZ = dirZ + turnZ * steerRate
-					local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-					dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
-				end
+		if not turnToTarget and not targetMoves then
+			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
+			if hitDistance and hitDistance + 8 < targetLength then
+				return hitX, hitY, hitZ, true
 			end
-
-			if not turnToTarget and not targetMoves then
-				local hitDistance, hitX, hitY, hitZ =
-					spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
-				if hitDistance and hitDistance + 8 < targetLength then
-					return hitX, hitY, hitZ, true
-				end
-				return tx, ty, tz, false
-			end
+			return tx, ty, tz, false
 		end
 
 		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(simX, simY, simZ, nextX, nextY, nextZ, false)
@@ -735,11 +687,39 @@ local function GetPredictedImpactPos(
 	return tx, ty, tz, false
 end
 
-local function ProjectImpactToGround(x, y, z, projectToGround)
+local function GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+	local targetType, targetData = spGetProjectileTarget(proID)
+	local aimX, aimY, aimZ
+	if targetType == 103 and type(targetData) == "table" then -- ASCII 'g'
+		aimX, aimY, aimZ = targetData[1], targetData[2], targetData[3]
+	elseif targetType == 117 then -- ASCII 'u'
+		local _
+		_, _, _, aimX, aimY, aimZ = spGetUnitPosition(targetData, false, true)
+	end
+	local vx, vy, vz, speed = spGetProjectileVelocity(proID)
+	if not aimX or not vx or speed <= 0 then
+		return nil
+	end
+
+	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
+	local elapsedFrames = remainingTimeToLive and floor(max(0, weaponInfo.initialTimeToLive - remainingTimeToLive)) or 0
+
+	return getInFlightImpact(
+		weaponInfo.verticalize,
+		weaponInfo.starburst,
+		{ px, py, pz },
+		{ vx, vy, vz, speed },
+		elapsedFrames,
+		{ aimX, aimY, aimZ },
+		{ aimX, max(spGetGroundHeight(aimX, aimZ), 0), aimZ }
+	)
+end
+
+local function ProjectImpactToSurface(x, y, z, projectToGround, waterWeapon)
 	if projectToGround then
 		local groundY = spGetGroundHeight(x, z)
 		if groundY then
-			y = groundY
+			y = waterWeapon and groundY or max(groundY, 0)
 		end
 	end
 	return x, y, z
@@ -813,7 +793,26 @@ local function UpdateTrackedProjectiles()
 					local launchElapsed =
 						GetProjectileLaunchElapsed(proID, existingData.weaponInfo, currentTime - existingData.startTime)
 					local tx, ty, tz = existingData.impactX, existingData.impactY, existingData.impactZ
-					if px and tx then
+					if existingData.weaponInfo.verticalize then
+						if px and not existingData.isImpactFromLaunch then
+							local isFromLaunch
+							tx, ty, tz, isFromLaunch =
+								GetVerticalizeImpactPos(proID, existingData.weaponInfo, px, py, pz)
+							if tx then
+								tx, ty, tz = ProjectImpactToSurface(
+									tx,
+									ty,
+									tz,
+									existingData.projectToGround,
+									existingData.weaponInfo.waterWeapon
+								)
+								existingData.targetX = tx
+								existingData.targetY = ty
+								existingData.targetZ = tz
+								existingData.isImpactFromLaunch = isFromLaunch
+							end
+						end
+					elseif px and tx then
 						tx, ty, tz = GetPredictedImpactPos(
 							proID,
 							existingData.weaponInfo,
@@ -828,7 +827,13 @@ local function UpdateTrackedProjectiles()
 							existingData.targetVelocityY,
 							existingData.targetVelocityZ
 						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, existingData.projectToGround)
+						tx, ty, tz = ProjectImpactToSurface(
+							tx,
+							ty,
+							tz,
+							existingData.projectToGround,
+							existingData.weaponInfo.waterWeapon
+						)
 						existingData.targetX = tx
 						existingData.targetY = ty
 						existingData.targetZ = tz
@@ -867,21 +872,31 @@ local function UpdateTrackedProjectiles()
 						if not weaponInfo.tracks then
 							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
 						end
-						tx, ty, tz = GetPredictedImpactPos(
-							proID,
-							weaponInfo,
-							launchElapsed,
-							px,
-							py,
-							pz,
-							tx,
-							ty,
-							tz,
-							targetVelocityX,
-							targetVelocityY,
-							targetVelocityZ
-						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
+						local isImpactFromLaunch
+						if weaponInfo.verticalize then
+							local verticalizeX, verticalizeY, verticalizeZ
+							verticalizeX, verticalizeY, verticalizeZ, isImpactFromLaunch =
+								GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+							if verticalizeX then
+								tx, ty, tz = verticalizeX, verticalizeY, verticalizeZ
+							end
+						else
+							tx, ty, tz = GetPredictedImpactPos(
+								proID,
+								weaponInfo,
+								launchElapsed,
+								px,
+								py,
+								pz,
+								tx,
+								ty,
+								tz,
+								targetVelocityX,
+								targetVelocityY,
+								targetVelocityZ
+							)
+						end
+						tx, ty, tz = ProjectImpactToSurface(tx, ty, tz, projectToGround, weaponInfo.waterWeapon)
 
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
@@ -916,6 +931,7 @@ local function UpdateTrackedProjectiles()
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
 							speed = speed,
+							isImpactFromLaunch = isImpactFromLaunch,
 						}
 					end
 				end
@@ -1122,11 +1138,13 @@ function widget:Initialize()
 	BuildWeaponCache()
 	CreateDisplayLists()
 	PrecomputeBladeGeometry()
+	CreateMinimapNukeLists()
 	UpdateScreenScale()
 end
 
 function widget:Shutdown()
 	DeleteDisplayLists()
+	DeleteMinimapNukeLists()
 end
 
 function widget:ViewResize()
@@ -1256,15 +1274,38 @@ function widget:DrawInMiniMap(sx, sy)
 		return
 	end
 
-	local currentTime = osClock()
-	local worldToPixelX = sx / mapSizeX
-	local worldToPixelY = sy / mapSizeZ
-	local waveBase = currentTime * Config.nukeWaveSpeed
+	-- Lua minimap draws get no rotation transform: map world (x, z) to pixels per minimap rotation
+	local rotation = getCurrentMiniMapRotationOption()
+	local pixelScale
+	if rotation == ROTATION.DEG_90 then
+		mmAX, mmBX, mmCX, mmAY, mmBY, mmCY = 0, sx / mapSizeZ, 0, sy / mapSizeX, 0, 0
+		pixelScale = sx / mapSizeZ
+	elseif rotation == ROTATION.DEG_180 then
+		mmAX, mmBX, mmCX, mmAY, mmBY, mmCY = -sx / mapSizeX, 0, sx, 0, sy / mapSizeZ, 0
+		pixelScale = sx / mapSizeX
+	elseif rotation == ROTATION.DEG_270 then
+		mmAX, mmBX, mmCX, mmAY, mmBY, mmCY = 0, -sx / mapSizeZ, sx, -sy / mapSizeX, 0, sy
+		pixelScale = sx / mapSizeZ
+	else
+		mmAX, mmBX, mmCX, mmAY, mmBY, mmCY = sx / mapSizeX, 0, 0, 0, -sy / mapSizeZ, sy
+		pixelScale = sx / mapSizeX
+	end
 
-	-- Collect all nuke data into minimap batch (reuses tables)
-	minimapNukeBatchSize = 0
+	local currentTime = osClock()
+	local waveBase = currentTime * Config.nukeWaveSpeed
+	for band = 1, MINIMAP_NUKE_BANDS do
+		local waveBrightness = 0.25 + 0.75 * max(0, sin((waveBase + minimapBandWave[band]) * tau))
+		minimapBandAlpha[band] = waveBrightness * minimapBandGradient[band]
+	end
+	local sizePulse = 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
+
+	glLineWidth(1.5)
+	glColor(1, 0.2, 0.2, 0.22)
+	glBeginEnd(GL_LINES, DrawMinimapNukeLines)
+
 	for _, data in pairs(trackedProjectiles) do
-		if data.weaponInfo.isNuke then
+		local weaponInfo = data.weaponInfo
+		if weaponInfo.isNuke then
 			local elapsed = currentTime - data.startTime
 			local progress = elapsed / max(data.initialFlightTime, 0.1)
 			if progress > 1 then
@@ -1275,58 +1316,32 @@ function widget:DrawInMiniMap(sx, sy)
 
 			local blinkPhase = 0
 			if Config.blinkSpeed > 0 then
-				local blinkFreq = Config.blinkSpeed * (1 + progress * 2)
-				blinkPhase = sin(currentTime * blinkFreq * tau)
+				blinkPhase = sin(currentTime * Config.blinkSpeed * (1 + progress * 2) * tau)
 			end
 
 			local avgSpeed = Config.rotationSpeedMax
 				- (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
-			local rotRad = ((elapsed * avgSpeed) % 360) * pi / 180
-
+			local size = min(40, max(5, weaponInfo.aoe * sizePulse * pixelScale))
 			local color = data.isAlly and Config.nukeAllyColor or Config.nukeEnemyColor
-			local aoe = data.weaponInfo.aoe
+			local cr, cg, cb = color[1], color[2], color[3]
+			local alpha = color[4] * Config.nukeBaseOpacity * (0.8 + 0.15 * progress + 0.1 * blinkPhase)
+			local x, z = data.targetX, data.targetZ
 
-			local trefoilWorldSize = aoe * 0.75 * (0.6 + 0.08 * sin(currentTime * tau * 0.4))
-			local trefoilPixelSize = trefoilWorldSize * worldToPixelX
-			if trefoilPixelSize < 5 then
-				trefoilPixelSize = 5
-			elseif trefoilPixelSize > 40 then
-				trefoilPixelSize = 40
+			glPushMatrix()
+			glTranslate(mmAX * x + mmBX * z + mmCX, mmAY * x + mmBY * z + mmCY, 0)
+			glRotate((elapsed * avgSpeed) % 360, 0, 0, 1)
+			glScale(size, size, 1)
+			for band = 1, MINIMAP_NUKE_BANDS do
+				local bandAlpha = alpha * minimapBandAlpha[band]
+				if bandAlpha > 0.005 then
+					glColor(cr, cg, cb, bandAlpha)
+					glCallList(minimapBandLists[band])
+				end
 			end
-
-			minimapNukeBatchSize = minimapNukeBatchSize + 1
-			local nd = minimapNukeBatch[minimapNukeBatchSize]
-			if not nd then
-				nd = {}
-				minimapNukeBatch[minimapNukeBatchSize] = nd
-			end
-			nd.targPX = data.targetX * worldToPixelX
-			nd.targPY = (1 - data.targetZ / mapSizeZ) * sy
-			nd.projPX = data.projectileX * worldToPixelX
-			nd.projPY = (1 - data.projectileZ / mapSizeZ) * sy
-			nd.size = trefoilPixelSize
-			nd.cosR = cos(rotRad)
-			nd.sinR = sin(rotRad)
-			nd.cr = color[1]
-			nd.cg = color[2]
-			nd.cb = color[3]
-			nd.ca = color[4]
-			nd.opacity = Config.nukeBaseOpacity * (0.8 + 0.15 * progress + 0.1 * blinkPhase)
-			nd.waveBase = waveBase
-			nd.aoe = aoe
+			glPopMatrix()
 		end
 	end
 
-	if minimapNukeBatchSize == 0 then
-		return
-	end
-
-	-- Batch all lines in ONE draw call
-	glLineWidth(1.5)
-	glBeginEnd(GL_LINES, drawMinimapNukeLines)
-
-	-- Batch all trefoils in ONE draw call
-	glBeginEnd(GL_TRIANGLES, drawMinimapNukeTrefoils)
-
+	glLineWidth(1)
 	glColor(1, 1, 1, 1)
 end

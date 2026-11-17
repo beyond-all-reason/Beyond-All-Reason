@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Snow",
-		desc = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
+		desc = "Lets it automatically snow on snow maps! - also togglable with /snow  (remembers per map)",
 		author = "Floris (original: trepan, Argh)",
 		date = "29 may 2015",
 		license = "GNU GPL, v2 or later",
@@ -52,7 +52,7 @@ local fpsDifference = (maxFps - minFps) / particleSteps -- fps difference need b
 
 local snowTexture = "LuaUI/Images/snow.dds"
 
-VFS.Include("luarules/configs/map_biomes.lua")
+require("luarules/configs/map_biomes")
 --[[
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino','avalanche'}
 local snowMaps = {}
@@ -134,7 +134,6 @@ local glTexture = gl.Texture
 local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local LuaShader = gl.LuaShader
-local glDeleteShader = gl.DeleteShader
 local glResetState = gl.ResetState
 
 --------------------------------------------------------------------------------
@@ -308,7 +307,7 @@ local function snowCmd(_, _, params)
 	then
 		snowMaps[currentMapname] = true
 		enabled = true
-		spEcho("Snow widget: snow enabled for this map. (Snow wont show when average fps is below " .. minFps .. ".)")
+		spEcho("Snow widget: snow enabled for this map. (Snow won't show when average fps is below " .. minFps .. ".)")
 		init()
 	else
 		snowMaps[currentMapname] = false

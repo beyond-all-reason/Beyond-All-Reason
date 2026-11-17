@@ -47,30 +47,27 @@ local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
-local holidayModels = VFS.Include("unitbasedefs/holiday_models.lua")
+local holidayModels = require("unitbasedefs/holiday_models")
 
-local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
-local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
-local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
-local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
-local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
-local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
-local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
-local proposed_unit_reworksTweaks =
-	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
-local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
-local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
-local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
+local evocomTweaks = require("unitbasedefs/evocom").Tweaks
+local extraUnitsTweaks = require("unitbasedefs/experimental_extra_units").Tweaks
+local processRaptorsUnit = require("unitbasedefs/raptor_unitdefs_post").Tweaks
+local scavUnitsForPlayers = require("unitbasedefs/scavenger_units_for_players").Tweaks
+local junoReworkTweaks = require("unitbasedefs/juno_rework").Tweaks
+local navalBalanceTweaks = require("unitbasedefs/naval_balance_tweaks").Tweaks
+local skyshiftUnitTweaks = require("unitbasedefs/skyshiftunits_post").skyshiftUnitTweaks
+local proposed_unit_reworksTweaks = require("unitbasedefs/proposed_unit_reworks_defs").proposed_unit_reworksTweaks
+local techsplitTweaks = require("unitbasedefs/techsplit_defs").techsplitTweaks
+local techsplit_balanceTweaks = require("unitbasedefs/techsplit_balance_defs").techsplit_balanceTweaks
 
-local airRework = VFS.Include("unitbasedefs/air_rework_defs.lua")
+local airRework = require("unitbasedefs/air_rework_defs")
 local airReworkUnitTweaks = airRework.UnitTweaks
 local airReworkWeaponTweaks = airRework.WeaponTweaks
-local empRework = VFS.Include("unitbasedefs/emp_rework.lua")
+local empRework = require("unitbasedefs/emp_rework")
 local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
-local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local scavWeaponDefPost = require("gamedata/scavengers/weapondef_post").scavWeaponDefPost
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -117,6 +114,7 @@ local shipList = {
 	BOAT5 = true,
 	BOAT9 = true,
 	EPICSHIP = true,
+	HOVER7 = true,
 }
 
 local subList = {
@@ -207,6 +205,19 @@ end
 -- MODULE FUNCTIONS
 -------------------------
 
+local function spawnedAirUnit(carriedUnits)
+	if not carriedUnits then
+		return
+	end
+	for carriedName in string.gmatch(carriedUnits, "%S+") do
+		-- Scav units still have the base unit here but check against both sets anyway.
+		local carriedDef = UnitDefs[carriedName] or UnitDefs[(string.gsub(carriedName, "_scav$", ""))] ---@as table
+		if carriedDef and carriedDef.canfly then
+			return carriedDef
+		end
+	end
+end
+
 local function unitDef_Post(name, uDef)
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
@@ -226,12 +237,19 @@ local function unitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	if isAprilFools and holidayModels.AprilFools[basename] then
-		uDef.objectname = holidayModels.AprilFools[basename]
-	elseif isHalloween and holidayModels.Halloween[basename] then
-		uDef.objectname = holidayModels.Halloween[basename]
-	elseif isXmas and holidayModels.Xmas[basename] then
-		uDef.objectname = holidayModels.Xmas[basename]
+	local holidayModel
+	if isAprilFools then
+		holidayModel = holidayModels.AprilFools[basename]
+	elseif isHalloween then
+		holidayModel = holidayModels.Halloween[basename]
+	elseif isXmas then
+		holidayModel = holidayModels.Xmas[basename]
+	end
+	if holidayModel then
+		uDef.objectname = holidayModel.model
+		if holidayModel.hats then
+			customparams.holidayhatcount = holidayModel.hats
+		end
 	end
 
 	----------------------------------------------------------------------------------------------------------
@@ -268,6 +286,16 @@ local function unitDef_Post(name, uDef)
 		customparams.subfolder = "none"
 	end
 
+	-- israptor/iscritter are set explicitly in the unit def files; the name prefixes stay
+	-- load-bearing elsewhere (createScavengerUnitDefs in unitdefs_post.lua), so warn loudly
+	-- when a def follows the naming convention but is missing its flag
+	if string.sub(name, 1, 6) == "raptor" and not customparams.israptor then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a raptor but lacks customparams.israptor")
+	end
+	if string.sub(name, 1, 8) == "critter_" and not customparams.iscritter then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a critter but lacks customparams.iscritter")
+	end
+
 	if modOptions.unit_restrictions_notech15 then
 		if tonumber(customparams.techlevel) == 1.5 then
 			customparams.modoption_blocked = true
@@ -296,8 +324,30 @@ local function unitDef_Post(name, uDef)
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories with no other purpose (ex. legap)
 			customparams.modoption_blocked = true
+		else
+			local strippedDrones = false
+			for weaponName, weaponDef in pairs(weapondefs) do
+				local carriedUnit = weaponDef.customparams and weaponDef.customparams.carried_unit
+				local carriedDef = spawnedAirUnit(carriedUnit)
+				if carriedDef then
+					weapondefs[weaponName] = nil
+					strippedDrones = true
+					-- Make a minimal effort toward cost adjustments:
+					local count = weaponDef.customparams.startingdronecount
+					if count and tonumber(count) then
+						uDef.metalcost = (uDef.metalcost or 0) - count * (carriedDef.metalcost or 0)
+						uDef.energycost = (uDef.energycost or 0) - count * (carriedDef.energycost or 0)
+					end
+					uDef.metalcost = (uDef.metalcost or 0) * 0.95
+					uDef.energycost = (uDef.energycost or 0) * 0.95
+				end
+			end
+			-- Keep drone spawners that have other weapons:
+			if strippedDrones and not next(weapondefs) then
+				customparams.modoption_blocked = true
+			end
 		end
 	end
 
@@ -598,16 +648,6 @@ local function unitDef_Post(name, uDef)
 		uDef = proposed_unit_reworksTweaks(name, uDef)
 	end
 
-	-- Community Balance Patch
-	if modOptions.community_balance_patch ~= "disabled" then
-		uDef = communityBalanceTweaks(name, uDef, modOptions)
-	end
-
-	-- Legion Simplified Mex Rebalance
-	if modOptions.legionsimplifiedmexes == true then
-		legionSimpleMexes(name, uDef)
-	end
-
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		navalBalanceTweaks(name, uDef)
@@ -827,6 +867,42 @@ local function unitDef_Post(name, uDef)
 			end
 			weaponDef.customparams.weapons_group = groupNumber
 		end
+
+		-- Remove all smart-select customparams unless all three of these are valid:
+		local priorityWeapon, backupWeapon, trajectoryWeapon
+
+		for weaponNumber, weapon in ipairs(weapons) do
+			local weaponName = (weapon.def or ""):lower()
+			local weaponDef = weapondefs[weaponName]
+			local weaponParams = weaponDef and weaponDef.customparams or {}
+
+			if weaponParams.smart_priority and not priorityWeapon then
+				priorityWeapon = weaponNumber
+			elseif weaponParams.smart_backup and not backupWeapon then
+				backupWeapon = weaponNumber
+			elseif weaponParams.smart_trajectory_checker and not trajectoryWeapon then
+				trajectoryWeapon = weaponNumber
+			end
+
+			weaponParams.smart_priority = nil
+			weaponParams.smart_backup = nil
+			weaponParams.smart_trajectory_checker = nil
+		end
+
+		if priorityWeapon and backupWeapon and trajectoryWeapon then
+			customparams.weapons_smart_select = true
+
+			if customparams.smart_weapon_cmddesc ~= "trajectory" then
+				customparams.smart_weapon_cmddesc = "default"
+			end
+
+			weapondefs[weapons[priorityWeapon].def:lower()].customparams.smart_priority = true
+			weapondefs[weapons[backupWeapon].def:lower()].customparams.smart_backup = true
+			weapondefs[weapons[trajectoryWeapon].def:lower()].customparams.smart_trajectory_checker = true
+		else
+			customparams.weapons_smart_select = nil
+			customparams.smart_weapon_cmddesc = nil
+		end
 	end
 
 	-- Defend firestate: aircraft, long-range, starburst, and drone carrier units engage threats at any range in defend mode
@@ -991,6 +1067,12 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
+			wDef.impactonly = nil
+			wDef.areaofeffect = 11
+			wDef.edgeeffectiveness = 1
+		end
+
 		-- Remove water splashes on lava maps
 		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
 			wDef.explosiongenerator = "custom:blank"
@@ -1009,7 +1091,7 @@ local function weaponDef_Post(name, wDef)
 
 		--[[Skyshift: Air rework
 		if modoptions.skyshift == true then
-			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
+			skyshiftUnits = require("unitbasedefs/skyshiftunits_post")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
 
@@ -1118,8 +1200,8 @@ local function weaponDef_Post(name, wDef)
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
 			if
-				Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser"
-				or wDef.weapontype == "LightningCannon"
+				Engine.FeatureSupport.targetBorderBug
+				and (wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon")
 			then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
@@ -1127,14 +1209,11 @@ local function weaponDef_Post(name, wDef)
 
 		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 		if wDef.proximitypriority then
-			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(
-				range
-					+ ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))),
-				range
-			) -- see unit_preaim
-			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
-			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
+			local range = math.max(wDef.range or 10, 0) -- todo: account for multiplier_weaponrange
+			local boosted = customparams.exclude_preaim and range
+				or range + math.max(20, range * 0.1, (customparams.preaim_range or 0) - range) -- see preaim_range
+			local proximity = math.max(wDef.proximitypriority, (-0.4 * boosted - 100) / boosted) -- see CGameHelper::GenerateWeaponTargets
+			wDef.proximitypriority = math.clamp(proximity, -1, 10)
 		end
 
 		if wDef.craterareaofeffect then

@@ -15,7 +15,7 @@ function widget:GetInfo()
 	}
 end
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local camKeys = {} -- list of buttons that switch to Overview
 local prevCamState
 
@@ -29,6 +29,10 @@ local function storeCamKeys()
 end
 
 function widget:Initialize()
+	storeCamKeys()
+end
+
+function widget:KeyBindingsChanged()
 	storeCamKeys()
 end
 

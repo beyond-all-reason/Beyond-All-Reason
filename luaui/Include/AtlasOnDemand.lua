@@ -51,7 +51,7 @@ end
 -- DONE : Match gl.TextureInfo
 -- DONE Validate image size
 -- DONE unbind loaded tex after render
--- DONE font rendering and cacheing
+-- DONE font rendering and caching
 -- DONE Hmm yes nearest neighbour would be prudent for font atlasses maybe?
 -- DONE set padding differently for nearest neighbour version?
 -- DONE be smart and dont double-cache same thing
@@ -73,17 +73,19 @@ end
 local UNITTEST = false
 if not Spring then
 	UNITTEST = true
-	Spring = {
+	-- rawset so the language server does not read these test stubs as competing
+	-- definitions of the engine globals, which makes every other field unknown
+	rawset(_G, "Spring", {
 		Echo = function(s)
 			print(s)
 		end,
-	}
-	gl = {
+	})
+	rawset(_G, "gl", {
 		CreateTexture = function()
 			return 0
 		end,
-	}
-	GL = {}
+	})
+	rawset(_G, "GL", {})
 end
 
 --- Create a new texture atlas for any image/text type
@@ -135,7 +137,7 @@ local function MakeAtlasOnDemand(config)
 	end
 
 	function QuadTreePrototype:FindSpot(width, height)
-		-- If it doesnt fit at all, return false
+		-- If it doesn't fit at all, return false
 		if self.w < width or self.h < height then
 			return false
 
@@ -211,7 +213,6 @@ local function MakeAtlasOnDemand(config)
 		end
 	end
 	local GL_RGBA = 0x1908
-	local GL_TEXTURE_2D_MULTISAMPLE = 0x9100
 	AtlasOnDemand.texProps = config.texProps
 		or {
 			min_filter = GL.LINEAR,
@@ -220,9 +221,6 @@ local function MakeAtlasOnDemand(config)
 			wrap_s = GL.CLAMP,
 			wrap_t = GL.CLAMP,
 			format = GL_RGBA,
-
-			--target = GL_TEXTURE_2D_MULTISAMPLE,
-			--samples = 1,
 		}
 	AtlasOnDemand.texProps.fbo = true -- need so that we can RenderToTexture it
 	AtlasOnDemand.textureID = gl.CreateTexture(config.sizex, config.sizey, AtlasOnDemand.texProps)
@@ -343,7 +341,7 @@ local function MakeAtlasOnDemand(config)
 		else
 			Spring.Echo(
 				string.format(
-					"AtlasOnDemand %s Error: cant find space for %s of size %d x %d",
+					"AtlasOnDemand %s Error: can't find space for %s of size %d x %d",
 					self.name,
 					tostring(id),
 					xsize,
@@ -446,7 +444,7 @@ local function MakeAtlasOnDemand(config)
 			return { x = 0, X = 1, y = 0, Y = 1, w = 1, h = 1, id = text }
 		end
 		local textparams
-		if not params then -- render with default fot
+		if not params then -- render with default font
 			if self.uvcoords[text] then
 				return self.uvcoords[text]
 			else
@@ -477,7 +475,7 @@ local function MakeAtlasOnDemand(config)
 				end
 			end
 		else
-			-- TODO this table copy is completely unnessecary
+			-- TODO this table copy is completely unnecessary
 			textparams = {
 				text = text,
 				font = params.font,
@@ -516,7 +514,7 @@ local function MakeAtlasOnDemand(config)
 		local width = math.ceil(textparams.font:GetTextWidth(textparams.text) * textparams.size)
 
 		-- Height needs to take into account outlines as well! (and maybe even
-		local textheight, textdescender, numlines = textparams.font:GetTextHeight(textparams.text) -- See https://springrts.com/wiki/GetTextHeight
+		local textheight, textdescender, _ = textparams.font:GetTextHeight(textparams.text) -- See https://springrts.com/wiki/GetTextHeight
 		local height = math.ceil((textheight + textdescender) * textparams.size)
 		textdescender = -1 * textdescender * textparams.size -- descender is negative for 'b' ?
 		if self.debug then
@@ -622,8 +620,6 @@ local function MakeAtlasOnDemand(config)
 			gl.Blending(task.srcmode or GL.ONE, task.dstmode or GL.ZERO)
 			local drawmodeTexName = self.drawmode .. task.id
 			gl.Texture(0, drawmodeTexName)
-			local p = self.padx * 0
-			local o = self.padx * 0
 			local w = (task.w / self.xsize) * 2
 			local h = (task.h / self.ysize) * 2
 			local x = (task.x / self.xsize - 0.5) * 2
@@ -647,11 +643,11 @@ local function MakeAtlasOnDemand(config)
 
 		-- EXTREMELY IMPORTANT:
 		-- this entire matrix silliness is needed cause font:Print takes integer positions
-		-- And because otherwise it cant draw unstreched to non-square images
+		-- And because otherwise it can't draw unstreched to non-square images
 		gl.PushMatrix()
 		local xscale = self.xsize
 		local yscale = self.ysize
-		-- The next two operators translate the [-1;1] NDC space into the self.xsize and self.ysize dimensions, I dont think Z needs scaling, but it doesnt matter really
+		-- The next two operators translate the [-1;1] NDC space into the self.xsize and self.ysize dimensions, I dont think Z needs scaling, but it doesn't matter really
 		gl.Translate(-1, -1, 0) -- translate to -1 so that NDC is now in [0;2] space
 		gl.Scale(2 / xscale, 2 / yscale, 2 / yscale) -- scale so that it should now be in [self.xsize,self.ysize] space
 		for i, task in ipairs(taskList) do
@@ -762,8 +758,6 @@ local function MakeAtlasOnDemand(config)
 			Spring.Echo("AtlasOnDemand:TextRect cannot find id", id)
 			return
 		end
-		local ypos = y
-		local xpos = x
 		if align then
 			if align == "c" then
 				gl.TexRect(
@@ -838,7 +832,7 @@ local function MakeAtlasOnDemand(config)
 	end
 
 	---Draws the contents of the atlas to the bottom left corner of the screen
-	-- very useful for debugging what is on the atlas iself
+	-- very useful for debugging what is on the atlas itself
 	-- @param aliastest i dont remember what this does, so dont use it
 	-- @param noalpha draw the atlas without transparency
 	function AtlasOnDemand:DrawToScreen(aliastest, noalpha)

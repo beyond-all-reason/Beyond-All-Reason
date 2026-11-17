@@ -32,16 +32,11 @@ for id, wDef in pairs(WeaponDefs) do
 	end
 end
 for udid, ud in pairs(UnitDefs) do
-	if ud.isBuilding or string.find(ud.name, "nanotc") then
+	if ud.isBuilding or ud.customParams.isnanoturret then
 		isBuilding[udid] = true
 	end
 	if
-		(ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true)
-		or (
-			string.find(ud.name, "armlance")
-			or string.find(ud.name, "cortitan")
-			or string.find(ud.name, "legatorpbomber")
-		)
+		(ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true) or ud.customParams.istorpedobomber
 	then
 		isBomber[udid] = true
 	end

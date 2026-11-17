@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		buildangle = 4000,
 		energycost = 0,
-		metalcost = 155,
+		metalcost = 150,
 		buildpic = "LEGSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
@@ -31,6 +31,7 @@ return {
 		sightdistance = 273,
 		yardmap = "yoooyoooooooooooooooyoooy",
 		customparams = {
+			deactivate_time = 8,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legsolar_aoplane.dds",
 			buildinggrounddecalsizey = 8,
@@ -42,7 +43,7 @@ return {
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "Legion/economy",
+			subfolder = "Legion/Economy",
 		},
 		featuredefs = {
 			dead = {

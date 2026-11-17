@@ -20,7 +20,7 @@ return {
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
-		script = "Units/coraak_clean.cob",
+		script = "Units/coraak.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 390,
@@ -173,6 +173,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 825,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 250,
 				},
@@ -182,6 +185,7 @@ return {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "CORAABOT_MISSILE1",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {

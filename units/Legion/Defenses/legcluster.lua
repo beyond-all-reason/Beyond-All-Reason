@@ -35,7 +35,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandDefenceOffence",
+			reaimtime = 5,
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {
@@ -125,7 +126,6 @@ return {
 					cluster_number = 5,
 					exclude_preaim = true,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					default = 300,
@@ -187,7 +187,6 @@ return {
 					cluster_number = 5,
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					default = 300,

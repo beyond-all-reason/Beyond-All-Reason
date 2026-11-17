@@ -1,6 +1,5 @@
 return {
 	corsat = {
-		acceleration = 0.05,
 		airhoverfactor = 0.4,
 		blocking = false,
 		maxdec = 0.01,

@@ -43,7 +43,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -134,7 +133,6 @@ return {
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					default = 345,
@@ -199,7 +197,6 @@ return {
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					default = 345,

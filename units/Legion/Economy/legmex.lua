@@ -14,10 +14,9 @@ return {
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		-- negative energyupkeep means it's conditional so when unit is off won't produce
-		energyupkeep = -7,
+		energyupkeep = 3,
 		explodeas = "smallBuildingexplosiongeneric",
-		extractsmetal = 0.0008,
+		extractsmetal = 0.001,
 		footprintx = 4,
 		footprintz = 4,
 		health = 275,
@@ -30,7 +29,7 @@ return {
 		selfdestructas = "smallMex",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
-		yardmap = "h cbbbbbbc bsbssbsb bbobbobb bsbbbbsb bsbbbbsb bbobbobb bsbssbsb cbbbbbbc",
+		yardmap = "h cbbbbbbc bsossbsb bbsbbsob bsbbbbsb bsbbbbsb bosbbsbb bsbssosb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmex_aoplane.dds",
@@ -45,7 +44,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 		},
 		featuredefs = {
 			dead = {

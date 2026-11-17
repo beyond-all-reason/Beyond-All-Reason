@@ -19,15 +19,39 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spIsCheatingEnabled = Spring.IsCheatingEnabled
-local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local forcedTeamID ---@type TeamID?
+
+---@param unitID UnitID
+---@param teamID TeamID
+---@return boolean transferred
+local function forceUnitTransfer(unitID, teamID)
+	local oldTeamID = Spring.GetUnitTeam(unitID) ---@as TeamID
+	forcedTeamID = teamID
+	local transferred = Spring.TransferUnit(unitID, teamID)
+	forcedTeamID = nil
+	if transferred then
+		local overLimit = Spring.GetTeamUnitCount(teamID) --[[@as integer]] - Spring.GetTeamMaxUnits(teamID)
+		local unusedLimit = Spring.GetTeamMaxUnits(oldTeamID) - Spring.GetTeamUnitCount(oldTeamID) --[[@as integer]]
+		local transferAmount = math.min(overLimit, unusedLimit) ---@as integer
+		if transferAmount > 0 then
+			Spring.TransferTeamMaxUnits(oldTeamID, teamID, transferAmount)
+		end
+	end
+	return transferred
+end
+
+---@param teamID TeamID
+---@return boolean
+local function isTransferForced(teamID)
+	return teamID == forcedTeamID
+end
 
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
+	-- We also check for 'metal' or 'energy' in case Spring decides to use those in a later version
 	local resourceName
 	if (resourceType == "m") or (resourceType == "metal") then
 		resourceName = "metal"
@@ -50,14 +74,20 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 		return false
 	end
 
-	-- Allow anything we don't explictly block
+	-- Allow anything we don't explicitly block
 	return true
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
-		return true
-	end
-	return false
+	return capture or newTeam == forcedTeamID or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1)
+end
+
+function gadget:Initialize()
+	GG.ForceUnitTransfer = forceUnitTransfer
+	GG.IsTransferForced = isTransferForced
+end
+
+function gadget:Shutdown()
+	GG.ForceUnitTransfer = nil
+	GG.IsTransferForced = nil
 end

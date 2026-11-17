@@ -64,7 +64,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				cegtag = "torpedotrail-tiny",
+				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -93,6 +93,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					land_damage_mult = 0.2,
 					noattackrangearc = 1,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 400,

@@ -142,9 +142,6 @@ local lutFS = [[
 ]]
 
 local GL_RGB16F = 0x881B
-local GL_RGB32F = 0x8815
-
-local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
 local function new(class, numSamples)
 	return setmetatable({

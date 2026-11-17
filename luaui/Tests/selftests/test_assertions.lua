@@ -94,7 +94,7 @@ local function testAssertSuccessBefore()
 		SyncedProxy.Spring.ValidUnitID(20)
 		return true
 	end)
-	-- test the method never succeeding in the alloted time
+	-- test the method never succeeding in the allotted time
 	assertThrowsMessage(function()
 		assertSuccessBefore(1, 10, function()
 			error("error")

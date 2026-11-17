@@ -1,7 +1,7 @@
 return {
 	corgatreap = {
 		maxacc = 0.0362,
-		maxdec = 0.0724,
+		maxdec = 0.1,
 		energycost = 17000,
 		metalcost = 1400,
 		buildpic = "CORGATREAP.DDS",
@@ -44,8 +44,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -163,6 +161,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 261,
 					vtol = 35,

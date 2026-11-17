@@ -14,7 +14,7 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 114,
+		health = 180,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -33,6 +33,7 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

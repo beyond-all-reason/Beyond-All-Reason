@@ -1,6 +1,5 @@
 return {
 	legcib = {
-		acceleration = 0.2,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 3500,
@@ -42,7 +41,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			subfolder = "Legion/Air",
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -103,6 +102,7 @@ return {
 				customparams = {
 					nofire = true,
 					junotype = "mini",
+					norangering = 1,
 				},
 				damage = {
 					default = 1,

@@ -55,8 +55,8 @@ yoff = mathFloor(yoff)
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 function widget:Initialize()
 	widget:ViewResize(widgetHandler:GetViewSizes())

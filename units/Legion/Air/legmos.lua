@@ -31,7 +31,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmAircraft",
+			reaimtime = 5,
+			subfolder = "Legion/Air",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

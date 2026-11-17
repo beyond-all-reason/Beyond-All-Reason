@@ -29,7 +29,6 @@ return {
 			buildinggrounddecaltype = "decals/corerad_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			removestop = true,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "aa",
@@ -134,6 +133,9 @@ return {
 				weaponacceleration = 300,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1300,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 250,
 				},

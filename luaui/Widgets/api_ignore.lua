@@ -41,7 +41,7 @@ local function processPlayerlist()
 		end
 		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
 		if accountID and validAccounts[accountID] then
-			-- when a playername was ignored by the old widget method or when their accountID wasnt known (being late rejoining spectator)
+			-- when a playername was ignored by the old widget method or when their accountID wasn't known (being late rejoining spectator)
 			if name and name ~= "" and ignoredPlayers[name] then
 				ignoredPlayers[name] = nil
 				ignoredAccounts[accountID] = name
@@ -83,7 +83,7 @@ local function ignoreAccount(accountID)
 			end
 			spEcho(BAR.I18N("ui.ignore.ignored", { name = resolvedName, accountID = accountID }))
 		end
-	elseif accountID ~= "" then -- if accountID wasnt known and player name was supplied instead
+	elseif accountID ~= "" then -- if accountID wasn't known and player name was supplied instead
 		local name = accountID
 		if playernames[name] then
 			ignoredPlayers[name] = true
@@ -103,7 +103,7 @@ local function unignoreAccount(accountID)
 			ignoredAccountsAndNames[validAccounts[accountID]] = nil
 			ignoredAccounts[accountID] = nil
 		end
-	elseif accountID ~= "" then -- if accountID wasnt known and player name was supplied instead
+	elseif accountID ~= "" then -- if accountID wasn't known and player name was supplied instead
 		local name = accountID
 		if playernames[name] then
 			ignoredPlayers[name] = nil
@@ -125,8 +125,18 @@ local function toggleignoreCmd(_, _, params)
 	end
 end
 
+local function isPlayerIgnored(playerID)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+	if (accountID and ignoredAccounts[accountID]) or (name and ignoredAccountsAndNames[name]) then
+		return true
+	end
+	local displayName = WG.playernames and WG.playernames.getPlayername(playerID)
+	return displayName ~= nil and ignoredAccountsAndNames[displayName] ~= nil
+end
+
 function widget:Initialize()
-	-- add all other ignored account names that arent in the current game but might be in the lobby
+	-- add all other ignored account names that aren't in the current game but might be in the lobby
 	for accountID, name in pairs(ignoredAccounts) do
 		local pname = WG.playernames and WG.playernames.getPlayername(_, accountID, true)
 		local displayName = pname and pname or name
@@ -136,12 +146,14 @@ function widget:Initialize()
 	end
 	processPlayerlist()
 	WG.ignoredAccounts = ignoredAccountsAndNames
+	WG.ignoreList = { isPlayerIgnored = isPlayerIgnored }
 	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, "t")
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("toggleignore")
 	WG.ignoredAccounts = nil
+	WG.ignoreList = nil
 end
 
 function widget:PlayerChanged()
@@ -149,9 +161,8 @@ function widget:PlayerChanged()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
-	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
-	if accountID and ignoredAccounts[accountID] then
+	-- erases pass so the auto eraser still clears marks placed before the ignore
+	if cmdType ~= "erase" and isPlayerIgnored(playerID) then
 		return true
 	end
 	return nil

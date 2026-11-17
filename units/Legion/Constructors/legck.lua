@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 299,
+		sightdistance = 380,
 		terraformspeed = 450,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -43,7 +43,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"legalab",
 			"leglab",
@@ -69,10 +68,9 @@ return {
 		},
 		customparams = {
 			unitgroup = "builder",
-			area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {

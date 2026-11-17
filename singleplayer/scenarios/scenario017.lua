@@ -8,7 +8,7 @@ local scenariodata = {
 	imagepath = "scenario017.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor = "Construction units and Nano turrets can assist in building anything.", -- This text will be drawn over image
 	summary = [[You and a team of two other Commanders are tasked with destroying all other Commanders on the enemy team.]],
-	briefing = [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they arent the brightest bulbs, they will make holding your portion of the map easier. 
+	briefing = [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they aren't the brightest bulbs, they will make holding your portion of the map easier. 
  
 Tips:
  - Almost all units can pass the shallow water separating the lanes on the map. 
@@ -33,7 +33,7 @@ The difficulty modifier will change the amount of resources you and the enemy re
 	playerstarty = "50%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime = 1500, -- par time in seconds
 	parresources = 50000, -- par resource amount
-	difficulty = 1, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty = 1, -- Perceived difficulty at 'normal' level: integer 1-10
 	defaultdifficulty = "Normal", -- an entry of the difficulty table
 	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{ name = "Beginner", playerhandicap = 50, enemyhandicap = -50 },

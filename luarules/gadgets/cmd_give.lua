@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Give Command",
-		desc = "Give units (only availible to a select few playernames in testhost only)",
+		desc = "Give units (only available to a select few playernames in testhost only)",
 		author = "Floris",
 		date = "June 2017",
 		license = "GNU GPL, v2 or later",
@@ -67,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if unitDefID == nil then
-			Spring.SendMessageToPlayer(playerID, "Unitname '" .. unitName .. "' isnt valid")
+			Spring.SendMessageToPlayer(playerID, "Unitname '" .. unitName .. "' isn't valid")
 			return
 		end
 		local succesfullyCreated = 0
@@ -113,10 +113,10 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		elseif not spec then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to give units when playing")
 			return
 		elseif startPlayers[playername] ~= nil then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to give units when you have been a player")
 			return
 		end
 		local params = string.split(msg, ":")

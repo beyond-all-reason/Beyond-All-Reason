@@ -44,9 +44,8 @@ return {
 			lumamult = "1.2",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -143,6 +142,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 900,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 				damage = {
 					default = 12,
 					vtol = 3,

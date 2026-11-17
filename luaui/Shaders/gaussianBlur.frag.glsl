@@ -13,6 +13,11 @@ uniform float weights[BLUR_HALF_KERNEL_SIZE];
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
+#if BLUR_COMPOSITE == 1
+	// At DOWNSAMPLE 1 the vertical pass draws straight onto the screen in place of ssaoComposite
+	uniform sampler2D modelDepthTex;
+	uniform sampler2D mapDepthTex;
+#endif
 uniform vec2 dir;
 uniform float strengthMult;
 
@@ -25,6 +30,14 @@ in DataVS {
 
 out vec4 fragColor;
 
+#if BLUR_COMPOSITE == 1
+// As in ssaoComposite: the closest gbuffer depth, so the LEQUAL test rejects grass/decals drawn over it
+float GbufferDepth() {
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	return min(texelFetch(modelDepthTex, pixel, 0).r, texelFetch(mapDepthTex, pixel, 0).r) - 1e-5;
+}
+#endif
+
 #line 1018
 void main(void)
 {
@@ -33,9 +46,16 @@ void main(void)
 	vec2 uv = gl_FragCoord.xy / vec2(HSX,HSY);
 
 
-	#if USE_STENCIL == 1 
-		if (texture(unitStencilTex, uv).r < 0.1) {
-			fragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
+	#if USE_STENCIL == 1
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) {
+			#if (BLUR_COMPOSITE == 1) && (DEBUG_BLUR == 1)
+				fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+				gl_FragDepth = GbufferDepth();
+				return;
+			#else
+				// Output would be vec4(0,0,0,1): the widget clears the blur targets to it, and on screen it is a no-op
+				discard;
+			#endif
 		}
 	#endif
 
@@ -48,7 +68,7 @@ void main(void)
 		// implement outlier detection too 
 		// MORE GROUND EFFECT! USE UNIFORM KERNEL FOR GROUND!
 
-		vec4 texSample = texture( tex, uv );
+		vec4 texSample = textureLod( tex, uv, 0.0 );
 		vec3 myNormal = NORM2SNORM(texSample.rgb);
 		myNormal.z = texSample.z;
 
@@ -79,7 +99,7 @@ void main(void)
 			}
 
 
-			vec4 leftSample = texture( tex, uvP );
+			vec4 leftSample = textureLod( tex, uvP, 0.0 );
 			float zclosel = step(abs(myDistance - leftSample.z), ZTHRESHOLD);
 			float dotclosel = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(leftSample.xy)));
 			dotclosel = max(dotclosel, imground);
@@ -88,10 +108,10 @@ void main(void)
 			howLit += leftWeight * leftSample.a;
 			unWeighted += weightP * leftSample.a;
 
-			vec4 rightSample = texture( tex, uvN );
+			vec4 rightSample = textureLod( tex, uvN, 0.0 );
 			float zcloser = step(abs(myDistance - rightSample.z), ZTHRESHOLD);
 			float dotcloser = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(rightSample.xy)));
-			dotcloser = max(dotclosel, imground);
+			dotcloser = max(dotcloser, imground);
 			float rightWeight = weightN * dotcloser * zcloser;
 			weightSum += rightWeight;
 			howLit += rightWeight * rightSample.a;
@@ -132,4 +152,18 @@ void main(void)
 			#endif
 
 		};
+
+	#if BLUR_COMPOSITE == 1
+		#if DEBUG_BLUR == 0
+			// Quantised like the RGBA8 target of the separate vertical pass, then no-op blends are skipped
+			vec4 stored = round(clamp(fragColor, 0.0, 1.0) * 255.0);
+			#if BRIGHTEN != 0
+				if (stored == vec4(0.0, 0.0, 0.0, 255.0)) discard;
+			#else
+				if (stored.a == 255.0) discard;
+			#endif
+			fragColor = stored / 255.0;
+		#endif
+		gl_FragDepth = GbufferDepth();
+	#endif
 }

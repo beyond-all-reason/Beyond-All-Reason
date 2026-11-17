@@ -41,7 +41,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Protar/Hornet",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legionaircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -135,14 +135,14 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					sweepfire = 7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				},
+					sweepfire_firetime = 2.1667,
+				}
 			},
 			legphtarg = { --targetting only
 				areaofeffect = 121,
 				avoidfeature = false,
 				burst = 5,
-				burstrate = 0.4,
+				burstrate = 0.26667,
 				craterareaofeffect = 0,
 				collidefriendly = false,
 				commandfire = false,
@@ -154,7 +154,7 @@ return {
 				impulsefactor = 0,
 				model = "empty.s3o",
 				mygravity = 0.4,
-				name = "Targetting System",
+				name = "Targeting System",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,
@@ -162,7 +162,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
-					water_splash = 0, -- targetting weapon aircraftbomb
+					water_splash = 0, -- targeting weapon aircraftbomb
 				},
 				damage = {
 					default = 0,

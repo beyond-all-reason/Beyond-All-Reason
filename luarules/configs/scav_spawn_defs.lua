@@ -21,8 +21,6 @@ economyScale = math.min(5, (economyScale * 0.33) + 0.67)
 
 local teams = Spring.GetTeamList()
 local humanTeamCount = -1 -- starts at -1 to disregard gaia
-local scavTeamCount
-local scavTeamID
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if not (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
@@ -187,7 +185,7 @@ local difficultyParameters = {
 	Now that we talked about tiers, let's talk about roles.
 	There will be 3 of these for Land and Sea, and only one for Air because there we don't really introduce any behaviours. They're just sent to enemy on fight command.
 
-	Raid - Quick and harrassing, these have no behaviours attached, they just rush in and act as cannon fodder and distraction.
+	Raid - Quick and harassing, these have no behaviours attached, they just rush in and act as cannon fodder and distraction.
 	Assault - Main combat force. These will focus on attacking what attacks them, pushing in and taking damage
 	Support - Long range units dealing damage or utility roles from afar. These will run away from you when they take damage.
 	MAKE SURE NOT TO PUT THE SAME UNIT IN 2 TABLES.
@@ -1305,6 +1303,7 @@ local Turrets = {
 		armfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
 		armckfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
 		corfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5 },
+		corhltfus_scav = { type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 4 },
 		armuwfus_scav = { type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5 },
 		coruwfus_scav = { type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5 },
 		armuwadvms_scav = { type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1 },
@@ -1333,7 +1332,7 @@ local Turrets = {
 		coramsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corasy_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		corplat_scav = { type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
-		legamsub_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
+		legamphlab_scav = { type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1 },
 		--["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {
@@ -1368,7 +1367,7 @@ local Turrets = {
 		legsilo_scav = { type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3 },
 		-- misc t3 turrets
 		armminivulc_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
-		corminibuzz_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
+		corobligator_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
 		legministarfall_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
 		armbotrail_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1 },
 		--Eco
@@ -3173,7 +3172,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 local highValueTargets = {}
 for unitName, params in pairs(highValueTargetsNames) do
 	if not UnitDefNames[unitName] then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldnt find unit name: " .. unitName)
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldn't find unit name: " .. unitName)
 	else
 		highValueTargets[UnitDefNames[unitName].id] = params
 	end

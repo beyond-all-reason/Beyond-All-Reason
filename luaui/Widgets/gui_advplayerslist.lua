@@ -41,7 +41,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 	v11.3 (Bluestone): More cleaning up
 	v11.4 (Bluestone): Mute people with ctrl+click on their name
 	v12   (Floris): Restyled looks + added imageDirectory var + HD-ified rank and some other icons
-	v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on doubleclick. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
+	v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on double-click. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
 	v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
 	v15   (Floris): Integrated LockCamers widget code
 	v16	  (Floris): Added chips next to gambling-spectators for betting system
@@ -96,8 +96,6 @@ local absoluteResbarValues = false
 local curFrame = spGetGameFrame()
 
 local font, font2
-
-local AdvPlayersListAtlas
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -252,7 +250,6 @@ local timeCounter = 9
 local timeFastCounter = 9
 local updateRate = 0.8
 local updateFastRate = 0.15 -- only updates resources
-local lastTakeMsg = -120
 local hoverPlayerlist = false
 
 local updateRateMult = 1 -- goes up when more players	auto adjusts in UpdatePlayerResources()
@@ -269,13 +266,12 @@ local guishaderWasActive = false
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID --leftPosX, lastSliderSound, release
-local MainList, MainList2, MainList3, drawListOffset
+local MainList, MainList2, drawListOffset
+local mainList3Tex ---@type string?
 
 local deadPlayerHeightReduction = 8
 
-local reportTake = false
-local tookTeamID
-local tookTeamName
+local takePending = false
 local tookFrame = -120
 
 local playSounds = true
@@ -398,7 +394,7 @@ local forceMainListRefresh = true
 local modules = {}
 local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
 
--- these are not considered as normal module since they dont take any place and wont affect other's position
+-- these are not considered as normal module since they dont take any place and won't affect other's position
 -- (they have no module.width and are not part of modules)
 local m_point, m_take
 
@@ -1155,8 +1151,9 @@ function widget:Shutdown()
 	if MainList2 then
 		gl_DeleteList(MainList2)
 	end
-	if MainList3 then
-		gl_DeleteList(MainList3)
+	if mainList3Tex then
+		gl.DeleteTexture(mainList3Tex)
+		mainList3Tex = nil
 	end
 	if Background then
 		gl_DeleteList(Background)
@@ -1357,7 +1354,6 @@ function CreatePlayer(playerID)
 	local history = (accountID and WG.playernames) and WG.playernames.getAccountHistory(accountID) or {}
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
-	tname = pname
 	local _, _, teamIsDead, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
 	local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -1644,7 +1640,7 @@ function SortList()
 	-- calls the (cascade) sorting for players
 	vOffset = SortAllyTeams(vOffset)
 
-	-- calls the sortings for specs if see spec is on
+	-- calls the sorting for specs if see spec is on
 	vOffset = SortSpecs(vOffset)
 
 	-- set the widget height according to space needed to show team
@@ -1886,9 +1882,6 @@ function widget:DrawScreen()
 	drawState.sawSpareDrawFrame = renderOnlyFrame
 	drawState.lastDrawGameFrame = drawGameFrame
 
-	AdvPlayersListAtlas:RenderTasks()
-	--AdvPlayersListAtlas:DrawToScreen()
-
 	-- draw the background element
 	if mainListBgTex then
 		gl.R2tHelper.BlendTexRect(
@@ -1975,17 +1968,21 @@ function widget:DrawScreen()
 		gl.PushMatrix()
 	end
 
+	if mainList3Tex and (MainList or mainListTex) and (MainList2 or mainList2Tex) then
+		gl.R2tHelper.BlendTexRect(
+			mainList3Tex,
+			apiAbsPosition[2],
+			apiAbsPosition[3],
+			apiAbsPosition[4],
+			apiAbsPosition[1],
+			true
+		)
+	end
+
 	local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
 	local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
 	gl.Scale(widgetScale, widgetScale, 0)
 	gl.Translate(scaleDiffX, scaleDiffY, 0)
-
-	if not MainList3 then
-		CreateMainList(true, true, true)
-	end
-	if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
-		gl_CallList(MainList3)
-	end
 
 	-- handle/draw hover highlight
 	local posY
@@ -2029,7 +2026,7 @@ function widget:DrawScreen()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
--- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
+-- old function called from wherever but it must run in DrawScreen now so we schedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	if onlyMainList == nil then
 		onlyMainList = true
@@ -2090,6 +2087,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	end
 	if not mainList2Tex then
 		onlyMainList2 = true
+	end
+	if not mainList3Tex then
+		onlyMainList3 = true
 	end
 	CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
@@ -2163,6 +2163,10 @@ function CreateBackground()
 			gl.DeleteTexture(mainList2Tex)
 			mainList2Tex = nil
 		end
+		if mainList3Tex then
+			gl.DeleteTexture(mainList3Tex)
+			mainList3Tex = nil
+		end
 		if mainListBgTex then
 			gl.DeleteTexture(mainListBgTex)
 			mainListBgTex = nil
@@ -2172,7 +2176,7 @@ function CreateBackground()
 		if not mainListBgTex and width > 0 and height > 0 then
 			mainListBgTex = gl.CreateTexture(width, height, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderToTexture(mainListBgTex, function()
@@ -2411,9 +2415,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			local width, height =
 				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
 			if width > 0 and height > 0 then
-				mainListTex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
+				local ss = WG.FlowUI.supersample or 1 -- the rows' pictures sharper (see gui_flowui)
+				mainListTex = gl.CreateTexture(width * ss, height * ss, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2439,9 +2444,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 			local width, height =
 				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
 			if width > 0 and height > 0 then
-				mainList2Tex = gl.CreateTexture(width, height, { --*(vsy<1400 and 2 or 1)
+				local ss = WG.FlowUI.supersample or 1
+				mainList2Tex = gl.CreateTexture(width * ss, height * ss, {
 					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
+					format = GL.RGBA8,
 					fbo = true,
 				})
 			end
@@ -2463,21 +2469,40 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 	end
 
 	if onlyMainList3 then
-		if MainList3 then
-			MainList3 = gl_DeleteList(MainList3)
+		if not mainList3Tex then
+			local width, height =
+				mathFloor(apiAbsPosition[4] - apiAbsPosition[2]), mathFloor(apiAbsPosition[1] - apiAbsPosition[3])
+			if width > 0 and height > 0 then
+				mainList3Tex = gl.CreateTexture(width, height, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA8,
+					fbo = true,
+				})
+			end
 		end
-		MainList3 = gl_CreateList(function()
-			local leader
-			for i, drawObject in ipairs(drawList) do
-				if drawObject == -1 then
-					leader = true
-				elseif drawObject >= 0 then
-					if not player[drawObject].spec then -- specs have no resources
-						DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+		if mainList3Tex then
+			-- the resource bars, with the scale DrawScreen used to draw them directly
+			gl.R2tHelper.RenderToTexture(mainList3Tex, function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (apiAbsPosition[4] - apiAbsPosition[2]), 2 / (apiAbsPosition[1] - apiAbsPosition[3]), 0)
+				gl.Translate(
+					widgetPosX * (1 - widgetScale) - apiAbsPosition[2],
+					widgetPosY * (1 - widgetScale) - apiAbsPosition[3],
+					0
+				)
+				gl.Scale(widgetScale, widgetScale, 0)
+				local leader
+				for i, drawObject in ipairs(drawList) do
+					if drawObject == -1 then
+						leader = true
+					elseif drawObject >= 0 then
+						if not player[drawObject].spec then -- specs have no resources
+							DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+						end
 					end
 				end
-			end
-		end)
+			end, true)
+		end
 	end
 end
 
@@ -3224,7 +3249,7 @@ function DrawCamera(posY, active)
 end
 
 function colourNames(teamID, returnRgb)
-	local nameColourR, nameColourG, nameColourB, nameColourA = sp.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = sp.GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
@@ -3345,7 +3370,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 	end
 	nameText = nameText .. willSub
 
-	-- includes readystate icon if factions arent shown
+	-- includes readystate icon if factions aren't shown
 	local xPadding = 0
 	if not gameStarted and not m_side.active then
 		xPadding = 16
@@ -4035,7 +4060,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 1 then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, _, _ = Spring.GetModKeyState()
 		sliderPosition = nil
 		shareAmount = 0
 
@@ -4117,7 +4142,7 @@ function widget:MousePress(x, y, button)
 						if ctrl and i < specOffset then
 							sp.SendCommands(
 								"toggleignore "
-									.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+									.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 							)
 							return true
 						elseif alt and not clickedPlayer.ai then
@@ -4134,7 +4159,8 @@ function widget:MousePress(x, y, button)
 							end
 							return true
 						elseif not player[i].spec then
-							if i ~= myTeamPlayerID then
+							-- Selecting units can update the team separate to the camera lock.
+							if i ~= myTeamPlayerID or (lockPlayerID and lockPlayerID ~= i) then
 								clickedPlayerTime = osClock()
 								clickedPlayerID = clickedPlayer.id
 								-- handled in Update() after dblclick delay
@@ -4165,7 +4191,7 @@ function widget:MousePress(x, y, button)
 							if clickedPlayer.totake then
 								if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
 									--take button
-									Take(clickedPlayer.team, clickedPlayer.orgname or clickedPlayer.name, i)
+									Take(clickedPlayer.team)
 									return true
 								end
 							end
@@ -4246,7 +4272,8 @@ function widget:MousePress(x, y, button)
 									posY + (playerOffset * playerScale)
 								)
 							then
-								sp.SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. " \1")
+								-- /w takes the engine name; the list may show an alias
+								sp.SendCommands("chatall", "pastetext /w " .. sp.GetPlayerInfo(i, false) .. " \1")
 								return true
 							end
 						end
@@ -4309,7 +4336,7 @@ function widget:MousePress(x, y, button)
 							if ctrl then
 								sp.SendCommands(
 									"toggleignore "
-										.. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name)
+										.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 								)
 								return true
 							end
@@ -4332,7 +4359,7 @@ function widget:MousePress(x, y, button)
 								and clickTime - prevClickTime < dblclickPeriod
 								and clickedPlayer == prevClickedPlayer
 							then
-								LockCamera(clickedPlayer.team)
+								LockCamera(i)
 								prevClickedPlayer = {}
 								return true
 							end
@@ -4591,11 +4618,11 @@ function widget:SetConfigData(data)
 	end
 
 	--not technically modules
-	m_point.active = true -- m_point.default doesnt work
+	m_point.active = true -- m_point.default doesn't work
 	if data.m_pointActive ~= nil then
 		m_point.active = data.m_pointActive
 	end
-	m_take.active = true -- m_take.default doesnt work
+	m_take.active = true -- m_take.default doesn't work
 	if data.m_takeActive ~= nil then
 		m_take.active = data.m_takeActive
 	end
@@ -4605,7 +4632,7 @@ function widget:SetConfigData(data)
 		for _, module in pairs(modules) do
 			if module.name == name then
 				if name == "ally" then
-					-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
+					-- needs to be always active (some already stored it as false before, this makes sure its corrected)
 					module.active = true
 				else
 					module.active = module.default
@@ -4759,10 +4786,9 @@ function updateTake(allyTeamID)
 	end
 end
 
-function Take(teamID, name, i)
-	reportTake = true
-	tookTeamID = teamID
-	tookTeamName = name
+-- the take gadget (cmd_idle_players) announces what was taken
+function Take(teamID)
+	takePending = true
 	tookFrame = spGetGameFrame()
 	sp.SendCommands("luarules take2 " .. teamID)
 end
@@ -4873,7 +4899,7 @@ function widget:Update(delta)
 	mySpecStatus, fullView, _ = spGetSpectatingState()
 
 	if scheduledSpecFullView ~= nil then
-		-- this is needed else the minimap/world doesnt update properly
+		-- this is needed else the minimap/world doesn't update properly
 		Spring.SendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then
@@ -4886,46 +4912,15 @@ function widget:Update(delta)
 		CreateShareSlider()
 	end
 
-	if curFrame >= 30 + tookFrame then
-		if lastTakeMsg + 120 < tookFrame and reportTake then
-			local teamID = tookTeamID
-			local afterE = sp.GetTeamResources(teamID, "energy")
-			local afterM = sp.GetTeamResources(teamID, "metal")
-			local afterU = sp.GetTeamUnitCount(teamID)
-			local detailedToSay = false
-			if afterE and afterM and afterU then
-				if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-					detailedToSay = true
+	if takePending and curFrame >= 30 + tookFrame then
+		takePending = false
+		for j = 0, (specOffset * 2) - 1 do
+			if player[j].allyteam == myAllyTeamID then
+				if player[j].totake then
+					player[j] = CreatePlayerFromTeam(player[j].team)
+					forceMainListRefresh = true
 				end
 			end
-			if detailedToSay then
-				Spring.SendLuaRulesMsg(
-					"msg:ui.playersList.chat.takeTeam:name="
-						.. tookTeamName
-						.. ":units="
-						.. mathFloor(afterU)
-						.. ":energy="
-						.. mathFloor(afterE)
-						.. ":metal="
-						.. mathFloor(afterE)
-				)
-			else
-				Spring.SendLuaRulesMsg("msg:ui.playersList.chat.takeTeam:name=" .. tookTeamName)
-			end
-
-			for j = 0, (specOffset * 2) - 1 do
-				if player[j].allyteam == myAllyTeamID then
-					if player[j].totake then
-						player[j] = CreatePlayerFromTeam(player[j].team)
-						forceMainListRefresh = true
-					end
-				end
-			end
-
-			lastTakeMsg = tookFrame
-			reportTake = false
-		else
-			reportTake = false
 		end
 	end
 	if curFrame <= 0 and timeCounter > updateRate * updateRateMult then
@@ -5001,32 +4996,12 @@ function widget:ViewResize()
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
-	if AdvPlayersListAtlas then
-		--AdvPlayersListAtlas:Delete()
-	end
-
-	local cellheight = mathMax(32, mathCeil(mathMax(font.size, font2.size) + 4))
-	local cellwidth = mathCeil(cellheight * 1.25)
-	local cellcount = mathCeil(math.sqrt(32 + 32 + 200))
-	local atlasconfig = {
-		sizex = cellheight * cellcount,
-		sizey = cellwidth * cellcount,
-		xresolution = cellheight,
-		yresolution = cellwidth,
-		name = "AdvPlayersListAtlas",
-		defaultfont = { font = font, options = "o" },
-	}
-	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do
-		AdvPlayersListAtlas:AddText(string.format("%02d", i))
-	end
 	forceMainListRefresh = true
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
 	-- get the points drawn (to display point indicator)
-	if m_point.active then
+	if m_point.active and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		if cmdType == "point" then
 			player[playerID].pointX = px
 			player[playerID].pointY = py

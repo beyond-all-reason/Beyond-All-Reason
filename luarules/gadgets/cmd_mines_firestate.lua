@@ -27,13 +27,17 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD.FIRE_STATE)
+end
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if not handledUnitDefIDs[unitDefID] then
 		return
 	end
 	if cmdID == CMD.FIRE_STATE then
 		-- Engine sets firestate and movestates via an internal command upon unit creation, right before calling UnitCreated()
-		-- We therefor still need to nilcheck the scriptEnv, as it might not "exist" yet
+		-- We therefore still need to nilcheck the scriptEnv, as it might not "exist" yet
 		-- But in that case, cmdParams[1] is just the UnitDef's default firestate
 		-- so we can safely ignore that first command, as the script already expects that firestate starting value
 		local toFireState = cmdParams[1]

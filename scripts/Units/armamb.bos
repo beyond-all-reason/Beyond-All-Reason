@@ -4,11 +4,11 @@
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, trajectoryMode, stunned, lastHeading;
+static-var  restoreDelay, stunned, lastHeading;
 
 #define SIGNAL_AIM2			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
+
+#include "../popup_openclose.h"
 
 openTurret()
 {
@@ -32,26 +32,26 @@ openTurret()
 
 closeTurret()
 {
-    if (lastHeading <= <-145.000000>)
-    {
-        turn stand to y-axis <180.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <-45.000000>)
-    {
-        turn stand to y-axis <270.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <45.000000>)
-    {
-        turn stand to y-axis <0.000000> speed <30.000000>;
-    }
-    else if (lastHeading <= <90.000000>)
-    {
-        turn stand to y-axis <90.000000> speed <30.000000>;
-    }
-    else
-    {
-        turn stand to y-axis <180.000000> speed <30.000000>;
-    }
+	if (lastHeading <= <-145.0>)
+	{
+		turn stand to y-axis <180.0> speed <30.0>;
+	}
+	else if (lastHeading <= <-45.0>)
+	{
+		turn stand to y-axis <270.0> speed <30.0>;
+	}
+	else if (lastHeading <= <45.0>)
+	{
+		turn stand to y-axis <0.0> speed <30.0>;
+	}
+	else if (lastHeading <= <90.0>)
+	{
+		turn stand to y-axis <90.0> speed <30.0>;
+	}
+	else
+	{
+		turn stand to y-axis <180.0> speed <30.0>;
+	}
 
 	turn stand to y-axis <0> speed <100>;
 	turn turret to x-axis <0> speed <50>;
@@ -76,47 +76,39 @@ closeTurret()
 }
 
 
-Go()
+OpenAnim()
 {
-	if(!turretOpen)
-	{
-		call-script openTurret();
-	}
-	turretOpen = 1;
+	call-script openTurret();
 	set ARMORED to 0;
-	return (0);
 }
 
-Stop()
+CloseAnim()
 {
 	set ARMORED to 1;
-	turretOpen = 0;
 	call-script closeTurret();
-	return (0);
 }
 
 ExecuteRestoreAfterDelay()
 {
-    if (stunned)
+	if (stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 
-	//set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <100.016484>;
 	turn turret to x-axis <0.0> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 
-	start-script Stop();
+	start-script RequestClose();
 }
 
 SetStunned(state)
 {
-    stunned = state;
+	stunned = state;
 	if (!stunned)
 	{
-	    start-script RestoreAfterDelay();
+		start-script RestoreAfterDelay();
 	}
 }
 
@@ -132,13 +124,13 @@ Create()
 	hide aimpoint;
 	hide flare;
 	hide flare;
-	turretOpen = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restoreDelay = 10000;
 
 	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script RestoreAfterDelay();
-	return (0);
 }
 
 #define BASEPIECE base
@@ -147,7 +139,7 @@ Create()
 
 aimCommon(heading, pitch)
 {
-	while(!turretOpen)
+	while(!isOpen)
 	{
 		sleep 250;
 	}
@@ -164,7 +156,7 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	start-script Go();
+	start-script RequestOpen();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -189,7 +181,7 @@ AimWeapon2(heading, pitch)
 	{
 		return(0);
 	}
-	start-script Go();
+	start-script RequestOpen();
 
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -207,9 +199,24 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimWeapon3(piecenum)
+AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 

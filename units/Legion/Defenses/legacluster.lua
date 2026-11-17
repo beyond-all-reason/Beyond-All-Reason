@@ -37,6 +37,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Defenses",
 			techlevel = 2,
 		},
@@ -128,7 +129,6 @@ return {
 					cluster_number = 8,
 					exclude_preaim = true,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					default = 414,
@@ -191,7 +191,6 @@ return {
 					cluster_number = 8,
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					default = 414,

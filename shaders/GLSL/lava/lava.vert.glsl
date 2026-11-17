@@ -14,7 +14,6 @@ out DataVS {
 	vec4 worldPos;
 	vec4 worldUV;
 	float inboundsness;
-	vec4 randpervertex;
 };
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -41,8 +40,8 @@ void main() {
 
 	float gametime = (timeInfo.x + timeInfo.w) * SWIRLFREQUENCY;
 
-	randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
-	worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
+	vec2 randpervertex = vec2(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)));
+	worldUV.zw = sin(randpervertex + gametime * (0.5 + randpervertex));
 
 	// global rotatemove, has 2 params, globalrotateamplitude, globalrotatefrequency
 	// Spin the whole texture around slowly

@@ -66,7 +66,7 @@ function widget:Update(dt)
 		local nmx, nmy = GetMouseState()
 		if nmx ~= mx or nmy ~= my then
 			mousemoved = true
-			endTime = GetTimer() -- set new endtime, because I've had times that game was running for ages because i wasnt attending pc but somehow it detect a move
+			endTime = GetTimer() -- set new endtime, because I've had times that game was running for ages because i wasn't attending pc but somehow it detect a move
 			mx, my = GetMouseState()
 		elseif not mousemoved and DiffTimers(GetTimer(), endTime) > delay then
 			Echo("<autoquit> Autoquit sending quit command.")

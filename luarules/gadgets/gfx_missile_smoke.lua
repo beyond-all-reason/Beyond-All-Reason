@@ -6,7 +6,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Missile smoke",
-		desc = "addes smoke ceg after missile flighttime is over",
+		desc = "adds smoke ceg after missile flighttime is over",
 		version = "tart",
 		author = "Floris",
 		date = "October 2017",
@@ -54,7 +54,7 @@ end
 
 function gadget:Initialize()
 	for wDID, _ in pairs(missileWeapons) do
-		Script.SetWatchProjectile(wDID, true)
+		gadgetHandler:RegisterProjectile(wDID)
 	end
 end
 

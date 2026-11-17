@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "55 37 67",
-		collisionvolumetype = "Box",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
 		footprintx = 4,
@@ -49,8 +49,6 @@ return {
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -167,6 +165,8 @@ return {
 					droneairtime = 60,
 					dronedocktime = 3,
 					droneammo = 12,
+					turretspeedx = 45,
+					turretspeedy = 80,
 				},
 			},
 		},

@@ -88,7 +88,6 @@ return {
 			[30] = "legmg",
 			[31] = "armferret",
 			[32] = "armnanotc",
-			[33] = "legmext15",
 		},
 		customparams = {
 			unitgroup = "builder",
@@ -96,7 +95,9 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Other/Commanders",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {
@@ -111,7 +112,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
