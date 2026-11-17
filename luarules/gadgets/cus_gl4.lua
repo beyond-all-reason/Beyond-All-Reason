@@ -755,9 +755,8 @@ local function initMaterials()
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
-		-- The shadow program displaces vertices like the visible ones, or damaged units cast undamaged shadows.
-		-- HEALTH_TEXTURING divides the health by the build progress (and lifts unfinished units), as in the
-		-- visible pass; without it a unit under construction would cast a heavily displaced shadow.
+		-- HEALTH_TEXTURING divides health by build progress as the visible pass does; without it a unit under
+		-- construction would cast a heavily displaced shadow.
 		shadowDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
