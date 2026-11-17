@@ -79,6 +79,7 @@ for lvl, stats in pairs(lvlParams) do
 		buildpic = "scavengers/SCAVMIST.DDS",
 		buildtime = stats.buildtime,
 		canmove = true,
+		capturable = false,
 		canassist = true,
 		cancloak = true,
 		initcloaked = true,
