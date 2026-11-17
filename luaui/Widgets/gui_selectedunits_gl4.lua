@@ -305,7 +305,12 @@ local function EndSelectionDraws()
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 end
 
+local plattersHeldBy = {} -- widgets holding the platters off; never saved
+
 local function DrawWorld()
+	if next(plattersHeldBy) then
+		return
+	end
 	BeginSelectionDraws()
 	if mapHasWater then
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
@@ -317,6 +322,9 @@ end
 
 local function DrawWorldPreUnit()
 	-- Keep ground platters in pre-unit so units always overlap/occlude them.
+	if next(plattersHeldBy) then
+		return
+	end
 	BeginSelectionDraws()
 	DrawSelections(selectionVBOGround, selectShader, true)
 	EndSelectionDraws()
@@ -404,6 +412,7 @@ local lastCamX, lastCamY, lastCamZ, lastCamDirX, lastCamDirY, lastCamDirZ
 local lastMouseTraceFrame = -1
 local nextMouseOverCheckFrame = 0
 local mouseOverIdleCheckInterval = 4
+local mouseoverHeldBy = {} -- widgets holding the hover highlight off; never saved
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
@@ -527,7 +536,7 @@ function widget:Update(dt)
 	-- +1 means unit is selected
 	-- +0.5 means ally also selected unit
 	-- +2 means its mouseovered
-	if not mouseoverHighlight then
+	if not mouseoverHighlight or next(mouseoverHeldBy) then
 		return
 	end
 	local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
@@ -737,6 +746,15 @@ function widget:Initialize()
 	end
 	WG.selectedunits.getMouseoverHighlight = function()
 		return mouseoverHighlight
+	end
+	-- Hover highlight and platters off while any owner holds them, without touching the saved settings.
+	WG.selectedunits.holdMouseover = function(owner, held)
+		mouseoverHeldBy[owner] = held and true or nil
+		ClearLastMouseOver()
+		lastMouseX = -1
+	end
+	WG.selectedunits.holdPlatters = function(owner, held)
+		plattersHeldBy[owner] = held and true or nil
 	end
 
 	Spring.LoadCmdColorsConfig("unitBox  0 1 0 0")
