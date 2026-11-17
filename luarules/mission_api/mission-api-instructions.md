@@ -21,8 +21,8 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 1. `api_missions.lua` (layer 0, synced) `Initialize()` creates `GG['MissionAPI']` and `VFS.Include`s
    the modules into `.Modules` in a fixed order, `ParameterTypes` first because every other file
    reads it at load time.
-2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan
-   their directories into `GG['MissionAPI'].ActionDefinitions` and `.TriggerDefinitions`.
+2. `actions_loader.LoadActionDefinitions()` then `conditions_loader.LoadConditionDefinitions()` scan
+   their directories into `GG['MissionAPI'].ActionDefinitions` and `.ConditionDefinitions`.
 3. `loadMission(gameSetup)` includes the mission file, validates it with `validation.lua`, runs the
    four `*_loader` normalizers, resolves difficulties, then variable references (`variables.lua`),
    then runs `parameter_processing.lua`.
@@ -42,12 +42,12 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 
 ### Type IDs
 
-- `triggers_loader` numbers trigger types from `ipairs(VFS.DirList(...))`, and `actions_loader` runs
-  a counter over `VFS.SubDirs`. Missions author `type = triggerTypes.TimeElapsed` (`triggerTypes`
-  is `GG['MissionAPI'].TriggerDefinitions.Types`, `actionTypes` likewise), so the string never
+- `conditions_loader` numbers condition types from `ipairs(VFS.DirList(...))`, and `actions_loader` runs
+  a counter over `VFS.SubDirs`. Missions author `type = conditionTypes.TimeElapsed` (`conditionTypes`
+  is `GG['MissionAPI'].ConditionDefinitions.Types`, `actionTypes` likewise), so the string never
   reaches the runtime: `trigger.type` and `action.type` are integers, and the schema tables
   (`Parameters`, `Functions`, `Callins`) are keyed by them.
-- Adding or renaming a file renumbers types, so compare against `triggerTypes.X` or
+- Adding or renaming a file renumbers types, so compare against `conditionTypes.X` or
   `actionTypes.X`, never a literal, and never persist, network, or hard-code an ID.
 
 ## Runtime surfaces
@@ -73,9 +73,9 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 - Camera durations are real seconds, so a sequence also plays while the game is paused, unless
   `clock = 'game'` runs it on game time, in step with `TimeElapsed`.
 
-## Adding a trigger type
+## Adding a condition type
 
-One file per type in `luarules/mission_api/triggers/`, snake_case, returning one table:
+One file per type in `luarules/mission_api/conditions/`, snake_case, returning one table:
 
 ```lua
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
@@ -99,8 +99,8 @@ return {
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
   synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`); otherwise add the gadget
-  call-in plus its `dispatchTriggerCallin` line.
-- `dispatchTriggerCallin` runs a handler once per trigger of its type, passing
+  call-in plus its `dispatchConditionCallin` line.
+- `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
@@ -112,7 +112,7 @@ return {
   `active`, `prerequisites`, and `stages` can pass later, `maxRepeats` and `difficulties` never
   will. Record a firing only on `true`, and decide what happens for each kind of refusal.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
-  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `triggerContext` rather than reach
+  `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.
 - Statistics triggers (`total_units_*`, `units_owned`) declare no `callins` and are evaluated
   centrally through `statistics.lua`; follow that pattern for anything needing shared counters.
@@ -258,7 +258,7 @@ return {
   action spec asserts its schema this way, which catches a reorder breaking the positional dispatch.
 - Test `actionFunction` and `callins.<Name>` directly with a hand-built `trigger` table and a
   `context` stub; never boot the gadgets.
-- Each call-in a trigger listens to gets an assertion in `triggers_loader_spec.lua`.
+- Each call-in a trigger listens to gets an assertion in `conditions_loader_spec.lua`.
 - Each `it` covers one behavior, its description matches its assertions, and a normal case comes
   before any special case.
 - A spy records everything it receives, so a reader never has to work out what it dropped.
@@ -276,7 +276,7 @@ return {
 
 ## Objectives and stages
 
-- `objectives_loader` splits objectives in two: a trigger type with a `Quantity` parameter becomes a
+- `objectives_loader` splits objectives in two: a condition type with a `Quantity` parameter becomes a
   managed objective (metadata in `GG['MissionAPI'].ManagedObjectives`, evaluated centrally, nothing
   synthesized), and anything else synthesizes a trigger `__objective_<objectiveID>` and an action
   `__updateObjective_<objectiveID>` into the raw tables.

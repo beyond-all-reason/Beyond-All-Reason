@@ -1148,25 +1148,16 @@ return function(model)
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.particles"),
 			type = "slider",
-			min = 10000,
-			max = 40000,
-			step = 1000,
-			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000),
+			min = 15000,
+			max = 60000,
+			step = 1500,
+			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 22500),
 			description = BAR.I18N("ui.settings.option.particles_descr"),
 			onchange = function(option, value)
 				Spring.SetConfigInt("MaxParticles", value)
-				-- Keep the engine nano-spray budget in sync when the gadget is
-				-- handing particles back to the engine (NanoParticleMode 0).
-				if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
-					Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
-					if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
-						Spring.SetConfigInt(
-							"MaxNanoParticles",
-							math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34)
-						)
-					else
-						Spring.SetConfigInt("MaxNanoParticles", 0)
-					end
+				-- The engine's nano spray has a budget of its own (the old gadget keeps it at 0 on older engines).
+				if Engine.FeatureSupport.nanoParticlesGL4 then
+					Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.6))
 				end
 			end,
 		},
