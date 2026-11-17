@@ -48,6 +48,30 @@ local exampleLight = {
 	},
 }
 
+-- Presets are looks shared by many lights: colour, fade, glow. They carry no piece and no
+-- position, so every light built from one gives its own:
+--   headlight = preset("headlight_tank", { pieceName = "torso", lightConfig = { posy = 11 } }),
+local lightPresets = VFS.Include("luaui/configs/DeferredLightsGL4Presets.lua")
+
+local function preset(name, overrides)
+	local light = table.copy(lightPresets[name] or {})
+	if not lightPresets[name] then
+		Spring.Echo("[DeferredLightsGL4config] Unknown preset: " .. tostring(name))
+	end
+	light.lightConfig = light.lightConfig or {}
+	for key, value in pairs(overrides or {}) do
+		if key == "lightConfig" then
+			for configKey, configValue in pairs(value) do
+				light.lightConfig[configKey] = configValue
+			end
+		else
+			light[key] = value
+		end
+	end
+	light._presetSource = lightPresets[name] and name or nil
+	return light
+end
+
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
 local unitLights = {
@@ -99842,8 +99866,12 @@ if BAR.Utilities.Gametype.GetCurrentHolidays().xmas then --and  os.date("%d") <=
 	end
 end
 
-local allLights =
-	{ unitEventLights = unitEventLights, unitDefLights = unitDefLights, featureDefLights = featureDefLights }
+local allLights = {
+	unitEventLights = unitEventLights,
+	unitDefLights = unitDefLights,
+	featureDefLights = featureDefLights,
+	lightPresets = lightPresets,
+}
 
 ----------------- Debugging code to do the reverse dump ---------------
 --[[
