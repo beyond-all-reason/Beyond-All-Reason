@@ -211,7 +211,6 @@ end
 Spring.SetConfigInt("NanoParticleMode", 1)
 Spring.SetConfigInt("UnitIconsSortedByDepth", 1)
 
-
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
 if oldMinCamHeight ~= -1 then
@@ -251,8 +250,10 @@ end
 local ENGINE_DRAG_DEFAULT = 4
 local currentDragThreshold = Spring.GetConfigInt("MouseDragSelectionThreshold", ENGINE_DRAG_DEFAULT)
 if currentDragThreshold == ENGINE_DRAG_DEFAULT then
-	local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
-	local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
+	local xresolution =
+		math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
+	local yresolution =
+		math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
 
 	local baseDragThreshold = 16
 	baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * (1 / 3000)) -- is 16 at 1080p
