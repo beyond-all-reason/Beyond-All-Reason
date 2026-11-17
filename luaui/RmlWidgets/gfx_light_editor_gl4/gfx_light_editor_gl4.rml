@@ -79,9 +79,10 @@
 				<div class="le-row" data-event-mouseover="tip('pivot')">
 					<div class="le-label"></div>
 					<div id="le-pivot-label" class="le-value le-value-dim">{{pivotLabel}}</div>
+					<div class="le-chip le-chip-small" data-class-active="pickMode == 'pivot'" data-event-click="act('piecepick', 'pivot')" data-event-mouseover="tip('pivotpick')"><div class="le-chip-text">PICK</div></div>
 				</div>
 				<div class="le-list le-list-pieces" data-if="!fold_pivot" data-event-mouseover="tip('pivot')">
-					<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.pivot" data-event-click="pickPivot(p.name)">
+					<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.pivot" data-event-click="pickPivot(p.name)" data-event-mouseover="pieceHover(p.name)" data-event-mouseout="pieceHover('')">
 						<div class="le-item-name">{{p.label}}</div>
 					</div>
 				</div>
@@ -155,9 +156,10 @@
 						<div class="le-picker-text">{{pieceLabel}}</div>
 						<img class="le-icon-sm" src="/luaui/images/terraform_brush/plus.png" data-attr-src="fold_piece ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
 					</div>
+					<div class="le-chip le-chip-small" data-class-active="pickMode == 'light'" data-event-click="act('piecepick', 'light')" data-event-mouseover="tip('piecepick')"><div class="le-chip-text">PICK</div></div>
 				</div>
-				<div class="le-list le-list-pieces" data-if="!fold_piece">
-					<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.active" data-event-click="pickPiece(p.name)">
+				<div id="le-piece-list" class="le-list le-list-pieces" data-if="!fold_piece">
+					<div data-for="p : pieces" class="le-item" data-class-blank="p.blank" data-class-selected="p.active" data-event-click="pickPiece(p.name)" data-event-mouseover="pieceHover(p.name)" data-event-mouseout="pieceHover('')">
 						<div class="le-item-name">{{p.label}}</div>
 					</div>
 				</div>
@@ -421,6 +423,7 @@
 			<div class="le-key-row"><div class="le-key-badge">Ctrl+LMB</div><div class="le-key-action">Add to or drop from the selection (Shift too)</div></div>
 			<div class="le-key-row"><div class="le-key-badge">LMB drag</div><div class="le-key-action">Gizmo: arrows move, rings turn, white ring sizes</div></div>
 			<div class="le-key-row"><div class="le-key-badge">Alt+drag</div><div class="le-key-action">Copy the selection, then move the copy</div></div>
+			<div class="le-key-row"><div class="le-key-badge">PICK, LMB</div><div class="le-key-action">Pick a piece; again on the spot for the one behind</div></div>
 			<div class="le-key-sep"><div class="le-key-sep-label">CAMERA</div><div class="le-key-sep-line"></div></div>
 			<div class="le-key-row"><div class="le-key-badge">RMB drag</div><div class="le-key-action">Circle the light, or the unit</div></div>
 			<div class="le-key-row"><div class="le-key-badge">MMB drag</div><div class="le-key-action">Pan</div></div>
@@ -433,6 +436,7 @@
 			<div class="le-key-row"><div class="le-key-badge">Ctrl+D</div><div class="le-key-action">Duplicate the selection</div></div>
 			<div class="le-key-row"><div class="le-key-badge">Delete</div><div class="le-key-action">Delete the selection</div></div>
 			<div class="le-key-row"><div class="le-key-badge">F5</div><div class="le-key-action">Leave focus mode (the eye button starts it)</div></div>
+			<div class="le-key-row"><div class="le-key-badge">Esc</div><div class="le-key-action">End piece picking</div></div>
 			<div class="le-key-sep"><div class="le-key-sep-label">IN A NUMBER BOX</div><div class="le-key-sep-line"></div></div>
 			<div class="le-key-row"><div class="le-key-badge">Up / Down</div><div class="le-key-action">Step the value</div></div>
 		</div>

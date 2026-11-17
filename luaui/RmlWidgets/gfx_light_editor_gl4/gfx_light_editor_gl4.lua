@@ -183,7 +183,9 @@ local HINTS = {
 	lights = "Click a light to edit it. Ctrl or Shift+click adds to the selection; a slider then sets all selected lights.",
 	name = "Light name, unique on this unit. Enter to rename. Names with headlight, searchlight or buildlight follow the player's light options.",
 	type = "Point shines all around, cone is a spotlight, beam is a lit line between two points.",
-	piece = "The model piece the light rides on. The light stays where it is when you change the piece.",
+	piece = "The model piece the light rides on. The light stays where it is when you change the piece. Point at a row to see the piece on the model. PICK: click the piece on the model instead.",
+	piecepick = "PICK: click a piece of the model to put the selected lights on it. Click the same spot again for the piece behind. Esc, PICK or a click off the model ends it.",
+	pivotpick = "PICK: click a piece of the model to pin the orbit to it. Click the same spot again for the piece behind. Esc, PICK or a click off the model ends it.",
 	beampart = "Which part of the beam the gizmo moves: its start, its end or the whole beam.",
 	preset = "Click a preset to give the selected lights its look. Position and direction never change.",
 	presetname = "Name for a new preset. An existing name is replaced.",
@@ -202,7 +204,7 @@ local HINTS = {
 	canvas = "CANVAS: hide the world behind a dark grid. A ground disc under the unit stays and shows the light falling on it. Only this view changes.",
 	colorpick = "Open the colour window: a colour square and hue strip, the config's colour sets, and the RGB sliders.",
 	colorsquare = "Drag in the square for saturation and brightness, in the strip for the hue. Values above 1 are set with the sliders.",
-	pivot = "What the orbit circles. AUTO: the selected light, else the unit. LIGHT: stay on the light selected now, whatever you pick later. PIECE: a piece of the model. A pinned pivot is followed as it moves.",
+	pivot = "What the orbit circles. AUTO: the selected light, else the unit. LIGHT: stay on the light selected now, whatever you pick later. PIECE: a piece of the model. A pinned pivot is followed as it moves. PICK: click a piece on the model to pin it.",
 	camera = "ORBIT: right drag circles the selected light or the unit, middle drag pans, wheel zooms. Under the ground the map is hidden. GAME: back to the game camera.",
 	mode = "UNIT: lights that sit on the model. WEAPON: muzzle flash, projectile and explosion lights of this unit's weapons, saved into DeferredLightsGL4WeaponsConfig.lua.",
 	preview = "Show the selected weapon light now, without firing: a muzzle flash at the barrel, a projectile light flying out, an explosion on the ground ahead.",
@@ -271,6 +273,14 @@ local S = {
 	diskPaths = {},
 	hover = nil,
 	hoverPart = nil,
+	pieceHover = nil,
+	pickMode = nil,
+	pickHits = {},
+	pickPool = {},
+	pickCount = 0,
+	pickIndex = 1,
+	pickLast = nil,
+	pieceInfo = {},
 	gizmoHover = nil,
 	drag = nil,
 	windowDrag = nil,
@@ -1014,6 +1024,7 @@ function F.setUnit(unitID, force)
 	S.hover = nil
 	S.ringHover = nil
 	S.ringDrag = nil
+	S.pieceHover, S.pickMode, S.pickCount, S.pickLast, S.pieceInfo = nil, nil, 0, nil, {}
 
 	local api = F.api()
 	if api and S.unitDefID then
@@ -2307,6 +2318,7 @@ function F.refreshModel()
 	end
 	dm.pieces = F.padRows(pieceRows, PIECE_ROWS, { name = "", label = "", active = false, pivot = false, blank = true })
 	dm.pieceLabel = light and (light.pieceName or NO_PIECE) or ""
+	dm.pickMode = S.pickMode or ""
 	dm.pivotAuto = pin == nil
 	dm.pivotLight = pin ~= nil and pin.kind == "light"
 	dm.pivotPiece = pinPiece
@@ -2689,6 +2701,7 @@ function F.buildModel()
 			{ name = "", letter = "", kind = "", swatch = "#000000", active = false, blank = true }
 		),
 		pieceLabel = "",
+		pickMode = "",
 		sizes = F.padRows({}, SIZE_ROWS, { name = "", value = "", active = false, blank = true }),
 		sizeLabel = "custom",
 		colorSets = F.padRows(
@@ -2781,6 +2794,9 @@ function F.buildModel()
 	end
 	model.pickPivot = function(_, name)
 		F.setPivot("piece", name)
+	end
+	model.pieceHover = function(_, name)
+		S.pieceHover = name ~= "" and name or nil
 	end
 	model.pickSize = function(_, name)
 		F.pickSize(name)
@@ -2956,6 +2972,8 @@ function F.act(action, arg)
 		S.canvas = arg == "on"
 	elseif action == "pivot" then
 		F.setPivot(arg)
+	elseif action == "piecepick" then
+		F.setPickMode(S.pickMode ~= arg and arg or nil)
 	elseif action == "camera" then
 		if arg == "orbit" then
 			F.camBegin()
@@ -3366,10 +3384,16 @@ function F.ringAt(mx, my)
 	return best
 end
 
+-- The view ray under a pointer position: GetPixelDir counts y from the top.
+function F.pixelDir(mx, my)
+	local _, vsy, vpx = Spring.GetViewGeometry()
+	return Spring.GetPixelDir(floor(mx + (vpx or 0)), floor(vsy - 1 - my))
+end
+
 -- How far from the ring's centre the pointer is, measured in the ring's plane.
 function F.ringRadiusAt(ring, mx, my)
 	local cx, cy, cz = Spring.GetCameraPosition()
-	local dx, dy, dz = Spring.GetPixelDir(mx, my)
+	local dx, dy, dz = F.pixelDir(mx, my)
 	local denom = dx * ring.nx + dy * ring.ny + dz * ring.nz
 	if abs(denom) > 0.05 then
 		local t = ((ring.x - cx) * ring.nx + (ring.y - cy) * ring.ny + (ring.z - cz) * ring.nz) / denom
@@ -3488,6 +3512,206 @@ function F.drawMarkers()
 	gl.LineWidth(1)
 	gl.Color(1, 1, 1, 1)
 	gl.DepthTest(true)
+end
+
+----------------------------------------------------------------
+-- Piece picking
+----------------------------------------------------------------
+
+local PICK_PX = 12
+-- box corner i as indices into { minx, miny, minz, maxx, maxy, maxz }, and the 12 edges
+---@type integer[]
+local CORNER = { 1, 2, 3, 4, 2, 3, 1, 5, 3, 4, 5, 3, 1, 2, 6, 4, 2, 6, 1, 5, 6, 4, 5, 6 }
+---@type integer[]
+local EDGES = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 3, 2, 4, 5, 7, 6, 8, 1, 5, 2, 6, 3, 7, 4, 8 }
+
+-- "light" puts the selected lights on the clicked piece, "pivot" pins the orbit to it, nil ends.
+function F.setPickMode(mode)
+	if mode == "light" and (S.mode == "weapon" or not next(S.selected)) then
+		F.setStatus("Select a light on the unit first")
+		mode = nil
+	end
+	S.pickMode, S.pickCount, S.pickLast = mode, 0, nil
+	if mode then
+		F.setStatus("Click a piece of the model. The same spot again picks the piece behind")
+	end
+	S.refresh = true
+end
+
+-- A piece's bounding box in piece space, or false for a piece without vertices.
+function F.pieceBox(pieceName)
+	local box = S.pieceInfo[pieceName]
+	if box == nil then
+		box = false
+		local index = S.pieceMap and S.pieceMap[pieceName]
+		local info = index and Spring.GetUnitPieceInfo(S.unitID, index)
+		local lo, hi = info and info.min, info and info.max
+		if info and lo and hi and not info.empty and (hi[1] - lo[1]) + (hi[2] - lo[2]) + (hi[3] - lo[3]) > 0.01 then
+			box = { lo[1], lo[2], lo[3], hi[1], hi[2], hi[3] }
+		end
+		S.pieceInfo[pieceName] = box
+	end
+	return box
+end
+
+local function slab(t0, t1, o, d, lo, hi)
+	if abs(d) < 1e-9 then
+		if o < lo or o > hi then
+			return 1, 0
+		end
+		return t0, t1
+	end
+	local a, b = (lo - o) / d, (hi - o) / d
+	if a > b then
+		a, b = b, a
+	end
+	return max(t0, a), min(t1, b)
+end
+
+-- Ray length to where a piece space ray enters the box, nil when it misses.
+function F.rayBox(box, ox, oy, oz, dx, dy, dz)
+	local t0, t1 = slab(-math.huge, math.huge, ox, dx, box[1], box[4])
+	t0, t1 = slab(t0, t1, oy, dy, box[2], box[5])
+	t0, t1 = slab(t0, t1, oz, dz, box[3], box[6])
+	if t1 >= max(t0, 0) then
+		return max(t0, 0)
+	end
+	return nil
+end
+
+function F.nearerHit(a, b)
+	return a.t < b.t
+end
+
+-- Pieces under the pointer, nearest first: boxes by the ray, pieces without vertices by their origin.
+function F.pieceHits(mx, my)
+	local hits, pool, count = S.pickHits, S.pickPool, 0
+	if S.unitID and S.pieceMap then
+		local cx, cy, cz = Spring.GetCameraPosition()
+		local wx, wy, wz = F.pixelDir(mx, my)
+		for name in pairs(S.pieceMap) do
+			local b = F.basis(S.unitID, name)
+			local t
+			if b then
+				local box = F.pieceBox(name)
+				if box then
+					local ox, oy, oz = F.toLocal(b, cx, cy, cz)
+					t = F.rayBox(box, ox, oy, oz, F.dirToLocal(b, wx, wy, wz))
+				else
+					local sx, sy, sz = Spring.WorldToScreenCoords(b.ox, b.oy, b.oz)
+					if sz < 1 and (sx - mx) ^ 2 + (sy - my) ^ 2 < PICK_PX * PICK_PX then
+						t = sqrt((b.ox - cx) ^ 2 + (b.oy - cy) ^ 2 + (b.oz - cz) ^ 2)
+					end
+				end
+			end
+			if t then
+				count = count + 1
+				local hit = pool[count] or {}
+				pool[count] = hit
+				hit.name, hit.t = name, t
+				hits[count] = hit
+			end
+		end
+	end
+	for i = #hits, count + 1, -1 do
+		hits[i] = nil
+	end
+	table.sort(hits, F.nearerHit)
+	return hits, count
+end
+
+-- Which hit a click here takes: the next one behind when the last click was on the same spot.
+function F.pickIndexAt(mx, my, count, advance)
+	local last = S.pickLast
+	if not (last and abs(last.x - mx) <= 4 and abs(last.y - my) <= 4) then
+		return 1
+	end
+	if advance then
+		return last.index % count + 1
+	end
+	return min(last.index, count)
+end
+
+function F.pickHoverAt(mx, my)
+	local hits, count = F.pieceHits(mx, my)
+	S.pickCount = count
+	if count == 0 then
+		return nil
+	end
+	S.pickIndex = F.pickIndexAt(mx, my, count, false)
+	return hits[S.pickIndex].name
+end
+
+-- False when nothing is under the pointer.
+function F.pickPress(mx, my)
+	local hits, count = F.pieceHits(mx, my)
+	if count == 0 then
+		return false
+	end
+	local index = F.pickIndexAt(mx, my, count, true)
+	S.pickLast = { x = mx, y = my, index = index }
+	local name = hits[index].name
+	if S.pickMode == "pivot" then
+		F.setPivot("piece", name)
+	else
+		F.setPiece(name)
+	end
+	F.setStatus(string.format("Picked %s, %d of %d here", name, index, count))
+	S.refresh = true
+	return true
+end
+
+function F.emitBox(b, box)
+	for i = 1, #EDGES do
+		local c = (EDGES[i] - 1) * 3
+		gl.Vertex(F.toWorld(b, box[CORNER[c + 1]], box[CORNER[c + 2]], box[CORNER[c + 3]]))
+	end
+end
+
+function F.boxLines(b, box)
+	gl.BeginEnd(GL.LINES, F.emitBox, b, box)
+end
+
+-- The piece under the pick pointer or a list row: its box, and its axes at the origin.
+function F.drawPieceHighlight(name)
+	local b = name and F.basis(S.unitID, name)
+	if not b then
+		return
+	end
+	gl.DepthTest(false)
+	local box = F.pieceBox(name)
+	if box then
+		F.outlined(1.5, 0.45, 0.9, 1, 0.9, F.boxLines, b, box)
+	end
+	local len = F.worldPerPixel(b.ox, b.oy, b.oz) * 28
+	local kx = len / max(1e-6, sqrt(b.xx * b.xx + b.xy * b.xy + b.xz * b.xz))
+	local ky = len / max(1e-6, sqrt(b.yx * b.yx + b.yy * b.yy + b.yz * b.yz))
+	local kz = len / max(1e-6, sqrt(b.zx * b.zx + b.zy * b.zy + b.zz * b.zz))
+	F.outlined(2, 1, 0.35, 0.35, 1, F.line, b.ox, b.oy, b.oz, b.ox + b.xx * kx, b.oy + b.xy * kx, b.oz + b.xz * kx)
+	F.outlined(2, 0.4, 1, 0.4, 1, F.line, b.ox, b.oy, b.oz, b.ox + b.yx * ky, b.oy + b.yy * ky, b.oz + b.yz * ky)
+	F.outlined(2, 0.4, 0.6, 1, 1, F.line, b.ox, b.oy, b.oz, b.ox + b.zx * kz, b.oy + b.zy * kz, b.oz + b.zz * kz)
+	gl.LineWidth(1)
+	gl.Color(1, 1, 1, 1)
+	gl.DepthTest(true)
+end
+
+function F.drawPieceLabel()
+	local name = S.pickHover or S.pieceHover
+	local b = name and F.basis(S.unitID, name)
+	if b then
+		local sx, sy = Spring.WorldToScreenCoords(b.ox, b.oy, b.oz)
+		local text = name
+		if S.pickHover and S.pickCount > 1 then
+			text = string.format("%s  %d/%d", name, S.pickIndex, S.pickCount)
+		end
+		gl.Color(0.45, 0.9, 1, 1)
+		gl.Text(text, sx + 12, sy + 6, 18, "o")
+	elseif S.pickMode then
+		local mx, my = Spring.GetMouseState()
+		gl.Color(0.45, 0.9, 1, 1)
+		gl.Text("PICK A PIECE", mx + 20, my + 4, 16, "o")
+	end
+	gl.Color(1, 1, 1, 1)
 end
 
 ----------------------------------------------------------------
@@ -3933,6 +4157,10 @@ function widget:Initialize()
 		pickLook = F.pickLook,
 		pickColorSet = F.pickColorSet,
 		setUnit = F.setUnit,
+		setPickMode = F.setPickMode,
+		pieceHits = F.pieceHits,
+		pieceBox = F.pieceBox,
+		basis = F.basis,
 		getState = function()
 			return S
 		end,
@@ -4041,8 +4269,17 @@ function widget:Update(dt)
 	end
 	if not S.drag and not S.ringDrag and not (S.cam and S.cam.drag) then
 		local mx, my = Spring.GetMouseState()
-		local hover, part, gizmoHover, ringHover
-		if not F.overPanel(mx, my) then
+		local hover, part, gizmoHover, ringHover, pickHover
+		local overPanel = F.overPanel(mx, my)
+		if not overPanel then
+			-- a list row left with the panel sends no mouseout
+			S.pieceHover = nil
+		end
+		if overPanel then
+			S.pickCount = 0
+		elseif S.pickMode then
+			pickHover = F.pickHoverAt(mx, my)
+		else
 			gizmoHover = S.gizmoReady and Gizmo.hitTest(mx, my) or nil
 			if not gizmoHover then
 				hover, part = F.hitMarker(mx, my)
@@ -4052,6 +4289,7 @@ function widget:Update(dt)
 			end
 		end
 		S.gizmoHover, S.hover, S.hoverPart, S.ringHover = gizmoHover, hover, part, ringHover
+		S.pickHover = pickHover
 	end
 
 	if S.refresh then
@@ -4065,7 +4303,8 @@ function widget:DrawWorld()
 		return
 	end
 	F.drawMarkers()
-	if S.gizmoReady then
+	F.drawPieceHighlight(S.pickHover or S.pieceHover)
+	if S.gizmoReady and not S.pickMode then
 		Gizmo.draw(S.gizmoHover)
 	end
 end
@@ -4088,6 +4327,9 @@ function widget:DrawScreenEffects()
 		gl.Text(S.hover, mx + 20, my + 4, 20, "o")
 		gl.Color(1, 1, 1, 1)
 	end
+	if S.unitID then
+		F.drawPieceLabel()
+	end
 end
 
 function widget:MousePress(mx, my, button)
@@ -4100,6 +4342,12 @@ function widget:MousePress(mx, my, button)
 	end
 	if button ~= 1 or not S.unitID then
 		return false
+	end
+	if S.pickMode and not F.overPanel(mx, my) then
+		if not F.pickPress(mx, my) then
+			F.setPickMode(nil)
+		end
+		return true
 	end
 	if S.gizmoHover and S.gizmoReady then
 		return F.beginGizmoDrag(S.gizmoHover, mx, my)
@@ -4171,11 +4419,15 @@ function widget:MouseRelease()
 	return false
 end
 
-local KEY = { z = 122, y = 121, s = 115, d = 100, delete = 127, up = 273, down = 274 }
+local KEY = { z = 122, y = 121, s = 115, d = 100, delete = 127, up = 273, down = 274, escape = 27 }
 
 function widget:KeyPress(key, mods)
 	if not S.unitID then
 		return false
+	end
+	if key == KEY.escape and S.pickMode then
+		F.setPickMode(nil)
+		return true
 	end
 	if S.focusField then
 		local field = FIELD_BY_KEY[S.focusField]
