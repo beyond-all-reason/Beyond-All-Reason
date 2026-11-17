@@ -93,7 +93,8 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
 local minFireSmokeParticles = 10000 -- before MaxParticles is added
-local MAX_PARTICLES = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
+-- MaxParticles went up by half for the engine's cheaper CEG particles; the / 1.5 keeps this effect's budget as it was.
+local MAX_PARTICLES = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
 
 local VBO_CAPACITY = MAX_PARTICLES -- fixed at init; VBO cannot be resized
 local PARTICLE_SIZE_MIN = 1
@@ -718,7 +719,7 @@ local function updateMaxParticles(gameFrame)
 		return
 	end -- re-read configint every ~3 seconds
 	visibilityState.nextMaxParticlesFrame = gameFrame + 90
-	local newMax = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles
+	local newMax = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then
 		return
