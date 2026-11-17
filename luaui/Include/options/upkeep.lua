@@ -579,7 +579,7 @@ function upkeep.initialize(widget)
 			Spring.SetConfigInt("Water", 4)
 		end
 
-		local minMaxparticles = 12000
+		local minMaxparticles = 18000
 		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo("First time setup:  setting MaxParticles config value to " .. minMaxparticles)
@@ -594,8 +594,8 @@ function upkeep.initialize(widget)
 
 	if Spring.GetGameFrame() == 0 then
 		-- set minimum particle amount
-		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 10000) <= 10000 then
-			Spring.SetConfigInt("MaxParticles", 10000)
+		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) <= 15000 then
+			Spring.SetConfigInt("MaxParticles", 15000)
 		end
 
 		if Spring.GetConfigInt("MaxSounds", 128) < 128 then
