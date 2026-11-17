@@ -1,12 +1,8 @@
 local CONDITIONS_DIR = "luarules/mission_api/conditions/"
 local CONDITION_FILES_PATTERN = "*.lua"
+local VALID_KINDS = table.invert(VFS.Include("luarules/mission_api/condition_kinds.lua"))
 
-local KINDS = { event = true, metric = true }
-
--- Every condition declares a `kind`:
---   'event'  an occurrence, tallied upwards. Threshold is `count`.
---   'metric' a value sampled now, which can move either way.
---            Threshold is `atLeast` / `atMost`.
+-- Every condition declares a `kind` from ConditionKinds (condition_kinds.lua).
 -- Statistics conditions (TotalUnits*, UnitsOwned) declare no callins; their
 -- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
 local function loadConditionDefinitions()
@@ -23,7 +19,7 @@ local function loadConditionDefinitions()
 		local conditionType = conditionDefinition.type
 		local kind = conditionDefinition.kind
 
-		if not KINDS[kind] then
+		if not VALID_KINDS[kind] then
 			Spring.Log(
 				"conditions_loader",
 				LOG.ERROR,

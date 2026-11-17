@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
 	local parameters = trigger.parameters
@@ -27,7 +28,7 @@ end
 
 return {
 	type = 'ConstructionStarted',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },

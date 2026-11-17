@@ -12,6 +12,7 @@
 
 local OBJECTIVE_CONDITION_PREFIX = "__objective_"
 local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 
 --- Each objective contributes a condition record to the same space the triggers
 --- gadget dispatches over, so objectives reuse every condition handler rather
@@ -47,7 +48,7 @@ local function thresholdsOf(objective)
 	local trigger = objective.trigger
 	local conditionDefinitions = GG["MissionAPI"].ConditionDefinitions
 	local kind = type(trigger) == "table" and conditionDefinitions and conditionDefinitions.Kinds[trigger.type]
-	if kind == "metric" then
+	if kind == ConditionKinds.Metric then
 		if amount == 0 then
 			return { atMost = 0 }
 		end

@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local DAMAGETYPE_RECLAIMED     = Game.envDamageTypes.Reclaimed
 local DAMAGETYPE_KILLED_BY_LUA = Game.envDamageTypes.KilledByLua
@@ -18,7 +19,7 @@ end
 
 return {
 	type = 'UnitReclaimed',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },

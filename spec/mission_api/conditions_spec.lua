@@ -5,7 +5,9 @@ local env = MissionSpecEnv.new()
 -- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
 -- through the shared helper keeps this in step as descriptors take on new
 -- module dependencies (detection levels, seismic contacts, and so on).
-local ParameterTypes = MissionSpecEnv.registerModules(env).ParameterTypes.Types
+local modules = MissionSpecEnv.registerModules(env)
+local ParameterTypes = modules.ParameterTypes.Types
+local ConditionKinds = modules.ConditionKinds
 
 local CONDITIONS_DIR = "luarules/mission_api/conditions/"
 
@@ -44,7 +46,7 @@ describe("mission_api.conditions", function()
 		local invalid = {}
 		for conditionType, entry in pairs(descriptors) do
 			local kind = entry.descriptor.kind
-			if kind ~= "event" and kind ~= "metric" then
+			if kind ~= ConditionKinds.Event and kind ~= ConditionKinds.Metric then
 				invalid[#invalid + 1] = conditionType .. " (" .. tostring(kind) .. ")"
 			end
 		end
@@ -55,7 +57,7 @@ describe("mission_api.conditions", function()
 	it("classifies exactly the known levels as metrics", function()
 		local actualMetrics = {}
 		for conditionType, entry in pairs(descriptors) do
-			if entry.descriptor.kind == "metric" then
+			if entry.descriptor.kind == ConditionKinds.Metric then
 				actualMetrics[conditionType] = true
 			end
 		end
@@ -72,7 +74,7 @@ describe("mission_api.conditions", function()
 		}) do
 			local entry = descriptors[conditionType]
 			assert.is_not_nil(entry, conditionType .. " should exist")
-			assert.are.equal("event", entry.descriptor.kind, conditionType .. " should be an event")
+			assert.are.equal(ConditionKinds.Event, entry.descriptor.kind, conditionType .. " should be an event")
 		end
 	end)
 
@@ -80,7 +82,7 @@ describe("mission_api.conditions", function()
 		for _, conditionType in ipairs({ "ResourceStored", "ResourceIncome", "ResourcePull" }) do
 			local entry = descriptors[conditionType]
 			assert.is_not_nil(entry, conditionType .. " should exist")
-			assert.are.equal("metric", entry.descriptor.kind, conditionType .. " should be a metric")
+			assert.are.equal(ConditionKinds.Metric, entry.descriptor.kind, conditionType .. " should be a metric")
 		end
 	end)
 

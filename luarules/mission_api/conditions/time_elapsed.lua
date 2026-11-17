@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 local countdowns = GG['MissionAPI'].Modules.Countdowns
 
 local function getCountdownID(triggerID)
@@ -7,7 +8,7 @@ end
 
 return {
 	type = 'TimeElapsed',
-	kind = 'event',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'seconds',  required = true,  type = ParameterTypes.Number },
 	},

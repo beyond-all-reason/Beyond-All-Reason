@@ -1,3 +1,4 @@
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, which the builder installs.
@@ -8,7 +9,7 @@ local totalUnitsBuilt = VFS.Include("luarules/mission_api/conditions/total_units
 describe("mission_api.conditions.total_units_built", function()
 	it("declares its type, kind and parameters, and no callins", function()
 		assert.are.equal("TotalUnitsBuilt", totalUnitsBuilt.type)
-		assert.are.equal("event", totalUnitsBuilt.kind)
+		assert.are.equal(ConditionKinds.Event, totalUnitsBuilt.kind)
 
 		local names, required = {}, {}
 		for _, parameter in ipairs(totalUnitsBuilt.parameters) do

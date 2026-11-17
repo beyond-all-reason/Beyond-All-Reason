@@ -388,6 +388,7 @@ local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
 -- Definition files read these modules from GG when they are included, in this order.
 _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
+_G.GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 _G.GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
