@@ -85,7 +85,30 @@ local function doesUnitMatch(unitID, unitName, unitDefName)
 	return true
 end
 
+---Returns whether every fact the unit filter gives is true of the unit.
+---@param unitID UnitID
+---@param unitFilter table
+---@param unitDefID UnitDefID? the unit's def, when the caller has it
+---@param teamID TeamID? the unit's team, when the caller has it
+---@return boolean
+local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
+	local filterTeamID = unitFilter.teamName
+	if filterTeamID ~= nil and (teamID or spGetUnitTeam(unitID)) ~= filterTeamID then
+		return false
+	end
+	local unitDefName = unitFilter.unitDefName
+	if unitDefName ~= nil then
+		local unitDef = UnitDefNames[unitDefName]
+		if unitDef == nil or (unitDefID or spGetUnitDefID(unitID)) ~= unitDef.id then
+			return false
+		end
+	end
+	local unitName = unitFilter.unitName
+	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName)
+end
+
 return {
 	MatchingUnits = matchingUnits,
 	DoesUnitMatch = doesUnitMatch,
+	DoesUnitMatchFilter = doesUnitMatchFilter,
 }

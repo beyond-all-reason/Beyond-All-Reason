@@ -76,8 +76,10 @@ local function isUnitNameUntracked(name)
 	return isNameUntracked(name, trackedUnitIDs)
 end
 
+---A unit being spawned already has its loadout name.
 local function doesUnitHaveName(unitID, name)
 	return doesEntityHaveName(unitID, name, trackedUnitIDs)
+		or (unitID == GG["MissionAPI"].unitIDBeingSpawned and name == GG["MissionAPI"].nameOfUnitBeingSpawned)
 end
 
 local function untrackUnitID(unitID)
@@ -124,6 +126,9 @@ return {
 	DoesUnitHaveName = doesUnitHaveName,
 	UntrackUnitID = untrackUnitID,
 	UntrackUnitName = untrackUnitName,
+	ReportUnitNameChanges = reportUnitNameChanges,
+	TrackUnitUnderDerivedName = trackUnitUnderDerivedName,
+	UntrackUnitUnderDerivedName = untrackUnitUnderDerivedName,
 	-- Feature tracking
 	TrackFeature = trackFeature,
 	IsFeatureIDUntracked = isFeatureIDUntracked,
