@@ -172,11 +172,9 @@ return {
 	GetTeamRealResources = function(teamID, resource)
 		local current, storage, pull, income, expense, share, sent, received, excess =
 			Spring.GetTeamResources(teamID, resource)
-		if pull then
-			local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM
-				or HIDDEN_ENERGY_PULL_PARAM
-			pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0)
-		end
+		local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM
+			or HIDDEN_ENERGY_PULL_PARAM
+		pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0)
 		return current, storage, pull, income, expense, share, sent, received, excess
 	end,
 	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
