@@ -144,7 +144,7 @@ local format = string.format
 local glColor = gl.Color
 
 local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetTeamResources = Spring.GetTeamResources
+local spGetTeamResources = BAR.Utilities.GetTeamRealResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor

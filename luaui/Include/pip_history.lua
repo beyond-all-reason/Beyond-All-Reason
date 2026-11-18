@@ -854,7 +854,7 @@ end
 -- the records wait in pendingRes, frame in the age slot, until the next tick's first phase.
 function Store:SampleResources(frame)
 	self.resLast = frame
-	local spGetTeamResources = Spring.GetTeamResources
+	local spGetTeamResources = BAR.Utilities.GetTeamRealResources
 	local teams = Spring.GetTeamList() --[[@as table<integer, integer>]]
 	local gaia = Spring.GetGaiaTeamID()
 	local buf = self.pendingRes

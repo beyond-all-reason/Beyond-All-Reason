@@ -35,6 +35,7 @@ local sp = {
 	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
 	GetSpectatingState = Spring.GetSpectatingState,
 	GetTeamResources = Spring.GetTeamResources,
+	GetTeamRealResources = BAR.Utilities.GetTeamRealResources,
 	GetMyTeamID = Spring.GetLocalTeamID,
 	GetMouseState = Spring.GetMouseState,
 	GetWind = Spring.GetWind,
@@ -72,7 +73,7 @@ local isSingle = false
 local gameFrame = sp.GetGameFrame()
 
 -- Resources
-local r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+local r = { metal = { sp.GetTeamRealResources(myTeamID, "metal") }, energy = { sp.GetTeamRealResources(myTeamID, "energy") } }
 local energyOverflowLevel, metalOverflowLevel
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -1439,7 +1440,7 @@ end
 function init()
 	refreshUi = true
 
-	r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+	r = { metal = { sp.GetTeamRealResources(myTeamID, "metal") }, energy = { sp.GetTeamRealResources(myTeamID, "energy") } }
 	topbarArea =
 		{ mathFloor(xPos + (cfg.borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
 
@@ -1863,7 +1864,7 @@ function widget:Update(dt)
 	if now > timers.nextSlowUpdate then
 		timers.nextSlowUpdate = now + 0.25
 		local prevR = r
-		r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+		r = { metal = { sp.GetTeamRealResources(myTeamID, "metal") }, energy = { sp.GetTeamRealResources(myTeamID, "energy") } }
 		-- check if we need to smooth the resources
 		local metalDiff7 = r.metal[7] - prevR.metal[7]
 		local metalDiff8 = r.metal[8] - prevR.metal[8]
@@ -2661,8 +2662,8 @@ function widget:PlayerChanged()
 		resbarHover = nil
 		if prevMyTeamID ~= myTeamID then
 			r = {
-				metal = { sp.GetTeamResources(myTeamID, "metal") },
-				energy = { sp.GetTeamResources(myTeamID, "energy") },
+				metal = { sp.GetTeamRealResources(myTeamID, "metal") },
+				energy = { sp.GetTeamRealResources(myTeamID, "energy") },
 			}
 			smoothedResources = r
 		end

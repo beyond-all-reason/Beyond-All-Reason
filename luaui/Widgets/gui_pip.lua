@@ -19779,8 +19779,8 @@ local function DrawTrackedPlayerResourceBars()
 		-- Get team resources - this works for spectators viewing any team
 		-- Returns: current, storage, pull, income, expense, share
 		local _
-		metalCur, metalMax, metalPull, metalIncome, _, metalShare = Spring.GetTeamResources(teamID, "metal")
-		energyCur, energyMax, energyPull, energyIncome, _, energyShare = Spring.GetTeamResources(teamID, "energy")
+		metalCur, metalMax, metalPull, metalIncome, _, metalShare = BAR.Utilities.GetTeamRealResources(teamID, "metal")
+		energyCur, energyMax, energyPull, energyIncome, _, energyShare = BAR.Utilities.GetTeamRealResources(teamID, "energy")
 
 		if not (metalCur and energyCur) then
 			return
