@@ -1,6 +1,6 @@
 ---
 --- Checks references: objective events, actions, unit, feature, marker and line names,
---- countdown IDs, cutscene IDs and variables.
+--- countdown IDs, cutscene IDs, variables, and thresholds that read written variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -543,6 +543,50 @@ local function validateVariableReferences(context, report)
 	end
 end
 
+--- Rejects a threshold that reads a variable the mission writes, since thresholds are read once, at mission start.
+local function validateThresholdVariableReferences(context, report)
+	local actionTypes = context.ActionTypes
+	local writtenKeys = {}
+	for _, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters and (action.type == actionTypes.WriteVariable or action.type == actionTypes.AddToVariable) then
+			for _, key in ipairs(context.PossibleValues(parameters.key)) do
+				writtenKeys[key] = true
+			end
+		end
+	end
+	if next(writtenKeys) == nil then
+		return
+	end
+
+	local function checkThreshold(value, fieldName, label, id)
+		context.CallOnVariableKeys(value, function(key)
+			if writtenKeys[key] then
+				report.Error(
+					SECTION,
+					label,
+					id,
+					"Threshold reads variable '" .. tostring(key) .. "', which the mission writes",
+					"Field: " .. fieldName
+				)
+			end
+		end)
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		if type(trigger) == "table" then
+			for _, fieldName in ipairs({ "count", "atLeast", "atMost", "equals" }) do
+				checkThreshold(trigger[fieldName], fieldName, "Trigger", triggerID)
+			end
+		end
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		if type(objective) == "table" then
+			checkThreshold(objective.amount, "amount", "Objective", objectiveID)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 
 local function validate(context, report)
@@ -594,6 +638,7 @@ local function validate(context, report)
 	validateCountdownIDReferences(context, report)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
+	validateThresholdVariableReferences(context, report)
 end
 
 return {
