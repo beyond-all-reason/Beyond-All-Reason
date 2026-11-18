@@ -35,8 +35,7 @@ local function setUpMissionAPI(gameSetup)
 
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
-	GG["MissionAPI"].Variables = gameSetup.variables
-	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].SavedVariables = gameSetup.savedVariables
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].Alliances = gameSetup.alliances
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
@@ -115,6 +114,13 @@ local function loadMission(gameSetup)
 		failMission(reason)
 		return
 	end
+
+	GG["MissionAPI"].Variables, GG["MissionAPI"].PersistentVariableKeys =
+		GG["MissionAPI"].Modules.Variables.GetStartingValues(
+			mission.Variables,
+			mission.PersistentVariables,
+			GG["MissionAPI"].SavedVariables
+		)
 
 	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)

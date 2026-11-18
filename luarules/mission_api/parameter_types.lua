@@ -53,6 +53,7 @@ local types = {
 	EffectType = "EffectType",
 	EffectName = "EffectName",
 	AiState = "AiState",
+	VariableKey = "VariableKey",
 
 	-- Number Validators:
 	Number = "Number",

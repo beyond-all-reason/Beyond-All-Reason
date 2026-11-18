@@ -144,6 +144,26 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 	resolveObjectiveFields(objectives, triggers)
 end
 
+--- Variables start at their declared values. Persistent variables start at the saved value instead,
+--- when the save has one of the declared value's type.
+--- @return table values
+--- @return table<string, true> persistentKeys
+local function getStartingValues(declared, declaredPersistent, saved)
+	local values, persistentKeys = {}, {}
+	for key, value in pairs(type(declared) == "table" and declared or {}) do
+		values[key] = type(value) == "table" and table.copy(value) or value
+	end
+	for key, value in pairs(type(declaredPersistent) == "table" and declaredPersistent or {}) do
+		local savedValue = saved[key]
+		if savedValue ~= nil and type(savedValue) == type(value) then
+			value = savedValue
+		end
+		values[key] = type(value) == "table" and table.copy(value) or value
+		persistentKeys[key] = true
+	end
+	return values, persistentKeys
+end
+
 local function getVariable(key)
 	return GG["MissionAPI"].Variables[key]
 end
@@ -171,6 +191,7 @@ return {
 	HasUnsetVariable = hasUnsetVariable,
 	ResolveValue = resolveValue,
 	ResolveReferences = resolveReferences,
+	GetStartingValues = getStartingValues,
 	Get = getVariable,
 	Set = setVariable,
 }

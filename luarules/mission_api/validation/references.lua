@@ -495,9 +495,7 @@ end
 -- Variable references
 --------------------------------------------------------------------------------
 
---- Only the startscript sets variables before the mission starts. A value that reads an unset
---- variable can't be checked, and is missing until an action writes the variable, which may
---- well be intended. So it warns rather than errors.
+--- Every variable a mission reads is declared in Variables or PersistentVariables.
 local function validateVariableReferences(context, report)
 	local referencedKeys = {}
 
@@ -534,11 +532,11 @@ local function validateVariableReferences(context, report)
 
 	for key, sources in pairs(referencedKeys) do
 		if context.Variables[key] == nil then
-			report.Warn(
+			report.Error(
 				SECTION,
 				"Variable",
 				key,
-				"Variable has no value at the start of the mission",
+				"Variable is not declared",
 				"Referenced in: " .. describeSources(sources)
 			)
 		end
