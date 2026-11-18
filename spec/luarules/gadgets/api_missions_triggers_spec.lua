@@ -82,7 +82,7 @@ describe("api_missions_triggers loadout names", function()
 		}
 	end
 
-	-- The gadget's own activateTrigger counts each firing on the trigger.
+	-- The gadget's activateTrigger counts each firing on the trigger.
 	local function firedTriggerIDs()
 		local triggerIDs = {}
 		for triggerID, trigger in pairs(missionApi.Triggers) do

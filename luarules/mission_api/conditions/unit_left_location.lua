@@ -11,7 +11,7 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		requiresOneOf = { 'unitName', 'unitDefName', 'teamName' },
 	},
 	callins = {
 		-- Every unit is checked before any activation, since an action may change what the next one matches.

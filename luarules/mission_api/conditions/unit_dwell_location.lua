@@ -12,7 +12,7 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		requiresOneOf = { 'unitName', 'unitDefName', 'teamName' },
 	},
 	callins = {
 		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.
