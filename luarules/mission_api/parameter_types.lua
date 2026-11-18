@@ -62,6 +62,7 @@ local types = {
 	BasePlanName = "BasePlanName",
 	AiState = "AiState",
 	SquadTask = "SquadTask",
+	VariableKey = "VariableKey",
 
 	-- Number Validators:
 	Number = "Number",

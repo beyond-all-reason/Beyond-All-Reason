@@ -716,7 +716,7 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 	describe("variables", function()
-		it("warns about a variable with no value at the start of the mission", function()
+		it("reports a variable that is not declared", function()
 			V.missionAPI().Variables = { waveSize = 3 }
 			local result = V.validate(V.mission()
 				:WithTrigger("t", {
@@ -731,10 +731,9 @@ describe("mission_api.validation.references", function()
 				:WithObjective("o", { textKey = "ok", count = { variable = "delay" } }))
 
 			assert.are.same({
-				"Variable has no value at the start of the mission. Variable: delay, "
+				"Variable is not declared. Variable: delay, "
 					.. "Referenced in: objective o (count), trigger t (seconds)",
-			}, result.warnings)
-			assert.is_true(result.ok)
+			}, result.errors)
 		end)
 	end)
 end)
