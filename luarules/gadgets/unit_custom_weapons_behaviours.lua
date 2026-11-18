@@ -743,7 +743,7 @@ function gadget:Initialize()
 
 	if next(weaponDefEffect) then
 		for weaponDefID in pairs(weaponDefEffect) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 		gameFrame = Spring.GetGameFrame()
 	else
@@ -753,9 +753,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
-	end
+	projectiles[projectileID] = weaponDefEffect[weaponDefID]
 end
 
 function gadget:ProjectileDestroyed(projectileID)

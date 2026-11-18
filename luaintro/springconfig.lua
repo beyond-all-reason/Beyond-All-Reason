@@ -9,6 +9,11 @@ if Spring.GetConfigFloat("UnitGhostIconsDimming", 0.5) == 0.5 then
 	Spring.SetConfigFloat("UnitGhostIconsDimming", 0.75)
 end
 
+-- particles this small barely show in water reflections, override engine default (draw all) but allow user setting
+if Spring.GetConfigFloat("ProjectileReflectionMinRadius", 0) == 0 then
+	Spring.SetConfigFloat("ProjectileReflectionMinRadius", 32)
+end
+
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.75)
 Spring.SetConfigFloat("tonemapB", 0.75)
@@ -177,7 +182,30 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("NanoParticlesHoming", 1)
 	Spring.SetConfigInt("NanoParticlesGroundClamp", 1)
 	Spring.SetConfigInt("NanoParticlesReclaimBurst", 1)
-	--Spring.SetConfigFloat("NanoParticlesUpdateLuaUISampleRate", 0.32)
+end
+
+-- Not bumped on older engines, so the switch still happens once they update.
+if Engine.FeatureSupport.smoothCameraHeightTracking then
+	version = 10
+	if Spring.GetConfigInt("version", 0) < version then
+		Spring.SetConfigInt("version", version)
+
+		-- Spring camera defaults to smooth; terrain (1) is the engine default, any other mode was chosen.
+		if Spring.GetConfigInt("CamSpringTrackMapHeightMode", 1) == 1 then
+			Spring.SetConfigInt("CamSpringTrackMapHeightMode", 2)
+		end
+	end
+end
+
+-- The same engines draw CEG and nano particles far cheaper: both budgets go up by half, once.
+if Engine.FeatureSupport.nanoParticlesGL4 then
+	version = 11
+	if Spring.GetConfigInt("version", 0) < version then
+		Spring.SetConfigInt("version", version)
+
+		Spring.SetConfigInt("MaxParticles", math.floor(Spring.GetConfigInt("MaxParticles", 10000) * 1.5))
+		Spring.SetConfigInt("MaxNanoParticles", Spring.GetConfigInt("MaxParticles", 15000) * 0.6)
+	end
 end
 
 Spring.SetConfigInt("NanoParticleMode", 1)

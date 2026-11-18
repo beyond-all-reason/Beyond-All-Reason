@@ -1,0 +1,58 @@
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+MissionApiBuilder.new():Install()
+
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/map/remove_map_marker.lua")
+local action = actions[1]
+local summarizeSchema = require("mission_api.schema_spec_helper")
+
+describe("mission_api.actions.remove_map_marker", function()
+	---@type table, table
+	local missionApi, eraseCalls
+
+	before_each(function()
+		missionApi = MissionApiBuilder.new():Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
+		eraseCalls = env.Spring.calls.markerErasePosition
+	end)
+
+	it("declares its type and parameters", function()
+		assert.are.same({
+			type = "RemoveMapMarker",
+			markerName = "String!",
+		}, summarizeSchema(action))
+	end)
+
+	describe("actionFunction", function()
+		it("calls MarkerErasePosition at the stored position", function()
+			missionApi.markerNames["flag"] = { x = 5, y = 10, z = 15 }
+			action.actionFunction("flag")
+			assert.are.equal(1, #eraseCalls)
+			assert.are.equal(5, eraseCalls[1].x)
+			assert.are.equal(10, eraseCalls[1].y)
+			assert.are.equal(15, eraseCalls[1].z)
+		end)
+
+		it("removes the marker name from markerNames after erasing", function()
+			missionApi.markerNames["flag"] = { x = 0, y = 0, z = 0 }
+			action.actionFunction("flag")
+			assert.is_nil(missionApi.markerNames["flag"])
+		end)
+
+		it("is a no-op when the marker name is not in markerNames (no MarkerErasePosition call)", function()
+			action.actionFunction("unknownMarker")
+			assert.are.equal(0, #eraseCalls)
+		end)
+
+		it("still removes the marker name even if position was nil", function()
+			action.actionFunction("ghost")
+			assert.is_nil(missionApi.markerNames["ghost"])
+		end)
+	end)
+
+end)

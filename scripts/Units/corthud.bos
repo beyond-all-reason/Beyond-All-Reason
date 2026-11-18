@@ -4,7 +4,7 @@
 piece  torso, lbarrel, lfoot, lleg, lsleeve, lthigh, pack, pelvis, rbarrel, rfoot, rleg, rsleeve, rthigh,
        lfirept, rfirept, aimx1, aimy1;
 
-static-var  isMoving, isAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 {
@@ -379,7 +379,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed;
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 65;
@@ -414,7 +413,6 @@ Create()
 	hide rfirept;
 	hide lfirept;
 	isMoving = FALSE;
-	isAiming = 0;
 	wpnheading = 0;
 	animSpeed = 4; // what UnitSpeed sets at rest; it only runs while moving
 	gun_1 = 0;

@@ -14,73 +14,94 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local actionsDispatcher, trackedUnits
+local INCOME_ON_FULL_UNIT_RECLAIM = Game.reclaimUnitMethod == 1 and Game.reclaimUnitDrainHealth
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency
 
-local types, timeTypes, unitTypes, featureTypes, gameTypes
-local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
+local conditionTypes, triggers, conditionContext ---@type table, table<string, table>, table
 
---[[
-local function populateTriggerTypes()
-	timeTypes = {
-		[types.TimeElapsed] = true,
-		[types.ResourceStored] = true,
-		[types.ResourceProduction] = true,
-		[types.UnitEnteredLocation] = true,
-		[types.UnitLeftLocation] = true,
-		[types.UnitDwellLocation] = true,
-	}
+local callins ---@type table
+local unitsEnteredAreaHandlers ---@type table<string, function?>
+local unitsLeftAreaHandlers ---@type table<string, function?>
+local needsBuildOwnerMap = false
+local needsBuildStartSet = false
 
-	unitTypes = {
-		[types.UnitExists] = true,
-		[types.UnitNotExists] = true,
-		[types.ConstructionStarted] = true,
-		[types.ConstructionFinished] = true,
-		[types.UnitKilled] = true,
-		[types.UnitCaptured] = true,
-		[types.UnitResurrected] = true,
-		[types.UnitSpotted] = true,
-		[types.UnitUnspotted] = true,
-		[types.FeatureNotExists] = true,
-		[types.FeatureReclaimed] = true,
-		[types.FeatureDestroyed] = true,
-		[types.TotalUnitsLost] = true,
-		[types.TotalUnitsBuilt] = true,
-		[types.TotalUnitsKilled] = true,
-		[types.TotalUnitsCaptured] = true,
-		[types.TeamDestroyed] = true,
-		[types.Victory] = true,
-		[types.Defeat] = true,
-end
+local actionsDispatcher
+local statistics
+local countdowns
+local detectionLevels
+local seismicContacts
+local seismicIntervalFrames ---@type integer
 
-local function populateTriggerLists()
-	for triggerId, trigger in pairs(triggers) do
-		
+local trackedUnitNames
+local doesUnitHaveName
+local doesUnitMatch ---@type function
+local untrackUnitID
+local doesFeatureHaveName
+local untrackFeatureID
+
+-- Shared trigger state (exposed to per-trigger handlers via conditionContext):
+local constructionState = {}
+local stockpileState = {}
+local dwellingUnitsInAreas = {}
+local revealedLocations = {}
+local gatheredUnitsInAreas = {}
+local wasUnderConstruction = {}
+
+-- Local bookkeeping for various concerns: build, reclaim, detection, transfer.
+local teamReclaimIncome = {}
+local teamReclaimIncomeSnapshot = {}
+local reclaimedFeatures = {}
+local buildPlacements = {}
+local buildFrameOwners = {}
+local constructionStarts = {}
+local detections = {}
+local detectionCount = 0
+local undetectedUnits = {}
+local capturedUnits = {}
+
+----------------------------------------------------------------
+--- Trigger Functions:
+----------------------------------------------------------------
+
+local function processTriggersOfType(conditionType, func)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == conditionType then
+			func(trigger, triggerID)
+		end
 	end
 end
-]]
 
-local function triggerValid(trigger)
-	if not trigger.settings.active then
+local function isTriggerValid(trigger)
+	local settings = trigger.settings
+
+	if not settings.active then
 		return false
 	end
 
-	for _, prerequisiteTrigger in pairs(trigger.settings.prerequisites) do
-		if not prerequisiteTrigger.triggered then
+	for _, prerequisiteTriggerID in pairs(settings.prerequisites) do
+		if not triggers[prerequisiteTriggerID].triggered then
 			return false
 		end
 	end
 
-	if trigger.triggered and not trigger.settings.repeating then
-		return false
-	end
 	if
-		trigger.settings.repeating
-		and trigger.settings.maxRepeats ~= nil
-		and trigger.repeatCount > trigger.settings.maxRepeats
+		next(settings.stages)
+		and not table.contains(settings.stages, GG["MissionAPI"].Modules.Stages.GetCurrentStageID())
 	then
 		return false
 	end
-	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG.MissionAPI.Difficulty] then
+
+	if trigger.triggered and not settings.repeating then
+		return false
+	end
+	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
+		return false
+	end
+	if
+		settings.difficulties ~= nil
+		and next(settings.difficulties)
+		and not table.contains(settings.difficulties, GG["MissionAPI"].Difficulty)
+	then
 		return false
 	end
 
@@ -93,54 +114,538 @@ local function triggerValid(trigger)
 end
 
 local function activateTrigger(trigger)
-	if not triggerValid(trigger) then
-		return
+	if not isTriggerValid(trigger) then
+		return false
 	end
 
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionId in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionId)
+	for _, actionID in ipairs(trigger.actions) do
+		actionsDispatcher.Invoke(actionID)
+	end
+
+	return true
+end
+
+----------------------------------------------------------------
+--- Trigger Call-in Dispatch:
+----------------------------------------------------------------
+
+-- unpack() does not handle optional parameters, as it cannot pass a value as nil
+local function unpackCallinArgs(args, i)
+	i = i or 1
+
+	if i <= args.n then
+		return args[i], unpackCallinArgs(args, i + 1)
 	end
 end
 
-function gadget:Initialize()
-	if not GG.MissionAPI then
-		gadgetHandler:RemoveGadget()
+-- Dispatches a logical call-in to every per-trigger handler registered for it.
+-- Each handler receives (trigger, triggerID, conditionContext, ...call-in args).
+local function dispatchConditionCallin(callinName, ...)
+	local handlersByType = callins[callinName]
+	if not handlersByType then
 		return
 	end
-
-	actionsDispatcher = require("luarules/mission_api/actions_dispatcher")
-	types = GG.MissionAPI.TriggerTypes
-	triggers = GG.MissionAPI.Triggers
-	trackedUnits = GG.MissionAPI.TrackedUnits
+	local args = table.pack(...)
+	for conditionType, handler in pairs(handlersByType) do
+		processTriggersOfType(conditionType, function(trigger, triggerID)
+			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
+		end)
+	end
 end
 
-function gadget:GameFrame(n)
-	for triggerId, trigger in pairs(triggers) do
-		if trigger.type == types.TimeElapsed then
-			local gameframe = trigger.parameters.gameFrame
-			local interval = trigger.parameters.interval
+-- Location triggers share area tracking's per-frame poll, one per distinct area and team,
+-- and handlers receive only the units that crossed a tracking boundary.
 
-			if n == gameframe or (trigger.settings.repeating and n > gameframe and (n - gameframe) % interval == 0) then
-				activateTrigger(trigger)
-			end
+---@param triggerID string
+local function onUnitsEnteredArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsEnteredAreaHandlers[trigger.type]
+	if handler then
+		handler(trigger, triggerID, conditionContext, unitIDs)
+	end
+end
+
+---@param triggerID string
+local function onUnitsLeftArea(unitIDs, triggerID)
+	local trigger = triggers[triggerID]
+	local handler = unitsLeftAreaHandlers[trigger.type]
+	if handler then
+		handler(trigger, triggerID, conditionContext, unitIDs)
+	end
+end
+
+local function markDetectionDirty(unitID)
+	if not detections[unitID] then
+		detections[unitID] = true
+		detectionCount = detectionCount + 1
+	end
+end
+
+----------------------------------------------------------------
+--- Utility Functions:
+----------------------------------------------------------------
+
+local function isFeatureInArea(featureID, area)
+	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
+	return math.isPointInArea(featureX, featureZ, area)
+end
+
+-- The owner is the builder that created the frame. Assisting builders never own it.
+local function isBuildFrameOwner(buildeeID, builderName, builderDefName)
+	if not builderName and not builderDefName then
+		return true
+	end
+	local builder = buildFrameOwners[buildeeID] ---@as table?
+	return builder ~= nil and doesUnitMatch(builder.id, builderName, builderDefName)
+end
+
+local function inFactory(buildeeID)
+	local builder = buildFrameOwners[buildeeID]
+	return builder and builder.isFactory
+end
+
+-- ConstructionStarted sees a buildee from both UnitCreated and BuildAssisted.
+-- Each trigger fires once per buildee from the callin that first activates it.
+local function claimConstructionStart(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	if claims then
+		claims[triggerID] = true
+		return
+	end
+	constructionStarts[buildeeID] = { [triggerID] = true }
+end
+
+local function hasConstructionStarted(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	return claims and claims[triggerID]
+end
+
+----------------------------------------------------------------
+--- Call-ins:
+----------------------------------------------------------------
+
+function gadget:GameStart()
+	dispatchConditionCallin("GameStart")
+end
+
+function gadget:GameFrame(frameNumber)
+	if frameNumber % Game.gameSpeed == 0 then
+		-- Reset reclaim income counters (read by ResourceIncome handlers):
+		teamReclaimIncomeSnapshot = teamReclaimIncome
+		teamReclaimIncome = {}
+	end
+
+	-- Displayed countdowns tick together on whole seconds, non-displayed ones
+	-- relative to their creation frame (see Decrement() in countdowns.lua):
+	local endedCountdownIDs, countdownTicks = countdowns.Decrement(frameNumber)
+	for i = 1, #countdownTicks do
+		dispatchConditionCallin("CountdownTick", countdownTicks[i].id, countdownTicks[i].timeRemaining)
+	end
+	for i = 1, #endedCountdownIDs do
+		dispatchConditionCallin("CountdownEnded", endedCountdownIDs[i])
+	end
+
+	dispatchConditionCallin("GameFrame", frameNumber)
+
+	if frameNumber % seismicIntervalFrames == 0 then
+		local n = seismicContacts.UpdateContacts(undetectedUnits)
+		for i = 1, n do
+			markDetectionDirty(undetectedUnits[i])
 		end
 	end
 end
 
-function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
-	for triggerId, trigger in pairs(triggers) do
-		if trigger.type == types.UnitExists then
-			local unitName = trigger.parameters.unitName
-			local unitDefName = trigger.parameters.unitDefName
+function gadget:GameFramePost(frameNumber)
+	if detectionCount > 0 then
+		detectionLevels.BeginUpdate()
+		dispatchConditionCallin("DetectionUpdate", detections)
+		for unitID in pairs(detections) do
+			detections[unitID] = nil
+		end
+		detectionCount = 0
+	end
 
-			if unitName and unitName == trackedUnits[unitId] then
-				activateTrigger(trigger)
-			elseif unitDefName == unitDefId.name then
-				activateTrigger(trigger)
+	if next(buildPlacements) ~= nil then
+		for builderID, unitDefID in pairs(buildPlacements) do
+			local buildeeID = Spring.GetUnitIsBuilding(builderID)
+			if buildeeID and Spring.GetUnitIsBeingBuilt(buildeeID) and Spring.GetUnitDefID(buildeeID) == unitDefID then
+				dispatchConditionCallin("BuildAssisted", buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
 			end
+		end
+		buildPlacements = {}
+	end
+end
+
+function gadget:TeamDied(teamID)
+	dispatchConditionCallin("TeamDied", teamID)
+end
+
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	-- Other gadgets may create units within a spawn action. Assign loadout names only to loadout units.
+	local mapi = GG.MissionAPI
+	if mapi.nameOfUnitBeingSpawned and mapi.unitIDBeingSpawned == nil then
+		mapi.unitIDBeingSpawned = unitID
+	end
+
+	dispatchConditionCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = table.copy(trackedUnitNames[unitID] or {})
+
+	if mapi.unitIDBeingSpawned == unitID then
+		unitNames[mapi.nameOfUnitBeingSpawned] = true
+	end
+	statistics.Increment(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+end
+
+function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	statistics.Decrement(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+
+	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
+end
+
+-- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	capturedUnits[unitID] = capture or nil
+	return true
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	dispatchConditionCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+	statistics.Increment(conditionTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	dispatchConditionCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
+	capturedUnits[unitID] = nil
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	if x then
+		buildPlacements[builderID] = unitDefID
+	end
+	return true
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	dispatchConditionCallin("UnitCreated", unitID, unitDefID, unitTeam, builderID)
+
+	if builderID then
+		buildPlacements[builderID] = nil
+	end
+
+	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+	if beingBuilt then
+		if needsBuildStartSet then
+			wasUnderConstruction[unitID] = true
+		end
+		if needsBuildOwnerMap and builderID then
+			local builderDefID = Spring.GetUnitDefID(builderID)
+			buildFrameOwners[unitID] = {
+				id = builderID,
+				defID = builderDefID,
+				isFactory = UnitDefs[builderDefID].isFactory,
+			}
+		end
+	end
+end
+
+function gadget:UnitBuildStepPost(unitID)
+	dispatchConditionCallin("UnitBuildStepPost", unitID)
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
+
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	wasUnderConstruction[unitID] = nil
+
+	-- Don't count units spawned by SpawnUnits action
+	if GG["MissionAPI"].spawningUnit then
+		return
+	end
+	-- Don't count starting commanders, initial loadout, wildlife, etc.
+	if Spring.GetGameFrame() <= 0 then
+		return
+	end
+
+	local unitDefName = UnitDefs[unitDefID].name
+	statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	dispatchConditionCallin(
+		"UnitDestroyed",
+		unitID,
+		unitDefID,
+		unitTeam,
+		attackerID,
+		attackerDefID,
+		attackerTeam,
+		weaponDefID
+	)
+
+	local unitDefName = UnitDefs[unitDefID].name
+	local unitNames = trackedUnitNames[unitID] or {}
+
+	-- The unit's team lost a unit:
+	statistics.Increment(conditionTypes.TotalUnitsLost, unitTeam, unitDefName, unitNames)
+
+	-- The attacker's team kills an enemy unit:
+	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
+		statistics.Increment(conditionTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
+	end
+
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	wasUnderConstruction[unitID] = nil
+
+	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
+	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
+	untrackUnitID(unitID)
+end
+
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	dispatchConditionCallin("UnitCommand", unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+end
+
+function gadget:UnitIdlePost(unitID, idled)
+	dispatchConditionCallin("UnitIdlePost", unitID, idled)
+end
+
+function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
+	if buildStep < 0 then
+		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		if health and maxHealth and (health + maxHealth * buildStep) <= 0 then
+			local unitDef = UnitDefs[unitDefID] ---@as table
+			local reclaimMetal = unitDef.metalCost * (buildProgress or 1) * RECLAIM_UNIT_EFFICIENCY
+
+			local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+			t.metal = (t.metal or 0) + reclaimMetal
+		end
+	end
+	return true
+end
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
+	-- Negative buildStep means reclaim
+	if buildStep < 0 then
+		local featureDef = FeatureDefs[featureDefID] ---@as table
+		reclaimedFeatures[featureID] = builderTeamID
+
+		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
+		local t = table.ensureTable(teamReclaimIncome, builderTeamID)
+		t.metal = (t.metal or 0) + math.abs(buildStep) * featureDef.metal
+		t.energy = (t.energy or 0) + math.abs(buildStep) * featureDef.energy
+	end
+	return true
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchConditionCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchConditionCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	dispatchConditionCallin(
+		"UnitDamaged",
+		unitID,
+		unitDefID,
+		unitTeam,
+		damage,
+		paralyzer,
+		weaponDefID,
+		projectileID,
+		attackerID,
+		attackerDefID,
+		attackerTeam
+	)
+end
+
+function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	dispatchConditionCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:FeatureCreated(featureID, allyTeamID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	dispatchConditionCallin("FeatureCreated", featureID, featureDefID)
+end
+
+function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local _, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+	local reclaimerTeamID = reclaimedFeatures[featureID]
+
+	-- FeatureReclaimed / FeatureDestroyed handlers self-guard on reclaimerTeamID + reclaimLeft.
+	dispatchConditionCallin(
+		"FeatureDestroyed",
+		featureID,
+		featureDefID,
+		attackerAllyTeamID,
+		reclaimerTeamID,
+		reclaimLeft
+	)
+
+	reclaimedFeatures[featureID] = nil
+	untrackFeatureID(featureID)
+end
+
+function gadget:Initialize()
+	if not Spring.GetGameRulesParam("inMission") then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
+	callins = GG["MissionAPI"].ConditionDefinitions.Callins
+	triggers = GG["MissionAPI"].Triggers
+	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
+
+	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
+
+	seismicContacts = GG["MissionAPI"].Modules.SeismicContacts
+	seismicIntervalFrames = seismicContacts.UpdateInterval
+	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
+	countdowns = GG["MissionAPI"].Modules.Countdowns
+
+	statistics = VFS.Include("luarules/mission_api/statistics.lua")
+	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
+	GG["MissionAPI"].ActivateTrigger = activateTrigger
+
+	local tracking = GG["MissionAPI"].Modules.Tracking
+	doesUnitHaveName = tracking.DoesUnitHaveName
+	untrackUnitID = tracking.UntrackUnitID
+	doesFeatureHaveName = tracking.DoesFeatureHaveName
+	untrackFeatureID = tracking.UntrackFeatureID
+
+	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
+
+	conditionContext = {
+		ActivateTrigger = activateTrigger,
+		DoesUnitHaveName = doesUnitHaveName,
+		DoesUnitMatch = doesUnitMatch,
+		DoesFeatureHaveName = doesFeatureHaveName,
+		IsBuildFrameOwner = isBuildFrameOwner,
+		InFactory = inFactory,
+		ClaimConstructionStart = claimConstructionStart,
+		HasConstructionStarted = hasConstructionStarted,
+		WasUnderConstruction = wasUnderConstruction,
+		IsFeatureInArea = isFeatureInArea,
+		ConstructionState = constructionState,
+		StockpileState = stockpileState,
+		DwellingUnitsInAreas = dwellingUnitsInAreas,
+		RevealedLocations = revealedLocations,
+		GatheredUnitsInAreas = gatheredUnitsInAreas,
+		GetReclaimIncomeSnapshot = function(teamID)
+			return teamReclaimIncomeSnapshot[teamID]
+		end,
+	}
+
+	unitsEnteredAreaHandlers = callins.UnitsEnteredArea or {}
+	unitsLeftAreaHandlers = callins.UnitsLeftArea or {}
+	local areaTracking = GG["MissionAPI"].Modules.AreaTracking
+	for triggerID, trigger in pairs(triggers) do
+		if unitsEnteredAreaHandlers[trigger.type] or unitsLeftAreaHandlers[trigger.type] then
+			local parameters = trigger.parameters
+			areaTracking.TrackUnitsInArea(
+				parameters.area,
+				parameters.teamName,
+				triggerID,
+				onUnitsEnteredArea,
+				onUnitsLeftArea
+			)
+		end
+	end
+
+	local hasConditionType = {}
+	for _, typeID in pairs(conditionTypes) do
+		hasConditionType[typeID] = false
+	end
+	for _, trigger in pairs(triggers) do
+		hasConditionType[trigger.type] = true
+		local parameters = trigger.parameters
+		if
+			parameters ~= nil
+			and (
+				parameters.builderName
+				or parameters.builderDefName
+				or parameters.factoryName
+				or parameters.factoryDefName
+			)
+		then
+			needsBuildOwnerMap = true
+		end
+	end
+
+	needsBuildOwnerMap = needsBuildOwnerMap
+		or hasConditionType[conditionTypes.ConstructionCanceled]
+		or hasConditionType[conditionTypes.ProductionCanceled]
+	needsBuildStartSet = hasConditionType[conditionTypes.ConstructionFinished]
+
+	-- Check support for hot callins. These tend to be heavy in bursts not on average.
+	-- Only remain subscribed to these when the loaded mission actually requires them.
+	for callinName, needed in pairs({
+		AllowUnitCreation = hasConditionType[conditionTypes.ConstructionStarted],
+		AllowUnitBuildStep = hasConditionType[conditionTypes.ResourceIncome] and INCOME_ON_FULL_UNIT_RECLAIM,
+		AllowFeatureBuildStep = hasConditionType[conditionTypes.ResourceIncome]
+			or hasConditionType[conditionTypes.FeatureReclaimed]
+			or hasConditionType[conditionTypes.FeatureDestroyed],
+		UnitBuildStepPost = hasConditionType[conditionTypes.ConstructionProgress],
+		UnitDamaged = hasConditionType[conditionTypes.UnitAttacked],
+		StockpileChanged = hasConditionType[conditionTypes.StockpileCount]
+			or hasConditionType[conditionTypes.StockpileProgress],
+	}) do
+		if not needed then
+			gadgetHandler:RemoveCallIn(callinName)
 		end
 	end
 end

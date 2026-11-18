@@ -211,7 +211,8 @@ local function getUnitBulk(unitDef)
 		fromMetal = max(fromMetal, sqrt(unitDef.moveDef.crushStrength))
 	end
 
-	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
+	local fromHealthAndMetal = fromHealth + fromMetal + sqrt(fromHealth * fromMetal)
+	local bulkiness = fromHealthAndMetal + min(fromVolume, fromHealthAndMetal * 3)
 	bulkiness = clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
 	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 
@@ -425,6 +426,9 @@ end
 
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
+	if not vx then
+		return 0, 0, 0 -- Death explosions have no projectile.
+	end
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
 	local scale = 0.5 / max(vw or 0, 1)
 	return vx * scale, vy * scale, vz * scale
@@ -518,10 +522,7 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
+	spawnClusterProjectiles(clusterWeaponDefs[weaponDefID], x, y, z, attackerID, projectileID)
 end
 
 function gadget:GameFramePost(frame)
@@ -567,7 +568,7 @@ function gadget:Initialize()
 	-- Submunitions take their damage scaling from the parent weapon:
 	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
 	for weaponDefID, data in pairs(clusterWeaponDefs) do
-		Script.SetWatchExplosion(weaponDefID, true)
+		gadgetHandler:RegisterExplosion(weaponDefID)
 		setWeaponDefParent(data.weaponID, weaponDefID)
 	end
 

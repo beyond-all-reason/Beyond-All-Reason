@@ -50,16 +50,16 @@ end
 	- Always respects the per-team maxunits limit
 	- Gaia and Scavenger/Raptor teams never receive or donate maxunits on team death
 
-	When a Team Becomes Alive Again (Player Rejoins):
-	- Detects when a previously dead team becomes alive (player reconnects)
-	- Takes back maxunits from alive teammates proportionally
-	- Aims to restore the rejoining team to the standard maxunits limit
-	- Ensures fair distribution within the allyteam
+	When a Player Rejoins:
+	- A team can lose maxunits when it is taken, without dying
+	- Polls teams with a player who is not AFK, since the engine has no event for a rejoin
+	- Tops them up to an even share of the allyteam's maxunits, by transferring excess from teammates
+	- Keeps retrying, as teammates may have none free
 ]]
 --
 
 local maxunits = tonumber(Spring.GetModOptions().maxunits) or 2000
-local engineLimit = 32000
+local engineLimit = Game.maxUnits or 32000
 local gaiaLimit = 500
 if
 	Spring.GetModOptions().ruins == "enabled"
@@ -82,11 +82,15 @@ local equalizationFactor = 0.25 -- How much to equalize (0 = no equalization, 1 
 
 local mathFloor = math.floor
 local mathMin = math.min
+local spGetTeamMaxUnits = Spring.GetTeamMaxUnits
+local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spTransferTeamMaxUnits = Spring.TransferTeamMaxUnits
 
 -- Store the calculated target maxunits for each allyteam during initialization
 local allyTeamTargetMaxUnits = {}
-local teamWasDead = {}
-local teamHadActivePlayer = {}
+local dynamicTeamsByAllyTeam = {} ---@type table<AllyTeamID, TeamID[]>
+local aiTeams = {} ---@type table<TeamID, true>
 
 -- Check if a team is a Scavenger or Raptor AI team
 local function isScavengerOrRaptor(teamID)
@@ -97,83 +101,43 @@ local function isScavengerOrRaptor(teamID)
 	return false
 end
 
-local function teamHasActivePlayer(teamID)
-	local playerList = Spring.GetPlayerList(teamID, true)
-	for i = 1, #playerList do
-		local playerID = playerList[i]
-		local _, active, spectator, playerTeamID = Spring.GetPlayerInfo(playerID, false)
-		if active and not spectator and playerTeamID == teamID then
-			return true
-		end
-	end
-	return false
+local function isControlledByAi(teamID)
+	local _, _, _, isEngineAi = Spring.GetTeamInfo(teamID, false)
+	local luaAI = Spring.GetTeamLuaAI(teamID)
+	return isEngineAi or (luaAI ~= nil and luaAI ~= "")
 end
 
-local function rebalanceAllyTeamMaxUnits(allyID)
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local teams = Spring.GetTeamList(allyID)
-	local aliveTeams = {}
+-- Does not completely rebalance the maxunits between teams in an alliance.
+-- Returns only an ally team's excess maxunits to its human, non-afk teams.
+local function restoreAllyTeamMaxUnits(teams)
+	local teamCount = #teams
 	local totalPool = 0
+	for i = 1, teamCount do
+		totalPool = totalPool + spGetTeamMaxUnits(teams[i])
+	end
+	local share = mathMin(mathFloor(totalPool / teamCount), maxunits)
 
-	for i = 1, #teams do
-		local currentTeamID = teams[i]
-		if currentTeamID ~= gaiaTeamID and not isScavengerOrRaptor(currentTeamID) then
-			local _, _, isDead = Spring.GetTeamInfo(currentTeamID, false)
-			if not isDead then
-				aliveTeams[#aliveTeams + 1] = currentTeamID
-				totalPool = totalPool + Spring.GetTeamMaxUnits(currentTeamID)
+	for i = 1, teamCount do
+		local teamID = teams[i]
+		local needed = share - spGetTeamMaxUnits(teamID)
+		if needed > 0 and not aiTeams[teamID] and spGetTeamRulesParam(teamID, "numActivePlayers") ~= 0 then
+			for j = 1, teamCount do
+				local donorID = teams[j]
+				local donorAmount = spGetTeamMaxUnits(donorID)
+				local transferAmount = mathMin(needed, donorAmount - share, donorAmount - spGetTeamUnitCount(donorID)) ---@as integer
+				if transferAmount > 0 and spTransferTeamMaxUnits(donorID, teamID, transferAmount) then
+					needed = needed - transferAmount
+				end
 			end
 		end
 	end
-
-	if #aliveTeams <= 1 then
-		return
-	end
-
-	table.sort(aliveTeams)
-
-	local poolTeamID = aliveTeams[1]
-	for i = 2, #aliveTeams do
-		local donorID = aliveTeams[i]
-		local donorAmount = Spring.GetTeamMaxUnits(donorID)
-		if donorAmount > 0 then
-			Spring.TransferTeamMaxUnits(donorID, poolTeamID, donorAmount)
-		end
-	end
-
-	local perTeam = mathFloor(totalPool / #aliveTeams)
-	local remainder = totalPool - (perTeam * #aliveTeams)
-
-	for i = 1, #aliveTeams do
-		local targetID = aliveTeams[i]
-		local grant = perTeam
-		if i <= remainder then
-			grant = grant + 1
-		end
-
-		if targetID ~= poolTeamID and grant > 0 then
-			Spring.TransferTeamMaxUnits(poolTeamID, targetID, grant)
-		end
-	end
 end
 
-function gadget:Initialize()
-	if Spring.GetGameFrame() > 0 then
-		return
-	end
+local function assignMaxUnits()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
 
 	-- Ensure Gaia team always get their maxunits
-	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
-
-	local allTeams = Spring.GetTeamList()
-	for i = 1, #allTeams do
-		local teamID = allTeams[i]
-		local _, _, isDead = Spring.GetTeamInfo(teamID, false)
-		teamWasDead[teamID] = isDead
-		teamHadActivePlayer[teamID] = teamHasActivePlayer(teamID)
-	end
-
 	local totalMaxUnits = engineLimit - gaiaLimit
 
 	-- Get all allyteams and their teams (excluding Gaia, including Scavenger/Raptor)
@@ -250,7 +214,7 @@ function gadget:Initialize()
 
 	-- Set targets for Scav/Raptor teams (fixed allocation)
 	for _, teamID in ipairs(scavengerRaptorTeams) do
-		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+		local currentMaxUnits = spGetTeamMaxUnits(teamID)
 		adjustments[teamID] = {
 			current = currentMaxUnits,
 			target = scavengerRaptorLimit,
@@ -276,7 +240,7 @@ function gadget:Initialize()
 			allyTeamTargetMaxUnits[allyID] = adjustedShare
 
 			for _, teamID in ipairs(teams) do
-				local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+				local currentMaxUnits = spGetTeamMaxUnits(teamID)
 				adjustments[teamID] = {
 					current = currentMaxUnits,
 					target = adjustedShare,
@@ -299,15 +263,15 @@ function gadget:Initialize()
 	table.sort(sortedTeamIDs)
 
 	-- First collect from Gaia to get the full pool
-	local gaiaInitial = Spring.GetTeamMaxUnits(gaiaTeamID)
+	local gaiaInitial = spGetTeamMaxUnits(gaiaTeamID)
 	local totalAvailable = gaiaInitial
 
 	-- Then collect from all player teams
 	local totalCollected = 0
 	for _, teamID in ipairs(sortedTeamIDs) do
-		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+		local currentMaxUnits = spGetTeamMaxUnits(teamID)
 		if currentMaxUnits > 0 then
-			Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, currentMaxUnits)
+			spTransferTeamMaxUnits(teamID, gaiaTeamID, currentMaxUnits)
 			totalCollected = totalCollected + currentMaxUnits
 		end
 	end
@@ -317,7 +281,7 @@ function gadget:Initialize()
 	for _, teamID in ipairs(sortedTeamIDs) do
 		local adj = adjustments[teamID]
 		if adj.target > 0 then
-			Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
+			spTransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
 		end
 	end
 
@@ -346,7 +310,7 @@ function gadget:Initialize()
 				if remaining > 0 then
 					local takeAmount = mathMin(perTeam, remaining, Spring.GetTeamMaxUnits(teamID))
 					if takeAmount > 0 then
-						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, takeAmount)
+						spTransferTeamMaxUnits(teamID, gaiaTeamID, takeAmount)
 						remaining = remaining - takeAmount
 					end
 				end
@@ -360,7 +324,7 @@ function gadget:Initialize()
 					end
 					local currentMax = Spring.GetTeamMaxUnits(teamID)
 					if currentMax > 0 then
-						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, 1)
+						spTransferTeamMaxUnits(teamID, gaiaTeamID, 1)
 						remaining = remaining - 1
 					end
 				end
@@ -390,7 +354,7 @@ function gadget:Initialize()
 					local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 					local transferAmount = mathMin(perTeam, remaining, maxunits - currentMaxUnits)
 					if transferAmount > 0 then
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
+						spTransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
 						remaining = remaining - transferAmount
 					end
 				end
@@ -404,11 +368,44 @@ function gadget:Initialize()
 					end
 					local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 					if currentMaxUnits < maxunits then
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
+						spTransferTeamMaxUnits(gaiaTeamID, teamID, 1)
 						remaining = remaining - 1
 					end
 				end
 			end
+		end
+	end
+end
+
+function gadget:Initialize()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local teamID = teams[i]
+		local _, _, isDead, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+		if teamID ~= gaiaTeamID and not isDead and not isScavengerOrRaptor(teamID) then
+			local allyTeams = dynamicTeamsByAllyTeam[allyTeamID] or {}
+			allyTeams[#allyTeams + 1] = teamID
+			dynamicTeamsByAllyTeam[allyTeamID] = allyTeams
+			if isControlledByAi(teamID) then
+				aiTeams[teamID] = true
+			end
+		end
+	end
+
+	if Spring.GetGameFrame() <= 0 then
+		assignMaxUnits()
+	end
+end
+
+function gadget:GameFrame(frame)
+	if frame % Game.gameSpeed ~= 0 then
+		return
+	end
+
+	for _, teams in pairs(dynamicTeamsByAllyTeam) do
+		if #teams > 1 then
+			restoreAllyTeamMaxUnits(teams)
 		end
 	end
 end
@@ -419,6 +416,14 @@ function gadget:TeamDied(teamID)
 	-- Don't redistribute if Gaia dies
 	if teamID == gaiaTeamID then
 		return
+	end
+
+	for _, teams in pairs(dynamicTeamsByAllyTeam) do
+		for i = #teams, 1, -1 do
+			if teams[i] == teamID then
+				table.remove(teams, i)
+			end
+		end
 	end
 
 	local redistributionAmount = Spring.GetTeamMaxUnits(teamID)
@@ -462,7 +467,7 @@ function gadget:TeamDied(teamID)
 	-- redistribute to enemies if no teammates alive (respecting per-team maxunits limit)
 	if aliveTeams == 0 then
 		teams = Spring.GetTeamList()
-		aliveTeams = 0
+		aliveTeams = 0 ---@as integer
 		for i = 1, #teams do
 			if
 				teams[i] ~= teamID
@@ -494,28 +499,5 @@ function gadget:TeamDied(teamID)
 				end
 			end
 		end
-	end
-end
-
-function gadget:TeamChanged(teamID)
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-
-	-- Don't handle Gaia or Scavenger/Raptor teams
-	if teamID == gaiaTeamID or isScavengerOrRaptor(teamID) then
-		return
-	end
-
-	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
-	local hadBeenDead = teamWasDead[teamID]
-	teamWasDead[teamID] = isDead
-
-	local hasActivePlayer = teamHasActivePlayer(teamID)
-	local hadActivePlayer = teamHadActivePlayer[teamID]
-	teamHadActivePlayer[teamID] = hasActivePlayer
-
-	-- Rebalance when a team becomes alive again OR when an active player rejoins that team.
-	if (hadBeenDead and not isDead) or (hadActivePlayer == false and hasActivePlayer) then
-		local allyID = select(6, Spring.GetTeamInfo(teamID, false))
-		rebalanceAllyTeamMaxUnits(allyID)
 	end
 end

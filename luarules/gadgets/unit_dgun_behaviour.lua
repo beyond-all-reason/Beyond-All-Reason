@@ -70,7 +70,7 @@ end
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	if weaponDef.type == "DGun" then
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
 		dgunDef[weaponDefID] = weaponDef
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
 	end
@@ -101,11 +101,9 @@ local flyingDGuns = {}
 local groundedDGuns = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if dgunDef[weaponDefID] then
-		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
-		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
-	end
+	dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
+	flyingDGuns[proID] = true
+	dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
 end
 
 function gadget:ProjectileDestroyed(proID)
@@ -238,6 +236,11 @@ local shieldPreDamaged = function(
 end
 
 function gadget:Initialize()
+	if not next(dgunDef) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+
 	for weaponDefID in pairs(dgunDef) do
 		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
 	end

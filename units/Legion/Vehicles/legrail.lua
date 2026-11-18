@@ -21,6 +21,7 @@ return {
 		speed = 46.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		name = "Railgun",
 		objectname = "Units/LEGRAIL.s3o",
 		script = "Units/LEGRAIL.cob",

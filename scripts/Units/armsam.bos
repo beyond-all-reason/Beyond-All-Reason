@@ -106,10 +106,7 @@ FireWeapon1()
 {
 	start-script ResetFire();
 	gun_1 = !gun_1;
-	return (0);
 }
-
-
 
 AimFromWeapon1(pieceIndex)
 {
@@ -144,7 +141,6 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	start-script ResetFire();
-	return (0);
 }
 
 EndBurst2()
@@ -152,14 +148,14 @@ EndBurst2()
 	gun_1 = !gun_1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = mlauncher;
+	pieceIndex = mlauncher;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare1 + gun_1;
+	pieceIndex = flare1 + gun_1;
 }
 
 StartMoving(reversing)

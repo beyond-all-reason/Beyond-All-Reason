@@ -26,7 +26,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
 		terraformspeed = 750,
-		workertime = 150,
+		workertime = 300,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		-- 	yardmap = [[h
 		-- oo oo oo oo oo oo
