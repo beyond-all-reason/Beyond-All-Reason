@@ -80,6 +80,7 @@ local SIG_AIM = 2
 local SIG_WALK = 4
 
 -- for the AimPrimary script, to skip wait-for-turn if needed
+---@type number
 local last_primary_heading = -1000000
 
 local function BelowWater(piecename)
@@ -1078,19 +1079,20 @@ end
 function ResumeBuilding()
 	Show(nano)
 	if isBuilding and not isAiming then
-		Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+		Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 		Turn(aimy1, 2, buildHeading, rad(150.000000))
 		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
 		if math.abs(shortDelta(last_primary_heading, buildHeading)) > rad(5.0000) then
 			WaitForTurn(aimy1, 2)
 		end
 		-- theoretically, we might hit this after isBuilding and isAiming changed values (during the wait-for-turn)
-		-- if they did, then a new Turn() might have been called, with a different goal than buildHeading,, 
+		-- if they did, then a new Turn() might have been called, with a different goal than buildHeading,,
 		-- by re-checking for the current building and aiming state, we ensure that we only waited for that particular turn to complete
 		-- And therefor are sure that the last_primary_heading we record is as accurate as can be
 		-- I'm unsure whether that theoretical case actually occurs during gameplay.
 		-- (that would be settarget + build command, with > 800ms between two AimWeapon calls i guess)
 		-- and am leaving this in case it does
+		---@diagnostic disable-next-line: unnecessary-if
 		if isBuilding and not isAiming then
 			last_primary_heading = buildHeading
 		end
@@ -1181,7 +1183,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			Signal(SIG_AIM)
 			isAiming = true
 			StartThread(Restore)
-			Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+			Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 			Turn(aimy1, 2, heading, rad(300.0000))
 			Turn(rloarm, 1, rad(-55), rad(390.0000))
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
@@ -1204,7 +1206,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			Signal(SIG_AIM)
 			isAiming = true
 			StartThread(Restore)
-			Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+			Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 			Turn(aimy1, 2, heading, rad(300.0000))
 			Turn(rloarm, 1, rad(-55), rad(390.0000))
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
@@ -1221,7 +1223,7 @@ function script.AimWeapon(weapon, heading, pitch)
 		isAiming = true
 		StartThread(Restore)
 		leftArm = false
-		Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+		Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 		Turn(aimy1, 2, heading, rad(360.0000))
 		Turn(biggun, 1, rad(-105), rad(900.0000))
 		Turn(luparm, 1, rad(15) - pitch, rad(900.0000))
@@ -1270,7 +1272,7 @@ function script.StartBuilding(heading, pitch)
 	if not isAiming then
 		Signal(SIG_AIM)
 	end
-	Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+	Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 	isBuilding = true
 	buildHeading = heading
 	buildPitch = pitch
