@@ -326,12 +326,12 @@
 	
 			"income_tier": [20, 45],
 	
-			"unit":      ["armbeaver", "armpincer", "armcroc", "armamph", "armaak"],
+			"unit":      ["armbeaver", "armpincer", "armcroc", "armjeth", "armaak", "armdecom"],
 	
 			"land": {
-				"tier0": [ 0.10,    	0.40,     	0.00,         0.20,     0.01],
-				"tier1": [ 0.10,    	0.00,     	0.20,         0.40,     0.01],
-				"tier2": [ 0.0,   		0.00,    	0.20,         0.40,     0.01]
+				"tier0": [ 0.10,    	0.40,     	0.00,         0.20,     0.01,     0.01],
+				"tier1": [ 0.10,    	0.00,     	0.20,         0.40,     0.01,     0.01],
+				"tier2": [ 0.0,   		0.00,    	0.20,         0.40,     0.01,     0.01]
 			
 			},
 			"air": {
