@@ -254,7 +254,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armantiship", "armmship", "armbats", "armepoch"],
 
 		"water": {
 			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.00,      0.20,        0.10,        0.00],
