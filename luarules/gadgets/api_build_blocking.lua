@@ -20,6 +20,7 @@ local allExemptReasonKeys = {
 	terrain_geothermal = true,
 	max_this_unit = true,
 	modoption_blocked = true,
+	mission_limit = true,
 }
 
 if gadgetHandler:IsSyncedCode() then
