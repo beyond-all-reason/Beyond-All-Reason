@@ -287,6 +287,8 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
+	if(pitch < <-40.0>) pitch = <-40>; // angle clamp
+
 	signal SIGNAL_AIM1;
 	turn head to y-axis heading speed <180.0>;
 	turn head to x-axis <0.0> - pitch speed <110.0>;
