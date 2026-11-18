@@ -59,14 +59,19 @@ local function assembleSquad(teamID, squadID)
 end
 
 --- The AI recruits a repeating squad again under its ID, so that squad stays, gathering.
+---@param gathersAgain boolean? as the AI reports it; nil leaves it to the squad's repeat setting
 ---@return string? squadName nil for a squad that is not live
-local function endSquad(teamID, squadID)
+local function endSquad(teamID, squadID, gathersAgain)
 	local squad = findSquad(teamID, squadID)
 	if not squad then
 		return
 	end
 
-	if squad.isRepeating then
+	if gathersAgain == nil then
+		gathersAgain = squad.isRepeating
+	end
+
+	if gathersAgain then
 		squad.isAssembled = false
 	else
 		removeSquad(squad)

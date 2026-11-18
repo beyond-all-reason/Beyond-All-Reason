@@ -234,7 +234,7 @@ function gadget:GameStart()
 end
 
 function gadget:RecvLuaMsg(message, playerID)
-	local teamID, signal, id, squadID = GG.CampaignAI.ReadSignal(message, playerID)
+	local teamID, signal, id, detail = GG.CampaignAI.ReadSignal(message, playerID)
 	if not teamID then
 		return
 	end
@@ -244,14 +244,15 @@ function gadget:RecvLuaMsg(message, playerID)
 		if squadName then
 			dispatchConditionCallin("SquadAssembled", squadName, teamID)
 		end
-	elseif signal == aiSignals.SQUAD_DESTROYED then
-		local squadName = squads.End(teamID, id)
+	elseif signal == aiSignals.SQUAD_DISBANDED then
+		-- The AI says whether the squad gathers again, 1 or 0. The AI of engine 2026.11.02 does not say yet.
+		local squadName = squads.End(teamID, id, detail and detail == 1)
 		if squadName then
 			dispatchConditionCallin("SquadDisbanded", squadName, teamID)
 		end
 	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
 		local regionName = aiRegions.GetName(teamID, id)
-		local squadName = squads.GetName(teamID, squadID)
+		local squadName = squads.GetName(teamID, detail)
 		if regionName and squadName then
 			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
 			dispatchConditionCallin(callin, regionName, squadName, teamID)
