@@ -31,6 +31,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 	local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
+	local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 	local CMD_ATTACK = CMD.ATTACK
 	local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
@@ -58,6 +59,21 @@ if gadgetHandler:IsSyncedCode() then
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
 
+	local function clearTargetLists(teamA, teamB)
+		if GG.ClearTargetListsForAllianceChange then
+			GG.ClearTargetListsForAllianceChange(teamA, teamB)
+		end
+	end
+
+	local function checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
+		if AreTeamsAllied(attackerTeam, targetTeam) and targetAllyTeam ~= attackerAllyTeam then
+			SetAlly(attackerTeam, targetTeam, false)
+			clearTargetLists(attackerTeam, targetTeam)
+			SendToUnsynced("Backstab", targetTeam, attackerTeam)
+			return true
+		end
+	end
+
 	function gadget:GameFrame(n)
 		if n % UPDATE_FRAMES ~= 0 then
 			return
@@ -77,10 +93,12 @@ if gadgetHandler:IsSyncedCode() then
 									-- if we're allied, break our alliance back
 									SetAlly(teamBID, teamAID, false)
 								end
+								clearTargetLists(teamAID, teamBID)
 								SendToUnsynced("AllianceBroken", teamAID, teamBID)
 							end
 							-- if teamB wasn't allied with teamA, and now it is, inform teamA about the change
 							if not allianceStatus[teamBID][teamAID] and BalliedToA then
+								clearTargetLists(teamAID, teamBID)
 								SendToUnsynced("AllianceMade", teamAID, teamBID)
 							end
 							allianceStatus[teamAID][teamBID] = AalliedToB
@@ -91,22 +109,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
-		if AreTeamsAllied(attackerTeam, targetTeam) and targetAllyTeam ~= attackerAllyTeam then
-			SetAlly(attackerTeam, targetTeam, false)
-			SendToUnsynced("Backstab", targetTeam, attackerTeam)
-			return true
-		end
-	end
-
 	function gadget:Initialize()
 		gadgetHandler:RegisterUnitCommand(CMD_ATTACK)
 		gadgetHandler:RegisterUnitCommand(CMD_LOOPBACKATTACK)
 		gadgetHandler:RegisterUnitCommand(CMD_MANUALFIRE)
 		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
+		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGETS)
 	end
-
 	function gadget:UnitCommand(
 		unitID,
 		unitDefID,
@@ -128,6 +138,19 @@ if gadgetHandler:IsSyncedCode() then
 					GetUnitAllyTeam(unitID),
 					GetUnitAllyTeam(targetID)
 				)
+			end
+		elseif cmdID == CMD_UNIT_SET_TARGETS then
+			local attackerAllyTeam = GetUnitAllyTeam(unitID)
+			for i = 1, #cmdParams do
+				local targetID = cmdParams[i]
+				if ValidUnitID(targetID) then
+					checkAndBreakAlliance(
+						attackerTeam,
+						GetUnitTeam(targetID),
+						attackerAllyTeam,
+						GetUnitAllyTeam(targetID)
+					)
+				end
 			end
 		elseif
 			#cmdParams >= 3
