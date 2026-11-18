@@ -26,6 +26,8 @@ local needsBuildOwnerMap = false
 local needsBuildStartSet = false
 
 local actionsDispatcher
+local batch
+local startBatch, endBatch ---@type function, function
 local statistics
 local countdowns
 local detectionLevels
@@ -146,6 +148,7 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
+	startBatch()
 	-- Objective conditions carry onActivate instead of actions: activation
 	-- completes the objective rather than invoking mission actions.
 	if trigger.onActivate then
@@ -155,8 +158,12 @@ local function activateTrigger(trigger)
 			actionsDispatcher.Invoke(actionID)
 		end
 	end
-
+	endBatch()
 	return true
+end
+
+local function isMetricSatisfied(trigger, value)
+	return (trigger.atLeast == nil or value >= trigger.atLeast) and (trigger.atMost == nil or value <= trigger.atMost)
 end
 
 -- Metric conditions compare a sampled value against `atLeast`/`atMost`. They are
@@ -172,10 +179,7 @@ end
 local function evaluateMetric(trigger, value)
 	trigger.lastValue = value
 
-	local satisfied = (trigger.atLeast == nil or value >= trigger.atLeast)
-		and (trigger.atMost == nil or value <= trigger.atMost)
-
-	if not satisfied then
+	if not isMetricSatisfied(trigger, value) then
 		trigger.metricSatisfied = false
 		if trigger.onProgress and isTriggerValid(trigger) then
 			trigger.onProgress(value)
@@ -187,11 +191,41 @@ local function evaluateMetric(trigger, value)
 		return false
 	end
 
-	local fired = activateTrigger(trigger)
-	if fired then
-		trigger.metricSatisfied = true
+	-- Marked first, so that the trigger's actions cannot activate it again.
+	trigger.metricSatisfied = true
+	local activated = activateTrigger(trigger)
+	if not activated then
+		trigger.metricSatisfied = false
 	end
-	return fired
+	return activated
+end
+
+local function activateTriggerAndReport(trigger, onActivationAttempted, triggerID, argument)
+	local activated = activateTrigger(trigger)
+	onActivationAttempted(trigger, triggerID, conditionContext, argument, activated)
+end
+
+---A condition that needs to know whether its activation went through passes onActivated, called with
+---(trigger, triggerID, context, subject, activated).
+local function deferActivation(trigger, onActivated, triggerID, subject)
+	batch.Defer(activateMatchedTrigger, trigger, onActivated, triggerID, subject)
+end
+
+local function evaluateLastValue(trigger)
+	evaluateMetric(trigger, trigger.lastValue)
+end
+
+---Evaluates the metric against its net value when the batch ends.
+local function deferEvaluation(trigger, value)
+	local satisfied = isMetricSatisfied(trigger, value)
+	if not satisfied and not trigger.metricSatisfied then
+		evaluateMetric(trigger, value)
+	else
+		trigger.lastValue = value
+		if satisfied ~= trigger.metricSatisfied then
+			batch.DeferNetValue(evaluateLastValue, trigger)
+		end
+	end
 end
 
 ----------------------------------------------------------------
@@ -215,11 +249,13 @@ local function dispatchConditionCallin(callinName, ...)
 		return
 	end
 	local args = table.pack(...)
+	startBatch()
 	for conditionType, handler in pairs(handlersByType) do
 		processTriggersOfType(conditionType, function(trigger, triggerID)
 			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
 		end)
 	end
+	endBatch()
 end
 
 -- Location triggers share area tracking's per-frame poll, one per distinct area and team,
@@ -230,7 +266,9 @@ local function onUnitsEnteredArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
+		startBatch()
 		handler(trigger, triggerID, conditionContext, unitIDs)
+		endBatch()
 	end
 end
 
@@ -239,7 +277,9 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
+		startBatch()
 		handler(trigger, triggerID, conditionContext, unitIDs)
+		endBatch()
 	end
 end
 
@@ -298,6 +338,8 @@ function gadget:GameStart()
 end
 
 function gadget:GameFrame(frameNumber)
+	batch.Reset()
+
 	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
 		teamReclaimIncomeSnapshot = teamReclaimIncome
@@ -356,6 +398,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		mapi.unitIDBeingSpawned = unitID
 	end
 
+	startBatch()
 	dispatchConditionCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
@@ -365,14 +408,17 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		unitNames[mapi.nameOfUnitBeingSpawned] = true
 	end
 	statistics.Increment(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+	endBatch()
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	startBatch()
 	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Decrement(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
+	endBatch()
 
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
 end
@@ -384,11 +430,13 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	startBatch()
 	dispatchConditionCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(conditionTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+	endBatch()
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -431,26 +479,23 @@ function gadget:UnitBuildStepPost(unitID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	startBatch()
 	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
 	wasUnderConstruction[unitID] = nil
 
-	-- Don't count units spawned by SpawnUnits action
-	if GG["MissionAPI"].spawningUnit then
-		return
+	-- Don't count units spawned by SpawnUnits action, nor starting commanders, initial loadout, wildlife, etc.
+	if not GG["MissionAPI"].spawningUnit and Spring.GetGameFrame() > 0 then
+		local unitDefName = UnitDefs[unitDefID].name
+		statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 	end
-	-- Don't count starting commanders, initial loadout, wildlife, etc.
-	if Spring.GetGameFrame() <= 0 then
-		return
-	end
-
-	local unitDefName = UnitDefs[unitDefID].name
-	statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+	endBatch()
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	startBatch()
 	dispatchConditionCallin(
 		"UnitDestroyed",
 		unitID,
@@ -480,6 +525,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
 	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
+	endBatch()
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -622,6 +668,8 @@ function gadget:Initialize()
 	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
+	batch = GG["MissionAPI"].Modules.Batch
+	startBatch, endBatch = batch.Start, batch.End
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
 	statistics.Init({
@@ -629,10 +677,11 @@ function gadget:Initialize()
 		activateTrigger = activateTrigger,
 		evaluateMetric = evaluateMetric,
 		conditionKinds = GG["MissionAPI"].ConditionDefinitions.Kinds,
+		batch = batch,
 	})
 	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
-	GG["MissionAPI"].ActivateTrigger = activateTrigger
-	GG["MissionAPI"].EvaluateMetric = evaluateMetric
+	GG["MissionAPI"].ActivateTrigger = deferActivation
+	GG["MissionAPI"].EvaluateMetric = deferEvaluation
 
 	local tracking = GG["MissionAPI"].Modules.Tracking
 	doesUnitHaveName = tracking.DoesUnitHaveName
@@ -643,8 +692,8 @@ function gadget:Initialize()
 	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
 
 	conditionContext = {
-		ActivateTrigger = activateTrigger,
-		EvaluateMetric = evaluateMetric,
+		ActivateTrigger = deferActivation,
+		EvaluateMetric = deferEvaluation,
 		DoesUnitHaveName = doesUnitHaveName,
 		DoesUnitMatch = doesUnitMatch,
 		DoesFeatureHaveName = doesFeatureHaveName,
