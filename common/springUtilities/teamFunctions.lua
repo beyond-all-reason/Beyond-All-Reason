@@ -172,8 +172,7 @@ return {
 	GetTeamRealResources = function(teamID, resource)
 		local current, storage, pull, income, expense, share, sent, received, excess =
 			Spring.GetTeamResources(teamID, resource)
-		local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM
-			or HIDDEN_ENERGY_PULL_PARAM
+		local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM or HIDDEN_ENERGY_PULL_PARAM
 		pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0)
 		return current, storage, pull, income, expense, share, sent, received, excess
 	end,
