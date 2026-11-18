@@ -211,7 +211,6 @@ end
 Spring.SetConfigInt("NanoParticleMode", 1)
 Spring.SetConfigInt("UnitIconsSortedByDepth", 1)
 
-
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
 if oldMinCamHeight ~= -1 then
@@ -248,25 +247,33 @@ end
 
 -- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag.
 -- This is bad for single unit commands, which turn into empty area commands as a result of the small drag
-local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
-local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
+local ENGINE_DRAG_DEFAULT = 4
+local currentDragThreshold = Spring.GetConfigInt("MouseDragSelectionThreshold", ENGINE_DRAG_DEFAULT)
+if currentDragThreshold == ENGINE_DRAG_DEFAULT then
+	local xresolution =
+		math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
+	local yresolution =
+		math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
 
-local baseDragThreshold = 16
-baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * (1 / 3000)) -- is 16 at 1080p
-baseDragThreshold = math.clamp(baseDragThreshold, 8, 40)
-Spring.Echo(
-	string.format(
-		"Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d",
-		xresolution,
-		yresolution,
-		baseDragThreshold,
-		baseDragThreshold + 16
+	local baseDragThreshold = 16
+	baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * (1 / 3000)) -- is 16 at 1080p
+	baseDragThreshold = math.clamp(baseDragThreshold, 8, 40)
+	Spring.Echo(
+		string.format(
+			"Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d",
+			xresolution,
+			yresolution,
+			baseDragThreshold,
+			baseDragThreshold + 16
+		)
 	)
-)
-Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
-Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
-Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
-Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
+	currentDragThreshold = baseDragThreshold
+end
+
+Spring.SetConfigInt("MouseDragSelectionThreshold", currentDragThreshold)
+Spring.SetConfigInt("MouseDragCircleCommandThreshold", currentDragThreshold + 16)
+Spring.SetConfigInt("MouseDragBoxCommandThreshold", currentDragThreshold + 16)
+Spring.SetConfigInt("MouseDragFrontCommandThreshold", currentDragThreshold + 16)
 
 Spring.SetConfigInt("MaxFontTries", 5)
 Spring.SetConfigInt("UseFontConfigLib", 1)
