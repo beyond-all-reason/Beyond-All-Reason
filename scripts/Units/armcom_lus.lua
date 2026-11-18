@@ -95,9 +95,10 @@ local function BelowWater(piecename)
 end
 
 local rad = math.rad
+local pi = math.pi
 
 local function shortDelta(angle1, angle2)
-	return (angle2 - angle1 + math.pi) % (2 * math.pi) - math.pi
+	return (angle2 - angle1 + pi) % (2 * pi) - pi
 end
 
 local function turn(piece, axis, goal, speed)
@@ -1087,7 +1088,8 @@ function ResumeBuilding()
 		-- if they did, then a new Turn() might have been called, with a different goal than buildHeading,, 
 		-- by re-checking for the current building and aiming state, we ensure that we only waited for that particular turn to complete
 		-- And therefor are sure that the last_primary_heading we record is as accurate as can be
-		-- i'm unsure wheter that theoretical case actually happens (that would be settarget + build command)
+		-- I'm unsure whether that theoretical case actually occurs during gameplay.
+		-- (that would be settarget + build command, with > 800ms between two AimWeapon calls i guess)
 		-- and am leaving this in case it does
 		if isBuilding and not isAiming then
 			last_primary_heading = buildHeading
