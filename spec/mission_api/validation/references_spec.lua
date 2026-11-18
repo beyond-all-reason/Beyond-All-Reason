@@ -252,6 +252,128 @@ describe("mission_api.validation.references", function()
 		)
 	end)
 
+	describe("derived unit names", function()
+		local function addDerivedUnitName(unitName, filter, except)
+			return {
+				type = V.actionTypes.AddDerivedUnitName,
+				parameters = { unitName = unitName, filter = filter, except = except },
+			}
+		end
+
+		--- A mission whose trigger 't' runs every action given, and whose trigger 'kill' refers to 'army'.
+		local function derivedNameMission(actions)
+			local actionIDs = {}
+			for actionID in pairs(actions) do
+				actionIDs[#actionIDs + 1] = actionID
+			end
+			table.sort(actionIDs)
+			local mission = V.mission()
+				:WithTrigger(
+					"t",
+					{ type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, actions = actionIDs }
+				)
+				:WithTrigger("kill", {
+					type = V.conditionTypes.UnitKilled,
+					parameters = { unitName = "army" },
+					actions = { "ok" },
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+			for actionID, action in pairs(actions) do
+				mission:WithAction(actionID, action)
+			end
+			return mission
+		end
+
+		it("counts AddDerivedUnitName as creating its name, and its filters as referring to names", function()
+			V.assertValid(V.validate(derivedNameMission({
+				spawn = spawnUnits("commander"),
+				add = addDerivedUnitName("army", { teamName = "player" }, { { unitName = "commander" } }),
+			})))
+		end)
+
+		it("warns about a name a filter refers to that nothing creates", function()
+			local result = V.validate(derivedNameMission({
+				add = addDerivedUnitName("army", { teamName = "player" }, { { unitName = "pawn7" } }),
+			}))
+
+			V.assertMessage(
+				result,
+				"Unit name is referenced, but never created. Unit name: pawn7, Referenced in: action add (except[1])"
+			)
+		end)
+
+		it("counts RemoveDerivedUnitName as referring to the name", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("t", {
+						type = V.conditionTypes.TimeElapsed,
+						parameters = { seconds = 1 },
+						actions = { "add", "remove" },
+					})
+					:WithAction("add", addDerivedUnitName("army", { teamName = "player" }))
+					:WithAction(
+						"remove",
+						{ type = V.actionTypes.RemoveDerivedUnitName, parameters = { unitName = "army" } }
+					)
+			)
+
+			V.assertValid(result)
+		end)
+
+		it("rejects a derived name in NameUnits and UnnameUnits", function()
+			local result = V.validate(derivedNameMission({
+				add = addDerivedUnitName("army", { teamName = "player" }),
+				name = { type = V.actionTypes.NameUnits, parameters = { unitName = "army", teamName = "player" } },
+				unname = { type = V.actionTypes.UnnameUnits, parameters = { unitName = "army" } },
+			}))
+
+			V.assertMessage(
+				result,
+				"Unit name is derived, so no action or loadout may name or unname units with it. Unit name: army, In: action name"
+			)
+			V.assertMessage(
+				result,
+				"Unit name is derived, so no action or loadout may name or unname units with it. Unit name: army, In: action unname"
+			)
+			assert.is_false(result.ok)
+		end)
+
+		it("rejects a derived name in a loadout", function()
+			local result = V.validate(derivedNameMission({
+				add = addDerivedUnitName("army", { teamName = "player" }),
+				spawn = spawnUnits("army"),
+			}):WithUnitLoadout({
+				{ unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = "army" },
+			}))
+
+			V.assertMessage(
+				result,
+				"Unit name is derived, so no action or loadout may name or unname units with it. Unit name: army, In: action spawn (unitLoadout[1])"
+			)
+			V.assertMessage(
+				result,
+				"Unit name is derived, so no action or loadout may name or unname units with it. Unit name: army, In: UnitLoadout[1]"
+			)
+		end)
+
+		it("rejects a rule that refers to a derived name", function()
+			local result = V.validate(derivedNameMission({
+				add = addDerivedUnitName("army", { teamName = "player" }),
+				veterans = addDerivedUnitName("veterans", { unitName = "army" }, { { unitName = "veterans" } }),
+			}))
+
+			V.assertMessage(
+				result,
+				"A unit filter cannot refer to a derived unit name. Unit name: army, In: action veterans (filter)"
+			)
+			V.assertMessage(
+				result,
+				"A unit filter cannot refer to a derived unit name. Unit name: veterans, In: action veterans (except[1])"
+			)
+			assert.is_false(result.ok)
+		end)
+	end)
+
 	describe("map marker names", function()
 		-- A marker left standing for the rest of the mission is ordinary, so only the
 		-- removing side is checked.
