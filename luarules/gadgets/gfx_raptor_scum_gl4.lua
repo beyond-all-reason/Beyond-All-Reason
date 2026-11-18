@@ -319,29 +319,44 @@ if gadgetHandler:IsSyncedCode() then
 		return scumID
 	end
 
+	local function startScumForUnit(unitID, unitDefID)
+		local scumParams = scumSpawnerIDs[unitDefID]
+		local positionX, positionY, positionZ = Spring.GetUnitPosition(unitID)
+		local gameFrame = Spring.GetGameFrame()
+		local scumID =
+			AddOrUpdateScum(positionX, positionY, positionZ, scumParams.radius, scumParams.growthrate, unitID)
+		local scum = scums[scumID]
+		SendToUnsynced("ScumCreated", scum.posx, scum.posz, scum.radius, scum.growthrate, gameFrame, scumID)
+	end
+
+	local function stopScumForUnit(unitID)
+		local scum = scums[unitID]
+		if scum and scum.growthrate > 0 then
+			AddOrUpdateScum(nil, nil, nil, nil, -10 * scum.growthrate, unitID)
+			SendToUnsynced("ScumRemoved", unitID)
+		end
+	end
+
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam and unitTeam == pveTeamID)) then
-			local px, py, pz = Spring.GetUnitPosition(unitID)
-			local gf = Spring.GetGameFrame()
+			startScumForUnit(unitID, unitDefID)
+		end
+	end
 
-			local scumID = AddOrUpdateScum(
-				px,
-				py,
-				pz,
-				scumSpawnerIDs[unitDefID].radius,
-				scumSpawnerIDs[unitDefID].growthrate,
-				unitID
-			)
-			local scum = scums[scumID]
-			SendToUnsynced("ScumCreated", scum.posx, scum.posz, scum.radius, scum.growthrate, gf, scumID)
-			--Spring.Echo("Scum Created Synced")
+	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+		if not scumSpawnerIDs[unitDefID] then
+			return
+		end
+		if newTeam == pveTeamID then
+			startScumForUnit(unitID, unitDefID)
+		elseif oldTeam == pveTeamID then
+			stopScumForUnit(unitID)
 		end
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-		if scumSpawnerIDs[unitDefID] and scums[unitID] then
-			AddOrUpdateScum(nil, nil, nil, nil, -10 * math.abs(scums[unitID].growthrate), unitID)
-			SendToUnsynced("ScumRemoved", unitID)
+		if scumSpawnerIDs[unitDefID] then
+			stopScumForUnit(unitID)
 		end
 	end
 
