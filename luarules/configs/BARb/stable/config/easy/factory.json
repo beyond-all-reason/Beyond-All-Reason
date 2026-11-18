@@ -431,7 +431,7 @@
 		"importance": [0.0, 0.6],
 		"require_energy": true,
 		"income_tier": [70],
-		"unit":      ["coracsub", "corshark", "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "corshark", "corarch", "corcrus", "corantiship", "cormship", "corbats", "corblackhy"],
 		"land": {
 			"tier0": [ 0.01,       0.28,       0.00,      0.43,      0.00,       0.14,       0.14,      0.00],
 			"tier1": [ 0.02,       0.16,       0.05,      0.11,      0.05,       0.22,       0.28,      0.11]

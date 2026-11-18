@@ -617,7 +617,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corantiship", "cormship", "corbats", "corblackhy"],
 
 		"land": {
 			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],
