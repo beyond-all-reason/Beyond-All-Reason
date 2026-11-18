@@ -13,6 +13,7 @@ local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 local stateCommands = VFS.Include("common/stateCommands.lua")
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -1132,6 +1133,87 @@ local function registerCameraValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
+-- Unit filter validators: UnitFilter and UnitFilters
+--------------------------------------------------------------------------------
+
+local function registerUnitFilterValidators(parameterValidators, context)
+	local Types = context.Types
+
+	local fieldNames = {}
+	local isField = {}
+	for index, field in ipairs(unitFilterFields) do
+		fieldNames[index] = field.name
+		isField[field.name] = true
+	end
+
+	local function validateUnitFilter(unitFilter)
+		local luaTypeResult = validateTableType(unitFilter)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+		-- Only a filter inside a list reaches this as a difficulties table.
+		if context.IsDifficultiesTable(unitFilter) then
+			return {
+				{
+					message = "Unit filter in a list cannot differ by difficulty, give the whole list per difficulty",
+				},
+			}
+		end
+
+		local results = {}
+		local fieldCount = 0
+		for _, field in ipairs(unitFilterFields) do
+			local value = unitFilter[field.name]
+			if context.IsDifficultiesTable(value) then
+				addResult(
+					results,
+					"Unit filter field cannot differ by difficulty, give the whole filter per difficulty",
+					"." .. field.name
+				)
+			elseif value ~= nil then
+				fieldCount = fieldCount + 1
+				appendResults(results, parameterValidators[field.type](value), "." .. field.name)
+			end
+		end
+
+		local unknownFields = {}
+		for key in pairs(unitFilter) do
+			if not isField[key] then
+				unknownFields[#unknownFields + 1] = tostring(key)
+			end
+		end
+		table.sort(unknownFields)
+		for _, key in ipairs(unknownFields) do
+			addResult(results, "Unknown unit filter field '" .. key .. "'")
+		end
+
+		if fieldCount == 0 and #results == 0 then
+			addResult(results, "Unit filter is empty, give at least one of: " .. quotedList(fieldNames))
+		end
+		return results
+	end
+
+	parameterValidators[Types.UnitFilter] = validateUnitFilter
+
+	local validateUnitFilterList = getListValidator(validateUnitFilter)
+	parameterValidators[Types.UnitFilters] = function(unitFilters)
+		local results = validateUnitFilterList(unitFilters)
+		if type(unitFilters) ~= "table" then
+			return results
+		end
+
+		local count = #unitFilters
+		-- The runtime reads the list with ipairs, so a filter under any other key would be skipped.
+		for key in pairs(unitFilters) do
+			if not (type(key) == "number" and key >= 1 and key <= count and key % 1 == 0) then
+				addResult(results, "Unit filters must be a list, got key: " .. tostring(key))
+			end
+		end
+		return results
+	end
+end
+
+--------------------------------------------------------------------------------
 
 local function createParameterValidators(context)
 	local parameterValidators = {}
@@ -1142,6 +1224,7 @@ local function createParameterValidators(context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
 	registerCameraValidators(parameterValidators, context)
+	registerUnitFilterValidators(parameterValidators, context)
 
 	return parameterValidators
 end

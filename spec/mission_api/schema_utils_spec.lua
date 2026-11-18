@@ -78,5 +78,17 @@ describe("mission_api.schema_utils", function()
 			)
 			assert.is_not_nil(schemas.conditions.UnitKilled)
 		end)
+
+		it("includes the fields of a unit filter", function()
+			GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
+			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
+
+			local schemas = schemaUtils.CollateSchemas()
+
+			assert.are.same(
+				MissionSpecEnv.include(env, "luarules/mission_api/unit_filter_schema.lua").UnitFilterFields,
+				schemas.unitFilterFields
+			)
+		end)
 	end)
 end)

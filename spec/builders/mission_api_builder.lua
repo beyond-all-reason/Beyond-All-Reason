@@ -321,12 +321,12 @@ function MB:Build(installed)
 	local tracking = SpecEnv.include(
 		SpecEnv.new({
 			GG = {
-				MissionAPI = {
+				MissionAPI = setmetatable({
 					trackedUnitIDs = trackedUnitIDs,
 					trackedUnitNames = trackedUnitNames,
 					trackedFeatureIDs = trackedFeatureIDs,
 					trackedFeatureNames = trackedFeatureNames,
-				},
+				}, { __index = installed }),
 			},
 		}),
 		TRACKING_PATH

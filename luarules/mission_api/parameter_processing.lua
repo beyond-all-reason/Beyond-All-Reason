@@ -11,6 +11,7 @@ local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local conditionsSchemaParameters = GG["MissionAPI"].ConditionDefinitions.Parameters
 local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 local teams = GG["MissionAPI"].Teams
 local alliances = GG["MissionAPI"].Alliances
 
@@ -94,6 +95,20 @@ local function processUnitLoadout(unitLoadout)
 	end
 end
 
+local function processUnitFilter(unitFilter)
+	for _, field in ipairs(unitFilterFields) do
+		if internalTypes[field.type] then
+			processParameter(unitFilter, field)
+		end
+	end
+end
+
+local function processUnitFilters(unitFilters)
+	for _, unitFilter in ipairs(unitFilters) do
+		processUnitFilter(unitFilter)
+	end
+end
+
 local function processSoundFile(soundfile)
 	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
@@ -135,6 +150,8 @@ local processors = {
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 	[ParameterTypes.Color] = processColor,
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
+	[ParameterTypes.UnitFilter] = processUnitFilter,
+	[ParameterTypes.UnitFilters] = processUnitFilters,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet

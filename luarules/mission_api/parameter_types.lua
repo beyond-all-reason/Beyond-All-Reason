@@ -22,6 +22,8 @@ local types = {
 	SensorTypes = "SensorTypes",
 	Color = "Color",
 	CameraKeyframes = "CameraKeyframes",
+	UnitFilter = "UnitFilter",
+	UnitFilters = "UnitFilters",
 
 	-- String Validators:
 	String = "String",
