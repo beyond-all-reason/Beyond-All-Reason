@@ -14,14 +14,14 @@
 ---   130 s  the AI is active again
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	-- Fires while the loadout spawns, before the engine has created the AI.
 	constructorSpawned = {
-		type = triggerTypes.UnitExists,
+		type = conditionTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corck',
 			teamName = 'enemy',
@@ -30,7 +30,7 @@ local triggers = {
 	},
 
 	intro = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -38,7 +38,7 @@ local triggers = {
 	},
 
 	wakeUp = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -46,7 +46,7 @@ local triggers = {
 	},
 
 	allowEnergy = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 50,
 		},
@@ -54,7 +54,7 @@ local triggers = {
 	},
 
 	takeGuards = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 70,
 		},
@@ -62,7 +62,7 @@ local triggers = {
 	},
 
 	returnGuards = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100,
 		},
@@ -70,7 +70,7 @@ local triggers = {
 	},
 
 	deactivate = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 115,
 		},
@@ -78,7 +78,7 @@ local triggers = {
 	},
 
 	activate = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 130,
 		},

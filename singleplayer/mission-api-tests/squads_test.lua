@@ -13,13 +13,13 @@
 ---   30 s after they assembled, the raiders are disbanded, and a message says a squad has disbanded
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	defineSquads = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	cancelReserves = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	raidersAssembled = {
-		type = triggerTypes.SquadAssembled,
+		type = conditionTypes.SquadAssembled,
 		parameters = {
 			squadName = 'raiders',
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	raidersCountdownFinished = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'raidersCountdown',
 		},
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	enemySquadDisbanded = {
-		type = triggerTypes.SquadDisbanded,
+		type = conditionTypes.SquadDisbanded,
 		parameters = {
 			teamName = 'enemy',
 		},

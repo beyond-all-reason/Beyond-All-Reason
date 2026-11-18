@@ -13,7 +13,7 @@
 ---   120 s  the plan is cancelled: from now on the first laser tower is not built again either
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local function structure(unitDefName, x, z, rebuild)
@@ -32,7 +32,7 @@ end
 local triggers = {
 
 	planOutpost = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -44,7 +44,7 @@ local triggers = {
 	},
 
 	cancelOutpost = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 120,
 		},

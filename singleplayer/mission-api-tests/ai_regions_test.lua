@@ -12,13 +12,13 @@
 ---         a message says the raiders left the west end, and the region is cleared
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	start = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	raidersAssembled = {
-		type = triggerTypes.SquadAssembled,
+		type = conditionTypes.SquadAssembled,
 		parameters = {
 			squadName = 'raiders',
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	raidersEnteredWestEnd = {
-		type = triggerTypes.SquadEnteredRegion,
+		type = conditionTypes.SquadEnteredRegion,
 		parameters = {
 			regionName = 'westEnd',
 			squadName = 'raiders',
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	raidersLeftWestEnd = {
-		type = triggerTypes.SquadLeftRegion,
+		type = conditionTypes.SquadLeftRegion,
 		parameters = {
 			regionName = 'westEnd',
 		},

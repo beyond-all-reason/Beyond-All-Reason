@@ -12,13 +12,13 @@
 ---   30 s after they assembled, the raiders leave the bot and stand east of the lab again
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	defineRaiders = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	raidersAssembled = {
-		type = triggerTypes.SquadAssembled,
+		type = conditionTypes.SquadAssembled,
 		parameters = {
 			squadName = 'raiders',
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	escortCountdownFinished = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'escortCountdown',
 		},

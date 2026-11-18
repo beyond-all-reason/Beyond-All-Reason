@@ -12,13 +12,13 @@
 ---   70 s   the raiders stop repeating and are disbanded: "disbanded" is the last message
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	defineRaiders = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	raidersAssembled = {
-		type = triggerTypes.SquadAssembled,
+		type = conditionTypes.SquadAssembled,
 		settings = {
 			repeating = true,
 		},
@@ -37,7 +37,7 @@ local triggers = {
 	},
 
 	disbandCountdownFinished = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		settings = {
 			repeating = true,
 			maxRepeats = 2,
@@ -49,7 +49,7 @@ local triggers = {
 	},
 
 	raidersDisbanded = {
-		type = triggerTypes.SquadDisbanded,
+		type = conditionTypes.SquadDisbanded,
 		settings = {
 			repeating = true,
 		},
@@ -60,7 +60,7 @@ local triggers = {
 	},
 
 	stopRepeating = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 70,
 		},

@@ -13,13 +13,13 @@
 ---   150 s  production is enabled again: the lab builds the AI's own fighters again
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	disableProduction = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 60,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	defineReserves = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 75,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	reservesAssembled = {
-		type = triggerTypes.SquadAssembled,
+		type = conditionTypes.SquadAssembled,
 		parameters = {
 			squadName = 'reserves',
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	enableProduction = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 150,
 		},
