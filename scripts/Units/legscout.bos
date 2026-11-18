@@ -1,5 +1,3 @@
-#define TA			// This is a TA script
-
 #include "../recoil_common_includes.h"
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
@@ -10,8 +8,8 @@ static-var  restore_delay, oldHeading, curHead1, curPitch1;
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE 			4
+#define SIGNAL_AIM1	256
+#define SIGNAL_MOVE 4
 
 
 #define BASEPIECE body
@@ -40,8 +38,8 @@ Create()
 
 Steering(heading, steery, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -59,11 +57,13 @@ Steering(heading, steery, currentSpeed)
 
 StopMoving()
 {
-    signal SIG_MOVE;
-	turn body to y-axis <0> speed <120>;
-	turn body to z-axis <0> speed <30>;
-    stop-spin rTyre around x-axis;
-    stop-spin lTyre around x-axis;
+	signal SIGNAL_TURNON;
+	stop-spin rTyre around x-axis;
+	stop-spin lTyre around x-axis;
+	
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	// STOP_TILTBANK;
 } 
 
 StartMoving()
@@ -71,9 +71,9 @@ StartMoving()
     start-script Steering();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -82,32 +82,40 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 
 	var done;
 	var delta;
 	var nextHead;
 	var nextPitch;
 
-	while (!done){
+	while (!done)
+	{
 		done = TRUE;
 		delta = WRAPDELTA(0 - curHead1);
-		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
+		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) 
+		{
 			nextHead = curHead1 + SIGN(delta) * (<150.000000> / 30);
 			done = FALSE;
-		}else{
+		}
+		else
+		{
 			nextHead = 0;
 		}
 		delta = WRAPDELTA(0 - curPitch1);
-		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) {
+		if (ABSOLUTE_GREATER_THAN(delta,(<150.000000> / 30))) 
+		{
 			nextPitch = curPitch1 + SIGN(delta) * (<150.000000> / 30);
 			done = FALSE;
-		}else{
+		}
+		else
+		{
 			nextPitch = 0;
 		}
 		turn mount to y-axis nextHead speed <150.000000>;
 		turn gun to x-axis <0> - nextPitch speed <150.000000>;
-		if (!done) {
+		if (!done) 
+		{
 			sleep 1;
 		}
 		curHead1 = nextHead;
@@ -116,22 +124,22 @@ ExecuteRestoreAfterDelay()
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
 	var canShoot;
 	var delta;
