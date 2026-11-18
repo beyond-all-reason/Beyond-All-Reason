@@ -128,8 +128,8 @@ return {
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
   synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`, `SquadAssembled`,
-  `SquadDisbanded`, `SquadEnteredRegion`, `SquadLeftRegion`); otherwise add the gadget call-in plus
-  its `dispatchConditionCallin` line.
+  `SquadDisbanded`, `SquadEnteredRegion`, `SquadLeftRegion`, `VariablesInitialized`,
+  `VariableWritten`); otherwise add the gadget call-in plus its `dispatchConditionCallin` line.
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.

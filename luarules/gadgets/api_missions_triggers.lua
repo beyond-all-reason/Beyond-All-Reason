@@ -64,6 +64,10 @@ local detectionCount = 0
 local undetectedUnits = {}
 local capturedUnits = {}
 
+local refusedMetricTriggers = {}
+local refusedMetricTriggerList = {}
+local reevaluateRefusedMetricTriggers
+
 ----------------------------------------------------------------
 --- Trigger Functions:
 ----------------------------------------------------------------
@@ -160,6 +164,10 @@ local function activateTrigger(trigger)
 			actionsDispatcher.Invoke(actionID)
 		end
 	end
+	if next(refusedMetricTriggers) then
+		batch.DeferNetValue(reevaluateRefusedMetricTriggers, refusedMetricTriggers)
+	end
+
 	return true
 end
 
@@ -197,8 +205,23 @@ local function evaluateMetric(trigger, value)
 	local activated = activateTrigger(trigger)
 	if not activated then
 		trigger.metricSatisfied = false
+		refusedMetricTriggers[trigger] = true
 	end
 	return activated
+end
+
+reevaluateRefusedMetricTriggers = function()
+	local count = 0
+	for trigger in pairs(refusedMetricTriggers) do
+		count = count + 1
+		refusedMetricTriggerList[count] = trigger
+	end
+	for i = 1, count do
+		local trigger = refusedMetricTriggerList[i]
+		refusedMetricTriggerList[i] = nil
+		refusedMetricTriggers[trigger] = nil
+		evaluateMetric(trigger, trigger.lastValue)
+	end
 end
 
 local function activateTriggerAndReport(trigger, onTryActivate, triggerID, argument)
@@ -287,6 +310,14 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	end
 end
 
+local function dispatchVariableWritten(key)
+	dispatchConditionCallin("VariableWritten", key)
+end
+
+local function onVariableWritten(key)
+	batch.DeferNetValue(dispatchVariableWritten, key)
+end
+
 local function markDetectionDirty(unitID)
 	if not detections[unitID] then
 		detections[unitID] = true
@@ -338,6 +369,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:GameStart()
+	dispatchConditionCallin("VariablesInitialized")
 	dispatchConditionCallin("GameStart")
 end
 
@@ -745,6 +777,8 @@ function gadget:Initialize()
 
 	isUnitMatch = GG["MissionAPI"].Modules.UnitQuery.IsUnitMatch
 	isUnitIncluded = GG["MissionAPI"].Modules.UnitQuery.IsUnitIncluded
+
+	GG["MissionAPI"].Modules.Variables.ReportVariableWrites(onVariableWritten)
 
 	conditionContext = {
 		ActivateTrigger = deferActivation,

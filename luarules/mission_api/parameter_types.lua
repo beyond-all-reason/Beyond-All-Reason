@@ -95,7 +95,7 @@ local types = {
 	AttributeValue = "AttributeValue",
 
 	-- Number-or-String-or-Boolean-or-Table Validators:
-	VariableValue = "VariableValue",
+	VariableType = "VariableType",
 
 }
 

@@ -415,6 +415,23 @@ local function validateUnitFilterExclusions(context, reporter, id, trigger)
 	end
 end
 
+local function validateVariableValueCondition(context, reporter, id, condition)
+	if condition.type ~= context.ConditionTypes.VariableValue or type(condition.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(condition.parameters.key)) do
+		local value = context.Variables[key]
+		if value ~= nil and type(value) ~= "number" then
+			reporter.Error(
+				id,
+				"VariableValue checks numbers, but variable '" .. key .. "' is a " .. type(value),
+				"Parameter: key"
+			)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline conditions
 --------------------------------------------------------------------------------
@@ -452,6 +469,7 @@ local function validateObjectiveCondition(
 	validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, objective)
 	validateUnitFilterExclusions(context, objectiveReport, objectiveID, objective)
+	validateVariableValueCondition(context, objectiveReport, objectiveID, objective)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -584,6 +602,7 @@ local function validateTriggersSection(
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
 			validateUnitFilterExclusions(context, triggerReport, triggerID, trigger)
+			validateVariableValueCondition(context, triggerReport, triggerID, trigger)
 		end
 	end
 end
@@ -886,7 +905,7 @@ end
 
 local function validateVariablesSection(context, report, parameterValidators)
 	local variableReport = reporterFor(report, SECTIONS.Variables, "Variable")
-	local validateVariableValue = parameterValidators[context.Types.VariableValue]
+	local validateVariableType = parameterValidators[context.Types.VariableType]
 	local declarations = {
 		{ field = "Variables", values = context.DeclaredVariables },
 		{ field = "PersistentVariables", values = context.DeclaredPersistentVariables },
@@ -902,7 +921,7 @@ local function validateVariablesSection(context, report, parameterValidators)
 					"In: " .. declaration.field
 				)
 			end
-			for _, result in ipairs(validateVariableValue(value) or {}) do
+			for _, result in ipairs(validateVariableType(value) or {}) do
 				variableReport.Error(
 					id .. (result.parameterNameSuffix or ""),
 					result.message,

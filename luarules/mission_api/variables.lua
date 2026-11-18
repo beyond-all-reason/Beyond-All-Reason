@@ -12,6 +12,7 @@ local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua
 
 local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
 local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
+local onVariableWritten
 
 local function isVariableReference(value)
 	return type(value) == "table" and value.variable ~= nil
@@ -179,6 +180,15 @@ local function setVariable(key, value)
 		end
 		reference.parameters[reference.name] = resolved
 	end
+
+	if onVariableWritten then
+		onVariableWritten(key)
+	end
+end
+
+--- Calls onVariableWritten(key) after each write.
+local function reportVariableWrites(callback)
+	onVariableWritten = callback
 end
 
 return {
@@ -191,4 +201,5 @@ return {
 	GetStartingValues = getStartingValues,
 	Get = getVariable,
 	Set = setVariable,
+	ReportVariableWrites = reportVariableWrites,
 }

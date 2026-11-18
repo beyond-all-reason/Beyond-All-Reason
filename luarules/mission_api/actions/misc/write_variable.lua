@@ -13,7 +13,7 @@ return {
 		type = 'WriteVariable',
 		parameters = {
 			{ name = 'key', required = true, type = ParameterTypes.VariableKey },
-			{ name = 'value', required = true, type = ParameterTypes.VariableValue },
+			{ name = 'value', required = true, type = ParameterTypes.VariableType },
 		},
 		actionFunction = writeVariable,
 	}
