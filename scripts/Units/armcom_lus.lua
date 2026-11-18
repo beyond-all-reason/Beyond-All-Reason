@@ -96,6 +96,10 @@ end
 
 local rad = math.rad
 
+local function shortDelta(angle1, angle2)
+	return (angle2 - angle1 + math.pi) % (2 * math.pi) - math.pi
+end
+
 local function turn(piece, axis, goal, speed)
 	if speed then
 		if axis == 3 then
@@ -1076,6 +1080,18 @@ function ResumeBuilding()
 	if isBuilding and not isAiming then
 		Turn(aimy1, 2, buildHeading, rad(150.000000))
 		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
+		if math.abs(shortDelta(last_primary_heading, buildHeading)) > rad(5.0000) then
+			WaitForTurn(aimy1, 2)
+		end
+		-- theoretically, we might hit this after isBuilding and isAiming changed values (during the wait-for-turn)
+		-- if they did, then a new Turn() might have been called, with a different goal than buildHeading,, 
+		-- by re-checking for the current building and aiming state, we ensure that we only waited for that particular turn to complete
+		-- And therefor are sure that the last_primary_heading we record is as accurate as can be
+		-- i'm unsure wheter that theoretical case actually happens (that would be settarget + build command)
+		-- and am leaving this in case it does
+		if isBuilding and not isAiming then
+			last_primary_heading = buildHeading
+		end
 	end
 	return 0
 end
@@ -1161,11 +1177,11 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+			Turn(aimy1, 2, heading, rad(300.0000))
+			Turn(rloarm, 1, rad(-55), rad(390.0000))
+			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
 			-- if the turret cannot turn to its new heading in one frame, wait for turn
-			if math.abs(last_primary_heading - heading) > rad(10.0000) then
+			if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
 				-- seems to take 1 frame for WaitForTurn to process
 				WaitForTurn(aimy1, 2)
 			end
@@ -1187,11 +1203,10 @@ function script.AimWeapon(weapon, heading, pitch)
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
 
-			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-			if math.abs(last_primary_heading - heading) > rad(10.0000) then
-				-- seems to take 1 frame for WaitForTurn to process
+			Turn(aimy1, 2, heading, rad(300.0000))
+			Turn(rloarm, 1, rad(-55), rad(390.0000))
+			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
+			if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
 				WaitForTurn(aimy1, 2)
 			end
 			last_primary_heading = heading
@@ -1206,15 +1221,12 @@ function script.AimWeapon(weapon, heading, pitch)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
-		Turn(aimy1, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-		Turn(biggun, 1, rad(-105), rad(900.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-		Turn(luparm, 1, rad(15) - pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-
-		if math.abs(last_primary_heading - heading) > rad(12.0000) then
-			-- seems to take 1 frame for WaitForTurn to process
+		Turn(aimy1, 2, heading, rad(360.0000))
+		Turn(biggun, 1, rad(-105), rad(900.0000))
+		Turn(luparm, 1, rad(15) - pitch, rad(900.0000))
+		if math.abs(shortDelta(last_primary_heading, heading)) > rad(12.0000) then
 			WaitForTurn(aimy1, 2)
 		end
-
 		last_primary_heading = heading
 		return true
 	end
@@ -1257,12 +1269,11 @@ function script.StartBuilding(heading, pitch)
 	Signal(SIG_AIM)
 	isBuilding = true
 	leftArm = false
-	Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-	Turn(rloarm, 1, rad(-40), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+	Turn(aimy1, 2, heading, rad(300.0000))
+	Turn(rloarm, 1, rad(-40), rad(390.0000))
+	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000))
 
-	if math.abs(last_primary_heading - heading) > rad(10.0000) then
-		-- seems to take 1 frame for WaitForTurn to process
+	if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
 		WaitForTurn(aimy1, 2)
 	end
 	last_primary_heading = heading
