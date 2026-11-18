@@ -25,7 +25,7 @@ jobs:
       issues: write
     env:
       LUX_VERSION: '0.54.0'
-	  # Specs run on a standalone engine-lua build, updated with some flags for compat with ci.
+      # Specs run on a standalone engine-lua build, updated with some flags for compat with ci.
       RECOIL_LUA_REPOSITORY: https://github.com/efrec/spring.git
       RECOIL_LUA_BRANCH: lua/coilua-standalone-ci
 
