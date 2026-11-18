@@ -1380,7 +1380,7 @@
 			"retreat": 0.75,
             "limit": 3
 		},
-		"armcarry": {
+		"armantiship": {
 			"role": ["support"],
 			"retreat": 0.75,
             "limit": 2
