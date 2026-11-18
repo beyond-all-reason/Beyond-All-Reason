@@ -186,8 +186,8 @@ if gadgetHandler:IsSyncedCode() then
 				if unitsTaken > 0 or taken.metal > 0 or taken.energy > 0 then
 					numTaken = numTaken + 1
 					SendToUnsynced("TeamTaken", playerID, teamID, unitsTaken, taken.energy, taken.metal)
-					local isAiTeam = select(4, GetTeamInfo(teamID, false)) == true
-					if isAiTeam and isSinglePlayer and #GetTeamUnits(teamID) == 0 then
+					local isEliminableAI = isSinglePlayer and select(4, GetTeamInfo(teamID, false))
+					if isEliminableAI and #GetTeamUnits(teamID) == 0 then
 						Spring.KillTeam(teamID) -- game_end won't eliminate an empty AI team
 					end
 				end
