@@ -8,8 +8,8 @@
 -- is also how a test varies an answer part-way through.
 
 ---@class ConditionContextMock
----@field ActivateTrigger fun(trigger: table): boolean
----@field EvaluateMetric fun(trigger: table, value: number)
+---@field ActivateTrigger fun(trigger: table, onActivationAttempted: function?, triggerID: string?, argument: any?)
+---@field EvaluateMetric fun(trigger: table, value: number|boolean|string)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
@@ -36,6 +36,17 @@
 ---@class ConditionContextBuilder
 local TCB = {}
 TCB.__index = TCB
+
+---An ActivateTrigger that asks decide(trigger) whether the activation goes through.
+---It reports the outcome to onActivationAttempted, as the gadget does when the batch ends.
+function TCB.ReportsActivation(context, decide)
+	return function(trigger, onActivationAttempted, triggerID, argument)
+		local activated = decide(trigger)
+		if onActivationAttempted then
+			onActivationAttempted(trigger, triggerID, context, argument, activated)
+		end
+	end
+end
 
 ---Constant values are wrapped, so `:WithInFactory(true)` and
 ---`:WithInFactory(function(id) ... end)` both work.
@@ -76,11 +87,13 @@ function TCB:Build()
 	-- keep both of them in step.
 	local constructionStarts = {}
 
-	---@type ConditionContextMock
-	local context = {
-		ActivateTrigger = function(trigger)
+	local context ---@type ConditionContextMock
+	context = {
+		ActivateTrigger = function(trigger, onActivationAttempted, triggerID, argument)
 			activateCalls[#activateCalls + 1] = { trigger = trigger }
-			return true
+			if onActivationAttempted then
+				onActivationAttempted(trigger, triggerID, context, argument, true)
+			end
 		end,
 		-- Metric conditions only report what they sampled; the gadget compares it
 		-- with the trigger's bounds, so the mock records the value and nothing more.

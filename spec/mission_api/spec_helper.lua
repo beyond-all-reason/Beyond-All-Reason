@@ -155,6 +155,7 @@ function MissionSpecEnv.registerModules(env)
 	modules.UnitQuery = modules.UnitQuery or includeModule("luarules/mission_api/unit_query.lua")
 	modules.SeismicContacts = modules.SeismicContacts or includeModule("luarules/mission_api/seismic_contacts.lua")
 	modules.DetectionLevels = modules.DetectionLevels or includeModule("luarules/mission_api/detection_levels.lua")
+	modules.Batch = modules.Batch or includeModule("luarules/mission_api/batch.lua")
 	return modules
 end
 
