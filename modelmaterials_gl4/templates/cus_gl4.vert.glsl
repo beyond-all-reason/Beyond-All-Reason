@@ -636,15 +636,9 @@ void main(void)
 	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
-	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
-	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
-
-	// A unit's own color over its team's: packed RGB, negated (api_mission_unit_color.lua).
-	float ownColor = -UNITUNIFORMS.userDefined[0].y;
-	if (ownColor > 0.5) {
-		teamCol.rgb = vec3(floor(ownColor / 65536.0), mod(floor(ownColor / 256.0), 256.0), mod(ownColor, 256.0)) / 255.0;
-	}
+	uint teamIndex = (instData.z & 0x000007FFu); // palette index: teams, then custom colors from 256
+	// 2047 = no team (map features, team -1), kept out of the custom colors handed out
+	teamCol = (teamIndex == 2047u) ? vec4(0.0) : teamColor[teamIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
