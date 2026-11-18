@@ -935,7 +935,7 @@
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
-	"corcarry": {
+	"corantiship": {
 		"role": ["support", "heavy"],
 		"retreat": 0.75
 	},

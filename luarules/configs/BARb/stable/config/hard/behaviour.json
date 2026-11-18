@@ -1721,7 +1721,7 @@
 			"role": ["support"],
 			"retreat": 0.75
 		},
-		"corcarry": {
+		"corantiship": {
 			"role": ["support"],
 			"retreat": 0.75,
             "limit": 2
