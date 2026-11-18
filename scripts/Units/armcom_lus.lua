@@ -1077,8 +1077,8 @@ end
 
 function ResumeBuilding()
 	Show(nano)
-	Sleep(800)
 	if isBuilding and not isAiming then
+		Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 		Turn(aimy1, 2, buildHeading, rad(150.000000))
 		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
 		if math.abs(shortDelta(last_primary_heading, buildHeading)) > rad(5.0000) then
@@ -1179,6 +1179,9 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
+			isAiming = true
+			StartThread(Restore)
+			Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 			Turn(aimy1, 2, heading, rad(300.0000))
 			Turn(rloarm, 1, rad(-55), rad(390.0000))
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
@@ -1188,11 +1191,6 @@ function script.AimWeapon(weapon, heading, pitch)
 				WaitForTurn(aimy1, 2)
 			end
 			last_primary_heading = heading
-			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
-			StartThread(Restore)
 			return true
 		end
 	elseif weapons[weapon] == "uwlaser" then
@@ -1204,7 +1202,9 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-
+			isAiming = true
+			StartThread(Restore)
+			Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 			Turn(aimy1, 2, heading, rad(300.0000))
 			Turn(rloarm, 1, rad(-55), rad(390.0000))
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
@@ -1212,17 +1212,16 @@ function script.AimWeapon(weapon, heading, pitch)
 				WaitForTurn(aimy1, 2)
 			end
 			last_primary_heading = heading
-			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
-			StartThread(Restore)
 			return true
 		end
 	elseif weapons[weapon] == "dgun" then
+		SetSignalMask(SIG_AIM)
+		Signal(SIG_AIM)
 		isAimingDgun = true
 		isAiming = true
+		StartThread(Restore)
 		leftArm = false
+		Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 		Turn(aimy1, 2, heading, rad(360.0000))
 		Turn(biggun, 1, rad(-105), rad(900.0000))
 		Turn(luparm, 1, rad(15) - pitch, rad(900.0000))
@@ -1268,23 +1267,29 @@ function script.StartBuilding(heading, pitch)
 		StartThread(StopDance1)
 	end
 	Show(nano)
-	Signal(SIG_AIM)
-	isBuilding = true
-	leftArm = false
-	Turn(aimy1, 2, heading, rad(300.0000))
-	Turn(rloarm, 1, rad(-40), rad(390.0000))
-	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000))
-
-	if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
-		WaitForTurn(aimy1, 2)
+	if not isAiming then
+		Signal(SIG_AIM)
 	end
-	last_primary_heading = heading
-
-	WaitForTurn(ruparm, 1)
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	Turn(torso , 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+	isBuilding = true
 	buildHeading = heading
 	buildPitch = pitch
-	StartThread(SprayNano, heading, pitch)
+	leftArm = false
+	if not isAiming then
+		Turn(aimy1, 2, heading, rad(300.0000))
+		Turn(rloarm, 1, rad(-40), rad(390.0000))
+		Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000))
+
+		if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
+			WaitForTurn(aimy1, 2)
+		end
+		WaitForTurn(ruparm, 1)
+		if isBuilding and not isAiming then
+			last_primary_heading = heading
+			StartThread(SprayNano, heading, pitch) -- only spray if not aiming
+		end
+	end
+	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	Show(armhexl_emit)
 	Show(armhexl2_emit)
 	--Show (cagelight_emit);
@@ -1314,9 +1319,14 @@ end
 
 function Restore()
 	SetSignalMask(SIG_AIM)
+	Sleep(800)
 	isAiming = false
 	isAimingDgun = false
-	Sleep(3000)
+	if isBuilding then
+		ResumeBuilding()
+		return
+	end
+	Sleep(2200)
 	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)
