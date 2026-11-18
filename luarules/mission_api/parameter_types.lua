@@ -66,6 +66,7 @@ local types = {
 	CompassAngle = "CompassAngle",
 	Elevation = "Elevation",
 	MessageType = "MessageType",
+	Integer = "Integer",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
