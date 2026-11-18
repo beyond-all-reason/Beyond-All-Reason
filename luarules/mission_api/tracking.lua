@@ -6,6 +6,9 @@ local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 local trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 local trackedFeatureNames = GG["MissionAPI"].trackedFeatureNames
+local derivedNamesByUnitName = GG["MissionAPI"].derivedNamesByUnitName
+
+local onUnitNameChanged ---@type function?
 
 local function trackEntity(name, ID, trackedIDs, trackedNames)
 	if not name or not ID then
@@ -28,7 +31,7 @@ local function isNameUntracked(name, trackedIDs)
 end
 
 local function doesEntityHaveName(ID, name, trackedIDs)
-	return (trackedIDs[name] or {})[ID] == true
+	return trackedIDs[name] ~= nil and trackedIDs[name][ID] == true
 end
 
 local function untrackID(ID, trackedIDs, trackedNames)
@@ -64,8 +67,16 @@ end
 --- Unit tracking:
 ----------------------------------------------------------------
 
+---Ignores a derived name.
 local function trackUnit(name, unitID)
+	if derivedNamesByUnitName[name] then
+		return
+	end
+
 	trackEntity(name, unitID, trackedUnitIDs, trackedUnitNames)
+	if onUnitNameChanged and name and unitID then
+		onUnitNameChanged(unitID, name)
+	end
 end
 
 local function isUnitIDUntracked(unitID)
@@ -86,8 +97,67 @@ local function untrackUnitID(unitID)
 	untrackID(unitID, trackedUnitIDs, trackedUnitNames)
 end
 
+---Ignores a derived name.
 local function untrackUnitName(name)
+	if derivedNamesByUnitName[name] then
+		return
+	end
+	if onUnitNameChanged == nil or isUnitNameUntracked(name) then
+		untrackName(name, trackedUnitIDs, trackedUnitNames)
+		return
+	end
+
+	local unitIDs = table.keys(trackedUnitIDs[name])
 	untrackName(name, trackedUnitIDs, trackedUnitNames)
+	for i = 1, #unitIDs do
+		onUnitNameChanged(unitIDs[i], name)
+	end
+end
+
+---Calls onUnitNameChanged(unitID, name) after a unit is named or unnamed, except with a derived name or at its death.
+local function reportUnitNameChanges(callback)
+	onUnitNameChanged = callback
+end
+
+---Like TrackUnit for a derived name, but reports nothing.
+---@return boolean named false when the unit already had the name
+local function trackUnitUnderDerivedName(name, unitID)
+	local unitIDs = trackedUnitIDs[name]
+	if unitIDs == nil then
+		unitIDs = {}
+		trackedUnitIDs[name] = unitIDs
+	elseif unitIDs[unitID] then
+		return false
+	end
+	unitIDs[unitID] = true
+
+	local names = trackedUnitNames[unitID]
+	if names == nil then
+		names = {}
+		trackedUnitNames[unitID] = names
+	end
+	names[name] = true
+	return true
+end
+
+---Like UntrackUnitName for one unit and a derived name, but reports nothing.
+---@return boolean unnamed false when the unit did not have the name
+local function untrackUnitUnderDerivedName(name, unitID)
+	local unitIDs = trackedUnitIDs[name]
+	if unitIDs == nil or not unitIDs[unitID] then
+		return false
+	end
+	unitIDs[unitID] = nil
+	if next(unitIDs) == nil then
+		trackedUnitIDs[name] = nil
+	end
+
+	local names = trackedUnitNames[unitID]
+	names[name] = nil
+	if next(names) == nil then
+		trackedUnitNames[unitID] = nil
+	end
+	return true
 end
 
 ----------------------------------------------------------------
