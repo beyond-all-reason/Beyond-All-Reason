@@ -153,19 +153,27 @@ local function validateNoUnknownKeys(reporter, id, values, allowedKeys, valueLab
 	end
 end
 
-local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost", "equals" }
 
 --- Checks a condition's threshold against its kind, so that picking a type from the
 --- wrong family is an error rather than a silently ignored field:
 ---   event  - an occurrence tallied upwards, thresholded with `count`
----   metric - a level sampled now, thresholded with `atLeast` / `atMost`
+---   metric - a level sampled now, thresholded with `atLeast` / `atMost`, or `equals`
 --- Thresholds may differ by difficulty and read variables, which resolve at mission start.
 local function validateConditionThreshold(context, reporter, id, condition, validateValue)
 	local Types = context.Types
 	local fieldTypes = { count = Types.PositiveInteger, atLeast = Types.Number, atMost = Types.Number }
 	for _, fieldName in ipairs(THRESHOLD_FIELDS) do
 		local value = condition[fieldName]
-		if value ~= nil then
+		if fieldName == "equals" then
+			for _, possibleValue in ipairs(context.PossibleValues(value)) do
+				local valueType = type(possibleValue)
+				if valueType ~= "boolean" and valueType ~= "string" then
+					reporter.Error(id, "equals must be true, false, or a string, got " .. valueType, "Field: equals")
+					break
+				end
+			end
+		elseif value ~= nil then
 			for _, result in ipairs(validateValue(fieldTypes[fieldName], value)) do
 				local details = "Field: " .. fieldName .. (result.parameterNameSuffix or "")
 				local reportResult = result.isWarning and reporter.Warn or reporter.Error
@@ -177,10 +185,13 @@ local function validateConditionThreshold(context, reporter, id, condition, vali
 	local kind = context.ConditionKinds[condition.type]
 	if kind == ConditionKinds.Metric then
 		if condition.count ~= nil then
-			reporter.Error(id, "Metric conditions are thresholded with atLeast/atMost, not count")
+			reporter.Error(id, "Metric conditions are thresholded with atLeast, atMost, or equals, not count")
 		end
-		if condition.atLeast == nil and condition.atMost == nil then
-			reporter.Error(id, "Metric conditions require atLeast and/or atMost")
+		if condition.atLeast == nil and condition.atMost == nil and condition.equals == nil then
+			reporter.Error(id, "Metric conditions require atLeast and/or atMost, or equals")
+		end
+		if condition.equals ~= nil and (condition.atLeast ~= nil or condition.atMost ~= nil) then
+			reporter.Error(id, "equals cannot be combined with atLeast or atMost")
 		end
 		if
 			type(condition.atLeast) == "number"
@@ -190,8 +201,8 @@ local function validateConditionThreshold(context, reporter, id, condition, vali
 			reporter.Error(id, "atLeast must not be greater than atMost")
 		end
 	elseif kind == ConditionKinds.Event then
-		if condition.atLeast ~= nil or condition.atMost ~= nil then
-			reporter.Error(id, "Event conditions are thresholded with count, not atLeast/atMost")
+		if condition.atLeast ~= nil or condition.atMost ~= nil or condition.equals ~= nil then
+			reporter.Error(id, "Event conditions are thresholded with count, not atLeast/atMost or equals")
 		end
 	end
 end
@@ -343,6 +354,46 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 	end
 end
 
+--- A number variable takes atLeast or atMost, a boolean or string takes equals, and a table takes neither.
+--- An objective's amount is a number, so only a number can be an objective's trigger.
+local function validateVariableValueTrigger(context, reporter, id, trigger, isObjective)
+	if trigger.type ~= context.ConditionTypes.VariableValue or type(trigger.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(trigger.parameters.key)) do
+		local value = context.Variables[key]
+		local valueType = type(value)
+		if valueType == "table" then
+			reporter.Error(id, "Variable '" .. key .. "' is a table, which cannot be checked", "Parameter: key")
+		elseif valueType == "number" then
+			if trigger.equals ~= nil then
+				reporter.Error(id, "Variable '" .. key .. "' is a number, so it is checked with atLeast or atMost")
+			end
+		elseif value ~= nil then
+			if isObjective then
+				reporter.Error(
+					id,
+					"Variable '" .. key .. "' is a " .. valueType .. ", so it cannot be an objective's trigger",
+					"Parameter: key"
+				)
+			elseif trigger.atLeast ~= nil or trigger.atMost ~= nil then
+				reporter.Error(id, "Variable '" .. key .. "' is a " .. valueType .. ", so it is checked with equals")
+			else
+				for _, equals in ipairs(context.PossibleValues(trigger.equals)) do
+					if type(equals) ~= valueType then
+						reporter.Error(
+							id,
+							"Variable '" .. key .. "' is a " .. valueType .. ", so equals must be one too"
+						)
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
@@ -378,6 +429,7 @@ local function validateObjectiveInlineTrigger(context, objectiveReport, validate
 		trigger.parameters
 	)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateVariableValueTrigger(context, objectiveReport, objectiveID, trigger, true)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -493,6 +545,7 @@ local function validateTriggersSection(
 				trigger.parameters
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
+			validateVariableValueTrigger(context, triggerReport, triggerID, trigger, false)
 		end
 	end
 end
@@ -795,7 +848,7 @@ end
 
 local function validateVariablesSection(context, report, parameterValidators)
 	local variableReport = reporterFor(report, SECTIONS.Variables, "Variable")
-	local validateVariableValue = parameterValidators[context.Types.VariableValue]
+	local validateVariableType = parameterValidators[context.Types.VariableType]
 	local declarations = {
 		{ field = "Variables", values = context.DeclaredVariables },
 		{ field = "PersistentVariables", values = context.DeclaredPersistentVariables },
@@ -811,7 +864,7 @@ local function validateVariablesSection(context, report, parameterValidators)
 					"In: " .. declaration.field
 				)
 			end
-			for _, result in ipairs(validateVariableValue(value) or {}) do
+			for _, result in ipairs(validateVariableType(value) or {}) do
 				variableReport.Error(
 					id .. (result.parameterNameSuffix or ""),
 					result.message,

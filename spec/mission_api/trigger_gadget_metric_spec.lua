@@ -35,6 +35,7 @@ local function installMissionApi(currentStageID)
 			DetectionLevels = {},
 			Batch = VFS.Include("luarules/mission_api/batch.lua"),
 			DerivedNames = { Init = function() end },
+			Variables = { ReportVariableWrites = function() end },
 			Stages = {
 				GetCurrentStageID = function()
 					return GG["MissionAPI"].CurrentStageID

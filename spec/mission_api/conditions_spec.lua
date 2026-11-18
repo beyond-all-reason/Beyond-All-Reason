@@ -31,6 +31,7 @@ local EXPECTED_METRICS = {
 	ResourcePull = true,
 	ResourceStored = true,
 	UnitsOwned = true,
+	VariableValue = true,
 }
 
 describe("mission_api.conditions", function()

@@ -5,13 +5,14 @@
 --- References resolve in-place after difficulties do and before any other parameter changes.
 --- Action and trigger paramters then re-resolve whenever their variables are written into,
 --- so trigger and action code receive plain values. Objective fields and condition thresholds
---- (count, atLeast, atMost) populate only at init.
+--- (count, atLeast, atMost, equals) populate only at init.
 ---
 
 local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
 
 local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
 local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
+local onVariableWritten
 
 local function isVariableReference(value)
 	return type(value) == "table" and value.variable ~= nil
@@ -183,6 +184,15 @@ local function setVariable(key, value)
 		reference.parameters[reference.name] = resolved
 		GG["MissionAPI"].parameterVersion = (GG["MissionAPI"].parameterVersion or 0) + 1
 	end
+
+	if onVariableWritten then
+		onVariableWritten(key)
+	end
+end
+
+--- Calls onVariableWritten(key) after each write.
+local function reportVariableWrites(callback)
+	onVariableWritten = callback
 end
 
 return {
@@ -195,4 +205,5 @@ return {
 	GetStartingValues = getStartingValues,
 	Get = getVariable,
 	Set = setVariable,
+	ReportVariableWrites = reportVariableWrites,
 }

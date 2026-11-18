@@ -18,7 +18,7 @@ describe("mission_api.actions.write_variable", function()
 		assert.are.same({
 			type = "WriteVariable",
 			key = "VariableKey!",
-			value = "VariableValue!",
+			value = "VariableType!",
 		}, summarizeSchema(action))
 	end)
 

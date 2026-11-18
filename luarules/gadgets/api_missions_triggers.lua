@@ -62,6 +62,10 @@ local detectionCount = 0
 local undetectedUnits = {}
 local capturedUnits = {}
 
+local refusedMetricTriggers = {}
+local refusedMetricTriggerList = {}
+local reevaluateRefusedMetricTriggers
+
 ----------------------------------------------------------------
 --- Trigger Functions:
 ----------------------------------------------------------------
@@ -160,17 +164,23 @@ local function activateTrigger(trigger)
 		end
 	end
 	endBatch()
+	if next(refusedMetricTriggers) then
+		batch.DeferNetValue(reevaluateRefusedMetricTriggers, refusedMetricTriggers)
+	end
+
 	return true
 end
 
 local function isMetricSatisfied(trigger, value)
-	return (trigger.atLeast == nil or value >= trigger.atLeast) and (trigger.atMost == nil or value <= trigger.atMost)
+	return (trigger.atLeast == nil or value >= trigger.atLeast)
+		and (trigger.atMost == nil or value <= trigger.atMost)
+		and (trigger.equals == nil or value == trigger.equals)
 end
 
--- Metric conditions compare a sampled value against `atLeast`/`atMost`. They are
--- edge triggered: firing once when the value enters the satisfied range, and
--- re-arming only once it leaves again, so a condition that stays true does not
--- fire every sample.
+-- Metric conditions compare a sampled value against `atLeast`, `atMost`, or
+-- `equals`. They are edge triggered: firing once when the value enters the
+-- satisfied range, and re-arming only once it leaves again, so a condition that
+-- stays true does not fire every sample.
 --
 -- The edge is only consumed once the condition actually fires. A trigger that is
 -- satisfied but currently blocked -- by an unmet prerequisite, the wrong stage or
@@ -197,8 +207,23 @@ local function evaluateMetric(trigger, value)
 	local activated = activateTrigger(trigger)
 	if not activated then
 		trigger.metricSatisfied = false
+		refusedMetricTriggers[trigger] = true
 	end
 	return activated
+end
+
+reevaluateRefusedMetricTriggers = function()
+	local count = 0
+	for trigger in pairs(refusedMetricTriggers) do
+		count = count + 1
+		refusedMetricTriggerList[count] = trigger
+	end
+	for i = 1, count do
+		local trigger = refusedMetricTriggerList[i]
+		refusedMetricTriggerList[i] = nil
+		refusedMetricTriggers[trigger] = nil
+		evaluateMetric(trigger, trigger.lastValue)
+	end
 end
 
 local function activateTriggerAndReport(trigger, onActivationAttempted, triggerID, argument)
@@ -288,6 +313,14 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	end
 end
 
+local function dispatchVariableWritten(key)
+	dispatchConditionCallin("VariableWritten", key)
+end
+
+local function onVariableWritten(key)
+	batch.DeferNetValue(dispatchVariableWritten, key)
+end
+
 local function markDetectionDirty(unitID)
 	if not detections[unitID] then
 		detections[unitID] = true
@@ -339,6 +372,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:GameStart()
+	dispatchConditionCallin("VariablesInitialized")
 	dispatchConditionCallin("GameStart")
 end
 
@@ -719,6 +753,8 @@ function gadget:Initialize()
 	untrackFeatureID = tracking.UntrackFeatureID
 
 	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
+
+	GG["MissionAPI"].Modules.Variables.ReportVariableWrites(onVariableWritten)
 
 	conditionContext = {
 		ActivateTrigger = deferActivation,
