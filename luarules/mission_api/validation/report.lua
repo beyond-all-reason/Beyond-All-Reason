@@ -12,7 +12,8 @@ local sections = {
 	Actions = 5,
 	Cutscenes = 6,
 	Loadouts = 7,
-	References = 8,
+	Variables = 8,
+	References = 9,
 }
 
 --- A total order, so entries of the same entity keep the order they were reported in.

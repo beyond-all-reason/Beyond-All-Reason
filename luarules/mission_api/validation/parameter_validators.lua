@@ -385,6 +385,10 @@ local function registerValueValidators(parameterValidators, context)
 	end
 	parameterValidators[Types.VariableValue] = validateVariableValue
 
+	parameterValidators[Types.VariableKey] = getLookupValidator(validateString, "variable", function(key)
+		return context.Variables[key] ~= nil
+	end)
+
 	parameterValidators[Types.Color] = function(color)
 		local luaTypeResult = validateTableType(color)
 		if luaTypeResult then

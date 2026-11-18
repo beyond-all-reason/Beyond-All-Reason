@@ -844,6 +844,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("VariableValue", function()
 		local function validateValue(value)
+			V.missionAPI().Variables = { k = value }
 			return V.validateAction({ type = V.actionTypes.WriteVariable, parameters = { key = "k", value = value } })
 		end
 

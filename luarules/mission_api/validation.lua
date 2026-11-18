@@ -47,11 +47,18 @@ local function createValidationContext(mission, report)
 		UnitLoadout = missionTable(mission.UnitLoadout, "UnitLoadout", sections.Loadouts, report),
 		FeatureLoadout = missionTable(mission.FeatureLoadout, "FeatureLoadout", sections.Loadouts, report),
 		Cutscenes = missionTable(mission.Cutscenes, "Cutscenes", sections.Cutscenes, report),
+		DeclaredVariables = missionTable(mission.Variables, "Variables", sections.Variables, report),
+		DeclaredPersistentVariables = missionTable(
+			mission.PersistentVariables,
+			"PersistentVariables",
+			sections.Variables,
+			report
+		),
 
 		-- Game setup:
 		Teams = missionAPI.Teams or {},
 		Alliances = missionAPI.Alliances or {},
-		Variables = missionAPI.Variables or {},
+		SavedVariables = missionAPI.SavedVariables or {},
 		GameSetupErrors = missionAPI.GameSetupErrors or {},
 
 		-- Parameter types:
@@ -61,7 +68,7 @@ local function createValidationContext(mission, report)
 
 		-- Difficulties, since any parameter may hold one value per difficulty:
 		IsDifficultiesTable = difficulty.IsDifficultiesTable,
-		-- Variables are resolved first, to the values the startscript sets.
+		-- Variables are resolved first, to their values at the start of the mission.
 		PossibleValues = function(value)
 			if variables.HasVariableReference(value) then
 				value = variables.ResolveValue(value)
@@ -70,6 +77,7 @@ local function createValidationContext(mission, report)
 		end,
 
 		-- Variables, since most parameters may read their value from one:
+		Variables = missionAPI.Variables or {},
 		IsVariableReference = variables.IsVariableReference,
 		HasVariableReference = variables.HasVariableReference,
 		CallOnVariableKeys = variables.CallOnVariableKeys,
