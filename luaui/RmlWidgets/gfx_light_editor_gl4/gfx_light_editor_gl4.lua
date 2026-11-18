@@ -39,24 +39,18 @@ local PRESET_ROWS = 64
 local SIZE_ROWS = 32
 local COLOR_ROWS = 32
 local LOOK_ROWS = 80
+local function words(text)
+	local list = {}
+	for word in text:gmatch("%S+") do
+		list[#list + 1] = word
+	end
+	return list
+end
+
 -- What makes two lights look the same, wherever they sit and however big they are.
-local LOOK_KEYS = {
-	"r",
-	"g",
-	"b",
-	"a",
-	"color2r",
-	"color2g",
-	"color2b",
-	"colortime",
-	"modelfactor",
-	"specular",
-	"scattering",
-	"lensflare",
-	"lifetime",
-	"sustain",
-	"selfshadowing",
-}
+local LOOK_TEXT =
+	"r g b a color2r color2g color2b colortime modelfactor specular scattering lensflare lifetime sustain selfshadowing"
+local LOOK_KEYS = words(LOOK_TEXT)
 -- Sun colours the night view dims, and how far.
 local SUN_KEYS = {
 	{ "groundAmbientColor", "ambient" },
@@ -72,29 +66,10 @@ local MARKER_PX = 8
 local MARKER_GRAB_PX = 14
 local RING_GRAB_PX = 9 -- how near the edge of a radius or cone circle grabs it
 local MAX_THETA = 1.4
-local TYPES = { "point", "cone", "beam" }
-local TYPE_LETTER = { point = "P", cone = "C", beam = "B" }
 local NO_PIECE = "(unit base)"
 local WEAPON_KINDS = { "muzzle", "projectile", "explosion" }
 -- What a weapon light keeps: the renderer sets its position and direction on every shot.
-local WEAPON_KEYS = {
-	"radius",
-	"r",
-	"g",
-	"b",
-	"a",
-	"color2r",
-	"color2g",
-	"color2b",
-	"colortime",
-	"modelfactor",
-	"specular",
-	"scattering",
-	"lensflare",
-	"lifetime",
-	"sustain",
-	"selfshadowing",
-}
+local WEAPON_KEYS = words("radius " .. LOOK_TEXT)
 -- Light table fields that are not free form extras.
 local OWN_KEYS = { lightType = true, pieceName = true, pieceIndex = true, initComplete = true, _presetSource = true }
 
@@ -113,8 +88,7 @@ local ORBIT = {
 	panPerRadius = 3,
 }
 
--- Slider fields: raw slider value = value * scale. Ranges live in the RML.
--- `field` is the config key when it differs from the slider key; `min` also holds for typed values.
+-- Slider = value * scale, ranges in the RML; `field` = config key if it differs, `min` clamps typed values too.
 local FIELDS = {
 	{ key = "posx", scale = 10 },
 	{ key = "posy", scale = 10 },
@@ -205,7 +179,6 @@ local HINTS = {
 	colorpick = "Open the colour window: a colour square and hue strip, the config's colour sets, and the RGB sliders.",
 	colorsquare = "Drag in the square for saturation and brightness, in the strip for the hue. Values above 1 are set with the sliders.",
 	pivot = "What the orbit circles. AUTO: the selected light, else the unit. LIGHT: stay on the light selected now, whatever you pick later. PIECE: a piece of the model. A pinned pivot is followed as it moves. PICK: click a piece on the model to pin it.",
-	camera = "ORBIT: right drag circles the selected light or the unit, middle drag pans, wheel zooms. Under the ground the map is hidden. GAME: back to the game camera.",
 	mode = "UNIT: lights that sit on the model. WEAPON: muzzle flash, projectile and explosion lights of this unit's weapons, saved into DeferredLightsGL4WeaponsConfig.lua.",
 	preview = "Show the selected weapon light now, without firing: a muzzle flash at the barrel, a projectile light flying out, an explosion on the ground ahead.",
 	loop = "Repeat the preview at this pace while you change values. OFF stops it.",
@@ -270,6 +243,8 @@ local S = {
 	presetText = "",
 	sizeInPresets = false,
 	sliderRange = {},
+	sideShown = {},
+	sideAt = {},
 	diskPaths = {},
 	hover = nil,
 	hoverPart = nil,
@@ -464,19 +439,22 @@ function F.api()
 	return nil
 end
 
-function F.presets()
+-- A renderer getter's result, or the fallback while there is none.
+function F.apiGet(name, fallback)
 	local api = F.api()
-	return api and api.GetLightPresets and api.GetLightPresets() or {}
+	return api and api[name] and api[name]() or fallback
+end
+
+function F.presets()
+	return F.apiGet("GetLightPresets", {})
 end
 
 function F.sizes()
-	local api = F.api()
-	return api and api.GetLightSizes and api.GetLightSizes() or {}
+	return F.apiGet("GetLightSizes", {})
 end
 
 function F.colorSets()
-	local api = F.api()
-	return api and api.GetLightColorSets and api.GetLightColorSets() or {}
+	return F.apiGet("GetLightColorSets", {})
 end
 
 -- Dims the sun for the night view and puts the day's values back.
@@ -504,15 +482,21 @@ function F.setNight(on)
 	S.refresh = true
 end
 
+local T0 = Spring.GetTimer()
+
+function F.now()
+	return Spring.DiffTimers(Spring.GetTimer(), T0)
+end
+
 function F.setStatus(text)
 	S.status = text or ""
-	S.statusTime = os.clock()
+	S.statusTime = F.now()
 	S.refresh = true
 end
 
 -- Units on screen that draw this unit type's lights.
 function F.refreshLiveUnits(force)
-	local now = os.clock()
+	local now = F.now()
 	if not force and now - S.liveTime < 0.5 then
 		return
 	end
@@ -571,8 +555,7 @@ function F.ensureInit(lt)
 end
 
 function F.weaponTables()
-	local api = F.api()
-	return api and api.GetWeaponLights and api.GetWeaponLights() or nil
+	return F.apiGet("GetWeaponLights", nil)
 end
 
 -- The unit's weapon lights as work lights, named "<weapon> <kind>".
@@ -612,7 +595,7 @@ function F.loadWeaponLights()
 	end
 end
 
--- Writes a weapon light into the renderer. Lights of one class share a table: the edited weapon gets its own.
+-- Writes a weapon light to the renderer; an edited weapon gets its own copy of a shared table.
 function F.pushWeaponLight(name)
 	local ref = S.weaponRef[name]
 	local light = S.work[name]
@@ -743,7 +726,7 @@ end
 function F.markSet(name)
 	if S.mode == "weapon" then
 		local saved, light = S.weaponBase[name], S.work[name]
-		if light and S.weaponRef[name] and not (saved and F.sameLight(saved, light)) then
+		if light and S.weaponRef[name] and not F.isReadOnly() and not (saved and F.sameLight(saved, light)) then
 			S.weaponDirty[name] = { ref = S.weaponRef[name], light = F.copyLight(light) }
 		else
 			S.weaponDirty[name] = nil
@@ -801,11 +784,10 @@ end
 function F.revertField(key)
 	local names = F.selectedNames()
 	local reverted = 0
-	F.endStep()
-	F.beginStep()
 	for i = 1, #names do
 		local light, saved = S.work[names[i]], F.savedLight(names[i])
 		if light and saved and F.fieldChanged(light, saved, key) then
+			F.openStep(reverted > 0)
 			light.config[key] = saved.config[key]
 			F.commit(names[i])
 			reverted = reverted + 1
@@ -871,38 +853,42 @@ function F.beginStep()
 		S.redo = {}
 		S.stepOpen = true
 	end
-	S.stepTime = os.clock()
+	S.stepTime = F.now()
 end
 
 function F.endStep()
 	S.stepOpen = false
 end
 
-function F.sameLight(a, b)
-	if a.lightType ~= b.lightType or a.pieceName ~= b.pieceName or a.preset ~= b.preset then
-		return false
+-- Opens one step at the first real change, so a no-op keeps the redo stack.
+function F.openStep(opened)
+	if not opened then
+		F.endStep()
+		F.beginStep()
 	end
-	for key, value in pairs(a.config) do
-		if (b.config[key] or 0) ~= value then
+	return true
+end
+
+local function sameMap(a, b, default)
+	for key, value in pairs(a) do
+		if (b[key] or default) ~= value then
 			return false
 		end
 	end
-	for key, value in pairs(b.config) do
-		if (a.config[key] or 0) ~= value then
-			return false
-		end
-	end
-	for key, value in pairs(a.extra) do
-		if b.extra[key] ~= value then
-			return false
-		end
-	end
-	for key, value in pairs(b.extra) do
-		if a.extra[key] ~= value then
+	for key, value in pairs(b) do
+		if (a[key] or default) ~= value then
 			return false
 		end
 	end
 	return true
+end
+
+function F.sameLight(a, b)
+	return a.lightType == b.lightType
+		and a.pieceName == b.pieceName
+		and a.preset == b.preset
+		and sameMap(a.config, b.config, 0)
+		and sameMap(a.extra, b.extra, nil)
 end
 
 function F.restore(snap)
@@ -933,28 +919,28 @@ function F.restore(snap)
 	S.refresh = true
 end
 
-function F.undo()
-	F.endStep()
-	local snap = table.remove(S.undo)
-	if not snap then
-		F.setStatus("Nothing to undo")
+-- Moves one snapshot between the undo and redo stacks; a drag in progress keeps its step.
+function F.travel(from, to, label)
+	if S.drag or S.ringDrag then
 		return
 	end
-	S.redo[#S.redo + 1] = F.snapshot()
+	F.endStep()
+	local snap = table.remove(from)
+	if not snap then
+		F.setStatus("Nothing to " .. label:lower())
+		return
+	end
+	to[#to + 1] = F.snapshot()
 	F.restore(snap)
-	F.setStatus("Undo")
+	F.setStatus(label)
+end
+
+function F.undo()
+	F.travel(S.undo, S.redo, "Undo")
 end
 
 function F.redo()
-	F.endStep()
-	local snap = table.remove(S.redo)
-	if not snap then
-		F.setStatus("Nothing to redo")
-		return
-	end
-	S.undo[#S.undo + 1] = F.snapshot()
-	F.restore(snap)
-	F.setStatus("Redo")
+	F.travel(S.redo, S.undo, "Redo")
 end
 
 ----------------------------------------------------------------
@@ -1057,6 +1043,17 @@ function F.setUnit(unitID, force)
 	S.hover = nil
 	S.ringHover = nil
 	S.ringDrag = nil
+	if S.drag then
+		S.drag = nil
+		Gizmo.endDrag()
+	end
+	if S.cam then
+		if unitID then
+			F.camBegin()
+		else
+			F.camEnd(0.4)
+		end
+	end
 	S.pieceHover, S.pickMode, S.pickCount, S.pickLast, S.pieceInfo = nil, nil, 0, nil, {}
 
 	local api = F.api()
@@ -1181,6 +1178,7 @@ function F.duplicateSelected()
 	if #names == 0 then
 		return
 	end
+	F.endStep()
 	F.beginStep()
 	F.refreshLiveUnits(true)
 	local copies = {}
@@ -1195,6 +1193,7 @@ function F.duplicateSelected()
 		S.selected[copies[i]] = true
 	end
 	S.primary = copies[1]
+	F.endStep()
 	S.refresh = true
 	F.setStatus("Duplicated " .. (#names == 1 and names[1] or (#names .. " lights")))
 end
@@ -1295,45 +1294,48 @@ function F.pickColorSet(setName, fade)
 	F.endStep()
 end
 
+-- Turns one light into another type, keeping where it points.
+function F.retype(light, lightType)
+	local config, defaults = light.config, DEFAULTS[lightType]
+	if lightType == "beam" then
+		local dx, dy, dz = F.normalize(config.dirx or 0, config.diry or 0, config.dirz or 0)
+		local reach = light.lightType == "cone" and (config.radius or 40) or 40
+		config.pos2x = F.roundTo((config.posx or 0) + dx * reach, 100)
+		config.pos2y = F.roundTo((config.posy or 0) + dy * reach, 100)
+		config.pos2z = F.roundTo((config.posz or 0) + dz * reach, 100)
+		config.dirx, config.diry, config.dirz, config.theta = nil, nil, nil, nil
+	elseif lightType == "cone" then
+		local dx, dy, dz = defaults.dirx or 0, defaults.diry, defaults.dirz
+		if light.lightType == "beam" then
+			dx = (config.pos2x or 0) - (config.posx or 0)
+			dy = (config.pos2y or 0) - (config.posy or 0)
+			dz = (config.pos2z or 0) - (config.posz or 0)
+		end
+		dx, dy, dz = F.normalize(dx, dy, dz)
+		config.dirx, config.diry, config.dirz = F.roundTo(dx, 1000), F.roundTo(dy, 1000), F.roundTo(dz, 1000)
+		config.theta = defaults.theta
+		config.pos2x, config.pos2y, config.pos2z = nil, nil, nil
+	else
+		config.dirx, config.diry, config.dirz, config.theta = nil, nil, nil, nil
+		config.pos2x, config.pos2y, config.pos2z = nil, nil, nil
+	end
+	light.lightType = lightType
+end
+
 function F.setType(lightType)
 	if S.mode == "weapon" then
 		return
 	end
 	local names = F.selectedNames()
-	if #names == 0 then
-		return
-	end
-	F.endStep()
-	F.beginStep()
-	F.refreshLiveUnits(true)
+	local opened = false
 	for i = 1, #names do
 		local light = S.work[names[i]]
 		if light.lightType ~= lightType then
-			local config = light.config
-			local defaults = DEFAULTS[lightType]
-			if lightType == "beam" then
-				local dx, dy, dz = F.normalize(config.dirx or 0, config.diry or 0, config.dirz or 0)
-				local reach = light.lightType == "cone" and (config.radius or 40) or 40
-				config.pos2x = F.roundTo((config.posx or 0) + dx * reach, 100)
-				config.pos2y = F.roundTo((config.posy or 0) + dy * reach, 100)
-				config.pos2z = F.roundTo((config.posz or 0) + dz * reach, 100)
-				config.dirx, config.diry, config.dirz, config.theta = nil, nil, nil, nil
-			elseif lightType == "cone" then
-				local dx, dy, dz = defaults.dirx or 0, defaults.diry, defaults.dirz
-				if light.lightType == "beam" then
-					dx = (config.pos2x or 0) - (config.posx or 0)
-					dy = (config.pos2y or 0) - (config.posy or 0)
-					dz = (config.pos2z or 0) - (config.posz or 0)
-				end
-				dx, dy, dz = F.normalize(dx, dy, dz)
-				config.dirx, config.diry, config.dirz = F.roundTo(dx, 1000), F.roundTo(dy, 1000), F.roundTo(dz, 1000)
-				config.theta = defaults.theta
-				config.pos2x, config.pos2y, config.pos2z = nil, nil, nil
-			else
-				config.dirx, config.diry, config.dirz, config.theta = nil, nil, nil, nil
-				config.pos2x, config.pos2y, config.pos2z = nil, nil, nil
+			if not opened then
+				F.refreshLiveUnits(true)
 			end
-			light.lightType = lightType
+			opened = F.openStep(opened)
+			F.retype(light, lightType)
 			F.commit(names[i])
 		end
 	end
@@ -1344,8 +1346,7 @@ end
 -- Piece space
 ----------------------------------------------------------------
 
--- Piece space to world: origin and the three axes. One table a piece, filled once a draw frame
--- and used again the next: keep a copy (F.copyBasis), not the table.
+-- Piece space to world, cached per piece per draw frame: keep a copy, not the table.
 function F.basis(unitID, pieceName)
 	local key = pieceName or 0
 	local frame = Spring.GetDrawFrame()
@@ -1458,11 +1459,11 @@ function F.setPiece(pieceName)
 	if pieceName == "" then
 		pieceName = nil
 	end
-	F.endStep()
-	F.beginStep()
+	local opened = false
 	for i = 1, #names do
 		local light = S.work[names[i]]
 		if light.pieceName ~= pieceName then
+			opened = F.openStep(opened)
 			local from = F.basis(S.unitID, light.pieceName)
 			local to = F.basis(S.unitID, pieceName)
 			local c = light.config
@@ -1574,6 +1575,20 @@ function F.pickLook(index)
 end
 
 -- Links every light of the config that looks like the selected light's preset to it.
+-- The saved state of another unit's lights, taken before an edit reaches them.
+function F.keepBaselineOf(lights)
+	if S.baseline[lights] then
+		return
+	end
+	local saved = {}
+	for name, lt in pairs(lights) do
+		if type(lt) == "table" then
+			saved[name] = IO.describe(lt)
+		end
+	end
+	S.baseline[lights] = saved
+end
+
 function F.linkSame()
 	if S.mode == "weapon" then
 		return
@@ -1605,6 +1620,9 @@ function F.linkSame()
 				end
 			end
 			if same then
+				if lights ~= S.defLights and ownsLights(unitDefID) then
+					F.keepBaselineOf(lights)
+				end
 				lt._presetSource = presetName
 				linked = linked + 1
 				units[unitDefID] = true
@@ -1654,16 +1672,14 @@ end
 function F.applyLook(lightType, lookConfig, presetName)
 	local names = F.selectedNames()
 	lightType = lightType or "point"
-	for i = 1, #names do
-		if S.work[names[i]].lightType ~= lightType then
-			F.setType(lightType)
-			break
-		end
-	end
 	F.endStep()
 	F.beginStep()
+	F.refreshLiveUnits(true)
 	for i = 1, #names do
 		local light = S.work[names[i]]
+		if light.lightType ~= lightType and S.mode ~= "weapon" then
+			F.retype(light, lightType)
+		end
 		for key, value in pairs(lookConfig) do
 			if not IO.PLACEMENT[key] and (S.sizeInPresets or not IO.SIZE[key]) then
 				light.config[key] = value
@@ -1717,7 +1733,8 @@ end
 
 function F.readFile(vfsPath)
 	local path = F.diskPath(vfsPath)
-	local file = path and io.open(path, "rb")
+	-- a game folder closed to Lua: an earlier save went to the fallback, carry on from it
+	local file = io.open(path or (FALLBACK_DIR .. vfsPath:match("([^/]+)$")), "rb")
 	if file then
 		local text = file:read("*a")
 		file:close()
@@ -1726,23 +1743,27 @@ function F.readFile(vfsPath)
 	return VFS.LoadFile(vfsPath, VFS.RAW_FIRST), path
 end
 
+local function writeAll(path, text)
+	local file = io.open(path, "wb")
+	if not file then
+		return false
+	end
+	local ok = file:write(text)
+	file:close()
+	return ok ~= nil
+end
+
 -- Writes into the game folder, or into the write folder when the game folder is closed to Lua.
 function F.writeFile(vfsPath, path, text)
-	local file = path and io.open(path, "wb")
-	if file then
-		file:write(text)
-		file:close()
+	if path and writeAll(path, text) then
 		return path
 	end
 	Spring.CreateDir(FALLBACK_DIR)
 	local fallback = FALLBACK_DIR .. vfsPath:match("([^/]+)$")
-	file = io.open(fallback, "wb")
-	if not file then
-		return nil
+	if writeAll(fallback, text) then
+		return fallback, true
 	end
-	file:write(text)
-	file:close()
-	return fallback, true
+	return nil
 end
 
 function F.writePresets()
@@ -1763,7 +1784,7 @@ function F.savePreset()
 		return
 	end
 	local light = S.primary and S.work[S.primary]
-	local presetName = (S.presetText or ""):gsub("[^%w_]", "_")
+	local presetName = F.presetTextName()
 	if not light then
 		F.setStatus("Select a light first")
 		return
@@ -1774,6 +1795,11 @@ function F.savePreset()
 	end
 	local presets = F.presets()
 	local existed = presets[presetName] ~= nil
+	-- the lights built on a preset take its type: replacing it with another type would turn them all
+	if existed and (presets[presetName].lightType or "point") ~= light.lightType then
+		F.setStatus(presetName .. " is a " .. (presets[presetName].lightType or "point") .. " preset: use another name")
+		return
+	end
 	presets[presetName] = IO.presetFromLight(light, S.sizeInPresets)
 	if not F.writePresets() then
 		return
@@ -1790,8 +1816,13 @@ function F.savePreset()
 	end
 end
 
+function F.presetTextName()
+	local name = (S.presetText or ""):gsub("[^%w_]", "_")
+	return name
+end
+
 function F.deletePreset()
-	local presetName = S.presetText or ""
+	local presetName = F.presetTextName()
 	local presets = F.presets()
 	if not presets[presetName] then
 		F.setStatus("No preset called " .. presetName)
@@ -1802,6 +1833,17 @@ function F.deletePreset()
 	for _, light in pairs(S.work) do
 		if light.preset == presetName then
 			uses = uses + 1
+		end
+	end
+	-- links not saved yet on other units (copies of saved lights do not count)
+	for lights, entry in pairs(S.dirty) do
+		if lights ~= S.defLights then
+			for name in pairs(entry.set) do
+				local lt = lights[name]
+				if type(lt) == "table" and lt._presetSource == presetName then
+					uses = uses + 1
+				end
+			end
 		end
 	end
 	if uses > 0 then
@@ -1819,10 +1861,10 @@ function F.unlinkPreset()
 		return
 	end
 	local names = F.selectedNames()
-	F.endStep()
-	F.beginStep()
+	local opened = false
 	for i = 1, #names do
 		if S.work[names[i]].preset then
+			opened = F.openStep(opened)
 			S.work[names[i]].preset = nil
 			F.commit(names[i])
 		end
@@ -1883,11 +1925,12 @@ function F.saveUnitLights()
 	end
 	local presets = F.presets()
 	local allLights = api.GetUnitDefLights()
-	local saved, skipped = 0, nil
+	local saved, skipped, kept = 0, {}, {}
 	for defLights, entry in pairs(S.dirty) do
 		local target, why = F.saveTarget(entry, units, text)
 		if not target then
-			skipped = why
+			skipped[#skipped + 1] = why
+			kept[defLights] = entry
 		else
 			local set = {}
 			for name in pairs(entry.set) do
@@ -1911,12 +1954,15 @@ function F.saveUnitLights()
 	if not where then
 		return nil, "could not write the config"
 	end
-	S.dirty = {}
-	S.baseline = {}
+	local baseline = {}
+	for defLights in pairs(kept) do
+		baseline[defLights] = S.baseline[defLights]
+	end
+	S.dirty, S.baseline = kept, baseline
 	S.looks = nil
 	S.fold.looks = true
 	F.keepBaseline()
-	return saved, skipped, fallback and where or nil
+	return saved, #skipped > 0 and table.concat(skipped, "; ") or nil, fallback and where or nil
 end
 
 -- Weapon lights into the weapon config, each as its own override statement.
@@ -1966,24 +2012,21 @@ function F.save()
 		return
 	end
 	local unitCount, unitNote, unitFallback = F.saveUnitLights()
-	if not unitCount then
-		F.setStatus("Save failed: " .. tostring(unitNote))
-		return
-	end
 	local weaponCount, weaponNote, weaponFallback = F.saveWeaponLights()
-	if not weaponCount then
-		F.setStatus("Save failed: " .. tostring(weaponNote))
-		return
-	end
-	local saved = unitCount + weaponCount
-	local fallback = unitFallback or weaponFallback
-	if fallback then
-		F.setStatus("Game folder is read only: written to " .. fallback)
+	local saved = (unitCount or 0) + (weaponCount or 0)
+	local parts = { "Saved " .. saved .. (saved == 1 and " light" or " lights") }
+	if not unitCount then
+		parts[#parts + 1] = "unit lights failed: " .. tostring(unitNote)
 	elseif unitNote then
-		F.setStatus("Saved " .. saved .. ". Not saved: " .. unitNote)
-	else
-		F.setStatus("Saved " .. saved .. (saved == 1 and " light" or " lights"))
+		parts[#parts + 1] = "not saved: " .. unitNote
 	end
+	if not weaponCount then
+		parts[#parts + 1] = "weapon lights failed: " .. tostring(weaponNote)
+	end
+	if unitFallback or weaponFallback then
+		parts[#parts + 1] = "game folder is read only, written to " .. (unitFallback or weaponFallback)
+	end
+	F.setStatus(table.concat(parts, ". "))
 end
 
 function F.reload()
@@ -2034,8 +2077,7 @@ function F.previewSpot(weaponDefID)
 	return mx, my, mz, tx, Spring.GetGroundHeight(tx, tz), tz, floor(frames)
 end
 
--- Spawns one weapon light of the unit the way a shot would. Lights that never end by
--- themselves (most projectile lights) are flown to the spot and removed there.
+-- Spawns one weapon light as a shot would; endless ones fly to the spot and are removed.
 function F.previewLight(name)
 	local ref = S.weaponRef[name]
 	local api = F.api()
@@ -2272,8 +2314,9 @@ function F.padRows(rows, count, blank)
 	return rows
 end
 
-function F.refreshModel()
-	local dm = S.model
+-- Fills the data model: the live one, or the first one before it opens.
+function F.refreshModel(dm)
+	dm = dm or S.model
 	if not dm then
 		return
 	end
@@ -2282,15 +2325,6 @@ function F.refreshModel()
 	local light = S.primary and S.work[S.primary]
 	local dirtyEntry = S.defLights and S.dirty[S.defLights]
 
-	local unitLabel = "No unit: select one in the world"
-	if S.unitName then
-		unitLabel = S.unitName
-			.. ", "
-			.. #names
-			.. (S.mode == "weapon" and " weapon" or "")
-			.. (#names == 1 and " light" or " lights")
-	end
-	dm.unitLabel = unitLabel
 	dm.unitName = S.unitName or "no unit selected"
 	dm.lightCount = #names
 	dm.countLabel = S.unitName
@@ -2313,7 +2347,6 @@ function F.refreshModel()
 		local entry = S.work[name]
 		lightRows[i] = {
 			name = name,
-			letter = TYPE_LETTER[entry.lightType] or "?",
 			kind = entry.lightType,
 			piece = entry.pieceName or "",
 			selected = S.selected[name] == true,
@@ -2357,7 +2390,6 @@ function F.refreshModel()
 	dm.pieces = F.padRows(pieceRows, PIECE_ROWS, { name = "", label = "", active = false, pivot = false, blank = true })
 	dm.pieceLabel = light and (light.pieceName or NO_PIECE) or ""
 	dm.pickMode = S.pickMode or ""
-	dm.pivotAuto = pin == nil
 	dm.pivotAutoOn = pin == nil and S.cam ~= nil
 	dm.pinShown = pin ~= nil
 	dm.pivotLight = pin ~= nil and pin.kind == "light"
@@ -2379,7 +2411,6 @@ function F.refreshModel()
 		local def = presets[presetNames[i]]
 		presetRows[i] = {
 			name = presetNames[i],
-			letter = TYPE_LETTER[def.lightType or "point"] or "?",
 			kind = def.lightType or "point",
 			swatch = F.hex(
 				def.lightConfig and def.lightConfig.r,
@@ -2407,7 +2438,6 @@ function F.refreshModel()
 			index = i,
 			name = look.name,
 			count = "x" .. look.count,
-			letter = TYPE_LETTER[look.lightType] or "?",
 			kind = look.lightType,
 			swatch = F.hex(look.config.r, look.config.g, look.config.b),
 			team = look.config.r < 0,
@@ -2489,7 +2519,7 @@ function F.refreshModel()
 	dm.showAim = light ~= nil and not weaponMode and light.lightType ~= "beam"
 	dm.showBeam = light ~= nil and not weaponMode and light.lightType == "beam"
 	dm.beamPart = S.beamPart
-	if not S.focusField then
+	if S.focusField ~= "name" then
 		dm.lightName = S.primary or ""
 		S.nameText = S.primary or ""
 	end
@@ -2514,6 +2544,8 @@ function F.rootElement()
 	return S.document and S.document:GetElementById("le-root")
 end
 
+local SIDE_IDS = { "le-keys", "le-cp" }
+
 -- Docks the open side windows in a row right of the panel, or left of it where the screen ends.
 function F.placeSide()
 	if not (S.keysOpen or S.cp) then
@@ -2523,8 +2555,12 @@ function F.placeSide()
 	if not root then
 		return
 	end
-	local shown = {}
-	for _, id in ipairs({ "le-keys", "le-cp" }) do
+	local shown = S.sideShown
+	for i = #shown, 1, -1 do
+		shown[i] = nil
+	end
+	for i = 1, #SIDE_IDS do
+		local id = SIDE_IDS[i]
 		local open = (id == "le-keys" and S.keysOpen) or (id == "le-cp" and S.cp ~= nil)
 		local element = open and S.document:GetElementById(id)
 		if element and element.offset_width > 0 then
@@ -2542,10 +2578,9 @@ function F.placeSide()
 		x = root.absolute_left - total
 	end
 	local top = floor(root.absolute_top)
-	S.sideAt = S.sideAt or {}
 	for i = 1, #shown do
 		local element = shown[i]
-		local at = floor(x) .. "," .. top
+		local at = floor(x) * 100000 + top
 		if S.sideAt[element.id] ~= at then
 			S.sideAt[element.id] = at
 			element.style.left = floor(x) .. "px"
@@ -2668,12 +2703,17 @@ function F.cpRelease()
 end
 
 function F.colourWindowModel(dm, hasLight)
-	local cp = hasLight and S.cp or nil
+	if not hasLight then
+		S.cp, S.cpDrag = nil, nil
+	end
+	local cp = S.cp
 	dm.cpOpen = cp ~= nil
 	dm.cpWhich = cp and cp.which or ""
 	dm.cpOnColor = cp ~= nil and cp.which == "color"
 	dm.cpOnFade = cp ~= nil and cp.which == "fade"
 	if not cp then
+		dm.cpTitle, dm.cpHex, dm.cpHueHex = "", "#000000", "#ff0000"
+		dm.cpSvX, dm.cpSvY, dm.cpHueY = "0%", "0%", "0%"
 		return
 	end
 	local light = S.primary and S.work[S.primary]
@@ -2715,94 +2755,9 @@ function F.readSliderRanges()
 end
 
 function F.buildModel()
-	local model = {
-		unitLabel = "",
-		hasUnit = false,
-		hasLight = false,
-		noLights = false,
-		selCount = 0,
-		multi = false,
-		dirtyCount = 0,
-		canUndo = false,
-		canRedo = false,
-		status = "",
-		hint = "",
-		lights = F.padRows(
-			{},
-			LIGHT_ROWS,
-			{ name = "", letter = "", kind = "", piece = "", selected = false, edited = false, blank = true }
-		),
-		pieces = F.padRows({}, PIECE_ROWS, { name = "", label = "", active = false, pivot = false, blank = true }),
-		pivotAuto = true,
-		pivotLight = false,
-		pivotPiece = false,
-		pivotLabel = "",
-		presets = F.padRows(
-			{},
-			PRESET_ROWS,
-			{ name = "", letter = "", kind = "", swatch = "#000000", active = false, blank = true }
-		),
-		pieceLabel = "",
-		unitName = "",
-		lightCount = 0,
-		countLabel = "",
-		pivotAutoOn = false,
-		pinShown = false,
-		pickMode = "",
-		sizes = F.padRows({}, SIZE_ROWS, { name = "", value = "", active = false, blank = true }),
-		sizeLabel = "custom",
-		colorSets = F.padRows(
-			{},
-			COLOR_ROWS,
-			{ name = "", swatch = "#000000", team = false, active = false, blank = true }
-		),
-		colorLabel = "custom",
-		night = false,
-		orbit = false,
-		keysOpen = false,
-		focus = false,
-		flat = false,
-		canvas = false,
-		fadeLabel = "custom",
-		cpOpen = false,
-		cpWhich = "",
-		cpOnColor = false,
-		cpOnFade = false,
-		cpTitle = "",
-		cpHex = "#000000",
-		cpHueHex = "#ff0000",
-		cpSvX = "0%",
-		cpSvY = "0%",
-		cpHueY = "0%",
-		presetLabel = "none",
-		looks = F.padRows(
-			{},
-			LOOK_ROWS,
-			{ index = 0, name = "", count = "", letter = "", kind = "", swatch = "#000000", team = false, blank = true }
-		),
-		presetName = "",
-		linked = false,
-		sizeInPresets = false,
-		lightType = "",
-		weaponMode = false,
-		firing = false,
-		loopKey = "0",
-		showLight = false,
-		showAim = false,
-		showBeam = false,
-		beamPart = "both",
-		lightName = "",
-		swatch = "#000000",
-		swatch2 = "#000000",
-	}
-	for key, folded in pairs(S.fold) do
-		model["fold_" .. key] = folded
-	end
-	for i = 1, #FIELDS do
-		model["sl_" .. FIELDS[i].key] = 0
-		model["num_" .. FIELDS[i].key] = "0"
-		model["ch_" .. FIELDS[i].key] = false
-	end
+	local model = {}
+	F.refreshModel(model)
+	model.presetName = S.presetText or ""
 
 	model.act = function(_, action, arg)
 		F.act(action, arg)
@@ -2817,7 +2772,10 @@ function F.buildModel()
 	model.pickLook = function(_, index)
 		F.pickLook(tonumber(index))
 	end
-	model.tip = function(_, key)
+	model.tip = function(event, key)
+		if event then
+			event:StopPropagation()
+		end
 		local hint = HINTS[key] or ""
 		if S.model and S.model["ch_" .. key] then
 			hint = hint .. " Changed since the last save: click the gold label to put it back."
@@ -2867,6 +2825,7 @@ function F.buildModel()
 		F.cpToggle(which)
 	end
 	model.cpPress = function(event, kind)
+		F.endStep()
 		S.cpDrag = kind
 		F.cpDragTo(event)
 	end
@@ -2878,7 +2837,10 @@ function F.buildModel()
 	model.cpRelease = function()
 		F.cpRelease()
 	end
-	model.cpTip = function(_, name)
+	model.cpTip = function(event, name)
+		if event then
+			event:StopPropagation()
+		end
 		S.hint = name
 		if S.model then
 			S.model.hint = name
@@ -2901,7 +2863,7 @@ function F.buildModel()
 		if not (field and raw and light) then
 			return
 		end
-		-- the echo of a value this widget set carries no news
+		-- skip the echo of our own value
 		local current = light.config[field.field] or 0
 		if raw == F.clampRaw(key, floor(current * field.scale + 0.5)) then
 			return
@@ -2933,13 +2895,16 @@ function F.buildModel()
 		end
 	end
 	model.nameFocus = function()
+		S.nameFor = S.primary
 		S.focusField = "name"
 		Spring.SDLStartTextInput()
 	end
 	model.nameBlur = function()
 		S.focusField = nil
 		Spring.SDLStopTextInput()
-		F.rename(S.nameText)
+		if S.nameFor == S.primary then
+			F.rename(S.nameText)
+		end
 		S.refresh = true
 	end
 	model.presetNameChange = function(event)
@@ -3298,7 +3263,7 @@ function F.emitRing(x, y, z, radius, segments, ux, uy, uz, vx, vy, vz)
 	end
 end
 
--- The draw helpers hand their numbers to gl.BeginEnd: a closure a call would be garbage.
+-- Args go through gl.BeginEnd, so no closure per call.
 function F.ringLoop(x, y, z, radius, segments, ux, uy, uz, vx, vy, vz)
 	gl.BeginEnd(GL.LINE_LOOP, F.emitRing, x, y, z, radius, segments, ux, uy, uz, vx, vy, vz)
 end
@@ -3526,7 +3491,7 @@ function F.drawMarkers()
 			local hovered = S.hover == name
 			local px = F.worldPerPixel(x, y, z)
 			local size = px * MARKER_PX * (hovered and 1.6 or 1)
-			-- magenta: a colour unit lights rarely have, so the markers do not sink into their glow
+			-- magenta: rare in unit lights, so markers stay visible
 			local r, g, b, a, width = 0.95, 0.35, 0.85, 0.85, 1.5
 			if hovered then
 				r, g, b, a, width = 1, 0.6, 0.95, 1, 2.5
@@ -3775,9 +3740,8 @@ end
 -- Flat unit and canvas views
 ----------------------------------------------------------------
 
--- One screen pass over the solid world, read from the G-buffer: the unit's pixels turn to clay,
--- the others to a grid canvas with a ground disc. It runs before the particles and the lights,
--- so shots, their effects and the lights all draw over it.
+-- Screen pass over the G-buffer: the unit turns to clay, the rest to a grid canvas.
+-- Runs before particles and lights so they draw over it.
 function F.backdropInit()
 	if S.backdrop ~= nil then
 		return S.backdrop
@@ -3785,6 +3749,8 @@ function F.backdropInit()
 	S.backdrop = false
 	local LuaShader, VBOTable = gl.LuaShader, gl.InstanceVBOTable
 	if not (LuaShader and VBOTable) then
+		S.flat, S.canvas = false, false
+		F.setStatus("The flat and canvas views could not start on this machine")
 		return false
 	end
 	local defs = LuaShader.GetEngineUniformBufferDefs()
@@ -3800,6 +3766,9 @@ function F.backdropInit()
 	if rect and shader:Initialize() then
 		S.backdrop = { shader = shader, rect = rect }
 	else
+		if rect then
+			rect:Delete()
+		end
 		S.flat, S.canvas = false, false
 		F.setStatus("The flat and canvas views could not start on this machine")
 	end
@@ -4132,8 +4101,7 @@ function F.holdHover(held)
 	end
 end
 
--- Focus mode: the engine's hideinterface with the editor left alive. RmlUi windows draw
--- through it; markers and gizmo are world draws, the hover label draws in DrawScreenEffects.
+-- Focus mode: hideinterface with the editor still running.
 function F.setFocus(on)
 	on = on == true
 	if on == S.focus then
@@ -4205,6 +4173,8 @@ function widget:Initialize()
 			F.endStep()
 		end,
 		selectLight = F.selectOnly,
+		toggleSelect = F.toggleSelect,
+		revertField = F.revertField,
 		rename = F.rename,
 		setPiece = F.setPiece,
 		applyPreset = F.applyPreset,
@@ -4213,8 +4183,6 @@ function widget:Initialize()
 		buildLooks = F.buildLooks,
 		pickLook = F.pickLook,
 		pickColorSet = F.pickColorSet,
-		setUnit = F.setUnit,
-		setPickMode = F.setPickMode,
 		pieceHits = F.pieceHits,
 		pieceBox = F.pieceBox,
 		basis = F.basis,
@@ -4235,7 +4203,6 @@ function widget:Initialize()
 		setPivot = F.setPivot,
 		camDrag = F.camDrag,
 		camZoom = F.camZoom,
-		camEnd = F.camEnd,
 		lightRing = F.lightRing,
 		ringAt = F.ringAt,
 		cpToggle = F.cpToggle,
@@ -4312,10 +4279,10 @@ function widget:Update(dt)
 		S.weaponBase = {}
 		F.setUnit(S.unitID, true)
 	end
-	if S.stepOpen and not S.drag and os.clock() - S.stepTime > 0.6 then
+	if S.stepOpen and not S.drag and not S.cpDrag and F.now() - S.stepTime > 0.6 then
 		F.endStep()
 	end
-	if S.status ~= "" and os.clock() - S.statusTime > 8 then
+	if S.status ~= "" and F.now() - S.statusTime > 8 then
 		S.status = ""
 		S.refresh = true
 	end
@@ -4390,6 +4357,9 @@ function widget:DrawScreenEffects()
 end
 
 function widget:MousePress(mx, my, button)
+	if S.drag or S.ringDrag then
+		return true
+	end
 	if button == 2 or button == 3 then
 		if F.overPanel(mx, my) or not F.camBegin() then
 			return false
@@ -4412,19 +4382,19 @@ function widget:MousePress(mx, my, button)
 	if S.ringHover then
 		return F.beginRingDrag(S.ringHover)
 	end
+	local _, ctrl, _, shift = Spring.GetModKeyState()
 	if S.hover then
-		local _, ctrl, _, shift = Spring.GetModKeyState()
 		if ctrl or shift then
 			F.toggleSelect(S.hover)
 		else
 			local part = S.hoverPart
 			F.selectOnly(S.hover)
-			S.beamPart = part or "both"
+			local light = S.work[S.hover]
+			S.beamPart = light and light.lightType == "beam" and part or "both"
 		end
 		return true
 	end
 	-- a click on nothing lets the selected lights go; the click itself passes on
-	local _, ctrl, _, shift = Spring.GetModKeyState()
 	if next(S.selected) and not (ctrl or shift) and not F.overPanel(mx, my) then
 		F.selectOnly(nil)
 	end
@@ -4554,7 +4524,7 @@ function widget:SetConfigData(data)
 	S.keysOpen = data.keysOpen == true
 	S.flat = data.flat == true
 	S.canvas = data.canvas == true
-	-- the looks list is built when it is opened
+	-- built when opened
 	S.fold.looks = true
 	S.fold.pivot = true
 end

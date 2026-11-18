@@ -659,13 +659,6 @@ body {
 	decorator: vertical-gradient(#a8c4ff #4a68c0);
 }
 
-.le-swatch {
-	height: 7dp;
-	border-radius: 3dp;
-	border: 1dp #ffffff30;
-	margin-bottom: 1dp;
-}
-
 /* === Hint: what the control under the pointer does === */
 .le-hint {
 	height: 46dp;

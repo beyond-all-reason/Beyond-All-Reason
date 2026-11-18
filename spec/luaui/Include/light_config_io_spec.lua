@@ -216,6 +216,110 @@ describe("light_config_io", function()
 		assert.is_truthy(out:find("})\r\n\r\n-- duplicate all weapons for scavengers", 1, true))
 	end)
 
+	it("writes into the last block when a unit is in the config twice", function()
+		local text = table.concat({
+			"local unitLights = {",
+			"\tarmgeo = {",
+			'\t\ta = { lightType = "point", lightConfig = { radius = 1 } },',
+			"\t},",
+			"\tarmgeo = {",
+			'\t\tb = { lightType = "point", lightConfig = { radius = 2 } },',
+			"\t},",
+			"}",
+			"return unitLights",
+			"",
+		}, "\n")
+		local out = IO.applyEdits(text, "armgeo", { set = { b = light("point", { radius = 7 }) } }, {})
+		local t = load(out)
+		assert.are.equal(7, t.armgeo.b.lightConfig.radius)
+		assert.is_truthy(out:find("a = { lightType", 1, true))
+	end)
+
+	it("keeps a block comment whole when the light under it is removed", function()
+		local text = table.concat({
+			"local unitLights = {",
+			"\tarmpw = {",
+			"\t\t--[[",
+			"\t\told = {},",
+			"\t\t--]]",
+			"\t\teyes = {",
+			'\t\t\tlightType = "point",',
+			"\t\t},",
+			"\t},",
+			"}",
+			"return unitLights",
+			"",
+		}, "\n")
+		local out = IO.applyEdits(text, "armpw", { remove = { eyes = true } }, {})
+		local t = load(out)
+		assert.is_nil(t.armpw.old)
+		assert.is_nil(t.armpw.eyes)
+	end)
+
+	it("refuses to split a one line block that holds lights, opens an empty one", function()
+		local function config(block)
+			return "local unitLights = {\n" .. block .. "\n}\nreturn unitLights\n"
+		end
+		local out, err = IO.applyEdits(
+			config('\tarmllt = { glow = { lightType = "point" } },'),
+			"armllt",
+			{ set = { tip = light("point", { radius = 3 }) } },
+			{}
+		)
+		assert.is_nil(out)
+		assert.is_truthy(err:find("one line", 1, true))
+		out = IO.applyEdits(
+			config("\tarmllt = {}, -- later"),
+			"armllt",
+			{ set = { tip = light("point", { radius = 3 }) } },
+			{}
+		)
+		assert.are.equal(3, load(out).armllt.tip.lightConfig.radius)
+		assert.is_truthy(out:find("-- later", 1, true))
+	end)
+
+	it("refuses a second block for a unit written with spaces", function()
+		local text = "local unitLights = {\n    armpw = {\n    },\n}\nreturn unitLights\n"
+		local out, err = IO.applyEdits(text, "armpw", { set = { eyes = light("point", { radius = 3 }) } }, {})
+		assert.is_nil(out)
+		assert.is_truthy(err:find("armpw", 1, true))
+	end)
+
+	it("quotes a light named after a Lua keyword", function()
+		local out = IO.applyEdits(CONFIG, "armpw", { set = { ["end"] = light("point", { radius = 4 }) } }, {})
+		assert.is_truthy(out:find('["end"] = {', 1, true))
+		assert.are.equal(4, load(out).armpw["end"].lightConfig.radius)
+	end)
+
+	it("writes a fade the light turned off when its preset has one", function()
+		local presets = { pulse = { lightType = "point", lightConfig = { colortime = 30, color2r = 1 } } }
+		local edited = light("point", { radius = 5, colortime = 0, color2r = 0 }, nil, "pulse")
+		local out = IO.applyEdits(CONFIG, "armpw", { set = { eyes = edited } }, presets)
+		assert.is_truthy(out:find("colortime = 0,", 1, true))
+		assert.is_truthy(out:find("color2r = 0,", 1, true))
+	end)
+
+	it("replaces an alias line alone, leaving the next override", function()
+		local text = table.concat({
+			"local explosionLightsNames = {}",
+			"explosionLightsNames.armx = explosionLightsNames.army",
+			'explosionLightsNames.armz = GetLightClass("Explosion", nil, nil, {',
+			"\tr = 3,",
+			"})",
+			"",
+		}, "\n")
+		local out = IO.applyWeaponEdit(text, "explosion", "armx", "Explosion", light("point", { radius = 9 }))
+		assert.is_truthy(out:find("explosionLightsNames.armz = GetLightClass", 1, true))
+		assert.is_truthy(out:find("explosionLightsNames.armx = GetLightClass", 1, true))
+		assert.is_falsy(out:find("explosionLightsNames.army", 1, true))
+	end)
+
+	it("finds no body in a one line unitLights table", function()
+		local units, err = IO.listUnits("local unitLights = {}\nlocal other = {\n}\n")
+		assert.is_nil(units)
+		assert.is_truthy(err)
+	end)
+
 	it("makes presets without placement, with size on request", function()
 		local source = light("cone", { posx = 5, dirz = 1, theta = 0.4, radius = 90, r = 1, a = 0.5 })
 		assert.is_nil(IO.presetFromLight(source, false).lightConfig.radius)

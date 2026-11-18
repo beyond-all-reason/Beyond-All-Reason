@@ -101,8 +101,17 @@ local function formatValue(v)
 	return string.format("%q", tostring(v))
 end
 
+local KEYWORDS = {}
+for word in
+	("and break do else elseif end false for function if in local nil not or repeat return then true until while"):gmatch(
+		"%a+"
+	)
+do
+	KEYWORDS[word] = true
+end
+
 local function formatKey(key)
-	if type(key) == "string" and key:match("^[%a_][%w_]*$") then
+	if type(key) == "string" and key:match("^[%a_][%w_]*$") and not KEYWORDS[key] then
 		return key
 	end
 	return "[" .. string.format("%q", tostring(key)) .. "]"
@@ -111,8 +120,9 @@ end
 ---lightConfig keys of one light type, in the order they are written.
 ---@param lightType string
 ---@param config table<string, number>
+---@param base table<string, number>? fade or aim keys this sets count as in use too
 ---@return string[]
-function IO.keyOrder(lightType, config)
+function IO.keyOrder(lightType, config, base)
 	local order = {}
 	local function add(keys)
 		for i = 1, #keys do
@@ -121,7 +131,7 @@ function IO.keyOrder(lightType, config)
 	end
 	local function anySet(keys)
 		for i = 1, #keys do
-			if (config[keys[i]] or 0) ~= 0 then
+			if (config[keys[i]] or 0) ~= 0 or (base and (base[keys[i]] or 0) ~= 0) then
 				return true
 			end
 		end
@@ -196,7 +206,7 @@ local function presetOverrides(light, presetDef)
 	local base = presetDef.lightConfig or {}
 	local lightType = light.lightType or presetDef.lightType or "point"
 	local keys = {}
-	local order = IO.keyOrder(lightType, light.config)
+	local order = IO.keyOrder(lightType, light.config, base)
 	for i = 1, #order do
 		local key = order[i]
 		local value = light.config[key] or 0
@@ -302,7 +312,7 @@ local function tableRegion(lines, tableName)
 			break
 		end
 	end
-	if not first then
+	if not first or lines[first]:find("}") then
 		return nil
 	end
 	for i = first + 1, #lines do
@@ -353,9 +363,9 @@ end
 local function findEntry(lines, from, to, depth, wanted)
 	local first, last
 	eachEntry(lines, from, to, depth, function(key, a, b)
+		-- the same key twice: Lua keeps the last
 		if key == wanted then
 			first, last = a, b
-			return false
 		end
 	end)
 	return first, last
@@ -421,6 +431,13 @@ function IO.applyEdits(text, unitName, edits, presets)
 		if next(set) == nil then
 			return text
 		end
+		local plain = unitName:gsub("%p", "%%%0")
+		for i = from, to do
+			local line = lines[i] or ""
+			if line:find("^%s*" .. plain .. "%s*=") or line:find('^%s*%["' .. plain .. '"%]%s*=') then
+				return nil, unitName .. " has a block this editor cannot read: indent it with tabs"
+			end
+		end
 		local block = { "\t" .. formatKey(unitName) .. " = {" }
 		local names = sortedKeys(set)
 		for i = 1, #names do
@@ -445,13 +462,13 @@ function IO.applyEdits(text, unitName, edits, presets)
 
 	uLast = uLast or uFirst
 	if uLast == uFirst then
-		-- an empty one line block: open it up
-		local head = lines[uFirst]:match("^(.-{)")
-		if not head then
-			return nil, "cannot read the block of " .. unitName
+		-- `name = {},`: open it up; one with lights in it is not split here
+		local head, rest = lines[uFirst]:match("^(.-{)(.*)$")
+		if not (head and rest:gsub("%-%-.*$", ""):find("^%s*}%s*,?%s*$")) then
+			return nil, "the block of " .. unitName .. " is on one line: split it first"
 		end
 		table.remove(lines, uFirst)
-		table.insert(lines, uFirst, "\t},")
+		table.insert(lines, uFirst, "\t}," .. (rest:match("(%-%-.*)$") and (" " .. rest:match("(%-%-.*)$")) or ""))
 		table.insert(lines, uFirst, head)
 		uLast = uFirst + 1
 	end
@@ -474,7 +491,11 @@ function IO.applyEdits(text, unitName, edits, presets)
 		local gapEnd = span.first - 1
 		if remove[span.name] and not set[span.name] then
 			-- comment lines right above a removed light go with it
-			while gapEnd >= cursor and lines[gapEnd]:find("^%s*%-%-") do
+			while gapEnd >= cursor do
+				local line = lines[gapEnd] or ""
+				if not line:find("^%s*%-%-") or line:find("^%s*%-%-%[") or line:find("%]=*%]") then
+					break
+				end
 				gapEnd = gapEnd - 1
 			end
 		end
@@ -631,6 +652,11 @@ local function weaponStatement(lines, kind, weaponName)
 	end
 	if not found then
 		return nil
+	end
+	-- `X.a = X.b`: one line, no call to follow
+	local head = lines[found]:gsub("%-%-.*$", "")
+	if not head:find("[({]") and not head:find("=%s*$") then
+		return found, found
 	end
 	local depth, opened = 0, false
 	for i = found, #lines do
