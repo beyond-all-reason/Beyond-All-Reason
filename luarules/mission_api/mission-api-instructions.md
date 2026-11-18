@@ -101,12 +101,13 @@ return {
   error without it. An event is an occurrence, counted towards the trigger's `count` (default 1),
   even while the trigger is blocked by its stage or prerequisites. A metric is a value sampled now
   that can move either way; its handler calls `context.EvaluateMetric(trigger, value)` instead of `ActivateTrigger`, and
-  the trigger fires when the value crosses `atLeast` or `atMost`. Validation rejects `count` on a
-  metric and `atLeast` or `atMost` on an event.
+  the trigger fires when the value crosses `atLeast` or `atMost`, or comes to equal `equals`. Validation rejects `count`
+  on a metric and `atLeast`, `atMost`, or `equals` on an event.
 - A type that overlaps an existing one becomes a parameter on it, or is narrowed until they differ.
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
-  synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`); otherwise add the gadget
+  synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`, `VariablesInitialized`,
+  `VariableWritten`); otherwise add the gadget
   call-in plus its `dispatchConditionCallin` line.
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter

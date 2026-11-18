@@ -358,8 +358,8 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
-	--- Variables hold plain values, or tables of them nested to any depth.
-	local function validateVariableValue(value)
+	--- Variables contain plain values, or tables of them nested to any depth.
+	local function validateVariableType(value)
 		local valueType = type(value)
 		if valueType == "number" or valueType == "string" or valueType == "boolean" then
 			return
@@ -378,11 +378,11 @@ local function registerValueValidators(parameterValidators, context)
 					parameterNameSuffix = "." .. tostring(key),
 				}
 			end
-			appendResults(results, validateVariableValue(entry), "." .. tostring(key))
+			appendResults(results, validateVariableType(entry), "." .. tostring(key))
 		end
 		return results
 	end
-	parameterValidators[Types.VariableValue] = validateVariableValue
+	parameterValidators[Types.VariableType] = validateVariableType
 
 	parameterValidators[Types.VariableKey] = getLookupValidator(validateString, "variable", function(key)
 		return context.Variables[key] ~= nil

@@ -515,7 +515,7 @@ local function validateVariableReferences(context, report)
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
 		if type(trigger) == "table" then
 			recordKeys(
-				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost, equals = trigger.equals },
 				"trigger " .. triggerID
 			)
 		end
