@@ -51,6 +51,7 @@ describe("mission_api.statistics", function()
 			activateTrigger = activateTrigger,
 			evaluateMetric = evaluateMetric,
 			conditionKinds = conditionKinds,
+			batch = VFS.Include("luarules/mission_api/batch.lua"),
 		})
 	end)
 

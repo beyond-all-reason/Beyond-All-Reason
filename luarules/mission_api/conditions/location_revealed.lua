@@ -8,6 +8,12 @@ local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 -- Half a second is soon enough for a line of dialogue, at one LOS read per trigger.
 local CHECK_INTERVAL_FRAMES = math.floor(0.5 * Game.gameSpeed)
 
+local function onActivationAttempted(trigger, triggerID, context, argument, activated)
+	if activated then
+		context.RevealedLocations[triggerID] = true
+	end
+end
+
 return {
 	type = 'LocationRevealed',
 	kind = ConditionKinds.Event,
@@ -24,8 +30,8 @@ return {
 			local position = parameters.position
 			if not Spring.IsPosInLos(position.x, position.y, position.z, parameters.sensorAllianceName) then
 				context.RevealedLocations[triggerID] = nil
-			elseif not context.RevealedLocations[triggerID] and context.ActivateTrigger(trigger) then
-				context.RevealedLocations[triggerID] = true
+			elseif not context.RevealedLocations[triggerID] then
+				context.ActivateTrigger(trigger, onActivationAttempted, triggerID)
 			end
 		end,
 	},
