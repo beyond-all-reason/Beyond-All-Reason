@@ -448,7 +448,9 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	start-script BarrelSpin();
 
-	//DeploySleeve animation
+	if(pitch < <-20>) pitch = <-20>; // angle clamp
+	
+	// DeploySleeve animation
 
 	if (DEPLOYING)
 	{
