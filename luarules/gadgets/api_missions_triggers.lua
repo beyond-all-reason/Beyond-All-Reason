@@ -205,10 +205,14 @@ local function activateTriggerAndReport(trigger, onActivationAttempted, triggerI
 	onActivationAttempted(trigger, triggerID, conditionContext, argument, activated)
 end
 
----A condition that needs to know whether its activation went through passes onActivated, called with
----(trigger, triggerID, context, subject, activated).
-local function deferActivation(trigger, onActivated, triggerID, subject)
-	batch.Defer(activateMatchedTrigger, trigger, onActivated, triggerID, subject)
+---Activates the trigger when the batch ends, and returns nothing.
+---A condition that needs the outcome passes onActivationAttempted(trigger, triggerID, context, argument, activated).
+local function deferActivation(trigger, onActivationAttempted, triggerID, argument)
+	if onActivationAttempted then
+		batch.Defer(activateTriggerAndReport, trigger, onActivationAttempted, triggerID, argument)
+	else
+		batch.Defer(activateTrigger, trigger)
+	end
 end
 
 local function evaluateLastValue(trigger)
@@ -657,9 +661,20 @@ function gadget:Initialize()
 	end
 
 	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
-	callins = GG["MissionAPI"].ConditionDefinitions.Callins
 	triggers = GG["MissionAPI"].Triggers
 	triggersByType = VFS.Include("luarules/mission_api/conditions_loader.lua").IndexTriggersByType(triggers)
+	callins = {}
+	for callinName, handlersByType in pairs(GG["MissionAPI"].ConditionDefinitions.Callins) do
+		local handlersWithTriggers = {}
+		for conditionType, handler in pairs(handlersByType) do
+			if triggersByType[conditionType] then
+				handlersWithTriggers[conditionType] = handler
+			end
+		end
+		if next(handlersWithTriggers) then
+			callins[callinName] = handlersWithTriggers
+		end
+	end
 	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 
 	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
