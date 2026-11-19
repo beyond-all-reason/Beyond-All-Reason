@@ -35,7 +35,7 @@ end
 --   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
 -- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
 -- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map. facing is 0 to 3, from south.
--- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two IDs
+-- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two numbers
 -- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
 local SYNC_ACTION = "CampaignAI"
