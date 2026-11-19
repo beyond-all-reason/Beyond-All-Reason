@@ -1,13 +1,13 @@
 --- Unit type limit test: at most 2 Light Laser Towers. The third is refused, a second bot can
 --- still assist, destroying one frees a slot, and the cap goes at 60 s.
 
-local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
 local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
 	setup = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -15,7 +15,7 @@ local triggers = {
 	},
 
 	lift = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 60,
 		},
