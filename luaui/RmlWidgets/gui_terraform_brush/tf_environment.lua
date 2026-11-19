@@ -293,7 +293,8 @@ function M.attach(doc, ctx)
 	end
 
 	-- Wire a checkbox toggle
-	local function envCheckbox(btnId, initVal, onChange)
+	-- getter (optional): the live value, for a setting another window can change too
+	local function envCheckbox(btnId, initVal, onChange, getter)
 		local btn = doc:GetElementById(btnId)
 		if not btn then
 			return
@@ -304,6 +305,9 @@ function M.attach(doc, ctx)
 			state and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
 		)
 		btn:AddEventListener("click", function(event)
+			if getter then
+				state = getter()
+			end
 			state = not state
 			btn:SetAttribute(
 				"src",
@@ -318,17 +322,27 @@ function M.attach(doc, ctx)
 	-- dmKey (optional): data-model field kept in step with widgetState[stateKey]
 	local function envWindowToggle(openBtnId, closeBtnId, rootEl, stateKey, dmKey)
 		local openBtn = doc:GetElementById(openBtnId)
+		local function toggle()
+			widgetState[stateKey] = not widgetState[stateKey]
+			playSound(widgetState[stateKey] and "panelOpen" or "click")
+			if rootEl then
+				rootEl:SetClass("hidden", not widgetState[stateKey])
+			end
+			if dmKey and widgetState.dmHandle then
+				widgetState.dmHandle[dmKey] = widgetState[stateKey] and true or false
+			end
+			if openBtn then
+				openBtn:SetClass("env-open", widgetState[stateKey] == true)
+			end
+		end
+		-- the search opens a window through the same toggle as its button
+		if rootEl and rootEl.id then
+			widgetState.windowToggles = widgetState.windowToggles or {}
+			widgetState.windowToggles[rootEl.id] = toggle
+		end
 		if openBtn then
 			openBtn:AddEventListener("mousedown", function(event)
-				widgetState[stateKey] = not widgetState[stateKey]
-				playSound(widgetState[stateKey] and "panelOpen" or "click")
-				if rootEl then
-					rootEl:SetClass("hidden", not widgetState[stateKey])
-				end
-				if dmKey and widgetState.dmHandle then
-					widgetState.dmHandle[dmKey] = widgetState[stateKey] and true or false
-				end
-				openBtn:SetClass("env-open", widgetState[stateKey] == true)
+				toggle()
 				event:StopPropagation()
 			end, false)
 		end
@@ -882,6 +896,7 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-env-toggle-skydyn", "img-env-toggle-skydyn", "env-section-skydyn", false)
 
 	-- Capture window collapsible sections (extra layers collapsed: rarely used)
+	envSectionToggle("btn-capture-toggle-cam", "img-capture-toggle-cam", "capture-section-cam", true)
 	envSectionToggle("btn-capture-toggle-output", "img-capture-toggle-output", "capture-section-output", true)
 	envSectionToggle("btn-capture-toggle-photo", "img-capture-toggle-photo", "capture-section-photo", true)
 	envSectionToggle("btn-capture-toggle-units", "img-capture-toggle-units", "capture-section-units", true)
@@ -1556,9 +1571,13 @@ function M.attach(doc, ctx)
 	end)
 	envCheckbox("btn-env-voidwater", gl.GetMapRendering("voidWater"), function(val)
 		Spring.SetMapRenderingParams({ voidWater = val })
+	end, function()
+		return gl.GetMapRendering("voidWater")
 	end)
 	envCheckbox("btn-env-voidground", gl.GetMapRendering("voidGround"), function(val)
 		Spring.SetMapRenderingParams({ voidGround = val })
+	end, function()
+		return gl.GetMapRendering("voidGround")
 	end)
 
 	-- Splat tex multipliers

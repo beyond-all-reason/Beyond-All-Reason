@@ -205,6 +205,27 @@ class CompileTest(unittest.TestCase):
         self.assertEqual(len(smt), 32 + ntiles * mc.TILE_BYTES)
         self.assertIn("metal 2 cells", report["sections"]["smf"])
 
+    def test_holes_block_their_cells(self):
+        write_export(self.root)
+        comp = os.path.join(self.root, "compile")
+        # red = hole, green = blocks units; one blocking and one walkable hole
+        mask = np.zeros((129, 65, 3), np.uint8)
+        mask[10:15, 20:25] = (255, 255, 255)
+        mask[100:105, 40:45] = (255, 0, 255)
+        Image.fromarray(mask).save(os.path.join(comp, "holes.png"))
+        spec = json.load(open(os.path.join(comp, "compile.json")))
+        spec["holes"] = "holes.png"
+        json.dump(spec, open(os.path.join(comp, "compile.json"), "w"))
+        report = mc.compile_export(self.root, fmt="none", log=lambda *_: None)
+        smf = os.path.join(self.root, "archive", "maps", "tiny_1_0.smf")
+        data = open(smf, "rb").read()
+        h = mc.read_smf_header(smf)
+        typemap = np.frombuffer(data, np.uint8, count=32 * 64, offset=h[11]).reshape(64, 32)
+        self.assertEqual(int(typemap.sum()), 4)
+        self.assertTrue((typemap[5:7, 10:12] == 1).all())
+        self.assertEqual(int(typemap[50:53, 20:23].sum()), 0)
+        self.assertIn("4 cells", report["sections"]["holes"])
+
     def test_square_lands_where_named(self):
         write_export(self.root)
         mc.compile_export(self.root, fmt="none", log=lambda *_: None)

@@ -594,7 +594,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		end
 		local snap = undoStack[#undoStack]
 		if not snap then
-			Spring.Echo("[Metal Brush] Undo: nothing to undo")
+			Spring.Echo("[Metal Brush] Nothing to undo")
 			return
 		end
 		undoStack[#undoStack] = nil
@@ -604,7 +604,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
 		metalChanged()
-		Spring.Echo("[Metal Brush] Undo (" .. (#snap / 3) .. " squares, " .. #undoStack .. " left)")
+		Spring.Echo("[Metal Brush] Undo: Metal stroke, " .. (#snap / 3) .. " squares (" .. #undoStack .. " left)")
 		return
 	end
 
@@ -617,7 +617,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		end
 		local snap = redoStack[#redoStack]
 		if not snap then
-			Spring.Echo("[Metal Brush] Redo: nothing to redo")
+			Spring.Echo("[Metal Brush] Nothing to redo")
 			return
 		end
 		redoStack[#redoStack] = nil
@@ -627,7 +627,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
 		metalChanged()
-		Spring.Echo("[Metal Brush] Redo (" .. (#snap / 3) .. " squares, " .. #redoStack .. " left)")
+		Spring.Echo("[Metal Brush] Redo: Metal stroke, " .. (#snap / 3) .. " squares (" .. #redoStack .. " left)")
 		return
 	end
 end

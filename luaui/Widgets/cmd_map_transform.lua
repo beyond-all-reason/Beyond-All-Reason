@@ -785,7 +785,7 @@ local function stepPrepare()
 	table.sort(job.tables)
 
 	job.images = {}
-	for _, name in ipairs({ "splat.png", "surface.png", "surface_v4.png" }) do
+	for _, name in ipairs({ "splat.png", "surface.png", "surface_v4.png", "surface_holes.png" }) do
 		if fileExists(srcDir .. name) then
 			job.images[#job.images + 1] = { name = name, full = true }
 		end

@@ -65,6 +65,7 @@ local function project(extra)
 	waterColors_absorb = { 0.1, 0.2, 0.3 },
 	heightFog = { enabled = true, density = 0.2, fowLayer = true },
 	blockout = { { def = "ring_1", yaw = 10, scale = 2 } },
+	below = { kind = "planet", look = "ice", depth = 9000, size = 6, yaw = 0, spin = 2, brightness = 1 },
 }]],
 		["p/startpos.lua"] = [[local startPositions = {
   [1] = { x = 900, z = 100, allyTeam = 1, teamSlot = 1 },
@@ -220,6 +221,14 @@ describe("map_export", function()
 			assert.are.same({ "mist" }, report.references.CEGs)
 		end)
 
+		it("ships the backdrop below the map", function()
+			local below = archiveTable(fs, "mapconfig/below.lua")
+			assert.are.equal("planet", below.kind)
+			assert.are.equal("ice", below.look)
+			assert.are.equal(9000, below.depth)
+			assert.are.equal(1, below.version)
+		end)
+
 		it("hands height, minimap and metal to the binary step", function()
 			assert.are.equal("HEIGHT", fs.files["o/compile/heightmap.png"])
 			assert.are.equal("MINI", fs.files["o/compile/minimap.png"])
@@ -267,6 +276,25 @@ describe("map_export", function()
 		local report = run(fs)
 		assert.are.equal("dusk.png", archiveTable(fs, "mapconfig/tileset/tileset.lua").ramp)
 		assert.is_truthy(report.missing[1]:find("ramp image dusk.png", 1, true))
+	end)
+
+	it("ships terrain holes as a mask and as a terrain type no unit can enter", function()
+		local fs = project()
+		run(fs)
+		assert.is_nil(archiveTable(fs, "mapconfig/tileset/tileset.lua").surface_holes)
+		assert.is_nil(archiveTable(fs, "mapinfo.lua").terraintypes[1])
+
+		fs = project({ ["p/surface_holes.png"] = "HOLES" })
+		local report = run(fs)
+		assert.is_true(report.ok)
+		local ts = archiveTable(fs, "mapconfig/tileset/tileset.lua")
+		assert.are.equal("mapconfig/tileset/surface_holes.png", ts.surface_holes)
+		assert.are.equal("HOLES", fs.files["o/archive/mapconfig/tileset/surface_holes.png"])
+		assert.are.equal("HOLES", fs.files["o/compile/holes.png"])
+		assert.is_truthy(fs.files["o/compile/compile.json"]:find('"holes": "holes.png"', 1, true))
+		local hole = archiveTable(fs, "mapinfo.lua").terraintypes[1]
+		assert.are.equal(0, hole.movespeeds.kbot)
+		assert.are.equal(0, hole.movespeeds.tank)
 	end)
 
 	it("ships DNTS textures only for the legacy renderer, a flat detail for the tileset", function()

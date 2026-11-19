@@ -447,6 +447,7 @@ local function handleUndo()
 
 	redoStack[#redoStack + 1] = redoSnapshot
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
+	Spring.Echo(string.format("[Clone Tool] Undo: Paste (%d left)", #undoStack))
 end
 
 local function handleRedo()
@@ -463,6 +464,7 @@ local function handleRedo()
 
 	undoStack[#undoStack + 1] = undoSnapshot
 	SendToUnsynced("CloneToolStacks", #undoStack, #redoStack)
+	Spring.Echo(string.format("[Clone Tool] Redo: Paste (%d left)", #redoStack))
 end
 
 -- ---------------------------------------------------------------------------

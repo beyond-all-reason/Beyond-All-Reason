@@ -1104,6 +1104,16 @@ local function takeSnapshot()
 	redoStack = {}
 end
 
+-- One console line for the undo or redo steps taken this frame.
+local function echoHistory(step, steps, left)
+	if steps == 0 then
+		Echo("[Splat Painter] Nothing to " .. step:lower())
+		return
+	end
+	local times = steps > 1 and (" x" .. steps) or ""
+	Echo(string.format("[Splat Painter] %s: Paint stroke%s (%d left)", step, times, left))
+end
+
 local function splatUndo()
 	pendingUndoCount = pendingUndoCount + 1
 end
@@ -1671,7 +1681,7 @@ function widget:DrawWorld()
 
 	-- Undo and redo swap whole textures; no rendering needed.
 	if pendingUndoCount > 0 then
-		local changed = false
+		local steps = 0
 		for _ = 1, pendingUndoCount do
 			if #undoStack == 0 then
 				break
@@ -1679,16 +1689,17 @@ function widget:DrawWorld()
 			local cur = fboTex
 			fboTex = table.remove(undoStack)
 			redoStack[#redoStack + 1] = cur
-			changed = true
+			steps = steps + 1
 		end
 		pendingUndoCount = 0
-		if changed and texApplied then
+		echoHistory("Undo", steps, #undoStack)
+		if steps > 0 and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
 			farInv.all()
 		end
 	end
 	if pendingRedoCount > 0 then
-		local changed = false
+		local steps = 0
 		for _ = 1, pendingRedoCount do
 			if #redoStack == 0 then
 				break
@@ -1696,10 +1707,11 @@ function widget:DrawWorld()
 			local cur = fboTex
 			fboTex = table.remove(redoStack)
 			undoStack[#undoStack + 1] = cur
-			changed = true
+			steps = steps + 1
 		end
 		pendingRedoCount = 0
-		if changed and texApplied then
+		echoHistory("Redo", steps, #redoStack)
+		if steps > 0 and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
 			farInv.all()
 		end

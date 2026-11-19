@@ -195,18 +195,23 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field envUnitLightingRootEl table?
 ---@field envMapRootEl table?
 ---@field envBlockoutRootEl table?
+---@field envSceneryRootEl table?
 ---@field envWaterRootEl table?
 ---@field envDimensionsRootEl table?
 ---@field envTilesetRootEl table?
 ---@field splatTexRootEl table?
 ---@field grassCfgRootEl table?
 ---@field captureOpen boolean
+---@field search table? tf_search.lua
+---@field searchOpen boolean?
+---@field setSearchOpen fun(on: boolean)?
 ---@field envSunOpen boolean
 ---@field envFogOpen boolean
 ---@field envGroundLightingOpen boolean
 ---@field envUnitLightingOpen boolean
 ---@field envMapOpen boolean
 ---@field envBlockoutOpen boolean
+---@field envSceneryOpen boolean
 ---@field envWaterOpen boolean
 ---@field envDimensionsOpen boolean
 ---@field envTilesetOpen boolean
@@ -258,6 +263,9 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field projectDragClickEaten boolean?
 ---@field projectOpenIsFolder boolean?
 ---@field surfHardActive boolean?
+---@field layersHoles boolean?
+---@field layersHolesRadius number?
+---@field layersHolesOff function?
 ---@field panelEngaged boolean?
 ---@field teamSyncEnabled boolean?
 ---@field projectHelperHintSticky boolean?
@@ -453,6 +461,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envUnitLightingRootEl = nil,
 	envMapRootEl = nil,
 	envBlockoutRootEl = nil,
+	envSceneryRootEl = nil,
 	envWaterRootEl = nil,
 	envDimensionsRootEl = nil,
 	envTilesetRootEl = nil,
@@ -465,6 +474,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envUnitLightingOpen = false,
 	envMapOpen = false,
 	envBlockoutOpen = false,
+	envSceneryOpen = false,
 	envWaterOpen = false,
 	envDimensionsOpen = false,
 	envTilesetOpen = false,
@@ -1637,6 +1647,7 @@ widgetState.overlayWindows = {
 	"tf-env-unit-lighting-root",
 	"tf-env-map-root",
 	"tf-env-blockout-root",
+	"tf-env-scenery-root",
 	"tf-env-water-root",
 	"tf-env-dimensions-root",
 	"tf-splattex-root",
@@ -1662,6 +1673,7 @@ widgetState.overlayFlags = {
 	["tf-env-unit-lighting-root"] = "envUnitLightingVisible",
 	["tf-env-map-root"] = "envMapVisible",
 	["tf-env-blockout-root"] = "envBlockoutVisible",
+	["tf-env-scenery-root"] = "envSceneryVisible",
 	["tf-env-water-root"] = "envWaterVisible",
 	["tf-env-dimensions-root"] = "envDimensionsVisible",
 	["tf-splattex-root"] = "splatTexVisible",
@@ -2207,6 +2219,22 @@ function _imgOv.sync(setDm)
 	setDm("imgOvSupported", not (s and s.supported == false))
 	_imgOv.stamp(false)
 end
+-- Ends a LAYERS hole session: hole mode off, the SURFACE brush size back.
+widgetState.layersHolesOff = function()
+	if not widgetState.layersHoles then
+		return
+	end
+	widgetState.layersHoles = false
+	---@type table?
+	local sp = WG.SurfacePainter
+	if sp and sp.setHoleMode then
+		sp.setHoleMode(false)
+		if widgetState.layersHolesRadius then
+			sp.setRadius(widgetState.layersHolesRadius)
+		end
+	end
+	widgetState.layersHolesRadius = nil
+end
 local function _deactivateAllTools()
 	if WG.TerraformBrush then
 		WG.TerraformBrush.deactivate()
@@ -2246,6 +2274,7 @@ local function _deactivateAllTools()
 	if WG.DecalPlacer then
 		WG.DecalPlacer.deactivate()
 	end
+	widgetState.layersHolesOff()
 	if WG.SurfacePainter then
 		WG.SurfacePainter.deactivate()
 	end
@@ -2625,6 +2654,19 @@ widgetState.applyEnvConfig = function(d)
 			Spring.Echo("[Terraform Brush] blockout not applied: " .. tostring(err))
 		end
 	end
+	-- The backdrop below the map and the mirrored border (absent in older files: left as they are)
+	if type(d.below) == "table" and WG.MapBelow then
+		local ok, err = pcall(WG.MapBelow.setState, d.below)
+		if not ok then
+			Spring.Echo("[Terraform Brush] backdrop below the map not applied: " .. tostring(err))
+		end
+	end
+	if d.mapBorder ~= nil and WG.mapedgeextension and WG.mapedgeextension.setHidden then
+		WG.mapedgeextension.setHidden(not d.mapBorder)
+	end
+	if widgetState.scenery and widgetState.scenery.sync then
+		widgetState.scenery.sync()
+	end
 	-- The ENV RESET buttons return to "the defaults": after a project or preset apply
 	-- those are the applied values, not the engine's at panel open.
 	if widgetState.captureEnvDefaults then
@@ -2997,6 +3039,24 @@ widgetState.buildEnvConfigContent = function(opts)
 				string.format("\t\t{ def = %q, yaw = %.1f, scale = %.3f },", l.def, l.yaw, l.scale)
 		end
 		outLines[#outLines + 1] = "\t},"
+	end
+	if WG.MapBelow then
+		local s = WG.MapBelow.getState()
+		outLines[#outLines + 1] = ""
+		outLines[#outLines + 1] = "\t-- Backdrop below the map (kind: planet, clouds or empty for none)"
+		outLines[#outLines + 1] = string.format(
+			"\tbelow = { kind = %q, look = %q, depth = %.0f, size = %.1f, yaw = %.1f, spin = %.1f, brightness = %.2f },",
+			s.kind,
+			s.look,
+			s.depth,
+			s.size,
+			s.yaw,
+			s.spin,
+			s.brightness
+		)
+	end
+	if WG.mapedgeextension and WG.mapedgeextension.getHidden then
+		outLines[#outLines + 1] = "\tmapBorder = " .. bstr(not WG.mapedgeextension.getHidden()) .. ","
 	end
 	outLines[#outLines + 1] = "}"
 	outLines[#outLines + 1] = ""
@@ -3611,6 +3671,53 @@ function capUI.set(key, value)
 		api.setSetting(key, value)
 	end
 	capUI.sync()
+end
+
+-- CINEMATIC CAM section of the Capture window; the camera is cmd_terraform_cinematic_cam.lua.
+function capUI.syncCam()
+	local d = widgetState.dmHandle
+	if not d then
+		return
+	end
+	local api = WG.TerraformCineCam
+	d.cineCamMissing = api == nil
+	if not api then
+		d.cineCamOn = false
+		return
+	end
+	local s = api.getSettings()
+	d.cineCamOn = api.isOn()
+	d.cineCamGuides = s.guides
+	d.cineCamMiddle = s.middle
+	d.cineCamInvert = s.invertDrag
+	d.cineCamScheme = s.scheme
+	d.cineCamFlyStr = string.format("x%.2f", s.flySpeed / 100)
+	d.cineCamLookStr = string.format("x%.2f", s.lookSpeed / 100)
+	d.cineCamKeysHelp = ({
+		wasd = "W A S D fly, Q / E down and up",
+		arrows = "Arrows fly, Page Down / Up down and up",
+		numpad = "Numpad 8 4 2 6 fly, 7 / 9 down and up",
+	})[s.scheme] or ""
+	local doc = widgetState.document
+	if doc then
+		uiState.updatingFromCode = true
+		local fly, look = doc:GetElementById("slider-cinecam-fly"), doc:GetElementById("slider-cinecam-look")
+		if fly then
+			fly:SetAttribute("value", tostring(s.flySpeed))
+		end
+		if look then
+			look:SetAttribute("value", tostring(s.lookSpeed))
+		end
+		uiState.updatingFromCode = false
+	end
+end
+
+function capUI.setCam(key, value)
+	local api = WG.TerraformCineCam
+	if api then
+		api.setSetting(key, value)
+	end
+	capUI.syncCam()
 end
 
 -- "3 h ago" / "yesterday" / "2026-08-22" for the project lists. Manifests and the
@@ -5696,6 +5803,7 @@ local initialModel = {
 	settingsTab = "keybinds",
 	-- Map Labels window (gui_map_labels widget): header button highlight
 	mapLabelsOpen = false,
+	searchOpen = false,
 	-- Capture window (cmd_terraform_brush_capture.lua does the rendering)
 	captureOpen = false,
 	captureVisible = false,
@@ -5724,6 +5832,18 @@ local initialModel = {
 	captureResultHead = "",
 	captureResultOk = false,
 	captureResultBad = false,
+	cineCamOn = false,
+	cineCamMissing = false,
+	cineCamGuides = false,
+	cineCamHold = false,
+	cineCamMiddle = "orbit",
+	cineCamInvert = false,
+	cineCamScheme = "wasd",
+	cineCamFlyStr = "x1.00",
+	cineCamLookStr = "x1.00",
+	cineCamKeysHelp = "",
+	cineCamReadout = "",
+	cineCamShot = "",
 	noiseWindowVisible = false,
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
@@ -5861,6 +5981,13 @@ local initialModel = {
 	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
 	surfPreset = "dot",
 	surfErase = false,
+	surfEraseOne = false,
+	surfEraseOneLabel = "RMB CLEARS ALL",
+	surfHoles = false,
+	surfHolesWalk = false,
+	surfHolesSoft = false,
+	surfHolesCutArm = false,
+	surfHolesRestoreArm = false,
 	surfHasVariants = false,
 	surfHasSculpted = false,
 	surfShaderOff = false,
@@ -6468,6 +6595,7 @@ local initialModel = {
 	envUnitLightingVisible = false,
 	envMapVisible = false,
 	envBlockoutVisible = false,
+	envSceneryVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
 	envTilesetVisible = false,
@@ -11219,7 +11347,7 @@ local initialModel = {
 				saved = { tool = "features", mode = fpSt.mode }
 			elseif wbSt and wbSt.active then
 				saved = { tool = "weather", mode = wbSt.mode }
-			elseif widgetState.surfHardActive then
+			elseif widgetState.surfHardActive or widgetState.layersHoles then
 				-- LAYERS: the splat engine runs headless under the SURFACE panel; the pin (not the
 				-- engine) tells it apart from the SPLAT tool.
 				saved = { tool = "surfaceHard" }
@@ -11252,6 +11380,7 @@ local initialModel = {
 			if WG.SplatPainter then
 				WG.SplatPainter.deactivate()
 			end
+			widgetState.layersHolesOff()
 			if sfPtr and sfPtr.deactivate then
 				sfPtr.deactivate()
 			end
@@ -11361,6 +11490,7 @@ local initialModel = {
 		if widgetState.captureOpen then
 			capUI.sync()
 			capUI.syncSliders()
+			capUI.syncCam()
 		end
 	end,
 	onCaptureClose = function(_event)
@@ -11412,6 +11542,47 @@ local initialModel = {
 		playSound("click")
 		if WG.TerraformCapture and WG.TerraformCapture.cancel then
 			WG.TerraformCapture.cancel()
+		end
+	end,
+	onTfSearch = function(_event)
+		local doc2 = widgetState.document
+		local input = doc2 and doc2:GetElementById("tf-search-input")
+		widgetState.search.setQuery(input and input:GetAttribute("value") or "")
+	end,
+	onTfSearchToggle = function(_event)
+		if widgetState.setSearchOpen then
+			widgetState.setSearchOpen(not widgetState.searchOpen)
+			playSound(widgetState.searchOpen and "panelOpen" or "click")
+		end
+	end,
+	onTfSearchClear = function(_event)
+		playSound("click")
+		widgetState.search.clear()
+	end,
+	onCineCamToggle = function(_event)
+		local api = WG.TerraformCineCam
+		playSound((api and not api.isOn()) and "panelOpen" or "click")
+		if api then
+			api.toggle()
+		end
+		capUI.syncCam()
+	end,
+	onCineCamFlag = function(_event, key)
+		playSound("click")
+		local api = WG.TerraformCineCam
+		if api then
+			capUI.setCam(key, not api.getSettings()[key])
+		end
+	end,
+	onCineCamSet = function(_event, key, value)
+		playSound("click")
+		capUI.setCam(key, tostring(value))
+	end,
+	onCineCamDo = function(_event, what)
+		playSound("click")
+		local api = WG.TerraformCineCam
+		if api and type(api[what]) == "function" then
+			api[what]()
 		end
 	end,
 	onGuideToggleSettings = function(_event)
@@ -13533,7 +13704,7 @@ local initialModel = {
 			return
 		end
 		local st = WG.SurfacePainter.getState and WG.SurfacePainter.getState()
-		if st and st.active then
+		if st and st.active and not widgetState.layersHoles then
 			-- Toggle off back to the terraform brush.
 			_deactivateAllTools()
 			if WG.TerraformBrush then
@@ -13572,7 +13743,7 @@ local initialModel = {
 		if not WG.SplatPainter then
 			return
 		end
-		if widgetState.surfHardActive then
+		if widgetState.surfHardActive or widgetState.layersHoles then
 			-- Toggle off back to the terraform brush.
 			_deactivateAllTools()
 			if WG.TerraformBrush then
@@ -13638,7 +13809,12 @@ local initialModel = {
 				return
 			end
 			if key == "size" then
-				hsp.setRadius(_elemSliderVal("surf-slider-size", 72))
+				local r = _elemSliderVal("surf-slider-size", 72)
+				if widgetState.layersHoles then
+					WG.SurfacePainter.setRadius(r)
+				else
+					hsp.setRadius(r)
+				end
 			elseif key == "strength" then
 				hsp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
 			elseif key == "falloff" then
@@ -13691,6 +13867,111 @@ local initialModel = {
 		local st = WG.SurfacePainter.getState() or {}
 		WG.SurfacePainter.setEraseMode(not st.eraseMode)
 		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- LAYERS HOLES: the surface painter cuts the ground while the panel stays on LAYERS.
+	onLayersHolesToggle = function(_event)
+		---@type table?
+		local sp = WG.SurfacePainter
+		local hsp = WG.SplatPainter
+		if not (sp and sp.setHoleMode and hsp) then
+			return
+		end
+		if widgetState.layersHoles then
+			-- back to the channel that was armed
+			widgetState.layersHolesOff()
+			sp.deactivate()
+			hsp.activate()
+			widgetState.surfHardActive = true
+			playSound("toggleOff")
+			return
+		end
+		if not widgetState.surfHardActive then
+			return
+		end
+		-- holes take the LAYERS brush size
+		local r = (hsp.getState() or {}).radius
+		widgetState.layersHolesRadius = (sp.getState() or {}).radius
+		hsp.deactivate()
+		widgetState.surfHardActive = false
+		sp.setHoleMode(true)
+		if r then
+			sp.setRadius(r)
+		end
+		sp.activate()
+		widgetState.layersHoles = true
+		if not (sp.getState() or {}).active then
+			widgetState.layersHolesOff()
+			hsp.activate()
+			widgetState.surfHardActive = true
+			return
+		end
+		playSound("toggleOn")
+	end,
+	-- Holes cut while this is on let units cross (bridges, cutscenes).
+	onLayersHolesWalkToggle = function(_event)
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setHoleWalkable) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setHoleWalkable(not st.holeWalkable)
+		playSound(st.holeWalkable and "toggleOff" or "toggleOn")
+	end,
+	-- CUT EVERYTHING / RESTORE EVERYTHING: the second click does it, one undo step.
+	onLayersHolesCutAll = function(_event)
+		local dm = widgetState.dmHandle
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (dm and widgetState.layersHoles and sp and sp.cutAllHoles) then
+			return
+		end
+		dm.surfHolesRestoreArm = false
+		if dm.surfHolesCutArm then
+			dm.surfHolesCutArm = false
+			sp.cutAllHoles()
+			playSound("reset")
+		else
+			dm.surfHolesCutArm = true
+			playSound("click")
+		end
+	end,
+	onLayersHolesRestoreAll = function(_event)
+		local dm = widgetState.dmHandle
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (dm and widgetState.layersHoles and sp and sp.clearHoles) then
+			return
+		end
+		dm.surfHolesCutArm = false
+		if dm.surfHolesRestoreArm then
+			dm.surfHolesRestoreArm = false
+			sp.clearHoles()
+			playSound("reset")
+		else
+			dm.surfHolesRestoreArm = true
+			playSound("click")
+		end
+	end,
+	-- Holes cut while this is on fade out at the rim.
+	onLayersHolesSoftToggle = function(_event)
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setHoleSoft) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setHoleSoft(not st.holeSoft)
+		playSound(st.holeSoft and "toggleOff" or "toggleOn")
+	end,
+	onSurfEraseOneToggle = function(_event)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setEraseOne) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setEraseOne(not st.eraseOne)
+		playSound(st.eraseOne and "toggleOff" or "toggleOn")
 	end,
 	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Panel state only:
 	-- tf_surface mirrors it into both engines each sync; the engines watch Ctrl and
@@ -13964,6 +14245,15 @@ local initialModel = {
 			return
 		end
 		playSound("modeSwitch")
+		-- a channel chip ends a hole session
+		if widgetState.layersHoles then
+			widgetState.layersHolesOff()
+			if WG.SurfacePainter then
+				WG.SurfacePainter.deactivate()
+			end
+			WG.SplatPainter.activate()
+			widgetState.surfHardActive = true
+		end
 		WG.SplatPainter.setChannel(tonumber(n) or 1)
 	end,
 	-- SAMPLE buttons on the SURFACE altitude rows (FILTERS in both modes and the
@@ -13975,7 +14265,7 @@ local initialModel = {
 			return
 		end
 		if target == "infAltMin" or target == "infAltMax" then
-			target = (widgetState.surfHardActive and "spInf" or "sfInf") .. target:sub(4)
+			target = ((widgetState.surfHardActive or widgetState.layersHoles) and "spInf" or "sfInf") .. target:sub(4)
 		end
 		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
 		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
@@ -14023,13 +14313,17 @@ local initialModel = {
 	end,
 	onSurfHardUndo = function(_event)
 		playSound("undo")
-		if WG.SplatPainter then
+		if widgetState.layersHoles and WG.SurfacePainter then
+			WG.SurfacePainter.undo()
+		elseif WG.SplatPainter then
 			WG.SplatPainter.undo()
 		end
 	end,
 	onSurfHardRedo = function(_event)
 		playSound("undo")
-		if WG.SplatPainter then
+		if widgetState.layersHoles and WG.SurfacePainter then
+			WG.SurfacePainter.redo()
+		elseif WG.SplatPainter then
 			WG.SplatPainter.redo()
 		end
 	end,
@@ -16179,6 +16473,16 @@ local guideHints = {
 	["btn-env-fog-atmo"] = "Open the Fog & Atmosphere panel to adjust fog distance, fog color, sun color, and sky color.",
 	["btn-env-ground-lighting"] = "Open the Ground Lighting panel to adjust ground ambient, diffuse, and specular colors.",
 	["btn-env-unit-lighting"] = "Open the Unit Lighting panel to adjust unit ambient, diffuse, and specular colors.",
+	["btn-env-scenery"] = "Open the Scenery window: what surrounds the map. The mirrored border, the rings around it, a planet or clouds below it, the sky and the water plane, with presets.",
+	["btn-scenery-preset-standard"] = "A normal map: water plane, mirrored border, nothing below.",
+	["btn-scenery-preset-void"] = "An island in a void: no water plane, no mirrored border. The sky shows around and below the map.",
+	["btn-scenery-preset-floating"] = "A map floating over a planet: no water plane, no mirrored border, a planet below. Cut holes in LAYERS to see it through the ground.",
+	["btn-scenery-preset-clouds"] = "A map above the clouds: no water plane, no mirrored border, a cloud deck below.",
+	["btn-scenery-border"] = "The mirrored copies of the map past its edge.",
+	["btn-scenery-water"] = "The water plane, on the map and past its edge. Off leaves open sky where the ground is below sea level.",
+	["btn-scenery-ground"] = "The ground itself. Off hides the whole terrain.",
+	["btn-scenery-kind-planet"] = "A planet below the map. It is far enough to stay put, close enough to shift a little as the camera moves.",
+	["btn-scenery-kind-clouds"] = "A cloud deck below the map.",
 	["btn-env-blockout"] = "Open the Blockout window: up to three backdrop layers (rings of scenery) around the map, always drawn.",
 	["btn-env-map-render"] = "Open the Map Rendering panel to adjust splat textures, void settings, and detail normals.",
 	["btn-env-water"] = "Open the Water panel to adjust surface, fresnel, perlin noise, blur, wave, and caustics properties.",
@@ -16289,7 +16593,22 @@ local guideHints = {
 	-- Map labels
 	["btn-maplabels"] = "Show map comments: colored pins you can place, drag, colour-code and write notes in — for planning and review. Switching it off hides every comment.",
 	-- Capture
+	["btn-surf-hard-holes"] = "Holes: strokes cut the ground away so the sky or a mesh below shows. The right button puts the ground back. Units cannot enter a hole.",
+	["btn-surf-hard-holes-cutall"] = "Cut everything: the whole map becomes one hole, for a floating map. Paint the floors back with the right button. Click twice; one undo step.",
+	["btn-surf-hard-holes-restoreall"] = "Restore everything: every hole is filled back in. Click twice; one undo step.",
+	["btn-surf-hard-holes-soft"] = "Soft edge: holes cut while this is on fade out at the rim instead of ending in a hard line. For a hole with no mesh ring around it.",
+	["btn-surf-hard-holes-walk"] = "Walkable: holes cut while this is on let units cross, for an invisible bridge or a cutscene. Cut over a hole again to change it.",
+	["btn-search"] = "Search: opens a field that finds any tool or control by name. Click again to close it.",
 	["btn-capture"] = "Capture: export a maximum-resolution top-down photo of the whole map, plus a separate SVG layer holding every unit as its own movable image — drop both into Figma to draft a mission.",
+	["btn-cinecam-toggle"] = "Cinematic cam: a free camera for framing a view. Fly with the keys, right-drag to look, wheel to dolly, Space takes a photo into Terraform Brush/Captures/Views. Esc leaves.",
+	["btn-cinecam-guides"] = "Show the 16:9 frame and its thirds over the view. Never in the photo.",
+	["btn-cinecam-hold"] = "Keep the same height over the ground while flying; the up and down keys change that height.",
+	["btn-cinecam-level"] = "Snap the pitch to the nearest 5 degrees (R).",
+	["btn-cinecam-home"] = "Fly back over the middle of the map (H).",
+	["btn-cinecam-orbit"] = "A middle-drag circles the point the view is aimed at.",
+	["btn-cinecam-pan"] = "A middle-drag slides the view, the ground following the pointer.",
+	["btn-cinecam-invert"] = "The middle-drag goes the other way.",
+	["btn-cinecam-shoot"] = "Save the view as it is, without the interface, into Terraform Brush/Captures/Views (Space).",
 	["btn-capture-run"] = "Fly the camera over the map tile by tile and write the photo, the unit layer and any extra layers into Terraform Brush/Captures. Takes over the camera for a few seconds; Esc cancels.",
 	["btn-capture-water"] = "Keep the water surface in the photo. Off renders the seabed dry.",
 	["btn-capture-shadows"] = "Keep terrain and feature shadows in the photo.",
@@ -17360,6 +17679,7 @@ local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environme
 widgetState.tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
+widgetState.tfScenery = require("luaui/RmlWidgets/gui_terraform_brush/tf_scenery")
 widgetState.tfExport = require("luaui/RmlWidgets/gui_terraform_brush/tf_export")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
 local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
@@ -17549,7 +17869,6 @@ end
 
 -- Drag tracking for the data-bound sliders, kept out of attachEventListeners.
 local function attachDeclarativeHandlers(_ctx)
-
 	-- Snap-size, angle-snap-step and similar sliders use data-event-change, not
 	-- AddEventListener, so trackSliderDrag is wired here. Without it draggingSlider is
 	-- never set and the per-frame sync overwrites the thumb, which then fights the mouse.
@@ -17735,6 +18054,19 @@ local function attachEventListeners()
 			end
 			event:StopPropagation()
 		end, false)
+	end
+
+	for _, cam in ipairs({ { "slider-cinecam-fly", "flySpeed" }, { "slider-cinecam-look", "lookSpeed" } }) do
+		local slider = getCachedEl(doc, cam[1])
+		if slider then
+			trackSliderDrag(slider, cam[1])
+			slider:AddEventListener("change", function(event)
+				if not uiState.updatingFromCode then
+					capUI.setCam(cam[2], tonumber(slider:GetAttribute("value")) or 100)
+				end
+				event:StopPropagation()
+			end, false)
+		end
 	end
 
 	local sliderRotation = getCachedEl(doc, "slider-rotation")
@@ -18156,6 +18488,70 @@ local function attachEventListeners()
 	-- Text fields that need the SDL text-input capture (wireTextInput), plus the Save
 	-- Project name input, whose change listener mirrors into widgetState so the confirm
 	-- handler has the value even if GetAttribute lags the keystroke.
+	widgetState.search = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_search.lua")
+	widgetState.search.attach({
+		doc = function()
+			return widgetState.document
+		end,
+		model = function()
+			return widgetState.dmHandle
+		end,
+		hints = guideHints,
+		windows = widgetState.overlayFlags,
+		windowTools = {
+			["tf-splattex-root"] = "sp",
+			["tf-grasscfg-root"] = "gb",
+			["tf-light-library-root"] = "lp",
+		},
+		open = function(window)
+			local byHandler = {
+				["tf-capture-root"] = "onToggleCapture",
+				["tf-settings-root"] = "onGuideToggleSettings",
+				["tf-skybox-library-root"] = "onEnvSkyboxLibToggle",
+				["tf-light-library-root"] = "onLpLibrary",
+				["tf-imgov-root"] = "onImgOvOpen",
+				["tf-newmap-root"] = "onFileNewMap",
+				["tf-project-open-root"] = "onFileOpenProject",
+				["tf-project-root"] = "onFileSaveProject",
+			}
+			local toggle = widgetState.windowToggles and widgetState.windowToggles[window]
+			if toggle then
+				toggle()
+			elseif window == "tf-noise-root" then
+				initialModel.onTfSetMode(nil, "noise")
+				widgetState.noiseManuallyHidden = false
+			elseif type(initialModel[byHandler[window]]) == "function" then
+				initialModel[byHandler[window]](nil)
+			end
+		end,
+		call = function(handler)
+			if type(initialModel[handler]) == "function" then
+				initialModel[handler](nil)
+			end
+		end,
+	})
+	widgetState.wireTextInput(getCachedEl(doc, "tf-search-input"))
+	-- The bar shows with the field focused; closing it ends the search.
+	widgetState.setSearchOpen = function(on)
+		widgetState.searchOpen = on and true or false
+		if widgetState.dmHandle then
+			widgetState.dmHandle.searchOpen = widgetState.searchOpen
+		end
+		local liveDoc = widgetState.document
+		local input = liveDoc and liveDoc:GetElementById("tf-search-input")
+		if widgetState.searchOpen then
+			if input then
+				input:Focus()
+			end
+		else
+			if input then
+				input:Blur()
+			end
+			if widgetState.search then
+				widgetState.search.clear()
+			end
+		end
+	end
 	widgetState.wireTextInput(getCachedEl(doc, "ll-search-input"))
 	widgetState.wireTextInput(getCachedEl(doc, "input-ll-preset-name"))
 	widgetState.wireTextInput(getCachedEl(doc, "tf-project-save-search"))
@@ -18519,6 +18915,7 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	widgetState.tfBlockout.attach(doc, ctx)
+	widgetState.tfScenery.attach(doc, ctx)
 	widgetState.tfExport.attach(doc, ctx)
 	widgetState.attachWheelLockGesture(doc)
 	tfTileset.attach(doc, ctx)
@@ -18665,6 +19062,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-env-unit-lighting-handle", widgetState.envUnitLightingRootEl)
 		makeWindowDraggable("tf-env-map-handle", widgetState.envMapRootEl)
 		makeWindowDraggable("tf-env-blockout-handle", widgetState.envBlockoutRootEl)
+		makeWindowDraggable("tf-env-scenery-handle", widgetState.envSceneryRootEl)
 		makeWindowDraggable("tf-env-water-handle", widgetState.envWaterRootEl)
 		makeWindowDraggable("tf-env-dimensions-handle", widgetState.envDimensionsRootEl)
 		makeWindowDraggable("tf-env-tileset-handle", widgetState.envTilesetRootEl)
@@ -19005,6 +19403,24 @@ function widget:Initialize()
 
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
+		---Types `text` into the panel's search field.
+		---@param text string
+		search = function(text)
+			if widgetState.setSearchOpen and not widgetState.searchOpen then
+				widgetState.setSearchOpen(true)
+			end
+			local input = widgetState.document and widgetState.document:GetElementById("tf-search-input")
+			if input then
+				input:SetAttribute("value", text)
+			end
+			widgetState.search.setQuery(text)
+		end,
+		---Opens search result `n`, as a click on its row does.
+		---@param n integer
+		---@return boolean
+		searchGo = function(n)
+			return widgetState.search.go(n)
+		end,
 		---The UNITS tool, as its button switches to it: every other tool off first, so the
 		---brush does not step it aside. Another owner of the tool (the mission editor) calls
 		---this after WG.UnitPlacerTool.setOwner.
@@ -20585,7 +21001,16 @@ function widget:Update()
 		end
 		-- Mirror invariant: a live SOFT engine means the panel reads SOFT, or HARD's chips and
 		-- the shared brush sliders would drive an engine that is not painting.
-		if widgetState.surfActive and widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "soft" then
+		-- A hole session lives only while the painter runs in hole mode.
+		if widgetState.layersHoles and not widgetState.surfActive then
+			widgetState.layersHolesOff()
+		end
+		if
+			widgetState.surfActive
+			and not widgetState.layersHoles
+			and widgetState.dmHandle
+			and widgetState.dmHandle.surfMode ~= "soft"
+		then
 			widgetState.dmHandle.surfMode = "soft"
 		end
 		local mbActive = mbState and mbState.active
@@ -20912,6 +21337,10 @@ function widget:Update()
 					setDm("clonePasteTransformsVisible", showTransforms and true or false)
 					setDm("skyboxLibraryVisible", widgetState.skyboxLibraryOpen or false)
 
+					if widgetState.search then
+						widgetState.search.tick()
+					end
+
 					-- Capture window: the readout tracks things the window does not own (viewport size,
 					-- another widget cancelling the job), so it refreshes here, not only on click.
 					if widgetState.captureOpen then
@@ -20934,6 +21363,24 @@ function widget:Update()
 							setDm("captureReadout", readout)
 							setDm("captureWarn", warn)
 						end
+						local camApi = WG.TerraformCineCam
+						local camRead = camApi and camApi.getReadout()
+						setDm("cineCamMissing", camApi == nil)
+						setDm("cineCamOn", camRead ~= nil)
+						if camApi and camRead then
+							setDm("cineCamHold", camRead.hold)
+							setDm(
+								"cineCamReadout",
+								string.format(
+									"%d elmos/s \194\183 lens %d \194\183 %s%d up",
+									camRead.speed,
+									camRead.lens,
+									camRead.hold and "held " or "",
+									camRead.height
+								)
+							)
+							setDm("cineCamShot", camApi.getStatus().lastPath)
+						end
 					end
 
 					-- Env sub-windows are not gated on envActive: the SCENE and TILESET windows stay up in
@@ -20945,6 +21392,7 @@ function widget:Update()
 					setDm("envUnitLightingVisible", widgetState.envUnitLightingOpen or false)
 					setDm("envMapVisible", widgetState.envMapOpen or false)
 					setDm("envBlockoutVisible", widgetState.envBlockoutOpen or false)
+					setDm("envSceneryVisible", widgetState.envSceneryOpen or false)
 					setDm("envWaterVisible", widgetState.envWaterOpen or false)
 					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
 					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)

@@ -58,6 +58,7 @@ function M.attach(doc, ctx)
 		return ok
 	end
 	B.available = available
+	B.setOpen = setOpen
 	available()
 	if openBtn then
 		openBtn:AddEventListener("mousedown", function(event)

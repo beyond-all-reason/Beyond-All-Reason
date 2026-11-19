@@ -636,11 +636,13 @@ local surfaceStage = {
 	dir = "LuaUI/Config/TilesetSurface/project_stage/",
 	main = "LuaUI/Config/TilesetSurface/project_stage/surface.png",
 	v4 = "LuaUI/Config/TilesetSurface/project_stage/surface_v4.png",
+	holes = "LuaUI/Config/TilesetSurface/project_stage/surface_holes.png",
 }
 
 function surfaceStage.clear()
 	os.remove(surfaceStage.main)
 	os.remove(surfaceStage.v4)
+	os.remove(surfaceStage.holes)
 end
 
 local function stepSurface()
@@ -680,6 +682,9 @@ local function stepSurface()
 	local bytes = staged and copyFile(surfaceStage.main, job.dir .. "surface.png")
 	if bytes and fileSize(surfaceStage.v4) and not copyFile(surfaceStage.v4, job.dir .. "surface_v4.png") then
 		warn("could not copy surface_v4.png into the project; variant 4 paint is not saved")
+	end
+	if bytes and fileSize(surfaceStage.holes) and not copyFile(surfaceStage.holes, job.dir .. "surface_holes.png") then
+		warn("could not copy surface_holes.png into the project; terrain holes are not saved")
 	end
 	surfaceStage.clear()
 	if not bytes then
@@ -3352,6 +3357,10 @@ local function phaseSurface(c)
 		local v4Path = maskPath:gsub("%.png$", "_v4.png")
 		if fileSize(v4Path) and not copyFile(v4Path, surfaceStage.v4) then
 			echoP("WARNING: could not stage surface_v4.png; variant 4 paint loads empty")
+		end
+		local holesPath = maskPath:gsub("%.png$", "_holes.png")
+		if fileSize(holesPath) and not copyFile(holesPath, surfaceStage.holes) then
+			echoP("WARNING: could not stage surface_holes.png; terrain holes load empty")
 		end
 		if not sp.loadMask(surfaceStage.main) then
 			surfaceStage.clear()

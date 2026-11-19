@@ -356,6 +356,29 @@ def build_minimap(minimap_rgb):
     return data
 
 
+HOLE_TERRAIN_TYPE = 1
+
+
+def hole_typemap(spec, compile_dir, typemap, notes):
+    """Marks the cells under a blocking terrain hole; returns how many."""
+    name = spec.get("holes")
+    if not name:
+        return 0
+    path = os.path.join(compile_dir, name)
+    if not os.path.isfile(path):
+        raise CompileError(f"compile.json names a hole mask it does not carry: {name}")
+    mask = load_rgb(path)
+    th, tw = typemap.shape
+    if mask.shape[0] != th * 2 + 1 or mask.shape[1] != tw * 2 + 1:
+        notes.append(f"hole mask is {mask.shape[1]}x{mask.shape[0]}, the map needs {tw * 2 + 1}x{th * 2 + 1}; holes do not block units")
+        return 0
+    # one mask texel per heightmap vertex; a cell is judged at its centre
+    centre = mask[1::2, 1::2]
+    blocked = (centre[:, :, 0] > 127) & (centre[:, :, 1] > 127)
+    typemap[blocked] = HOLE_TERRAIN_TYPE
+    return int(blocked.sum())
+
+
 def metal_grid(spec, mw, mh, notes):
     grid = np.zeros((mh, mw), np.uint8)
     metal = spec.get("metal")
@@ -517,6 +540,7 @@ def compile_export(export_dir, fmt="sd7", seven_zip=None, log=print):
     minimap = build_minimap(minimap_rgb)
     metal, metal_cells = metal_grid(spec, mapx // 2, mapy // 2, notes)
     typemap = np.zeros((mapy // 2, mapx // 2), np.uint8)
+    hole_cells = hole_typemap(spec, compile_dir, typemap, notes)
 
     smf_rel = spec.get("smf") or f"maps/{spec['file_base']}.smf"
     smt_rel = spec.get("smt") or f"maps/{spec['file_base']}.smt"
@@ -563,6 +587,8 @@ def compile_export(export_dir, fmt="sd7", seven_zip=None, log=print):
         "ground": f"{ground_source}; DXT1 {psnr:.1f} dB on the top-left 1024 texels",
         "features": "none in the .smf: placements ship in mapconfig/featureplacer/set.lua",
     }
+    if spec.get("holes"):
+        report["sections"]["holes"] = f"typemap: {hole_cells:,} cells of terrain type {HOLE_TERRAIN_TYPE} (no unit can enter)"
     if splat:
         report["sections"]["splat"] = f"{splat['dds']} ({splat_bytes:,} bytes): DXT5, {splat_mips} mip levels"
 
