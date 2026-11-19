@@ -1788,14 +1788,14 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 
 	wh.AddAction = function(_, cmd, func, data, types)
-		return self.actionHandler:AddAction(widget, cmd, func, data, types)
+		return self.actionHandler:AddAction(widget, cmd, func, data, types, not fromZip)
 	end
 	wh.RemoveAction = function(_, cmd, types)
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
 	wh.actionHandler = {
 		AddAction = function(_, _, cmd, func, data, types)
-			return self.actionHandler:AddAction(widget, cmd, func, data, types)
+			return self.actionHandler:AddAction(widget, cmd, func, data, types, not fromZip)
 		end,
 		RemoveAction = function(_, _, cmd, types)
 			return self.actionHandler:RemoveAction(widget, cmd, types)
