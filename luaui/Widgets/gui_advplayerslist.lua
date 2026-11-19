@@ -1,3 +1,5 @@
+local giveBackAction = VFS.Include("luaui/Include/giveback_action.lua", nil, VFS.ZIP)
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -1958,8 +1960,8 @@ function widget:DrawScreen()
 		for i, drawObject in ipairs(drawList) do
 			if drawObject >= 0 then
 				local p = player[drawObject]
-				if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
-					DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i])
+				if p and not p.spec and p.allyteam == myAllyTeamID and (p.totake or CanGiveBack(p.team)) then
+					DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i], not p.totake)
 				end
 			end
 		end
@@ -2787,13 +2789,22 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 	gl_Texture(false)
 end
 
-function DrawTakeSignal(posY)
+function DrawTakeSignal(posY, giveBack)
 	if blink then
-		-- Draws a blinking arrow + "TAKE" label if a same-team player left (/take option)
+		-- Draw the available takeover/return action beside the allied player.
 		gl_Color(0.7, 0.7, 0.7)
 		gl_Texture(pics.arrowPic)
 		DrawRect(widgetPosX - (14 * playerScale), posY, widgetPosX, posY + (16 * playerScale))
 		gl_Color(1, 1, 1)
+		if giveBack then
+			gl_Texture(false)
+			font:Begin()
+			local label = BAR.I18N("ui.playersList.giveBackLabel")
+			local size = math.min(10 * playerScale, 43 * playerScale / math.max(font:GetTextWidth(label), 1))
+			font:Print(label, widgetPosX - 34 * playerScale, posY + 4 * playerScale, size, "oc")
+			font:End()
+			return
+		end
 		gl_Texture(pics.takePic)
 		-- take.dds is a square image (90x90), so keep a 1:1 aspect to avoid distortion
 		DrawRect(
@@ -4188,10 +4199,14 @@ function widget:MousePress(x, y, button)
 				if t then
 					if clickedPlayer.allyteam == myAllyTeamID then
 						if m_take.active then
-							if clickedPlayer.totake then
+							if clickedPlayer.totake or CanGiveBack(clickedPlayer.team) then
 								if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
 									--take button
-									Take(clickedPlayer.team)
+									if clickedPlayer.totake then
+										Take(clickedPlayer.team)
+									else
+										giveBackAction.run(myTeamID, clickedPlayer.team, mySpecStatus)
+									end
 									return true
 								end
 							end
@@ -4797,6 +4812,10 @@ end
 --  Take related stuff
 ---------------------------------------------------------------------------------------------------
 
+function CanGiveBack(teamID)
+	return giveBackAction.available(myTeamID, teamID, mySpecStatus)
+end
+
 function IsTakeable(teamID)
 	if sp.GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
 		local units = sp.GetTeamUnitCount(teamID)
@@ -4832,11 +4851,11 @@ function widget:Update(delta)
 		for i, drawObject in ipairs(drawList) do
 			if drawObject >= 0 then
 				local p = player[drawObject]
-				if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+				if p and not p.spec and p.allyteam == myAllyTeamID and (p.totake or CanGiveBack(p.team)) then
 					local posY = widgetPosY + ((widgetHeight - drawListOffset[i]) * widgetScale)
 					if my >= posY and my <= posY + (16 * widgetScale * playerScale) then
 						overTakeIcon = true
-						tipText = BAR.I18N("ui.playersList.takeUnits")
+						tipText = BAR.I18N(p.totake and "ui.playersList.takeUnits" or "ui.playersList.giveBackUnits")
 						tipTextTitle = nil
 						tipTextTime = osClock()
 						break

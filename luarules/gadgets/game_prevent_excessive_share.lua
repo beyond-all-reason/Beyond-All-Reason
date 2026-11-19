@@ -20,15 +20,20 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local forcedTeamID ---@type TeamID?
+local pendingUnitCaps = {} ---@type table<UnitID, TeamID[]>
 
 ---@param unitID UnitID
 ---@param teamID TeamID
 ---@return boolean transferred
 local function forceUnitTransfer(unitID, teamID)
 	local oldTeamID = Spring.GetUnitTeam(unitID) ---@as TeamID
+	local previousForcedTeamID = forcedTeamID
 	forcedTeamID = teamID
-	local transferred = Spring.TransferUnit(unitID, teamID)
-	forcedTeamID = nil
+	local ok, transferred = pcall(Spring.TransferUnit, unitID, teamID)
+	forcedTeamID = previousForcedTeamID
+	if not ok then
+		error(transferred)
+	end
 	if transferred then
 		local overLimit = Spring.GetTeamUnitCount(teamID) --[[@as integer]] - Spring.GetTeamMaxUnits(teamID)
 		local unusedLimit = Spring.GetTeamMaxUnits(oldTeamID) - Spring.GetTeamUnitCount(oldTeamID) --[[@as integer]]
@@ -79,7 +84,33 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	return capture or newTeam == forcedTeamID or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1)
+	pendingUnitCaps[unitID] = nil
+	if capture or newTeam == forcedTeamID or BAR.Utilities.CanTeamReceiveUnits(newTeam, 1) then
+		return true
+	end
+	if GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam) then
+		pendingUnitCaps[unitID] = { oldTeam, newTeam }
+		return true
+	end
+	return false
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local pending = pendingUnitCaps[unitID]
+	pendingUnitCaps[unitID] = nil
+	if pending and pending[1] == oldTeam and pending[2] == newTeam then
+		-- Reconcile after ownership changes, including nested transfers of linked units.
+		local needed = Spring.GetTeamUnitCount(newTeam) - Spring.GetTeamMaxUnits(newTeam)
+		local available = Spring.GetTeamMaxUnits(oldTeam) - Spring.GetTeamUnitCount(oldTeam)
+		local amount = math.min(needed, available) ---@as integer
+		if amount > 0 then
+			Spring.TransferTeamMaxUnits(oldTeam, newTeam, amount)
+		end
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	pendingUnitCaps[unitID] = nil
 end
 
 function gadget:Initialize()

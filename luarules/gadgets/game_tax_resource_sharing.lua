@@ -88,7 +88,13 @@ end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits or GG.IsTransferForced(newTeam) then
+	if
+		capture
+		or spIsCheatingEnabled()
+		or unitCount < gameMaxUnits
+		or GG.IsTransferForced(newTeam)
+		or (GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam))
+	then
 		return true
 	end
 	return false
