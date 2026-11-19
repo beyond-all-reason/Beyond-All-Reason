@@ -50,7 +50,7 @@ if Engine.FeatureSupport and Engine.FeatureSupport.nanoParticlesGL4 then
 	-- effect draws from that same budget, so leaving it at 0 would mean no nano
 	-- particles at all -- restore it before standing down.
 	if (Spring.GetConfigInt("MaxNanoParticles", 0) or 0) <= 0 then
-		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 15000) or 15000) * 0.6))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 20000) or 20000) * 0.6))
 	end
 
 	return false
@@ -5247,7 +5247,7 @@ local function applyParticleMode(newMode, force)
 
 	if newMode == 0 then
 		-- Hand the spray budget back to the engine.
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.5))
 		return
 	end
 
@@ -5257,7 +5257,7 @@ local function applyParticleMode(newMode, force)
 	if not initGL4() then
 		spEcho("Nano Particles GL4: GL init failed; falling back to engine spray.")
 		NANO_PARTICLE_MODE = 0
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.5))
 	end
 end
 

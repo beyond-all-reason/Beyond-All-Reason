@@ -36,7 +36,7 @@ local memoryGuard
 -- Avoid deep copies and cycles.
 local function copyTable(source)
 	local copy = {}
-	for k, v in pairs(source) do
+	for k, v in pairs(source or {}) do
 		copy[k] = v
 	end
 	return copy
@@ -67,6 +67,7 @@ local tableConcat = table.concat
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
 local debugGetlocal = debug.getlocal
+local coroutineRunning = coroutine.running
 local ioOpen = io.open
 local vfsLoadFile = VFS.LoadFile
 local vfsFileExists = VFS.FileExists
@@ -270,6 +271,7 @@ local flexCallIns = {
 	"FeatureCreated",
 	"FeatureDestroyed",
 	"UnsyncedHeightMapUpdate",
+	"KeyBindingsChanged",
 }
 if Engine.FeatureSupport.nanoParticleUpdateCallin then
 	flexCallIns[#flexCallIns + 1] = "NanoParticleUpdate"
@@ -618,6 +620,7 @@ local function isHiddenStateCommand(command)
 	end
 	command = stringLower(command)
 	return stringFind(command, "%f[%w_]save%f[^%w_]") ~= nil
+		or stringFind(command, "%f[%w_]savegame%f[^%w_]") ~= nil
 		or stringFind(command, "%f[%w_]luasave%f[^%w_]") ~= nil
 		or stringFind(command, "%f[%w_]dumpstate%f[^%w_]") ~= nil
 end
@@ -727,6 +730,21 @@ end
 
 local function unavailableFunction() end
 
+local function debugGetinfoSafe(thread, target, what)
+	if type(thread) ~= "thread" then
+		thread, target, what = nil, thread, target
+	end
+	what = (stringGsub(what or "flnSu", "[^SlnuL]", "")) -- allows S,l,n,u,L
+	if thread and thread ~= coroutineRunning() then
+		return debugGetinfo(thread, target, what)
+	end
+	local level = tonumber(target)
+	if level then
+		target = level + 1
+	end
+	return debugGetinfo(target, what)
+end
+
 local function grantUserRmlUi()
 	local ok, powerUsers = pcall(vfsInclude, "luarules/configs/powerusers.lua", {}, vfsZip)
 	if not ok or type(powerUsers) ~= "table" then
@@ -754,7 +772,7 @@ local function CreateSandboxedSystem()
 		return tableSave(t, target, header)
 	end
 
-	local sandboxedDebug = { traceback = debugTraceback, getinfo = debugGetinfo }
+	local sandboxedDebug = { traceback = debugTraceback, getinfo = debugGetinfoSafe }
 
 	local sandboxedIo = copyTable(io)
 	local ioOutput = io.output
@@ -993,6 +1011,7 @@ local function CreateSandboxedSystem()
 	sandboxedSpring.Start = refuseEngineRestart
 	sandboxedSpring.Restart = refuseEngineRestart
 	sandboxedSpring.Reload = refuseEngineRestart
+	local sandboxedGame
 	if not allowunitcontrolwidgets then
 		local function disabledOrder()
 			error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
@@ -1002,6 +1021,10 @@ local function CreateSandboxedSystem()
 				sandboxedSpring[k] = disabledOrder
 			end
 		end
+		sandboxedGame = copyTable(Game)
+		sandboxedGame.Commands = copyTable(Game.Commands)
+		sandboxedGame.Commands.GiveInsertOrderToUnit = disabledOrder
+		sandboxedGame.Commands.ReissueOrder = disabledOrder
 	end
 	local sandboxedLibraries = {
 		table = sandboxedTable,
@@ -1010,6 +1033,7 @@ local function CreateSandboxedSystem()
 		os = sandboxedOs,
 		VFS = sandboxedVfs,
 		Spring = sandboxedSpring,
+		Game = sandboxedGame,
 		Script = sandboxedScript,
 		gl = sandboxedGl,
 		RmlUi = sandboxedRmlUi,
@@ -1112,6 +1136,7 @@ function widgetHandler:Initialize()
 	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
 	self:UpdateCallIns()
 	insertingStartupWidgets = true
+	self.startingUp = true -- (a widget's Initialize can tell it was on already from being switched on)
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -1129,6 +1154,7 @@ function widgetHandler:Initialize()
 		end
 	end
 	insertingStartupWidgets = false
+	self.startingUp = false
 	-- Kept, the list would hold every startup widget in memory after it is switched off.
 	unsortedWidgets = {}
 
@@ -1302,6 +1328,7 @@ local function getLocalName(level, index)
 	return name
 end
 
+local userWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, true>
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
@@ -1688,7 +1715,8 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return chunk()
 	end
 	if not fromZip then
-		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfoSafe }
+		userWidgets[widget] = true
 		local customCommands = {}
 		userCustomCommands[widget] = customCommands
 		wh.customCommands = customCommands
@@ -1769,14 +1797,14 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 
 	wh.AddAction = function(_, cmd, func, data, types)
-		return self.actionHandler:AddAction(widget, cmd, func, data, types)
+		return self.actionHandler:AddAction(widget, cmd, func, data, types, not fromZip)
 	end
 	wh.RemoveAction = function(_, cmd, types)
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
 	wh.actionHandler = {
 		AddAction = function(_, _, cmd, func, data, types)
-			return self.actionHandler:AddAction(widget, cmd, func, data, types)
+			return self.actionHandler:AddAction(widget, cmd, func, data, types, not fromZip)
 		end,
 		RemoveAction = function(_, _, cmd, types)
 			return self.actionHandler:RemoveAction(widget, cmd, types)
@@ -3219,6 +3247,15 @@ function widgetHandler:Update()
 	-- window that was opened by the input events just handled
 	self:UpdateModalState(deltaTime)
 
+	if self.keyBindingsDirty then
+		self.keyBindingsDirty = false
+		tracyZoneBeginN("W:KeyBindingsChanged")
+		for _, w in ipairs(self.KeyBindingsChangedList) do
+			w:KeyBindingsChanged()
+		end
+		tracyZoneEnd()
+	end
+
 	tracyZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
 		tracyZoneBeginN(w._tracyUpdateName)
@@ -3784,9 +3821,13 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 		return true
 	end
 
-	local textOwner = self.textOwner
+	local copyActionList = self.actionHandler.CopyActionList
+	local textOwner = self.textOwner ---@as Widget?
 	if textOwner then
-		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+		local ownerActions = userWidgets[textOwner] and actions and copyActionList(actions) or actions
+		if
+			not textOwner.KeyPress or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, ownerActions)
+		then
 			tracyZoneEnd()
 			return true
 		end
@@ -3811,7 +3852,8 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 
 	for _, w in ipairs(self.KeyPressList) do
 		if allowedWidget(w) then
-			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+			local widgetActions = userWidgets[w] and actions and copyActionList(actions) or actions
+			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, widgetActions) then
 				tracyZoneEnd()
 				return true
 			end
@@ -3832,9 +3874,11 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 		return true
 	end
 
+	local copyActionList = self.actionHandler.CopyActionList
 	local textOwner = self.textOwner
 	if textOwner then
-		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+		local ownerActions = userWidgets[textOwner] and actions and copyActionList(actions) or actions
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, ownerActions) then
 			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
 			self.actionHandler:ClearPressedKey(scanCode)
 			tracyZoneEnd()
@@ -3848,7 +3892,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
-		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+		local widgetActions = userWidgets[w] and actions and copyActionList(actions) or actions
+		if w:KeyRelease(key, mods, label, unicode, scanCode, widgetActions) then
 			tracyZoneEnd()
 			return true
 		end
@@ -4374,6 +4419,11 @@ function widgetHandler:LanguageChanged()
 		w:LanguageChanged()
 	end
 	tracyZoneEnd()
+end
+
+-- The engine calls this once per bind command; widgets hear it once, on the next Update.
+function widgetHandler:KeyBindingsChanged()
+	self.keyBindingsDirty = true
 end
 
 function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)

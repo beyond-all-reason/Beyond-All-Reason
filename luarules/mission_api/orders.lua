@@ -206,11 +206,12 @@ end
 
 ---@param waitTags table<UnitID, integer>
 local function releaseWaitingUnits(waitTags)
+	local inProgressIssuingOrders = GG.MissionAPI.issuingOrders
 	GG.MissionAPI.issuingOrders = true
 	for unitID, commandTag in pairs(waitTags) do
 		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, commandTag)
 	end
-	GG.MissionAPI.issuingOrders = nil
+	GG.MissionAPI.issuingOrders = inProgressIssuingOrders
 end
 
 ---@return number? waitKey
@@ -359,11 +360,12 @@ local function giveUnitOrders(unitOrders)
 		listUnitIDs[orderList][unitID] = true
 	end
 
+	local inProgressIssuingOrders = GG.MissionAPI.issuingOrders
 	GG.MissionAPI.issuingOrders = true
 	for _, orders in ipairs(orderLists) do
 		Spring.GiveOrderArrayToUnitMap(listUnitIDs[orders], orders)
 	end
-	GG.MissionAPI.issuingOrders = nil
+	GG.MissionAPI.issuingOrders = inProgressIssuingOrders
 
 	trackWaits(newWaits, unitOrders)
 end

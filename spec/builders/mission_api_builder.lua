@@ -39,7 +39,7 @@ end, math.huge)
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
----@field TriggerDefinitions table
+---@field ConditionDefinitions table
 ---@field Modules table
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
@@ -64,6 +64,7 @@ end, math.huge)
 ---@field hideObjective table
 ---@field showObjective table
 ---@field updateObjectiveProgress table
+---@field setObjectiveActive table
 ---@field echoObjectiveUpdate table
 ---@field activateTrigger table
 
@@ -122,7 +123,7 @@ function MB.new()
 		unitLoadout = {},
 		featureLoadout = {},
 		actionDefinitions = {},
-		triggerDefinitions = {},
+		conditionDefinitions = {},
 		objectiveTriggers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
@@ -279,8 +280,8 @@ end
 
 ---@param definitions table
 ---@return MissionApiBuilder
-function MB:WithTriggerDefinitions(definitions)
-	self.triggerDefinitions = definitions or {}
+function MB:WithConditionDefinitions(definitions)
+	self.conditionDefinitions = definitions or {}
 	return self
 end
 
@@ -307,6 +308,8 @@ end
 ---stubs then share with any module already holding them.
 ---@return MissionApiMock
 function MB:Build(installed)
+	-- Stage stubs read and write the table the modules will see: the installed one, or the mock itself.
+	local stateTable = installed
 	installed = installed or {}
 
 	local trackedUnitIDs = refill(installed.trackedUnitIDs, {})
@@ -356,6 +359,7 @@ function MB:Build(installed)
 	local tryAdvanceCalls = {}
 	local activateObjectiveCalls = {}
 	local updateProgressCalls = {}
+	local setObjectiveActiveCalls = {}
 	local cancelObjectiveCalls = {}
 	local updateObjectiveCalls = {}
 	local completeObjectiveCalls = {}
@@ -395,12 +399,33 @@ function MB:Build(installed)
 		end,
 	}
 
-	local objectives = {
+	-- Mirrors stages.lua, keeping CurrentStageID up to date so a spec can read where a change left it.
+	local stages = {
+		GetCurrentStageID = function()
+			return stateTable.CurrentStageID
+		end,
+		GetChangeCount = function()
+			return #changeStageCalls
+		end,
+		SetInitialStage = function(stageID)
+			stateTable.CurrentStageID = stageID
+		end,
+		GetStage = function(stageID)
+			return stateTable.Stages[stageID]
+		end,
 		ActivateStage = function(stageID)
 			activateStageCalls[#activateStageCalls + 1] = { stageID = stageID }
+			stateTable.CurrentStageID = stageID
 		end,
 		ChangeStage = function(stageID)
 			changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
+			stateTable.CurrentStageID = stageID
+		end,
+	}
+
+	local objectives = {
+		SetObjectiveActive = function(objectiveID, active)
+			setObjectiveActiveCalls[#setObjectiveActiveCalls + 1] = { objectiveID = objectiveID, active = active }
 		end,
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
@@ -453,6 +478,7 @@ function MB:Build(installed)
 		Loadout = loadout,
 		Orders = missionOrders,
 		Sounds = sounds,
+		Stages = stages,
 		Objectives = objectives,
 	}
 
@@ -491,7 +517,7 @@ function MB:Build(installed)
 		ObjectiveTriggers = self.objectiveTriggers,
 		ObjectiveStages = objectiveStages,
 		ActionDefinitions = self.actionDefinitions,
-		TriggerDefinitions = self.triggerDefinitions,
+		ConditionDefinitions = self.conditionDefinitions,
 		Modules = modules,
 		ActivateTrigger = function(trigger)
 			activateTriggerCalls[#activateTriggerCalls + 1] =
@@ -518,6 +544,7 @@ function MB:Build(installed)
 			hideObjective = hideObjectiveCalls,
 			showObjective = showObjectiveCalls,
 			updateObjectiveProgress = updateProgressCalls,
+			setObjectiveActive = setObjectiveActiveCalls,
 			echoObjectiveUpdate = echoCalls,
 			activateTrigger = activateTriggerCalls,
 		},
@@ -533,6 +560,7 @@ function MB:Build(installed)
 				tryAdvanceCalls,
 				activateObjectiveCalls,
 				updateProgressCalls,
+				setObjectiveActiveCalls,
 				updateObjectiveCalls,
 				cancelObjectiveCalls,
 				completeObjectiveCalls,
@@ -551,6 +579,7 @@ function MB:Build(installed)
 		end,
 	}
 
+	stateTable = stateTable or mock
 	return mock
 end
 
