@@ -620,6 +620,7 @@ local function isHiddenStateCommand(command)
 	end
 	command = stringLower(command)
 	return stringFind(command, "%f[%w_]save%f[^%w_]") ~= nil
+		or stringFind(command, "%f[%w_]savegame%f[^%w_]") ~= nil
 		or stringFind(command, "%f[%w_]luasave%f[^%w_]") ~= nil
 		or stringFind(command, "%f[%w_]dumpstate%f[^%w_]") ~= nil
 end
