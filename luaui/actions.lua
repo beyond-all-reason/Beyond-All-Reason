@@ -208,6 +208,8 @@ local function CopyActionList(actions)
 	return copy
 end
 
+actionHandler.CopyActionList = CopyActionList
+
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions, key, scanCode)
 	local callInfoList = actionMap[cmd]
 	if callInfoList == nil then

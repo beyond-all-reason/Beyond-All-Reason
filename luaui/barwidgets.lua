@@ -1321,6 +1321,7 @@ local function getLocalName(level, index)
 	return name
 end
 
+local userWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, true>
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
@@ -1708,6 +1709,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	if not fromZip then
 		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfoSafe }
+		userWidgets[widget] = true
 		local customCommands = {}
 		userCustomCommands[widget] = customCommands
 		wh.customCommands = customCommands
@@ -3812,9 +3814,13 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 		return true
 	end
 
-	local textOwner = self.textOwner
+	local copyActionList = self.actionHandler.CopyActionList
+	local textOwner = self.textOwner ---@as Widget?
 	if textOwner then
-		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+		local ownerActions = userWidgets[textOwner] and actions and copyActionList(actions) or actions
+		if
+			not textOwner.KeyPress or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, ownerActions)
+		then
 			tracyZoneEnd()
 			return true
 		end
@@ -3839,7 +3845,8 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 
 	for _, w in ipairs(self.KeyPressList) do
 		if allowedWidget(w) then
-			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+			local widgetActions = userWidgets[w] and actions and copyActionList(actions) or actions
+			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, widgetActions) then
 				tracyZoneEnd()
 				return true
 			end
@@ -3860,9 +3867,11 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 		return true
 	end
 
+	local copyActionList = self.actionHandler.CopyActionList
 	local textOwner = self.textOwner
 	if textOwner then
-		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+		local ownerActions = userWidgets[textOwner] and actions and copyActionList(actions) or actions
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, ownerActions) then
 			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
 			self.actionHandler:ClearPressedKey(scanCode)
 			tracyZoneEnd()
@@ -3876,7 +3885,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
-		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+		local widgetActions = userWidgets[w] and actions and copyActionList(actions) or actions
+		if w:KeyRelease(key, mods, label, unicode, scanCode, widgetActions) then
 			tracyZoneEnd()
 			return true
 		end
