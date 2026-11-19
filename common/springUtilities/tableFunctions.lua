@@ -9,6 +9,8 @@ local function customKeyToUsefulTable(dataRaw)
 		dataRaw = string.base64Decode(dataRaw)
 		local dataFunc, err = loadstring("return " .. dataRaw)
 		if dataFunc then
+			-- Sandboxed func env:
+			setfenv(dataFunc, {})
 			local success, usefulTable = pcall(dataFunc)
 			if success then
 				return usefulTable
