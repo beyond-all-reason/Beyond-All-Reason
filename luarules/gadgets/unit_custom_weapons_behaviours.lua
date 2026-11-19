@@ -657,9 +657,7 @@ function gadget:Initialize()
 	local cruiseEngagedMetatable = { __call = cruiseEngaged }
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		-- Torpedo selectors are handled by unit_torpedo_guidance.lua.
-		local configuredEffect = weaponDef.customParams.speceffect
-		if configuredEffect and configuredEffect ~= "torpwaterpen" and configuredEffect ~= "torpsurfacetrack" then
+		if weaponDef.customParams.speceffect then
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then

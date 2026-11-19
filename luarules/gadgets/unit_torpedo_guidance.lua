@@ -30,6 +30,7 @@ local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -40,8 +41,6 @@ local spSetProjectileVelocity = Spring.SetProjectileVelocity
 local targetedGround = string.byte("g")
 local targetedUnit = string.byte("u")
 
--- Retain the existing speceffect selectors for weapon definitions and tweakdefs.
-local specialEffectFunction = {}
 local weaponDefEffect = {}
 ---@type table<number, true?>
 local torpedoAvoidLeavingWaterDefs = {}
@@ -298,6 +297,8 @@ local function setTorpedoPitchVelocity(
 	state.pitchFrame = gameFrame
 end
 
+local torpedoSurfaceTrack
+
 local function torpedoWaterPen(projectileID)
 	local state = getOrCreateTorpedoState(projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
@@ -377,7 +378,11 @@ local function torpedoWaterPen(projectileID)
 		return false
 	end
 
-	-- Allow the initial dive to reach running depth before rounding the entry.
+	if velocityY >= entryHandoffDiveSpeed then
+		projectiles[projectileID] = torpedoSurfaceTrack
+	end
+
+	-- Delay entry shaping so steep shots can finish their initial dive.
 	if positionY >= surfaceTargetDepth then
 		return false
 	end
@@ -413,25 +418,47 @@ local function torpedoWaterPen(projectileID)
 		math_diag(horizontalDistance, depthError)
 	)
 
-	if velocityY >= entryHandoffDiveSpeed then
-		projectiles[projectileID] = specialEffectFunction.torpsurfacetrack
-	end
 	return false
 end
 
-local function torpedoSurfaceTrack(projectileID)
+local function limitShoreRise(projectileID, positionX, positionY, positionZ)
+	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+	if velocityX == nil or velocityY == nil or velocityZ == nil or speed == nil or speed <= 0 then
+		return
+	end
+	local maxRiseSpeed = shoreTorpedoBreachCeiling - positionY
+	if velocityY > maxRiseSpeed then
+		setTorpedoPitchVelocity(
+			projectileID,
+			positionX,
+			positionY,
+			positionZ,
+			velocityX,
+			velocityY,
+			velocityZ,
+			speed,
+			math.asin(math_clamp(maxRiseSpeed / speed, -1, 1)),
+			nil,
+			false,
+			nil,
+			true
+		)
+	end
+end
+
+torpedoSurfaceTrack = function(projectileID)
 	local state = getOrCreateTorpedoState(projectileID)
 	local projectileDefID = spGetProjectileDefID(projectileID)
 	local avoidLeavingWater = projectileDefID and torpedoAvoidLeavingWaterDefs[projectileDefID]
-	local inWater = isProjectileInWater(projectileID)
+	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+	if positionX == nil or positionY == nil or positionZ == nil then
+		return false
+	end
 
-	if avoidLeavingWater and inWater then
-		state.shoreEnteredWater = true
-	elseif not inWater then
+	if positionY > 0 then
 		if state.shoreEnteredWater then
-			local _, positionY = spGetProjectilePosition(projectileID)
 			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
-			if positionY == nil or velocityX == nil or velocityY == nil or velocityZ == nil then
+			if velocityX == nil or velocityY == nil or velocityZ == nil then
 				return false
 			end
 			local returnSpeed = -positionY
@@ -439,40 +466,35 @@ local function torpedoSurfaceTrack(projectileID)
 			if velocityY > returnSpeed then
 				spSetProjectileVelocity(projectileID, velocityX, returnSpeed, velocityZ)
 			end
-			return false
 		end
-		return
+		return false
+	end
+	if avoidLeavingWater then
+		state.shoreEnteredWater = true
 	end
 
 	local targetType, targetID = spGetProjectileTarget(projectileID)
-	if targetType ~= targetedUnit or not targetID then
-		return false
+	local targetX, targetZ, surfaceTarget
+	if targetType == targetedUnit and targetID then
+		local _
+		targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, targetID, state)
+	end
+	if not surfaceTarget then
+		-- Keep breach protection active when native guidance takes over the pitch.
+		if avoidLeavingWater then
+			limitShoreRise(projectileID, positionX, positionY, positionZ)
+			return false
+		end
+		return surfaceTarget == false
 	end
 
-	local targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, targetID, state)
-	if surfaceTarget == false then
-		return true
-	end
-	if surfaceTarget == nil then
-		return false
-	end
-
-	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-	if
-		positionX == nil
-		or positionY == nil
-		or positionZ == nil
-		or velocityX == nil
-		or velocityY == nil
-		or velocityZ == nil
-		or speed == nil
-	then
+	if velocityX == nil or velocityY == nil or velocityZ == nil or speed == nil then
 		return false
 	end
 	---@type number?
 	local arrivalFrames
-	if targetX ~= nil and targetZ ~= nil then
+	if targetID and targetX ~= nil and targetZ ~= nil then
 		arrivalFrames = getSurfaceArrivalFrames(
 			projectileID,
 			targetID,
@@ -514,36 +536,11 @@ local function torpedoSurfaceTrack(projectileID)
 	)
 
 	if avoidLeavingWater then
-		local currentVelocityX, currentVelocityY, currentVelocityZ, currentSpeed = spGetProjectileVelocity(projectileID)
-		if currentVelocityX == nil or currentVelocityY == nil or currentVelocityZ == nil or currentSpeed == nil then
-			return false
-		end
-		local maxRiseSpeed = shoreTorpedoBreachCeiling - positionY
-
-		if currentVelocityY > maxRiseSpeed then
-			setTorpedoPitchVelocity(
-				projectileID,
-				positionX,
-				positionY,
-				positionZ,
-				currentVelocityX,
-				currentVelocityY,
-				currentVelocityZ,
-				currentSpeed,
-				math.asin(math_clamp(maxRiseSpeed / currentSpeed, -1, 1)),
-				nil,
-				false,
-				nil,
-				true
-			)
-		end
+		limitShoreRise(projectileID, positionX, positionY, positionZ)
 	end
 
 	return false
 end
-
-specialEffectFunction.torpwaterpen = torpedoWaterPen
-specialEffectFunction.torpsurfacetrack = torpedoSurfaceTrack
 
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
@@ -555,14 +552,14 @@ function gadget:Initialize()
 			torpedoAvoidLeavingWaterDefs[weaponDefID] = true
 		end
 
-		local effectName = customParams.speceffect
+		local guidance = customParams.torpedo_guidance
 		-- Lua WeaponDefs.turnRate is already converted to radians/frame by the
 		-- engine. Its normalized tangent step turns through atan(turnRate).
 		weaponPitchStep[weaponDefID] = weaponDef.tracks and math.atan(math_max(weaponDef.turnRate or 0, 0)) or 0
-		if effectName == "torpwaterpen" then
+		if guidance == "water_entry" then
 			weaponDefEffect[weaponDefID] = torpedoWaterPen
 			torpedoWaterPenDefs[weaponDefID] = true
-		elseif effectName == "torpsurfacetrack" then
+		elseif guidance == "surface" then
 			weaponDefEffect[weaponDefID] = torpedoSurfaceTrack
 		end
 	end
@@ -597,8 +594,10 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 	for projectileID, effect in pairs(projectiles) do
-		if effect(projectileID) then
+		local ttl = spGetProjectileTimeToLive(projectileID)
+		if ttl == nil or ttl <= 0 or effect(projectileID) then
 			projectiles[projectileID] = nil
+			torpedoStates[projectileID] = nil
 		end
 	end
 end

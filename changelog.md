@@ -1,4 +1,5 @@
 # November
+- [Torpedoes] Smoother water entry and near-surface tracking against ships. Shore-launched torpedoes recover from breaches after entering the water.
 - [Zombies]
   - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.

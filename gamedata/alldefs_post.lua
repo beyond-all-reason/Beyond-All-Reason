@@ -1044,8 +1044,12 @@ local function weaponDef_Post(name, wDef)
 	local damage = wDef.damage
 	local shield = wDef.shield
 
-	if wDef.weapontype == "TorpedoLauncher" and not customparams.speceffect then
-		customparams.speceffect = "torpsurfacetrack"
+	if
+		wDef.weapontype == "TorpedoLauncher"
+		and customparams.torpedo_guidance == nil
+		and not customparams.speceffect
+	then
+		customparams.torpedo_guidance = "surface"
 	end
 
 	if not SaveDefsToCustomParams then
