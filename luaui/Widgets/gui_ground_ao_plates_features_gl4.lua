@@ -167,7 +167,12 @@ function widget:Initialize()
 		end
 	end
 	local runtimeInfo = plateAtlas.runtimeTexture and gl.TextureInfo(plateAtlas.runtimeTexture)
-	Spring.Echo("Ground AO feature incremental atlas: " .. runtimeImageCount .. " image(s), " .. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created"))
+	Spring.Echo(
+		"Ground AO feature incremental atlas: "
+			.. runtimeImageCount
+			.. " image(s), "
+			.. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created")
+	)
 	featureDefIDtoDecalInfo = plateAtlas.plates
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit

@@ -106,8 +106,7 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 		local entry = identities[identity]
 		if not entry then
 			local model, sizeX, sizeZ = GroundAOAtlas.ParseFilename(path)
-			entry = { path = path, key = key, uv = uv, atlasIndex = uv and 0 or 1,
-				sizeX = sizeX, sizeZ = sizeZ }
+			entry = { path = path, key = key, uv = uv, atlasIndex = uv and 0 or 1, sizeX = sizeX, sizeZ = sizeZ }
 			identities[identity] = entry
 			if model then
 				models[model] = models[model] or {}
@@ -245,8 +244,14 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 				entry, x, z = automatic(def, cp)
 			end
 			if entry and x and z then
-				result.plates[id] = { texturePath = entry.path, atlasIndex = entry.atlasIndex,
-					sizeX = x * 16, sizeZ = z * 16, alpha = finite(cp[alphaParam]) or 1, uv = entry.uv }
+				result.plates[id] = {
+					texturePath = entry.path,
+					atlasIndex = entry.atlasIndex,
+					sizeX = x * 16,
+					sizeZ = z * 16,
+					alpha = finite(cp[alphaParam]) or 1,
+					uv = entry.uv,
+				}
 				if entry.atlasIndex == 1 then
 					needed[entry.key] = entry
 				end
@@ -258,7 +263,14 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 		if not next(needed) then
 			return
 		end
-		for _, name in ipairs({ "CreateTextureAtlas", "AddAtlasTexture", "FinalizeTextureAtlas", "GetAtlasTexture", "DeleteTextureAtlas", "TextureInfo" }) do
+		for _, name in ipairs({
+			"CreateTextureAtlas",
+			"AddAtlasTexture",
+			"FinalizeTextureAtlas",
+			"GetAtlasTexture",
+			"DeleteTextureAtlas",
+			"TextureInfo",
+		}) do
 			if not gl[name] then
 				warn("runtime atlas unavailable: gl." .. name)
 				return
@@ -276,8 +288,14 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 		for _, key in ipairs(sortedKeys(needed)) do
 			local entry = needed[key]
 			local ok, info = pcall(gl.TextureInfo, entry.path)
-			if ok and type(info) == "table" and positive(info.xsize) and positive(info.ysize)
-				and info.xsize < maxX and info.ysize < maxY then
+			if
+				ok
+				and type(info) == "table"
+				and positive(info.xsize)
+				and positive(info.ysize)
+				and info.xsize < maxX
+				and info.ysize < maxY
+			then
 				valid[#valid + 1] = entry
 			else
 				warn("invalid or oversized PNG: " .. entry.path)

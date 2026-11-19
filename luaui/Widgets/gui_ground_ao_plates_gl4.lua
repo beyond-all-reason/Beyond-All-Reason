@@ -112,7 +112,12 @@ function widget:Initialize()
 		end
 	end
 	local runtimeInfo = plateAtlas.runtimeTexture and gl.TextureInfo(plateAtlas.runtimeTexture)
-	Spring.Echo("Ground AO unit incremental atlas: " .. runtimeImageCount .. " image(s), " .. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created"))
+	Spring.Echo(
+		"Ground AO unit incremental atlas: "
+			.. runtimeImageCount
+			.. " image(s), "
+			.. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created")
+	)
 
 	-- Init the unitDefIDtoInstanceData
 	for id, plate in pairs(plateAtlas.plates) do
