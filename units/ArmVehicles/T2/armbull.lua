@@ -1,7 +1,7 @@
 return {
 	armbull = {
 		buildpic = "ARMBULL.DDS",
-		buildtime = 27000,
+		buildtime = 25000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "44 23 52",
@@ -32,7 +32,7 @@ return {
 		trackwidth = 44,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 1.6104,
+		turninplacespeedlimit = 1.6,
 		turnrate = 365,
 		usepiececollisionvolumes = 1,
 		customparams = {
