@@ -2910,6 +2910,11 @@ function gadget:Initialize()
 	GG.CUSGL4.SetShaderUniforms = SetShaderUniforms
 	GG.CUSGL4.RefreshUnit = RefreshUnit
 	GG.CUSGL4.enabled = true
+
+	-- Features without a team read the last palette slot (2047)
+	if Spring.SetCustomPaletteColor and Engine.maxCustomPaletteID then
+		Spring.SetCustomPaletteColor(Engine.maxCustomPaletteID, 0, 0, 0)
+	end
 end
 
 function gadget:Shutdown()

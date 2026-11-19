@@ -17,8 +17,8 @@ end
 
 local SYNC_ACTION = "MissionUnitColor"
 local PARAM = "mission_unit_color"
--- The last custom slot (palette 2047) is where features without a team land.
-local LAST_SLOT = Engine.maxCustomPaletteID - 1
+-- Features without a team read the last custom slot (palette 2047); cus_gl4 keeps it black.
+local FEATURE_SLOT = Engine.maxCustomPaletteID
 
 local spSetUnitPaletteIndex = Spring.SetUnitPaletteIndex
 
@@ -30,7 +30,7 @@ local colored = {} ---@type table<integer, true?>
 ---@return integer? slot nil once the palette is full
 local function slotFor(packed)
 	local slot = slotOfColor[packed]
-	if slot or nextSlot > LAST_SLOT then
+	if slot or nextSlot >= FEATURE_SLOT then
 		return slot
 	end
 	slot = nextSlot
