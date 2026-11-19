@@ -66,6 +66,7 @@ StartMoving(reversing)
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
+	oldHeading = get HEADING;
 	start-script Steering();
 
 
