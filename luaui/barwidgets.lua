@@ -67,6 +67,7 @@ local tableConcat = table.concat
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
 local debugGetlocal = debug.getlocal
+local coroutineRunning = coroutine.running
 local ioOpen = io.open
 local vfsLoadFile = VFS.LoadFile
 local vfsFileExists = VFS.FileExists
@@ -728,6 +729,21 @@ end
 
 local function unavailableFunction() end
 
+local function debugGetinfoSafe(thread, target, what)
+	if type(thread) ~= "thread" then
+		thread, target, what = nil, thread, target
+	end
+	what = (stringGsub(what or "flnSu", "[^SlnuL]", "")) -- allows S,l,n,u,L
+	if thread and thread ~= coroutineRunning() then
+		return debugGetinfo(thread, target, what)
+	end
+	local level = tonumber(target)
+	if level then
+		target = level + 1
+	end
+	return debugGetinfo(target, what)
+end
+
 local function grantUserRmlUi()
 	local ok, powerUsers = pcall(vfsInclude, "luarules/configs/powerusers.lua", {}, vfsZip)
 	if not ok or type(powerUsers) ~= "table" then
@@ -755,7 +771,7 @@ local function CreateSandboxedSystem()
 		return tableSave(t, target, header)
 	end
 
-	local sandboxedDebug = { traceback = debugTraceback, getinfo = debugGetinfo }
+	local sandboxedDebug = { traceback = debugTraceback, getinfo = debugGetinfoSafe }
 
 	local sandboxedIo = copyTable(io)
 	local ioOutput = io.output
@@ -1691,7 +1707,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return chunk()
 	end
 	if not fromZip then
-		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfoSafe }
 		local customCommands = {}
 		userCustomCommands[widget] = customCommands
 		wh.customCommands = customCommands
