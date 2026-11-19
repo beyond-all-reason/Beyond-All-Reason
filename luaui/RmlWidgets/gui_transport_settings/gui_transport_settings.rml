@@ -1,0 +1,52 @@
+<rml>
+<head>
+	<link type="text/rcss" href="gui_transport_settings.rcss" />
+</head>
+<body data-model="transport_settings_model">
+	<div class="ts-panel">
+		<div class="ts-header" data-event-click="toggleOpen()">
+			<div class="ts-title">{{title}}</div>
+			<div class="ts-chevron">{{chevron}}</div>
+		</div>
+		<div class="ts-body" data-if="open">
+			<div class="ts-section">{{gameplayTitle}}</div>
+			<div class="ts-hint" data-if="!cheats">{{cheatHint}}</div>
+			<div class="ts-row" data-for="row : rows">
+				<div class="ts-label">{{row.label}}</div>
+				<div class="ts-btn" data-class-ts-off="!cheats" data-event-click="step(row.key, -1)"><div class="ts-btn-text">-</div></div>
+				<div class="ts-value">{{row.value}}</div>
+				<div class="ts-btn" data-class-ts-off="!cheats" data-event-click="step(row.key, 1)"><div class="ts-btn-text">+</div></div>
+			</div>
+			<div class="ts-section">{{previewTitle}}</div>
+			<div class="ts-toggle" data-event-click="toggle('ghosts')">
+				<div class="ts-check" data-class-ts-on="ghosts"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{ghostsLabel}}</div>
+					<div class="ts-toggle-hint">{{ghostsHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('rings')">
+				<div class="ts-check" data-class-ts-on="rings"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{ringsLabel}}</div>
+					<div class="ts-toggle-hint">{{ringsHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('claimLines')">
+				<div class="ts-check" data-class-ts-on="claimLines"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{claimLinesLabel}}</div>
+					<div class="ts-toggle-hint">{{claimLinesHint}}</div>
+				</div>
+			</div>
+			<div class="ts-toggle" data-event-click="toggle('rightClickLoad')">
+				<div class="ts-check" data-class-ts-on="rightClickLoad"></div>
+				<div class="ts-toggle-text">
+					<div class="ts-label">{{rightClickLoadLabel}}</div>
+					<div class="ts-toggle-hint">{{rightClickLoadHint}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

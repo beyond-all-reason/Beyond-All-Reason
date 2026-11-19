@@ -12,6 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	return false
+end
+
 local isAirTransport = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then

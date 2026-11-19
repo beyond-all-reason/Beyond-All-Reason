@@ -1,0 +1,40 @@
+-- Tractor beam transport UI words. English only until they move into language/*.json.
+return {
+	seat = "seat",
+	seats = "seats",
+	slowsTransport = "slows its transport",
+	slotClick = "Click: unload here now",
+	slotCtrlClick = "Ctrl + click: pick where to unload",
+
+	settingsTitle = "TRANSPORTS",
+	settingsGameplay = "Gameplay, live for everyone",
+	settingsNeedsCheats = "Needs /cheat to change",
+	settingsPreview = "Preview, only for you",
+	perTransport = "per transport",
+
+	enemyLoadMode = "Enemy loading",
+	enemyLoadModes = {
+		"never",
+		"stunned only",
+		"stunned, or hovered over",
+		"hovered over, close",
+		"hovered over, close, no chase",
+	},
+	loadRadius = "Load radius",
+	unloadRadius = "Unload radius",
+	enemyRadiusMult = "Enemy load radius",
+	enemyLoadFrames = "Enemy hover time",
+	speedModMode = "Speed penalty",
+	speedModModes = { [0] = "none", "by seats used", "by weight" },
+	speedModStrength = "Penalty strength",
+	comSpeedModStrength = "Commander penalty",
+
+	ghosts = "Unload preview",
+	ghostsHint = "Shows where each passenger will land before you click",
+	rings = "Load range rings",
+	ringsHint = "Rings under units your transports can pick up",
+	claimLines = "Pick-up lines",
+	claimLinesHint = "Lines from each transport to the unit it will grab",
+	rightClickLoad = "Right click loads",
+	rightClickLoadHint = "Right click a unit with transports selected to load it, no need for the Load button",
+}
