@@ -30,7 +30,7 @@ return {
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
 		sightemitheight = 64,
-		speed = 47,
+		speed = 41,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 129,
