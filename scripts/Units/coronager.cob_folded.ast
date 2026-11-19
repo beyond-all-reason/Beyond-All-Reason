@@ -1,0 +1,2172 @@
+<pieceDec>
+   <keyword> piece </keyword> 
+  <identifier> rtube </identifier> 
+  <symbol> , </symbol> 
+  <identifier> ltube </identifier> 
+  <symbol> , </symbol> 
+  <identifier> flare1 </identifier> 
+  <symbol> , </symbol> 
+  <identifier> flare2 </identifier> 
+  <symbol> , </symbol> 
+  <identifier> base </identifier> 
+  <symbol> , </symbol> 
+  <identifier> tbrace </identifier> 
+  <symbol> , </symbol> 
+  <identifier> ring </identifier> 
+  <symbol> , </symbol> 
+  <identifier> wake </identifier> 
+  <symbol> , </symbol> 
+  <identifier> aimfrom </identifier> 
+  <symbol> , </symbol> 
+  <identifier> prop </identifier> 
+  <symbol> ; </symbol> 
+</pieceDec>
+<staticVarDec>
+   <keyword> static </keyword> 
+  <symbol> - </symbol> 
+  <keyword> var </keyword> 
+  <identifier> Stunned </identifier> 
+  <symbol> ; </symbol> 
+</staticVarDec>
+<staticVarDec>
+   <keyword> static </keyword> 
+  <symbol> - </symbol> 
+  <keyword> var </keyword> 
+  <identifier> gun_1 </identifier> 
+  <symbol> ; </symbol> 
+</staticVarDec>
+<staticVarDec>
+   <keyword> static </keyword> 
+  <symbol> - </symbol> 
+  <keyword> var </keyword> 
+  <identifier> isSmoking </identifier> 
+  <symbol> ; </symbol> 
+</staticVarDec>
+<funcDec>
+   <identifier> HitByWeaponId </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> anglex </identifier> 
+    <symbol> , </symbol> 
+    <identifier> anglez </identifier> 
+    <symbol> , </symbol> 
+    <identifier> weaponid </identifier> 
+    <symbol> , </symbol> 
+    <identifier> damage </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <keyword> get </keyword> 
+        <term>
+           <floatConstant> 17 </floatConstant> 
+        </term>
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <returnStatement>
+       <keyword> return </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 100 </floatConstant> 
+        </term>
+      </expression>
+    </returnStatement>
+    <symbol> ; </symbol> 
+  </ifStatement>
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <keyword> get </keyword> 
+            <term>
+               <floatConstant> 4 </floatConstant> 
+            </term>
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> &gt; </symbol> 
+      <term>
+         <floatConstant> 65 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> isSmoking </identifier> 
+        </term>
+        <symbol> = </symbol> 
+        <symbol> = </symbol> 
+        <term>
+           <floatConstant> 0 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <identifier> isSmoking </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <floatConstant> 1 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+      <startStatement>
+         <keyword> start </keyword> 
+        <symbol> - </symbol> 
+        <keyword> script </keyword> 
+        <identifier> DamagedSmoke </identifier> 
+        <symbol> ( </symbol> 
+        <expressionList>
+         </expressionList>
+        <symbol> ) </symbol> 
+      </startStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <symbol> } </symbol> 
+  </ifStatement>
+  <startStatement>
+     <keyword> start </keyword> 
+    <symbol> - </symbol> 
+    <keyword> script </keyword> 
+    <identifier> HitByWeapon </identifier> 
+    <symbol> ( </symbol> 
+    <expressionList>
+       <expression>
+         <term>
+           <identifier> damage </identifier> 
+        </term>
+      </expression>
+      <symbol> , </symbol> 
+      <expression>
+         <term>
+           <identifier> anglez </identifier> 
+        </term>
+      </expression>
+      <symbol> , </symbol> 
+      <expression>
+         <term>
+           <identifier> anglex </identifier> 
+        </term>
+      </expression>
+    </expressionList>
+    <symbol> ) </symbol> 
+  </startStatement>
+  <symbol> ; </symbol> 
+  <returnStatement>
+     <keyword> return </keyword> 
+    <expression>
+       <term>
+         <floatConstant> 100 </floatConstant> 
+      </term>
+    </expression>
+  </returnStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> HitByWeapon </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> anglex </identifier> 
+    <symbol> , </symbol> 
+    <identifier> anglez </identifier> 
+    <symbol> , </symbol> 
+    <identifier> damageamount </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <identifier> damageamount </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <identifier> damageamount </identifier> 
+    </term>
+    <symbol> / </symbol> 
+    <term>
+       <integerConstant> 500 </integerConstant> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> damageamount </identifier> 
+      </term>
+      <symbol> &lt; </symbol> 
+      <term>
+         <floatConstant> 3 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <returnStatement>
+       <keyword> return </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 0 </floatConstant> 
+        </term>
+      </expression>
+    </returnStatement>
+    <symbol> ; </symbol> 
+  </ifStatement>
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> damageamount </identifier> 
+      </term>
+      <symbol> &gt; </symbol> 
+      <term>
+         <floatConstant> 100 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <identifier> damageamount </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 100 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+  </ifStatement>
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> z </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <identifier> anglez </identifier> 
+          </term>
+          <symbol> * </symbol> 
+          <term>
+             <identifier> damageamount </identifier> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <floatConstant> 100 </floatConstant> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 25.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> x </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+      <symbol> - </symbol> 
+      <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <identifier> anglex </identifier> 
+          </term>
+          <symbol> * </symbol> 
+          <term>
+             <identifier> damageamount </identifier> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <floatConstant> 100 </floatConstant> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 25.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <keyword> var </keyword> 
+  <identifier> maxTime </identifier> 
+  <symbol> ; </symbol> 
+  <identifier> maxTime </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <keyword> get </keyword> 
+          <term>
+             <floatConstant> 132 </floatConstant> 
+          </term>
+          <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <keyword> get </keyword> 
+              <term>
+                 <floatConstant> 133 </floatConstant> 
+              </term>
+              <symbol> ( </symbol> 
+              <expression>
+                 <term>
+                   <identifier> anglez </identifier> 
+                </term>
+              </expression>
+              <symbol> ) </symbol> 
+            </term>
+          </expression>
+          <symbol> , </symbol> 
+          <expression>
+             <term>
+               <keyword> get </keyword> 
+              <term>
+                 <floatConstant> 133 </floatConstant> 
+              </term>
+              <symbol> ( </symbol> 
+              <expression>
+                 <term>
+                   <identifier> anglex </identifier> 
+                </term>
+              </expression>
+              <symbol> ) </symbol> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <identifier> maxTime </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <floatConstant> 65 </floatConstant> 
+    </term>
+    <symbol> + </symbol> 
+    <term>
+       <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <symbol> ( </symbol> 
+              <expression>
+                 <term>
+                   <identifier> maxTime </identifier> 
+                </term>
+                <symbol> * </symbol> 
+                <term>
+                   <identifier> damageamount </identifier> 
+                </term>
+                <symbol> / </symbol> 
+                <term>
+                   <floatConstant> 100 </floatConstant> 
+                </term>
+              </expression>
+              <symbol> ) </symbol> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+        <symbol> * </symbol> 
+        <term>
+           <floatConstant> 1000 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+    </term>
+    <symbol> / </symbol> 
+    <term>
+       <symbol> &lt; </symbol> 
+      <floatConstant> 25.0 </floatConstant> 
+      <symbol> &gt; </symbol> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <sleepStatement>
+     <keyword> sleep </keyword> 
+    <expression>
+       <term>
+         <identifier> maxTime </identifier> 
+      </term>
+    </expression>
+  </sleepStatement>
+  <symbol> ; </symbol> 
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> z </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 0.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <integerConstant> 1137 </integerConstant> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> x </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 0.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <integerConstant> 1137 </integerConstant> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> DamagedSmoke </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <keyword> var </keyword> 
+  <identifier> current_health_pct </identifier> 
+  <symbol> ; </symbol> 
+  <whileStatement>
+     <keyword> while </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> current_health_pct </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <keyword> get </keyword> 
+            <term>
+               <floatConstant> 4 </floatConstant> 
+            </term>
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> current_health_pct </identifier> 
+        </term>
+        <symbol> &lt; </symbol> 
+        <term>
+           <floatConstant> 4 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <identifier> current_health_pct </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <floatConstant> 4 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+    </ifStatement>
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> current_health_pct </identifier> 
+        </term>
+        <symbol> &gt; </symbol> 
+        <term>
+           <floatConstant> 65 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <identifier> isSmoking </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <floatConstant> 0 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+      <returnStatement>
+         <keyword> return </keyword> 
+      </returnStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> current_health_pct </identifier> 
+        </term>
+        <symbol> &lt; </symbol> 
+        <term>
+           <floatConstant> 4 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <identifier> current_health_pct </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <floatConstant> 4 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+    </ifStatement>
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <keyword> Rand </keyword> 
+          <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <floatConstant> 1 </floatConstant> 
+            </term>
+          </expression>
+          <symbol> , </symbol> 
+          <expression>
+             <term>
+               <floatConstant> 65 </floatConstant> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+        <symbol> &lt; </symbol> 
+        <term>
+           <identifier> current_health_pct </identifier> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <emitSfxStatement>
+         <keyword> emit </keyword> 
+        <symbol> - </symbol> 
+        <keyword> sfx </keyword> 
+        <expression>
+           <term>
+             <floatConstant> 257 </floatConstant> 
+          </term>
+        </expression>
+        <keyword> from </keyword> 
+        <expression>
+           <term>
+             <identifier> base </identifier> 
+          </term>
+        </expression>
+      </emitSfxStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+      <keyword> else </keyword> 
+      <symbol> { </symbol> 
+      <emitSfxStatement>
+         <keyword> emit </keyword> 
+        <symbol> - </symbol> 
+        <keyword> sfx </keyword> 
+        <expression>
+           <term>
+             <floatConstant> 258 </floatConstant> 
+          </term>
+        </expression>
+        <keyword> from </keyword> 
+        <expression>
+           <term>
+             <identifier> base </identifier> 
+          </term>
+        </expression>
+      </emitSfxStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <identifier> current_health_pct </identifier> 
+            </term>
+            <symbol> * </symbol> 
+            <term>
+               <floatConstant> 50 </floatConstant> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </whileStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<staticVarDec>
+   <keyword> static </keyword> 
+  <symbol> - </symbol> 
+  <keyword> var </keyword> 
+  <identifier> TB_prevHeadingDelta </identifier> 
+  <symbol> , </symbol> 
+  <identifier> TB_maxSpeed </identifier> 
+  <symbol> , </symbol> 
+  <identifier> TB_prevHeightDelta </identifier> 
+  <symbol> , </symbol> 
+  <identifier> TB_currHeadingORHeight </identifier> 
+  <symbol> ; </symbol> 
+</staticVarDec>
+<funcDec>
+   <identifier> TB_Init </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <identifier> TB_maxSpeed </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 132 </floatConstant> 
+      </term>
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <floatConstant> 20000 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> , </symbol> 
+      <expression>
+         <term>
+           <keyword> get </keyword> 
+          <term>
+             <floatConstant> 75 </floatConstant> 
+          </term>
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeadingDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 82 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeightDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 10 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> TiltBank </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> reversing </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <keyword> var </keyword> 
+  <identifier> tb_frame </identifier> 
+  <symbol> ; </symbol> 
+  <identifier> tb_frame </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <floatConstant> 0 </floatConstant> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <whileStatement>
+     <keyword> while </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> TB_currHeadingORHeight </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <keyword> get </keyword> 
+        <term>
+           <floatConstant> 10 </floatConstant> 
+        </term>
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <identifier> TB_prevHeightDelta </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <identifier> TB_currHeadingORHeight </identifier> 
+          </term>
+          <symbol> - </symbol> 
+          <term>
+             <identifier> TB_prevHeightDelta </identifier> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <integerConstant> 2048 </integerConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> TB_prevHeightDelta </identifier> 
+        </term>
+        <symbol> ! </symbol> 
+        <symbol> = </symbol> 
+        <term>
+           <identifier> TB_currHeadingORHeight </identifier> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <turnStatement>
+         <keyword> turn </keyword> 
+        <identifier> base </identifier> 
+        <keyword> to </keyword> 
+        <keyword> x </keyword> 
+        <symbol> - </symbol> 
+        <keyword> axis </keyword> 
+        <expression>
+           <term>
+             <symbol> ( </symbol> 
+            <expression>
+               <term>
+                 <identifier> TB_prevHeightDelta </identifier> 
+              </term>
+              <symbol> * </symbol> 
+              <term>
+                 <symbol> &lt; </symbol> 
+                <symbol> - </symbol> 
+                <floatConstant> 0.32 </floatConstant> 
+                <symbol> &gt; </symbol> 
+              </term>
+            </expression>
+            <symbol> ) </symbol> 
+          </term>
+        </expression>
+        <keyword> speed </keyword> 
+        <expression>
+           <term>
+             <symbol> &lt; </symbol> 
+            <floatConstant> 30.0 </floatConstant> 
+            <symbol> &gt; </symbol> 
+          </term>
+        </expression>
+      </turnStatement>
+      <symbol> ; </symbol> 
+      <identifier> TB_prevHeightDelta </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <identifier> TB_currHeadingORHeight </identifier> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <identifier> TB_currHeadingORHeight </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <keyword> get </keyword> 
+        <term>
+           <floatConstant> 82 </floatConstant> 
+        </term>
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <identifier> TB_prevHeadingDelta </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <symbol> ( </symbol> 
+            <expression>
+               <term>
+                 <symbol> ( </symbol> 
+                <expression>
+                   <term>
+                     <symbol> ( </symbol> 
+                    <expression>
+                       <term>
+                         <identifier> TB_currHeadingORHeight </identifier> 
+                      </term>
+                      <symbol> - </symbol> 
+                      <term>
+                         <identifier> TB_prevHeadingDelta </identifier> 
+                      </term>
+                      <symbol> + </symbol> 
+                      <term>
+                         <floatConstant> 98280 </floatConstant> 
+                      </term>
+                    </expression>
+                    <symbol> ) </symbol> 
+                  </term>
+                  <symbol> % </symbol> 
+                  <term>
+                     <floatConstant> 65520 </floatConstant> 
+                  </term>
+                </expression>
+                <symbol> ) </symbol> 
+              </term>
+              <symbol> - </symbol> 
+              <term>
+                 <floatConstant> 32760 </floatConstant> 
+              </term>
+            </expression>
+            <symbol> ) </symbol> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <floatConstant> 2 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <identifier> TB_prevHeadingDelta </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <identifier> TB_prevHeadingDelta </identifier> 
+      </term>
+      <symbol> * </symbol> 
+      <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <symbol> ( </symbol> 
+            <expression>
+               <term>
+                 <keyword> get </keyword> 
+                <term>
+                   <floatConstant> 29 </floatConstant> 
+                </term>
+              </term>
+            </expression>
+            <symbol> ) </symbol> 
+          </term>
+          <symbol> * </symbol> 
+          <term>
+             <floatConstant> 1000 </floatConstant> 
+          </term>
+          <symbol> / </symbol> 
+          <term>
+             <symbol> ( </symbol> 
+            <expression>
+               <term>
+                 <identifier> TB_maxSpeed </identifier> 
+              </term>
+            </expression>
+            <symbol> ) </symbol> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <integerConstant> 10000 </integerConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> TB_prevHeadingDelta </identifier> 
+        </term>
+        <symbol> ! </symbol> 
+        <symbol> = </symbol> 
+        <term>
+           <identifier> TB_currHeadingORHeight </identifier> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <turnStatement>
+         <keyword> turn </keyword> 
+        <identifier> base </identifier> 
+        <keyword> to </keyword> 
+        <keyword> z </keyword> 
+        <symbol> - </symbol> 
+        <keyword> axis </keyword> 
+        <expression>
+           <term>
+             <identifier> TB_prevHeadingDelta </identifier> 
+          </term>
+          <symbol> * </symbol> 
+          <term>
+             <symbol> &lt; </symbol> 
+            <floatConstant> 0.5 </floatConstant> 
+            <symbol> &gt; </symbol> 
+          </term>
+        </expression>
+        <keyword> speed </keyword> 
+        <expression>
+           <term>
+             <symbol> &lt; </symbol> 
+            <floatConstant> 30.0 </floatConstant> 
+            <symbol> &gt; </symbol> 
+          </term>
+        </expression>
+      </turnStatement>
+      <symbol> ; </symbol> 
+      <identifier> TB_prevHeadingDelta </identifier> 
+      <symbol> = </symbol> 
+      <expression>
+         <term>
+           <identifier> TB_currHeadingORHeight </identifier> 
+        </term>
+      </expression>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <identifier> tb_frame </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <identifier> tb_frame </identifier> 
+          </term>
+          <symbol> + </symbol> 
+          <term>
+             <floatConstant> 1 </floatConstant> 
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> % </symbol> 
+      <term>
+         <floatConstant> 8 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> tb_frame </identifier> 
+        </term>
+        <symbol> = </symbol> 
+        <symbol> = </symbol> 
+        <term>
+           <floatConstant> 0 </floatConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <emitSfxStatement>
+         <keyword> emit </keyword> 
+        <symbol> - </symbol> 
+        <keyword> sfx </keyword> 
+        <expression>
+           <term>
+             <floatConstant> 259 </floatConstant> 
+          </term>
+        </expression>
+        <keyword> from </keyword> 
+        <expression>
+           <term>
+             <identifier> base </identifier> 
+          </term>
+        </expression>
+      </emitSfxStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <ifStatement>
+       <keyword> if </keyword> 
+      <symbol> ( </symbol> 
+      <expression>
+         <term>
+           <identifier> tb_frame </identifier> 
+        </term>
+        <symbol> = </symbol> 
+        <symbol> = </symbol> 
+        <term>
+           <integerConstant> 4 </integerConstant> 
+        </term>
+      </expression>
+      <symbol> ) </symbol> 
+      <symbol> { </symbol> 
+      <emitSfxStatement>
+         <keyword> emit </keyword> 
+        <symbol> - </symbol> 
+        <keyword> sfx </keyword> 
+        <expression>
+           <term>
+             <floatConstant> 259 </floatConstant> 
+          </term>
+        </expression>
+        <keyword> from </keyword> 
+        <expression>
+           <term>
+             <identifier> base </identifier> 
+          </term>
+        </expression>
+      </emitSfxStatement>
+      <symbol> ; </symbol> 
+      <emitSfxStatement>
+         <keyword> emit </keyword> 
+        <symbol> - </symbol> 
+        <keyword> sfx </keyword> 
+        <expression>
+           <term>
+             <integerConstant> 1025 </integerConstant> 
+          </term>
+        </expression>
+        <keyword> from </keyword> 
+        <expression>
+           <term>
+             <identifier> base </identifier> 
+          </term>
+        </expression>
+      </emitSfxStatement>
+      <symbol> ; </symbol> 
+      <symbol> } </symbol> 
+    </ifStatement>
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 64 </integerConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </whileStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> Create </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <hideStatement>
+     <keyword> hide </keyword> 
+    <identifier> wake </identifier> 
+  </hideStatement>
+  <symbol> ; </symbol> 
+  <hideStatement>
+     <keyword> hide </keyword> 
+    <identifier> flare1 </identifier> 
+  </hideStatement>
+  <symbol> ; </symbol> 
+  <hideStatement>
+     <keyword> hide </keyword> 
+    <identifier> flare2 </identifier> 
+  </hideStatement>
+  <symbol> ; </symbol> 
+  <identifier> gun_1 </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <floatConstant> 0 </floatConstant> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <callStatement>
+     <keyword> call </keyword> 
+    <symbol> - </symbol> 
+    <keyword> script </keyword> 
+    <identifier> TB_Init </identifier> 
+    <symbol> ( </symbol> 
+    <expressionList>
+     </expressionList>
+    <symbol> ) </symbol> 
+  </callStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> Propcontrol </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <keyword> var </keyword> 
+  <identifier> currentSpeed </identifier> 
+  <symbol> ; </symbol> 
+  <whileStatement>
+     <keyword> while </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> currentSpeed </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <symbol> ( </symbol> 
+        <expression>
+           <term>
+             <keyword> get </keyword> 
+            <term>
+               <floatConstant> 29 </floatConstant> 
+            </term>
+          </term>
+        </expression>
+        <symbol> ) </symbol> 
+      </term>
+      <symbol> * </symbol> 
+      <term>
+         <floatConstant> 1000 </floatConstant> 
+      </term>
+      <symbol> / </symbol> 
+      <term>
+         <identifier> TB_maxSpeed </identifier> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <spinStatement>
+       <keyword> spin </keyword> 
+      <identifier> prop </identifier> 
+      <keyword> around </keyword> 
+      <keyword> z </keyword> 
+      <symbol> - </symbol> 
+      <keyword> axis </keyword> 
+      <keyword> speed </keyword> 
+      <expression>
+         <term>
+           <symbol> &lt; </symbol> 
+          <floatConstant> 1.0 </floatConstant> 
+          <symbol> &gt; </symbol> 
+        </term>
+        <symbol> * </symbol> 
+        <term>
+           <identifier> currentSpeed </identifier> 
+        </term>
+      </expression>
+      <keyword> accelerate </keyword> 
+      <expression>
+         <term>
+           <symbol> &lt; </symbol> 
+          <floatConstant> 10.0 </floatConstant> 
+          <symbol> &gt; </symbol> 
+        </term>
+      </expression>
+    </spinStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 100 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </whileStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> StartMoving </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> reversing </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <signalStatement>
+     <keyword> signal </keyword> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+  </signalStatement>
+  <symbol> ; </symbol> 
+  <setSignalMaskStatement>
+     <keyword> set </keyword> 
+    <symbol> - </symbol> 
+    <keyword> signal </keyword> 
+    <symbol> - </symbol> 
+    <keyword> mask </keyword> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+  </setSignalMaskStatement>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeadingDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 82 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeightDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 10 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <startStatement>
+     <keyword> start </keyword> 
+    <symbol> - </symbol> 
+    <keyword> script </keyword> 
+    <identifier> TiltBank </identifier> 
+    <symbol> ( </symbol> 
+    <expressionList>
+       <expression>
+         <term>
+           <identifier> reversing </identifier> 
+        </term>
+      </expression>
+    </expressionList>
+    <symbol> ) </symbol> 
+  </startStatement>
+  <symbol> ; </symbol> 
+  <symbol> ; </symbol> 
+  <startStatement>
+     <keyword> start </keyword> 
+    <symbol> - </symbol> 
+    <keyword> script </keyword> 
+    <identifier> Propcontrol </identifier> 
+    <symbol> ( </symbol> 
+    <expressionList>
+     </expressionList>
+    <symbol> ) </symbol> 
+  </startStatement>
+  <symbol> ; </symbol> 
+  <whileStatement>
+     <keyword> while </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> wake </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 250 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> wake </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1025 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> wake </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 250 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </whileStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> StopMoving </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <signalStatement>
+     <keyword> signal </keyword> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+  </signalStatement>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeadingDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 82 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <identifier> TB_prevHeightDelta </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <keyword> get </keyword> 
+      <term>
+         <floatConstant> 10 </floatConstant> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> z </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 30.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <turnStatement>
+     <keyword> turn </keyword> 
+    <identifier> base </identifier> 
+    <keyword> to </keyword> 
+    <keyword> x </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+    <keyword> speed </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 30.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+  </turnStatement>
+  <symbol> ; </symbol> 
+  <symbol> ; </symbol> 
+  <stopSpinStatement>
+     <keyword> stop </keyword> 
+    <symbol> - </symbol> 
+    <keyword> spin </keyword> 
+    <identifier> prop </identifier> 
+    <keyword> around </keyword> 
+    <keyword> z </keyword> 
+    <symbol> - </symbol> 
+    <keyword> axis </keyword> 
+    <keyword> decelerate </keyword> 
+    <expression>
+       <term>
+         <symbol> &lt; </symbol> 
+        <floatConstant> 10.0 </floatConstant> 
+        <symbol> &gt; </symbol> 
+      </term>
+    </expression>
+  </stopSpinStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> SetStunned </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> State </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <identifier> Stunned </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <identifier> State </identifier> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> AimWeapon1 </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> heading </identifier> 
+    <symbol> , </symbol> 
+    <identifier> pitch </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <returnStatement>
+     <keyword> return </keyword> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+  </returnStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> AimFromWeapon1 </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> pieceIndex </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <identifier> pieceIndex </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <identifier> aimfrom </identifier> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> FireWeapon1 </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> gun_1 </identifier> 
+      </term>
+      <symbol> = </symbol> 
+      <symbol> = </symbol> 
+      <term>
+         <floatConstant> 0 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1025 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 50 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 100 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 150 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <sleepStatement>
+       <keyword> sleep </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 200 </floatConstant> 
+        </term>
+      </expression>
+    </sleepStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare1 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+    <keyword> else </keyword> 
+    <symbol> { </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1024 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare2 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <emitSfxStatement>
+       <keyword> emit </keyword> 
+      <symbol> - </symbol> 
+      <keyword> sfx </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 1025 </integerConstant> 
+        </term>
+      </expression>
+      <keyword> from </keyword> 
+      <expression>
+         <term>
+           <identifier> flare2 </identifier> 
+        </term>
+      </expression>
+    </emitSfxStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </ifStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> Shot1 </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+   </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <identifier> gun_1 </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <symbol> ! </symbol> 
+      <term>
+         <identifier> gun_1 </identifier> 
+      </term>
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> QueryWeapon1 </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> pieceIndex </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> gun_1 </identifier> 
+      </term>
+      <symbol> = </symbol> 
+      <symbol> = </symbol> 
+      <term>
+         <floatConstant> 0 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> pieceIndex </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <identifier> flare1 </identifier> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+    <keyword> else </keyword> 
+    <symbol> { </symbol> 
+    <identifier> pieceIndex </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <identifier> flare2 </identifier> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </ifStatement>
+  <symbol> } </symbol> 
+</funcDec>
+<funcDec>
+   <identifier> Killed </identifier> 
+  <symbol> ( </symbol> 
+  <argumentList>
+     <identifier> severity </identifier> 
+    <symbol> , </symbol> 
+    <identifier> corpsetype </identifier> 
+  </argumentList>
+  <symbol> ) </symbol> 
+  <symbol> { </symbol> 
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> severity </identifier> 
+      </term>
+      <symbol> &lt; </symbol> 
+      <symbol> = </symbol> 
+      <term>
+         <floatConstant> 25 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> corpsetype </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 1 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> base </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 160 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> rtube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 160 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> ltube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 160 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> wake </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 160 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <returnStatement>
+       <keyword> return </keyword> 
+      <expression>
+         <term>
+           <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <identifier> corpsetype </identifier> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+      </expression>
+    </returnStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </ifStatement>
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> severity </identifier> 
+      </term>
+      <symbol> &lt; </symbol> 
+      <symbol> = </symbol> 
+      <term>
+         <floatConstant> 50 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> corpsetype </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 2 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> base </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 160 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> rtube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <floatConstant> 128 </floatConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> ltube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 152 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <returnStatement>
+       <keyword> return </keyword> 
+      <expression>
+         <term>
+           <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <identifier> corpsetype </identifier> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+      </expression>
+    </returnStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </ifStatement>
+  <ifStatement>
+     <keyword> if </keyword> 
+    <symbol> ( </symbol> 
+    <expression>
+       <term>
+         <identifier> severity </identifier> 
+      </term>
+      <symbol> &lt; </symbol> 
+      <symbol> = </symbol> 
+      <term>
+         <floatConstant> 99 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ) </symbol> 
+    <symbol> { </symbol> 
+    <identifier> corpsetype </identifier> 
+    <symbol> = </symbol> 
+    <expression>
+       <term>
+         <floatConstant> 3 </floatConstant> 
+      </term>
+    </expression>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> base </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 152 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> rtube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 152 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <explodeStatement>
+       <keyword> explode </keyword> 
+      <identifier> ltube </identifier> 
+      <keyword> type </keyword> 
+      <expression>
+         <term>
+           <integerConstant> 154 </integerConstant> 
+        </term>
+      </expression>
+    </explodeStatement>
+    <symbol> ; </symbol> 
+    <returnStatement>
+       <keyword> return </keyword> 
+      <expression>
+         <term>
+           <symbol> ( </symbol> 
+          <expression>
+             <term>
+               <identifier> corpsetype </identifier> 
+            </term>
+          </expression>
+          <symbol> ) </symbol> 
+        </term>
+      </expression>
+    </returnStatement>
+    <symbol> ; </symbol> 
+    <symbol> } </symbol> 
+  </ifStatement>
+  <identifier> corpsetype </identifier> 
+  <symbol> = </symbol> 
+  <expression>
+     <term>
+       <floatConstant> 3 </floatConstant> 
+    </term>
+  </expression>
+  <symbol> ; </symbol> 
+  <explodeStatement>
+     <keyword> explode </keyword> 
+    <identifier> base </identifier> 
+    <keyword> type </keyword> 
+    <expression>
+       <term>
+         <integerConstant> 154 </integerConstant> 
+      </term>
+    </expression>
+  </explodeStatement>
+  <symbol> ; </symbol> 
+  <explodeStatement>
+     <keyword> explode </keyword> 
+    <identifier> rtube </identifier> 
+    <keyword> type </keyword> 
+    <expression>
+       <term>
+         <integerConstant> 154 </integerConstant> 
+      </term>
+    </expression>
+  </explodeStatement>
+  <symbol> ; </symbol> 
+  <explodeStatement>
+     <keyword> explode </keyword> 
+    <identifier> ltube </identifier> 
+    <keyword> type </keyword> 
+    <expression>
+       <term>
+         <integerConstant> 154 </integerConstant> 
+      </term>
+    </expression>
+  </explodeStatement>
+  <symbol> ; </symbol> 
+  <returnStatement>
+     <keyword> return </keyword> 
+    <expression>
+       <term>
+         <identifier> corpsetype </identifier> 
+      </term>
+    </expression>
+  </returnStatement>
+  <symbol> ; </symbol> 
+  <symbol> } </symbol> 
+</funcDec>

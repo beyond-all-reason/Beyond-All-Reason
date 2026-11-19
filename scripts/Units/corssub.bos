@@ -90,6 +90,7 @@ FireWeapon1()
 		gun_1 = torp1;
 		return (0);
 	}
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)

@@ -378,19 +378,6 @@ StopMoving()
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	move cagelight to z-axis [0] speed [7];
-	move nano to z-axis [0] speed [5];
-	turn cagelight_emit to y-axis <0> speed <1000>;
-	spin tankdecor around y-axis speed <-30> accelerate <10>;
-	
-	hide cagelight_emit;
-	hide flare1;
-	hide flare2;
-}
-
 Create()
 {
 	hide cagelight_emit;
@@ -472,7 +459,7 @@ DeathAnim()
 
 Killed(severity, corpsetype)
 {
-		if( severity <= 25 )
+	if( severity <= 25 )
 	{
 		call-script DeathAnim();
 		corpsetype = 1;

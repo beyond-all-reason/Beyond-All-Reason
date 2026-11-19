@@ -18,7 +18,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.19</span>
+					<span class="tf-title-version">1.20</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -43,6 +43,7 @@
 						</div>
 						<div class="tf-file-menu-item" data-event-mousedown="onFileSaveProject()">Save As...</div>
 						<div id="btn-file-openproject" class="tf-file-menu-item" data-event-mousedown="onFileOpenProject()">Open Project...</div>
+						<div id="btn-file-export" class="tf-file-menu-item">Export Map...</div>
 					</div>
 				</div>
 				<div class="tf-rail-spacer"></div>
@@ -10555,6 +10556,32 @@
 	     their paths, so the team's stages appear among the folders. A team stage
 	     also offers to upload afterwards. NAME and the action sit in a pinned
 	     footer so the control that commits the save never scrolls out of reach. -->
+	<!-- FILE > EXPORT MAP (tf_export.lua): the saved project as map archive files. Shown and
+	     hidden by the module through its inline style, which also carries the position. -->
+	<div id="tf-export-root" class="tf-newmap-window tf-project-window tf-export-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 36vw; top: 16vh; display: none;">
+		<div class="flex flex-row justify-between items-center gap-1 mb-2">
+			<div class="text-xl font-bold text-light text-outline-darker" style="flex: 1;">Export Map</div>
+			<div id="tf-export-close" class="tf-header-btn tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-export-body">
+			<div class="tf-export-intro">Writes the saved project as the files of a map archive: mapinfo.lua, the textures and one mapconfig file per section, plus the inputs for the .smf and .smt. The output goes to Terraform Brush/Exports in your data folder.</div>
+			<div id="tf-export-project" class="tf-export-project"></div>
+			<div class="tf-project-toolbar">
+				<div class="tf-project-field-label tf-export-label">Map name</div>
+				<input type="text" id="tf-export-name" class="tf-preset-input tf-export-input" maxlength="64" value="" />
+			</div>
+			<div class="tf-project-toolbar">
+				<div class="tf-project-field-label tf-export-label">Version</div>
+				<input type="text" id="tf-export-version" class="tf-preset-input tf-export-input" maxlength="16" value="1.0" />
+			</div>
+			<div id="tf-export-status" class="tf-project-status bg-darker" style="display: none;"></div>
+			<div class="tf-project-actions">
+				<div id="tf-export-go" class="tf-action-btn tf-save-btn"><div class="tf-action-btn-text">Export</div></div>
+				<div id="tf-export-copy" class="tf-action-btn tf-project-secondary" style="display: none;"><div class="tf-action-btn-text">Copy path</div></div>
+				<div id="tf-export-cancel" class="tf-action-btn tf-project-secondary"><div class="tf-action-btn-text">Close</div></div>
+			</div>
+		</div>
+	</div>
 	<div id="tf-project-root" class="tf-newmap-window tf-project-window tf-project-save-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 34vw; top: 11vh;" data-if="projectSaveOpen">
 		<div class="flex flex-row justify-between items-center gap-1 mb-2">
 			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_saveTitle}}</div>

@@ -14,7 +14,7 @@ firingPin;
 static-var restore_delay, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 #define WATER_ROCK_UNITSIZE 10
 #include "../floatmotion.h"
@@ -27,7 +27,7 @@ static-var restore_delay, wpn1_lasthead;
 #define MAXTILT 100
 #define RECOIL_POWER 20000
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -44,7 +44,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turretHeadingPivot to y-axis <0> speed <60>;
-    turn turretPitchPivot to x-axis <0.000000> speed <30>;
+    turn turretPitchPivot to x-axis <0.0> speed <30>;
 	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
@@ -63,12 +63,12 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turretHeadingPivot to y-axis heading speed <100>;
-	turn turretPitchPivot to x-axis <0.000000> - pitch speed <60>;
+	turn turretPitchPivot to x-axis <0.0> - pitch speed <60>;
 
     if(pitch < <-20>){
         move turretPitchPivot to y-axis [8] speed [16];
@@ -88,7 +88,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
     emit-sfx 1024 + 0 from barrelFlare;
     move barrel to z-axis [-7] now;
@@ -102,19 +102,14 @@ FirePrimary()
 }
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turretStrut;
+	pieceIndex = turretStrut;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-    piecenum = barrelFlare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+    pieceIndex = barrelFlare;
 }
 
 Killed(severity, corpsetype)

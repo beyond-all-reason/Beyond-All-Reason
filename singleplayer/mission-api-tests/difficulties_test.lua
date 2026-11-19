@@ -4,7 +4,7 @@
 -- (Story): Story entries win where authored, everything else resolves to its lowest specified
 -- value, and the Medium/Hard-gated trigger never fires.
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -18,12 +18,9 @@ local objectives = {
 			difficulties = { Easy = 2, Medium = 3, Hard = 4 },
 		},
 		trigger = {
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = {
 				seconds = {
-					difficulties = { Easy = 30, Hard = 20 },
-				},
-				interval = {
 					difficulties = { Easy = 30, Hard = 20 },
 				},
 			},
@@ -33,7 +30,7 @@ local objectives = {
 
 local triggers = {
 	announceDifficulty = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -41,7 +38,7 @@ local triggers = {
 	},
 
 	spawnWave = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = { Easy = 15, Hard = 8 },
@@ -51,7 +48,7 @@ local triggers = {
 	},
 
 	hardOnly = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			difficulties = { 'Medium', 'Hard' },
 		},
@@ -62,7 +59,7 @@ local triggers = {
 	},
 
 	clearWave = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = { Easy = 25, Hard = 14 },
