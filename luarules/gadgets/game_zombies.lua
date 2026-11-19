@@ -1117,11 +1117,6 @@ local function refundSubstitutePayload(payloadUnitDefID, payloadCount, isSubstit
 	end
 end
 
-local function isScavUnitDefID(unitDefID)
-	local unitDef = unitDefs[unitDefID] ---@as UnitDef?
-	return nameEndsWithScav(unitDef and unitDef.name)
-end
-
 local function isScavFeature(featureID)
 	local featureDefID = spring.GetFeatureDefID(featureID)
 	local featureDef = featureDefID and FeatureDefs[featureDefID]
@@ -1129,25 +1124,19 @@ local function isScavFeature(featureID)
 	return nameEndsWithScav(fromUnitName)
 end
 
-local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie, inheritedExperience, featureIsScav)
+local function spawnZombies(unitDefID, spawnX, spawnY, spawnZ, facing, wasZombie, inheritedExperience)
 	local unitDefData = zombieUnitDefs[unitDefID]
 	if not unitDefData then
 		return
 	end
-	local sourceIsScav = featureIsScav == true or (featureIsScav == nil and isScavUnitDefID(unitDefID))
 	local inherited = inheritedExperience or 0
 	local spawnCount, experience = 1, math.max(inherited, experienceAtThisMinute())
-	if not wasZombie and not sourceIsScav and unitDefData.isMobile then
+	if not wasZombie and unitDefData.isMobile then
 		spawnCount, experience = calculateSpawnCount(unitDefID, inherited)
 	end
 
-	local spawnUnitDefID, plannedCount, isSubstitute
-	if sourceIsScav then
-		spawnUnitDefID, plannedCount, isSubstitute = unitDefID, 1, false
-	else
-		spawnUnitDefID, plannedCount, isSubstitute =
-			resolveSpawnPlan(unitDefID, wasZombie, getSubstitutionPower(unitDefID), spawnCount)
-	end
+	local spawnUnitDefID, plannedCount, isSubstitute =
+		resolveSpawnPlan(unitDefID, wasZombie, getSubstitutionPower(unitDefID), spawnCount)
 	if not spawnUnitDefID then
 		return
 	end
@@ -1162,13 +1151,12 @@ local function spawnZombiesFromFeature(featureID, unitDefID, wasZombie)
 	end
 	local inheritedExperience = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
 	local facing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
-	local featureIsScav = isScavFeature(featureID)
 	local corpseData = trackedFeatures[featureID]
 	trackedFeatures[featureID] = nil
 	wreckWraithFeeds[featureID] = nil
 	disarmCorpseEffects(featureID, corpseData)
 	spring.DestroyFeature(featureID)
-	spawnZombies(unitDefID, featureX, featureY, featureZ, facing, wasZombie, inheritedExperience, featureIsScav)
+	spawnZombies(unitDefID, featureX, featureY, featureZ, facing, wasZombie, inheritedExperience)
 	return true
 end
 
@@ -1787,6 +1775,9 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 	local attackerID = deathData and deathData.attackerID
 	local attackerX = deathData and deathData.attackerX
 	local attackerZ = deathData and deathData.attackerZ
+	if wasZombie then
+		spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
+	end
 	if zombieCorpseDefs[featureDefID] then
 		queueZombieFeature(featureID, false, wasZombie, attackerID, attackerX, attackerZ, false)
 		return
@@ -1801,9 +1792,6 @@ local function registerDeathFeature(featureID, featureDefID, deathData)
 	end
 	local featureX, _, featureZ = spring.GetFeaturePosition(featureID)
 	if featureX ~= nil then
-		if wasZombie then
-			spring.SetFeatureRulesParam(featureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
-		end
 		rememberWreckWraithFeed(
 			featureID,
 			deathData.unitDefID,
@@ -2185,6 +2173,29 @@ local function findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
 	return successorFeatureID, successorX, successorZ
 end
 
+local function passZombieHistoryToSuccessor(featureID)
+	if not wasZombieCorpse(featureID, trackedFeatures[featureID]) then
+		return
+	end
+	local featureDefID = spring.GetFeatureDefID(featureID)
+	if featureDefID == nil or heapFeatureDefIDs[featureDefID] then
+		return
+	end
+	local featureX, featureY, featureZ = spring.GetFeaturePosition(featureID)
+	if featureX == nil or featureY == nil then
+		return
+	end
+	local successorFeatureID = findSuccessorFeatureID(featureID, featureX, featureY, featureZ)
+	if not successorFeatureID then
+		return
+	end
+	spring.SetFeatureRulesParam(successorFeatureID, RULES_PARAM.WAS_ZOMBIE, 1, RULES_PARAM.PUBLIC_ACCESS)
+	local successorData = trackedFeatures[successorFeatureID]
+	if successorData then
+		successorData.wasZombie = true
+	end
+end
+
 local function releaseWreckWraithFeed(featureID)
 	local wreckFeed = wreckWraithFeeds[featureID]
 	wreckWraithFeeds[featureID] = nil
@@ -2277,6 +2288,7 @@ end
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	removeResurrectableWreck(featureID)
 	releaseWreckWraithFeed(featureID)
+	passZombieHistoryToSuccessor(featureID)
 	local corpseData = trackedFeatures[featureID]
 	if corpseData then
 		trackedFeatures[featureID] = nil
