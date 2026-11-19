@@ -36,7 +36,7 @@ local memoryGuard
 -- Avoid deep copies and cycles.
 local function copyTable(source)
 	local copy = {}
-	for k, v in pairs(source) do
+	for k, v in pairs(source or {}) do
 		copy[k] = v
 	end
 	return copy
@@ -1010,6 +1010,7 @@ local function CreateSandboxedSystem()
 	sandboxedSpring.Start = refuseEngineRestart
 	sandboxedSpring.Restart = refuseEngineRestart
 	sandboxedSpring.Reload = refuseEngineRestart
+	local sandboxedGame
 	if not allowunitcontrolwidgets then
 		local function disabledOrder()
 			error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
@@ -1019,6 +1020,10 @@ local function CreateSandboxedSystem()
 				sandboxedSpring[k] = disabledOrder
 			end
 		end
+		sandboxedGame = copyTable(Game)
+		sandboxedGame.Commands = copyTable(Game.Commands)
+		sandboxedGame.Commands.GiveInsertOrderToUnit = disabledOrder
+		sandboxedGame.Commands.ReissueOrder = disabledOrder
 	end
 	local sandboxedLibraries = {
 		table = sandboxedTable,
@@ -1027,6 +1032,7 @@ local function CreateSandboxedSystem()
 		os = sandboxedOs,
 		VFS = sandboxedVfs,
 		Spring = sandboxedSpring,
+		Game = sandboxedGame,
 		Script = sandboxedScript,
 		gl = sandboxedGl,
 		RmlUi = sandboxedRmlUi,
