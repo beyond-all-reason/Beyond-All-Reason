@@ -41,7 +41,10 @@ local function loadHalf(synced, world)
 				world.luaRulesMessages[#world.luaRulesMessages + 1] = message
 			end,
 			GetAIInfo = function(teamID)
-				return 0, "Campaign AI", world.aiHostPlayerIDs[teamID]
+				return 0, "Enemy", world.aiHostPlayerIDs[teamID], world.aiShortNames[teamID]
+			end,
+			Log = function(_, _, message)
+				world.logged[#world.logged + 1] = message
 			end,
 		},
 	})
@@ -62,6 +65,8 @@ describe("api_campaign_ai", function()
 			removed = {},
 			luaRulesMessages = {},
 			aiHostPlayerIDs = { [TEAM_ID] = AI_HOST_PLAYER_ID },
+			aiShortNames = { [TEAM_ID] = "CampaignAI" },
+			logged = {},
 		}
 	end)
 
@@ -111,6 +116,25 @@ describe("api_campaign_ai", function()
 			unsyncedHalf:GameStart()
 			local _, env = loadHalf(true, world)
 			campaignAI = env.GG.CampaignAI
+		end)
+
+		it("sends nothing to a team that another skirmish AI runs", function()
+			world.aiShortNames[TEAM_ID] = "BARb"
+			campaignAI.SetAiState(1, TEAM_ID)
+			assert.same({}, world.sent)
+		end)
+
+		it("warns once about a team that another skirmish AI runs", function()
+			world.aiShortNames[TEAM_ID] = "BARb"
+			campaignAI.SetAiState(1, TEAM_ID)
+			campaignAI.SetAiState(2, TEAM_ID)
+			assert.same({ "Team 3 is run by BARb, not by the campaign AI" }, world.logged)
+		end)
+
+		it("sends nothing, without a warning, for an AI that another player hosts", function()
+			world.aiShortNames[TEAM_ID] = "UNKNOWN"
+			campaignAI.SetAiState(1, TEAM_ID)
+			assert.same({ {}, {} }, { world.sent, world.logged })
 		end)
 
 		it("enables unit defs for the team's AI", function()
