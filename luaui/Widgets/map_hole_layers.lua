@@ -486,7 +486,8 @@ function widget:Initialize()
 		uniformInt = { heightTex = 0 },
 		uniformFloat = { maskSize = { MASK_W, MASK_H }, groundSize = { Game.mapSizeX, Game.mapSizeZ }, above = 0 },
 	}, "Terrain Hole Layers")
-	mergeShader = gl.CreateShader({ vertex = QUAD_VS, fragment = MERGE_FS, uniformInt = { tex0 = 0, tex1 = 1, tex2 = 2 } })
+	mergeShader =
+		gl.CreateShader({ vertex = QUAD_VS, fragment = MERGE_FS, uniformInt = { tex0 = 0, tex1 = 1, tex2 = 2 } })
 	discShader = gl.CreateShader({ vertex = QUAD_VS, fragment = DISC_FS })
 	encloseShader = gl.CreateShader({ vertex = QUAD_VS, fragment = ENCLOSE_FS, uniformInt = { raw = 0 } })
 	if featShader:Initialize() ~= true or not mergeShader or not discShader or not encloseShader then
@@ -494,7 +495,8 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	featTable = InstanceVBOIdTable.makeInstanceVBOTable(VBO_LAYOUT, 64, "TerrainHolesVBO", INSTDATA_ATTRIB_ID, "featureID")
+	featTable =
+		InstanceVBOIdTable.makeInstanceVBOTable(VBO_LAYOUT, 64, "TerrainHolesVBO", INSTDATA_ATTRIB_ID, "featureID")
 	if not featTable then
 		widgetHandler:RemoveWidget()
 		return

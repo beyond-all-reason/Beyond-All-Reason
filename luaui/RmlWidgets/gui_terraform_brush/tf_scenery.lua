@@ -116,7 +116,10 @@ function M.attach(doc, ctx)
 			local el = doc:GetElementById("btn-scenery-preset-" .. name)
 			if el then
 				local p = M.PRESETS[name]
-				el:SetClass("active", p.water == now.water and p.border == now.border and p.kind == now.kind and now.ground)
+				el:SetClass(
+					"active",
+					p.water == now.water and p.border == now.border and p.kind == now.kind and now.ground
+				)
 			end
 		end
 		uiState.updatingFromCode = true
