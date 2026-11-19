@@ -3,7 +3,8 @@
 
 piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
        rknee, rshin, rfoot, lforearm, lupperarm, lblade, rforearm, rupperarm, head_emit,
-       rblade, aimy1;
+       rblade, aimy1,
+       headfirepoint;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -69,7 +70,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = head;
+	pieceIndex = headfirepoint;
 	return (0);
 }
 
@@ -133,7 +134,7 @@ Shot2()
 	}
 
 QueryWeapon2(pieceIndex)
-	{	pieceIndex=head; }
+	{	pieceIndex=headfirepoint; }
 	
 AimFromWeapon2(pieceIndex)
 	{	pieceIndex=head;	}

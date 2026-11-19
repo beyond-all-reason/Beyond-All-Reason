@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name    = "Decal Placer",
-		desc    = "Brush tool for placing, scattering, and removing ground decals from the engine atlas",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Decal Placer",
+		desc = "Brush tool for placing, scattering, and removing ground decals from the engine atlas",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000000,
+		layer = 1000000,
 		enabled = false,
 	}
 end
@@ -13,54 +13,48 @@ end
 ----------------------------------------------------------------
 -- Localize
 ----------------------------------------------------------------
-local Echo            = Spring.Echo
-local GetMouseState   = Spring.GetMouseState
-local GetModKeyState  = Spring.GetModKeyState
-local GetKeyState     = Spring.GetKeyState
-local TraceScreenRay  = Spring.TraceScreenRay
-local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
+local Echo = Spring.Echo
+local GetModKeyState = Spring.GetModKeyState
+local GetKeyState = Spring.GetKeyState
 
-local glColor    = gl.Color
+local glColor = gl.Color
 local glLineWidth = gl.LineWidth
-local glBeginEnd = gl.BeginEnd
-local glVertex   = gl.Vertex
 local glDepthTest = gl.DepthTest
-local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINES     = GL.LINES
 
-local CreateGroundDecal       = Spring.CreateGroundDecal
-local DestroyGroundDecal      = Spring.DestroyGroundDecal
-local SetGroundDecalTexture   = Spring.SetGroundDecalTexture
+local CreateGroundDecal = Spring.CreateGroundDecal
+local DestroyGroundDecal = Spring.DestroyGroundDecal
+local SetGroundDecalTexture = Spring.SetGroundDecalTexture
 local SetGroundDecalPosAndDims = Spring.SetGroundDecalPosAndDims
-local SetGroundDecalRotation  = Spring.SetGroundDecalRotation
-local SetGroundDecalAlpha     = Spring.SetGroundDecalAlpha
-local SetGroundDecalTint      = Spring.SetGroundDecalTint
-local SetGroundDecalNormal    = Spring.SetGroundDecalNormal
-local GetAllGroundDecals      = Spring.GetAllGroundDecals
+local SetGroundDecalRotation = Spring.SetGroundDecalRotation
+---@type function?
+local SetGroundDecalAlpha = Spring.SetGroundDecalAlpha
+---@type function?
+local SetGroundDecalTint = Spring.SetGroundDecalTint
+---@type function?
+local SetGroundDecalNormal = Spring.SetGroundDecalNormal
+local GetAllGroundDecals = Spring.GetAllGroundDecals
 local GetGroundDecalMiddlePos = Spring.GetGroundDecalMiddlePos
 local GetGroundDecalSizeAndHeight = Spring.GetGroundDecalSizeAndHeight
-local GetGroundDecalTextures  = Spring.GetGroundDecalTextures
+local GetGroundDecalTextures = Spring.GetGroundDecalTextures
 
-local floor  = math.floor
-local max    = math.max
-local min    = math.min
-local cos    = math.cos
-local sin    = math.sin
-local pi     = math.pi
+local floor = math.floor
+local max = math.max
+local min = math.min
+local pi = math.pi
 local random = math.random
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
 local DEFAULT_RADIUS = 200
-local MIN_RADIUS     = 8
-local MAX_RADIUS     = 2000
-local RADIUS_STEP    = 8
-local ROTATION_STEP  = 3
-local KEYSYMS_SPACE  = 0x20
+local MIN_RADIUS = 8
+local MAX_RADIUS = 2000
+local RADIUS_STEP = 8
+local ROTATION_STEP = 3
+local KEYSYMS_SPACE = 0x20
 local UPDATE_INTERVAL = 1 / 30
 
 local SAVE_DIR = "Terraform Brush/DecalMaps/"
@@ -68,106 +62,131 @@ local SAVE_DIR = "Terraform Brush/DecalMaps/"
 ----------------------------------------------------------------
 -- State
 ----------------------------------------------------------------
+---@class DecalPlacerState
+---@field active boolean
+---@field mode string? "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field rotRandom number 0 = all same, 100 = fully random
+---@field decalCount number
+---@field cadence number
+---@field sizeMin number
+---@field sizeMax number
+---@field alpha number
+---@field tintR number
+---@field tintG number
+---@field tintB number
+---@field tintA number
+---@field alignToNormal boolean
+---@field selectedDecals string[]
+---@field selectedSet table<string, boolean>
+---@field dragging boolean
+---@field dragAction string?
+---@field placeTimer number
+---@field edgeFade number cursor fade past the map edge (WorldTool.cursor)
+---@field undoStack table[]
+---@field redoStack table[]
+---@field specs table by decal id
+---@field projectIDs table<integer, boolean>
+---@field undoCount integer
+---@field redoCount integer
 local dp = {
-	active        = false,
-	mode          = nil,    -- "scatter", "point", "remove"
-	shape         = "circle",
-	radius        = DEFAULT_RADIUS,
-	rotation      = 0,
-	rotRandom     = 100,    -- 0=all same, 100=fully random
-	decalCount    = 8,      -- per scatter
-	cadence       = 50,     -- per second
-	distribution  = "random",
-	smartEnabled  = false,
-	smartFilters  = {
-		avoidWater   = false,
-		avoidCliffs  = false,
-		slopeMax     = 45,
-		preferSlopes = false,
-		slopeMin     = 10,
-		altMinEnable = false,
-		altMin       = 0,
-		altMaxEnable = false,
-		altMax       = 200,
-	},
+	active = false,
+	mode = nil, -- "scatter", "point", "remove"
+	shape = "circle",
+	radius = DEFAULT_RADIUS,
+	rotation = 0,
+	rotRandom = 100, -- 0=all same, 100=fully random
+	decalCount = 8, -- per scatter
+	cadence = 50, -- per second
 	-- Decal-specific options
-	sizeMin       = 32,
-	sizeMax       = 96,
-	alpha         = 0.85,
-	tintR         = 0.5,
-	tintG         = 0.5,
-	tintB         = 0.5,
-	tintA         = 0.5,
-	alignToNormal = true,    -- orient to terrain normal
+	sizeMin = 32,
+	sizeMax = 96,
+	alpha = 0.85,
+	tintR = 0.5,
+	tintG = 0.5,
+	tintB = 0.5,
+	tintA = 0.5,
+	alignToNormal = true, -- orient to terrain normal
 	-- Selection
-	selectedDecals = {},     -- array of texture names
-	selectedSet    = {},     -- { [tex] = true }
+	selectedDecals = {}, -- array of texture names
+	selectedSet = {}, -- { [tex] = true }
 	-- Drag state
-	dragging      = false,
-	dragAction    = nil,
-	lockedWorldX  = nil,
-	lockedWorldZ  = nil,
-	placeTimer    = 0,
+	dragging = false,
+	dragAction = nil,
+	placeTimer = 0,
+	edgeFade = 1,
 	-- Undo/Redo
-	undoStack     = {},      -- each entry = { decalIDs = {id1,id2,...} }
-	redoStack     = {},
-	-- Registry of decals this tool placed (set of ids). GetAllGroundDecals() also
-	-- returns engine decals (unit tracks, scars, building plates); project export
-	-- must only serialize our own placements.
-	projectIDs    = {},
-	undoCount     = 0,
-	redoCount     = 0,
+	undoStack = {}, -- each entry = { decalIDs = {id1,id2,...} }
+	redoStack = {}, -- each entry = { specs = { spec, ... } } (see specs)
+	-- How each placed decal was made, by id, so an undone batch can be made again
+	specs = {},
+	-- Ids of decals this tool placed. GetAllGroundDecals() also returns engine
+	-- decals (tracks, scars, building plates); project export saves only ours.
+	projectIDs = {},
+	undoCount = 0,
+	redoCount = 0,
 }
 local MAX_UNDO = 100
 
+---@type number
 local updateTimer = 0
 
 ----------------------------------------------------------------
 -- Decal library: query atlas + categorize
 ----------------------------------------------------------------
-local decalList = {}             -- sorted [{name, category}]
-local decalCategories = {}       -- { [cat] = { entries... } }
+local decalList = {} -- sorted [{name, category}]
+local decalCategories = {} -- { [cat] = { entries... } }
 local decalListBuilt = false
 
 local CATEGORY_ORDER = {
-	"scars", "explosions", "tracks", "builds", "footprints", "scorch", "groundplates", "other",
-}
-
-local CATEGORY_LABELS = {
-	scars        = "Scars",
-	explosions   = "Explosions",
-	tracks       = "Tracks",
-	builds       = "Builds",
-	footprints   = "Footprints",
-	scorch       = "Scorch",
-	groundplates = "Plates",
-	other        = "Other",
+	"scars",
+	"explosions",
+	"tracks",
+	"builds",
+	"footprints",
+	"scorch",
+	"groundplates",
+	"other",
 }
 
 local function classifyDecal(name)
 	local n = name:lower()
-	if n:find("scar") then return "scars" end
-	if n:find("explo") or n:find("explod") or n:find("crater") then return "explosions" end
-	if n:find("scorch") or n:find("burn") or n:find("char") then return "scorch" end
-	if n:find("track") or n:find("tread") or n:find("wheel") then return "tracks" end
-	if n:find("foot") or n:find("step") then return "footprints" end
-	if n:find("build") or n:find("plate") or n:find("ground_plate") then return "builds" end
-	if n:find("decal_") then
-		if n:find("track") then return "tracks" end
+	if n:find("scar") then
 		return "scars"
 	end
-	if n:find("groundplate") or n:find("_plate") then return "groundplates" end
+	if n:find("explo") or n:find("explod") or n:find("crater") then
+		return "explosions"
+	end
+	if n:find("scorch") or n:find("burn") or n:find("char") then
+		return "scorch"
+	end
+	if n:find("track") or n:find("tread") or n:find("wheel") then
+		return "tracks"
+	end
+	if n:find("foot") or n:find("step") then
+		return "footprints"
+	end
+	if n:find("build") or n:find("plate") or n:find("ground_plate") then
+		return "builds"
+	end
+	if n:find("decal_") then
+		if n:find("track") then
+			return "tracks"
+		end
+		return "scars"
+	end
+	if n:find("groundplate") or n:find("_plate") then
+		return "groundplates"
+	end
 	return "other"
 end
 
 ----------------------------------------------------------------
--- Normal-map detection + main<->norm pairing.
--- The engine decal atlas exposes both the color ("main*") and normal
--- ("norm*") halves of a pair as individual "main" textures (from
--- GetGroundDecalTextures' perspective), but the UX use is to pick ONE
--- entry that bundles both. We hide the norm-only entries from the UI and
--- bind the paired normal automatically when the main is placed.
-----------------------------------------------------------------
+-- Normal-map detection and main/norm pairing. The engine atlas lists both
+-- halves of a pair ("main*" and "norm*") as separate textures; the library
+-- shows one entry per pair and binds the normal when the main is placed.
 local function isNormalName(lname)
 	-- Leading "norm" / "nrm" / trailing "_norm" / "_nrm" / "_normal" / "_n"
 	return lname:find("^norm") ~= nil
@@ -179,24 +198,21 @@ local function isNormalName(lname)
 end
 
 local function normalBaseKey(lname)
-	-- Produce a canonical "pair key" so main and norm textures collide.
-	-- "mainscar_5" -> "scar_5", "normscar_5" -> "scar_5"
-	-- "armyork_tracks_norm" -> "armyork_tracks"
+	-- Canonical pair key so main and norm names collide:
+	-- "mainscar_5" and "normscar_5" -> "scar_5", "armyork_tracks_norm" -> "armyork_tracks"
 	local k = lname
 	k = k:gsub("^main", ""):gsub("^norm", ""):gsub("^nrm", "")
 	k = k:gsub("_norm$", ""):gsub("_nrm$", ""):gsub("_normal$", ""):gsub("_n$", "")
 	return k
 end
 
--- Exposed so UI / exporter can look up the norm partner.
-local normPartnerByMain = {}  -- { [mainName] = normName }
-
-local function getNormalPartner(mainName)
-	return normPartnerByMain[mainName]
-end
+---@type table<string, string|nil>
+local normPartnerByMain = {} -- { [mainName] = normName }
 
 local function buildDecalList()
-	if decalListBuilt then return end
+	if decalListBuilt then
+		return
+	end
 	decalListBuilt = true
 	decalList = {}
 	decalCategories = {}
@@ -213,7 +229,9 @@ local function buildDecalList()
 	filenames = filenames or {}
 
 	-- Pass 1: bucket every entry into the main/norm side of its pair key.
+	---@type table<string, any>
 	local mainsByKey = {}
+	---@type table<string, any>
 	local normsByKey = {}
 	for i, name in ipairs(names) do
 		local lname = name:lower()
@@ -225,10 +243,8 @@ local function buildDecalList()
 		end
 	end
 
-	-- Pass 2: emit one library entry per pair, preferring the main half.
-	-- Any key that only has a norm half (orphan normal) is skipped — rendering
-	-- a raw normal map on terrain looks like nothing useful.
-	local skippedNormals = 0
+	-- Pass 2: one library entry per pair, the main half. Orphan normals are
+	-- skipped: a raw normal map on terrain shows nothing useful.
 	for key, m in pairs(mainsByKey) do
 		local entry = {
 			name = m.name,
@@ -242,37 +258,36 @@ local function buildDecalList()
 		end
 		decalList[#decalList + 1] = entry
 		local cat = entry.category
-		if not decalCategories[cat] then decalCategories[cat] = {} end
+		if not decalCategories[cat] then
+			decalCategories[cat] = {}
+		end
 		local cl = decalCategories[cat]
 		cl[#cl + 1] = entry
 	end
-	for key, _ in pairs(normsByKey) do
-		if not mainsByKey[key] then skippedNormals = skippedNormals + 1 end
-	end
 
-	-- Custom ground decals are registered into the engine atlas via
-	-- gamedata/resources.lua `graphics.decals` subtable; engine assigns them
-	-- the atlas name `maindecal_<i>` and they show up here automatically.
+	-- Custom ground decals come from gamedata/resources.lua `graphics.decals`;
+	-- the engine names them `maindecal_<i>` and they appear here automatically.
 
-	table.sort(decalList, function(a, b) return a.name < b.name end)
+	table.sort(decalList, function(a, b)
+		return a.name < b.name
+	end)
 	for _, c in ipairs(CATEGORY_ORDER) do
 		if decalCategories[c] then
-			table.sort(decalCategories[c], function(a, b) return a.name < b.name end)
+			table.sort(decalCategories[c], function(a, b)
+				return a.name < b.name
+			end)
 		end
 	end
-	Echo(string.format(
-		"[Decal Placer] Loaded %d decals (%d main/norm pairs, %d orphan normals hidden)",
-		#decalList, #decalList, skippedNormals))
 end
 
 ----------------------------------------------------------------
 -- World mouse position
 ----------------------------------------------------------------
+-- Follows the mouse up to one radius past the map edge, like the other brush tools.
 local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, pos = TraceScreenRay(mx, my, true)
-	if pos then return pos[1], pos[3] end
-	return nil, nil
+	local wx, wz, fade = WorldTool.cursor(dp.radius)
+	dp.edgeFade = fade
+	return wx, wz
 end
 
 local function getCadenceInterval()
@@ -282,41 +297,9 @@ end
 ----------------------------------------------------------------
 -- Shape containment (mirrors feature placer)
 ----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	local ca = cos(rad)
-	local sa = sin(rad)
-	return px * ca - pz * sa, px * sa + pz * ca
-end
-
 local function isInsideShape(dx, dz, radius, shape, angleDeg)
 	-- Shared point-in-shape test (see common/brush_shapes.lua).
 	return (BrushShapes.isInside(dx, dz, radius, shape, angleDeg))
-end
-
-----------------------------------------------------------------
--- Smart filter test
-----------------------------------------------------------------
-local function passesSmartFilter(wx, wz)
-	if not dp.smartEnabled then return true end
-	local sf = dp.smartFilters
-	local h = GetGroundHeight(wx, wz)
-	if sf.avoidWater and h < 0 then return false end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = GetGroundNormal(wx, wz)
-		ny = ny or 1.0
-		if sf.avoidCliffs then
-			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then return false end
-		end
-		if sf.preferSlopes then
-			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then return false end
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then return false end
-	if sf.altMaxEnable and h > sf.altMax then return false end
-	return true
 end
 
 ----------------------------------------------------------------
@@ -324,33 +307,63 @@ end
 ----------------------------------------------------------------
 local function pickRandomTexture()
 	local n = #dp.selectedDecals
-	if n == 0 then return nil end
+	if n == 0 then
+		return nil
+	end
 	return dp.selectedDecals[random(1, n)]
 end
 
 local function applyDecal(tex, wx, wz, sizeX, sizeZ, rotRad)
-	if not CreateGroundDecal then return nil end
+	if not CreateGroundDecal then
+		return nil
+	end
 	local id = CreateGroundDecal()
-	if not id then return nil end
+	if not id then
+		return nil
+	end
 	SetGroundDecalTexture(id, tex, true)
-	-- Bind matching normal map, if the atlas has one registered for this main.
-	-- Placing the main alone makes the decal unlit/flat; wiring the norm sibling
-	-- gives proper per-pixel lighting that blends with the terrain.
+	-- Bind the paired normal map if the atlas has one: without it the decal is
+	-- unlit and flat instead of lit per pixel like the terrain.
 	local norm = normPartnerByMain[tex]
-	if norm then SetGroundDecalTexture(id, norm, false) end
+	if norm then
+		SetGroundDecalTexture(id, norm, false)
+	end
 	SetGroundDecalPosAndDims(id, wx, wz, sizeX, sizeZ)
 	SetGroundDecalRotation(id, rotRad)
-	if SetGroundDecalAlpha then SetGroundDecalAlpha(id, dp.alpha, 0) end
-	if SetGroundDecalTint then SetGroundDecalTint(id, dp.tintR, dp.tintG, dp.tintB, dp.tintA) end
+	if SetGroundDecalAlpha then
+		SetGroundDecalAlpha(id, dp.alpha, 0)
+	end
+	if SetGroundDecalTint then
+		SetGroundDecalTint(id, dp.tintR, dp.tintG, dp.tintB, dp.tintA)
+	end
 	if dp.alignToNormal and SetGroundDecalNormal then
 		SetGroundDecalNormal(id, 0, 0, 0)
 	end
 	dp.projectIDs[id] = true
+	dp.specs[id] = {
+		tex = tex,
+		x = wx,
+		z = wz,
+		sx = sizeX,
+		sz = sizeZ,
+		rot = rotRad,
+		alpha = dp.alpha,
+		tint = { dp.tintR, dp.tintG, dp.tintB, dp.tintA },
+		align = dp.alignToNormal,
+	}
 	return id
 end
 
 local function pushUndoBatch(ids)
-	if #ids == 0 then return end
+	if #ids == 0 then
+		return
+	end
+	-- Every decal edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
 	dp.redoStack = {}
 	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }
 	while #dp.undoStack > MAX_UNDO do
@@ -360,8 +373,12 @@ local function pushUndoBatch(ids)
 	dp.redoCount = 0
 end
 
-local function placeScatter(cx, cz)
-	if #dp.selectedDecals == 0 then return end
+---@param rotation number? the stamp's turn in degrees, dp.rotation when nil (a symmetry copy passes its own)
+local function placeScatter(cx, cz, rotation)
+	rotation = rotation or dp.rotation
+	if #dp.selectedDecals == 0 then
+		return
+	end
 	local count = dp.decalCount
 	local r = dp.radius
 	local placed = {}
@@ -372,16 +389,16 @@ local function placeScatter(cx, cz)
 		local rx = (random() * 2 - 1) * r
 		local rz = (random() * 2 - 1) * r
 		if isInsideShape(rx, rz, r, dp.shape, 0) then
-			local wx, wz = rotatePoint(rx, rz, dp.rotation)
+			local wx, wz = BrushShapes.rotate(rx, rz, rotation)
 			wx, wz = cx + wx, cz + wz
-			if passesSmartFilter(wx, wz) then
-				local tex = pickRandomTexture()
-				if tex then
-					local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
-					local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
-					local rotRad = rotDeg * pi / 180
-					local id = applyDecal(tex, wx, wz, sizeBase, sizeBase, rotRad)
-					if id then placed[#placed + 1] = id end
+			local tex = pickRandomTexture()
+			if tex then
+				local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
+				local rotDeg = rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
+				local rotRad = rotDeg * pi / 180
+				local id = applyDecal(tex, wx, wz, sizeBase, sizeBase, rotRad)
+				if id then
+					placed[#placed + 1] = id
 				end
 			end
 		end
@@ -389,22 +406,29 @@ local function placeScatter(cx, cz)
 	pushUndoBatch(placed)
 end
 
-local function placePoint(cx, cz)
-	if #dp.selectedDecals == 0 then return end
-	if not passesSmartFilter(cx, cz) then return end
+---@param rotation number? the decal's turn in degrees, dp.rotation when nil (a symmetry copy passes its own)
+local function placePoint(cx, cz, rotation)
+	if #dp.selectedDecals == 0 then
+		return
+	end
 	local tex = pickRandomTexture()
-	if not tex then return end
+	if not tex then
+		return
+	end
 	local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
-	local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
+	local rotDeg = (rotation or dp.rotation) + (random() * 2 - 1) * (dp.rotRandom * 1.8)
 	local id = applyDecal(tex, cx, cz, sizeBase, sizeBase, rotDeg * pi / 180)
-	if id then pushUndoBatch({ id }) end
+	if id then
+		pushUndoBatch({ id })
+	end
 end
 
 local function placeRemove(cx, cz)
-	if not GetAllGroundDecals or not GetGroundDecalMiddlePos then return end
+	if not GetAllGroundDecals or not GetGroundDecalMiddlePos then
+		return
+	end
 	local r = dp.radius
 	local r2 = r * r
-	local removed = 0
 	for _, id in ipairs(GetAllGroundDecals()) do
 		local dx, dz = GetGroundDecalMiddlePos(id)
 		if dx then
@@ -412,32 +436,34 @@ local function placeRemove(cx, cz)
 			local ddz = dz - cz
 			if ddx * ddx + ddz * ddz <= r2 then
 				if DestroyGroundDecal(id) then
-					removed = removed + 1
 					dp.projectIDs[id] = nil
 				end
 			end
 		end
 	end
-	if removed > 0 then
-		Echo("[Decal Placer] Removed " .. removed .. " decal(s)")
-	end
 end
 
--- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
--- `fn(x, z)` is one of placeScatter / placePoint / placeRemove.
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
+-- `fn(x, z, rotation)` is one of placeScatter / placePoint / placeRemove.
 local function placeSymmetric(fn, cx, cz)
+	---@type table?
 	local tb = WG.TerraformBrush
 	local rot = dp.rotation or 0
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.angleSnap then
+			rot = st.rotationDeg or rot
+		end
 		if st.gridSnap and tb.snapWorld then
 			cx, cz = tb.snapWorld(cx, cz, rot)
 		end
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
-				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				for _, p in ipairs(positions) do
+					-- each copy turns with its symmetry copy (radial or mirrored), on top of the tool's own rotation
+					fn(p.x, p.z, dp.rotation + ((p.rot or rot) - rot))
+				end
 				return
 			end
 		end
@@ -447,23 +473,65 @@ end
 
 local function decalUndo()
 	local entry = dp.undoStack[#dp.undoStack]
-	if not entry then return end
+	if not entry then
+		return
+	end
 	dp.undoStack[#dp.undoStack] = nil
+	local specs = {}
 	for _, id in ipairs(entry.decalIDs) do
+		specs[#specs + 1] = dp.specs[id]
+		dp.specs[id] = nil
 		DestroyGroundDecal(id)
 		dp.projectIDs[id] = nil
 	end
+	dp.redoStack[#dp.redoStack + 1] = { specs = specs }
 	dp.undoCount = #dp.undoStack
-	-- redoStack would need re-creation info; skip redo for destructive ops
+	dp.redoCount = #dp.redoStack
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
+end
+
+-- Makes an undone batch again, with the alpha, tint and alignment it had
+local function decalRedo()
+	local entry = dp.redoStack[#dp.redoStack]
+	if not entry then
+		return
+	end
+	dp.redoStack[#dp.redoStack] = nil
+	local saved = { dp.alpha, dp.tintR, dp.tintG, dp.tintB, dp.tintA, dp.alignToNormal }
+	local ids = {}
+	for _, s in ipairs(entry.specs) do
+		dp.alpha, dp.alignToNormal = s.alpha, s.align
+		dp.tintR, dp.tintG, dp.tintB, dp.tintA = s.tint[1], s.tint[2], s.tint[3], s.tint[4]
+		ids[#ids + 1] = applyDecal(s.tex, s.x, s.z, s.sx, s.sz, s.rot)
+	end
+	dp.alpha, dp.tintR, dp.tintG, dp.tintB, dp.tintA, dp.alignToNormal =
+		saved[1], saved[2], saved[3], saved[4], saved[5], saved[6]
+	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }
+	dp.undoCount = #dp.undoStack
+	dp.redoCount = #dp.redoStack
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
 end
 
 local function decalClearAll()
-	if not GetAllGroundDecals then return end
+	if not GetAllGroundDecals then
+		return
+	end
 	local n = 0
 	for _, id in ipairs(GetAllGroundDecals()) do
-		if DestroyGroundDecal(id) then n = n + 1 end
+		if DestroyGroundDecal(id) then
+			n = n + 1
+		end
 	end
 	dp.projectIDs = {}
+	dp.specs = {}
 	dp.undoStack = {}
 	dp.redoStack = {}
 	dp.undoCount = 0
@@ -474,37 +542,24 @@ end
 ----------------------------------------------------------------
 -- Activation / Mode
 ----------------------------------------------------------------
-local function activate(mode)
-	if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-	if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-	if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-	dp.active = true
-	dp.mode = mode
-	if mode == "point" then
-		dp.decalCount = 1
-		dp.cadence = 1
-	end
-	buildDecalList()
-	local labels = { scatter = "SCATTER", point = "POINT", remove = "REMOVE" }
-	Echo("[Decal Placer] Mode: " .. (labels[mode] or mode) .. " | LMB place, RMB remove, /decalplaceroff to stop")
-	return true
-end
-
 local function deactivate()
-	if dp.active then Echo("[Decal Placer] Deactivated") end
 	dp.active = false
 	dp.mode = nil
 	dp.dragging = false
-	dp.lockedWorldX = nil
-	dp.lockedWorldZ = nil
 	return true
 end
 
 local function setMode(mode)
 	if mode == "scatter" or mode == "point" or mode == "remove" then
-		if not dp.active and WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-		if not dp.active and WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-		if not dp.active and WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+		if not dp.active and WG.TerraformBrush then
+			WG.TerraformBrush.deactivate()
+		end
+		if not dp.active and WG.WeatherBrush then
+			WG.WeatherBrush.deactivate()
+		end
+		if not dp.active and WG.FeaturePlacer then
+			WG.FeaturePlacer.deactivate()
+		end
 		dp.mode = mode
 		if mode == "point" then
 			dp.decalCount = 1
@@ -520,30 +575,39 @@ end
 ----------------------------------------------------------------
 -- Setters
 ----------------------------------------------------------------
-local function setShape(s)
-	if s == "circle" or s == "square" or s == "hexagon" or s == "octagon" or s == "triangle" then
-		dp.shape = s
+local function setRadius(r)
+	dp.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
+end
+local function setRotation(d)
+	dp.rotation = d % 360
+end
+local function setRotRandom(v)
+	dp.rotRandom = max(0, min(100, floor(v)))
+end
+local function setDecalCount(n)
+	dp.decalCount = max(1, min(500, floor(n)))
+end
+local function setCadence(v)
+	dp.cadence = max(1, min(1000, floor(v)))
+end
+local function setSizeMin(v)
+	dp.sizeMin = max(4, min(1024, floor(v)))
+	if dp.sizeMin > dp.sizeMax then
+		dp.sizeMax = dp.sizeMin
 	end
 end
-local function setRadius(r)   dp.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r))) end
-local function setRotation(d) dp.rotation = d % 360 end
-local function rotate(step)   dp.rotation = (dp.rotation + step) % 360 end
-local function setRotRandom(v) dp.rotRandom = max(0, min(100, floor(v))) end
-local function setDecalCount(n) dp.decalCount = max(1, min(500, floor(n))) end
-local function setCadence(v)  dp.cadence = max(1, min(1000, floor(v))) end
-local function setDistribution(m) if m == "random" or m == "regular" or m == "clustered" then dp.distribution = m end end
-local function setSmartEnabled(v) dp.smartEnabled = v and true or false end
-local function setSmartFilter(k, v) if dp.smartFilters[k] ~= nil then dp.smartFilters[k] = v end end
-local function setSizeMin(v)  dp.sizeMin = max(4, min(1024, floor(v))); if dp.sizeMin > dp.sizeMax then dp.sizeMax = dp.sizeMin end end
-local function setSizeMax(v)  dp.sizeMax = max(4, min(1024, floor(v))); if dp.sizeMax < dp.sizeMin then dp.sizeMin = dp.sizeMax end end
-local function setAlpha(v)    dp.alpha = max(0, min(1, v)) end
-local function setTint(r, g, b, a)
-	dp.tintR = max(0, min(1, r or dp.tintR))
-	dp.tintG = max(0, min(1, g or dp.tintG))
-	dp.tintB = max(0, min(1, b or dp.tintB))
-	dp.tintA = max(0, min(1, a or dp.tintA))
+local function setSizeMax(v)
+	dp.sizeMax = max(4, min(1024, floor(v)))
+	if dp.sizeMax < dp.sizeMin then
+		dp.sizeMin = dp.sizeMax
+	end
 end
-local function setAlignToNormal(v) dp.alignToNormal = v and true or false end
+local function setAlpha(v)
+	dp.alpha = max(0, min(1, v))
+end
+local function setAlignToNormal(v)
+	dp.alignToNormal = v and true or false
+end
 
 local function selectDecal(name)
 	dp.selectedDecals = { name }
@@ -572,48 +636,53 @@ end
 
 local function getState()
 	return {
-		active        = dp.active,
-		mode          = dp.mode,
-		shape         = dp.shape,
-		radius        = dp.radius,
-		rotation      = dp.rotation,
-		rotRandom     = dp.rotRandom,
-		decalCount    = dp.decalCount,
-		cadence       = dp.cadence,
-		distribution  = dp.distribution,
-		smartEnabled  = dp.smartEnabled,
-		smartFilters  = dp.smartFilters,
-		sizeMin       = dp.sizeMin,
-		sizeMax       = dp.sizeMax,
-		alpha         = dp.alpha,
-		tintR         = dp.tintR,
-		tintG         = dp.tintG,
-		tintB         = dp.tintB,
-		tintA         = dp.tintA,
+		active = dp.active,
+		mode = dp.mode,
+		shape = dp.shape,
+		radius = dp.radius,
+		rotation = dp.rotation,
+		rotRandom = dp.rotRandom,
+		decalCount = dp.decalCount,
+		cadence = dp.cadence,
+		sizeMin = dp.sizeMin,
+		sizeMax = dp.sizeMax,
+		alpha = dp.alpha,
+		tintR = dp.tintR,
+		tintG = dp.tintG,
+		tintB = dp.tintB,
+		tintA = dp.tintA,
 		alignToNormal = dp.alignToNormal,
 		selectedDecals = dp.selectedDecals,
-		selectedSet    = dp.selectedSet,
-		undoCount     = dp.undoCount,
-		redoCount     = dp.redoCount,
+		selectedSet = dp.selectedSet,
+		undoCount = dp.undoCount,
+		redoCount = dp.redoCount,
 	}
 end
 
-local function getDecalList()       buildDecalList(); return decalList end
-local function getDecalCategories() buildDecalList(); return decalCategories end
-local function getCategoryOrder()   return CATEGORY_ORDER end
-local function getCategoryLabels()  return CATEGORY_LABELS end
+local function getDecalCategories()
+	buildDecalList()
+	return decalCategories
+end
+local function getCategoryOrder()
+	return CATEGORY_ORDER
+end
 
 ----------------------------------------------------------------
 -- Save / Load decal map
 ----------------------------------------------------------------
 local function decalSave()
-	if not GetAllGroundDecals then return end
+	if not GetAllGroundDecals then
+		return
+	end
 	Spring.CreateDir(SAVE_DIR)
 	local mapName = Game.mapName or "unknown"
 	local timestamp = os.date("%Y%m%d_%H%M%S")
 	local filename = SAVE_DIR .. mapName .. "_decals_" .. timestamp .. ".lua"
 	local f = io.open(filename, "w")
-	if not f then Echo("[Decal Placer] Cannot write " .. filename); return end
+	if not f then
+		Echo("[Decal Placer] Cannot write " .. filename)
+		return
+	end
 	f:write("-- Decal map: " .. mapName .. "\n")
 	f:write("-- Saved: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
 	f:write("return {\n")
@@ -624,8 +693,17 @@ local function decalSave()
 		local rot = Spring.GetGroundDecalRotation and Spring.GetGroundDecalRotation(id) or 0
 		local tex = Spring.GetGroundDecalTexture and Spring.GetGroundDecalTexture(id, true) or ""
 		if dx and tex and tex ~= "" then
-			f:write(string.format('\t{tex=%q, x=%.1f, z=%.1f, sx=%.1f, sz=%.1f, rot=%.4f},\n',
-				tex, dx, dz, sx or 64, sz or 64, rot))
+			f:write(
+				string.format(
+					"\t{tex=%q, x=%.1f, z=%.1f, sx=%.1f, sz=%.1f, rot=%.4f},\n",
+					tex,
+					dx,
+					dz,
+					sx or 64,
+					sz or 64,
+					rot
+				)
+			)
 			n = n + 1
 		end
 	end
@@ -634,14 +712,19 @@ local function decalSave()
 	Echo("[Decal Placer] Saved " .. n .. " decals to " .. filename)
 end
 
--- Project-mode save: only decals placed by this tool (dp.projectIDs), stable order,
--- no timestamp comment — repeated saves of the same scene must serialize identically
--- (project files live in git). Returns the decal count written, or nil on error.
+-- Project save: only decals this tool placed (dp.projectIDs), stable order, no
+-- timestamp, so repeated saves of one scene match byte for byte (project files
+-- live in git). Returns the decal count written, or nil on error.
 local function decalSaveProject(explicitPath)
-	if not GetAllGroundDecals then return nil end
+	if not GetAllGroundDecals then
+		return nil
+	end
 	-- "wb": project files must be byte-identical across OSes (no CRLF translation)
 	local f = io.open(explicitPath, "wb")
-	if not f then Echo("[Decal Placer] Cannot write " .. explicitPath); return nil end
+	if not f then
+		Echo("[Decal Placer] Cannot write " .. explicitPath)
+		return nil
+	end
 	local lines = {}
 	for _, id in ipairs(GetAllGroundDecals()) do
 		if dp.projectIDs[id] then
@@ -650,8 +733,15 @@ local function decalSaveProject(explicitPath)
 			local rot = Spring.GetGroundDecalRotation and Spring.GetGroundDecalRotation(id) or 0
 			local tex = Spring.GetGroundDecalTexture and Spring.GetGroundDecalTexture(id, true) or ""
 			if dx and tex and tex ~= "" then
-				lines[#lines + 1] = string.format('\t{tex=%q, x=%.1f, z=%.1f, sx=%.1f, sz=%.1f, rot=%.4f},',
-					tex, dx, dz, sx or 64, sz or 64, rot)
+				lines[#lines + 1] = string.format(
+					"\t{tex=%q, x=%.1f, z=%.1f, sx=%.1f, sz=%.1f, rot=%.4f},",
+					tex,
+					dx,
+					dz,
+					sx or 64,
+					sz or 64,
+					rot
+				)
 			end
 		end
 	end
@@ -660,7 +750,9 @@ local function decalSaveProject(explicitPath)
 	table.sort(lines)
 	f:write("return {\n")
 	f:write(table.concat(lines, "\n"))
-	if #lines > 0 then f:write("\n") end
+	if #lines > 0 then
+		f:write("\n")
+	end
 	f:write("}\n")
 	f:close()
 	return #lines
@@ -669,22 +761,31 @@ end
 local function decalLoad(filename)
 	if not filename or filename == "" then
 		local saves = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW) or {}
-		if #saves == 0 then Echo("[Decal Placer] No saved decal files"); return end
+		if #saves == 0 then
+			Echo("[Decal Placer] No saved decal files")
+			return
+		end
 		filename = saves[#saves]
 	end
-	-- Prefer loadfile (BAR's canonical pattern, see cmd_light_placer.load).
-	-- io.open + loadstring occasionally fails inside the widget sandbox for
-	-- files under SAVE_DIR; loadfile resolves the same path reliably.
+	-- loadfile first (as cmd_light_placer does): io.open + loadstring sometimes
+	-- fails in the widget sandbox for files under SAVE_DIR.
 	local fn, err = loadfile(filename)
 	if not fn then
-		-- Fallback: try io.open + loadstring in case the VFS path disagrees.
+		-- Fallback: io.open + loadstring in case the VFS path disagrees.
 		local f = io.open(filename, "r")
-		if not f then Echo("[Decal Placer] Cannot open " .. filename .. ": " .. tostring(err)); return end
+		if not f then
+			Echo("[Decal Placer] Cannot open " .. filename .. ": " .. tostring(err))
+			return
+		end
 		local content = f:read("*a")
 		f:close()
 		fn, err = loadstring(content, filename)
-		if not fn then Echo("[Decal Placer] Parse error: " .. tostring(err)); return end
+		if not fn then
+			Echo("[Decal Placer] Parse error: " .. tostring(err))
+			return
+		end
 	end
+	setfenv(fn, {})
 	local ok, data = pcall(fn)
 	if not ok or type(data) ~= "table" then
 		Echo("[Decal Placer] Invalid file: " .. tostring(data))
@@ -694,7 +795,9 @@ local function decalLoad(filename)
 	for _, d in ipairs(data) do
 		if d.tex and d.x and d.z then
 			local id = applyDecal(d.tex, d.x, d.z, d.sx or 64, d.sz or 64, d.rot or 0)
-			if id then placed[#placed + 1] = id end
+			if id then
+				placed[#placed + 1] = id
+			end
 		end
 	end
 	pushUndoBatch(placed)
@@ -709,44 +812,10 @@ end
 ----------------------------------------------------------------
 -- Drawing brush outline
 ----------------------------------------------------------------
-local function drawRegularPolygon(cx, cz, radius, angleDeg, sides)
-	local step = 2 * pi / sides
-	local off = angleDeg * pi / 180
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local a = i * step + off
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			glVertex(x, GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local function drawSquareOutline(cx, cz, radius, angleDeg)
-	local corners = { {-radius,-radius}, {radius,-radius}, {radius,radius}, {-radius,radius} }
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 1, 4 do
-			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
-			local wx, wz = cx + rx, cz + rz
-			glVertex(wx, GetGroundHeight(wx, wz) + 4, wz)
-		end
-	end)
-end
-
-local function drawCircleOutline(cx, cz, radius)
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, 47 do
-			local a = i * (2 * pi / 48)
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			glVertex(x, GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
 local function drawCurrentBrush()
 	local cx, cz = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			cx, cz = tb.animateUnmouse("decalPlacer", cx, cz, dp.radius, 1.0)
@@ -754,32 +823,27 @@ local function drawCurrentBrush()
 			cx, cz = tb.getUnmouseTarget(dp.radius, 1.0)
 		end
 	end
-	if not cx then return end
+	if not cx then
+		return
+	end
 	do
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
-		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
+			return
+		end
 	end
 	glDepthTest(true)
 	glLineWidth(2)
 	if dp.dragAction == "remove" or dp.mode == "remove" then
-		glColor(1.0, 0.3, 0.3, 0.85)
+		glColor(1.0, 0.3, 0.3, 0.85 * dp.edgeFade)
 	elseif #dp.selectedDecals == 0 then
-		glColor(0.9, 0.85, 0.2, 0.85)
+		glColor(0.9, 0.85, 0.2, 0.85 * dp.edgeFade)
 	else
-		glColor(0.3, 0.85, 1.0, 0.85)
+		glColor(0.3, 0.85, 1.0, 0.85 * dp.edgeFade)
 	end
-	if dp.shape == "circle" then
-		drawCircleOutline(cx, cz, dp.radius)
-	elseif dp.shape == "square" then
-		drawSquareOutline(cx, cz, dp.radius, dp.rotation)
-	elseif dp.shape == "hexagon" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 6)
-	elseif dp.shape == "octagon" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 8)
-	elseif dp.shape == "triangle" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 3)
-	end
+	-- The brush is always a circle: nothing sets another shape.
+	WorldTool.drawPolygon(cx, cz, dp.radius, 0, 48, 1, 4, 1)
 	glLineWidth(1)
 	glColor(1, 1, 1, 1)
 	glDepthTest(false)
@@ -789,57 +853,57 @@ end
 -- Widget callins
 ----------------------------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("decalplacer", function(_, _, args)
-		if args and args[1] then return activate(args[1]) end
-		return activate("scatter")
-	end, nil, "t")
-	widgetHandler:AddAction("decalplacerscatter", function() return activate("scatter") end, nil, "t")
-	widgetHandler:AddAction("decalplacerpoint",   function() return activate("point")   end, nil, "t")
-	widgetHandler:AddAction("decalplacerremove",  function() return activate("remove")  end, nil, "t")
-	widgetHandler:AddAction("decalplaceroff",     deactivate, nil, "t")
-
 	WG.DecalPlacer = {
-		getState              = getState,
-		getDecalList          = getDecalList,
-		getDecalCategories    = getDecalCategories,
-		getCategoryOrder      = getCategoryOrder,
-		getCategoryLabels     = getCategoryLabels,
-		getNormalPartner      = getNormalPartner,
-		setMode               = setMode,
-		setShape              = setShape,
-		setRadius             = setRadius,
-		setRotation           = setRotation,
-		rotate                = rotate,
-		setRotRandom          = setRotRandom,
-		setDecalCount         = setDecalCount,
-		setCadence            = setCadence,
-		setDistribution       = setDistribution,
-		setSmartEnabled       = setSmartEnabled,
-		setSmartFilter        = setSmartFilter,
-		setSizeMin            = setSizeMin,
-		setSizeMax            = setSizeMax,
-		setAlpha              = setAlpha,
-		setTint               = setTint,
-		setAlignToNormal      = setAlignToNormal,
-		selectDecal           = selectDecal,
-		toggleDecal           = toggleDecal,
-		clearSelectedDecals   = clearSelectedDecals,
-		undo                  = decalUndo,
-		clearAll              = decalClearAll,
-		save                  = decalSave,
-		saveProject           = decalSaveProject,
-		load                  = decalLoad,
-		listSaves             = listSavedDecalMaps,
-		deactivate            = deactivate,
+		getState = getState,
+		getDecalCategories = getDecalCategories,
+		getCategoryOrder = getCategoryOrder,
+		setMode = setMode,
+		setRadius = setRadius,
+		setRotation = setRotation,
+		setRotRandom = setRotRandom,
+		setDecalCount = setDecalCount,
+		setCadence = setCadence,
+		setSizeMin = setSizeMin,
+		setSizeMax = setSizeMax,
+		setAlpha = setAlpha,
+		setAlignToNormal = setAlignToNormal,
+		selectDecal = selectDecal,
+		toggleDecal = toggleDecal,
+		clearSelectedDecals = clearSelectedDecals,
+		undo = decalUndo,
+		redo = decalRedo,
+		clearAll = decalClearAll,
+		save = decalSave,
+		saveProject = decalSaveProject,
+		load = decalLoad,
+		listSaves = listSavedDecalMaps,
+		-- adopt({ {id=, d={tex, x, z, sx, sz, rot}} }): decals a map placed (map_decals_loader)
+		-- become this tool's, so they can be edited and are saved with a project
+		adopt = function(items)
+			for _, it in ipairs(items or {}) do
+				local d = it.d
+				dp.projectIDs[it.id] = true
+				dp.specs[it.id] = {
+					tex = d.tex,
+					x = d.x,
+					z = d.z,
+					sx = d.sx or 64,
+					sz = d.sz or 64,
+					rot = d.rot or 0,
+					alpha = 0.85,
+					tint = { 0.5, 0.5, 0.5, 0.5 },
+					align = true,
+				}
+			end
+		end,
+		deactivate = deactivate,
 	}
 end
 
--- Persist the placement registry across /luaui reload: placed ground decals are
--- engine objects that survive a widget reload, but dp.projectIDs would not —
--- a project save right after a reload would then see zero owned decals and
--- delete the project's decals section. Guards: ids are only re-adopted in the
--- same session (game frame is monotonic within one) and are re-validated
--- against GetAllGroundDecals() at save time anyway.
+-- Persist the placement registry across /luaui reload: placed decals survive a
+-- widget reload but dp.projectIDs would not, and the next project save would
+-- drop the project's decals. Ids are re-adopted only within the same session
+-- (game frame is monotonic) and re-validated against GetAllGroundDecals() on save.
 function widget:GetConfigData()
 	local ids = {}
 	for id in pairs(dp.projectIDs) do
@@ -854,10 +918,16 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if not (data and data.projectIDs) then return end
-	if data.mapName ~= Game.mapName then return end
+	if not (data and data.projectIDs) then
+		return
+	end
+	if data.mapName ~= Game.mapName then
+		return
+	end
 	local frame = Spring.GetGameFrame()
-	if not data.savedAtFrame or data.savedAtFrame > frame then return end
+	if not data.savedAtFrame or data.savedAtFrame > frame then
+		return
+	end
 	for _, id in ipairs(data.projectIDs) do
 		dp.projectIDs[id] = true
 	end
@@ -865,33 +935,43 @@ end
 
 function widget:Shutdown()
 	WG.DecalPlacer = nil
-	widgetHandler:RemoveAction("decalplacer")
-	widgetHandler:RemoveAction("decalplacerscatter")
-	widgetHandler:RemoveAction("decalplacerpoint")
-	widgetHandler:RemoveAction("decalplacerremove")
-	widgetHandler:RemoveAction("decalplaceroff")
 end
 
-function widget:IsAbove() return false end
-
 function widget:KeyPress(key, mods)
-	if not dp.active then return false end
-	if key == 0x1B then deactivate(); return true end
+	if not dp.active then
+		return false
+	end
+	if key == 0x1B then
+		deactivate()
+		return true
+	end
+	if mods.ctrl and key == 122 and mods.shift then -- Ctrl+Shift+Z
+		decalRedo()
+		return true
+	end
 	if mods.ctrl and key == 122 then -- Ctrl+Z
 		decalUndo()
+		return true
+	end
+	if mods.ctrl and key == 121 then -- Ctrl+Y
+		decalRedo()
 		return true
 	end
 	return false
 end
 
 function widget:MousePress(mx, my, button)
-	if not dp.active or not dp.mode then return false end
-	-- Defer to measure tool when active so decal placement doesn't consume the click
+	if not dp.active or not dp.mode then
+		return false
+	end
+	-- Leave the click to the measure tool while it is active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
-		if st and st.measureActive then return false end
-		-- Defer to symmetry origin drag so terraform can grab the drag
+		if st and st.measureActive then
+			return false
+		end
+		-- Leave symmetry origin drags to the terraform brush
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -900,24 +980,28 @@ function widget:MousePress(mx, my, button)
 	end
 	if button == 1 then
 		local wx, wz = getWorldMousePosition()
-		if not wx then return false end
+		if not wx then
+			return false
+		end
 		dp.dragging = true
 		dp.dragAction = "place"
-		dp.lockedWorldX = wx
-		dp.lockedWorldZ = wz
 		dp.placeTimer = 0
-		if dp.mode == "scatter" then placeSymmetric(placeScatter, wx, wz)
-		elseif dp.mode == "point" then placeSymmetric(placePoint, wx, wz)
-		elseif dp.mode == "remove" then placeSymmetric(placeRemove, wx, wz) end
+		if dp.mode == "scatter" then
+			placeSymmetric(placeScatter, wx, wz)
+		elseif dp.mode == "point" then
+			placeSymmetric(placePoint, wx, wz)
+		elseif dp.mode == "remove" then
+			placeSymmetric(placeRemove, wx, wz)
+		end
 		return true
 	end
 	if button == 3 then
 		local wx, wz = getWorldMousePosition()
-		if not wx then return false end
+		if not wx then
+			return false
+		end
 		dp.dragging = true
 		dp.dragAction = "remove"
-		dp.lockedWorldX = wx
-		dp.lockedWorldZ = wz
 		placeSymmetric(placeRemove, wx, wz)
 		return true
 	end
@@ -928,18 +1012,20 @@ function widget:MouseRelease(_, _, button)
 	if (button == 1 or button == 3) and dp.dragging then
 		dp.dragging = false
 		dp.dragAction = nil
-		dp.lockedWorldX = nil
-		dp.lockedWorldZ = nil
 		return true
 	end
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(up, _)
-	if not dp.active then return false end
+	if not dp.active then
+		return false
+	end
 	local alt, ctrl, _, shift = GetModKeyState()
 	if alt then
 		local step = ROTATION_STEP
+		---@type table?
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -954,8 +1040,11 @@ function widget:MouseWheel(up, _)
 		return true
 	end
 	if GetKeyState(KEYSYMS_SPACE) then
-		if up then setCadence(dp.cadence * 1.15)
-		else setCadence(dp.cadence / 1.15) end
+		if up then
+			setCadence(dp.cadence * 1.15)
+		else
+			setCadence(dp.cadence / 1.15)
+		end
 		return true
 	end
 	if ctrl then
@@ -966,27 +1055,41 @@ function widget:MouseWheel(up, _)
 end
 
 function widget:Update(dt)
-	if not dp.active then return end
-	updateTimer = updateTimer + dt
-	if updateTimer < UPDATE_INTERVAL then return end
-	updateTimer = 0
+	if not dp.active then
+		return
+	end
+	-- Held button: repeat at the cadence, timed on the real frame time with the remainder
+	-- carried (like FEATURES and UNITS), so the rate is not rounded to 1/30 s ticks.
 	if dp.dragging and dp.dragAction == "place" then
-		dp.placeTimer = dp.placeTimer + UPDATE_INTERVAL
-		if dp.placeTimer >= getCadenceInterval() then
-			dp.placeTimer = 0
+		dp.placeTimer = dp.placeTimer + dt
+		local interval = getCadenceInterval()
+		if dp.placeTimer >= interval then
+			dp.placeTimer = min(dp.placeTimer - interval, interval)
 			local wx, wz = getWorldMousePosition()
 			if wx then
-				if dp.mode == "scatter" then placeSymmetric(placeScatter, wx, wz)
-				elseif dp.mode == "point" then placeSymmetric(placePoint, wx, wz) end
+				if dp.mode == "scatter" then
+					placeSymmetric(placeScatter, wx, wz)
+				elseif dp.mode == "point" then
+					placeSymmetric(placePoint, wx, wz)
+				end
 			end
 		end
 	elseif dp.dragging and dp.dragAction == "remove" then
+		updateTimer = updateTimer + dt
+		if updateTimer < UPDATE_INTERVAL then
+			return
+		end
+		updateTimer = 0
 		local wx, wz = getWorldMousePosition()
-		if wx then placeSymmetric(placeRemove, wx, wz) end
+		if wx then
+			placeSymmetric(placeRemove, wx, wz)
+		end
 	end
 end
 
 function widget:DrawWorld()
-	if not dp.active then return end
+	if not dp.active then
+		return
+	end
 	drawCurrentBrush()
 end

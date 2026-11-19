@@ -6,12 +6,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Block ventless geo",
-		desc    = "Fixes an engine bug that lets you place geos anywhere",
-		author  = "Sprung",
-		date    = "2023-10-16",
+		name = "Block ventless geo",
+		desc = "Fixes an engine bug that lets you place geos anywhere",
+		author = "Sprung",
+		date = "2023-10-16",
 		license = "Public Domain",
-		layer   = 0,
+		layer = 0,
 		enabled = not Script.IsEngineMinVersion(105, 0, 2032),
 	}
 end
@@ -19,7 +19,7 @@ end
 local function isNearGeo(x, z)
 	-- modded geos can be bigger than 40 elmo but w/e, this gadget only lives
 	-- until next engine anyway, plus centered placement still works
-	local features = Spring.GetFeaturesInCylinder(x, z, 40*math.sqrt(2))
+	local features = Spring.GetFeaturesInCylinder(x, z, 40 * math.sqrt(2))
 	for i = 1, #features do
 		if FeatureDefs[Spring.GetFeatureDefID(features[i])].geoThermal then
 			return true

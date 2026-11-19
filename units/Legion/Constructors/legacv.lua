@@ -1,13 +1,13 @@
 return {
 	legacv = {
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		energycost = 6600,
 		metalcost = 530,
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACV.DDS",
-		buildtime = 11900,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 24 55",
@@ -29,7 +29,7 @@ return {
 		script = "Units/legacv.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 295.10001,
+		sightdistance = 330,
 		terraformspeed = 1250,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
@@ -70,7 +70,7 @@ return {
 			"legavp",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Constructors",

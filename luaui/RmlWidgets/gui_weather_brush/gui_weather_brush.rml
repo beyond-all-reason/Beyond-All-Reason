@@ -12,6 +12,7 @@
 			<div id="wb-handle" class="wb-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Weather Library</div>
 			<div id="btn-wb-quit" class="wb-quit-btn" onclick="widget:OnQuit()"><img class="wb-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- Weather Library section header -->
 		<div class="wb-section-header">
@@ -58,6 +59,7 @@
 			<div id="wb-selected-cegs-label" class="wb-selected-value">none</div>
 		</div>
 
+		</div><!-- /tf-panel-body -->
 	</div>
 </body>
 </rml>

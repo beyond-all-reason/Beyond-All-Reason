@@ -69,10 +69,18 @@ function PolygonLib.GetStartboxBounds(entry)
 		local polygon = entry.boxes[i]
 		for j = 1, #polygon do
 			local vx, vy = polygon[j][1], polygon[j][2]
-			if vx < xmin then xmin = vx end
-			if vx > xmax then xmax = vx end
-			if vy < ymin then ymin = vy end
-			if vy > ymax then ymax = vy end
+			if vx < xmin then
+				xmin = vx
+			end
+			if vx > xmax then
+				xmax = vx
+			end
+			if vy < ymin then
+				ymin = vy
+			end
+			if vy > ymax then
+				ymax = vy
+			end
 		end
 	end
 

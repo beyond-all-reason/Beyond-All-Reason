@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGOTTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 260,
+		sightdistance = 330,
 		terraformspeed = 400,
 		trackoffset = 8,
 		trackstrength = 5,
@@ -46,7 +46,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",
@@ -86,10 +85,10 @@ return {
 			"legfhive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {

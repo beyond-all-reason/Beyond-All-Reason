@@ -9,7 +9,7 @@ return {
 		buildtime = 8800,
 		canrepeat = false,
 		cantbetransported = false,
-		collisionvolumeoffsets = "0-20 0",
+		collisionvolumeoffsets = "0 -20 0",
 		collisionvolumescales = "32 160 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
@@ -24,7 +24,7 @@ return {
 		script = "Units/scavbuildings/CORHLLLLT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 475,
+		sightdistance = 500,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -129,9 +129,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true,
-				}
 			},
 			hllt_2 = {
 				areaofeffect = 12,
@@ -169,9 +166,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 			hllt_3 = {
 				areaofeffect = 12,
@@ -209,9 +205,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 			hllt_4 = {
 				areaofeffect = 12,
@@ -249,9 +244,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 		},
 		weapons = {

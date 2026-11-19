@@ -29,7 +29,7 @@ return {
 		script = "Units/LEGCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 260,
+		sightdistance = 330,
 		terraformspeed = 450,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -48,7 +48,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"legavp",
 			"leglab",
@@ -73,11 +72,10 @@ return {
 			"leghive",
 		},
 		customparams = {
-			unitgroup = 'builder',
-			area_mexT15_def = "legmext15",
+			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {

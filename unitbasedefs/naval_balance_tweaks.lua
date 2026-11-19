@@ -1,40 +1,35 @@
 local buildOptionReplacements = {
-	-- t1 arm cons
-	armcs = { armfhlt = "armnavaldefturret" },
-	armch = { armfhlt = "armnavaldefturret" },
-	armbeaver = { armfhlt = "armnavaldefturret" },
-	armcsa = { armfhlt = "armnavaldefturret" },
-
-	-- t1 cor cons
-	corcs = { corfhlt = "cornavaldefturret" },
-	corch = { corfhlt = "cornavaldefturret" },
-	cormuskrat = { corfhlt = "cornavaldefturret" },
-	corcsa = { corfhlt = "cornavaldefturret" },
-
-	-- t1 leg cons
-	legnavyconship = { legfmg = "legnavaldefturret" },
-	legch = { legfmg = "legnavaldefturret" },
-	legotter = { legfmg = "legnavaldefturret" },
-	legspcon = { legfmg = "legnavaldefturret" },
-
-	-- t2 arm cons
 	armacsub = { armkraken = "armanavaldefturret" },
 	armmls = {
-		armfhlt   = "armnavaldefturret",
+		armfhlt = "armnavaldefturret",
 		armkraken = "armanavaldefturret",
 	},
-
-	-- t2 cor cons
 	coracsub = { corfdoom = "coranavaldefturret" },
 	cormls = {
-		corfhlt  = "cornavaldefturret",
+		corfhlt = "cornavaldefturret",
 		corfdoom = "coranavaldefturret",
 	},
-
-	-- t2 leg cons
+	-- legion t2 sea con already has their extra turret.
 	leganavyengineer = {
 		legfmg = "legnavaldefturret",
 	},
+}
+
+local buildOptionAdditions = {
+	armcs = "armnavaldefturret",
+	armch = "armnavaldefturret",
+	armbeaver = "armnavaldefturret",
+	armcsa = "armnavaldefturret",
+
+	corcs = "cornavaldefturret",
+	corch = "cornavaldefturret",
+	cormuskrat = "cornavaldefturret",
+	corcsa = "cornavaldefturret",
+
+	legnavyconship = "legnavaldefturret",
+	legch = "legnavaldefturret",
+	legotter = "legnavaldefturret",
+	legspcon = "legnavaldefturret",
 }
 
 local sightRanges = {
@@ -52,6 +47,11 @@ local function navalBalanceTweaks(name, unitDef)
 				buildoptions[i] = replacements[buildOption]
 			end
 		end
+	end
+
+	if buildOptionAdditions[name] then
+		local buildoptions = unitDef.buildoptions
+		buildoptions[#buildoptions + 1] = buildOptionAdditions[name]
 	end
 
 	if sightRanges[name] then

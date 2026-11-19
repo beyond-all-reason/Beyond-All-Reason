@@ -19,12 +19,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spSetUnitLosState		= Spring.SetUnitLosState
-local spSetUnitLosMask		= Spring.SetUnitLosMask
-local spGetUnitPosition		= Spring.GetUnitPosition
-local spGetUnitsInCylinder	= Spring.GetUnitsInCylinder
-local spGetUnitDefID		= Spring.GetUnitDefID
-local spGetUnitTeam			= Spring.GetUnitTeam
+local spSetUnitLosState = Spring.SetUnitLosState
+local spSetUnitLosMask = Spring.SetUnitLosMask
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local LOS_REVEALED = { los = true, radar = true }
+local LOS_UNMASKED = { los = false, radar = false }
 
 local minesweeperRanges = {}
 local minesweepers = {}
@@ -66,7 +69,7 @@ end
 local function processTeamsSweepers(teamID)
 	local minesToReveal = {}
 
-	for sweeper, sweeperDef in pairs(minesweepers[teamID])  do
+	for sweeper, sweeperDef in pairs(minesweepers[teamID]) do
 		local x, y, z = spGetUnitPosition(sweeper)
 		if x and z then
 			local nearUnits = spGetUnitsInCylinder(x, z, minesweeperRanges[sweeperDef])
@@ -83,15 +86,15 @@ local function processTeamsSweepers(teamID)
 		if revealedMines[teamID][mineToReveal] == nil then
 			revealedMines[teamID][mineToReveal] = true
 			--show in vision and radar, and prevent engine from immediately resseting that state
-			spSetUnitLosState(mineToReveal, teamIDs[teamID], 3)
-			spSetUnitLosMask(mineToReveal, teamIDs[teamID], 3)
+			spSetUnitLosState(mineToReveal, teamIDs[teamID], LOS_REVEALED)
+			spSetUnitLosMask(mineToReveal, teamIDs[teamID], LOS_REVEALED)
 		end
 	end
 end
 
 local function processRevealedMines(teamID)
 	for revealedMine, _ in pairs(revealedMines[teamID]) do
-		spSetUnitLosMask(revealedMine, teamIDs[teamID], 0)
+		spSetUnitLosMask(revealedMine, teamIDs[teamID], LOS_UNMASKED)
 		revealedMines[teamID][revealedMine] = nil
 	end
 end

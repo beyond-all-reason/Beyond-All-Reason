@@ -1,4 +1,4 @@
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 if not string.split then
 	-- Split a string into a table of substrings, based on a delimiter.
@@ -102,9 +102,15 @@ end
 if not string.randomString then
 	local mathRandom = math.random
 	local randomCharset = {}
-	for c = 48, 57 do randomCharset[#randomCharset + 1] = string.char(c) end
-	for c = 65, 90 do randomCharset[#randomCharset + 1] = string.char(c) end
-	for c = 97, 122 do randomCharset[#randomCharset + 1] = string.char(c) end
+	for c = 48, 57 do
+		randomCharset[#randomCharset + 1] = string.char(c)
+	end
+	for c = 65, 90 do
+		randomCharset[#randomCharset + 1] = string.char(c)
+	end
+	for c = 97, 122 do
+		randomCharset[#randomCharset + 1] = string.char(c)
+	end
 	function string.randomString(length)
 		length = length or 4
 		local result = {}

@@ -1,6 +1,5 @@
 return {
 	legnap = {
-		acceleration = 0.04,
 		airsightdistance = 800,
 		blocking = false,
 		maxdec = 0.045,
@@ -38,10 +37,10 @@ return {
 		wingangle = 0.06148,
 		wingdrag = 0.125,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "CorAircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		sounds = {

@@ -25,7 +25,7 @@ return {
 		script = "Units/cormaw.cob",
 		seismicsignature = 0,
 		selfdestructas = "flamethrowerSelfd",
-		sightdistance = 422,
+		sightdistance = 440,
 		stealth = true,
 		turnrate = 0,
 		upright = true,
@@ -80,8 +80,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

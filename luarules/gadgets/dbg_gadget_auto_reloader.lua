@@ -1,4 +1,11 @@
-if not Spring.Utilities.IsDevMode() then
+-- a replay re-runs the recorded scan requests, and reloading synced gadgets mid-replay breaks it
+if not BAR.Utilities.IsDevMode() or Game.demoPlayName then
+	return
+end
+
+-- GetConfigInt is unsynced only; the synced half scans when any player's unsynced half asks, so it stays
+-- in every client's gadget list and the config only stops this client from asking
+if not gadgetHandler:IsSyncedCode() and Spring.GetConfigInt("GadgetAutoReloader", 1) == 0 then
 	return
 end
 
@@ -18,13 +25,24 @@ function gadget:GetInfo()
 end
 
 local SELF_NAME = "Gadget Auto Reloader"
+local SCAN_MSG = "gadgetAutoReloader:scan"
 
 local spEcho = Spring.Echo
 
 local gadgetContents = {}
 local gadgetFileNames = {}
 local failedGadgets = {}
-local gadgetDependents = {}  -- gadgetName -> {dependentName1, dependentName2, ...}
+local gadgetDependents = {} -- gadgetName -> {dependentName1, dependentName2, ...}
+
+-- at Initialize the gadgets sorted after this one are loaded but not inserted yet; reading their
+-- ~170 files on the first scan instead cost ~15 ms in one Update
+local function CacheContents()
+	for name, ki in pairs(gadgetHandler.knownGadgets) do
+		if ki.active and name ~= SELF_NAME and not gadgetContents[name] then
+			gadgetContents[name] = VFS.LoadFile(ki.filename)
+		end
+	end
+end
 
 local function CacheGadgets()
 	for _, g in pairs(gadgetHandler.gadgets) do
@@ -32,9 +50,6 @@ local function CacheGadgets()
 		local name = ghInfo.name
 		if name ~= SELF_NAME then
 			gadgetFileNames[name] = ghInfo.filename
-			if not gadgetContents[name] then
-				gadgetContents[name] = VFS.LoadFile(ghInfo.filename)
-			end
 			if g.GetInfo then
 				local info = g:GetInfo()
 				if info.dependents then
@@ -49,7 +64,9 @@ local pendingReHook = {}
 
 local function ReHookProfiler(gadgetName)
 	local g = gadgetHandler:FindGadget(gadgetName)
-	if not g then return end
+	if not g then
+		return
+	end
 	for key, value in pairs(gadgetHandler) do
 		if type(value) == "table" then
 			local i = string.find(key, "List", 1, true)
@@ -72,11 +89,18 @@ end
 
 local function CheckForChanges(gadgetName, fileName, label)
 	local newContents = VFS.LoadFile(fileName)
-	if newContents ~= gadgetContents[gadgetName] then
+	if not newContents then
+		return
+	end
+	local oldContents = gadgetContents[gadgetName]
+	if newContents ~= oldContents then
 		gadgetContents[gadgetName] = newContents
+		if oldContents == nil then
+			return -- enabled after Initialize: this read is its baseline
+		end
 		local chunk, err = loadstring(newContents, fileName)
 		if chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			failedGadgets[gadgetName] = fileName
 			return
 		end
@@ -96,15 +120,26 @@ local function CheckForChanges(gadgetName, fileName, label)
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local updateQueue = {}
 
 	function gadget:Initialize()
+		CacheContents()
 		CacheGadgets()
 	end
 
+	-- full scan when the unsynced half sees the mouse return to the game window (a scan every few seconds
+	-- re-read 8 gadget files per sim frame, ~190 us of every dev-mode sim frame)
+	function gadget:RecvLuaMsg(msg)
+		if msg == SCAN_MSG then
+			CacheGadgets()
+			updateQueue = {}
+			for gadgetName, fileName in pairs(gadgetFileNames) do
+				updateQueue[gadgetName] = fileName
+			end
+		end
+	end
+
 	local lastCheckFrame = 0
-	local lastFullScanFrame = 0
 	function gadget:GameFrame(frame)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
@@ -128,23 +163,13 @@ if gadgetHandler:IsSyncedCode() then
 		for name, fileName in pairs(failedGadgets) do
 			CheckForChanges(name, fileName, "synced")
 		end
-		-- Full scan every ~3 seconds to catch synced-side changes
-		if frame - lastFullScanFrame >= 90 then
-			lastFullScanFrame = frame
-			CacheGadgets()
-			updateQueue = {}
-			for gadgetName, fileName in pairs(gadgetFileNames) do
-				updateQueue[gadgetName] = fileName
-			end
-		end
 	end
-
 else
-
 	local spGetMouseState = Spring.GetMouseState
 	local mouseOffscreen = select(6, spGetMouseState())
 
 	function gadget:Initialize()
+		CacheContents()
 		CacheGadgets()
 	end
 
@@ -178,6 +203,7 @@ else
 		mouseOffscreen = select(6, spGetMouseState())
 
 		if not mouseOffscreen and prevMouseOffscreen then
+			Spring.SendLuaRulesMsg(SCAN_MSG)
 			CacheGadgets()
 			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do
@@ -189,5 +215,4 @@ else
 			end
 		end
 	end
-
 end

@@ -6,12 +6,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Feature Placer UI",
-		desc    = "RmlUI asset library panel for feature placer",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer UI",
+		desc = "RmlUI asset library panel for feature placer",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000002,
+		layer = 1000002,
 		enabled = false,
 	}
 end
@@ -19,29 +19,40 @@ end
 local RML_PATH = "luaui/RmlWidgets/gui_feature_placer/gui_feature_placer.rml"
 local MODEL_NAME = "feature_placer_model"
 
+---@type table<string, any>
 local WG = WG
-local GetViewGeometry = Spring.GetViewGeometry
 
-local INITIAL_LEFT_VW   = 60
-local INITIAL_TOP_VH    = 10
-local BASE_WIDTH_DP     = 220
-local TILE_COLUMNS      = 3
-local TILE_GAP_DP       = 2
+local INITIAL_LEFT_VW = 60
+local INITIAL_TOP_VH = 10
+local BASE_WIDTH_DP = 220
+local TILE_COLUMNS = 3
+local TILE_GAP_DP = 2
 
+---@class FeaturePlacerUiState
+---@field rmlContext RmlUi.Context?
+---@field document RmlUi.Document?
+---@field dmHandle table?
+---@field rootElement RmlUi.Element?
+---@field panelWidthDp number
+---@field selectedCountEl RmlUi.Element?
+---@field lastSelectedCountRml string?
+---@field lastPickSig string?
+---@field pickAnchor string? last clicked tile, the start of a Shift+click range
+---@field dragHandle any
+---@field featureListEl RmlUi.Element?
 local widgetState = {
-	rmlContext   = nil,
-	document     = nil,
-	dmHandle     = nil,
-	rootElement  = nil,
-	-- Logical (dp) width used for tile layout math. Rendered width lives
-	-- in RCSS (.fp-root) via dp + min-width.
+	rmlContext = nil --[[@as table?]],
+	document = nil,
+	dmHandle = nil,
+	rootElement = nil,
+	-- Width in dp for the tile layout math; the rendered width lives in RCSS (.fp-root).
 	panelWidthDp = BASE_WIDTH_DP,
 }
 
 local initialModel = {
-	-- Root panel visibility (data-class-hidden on #fp-root)
+	-- data-class-hidden on #fp-root
 	hidden = true,
-	-- Two-way-bound search filter (data-value on #feature-search)
+	-- data-value on #feature-search
 	search = "",
 }
 
@@ -50,15 +61,16 @@ local lastSearchFilter = ""
 -- Shift+click toggles a category in/out of the set. The special "all" key is
 -- mutually exclusive with the specific categories.
 local selectedCategories = { all = true }
-local categoryButtons  = {} -- { [catKey] = element }
-local featureElements  = {} -- { [defName] = element }
-local thumbDivs        = {} -- { [defName] = div element }
-local manuallyHidden   = false
-local lastActive       = false
-local userDragged      = false  -- once user drags, stop auto-positioning
-local lobbyHidden      = false  -- true while the lobby/menu overlay is up (LobbyOverlayActive)
-
-
+local categoryButtons = {} -- { [catKey] = element }
+local featureElements = {} -- { [defName] = element }
+---@type boolean
+local manuallyHidden = false
+---@type boolean
+local lastActive = false
+---@type boolean
+local userDragged = false -- once user drags, stop auto-positioning
+---@type boolean
+local lobbyHidden = false -- true while the lobby/menu overlay is up (LobbyOverlayActive)
 
 ----------------------------------------------------------------
 -- Thumbnail generation state (file-backed PNG cache)
@@ -69,24 +81,33 @@ local THUMB_CACHE_DIR = "Terraform Brush/FeatureThumbs/"
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
-local thumbTextures = {}   -- { [defName] = file path string }
-local thumbImgEls   = {}   -- { [defName] = <img> RmlUi element }
+---@type table<string, string>
+local thumbTextures = {} -- { [defName] = file path string }
+---@type table<string, any>
+local thumbImgEls = {} -- { [defName] = <img> RmlUi element }
+---@type table<integer, {name: string, defID: integer}>
 local thumbQueue = {}
 local thumbQueueIdx = 0
 local thumbTotal = 0
 local thumbDone = 0
+---@type boolean
 local thumbGenerating = false
+---@type boolean
 local thumbGenAttempted = false
 local thumbRefreshTimer = 0
+---@type boolean
 local needsListRefresh = false
-local depthTex  -- shared depth buffer for rendering
+---@type string?
+local depthTex -- shared depth buffer for rendering
 
 local function thumbCachePath(name)
 	return THUMB_CACHE_DIR .. name:gsub("[^%w_%-]", "_") .. ".png"
 end
 
 local function toRmlImageSrc(path)
-	if not path or path == "" then return nil end
+	if not path or path == "" then
+		return nil
+	end
 	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
 	if not VFS.FileExists(normalized, VFS.RAW_FIRST) then
 		return nil
@@ -96,22 +117,23 @@ end
 
 local function buildRootStyle()
 	-- Width lives in RCSS (.fp-root); we only set position here.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local function getDpRatio()
-	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio
-		and WG.TerraformerShared.getDpRatio()) or 1.0
+	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio and WG.TerraformerShared.getDpRatio()) or 1.0
 end
 
 ----------------------------------------------------------------
 -- Thumbnail generation (render feature models to GL textures)
 ----------------------------------------------------------------
+---@type integer?
 local thumbShader
 
 local function initThumbShader()
-	if thumbShader then return true end
+	if thumbShader then
+		return true
+	end
 	-- Model transform goes through TextureMatrix[0]; no UV-packed AO (rocks don't use that convention)
 	thumbShader = gl.CreateShader({
 		vertex = [[
@@ -157,7 +179,9 @@ local function initThumbShader()
 	return true
 end
 local function initSharedDepth()
-	if depthTex then return true end
+	if depthTex then
+		return true
+	end
 	depthTex = gl.CreateTexture(THUMB_SIZE, THUMB_SIZE, {
 		border = false,
 		format = GL_DEPTH_COMPONENT24,
@@ -176,21 +200,32 @@ end
 local function cleanupThumbs()
 	thumbTextures = {}
 	thumbImgEls = {}
-	if depthTex then gl.DeleteTexture(depthTex); depthTex = nil end
-	if thumbShader then gl.DeleteShader(thumbShader); thumbShader = nil end
+	if depthTex then
+		gl.DeleteTexture(depthTex)
+		depthTex = nil
+	end
+	if thumbShader then
+		gl.DeleteShader(thumbShader)
+		thumbShader = nil
+	end
 end
 
 local function renderOneThumb(name, defID)
 	local def = FeatureDefs[defID]
-	if not def then return false end
-	-- Check if this feature has a 3D model (runtime field is .modelpath)
-	if (def.modelpath or "") == "" then return false end
+	if not def then
+		return false
+	end
+	-- The runtime field is .modelpath.
+	if (def.modelpath or "") == "" then
+		return false
+	end
 
-	-- Ensure the model geometry is loaded into GPU memory
 	Spring.PreloadFeatureDefModel(defID)
 
-	-- Compute bounding box from model dimensions for proper framing
+	-- Frame the model by its bounds, or by its collision radius when it has none.
+	---@type number, number, number
 	local midX, midY, midZ = 0, 0, 0
+	---@type number?
 	local radius
 	local m = def.model
 	if m and m.minx and m.maxx then
@@ -202,13 +237,11 @@ local function renderOneThumb(name, defID)
 		local az = math.max(math.abs(m.maxz - midZ), math.abs(m.minz - midZ))
 		radius = math.sqrt(ax * ax + ay * ay + az * az)
 	end
-	-- Fallback: if model bounds not available, use collision radius
 	if not radius or radius < 1 then
 		radius = (def.radius or 20) * 0.8
 	end
 	radius = math.max(radius, 5) * 1.25
 
-	-- Create a texture for this feature
 	local colorTex = gl.CreateTexture(THUMB_SIZE, THUMB_SIZE, {
 		border = false,
 		min_filter = GL.LINEAR,
@@ -217,20 +250,25 @@ local function renderOneThumb(name, defID)
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 	})
-	if not colorTex then return false end
+	if not colorTex then
+		return false
+	end
 
 	local fbo = gl.CreateFBO({
 		color0 = colorTex,
-		depth  = depthTex,
+		depth = depthTex,
 		drawbuffers = { GL_COLOR_ATTACHMENT0_EXT },
 	})
 	if not fbo or not gl.IsValidFBO(fbo) then
 		gl.DeleteTexture(colorTex)
-		if fbo then gl.DeleteFBO(fbo) end
+		if fbo then
+			gl.DeleteFBO(fbo)
+		end
 		return false
 	end
 
 	local vsx, vsy = Spring.GetViewGeometry()
+	---@type string?
 	local savedPath
 
 	gl.ActiveFBO(fbo, function()
@@ -244,14 +282,13 @@ local function renderOneThumb(name, defID)
 		gl.DepthTest(true)
 		gl.DepthMask(true)
 
-		-- PROJECTION matrix: orthographic view
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PushMatrix()
 		gl.LoadIdentity()
 		gl.Ortho(-radius, radius, -radius, radius, -radius * 4, radius * 4)
 
-		-- TEXTURE matrix: model transform (matches unit_icongenerator pattern)
-		-- Spring's shape rendering uses TextureMatrix[0] for transforms when rawState=true
+		-- With rawState=true the engine's shape rendering takes its transform from
+		-- TextureMatrix[0] (the unit_icongenerator pattern).
 		gl.ActiveTexture(0, gl.MatrixMode, GL.TEXTURE)
 		gl.PushMatrix()
 		gl.LoadIdentity()
@@ -259,26 +296,23 @@ local function renderOneThumb(name, defID)
 		gl.Rotate(45, 0, 1, 0)
 		gl.Translate(-midX, -midY, -midZ)
 
-		-- MODELVIEW matrix: identity
 		gl.MatrixMode(GL.MODELVIEW)
 		gl.PushMatrix()
 		gl.LoadIdentity()
 
-		-- Set vertex color to white so the shader's gl_Color is defined
+		-- White, so the shader's gl_Color is defined.
 		gl.Color(1, 1, 1, 1)
 
-		-- Render with custom shader + engine texture push/pop
 		gl.UseShader(thumbShader)
 		gl.FeatureShapeTextures(defID, true)
 		gl.FeatureShape(defID, 0, true, false, true)
-		-- Alpha pass
+		-- Then the alpha pass.
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.FeatureShape(defID, 0, true, false, false)
 		gl.Blending(false)
 		gl.FeatureShapeTextures(defID, false)
 		gl.UseShader(0)
 
-		-- Restore all matrices in reverse order
 		gl.ActiveTexture(0, gl.MatrixMode, GL.TEXTURE)
 		gl.PopMatrix()
 		gl.MatrixMode(GL.PROJECTION)
@@ -289,7 +323,7 @@ local function renderOneThumb(name, defID)
 		gl.DepthMask(false)
 		gl.DepthTest(false)
 
-		-- Save while the FBO is still active (proven-required pattern).
+		-- gl.SaveImage must run while the FBO is still bound.
 		local filePath = thumbCachePath(name)
 		gl.SaveImage(0, 0, THUMB_SIZE, THUMB_SIZE, filePath, { alpha = false })
 		savedPath = filePath
@@ -307,13 +341,19 @@ local function renderOneThumb(name, defID)
 end
 
 local function startThumbGeneration()
-	if thumbGenAttempted then return end
-	if not WG.FeaturePlacer then return end
+	if thumbGenAttempted then
+		return
+	end
+	if not WG.FeaturePlacer then
+		return
+	end
 	thumbGenAttempted = true
 
 	local categories = WG.FeaturePlacer.getFeatureCategories()
 	local order = WG.FeaturePlacer.getCategoryOrder()
-	if not categories or not order then return end
+	if not categories or not order then
+		return
+	end
 
 	thumbQueue = {}
 	thumbQueueIdx = 1
@@ -323,8 +363,7 @@ local function startThumbGeneration()
 		if items then
 			for _, entry in ipairs(items) do
 				if not thumbTextures[entry.name] then
-					-- Reuse the on-disk PNG from a previous session/reload; only
-					-- render thumbs that have never been generated on this install.
+					-- Reuse the PNG on disk; only render thumbs never generated on this install.
 					local cached = thumbCachePath(entry.name)
 					if VFS.FileExists(cached, VFS.RAW_FIRST) then
 						thumbTextures[entry.name] = cached
@@ -345,11 +384,12 @@ local function startThumbGeneration()
 	end
 
 	thumbGenerating = true
-	Spring.Echo("[Feature Placer UI] Generating " .. thumbTotal .. " thumbnails...")
 end
 
 local function processThumbQueue()
-	if not thumbGenerating then return end
+	if not thumbGenerating then
+		return
+	end
 	if not initThumbShader() then
 		thumbGenerating = false
 		return
@@ -381,12 +421,7 @@ local function processThumbQueue()
 	if thumbQueueIdx > #thumbQueue then
 		thumbGenerating = false
 		needsListRefresh = true
-		Spring.Echo("[Feature Placer UI] Thumbnails complete (" .. thumbDone .. "/" .. thumbTotal .. ")")
 	end
-end
-
-local function invalidateThumbCache()
-	-- no-op; kept for call-site compatibility
 end
 
 ----------------------------------------------------------------
@@ -394,9 +429,10 @@ end
 ----------------------------------------------------------------
 local function updateSelectedCount()
 	local doc = widgetState.document
-	if not doc then return end
-	-- Cached element + last-written string: runs every Update tick, so avoid
-	-- the repeated GetElementById and the inner_rml re-parse on unchanged counts.
+	if not doc then
+		return
+	end
+	-- Runs every Update tick: cache the element and skip the inner_rml re-parse when unchanged.
 	local el = widgetState.selectedCountEl
 	if not el then
 		el = doc:GetElementById("selected-count")
@@ -411,6 +447,20 @@ local function updateSelectedCount()
 			el.inner_rml = s
 		end
 	end
+	-- The tiles follow the placer's picks whatever changed them (a right-click on the map
+	-- drops them), so the library never shows a pick that is gone. Only on a change.
+	if WG.FeaturePlacer then
+		local state = WG.FeaturePlacer.getState()
+		local defs = state and state.selectedDefs or {}
+		local sig = table.concat(defs, ",")
+		if widgetState.lastPickSig ~= sig then
+			widgetState.lastPickSig = sig
+			local ss = state and state.selectedSet or {}
+			for name, tile in pairs(featureElements) do
+				tile:SetClass("selected", ss[name] or false)
+			end
+		end
+	end
 end
 
 ----------------------------------------------------------------
@@ -418,49 +468,68 @@ end
 -- The full filtered data lives in virtualItems; DOM is rebuilt
 -- on scroll / filter / category change for the visible window.
 ----------------------------------------------------------------
-local virtualItems = {}       -- flat array of { name=..., id=..., category=... }
-local virtualTileW = 32       -- computed tile width (dp)
-local virtualTileH = 32       -- computed tile height (includes name bar)
-local virtualRowH  = 0        -- tile height + gap in px (computed after first layout)
-local virtualScrollTop = -1   -- last known scroll_top
-local virtualTopSpacer = nil  -- spacer div for items above viewport
-local virtualBotSpacer = nil  -- spacer div for items below viewport
-local virtualVisStart = 0     -- first visible index (0-based)
-local virtualVisEnd   = 0     -- last visible index (exclusive)
+---@type table<integer, table>
+local virtualItems = {} -- flat array of { name=..., id=..., category=... }
+local virtualTileW = 32 -- computed tile width (dp)
+local virtualScrollTop = -1 -- last known scroll_top
+---@type any
+local virtualTopSpacer = nil -- spacer div for items above viewport
+---@type any
+local virtualBotSpacer = nil -- spacer div for items below viewport
+local virtualVisStart = 0 -- first visible index (0-based)
+local virtualVisEnd = 0 -- last visible index (exclusive)
+---@type number
 local measuredRowHeightPx = 0 -- actual rendered tile row height in px (measured after first render)
-local lastBuildInnerPx = 0    -- client_width of feature-list at last rebuild, for resize detection
+---@type number
+local lastBuildInnerPx = 0 -- client_width of feature-list at last rebuild, for resize detection
 
 local function getListInnerPx()
 	local listEl = widgetState.document and widgetState.document:GetElementById("feature-list")
 	if listEl then
 		local cw = listEl.client_width or 0
-		if cw > 0 then return cw, listEl end
+		if cw > 0 then
+			return cw, listEl
+		end
 	end
 	local dpRatio = getDpRatio()
+	---@type number
 	local pwPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or 0
-	if pwPx <= 0 then pwPx = widgetState.panelWidthDp * dpRatio end
-	-- list has padding: 4dp each side + border: 1dp each side + ~12px scrollbar
+	if pwPx <= 0 then
+		pwPx = widgetState.panelWidthDp * dpRatio
+	end
+	-- The list has 4dp padding and a 1dp border each side, plus a ~12px scrollbar.
 	return pwPx - (4 + 4 + 1 + 1) * dpRatio - 12, listEl
 end
 
 local function computeTileWidth()
-	-- ALWAYS 3 columns. Work from the list element's actual client_width
-	-- (content area; excludes padding/border/scrollbar) and err on the side
-	-- of slightly-too-small tiles so flex-wrap never promotes us to 4 or
-	-- demotes us to 2 due to sub-pixel rounding or a scrollbar that pops in
-	-- after the rebuild.
+	-- Always TILE_COLUMNS columns. Err on slightly small tiles so flex-wrap never changes
+	-- the column count through sub-pixel rounding or a scrollbar appearing.
 	local dpRatio = getDpRatio()
 	local innerPx = getListInnerPx()
-	-- Always reserve scrollbar (8dp from RCSS) even when it isn't currently
-	-- visible, so the layout doesn't collapse to 2 cols when the user scrolls
-	-- and the scrollbar pops in.
+	-- Reserve the scrollbar (8dp in RCSS) even while it is hidden.
 	innerPx = innerPx - 8 * dpRatio
 	local gapPx = TILE_GAP_DP * dpRatio
-	local tileBorderPx = 4 * dpRatio  -- per-tile border: 2dp each side
-	local safetyPx = 6 * dpRatio       -- fudge against sub-pixel rounding
-	local tileW = math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
-	if tileW < 24 then tileW = 24 end
+	local tileBorderPx = 4 * dpRatio -- per-tile border: 2dp each side
+	local safetyPx = 6 * dpRatio -- fudge against sub-pixel rounding
+	local tileW =
+		math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
+	if tileW < 24 then
+		tileW = 24
+	end
 	return tileW
+end
+
+-- Picker labels for the geo defs, whose raw names don't say which variant is which:
+-- crack = flat surface crack decal; mesh = placeholder rock body, no crack; plain
+-- geovent (map-shipped) = just the geo spot and its smoke.
+local FEATURE_DISPLAY_NAMES = {
+	editor_geocrack = "geovent+crack",
+	editor_geovent = "geovent+mesh",
+	geovent = "geovent",
+}
+
+local function escapeRml(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
 local function createTileElement(doc, entry, tileW, selectedSet)
@@ -476,7 +545,6 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	thumbEl:SetClass("fp-feature-thumb", true)
 	thumbEl:SetClass("fp-thumb-" .. (entry.category or "other"), true)
 	itemEl:AppendChild(thumbEl)
-	thumbDivs[name] = thumbEl
 
 	local imgEl = doc:CreateElement("img")
 	imgEl:SetAttribute("style", "display: none;")
@@ -490,18 +558,45 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
-	nameEl.inner_rml = name
+	nameEl.inner_rml = escapeRml(FEATURE_DISPLAY_NAMES[name] or name)
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)
-		if not WG.FeaturePlacer then return end
-		local _, _, _, shift = Spring.GetModKeyState()
-		if shift then
-			WG.FeaturePlacer.toggleFeature(name)
-		else
-			WG.FeaturePlacer.selectFeature(name)
+		if not WG.FeaturePlacer then
+			return
 		end
-		local st = WG.FeaturePlacer.getState()
+		-- Click picks one, Ctrl+click adds or removes one, Shift+click adds every
+		-- tile from the last clicked one to this one (in the list as filtered).
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local fp = WG.FeaturePlacer
+		---@type integer?, integer?
+		local from, to
+		if shift and widgetState.pickAnchor then
+			for i, item in ipairs(virtualItems) do
+				if item.name == widgetState.pickAnchor then
+					from = i
+				end
+				if item.name == name then
+					to = i
+				end
+			end
+		end
+		if from and to then
+			local selected = fp.getState().selectedSet
+			for i = math.min(from, to), math.max(from, to) do
+				local n = virtualItems[i].name
+				if not selected[n] then
+					fp.toggleFeature(n)
+				end
+			end
+		elseif ctrl or shift then
+			fp.toggleFeature(name)
+			widgetState.pickAnchor = name
+		else
+			fp.selectFeature(name)
+			widgetState.pickAnchor = name
+		end
+		local st = fp.getState()
 		local ss = st and st.selectedSet or {}
 		for n, el in pairs(featureElements) do
 			el:SetClass("selected", ss[n] or false)
@@ -514,56 +609,56 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	return itemEl
 end
 
--- Render only the visible window of tiles into the DOM
+-- Render only the visible window of tiles into the DOM.
 local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
-	-- Remove old content
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 
 	local tileW = virtualTileW
 	local totalItems = #virtualItems
 
-	-- Compute row height in PX. Prefer the measured value from a prior render,
-	-- since CSS borders/gaps make the real rendered height differ from tileW+gap dp.
-	-- Falls back to dp estimate for the very first render (startIdx=0, topSpacer=0 so exact value doesn't matter yet).
+	-- Row height in px: prefer the value measured on a prior render (borders and gaps make
+	-- it differ from tileW + gap). The first render starts at 0, so the dp estimate is fine.
 	local dpRatio = getDpRatio()
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
 		rowHeightPx = tileW + TILE_GAP_DP * dpRatio
 	end
 
-	-- Top spacer: accounts for all rows above startIdx (sized in px for exact match to real tile row height)
+	-- Spacers stand in for the rows above and below the window.
 	local topRows = math.floor(startIdx / TILE_COLUMNS)
 	virtualTopSpacer = doc:CreateElement("div")
-	virtualTopSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(topRows * rowHeightPx + 0.5)))
+	virtualTopSpacer:SetAttribute(
+		"style",
+		string.format("width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(topRows * rowHeightPx + 0.5))
+	)
 	listEl:AppendChild(virtualTopSpacer)
 
-	-- Create visible tiles
+	---@type RmlUi.Element?
 	local firstItemEl
 	for i = startIdx + 1, math.min(endIdx, totalItems) do
 		local entry = virtualItems[i]
 		local itemEl = createTileElement(doc, entry, tileW, selectedSet)
 		listEl:AppendChild(itemEl)
-		if not firstItemEl then firstItemEl = itemEl end
+		if not firstItemEl then
+			firstItemEl = itemEl
+		end
 	end
 
-	-- Bottom spacer: accounts for all rows below endIdx
 	local bottomItems = math.max(0, totalItems - endIdx)
 	local bottomRows = math.ceil(bottomItems / TILE_COLUMNS)
 	virtualBotSpacer = doc:CreateElement("div")
-	virtualBotSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(bottomRows * rowHeightPx + 0.5)))
+	virtualBotSpacer:SetAttribute(
+		"style",
+		string.format("width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(bottomRows * rowHeightPx + 0.5))
+	)
 	listEl:AppendChild(virtualBotSpacer)
 
 	virtualVisStart = startIdx
 	virtualVisEnd = endIdx
 
-	-- Calibrate measured row height from the first rendered tile so subsequent
-	-- renders (and scroll math) use the actual pixel size including border+gap.
+	-- Measure the first tile so later renders and the scroll math use the real row height.
 	if firstItemEl then
 		local h = firstItemEl.offset_height
 		if h and h > 0 then
@@ -576,28 +671,33 @@ end
 local function updateVirtualWindow()
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("feature-list")
-	if not listEl or #virtualItems == 0 then return end
+	if not listEl or #virtualItems == 0 then
+		return
+	end
 
 	local scrollTop = listEl.scroll_top or 0
 	local viewH = listEl.client_height or 500
 
 	local tileW = virtualTileW
-	-- Prefer the measured pixel row height (accurate, includes border+gap); fall back to dp estimate.
 	local rowHeightPx = measuredRowHeightPx
 	if rowHeightPx < 1 then
 		local dpRatio = getDpRatio()
 		rowHeightPx = tileW + TILE_GAP_DP * dpRatio
 	end
 
-	if rowHeightPx < 1 then rowHeightPx = 40 end
+	if rowHeightPx < 1 then
+		rowHeightPx = 40
+	end
 
-	local firstVisRow = math.max(0, math.floor(scrollTop / rowHeightPx) - 2)  -- 2 row buffer
-	local visibleRows = math.ceil(viewH / rowHeightPx) + 4  -- 4 row buffer total
+	local firstVisRow = math.max(0, math.floor(scrollTop / rowHeightPx) - 2) -- 2 row buffer
+	local visibleRows = math.ceil(viewH / rowHeightPx) + 4 -- 4 row buffer total
 	local startIdx = firstVisRow * TILE_COLUMNS
 	local endIdx = math.min(#virtualItems, (firstVisRow + visibleRows) * TILE_COLUMNS)
 
 	-- Only rebuild DOM if the visible window actually changed
-	if startIdx == virtualVisStart and endIdx == virtualVisEnd then return end
+	if startIdx == virtualVisStart and endIdx == virtualVisEnd then
+		return
+	end
 
 	local state = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
@@ -607,19 +707,18 @@ end
 local function rebuildFeatureList(filter)
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("feature-list")
-	if not listEl or not WG.FeaturePlacer then return end
+	if not listEl or not WG.FeaturePlacer then
+		return
+	end
 
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 	virtualItems = {}
 	virtualVisStart = 0
 	virtualVisEnd = 0
 	virtualScrollTop = -1
 
-	-- Loading indicator during thumbnail generation
 	if thumbGenerating and thumbTotal > 0 then
 		local loadEl = doc:CreateElement("div")
 		loadEl:SetClass("fp-loading-bar", true)
@@ -637,15 +736,16 @@ local function rebuildFeatureList(filter)
 
 	local categories = WG.FeaturePlacer.getFeatureCategories()
 	local order = WG.FeaturePlacer.getCategoryOrder()
-	if not categories or not order then return end
+	if not categories or not order then
+		return
+	end
 
 	local state = WG.FeaturePlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
 	local lowerFilter = filter and filter:lower() or ""
 	local showAll = selectedCategories.all or not next(selectedCategories)
 
-	-- Build flat filtered list, preserving category order. Iterating `order`
-	-- once also de-duplicates when multiple categories are selected.
+	-- Iterating `order` once keeps category order and de-duplicates across selected categories.
 	local toShow = {}
 	for _, catName in ipairs(order) do
 		if showAll or selectedCategories[catName] then
@@ -659,7 +759,13 @@ local function rebuildFeatureList(filter)
 	end
 
 	for _, entry in ipairs(toShow) do
-		if lowerFilter == "" or entry.name:lower():find(lowerFilter, 1, true) then
+		-- Match the display label too (geo defs render as "geovent+mesh" etc.)
+		local shown = FEATURE_DISPLAY_NAMES[entry.name]
+		if
+			lowerFilter == ""
+			or entry.name:lower():find(lowerFilter, 1, true)
+			or (shown and shown:lower():find(lowerFilter, 1, true))
+		then
 			virtualItems[#virtualItems + 1] = entry
 		end
 	end
@@ -667,11 +773,12 @@ local function rebuildFeatureList(filter)
 	virtualTileW = computeTileWidth()
 	lastBuildInnerPx = getListInnerPx()
 
-	-- Render initial visible window (top of list)
 	local viewH = listEl.client_height or 500
 	local dpRatio = getDpRatio()
 	local rowHeightPx = (virtualTileW + TILE_GAP_DP * dpRatio)
-	if rowHeightPx < 1 then rowHeightPx = 40 end
+	if rowHeightPx < 1 then
+		rowHeightPx = 40
+	end
 	local visibleRows = math.ceil(viewH / rowHeightPx) + 4
 	local endIdx = math.min(#virtualItems, visibleRows * TILE_COLUMNS)
 
@@ -699,17 +806,19 @@ function widget:OnSearchBlur()
 	Spring.SDLStopTextInput()
 end
 
--- data-value="search" only writes dm.search AFTER the change event fires
--- (RmlUi quirk), so read the input element's value directly here instead of
--- relying on the Update() poll of dm.search — which is why typing previously
--- appeared to do nothing.
+-- RmlUi writes data-value="search" to dm.search only after the change event fires,
+-- so read the input element's value here rather than dm.search.
 function widget:OnSearchChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("feature-search")
 	local val = el and el:GetAttribute("value") or ""
-	if val == lastSearchFilter then return end
+	if val == lastSearchFilter then
+		return
+	end
 	lastSearchFilter = val
-	if widgetState.dmHandle then widgetState.dmHandle.search = val end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = val
+	end
 	rebuildFeatureList(val)
 end
 
@@ -732,27 +841,48 @@ function widget:OnClearSelection()
 end
 
 ----------------------------------------------------------------
--- Attach event listeners (imperative — drag handle + category buttons
--- + dynamic feature tiles; all simple buttons/inputs live in RML)
+-- Event listeners for the drag handle, category buttons and tiles
+-- (simple buttons and inputs are wired in the RML)
 ----------------------------------------------------------------
 local function attachEventListeners()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
-	-- Category buttons
-	local catKeys = { "all", "rocks", "trees", "foliage", "crystals", "christmas", "raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other" }
+	local catKeys = {
+		"all",
+		"rocks",
+		"trees",
+		"foliage",
+		"crystals",
+		"osemo",
+		"christmas",
+		"raptor",
+		"armada_wrecks",
+		"cortex_wrecks",
+		"legion_wrecks",
+		"other",
+	}
+	-- Categories whose features ship in a separate asset pack show only once it is installed.
+	local OPTIONAL_PACKS = { osemo = true }
+	local featureCats = WG.FeaturePlacer
+		and WG.FeaturePlacer.getFeatureCategories
+		and WG.FeaturePlacer.getFeatureCategories()
 	for _, key in ipairs(catKeys) do
 		local btn = doc:GetElementById("btn-cat-" .. key)
+		if btn and OPTIONAL_PACKS[key] then
+			local installed = featureCats ~= nil and featureCats[key] ~= nil and #featureCats[key] > 0
+			btn:SetClass("hidden", not installed)
+		end
 		if btn then
 			categoryButtons[key] = btn
 			btn:AddEventListener("click", function(event)
 				local _, _, _, shift = Spring.GetModKeyState()
 				if not shift or key == "all" then
-					-- Plain click (or "All"): select exactly this category.
 					selectedCategories = { [key] = true }
 				else
-					-- Shift+click: toggle this category in the additive set,
-					-- dropping the implicit "all".
+					-- Shift+click toggles it in the set and drops the implicit "all".
 					selectedCategories.all = nil
 					if selectedCategories[key] then
 						selectedCategories[key] = nil
@@ -772,15 +902,14 @@ local function attachEventListeners()
 		end
 	end
 
-	-- Build initial feature list
 	rebuildFeatureList("")
 
-	-- Drag handle
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "fp-handle", widgetState.rootElement,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "fp-handle", widgetState.rootElement, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -791,10 +920,14 @@ function widget:Initialize()
 	Spring.CreateDir(THUMB_CACHE_DIR)
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then return false end
+	if not widgetState.rmlContext then
+		return false
+	end
 
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not dm then return false end
+	if not dm then
+		return false
+	end
 	widgetState.dmHandle = dm
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
@@ -811,15 +944,16 @@ function widget:Initialize()
 
 	widgetState.rootElement = document:GetElementById("fp-root")
 
-	-- Hidden state is driven via data-class-hidden on #fp-root; the initial
-	-- model has `hidden = true` so the panel stays invisible until Update().
+	-- The initial model has hidden = true, so the panel stays invisible until Update().
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	attachEventListeners()
 end
 
 function widget:Update()
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
 	local function setHidden(v)
 		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
@@ -845,9 +979,10 @@ function widget:Update()
 	lastActive = isActive
 	setHidden((not isActive) or manuallyHidden or lobbyHidden)
 
-	if not isActive or lobbyHidden then return end
+	if not isActive or lobbyHidden then
+		return
+	end
 
-	-- Sync two-way-bound search filter back to internal state
 	if widgetState.dmHandle then
 		local searchVal = widgetState.dmHandle.search or ""
 		if searchVal ~= lastSearchFilter then
@@ -856,25 +991,25 @@ function widget:Update()
 		end
 	end
 
-	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
+	-- Sit left of the terraform panel unless the user has dragged it.
+	local mainPanel = WG.TerraformerShared
+		and WG.TerraformerShared.getElementRect
 		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
-			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;",
-					mainPanel.left - myWidth - gap, mainPanel.top))
+			widgetState.rootElement:SetAttribute(
+				"style",
+				string.format("left: %dpx; top: %dpx;", mainPanel.left - myWidth - gap, mainPanel.top)
+			)
 		end
 	end
 
-	-- Update selected count
 	updateSelectedCount()
 
-	-- Resize/relayout: if the feature-list's client_width changed since the
-	-- last rebuild, rebuild so tile widths re-derive. Handles window resize,
-	-- scrollbar appearing/disappearing, and first-frame-where-layout-finally-settled.
+	-- Rebuild when the list's client_width changed (window resize, scrollbar, or the
+	-- first frame where layout settles) so tile widths re-derive.
 	if widgetState.document then
 		local curInner = getListInnerPx()
 		if curInner > 0 and math.abs(curInner - lastBuildInnerPx) >= 2 then
@@ -882,15 +1017,12 @@ function widget:Update()
 		end
 	end
 
-	-- Lazy-start thumbnail generation
 	if not thumbGenAttempted and WG.FeaturePlacer then
 		startThumbGeneration()
 	end
 
-	-- Virtual scroll: update visible window when user scrolls
 	if #virtualItems > 0 then
-		-- Cached lookup: this runs every Update tick; the element itself survives
-		-- list rebuilds (only its children are replaced via inner_rml).
+		-- Cached: the element survives list rebuilds (only its children are replaced).
 		local listEl = widgetState.featureListEl
 		if not listEl and widgetState.document then
 			listEl = widgetState.document:GetElementById("feature-list")
@@ -905,7 +1037,6 @@ function widget:Update()
 		end
 	end
 
-	-- Periodic list refresh during thumbnail generation
 	if thumbGenerating then
 		thumbRefreshTimer = thumbRefreshTimer + 1
 		if thumbRefreshTimer >= 30 then
@@ -918,32 +1049,33 @@ function widget:Update()
 	end
 end
 
--- Hide the panel while the lobby/menu overlay is up so it doesn't draw over
--- Chobby. Mirrors the LobbyOverlayActive handling in gui_terraform_brush; the
--- broadcast comes from barwidgets.lua. document:Hide() stops rendering; the
--- lobbyHidden flag keeps Update() from re-showing it until the overlay closes.
+-- Hide the panel while the lobby overlay is up so it doesn't draw over Chobby (broadcast
+-- from barwidgets.lua). lobbyHidden keeps Update() from re-showing it until it closes.
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
-	if not document then return end
-	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+	if not document then
+		return
+	end
+	if message:sub(1, 19) == "LobbyOverlayActive0" then
 		lobbyHidden = false
 		document:Show()
-	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+	elseif message:sub(1, 19) == "LobbyOverlayActive1" then
 		lobbyHidden = true
 		document:Hide()
 	end
 end
 
 function widget:DrawScreen()
-	if lobbyHidden then return end
+	if lobbyHidden then
+		return
+	end
 	if thumbGenerating then
 		processThumbQueue()
 	end
 end
 
 function widget:Shutdown()
-	-- If the search input had focus when we shut down, SDL text-input mode is
-	-- still active and will leak into the next session.
+	-- If the search input had focus, SDL text-input mode would leak into the next session.
 	Spring.SDLStopTextInput()
 
 	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then

@@ -32,12 +32,12 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "Legion/economy",
+			subfolder = "Legion/Economy",
 		},
 		featuredefs = {
 			dead = {

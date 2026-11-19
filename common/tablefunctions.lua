@@ -6,20 +6,26 @@ run for end users.)
 ]]
 
 -- Lua 5.1 backwards compatibility
-table.pack = table.pack or function(...) return { n = select("#", ...), ... } end
+table.pack = table.pack or function(...)
+	return { n = select("#", ...), ... }
+end
 
 if not table.copy then
-	function table.copy(tbl)
-		local copy = {}
+	local pairs, type = pairs, type
+
+	local function copy(tbl)
+		local result = {}
 		for key, value in pairs(tbl) do
 			if type(value) == "table" then
-				copy[key] = table.copy(value)
+				result[key] = copy(value)
 			else
-				copy[key] = value
+				result[key] = value
 			end
 		end
-		return copy
+		return result
 	end
+
+	table.copy = copy
 end
 
 if not table.merge then
@@ -56,7 +62,7 @@ if not table.mergeInPlace then
 	function table.mergeInPlace(mergeTarget, mergeData, deep)
 		deep = deep or false
 		for key, value in pairs(mergeData) do
-			if type(value) == 'table' and type(mergeTarget[key] or false) == 'table' then
+			if type(value) == "table" and type(mergeTarget[key] or false) == "table" then
 				table.mergeInPlace(mergeTarget[key], value, deep)
 			elseif type(value) == "table" and deep then
 				mergeTarget[key] = table.copy(value)
@@ -77,15 +83,22 @@ if not table.sortStable then
 	---This method preserves elements' original order when possible, unlike `table.sort`.
 	---@generic T
 	---@param tbl T[]
-	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	---@param compare? fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
 	table.sortStable = function(tbl, compare)
 		if not compare then
 			compare = compareDefault
 		end
-		local index = table.getKeyOf -- local speedup
+
+		local originalIndex = {}
+		for index = 1, #tbl do
+			originalIndex[tbl[index]] = index
+		end
 		table.sort(tbl, function(a, b)
 			local comparison = compare(a, b)
-			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+			if comparison ~= nil then
+				return comparison
+			end
+			return originalIndex[a] < originalIndex[b]
 		end)
 	end
 end
@@ -112,8 +125,11 @@ if not table.toString then
 	local tableSort = table.sort
 	local DEFAULT_INDENT_STEP = 2
 
-	local function tableToString(tbl, options, _seen, _depth)
-	end
+	local function tableToString(tbl, options, _seen, _depth) end
+
+	-- table.toString of each non-number key in the sort in progress
+	local NO_KEY_STRINGS = {}
+	local keyStrings = NO_KEY_STRINGS
 
 	local function keyCmp(a, b)
 		local ta = type(a)
@@ -129,85 +145,11 @@ if not table.toString then
 		elseif tb == "number" and ta ~= "number" then
 			return false
 		else
-			return tableToString(a) < tableToString(b)
+			return keyStrings[a] < keyStrings[b]
 		end
 	end
 
 	local tableConcat = table.concat
-
-	tableToString = function(tbl, options, _seen, _depth)
-		_seen = _seen or {}
-		_depth = _depth or 0
-
-		local inputType = type(tbl)
-
-		if inputType == "string" then
-			return "\"" .. tbl .. "\""
-		elseif inputType == "userdata" then
-			return tostring(tbl) or "<userdata>"
-		elseif inputType ~= "table" then
-			return tostring(tbl)
-		end
-
-		if _seen[tbl] then
-			return "<recursive_reference>"
-		end
-
-		_seen[tbl] = true
-
-		local keys = {}
-		local keyCount = 0
-		for key in pairs(tbl) do
-			keyCount = keyCount + 1
-			keys[keyCount] = key
-		end
-		tableSort(keys, (options and options.keyCmp) or keyCmp)
-
-		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
-		local pretty = options and options.pretty
-
-		local parts = {}
-		local n = 0
-
-		n = n + 1; parts[n] = "{"
-		if keyCount > 0 and pretty then
-			n = n + 1; parts[n] = "\n"
-		end
-		for i = 1, keyCount do
-			local key = keys[i]
-			if pretty then
-				n = n + 1; parts[n] = stringRep(" ", (_depth + 1) * indent)
-			end
-			if key ~= i then
-				local keyType = type(key)
-				if keyType == "string" then
-					n = n + 1; parts[n] = key
-					n = n + 1; parts[n] = "="
-				elseif keyType == "number" then
-					n = n + 1; parts[n] = "["
-					n = n + 1; parts[n] = tostring(key)
-					n = n + 1; parts[n] = "]="
-				else
-					n = n + 1; parts[n] = "["
-					n = n + 1; parts[n] = tableToString(key, options, _seen)
-					n = n + 1; parts[n] = "]="
-				end
-			end
-			n = n + 1; parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
-			if i < keyCount or pretty then
-				n = n + 1; parts[n] = ","
-			end
-			if pretty then
-				n = n + 1; parts[n] = "\n"
-			end
-		end
-		if keyCount > 0 and pretty then
-			n = n + 1; parts[n] = stringRep(" ", _depth * indent)
-		end
-		n = n + 1; parts[n] = "}"
-
-		return tableConcat(parts)
-	end
 
 	---Recursively turns a table into a string, suitable for printing.
 	---
@@ -224,6 +166,111 @@ if not table.toString then
 	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
 	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
 	---@return string
+	tableToString = function(tbl, options, _seen, _depth)
+		local inputType = type(tbl)
+
+		if inputType == "string" then
+			return '"' .. tbl .. '"'
+		elseif inputType == "userdata" then
+			return tostring(tbl) or "<userdata>"
+		elseif inputType ~= "table" then
+			return tostring(tbl)
+		end
+
+		_seen = _seen or {}
+		_depth = _depth or 0
+
+		if _seen[tbl] then
+			return "<recursive_reference>"
+		end
+
+		_seen[tbl] = true
+
+		local keys = {}
+		local keyCount = 0
+		for key in pairs(tbl) do
+			keyCount = keyCount + 1
+			keys[keyCount] = key
+		end
+		if options and options.keyCmp then
+			tableSort(keys, options.keyCmp)
+		else
+			-- converted once per key instead of in every comparison
+			local strings
+			for i = 1, keyCount do
+				local key = keys[i]
+				if type(key) ~= "number" then
+					strings = strings or {}
+					strings[key] = tableToString(key)
+				end
+			end
+			keyStrings = strings or NO_KEY_STRINGS
+			tableSort(keys, keyCmp)
+			keyStrings = NO_KEY_STRINGS
+		end
+
+		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
+		local pretty = options and options.pretty
+
+		local parts = {}
+		local n = 0
+
+		n = n + 1
+		parts[n] = "{"
+		if keyCount > 0 and pretty then
+			n = n + 1
+			parts[n] = "\n"
+		end
+		for i = 1, keyCount do
+			local key = keys[i]
+			if pretty then
+				n = n + 1
+				parts[n] = stringRep(" ", (_depth + 1) * indent)
+			end
+			if key ~= i then
+				local keyType = type(key)
+				if keyType == "string" then
+					n = n + 1
+					parts[n] = key
+					n = n + 1
+					parts[n] = "="
+				elseif keyType == "number" then
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tostring(key)
+					n = n + 1
+					parts[n] = "]="
+				else
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tableToString(key, options, _seen)
+					n = n + 1
+					parts[n] = "]="
+				end
+			end
+			n = n + 1
+			parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
+			if i < keyCount or pretty then
+				n = n + 1
+				parts[n] = ","
+			end
+			if pretty then
+				n = n + 1
+				parts[n] = "\n"
+			end
+		end
+		if keyCount > 0 and pretty then
+			n = n + 1
+			parts[n] = stringRep(" ", _depth * indent)
+		end
+		n = n + 1
+		parts[n] = "}"
+
+		return tableConcat(parts)
+	end
+
 	table.toString = tableToString
 end
 
@@ -349,6 +396,25 @@ if not table.contains then
 	end
 end
 
+if not table.sameArray then
+	---Check if two arrays hold equal values in the same order.
+	---@param tbl any[]
+	---@param other any[]
+	---@return boolean
+	function table.sameArray(tbl, other)
+		local count = #tbl
+		if count ~= #other then
+			return false
+		end
+		for index = 1, count do
+			if tbl[index] ~= other[index] then
+				return false
+			end
+		end
+		return true
+	end
+end
+
 if not table.keys then
 	---Returns all keys of a table as an array, and the count of keys.
 	---@generic K
@@ -385,7 +451,9 @@ if not table.removeAll then
 	---@param tbl table<any, V>
 	---@param value V
 	function table.removeAll(tbl, value)
-		table.removeIf(tbl, function(v) return v == value end)
+		table.removeIf(tbl, function(v)
+			return v == value
+		end)
 	end
 end
 
@@ -545,7 +613,7 @@ if not table.valueIntersection then
 	---@param ... V[] Any number of array-style tables.
 	---@return V[] A new array containing only values present in all input arrays.
 	function table.valueIntersection(...)
-		local tables = { ...}
+		local tables = { ... }
 
 		-- Count occurrences of each value across all arrays
 		local valueCounts = {}
@@ -585,9 +653,11 @@ if not pairsByKeys then
 	---(Implementation copied straight from the docs at https://www.lua.org/pil/19.3.html.)
 	function pairsByKeys(tbl, keySortFunction)
 		local keys = {}
-		for key in pairs(tbl) do table.insert(keys, key) end
+		for key in pairs(tbl) do
+			table.insert(keys, key)
+		end
 		table.sort(keys, keySortFunction)
-		local i = 0           -- iterator variable
+		local i = 0 -- iterator variable
 		local iter = function() -- iterator function
 			i = i + 1
 			if keys[i] == nil then

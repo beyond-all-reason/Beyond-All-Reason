@@ -12,8 +12,12 @@ local DEFAULT_SEGMENTS = 12
 ---@field [3] number? strength Catmull-Rom anchor weight in [0,1]; absent or 0 is a sharp corner
 
 local function clamp01(v)
-	if v < 0 then return 0 end
-	if v > 1 then return 1 end
+	if v < 0 then
+		return 0
+	end
+	if v > 1 then
+		return 1
+	end
 	return v
 end
 
@@ -94,7 +98,9 @@ function SplineLib.TessellateRing(anchors, opts)
 	end
 
 	local segments = (opts and opts.segments) or DEFAULT_SEGMENTS
-	if segments < 1 then segments = 1 end
+	if segments < 1 then
+		segments = 1
+	end
 
 	local out = {}
 	for i = 1, n do
@@ -106,8 +112,14 @@ function SplineLib.TessellateRing(anchors, opts)
 		local p2 = anchors[iNext]
 		local p3 = anchors[iNext2]
 
-		local s1 = p1[3]; if s1 == nil then s1 = 0 end
-		local s2 = p2[3]; if s2 == nil then s2 = 0 end
+		local s1 = p1[3]
+		if s1 == nil then
+			s1 = 0
+		end
+		local s2 = p2[3]
+		if s2 == nil then
+			s2 = 0
+		end
 		local edgeTension = clamp01((clamp01(s1) + clamp01(s2)) * 0.5)
 
 		out[#out + 1] = { p1[1], p1[2] }

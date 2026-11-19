@@ -1,14 +1,16 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
+piece  base, turret, barrel, sleeve, flare, smoke1, smoke2, smoke3;
 
-static-var  restore_delay;
+static-var restore_delay;
+
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-
 
 #define VD_PIECE1 smoke1
 #define VD_PIECE2 smoke2
@@ -16,7 +18,6 @@ static-var  restore_delay;
 #define VD_AMPHIBIOUS
 #define VD_DIRTCEG 1024 + 1
 #include "../vehicle_dirt_cegs.h"
-
 
 #define BASEPIECE base
 #define HITSPEED <45.0>
@@ -38,13 +39,14 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <35.0>;
+	Weapon1TurretY = <55.0>;
 	hide smoke3;
 	hide flare;
 	hide smoke2;
 	hide smoke1;
 	restore_delay = 3000;
 }
-
 
 SetMaxReloadTime(reloadMS)
 {
@@ -58,26 +60,25 @@ StartMoving(reversing)
 	start-script Vehicle_Dirt_Ceg();
 }
 
-
 StopMoving()
 {
 	signal SIGNAL_MOVE;
 }
 
-static-var  Stunned;
+static-var Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn turret to y-axis <0.0> speed <45.0>;
 	turn turret to x-axis <0.0> speed <23.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -90,8 +91,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <55.0>;
-	turn turret to x-axis <0.0> - pitch speed <35.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn turret to x-axis <0.0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
@@ -116,8 +117,6 @@ AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = barrel;
 }
-
-
 
 Killed(severity, corpsetype)
 {

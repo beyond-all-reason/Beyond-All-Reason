@@ -25,7 +25,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 3350,
@@ -41,7 +41,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcomoff.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -87,12 +87,15 @@ return {
 			[29] = "corjamt",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			maxrange = 400,
+			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Other/Commanders",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {
@@ -107,7 +110,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = "Units/armcom_dead.s3o",
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -336,7 +339,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

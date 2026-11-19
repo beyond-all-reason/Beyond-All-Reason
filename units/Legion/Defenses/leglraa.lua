@@ -31,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,

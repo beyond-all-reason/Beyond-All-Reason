@@ -1,6 +1,6 @@
 return {
 	legbastion = {
-		maxacc= 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
@@ -9,8 +9,8 @@ return {
 		buildpic = "legbastion.DDS",
 		buildtime = 79000,
 		canrepeat = false,
-		collisionvolumeoffsets = "0.0 0.0 0.0",
-		collisionvolumescales = "68 160 68",
+		collisionvolumeoffsets = "0 1.5 0",
+		collisionvolumescales = "79 145.5 79",
 		collisionvolumetype = "CylY",
 		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
@@ -40,11 +40,12 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Gabs",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "Legion/Defenses",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -134,7 +135,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				customparams = {
-					sweepfire = 4,
+					sweepfire_firetime = 2.5,
 				},
 				damage = {
 					default = 155,
@@ -146,8 +147,9 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "t2heatray",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

@@ -40,6 +40,7 @@ return {
 			paralyzemultiplier = 0,
 			model_author = "Protar & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 1,
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -150,7 +151,7 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				-- tolerance = 750,
-				firetolerance = 750,
+				firetolerance = 50,
 				largebeamlaser = true,
 				impulsefactor = 0,
 				intensity = 5,
@@ -160,7 +161,7 @@ return {
 				predictboost = 0,
 				--proximitypriority = -1,
 				range = 800,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
 				soundhitdry = "flamhit1",
@@ -180,7 +181,6 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			ultraheavyriotcannon = {
@@ -193,6 +193,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				gravityaffected = "true",
 				impulsefactor = 2.4,
 				name = "Ultra Heavy Riot Autocannon",
 				noselfdamage = true,
@@ -214,15 +215,12 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 750,
 				damage = {
-					bombers = 52,
 					default = 420,
-					fighters = 52,
 					subs = 160,
 					vtol = 52,
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			bigfootstep = {
@@ -278,7 +276,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 700,
-				reloadtime = 0.9,--1.8,
+				reloadtime = 0.9, --1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
@@ -337,6 +335,7 @@ return {
 			[6] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LEGFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 			[7] = {

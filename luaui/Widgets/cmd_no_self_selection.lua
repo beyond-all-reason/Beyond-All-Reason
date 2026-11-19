@@ -2,13 +2,13 @@ local widget = widget ---@class Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Ignore Self",
-		desc    = "Avoid self-targeting with default commands (e.g. Guard on self)",
-		author  = "efrec",
-		date    = "2025-10-13",
+		name = "Ignore Self",
+		desc = "Avoid self-targeting with default commands (e.g. Guard on self)",
+		author = "efrec",
+		date = "2025-10-13",
 		version = "v1.0",
 		license = "GNU GPL, v2 or later",
-		layer   = -1e9, -- before other w:DefaultCommand
+		layer = -1e9, -- before other w:DefaultCommand
 		enabled = true,
 	}
 end
@@ -16,9 +16,11 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
----@type number in seconds
-local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
----@type integer in pixels, as the Manhattan norm
+---@return number # in seconds, read each time as it can change in game
+local function getDoubleClickTime()
+	return Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+end
+---@type integer # in pixels, as the Manhattan norm
 local doubleClickDist = 12
 ---@type table<CMD, true>
 local allowSelfCommand = {
@@ -111,7 +113,7 @@ local function getSingleClickDuration()
 		if selectClickTime <= 0 or not inDoubleClickDistance(mx, my) then
 			-- Start of a new single- or double-click.
 			cx, cy = mx, my
-			return doubleClickTime
+			return getDoubleClickTime()
 		else
 			-- Double-click consumes the single-click.
 			cx, cy = nil, nil
@@ -152,9 +154,10 @@ function widget:MousePress(x, y, button)
 		local _, commandID = sp_GetActiveCommand()
 		if not commandID then
 			restoreSelectionVolume(selectedUnitID)
-			selectClickTime = doubleClickTime
+			selectClickTime = getDoubleClickTime()
 		end
 	end
+	return false
 end
 
 function widget:Update(dt)
@@ -190,6 +193,15 @@ function widget:ActiveCommandChanged(cmdid, type)
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	if unitID == selectedUnitID then
+		if isVolumeHidden then
+			restoreSelectionVolume(unitID) -- unit hasn't been shared yet so we can restore
+		end
+		selectedUnitID = nil
+	end
+end
+
 -- Godmode and headless testing LOS fixes.
 
 local function unitAccessLost(self, unitID, unitTeam, unitAllyTeam, unitDefID)
@@ -213,7 +225,7 @@ widget.UnitLeftRadar = unitAccessLost
 widget.UnitEnteredLos = unitAccessGained
 widget.UnitEnteredRadar = unitAccessGained
 
--- Interwupget communications and compatability
+-- Interwupget communications and compatibility
 
 ---Get information about a ray traced from screen to world position.
 --
@@ -227,7 +239,7 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param ignoreWater boolean? (default: `false`)
 ---@param heightOffset number? (default: `0`)
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
----@return (integer|xyz)? result unitID or featureID (integer), or position triple (xyz)
+---@return (integer|xyz|string|number|nil)? result unitID or featureID (integer), or position triple (xyz)
 local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 	-- Explicitly check onlyCoords because `TraceScreenRay` accepts arguments (screenX, screenY, heightOffset).
 	local hiddenID = (onlyCoords ~= true) and not useMinimap and isVolumeHidden and selectedUnitID
@@ -236,7 +248,8 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local description, result =
+		sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)

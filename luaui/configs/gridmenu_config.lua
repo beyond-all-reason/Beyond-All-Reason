@@ -1,28 +1,88 @@
-
-
-local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
+local configs = require("luaui/configs/gridmenu_layouts")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
 local priorityUnits = configs.PriorityUnits or {}
 
-local unitGridPos = { }
-local gridPosUnit = { }
-local hasUnitGrid = { }
-local homeGridPos = { }
+local USER_LAYOUTS_PATH = "LuaUI/Config/gridmenu_layouts.json"
+local UNIT_GRID_SIZES = { 4, 3, 4 }
+local LAB_GRID_SIZES = { 12 }
+
+local function isGrid(value, sizes, depth)
+	depth = depth or 1
+	if depth > #sizes then
+		return type(value) == "string"
+	end
+
+	if type(value) ~= "table" then
+		return false
+	end
+
+	for index, child in pairs(value) do
+		local inBounds = type(index) == "number" and index % 1 == 0 and index >= 1 and index <= sizes[depth]
+		if not inBounds or not isGrid(child, sizes, depth + 1) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function mergeUserGrids(target, userGrids, sizes)
+	if type(userGrids) ~= "table" then
+		return
+	end
+
+	for builderName, grid in pairs(userGrids) do
+		if type(builderName) == "string" and isGrid(grid, sizes) then
+			target[builderName] = grid
+		else
+			Spring.Echo(
+				"gridmenu config: ignoring malformed layout for "
+					.. tostring(builderName)
+					.. " in "
+					.. USER_LAYOUTS_PATH
+			)
+		end
+	end
+end
+
+local function loadUserLayouts()
+	local content = VFS.LoadFile(USER_LAYOUTS_PATH, VFS.RAW)
+	if not content then
+		return
+	end
+
+	local ok, decoded = pcall(Json.decode, content)
+	if not ok or type(decoded) ~= "table" then
+		Spring.Echo("gridmenu config: could not decode " .. USER_LAYOUTS_PATH)
+
+		return
+	end
+
+	mergeUserGrids(unitGrids, decoded.unitGrids, UNIT_GRID_SIZES)
+	mergeUserGrids(labGrids, decoded.labGrids, LAB_GRID_SIZES)
+end
+
+loadUserLayouts()
+
+local unitGridPos = {}
+local gridPosUnit = {}
+local hasUnitGrid = {}
+local homeGridPos = {}
 local homePriority = {}
 
 local unitCategories = {}
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
+local BUILDCAT_ECONOMY = BAR.I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = BAR.I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = BAR.I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = BAR.I18N("ui.buildMenu.category_production")
 
 local categories = {
 	BUILDCAT_ECONOMY,
 	BUILDCAT_COMBAT,
 	BUILDCAT_UTILITY,
-	BUILDCAT_PRODUCTION
+	BUILDCAT_PRODUCTION,
 }
 
 local rows = 3
@@ -50,11 +110,11 @@ local categoryGroupMapping = {
 for uname, ugrid in pairs(unitGrids) do
 	local builder = UnitDefNames[uname]
 	if not builder then
-		Spring.Echo('gridmenu config: no unitdefname found for: '..uname)
+		Spring.Echo("gridmenu config: no unitdefname found for: " .. uname)
 	else
 		local builderId = builder.id
 
-		unitGridPos[builderId] = { {}, {}, {}, {}}
+		unitGridPos[builderId] = { {}, {}, {}, {} }
 		gridPosUnit[builderId] = {}
 		hasUnitGrid[builderId] = {}
 		homeGridPos[builderId] = { {}, {}, {}, {} }
@@ -65,10 +125,10 @@ for uname, ugrid in pairs(unitGrids) do
 			builderCanBuild[uBuilds[i]] = true
 		end
 
-		local uncategorizedCount = 0;
-		for cat=1,4 do
-			for row =1,3 do
-				for col =1,4 do
+		local uncategorizedCount = 0
+		for cat = 1, 4 do
+			for row = 1, 3 do
+				for col = 1, 4 do
 					local unitAtPos = ugrid[cat] and ugrid[cat][row] and ugrid[cat][row][col]
 
 					if unitAtPos then
@@ -84,7 +144,7 @@ for uname, ugrid in pairs(unitGrids) do
 					end
 				end
 			end
-			uncategorizedCount = 0;
+			uncategorizedCount = 0
 		end
 	end
 end
@@ -92,7 +152,7 @@ end
 for uname, ugrid in pairs(labGrids) do
 	local udef = UnitDefNames[uname]
 	if not udef then
-		Spring.Echo('gridmenu config: no unitdefname found for: '..uname)
+		Spring.Echo("gridmenu config: no unitdefname found for: " .. uname)
 	else
 		local uid = udef.id
 
@@ -105,8 +165,8 @@ for uname, ugrid in pairs(labGrids) do
 			uCanBuild[uBuilds[i]] = true
 		end
 
-		for r=1,3 do
-			for c=1,4 do
+		for r = 1, 3 do
+			for c = 1, 4 do
 				local index = (r - 1) * 4 + c
 				local ugdefname = ugrid[index]
 
@@ -126,25 +186,29 @@ end
 for _, unit in ipairs(priorityUnits) do
 	local prioritDef = UnitDefNames[unit]
 	if not prioritDef then
-		Spring.Echo('gridmenu config: no unitdefname found for: '..unit)
+		Spring.Echo("gridmenu config: no unitdefname found for: " .. unit)
 	else
 		local priorityId = prioritDef.id
-    	homePriority[priorityId] = true
+		homePriority[priorityId] = true
 	end
 end
-
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 end
 
-
 local function getCategoryIndex(category)
-	if category == BUILDCAT_ECONOMY then return 1
-	elseif category == BUILDCAT_COMBAT then return 2
-	elseif category == BUILDCAT_UTILITY then return 3
-	elseif category == BUILDCAT_PRODUCTION then return 4
-	else return nil end
+	if category == BUILDCAT_ECONOMY then
+		return 1
+	elseif category == BUILDCAT_COMBAT then
+		return 2
+	elseif category == BUILDCAT_UTILITY then
+		return 3
+	elseif category == BUILDCAT_PRODUCTION then
+		return 4
+	else
+		return nil
+	end
 end
 
 local function constructBuildOption(uDefID, cmd)
@@ -152,12 +216,11 @@ local function constructBuildOption(uDefID, cmd)
 		cmd = {
 			id = -uDefID,
 			name = UnitDefs[uDefID].name,
-			params = {}
+			params = {},
 		}
 	end
 	return cmd
 end
-
 
 local function getGridForCategory(builderId, buildOptions, currentCategory)
 	local options = {}
@@ -178,8 +241,10 @@ local function getGridForCategory(builderId, buildOptions, currentCategory)
 					end
 				end
 			end
-			if not (hasUnitGrid[builderId] and hasUnitGrid[builderId][opt]) and unitCategories[opt] == currentCategory then
-
+			if
+				not (hasUnitGrid[builderId] and hasUnitGrid[builderId][opt])
+				and unitCategories[opt] == currentCategory
+			then
 				-- if this unit doesn't have a defined position in the grid, find an empty spot for it
 				table.insert(undefinedOpts, opt)
 			end
@@ -200,18 +265,18 @@ local function getGridForCategory(builderId, buildOptions, currentCategory)
 end
 
 local function filterByPriority(categoryOpts, homePriority)
-    local priorityOpts = {}
+	local priorityOpts = {}
 	if not categoryOpts or next(homePriority) == nil then
 		return priorityOpts
 	end
 
-    for _, unitID in ipairs(categoryOpts) do
+	for _, unitID in ipairs(categoryOpts) do
 		if homePriority[unitID] then
 			table.insert(priorityOpts, unitID)
 		end
 	end
 
-    return priorityOpts
+	return priorityOpts
 end
 
 -- grid indices are laid out like this
@@ -238,13 +303,12 @@ function homeOptionsForBuilder(builderId, buildOptions)
 				end
 				optionsInRow = optionsInRow + 1
 				-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
-				local index = (cat) + ((optionsInRow - 1) * columns)
-                options[index] = constructBuildOption(uDefID)
-                usedOptions[uDefID] = true
+				local index = cat + ((optionsInRow - 1) * columns)
+				options[index] = constructBuildOption(uDefID)
+				usedOptions[uDefID] = true
 			end
 			optionsInRow = 0
 		end
-
 	else
 		-- if the unit doesn't have a predefined grid we still want the "home" page to have units
 		-- So we build all the categories and grab the first 3 items from each one
@@ -256,7 +320,7 @@ function homeOptionsForBuilder(builderId, buildOptions)
 				end
 				optionsInRow = optionsInRow + 1
 				-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
-				local index = (cat) + ((optionsInRow - 1) * columns)
+				local index = cat + ((optionsInRow - 1) * columns)
 				options[index] = opt
 				local usedID = -opt.id
 				usedOptions[usedID] = true
@@ -265,14 +329,14 @@ function homeOptionsForBuilder(builderId, buildOptions)
 		end
 	end
 	for cat = 1, 4 do
-	-- Replace the top row with the first unused priority unit in each category
+		-- Replace the top row with the first unused priority unit in each category
 		local possibleOpts = {}
 		for _, opt in pairs(categoryOptions[cat]) do
 			local optID = -opt.id
 			table.insert(possibleOpts, optID)
 		end
 		local priorityOpts = filterByPriority(possibleOpts, homePriority)
-		local row = 3 
+		local row = 3
 		local index = cat + ((row - 1) * columns)
 		local topOption = options[index]
 		if next(priorityOpts) ~= nil then
@@ -293,10 +357,9 @@ function homeOptionsForBuilder(builderId, buildOptions)
 			end
 		end
 	end
-	
+
 	return options
 end
-
 
 local function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 	if not builderId then
@@ -313,9 +376,8 @@ local function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 		return getGridForCategory(builderId, buildOptions, currentCategory)
 	end
 	-- last resort for units that have no grid
-	return { }
+	return {}
 end
-
 
 -- labs use cmds instead of buildoptions because they need to have state information like current queue count
 local function getSortedGridForLab(builderId, cmds)
@@ -326,8 +388,8 @@ local function getSortedGridForLab(builderId, cmds)
 	for _, cmd in pairs(cmds) do
 		if type(cmd) == "table" and not cmd.disabled then
 			local id = -cmd.id
-			if string.sub(cmd.action, 1, 10) == 'buildunit_' then
-				if (unitGridPos[builderId] and unitGridPos[builderId][id]) then
+			if string.sub(cmd.action, 1, 10) == "buildunit_" then
+				if unitGridPos[builderId] and unitGridPos[builderId][id] then
 					local row = string.sub(unitGridPos[builderId][id], 1, 1)
 					local col = string.sub(unitGridPos[builderId][id], 2, 2)
 					local index = col + ((row - 1) * columns)

@@ -2,33 +2,35 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Cluster Munitions',
-		desc    = 'Projectiles split and scatter on impact.',
-		author  = 'efrec',
-		version = '1.1',
-		date    = '2024-06-07',
-		license = 'GNU GPL, v2 or later',
-		layer   = 10, -- before fx_watersplash; Explosion is reverse iterated
-		enabled = true
+		name = "Cluster Munitions",
+		desc = "Projectiles split and scatter on impact.",
+		author = "efrec",
+		version = "1.1",
+		date = "2024-06-07",
+		license = "GNU GPL, v2 or later",
+		layer = 10, -- before fx_watersplash; Explosion is reverse iterated
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return false end
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
 -- Default settings ------------------------------------------------------------
 
-local defaultSpawnTtl = 5		 -- detonate projectiles after time = ttl, by default
+local defaultSpawnTtl = 5 -- detonate projectiles after time = ttl, by default
 
 -- General settings ------------------------------------------------------------
 
-local minSpawnNumber = 3         -- minimum number of spawned projectiles
-local maxSpawnNumber = 24        -- protect game performance against stupid ideas
-local minUnitBounces = "armpw"   -- smallest unit (name) that "bounces" projectiles at all
-local minBulkReflect = 800       -- smallest unit bulk that "reflects" as if terrain
-local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by a multiple
+local minSpawnNumber = 3 -- minimum number of spawned projectiles
+local maxSpawnNumber = 24 -- protect game performance against stupid ideas
+local minUnitBounces = "armpw" -- smallest unit (name) that "bounces" projectiles at all
+local minBulkReflect = 800 -- smallest unit bulk that "reflects" as if terrain
+local waterDepthCoef = 0.1 -- reduce "separation" from ground in water by a multiple
 
 -- CustomParams setup ----------------------------------------------------------
 --
@@ -48,33 +50,33 @@ local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by 
 --------------------------------------------------------------------------------
 -- Localize --------------------------------------------------------------------
 
-local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
+local DirectionsUtil = require("luarules/gadgets/include/DirectionsUtil")
 
 local clamp = math.clamp
-local max   = math.max
-local min   = math.min
-local rand  = math.random
-local diag  = math.diag
-local sqrt  = math.sqrt
-local cos   = math.cos
-local sin   = math.sin
+local max = math.max
+local min = math.min
+local rand = math.random
+local diag = math.diag
+local sqrt = math.sqrt
+local cos = math.cos
+local sin = math.sin
 local atan2 = math.atan2
 
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spGetGroundNormal       = Spring.GetGroundNormal
-local spGetProjectileDefID    = Spring.GetProjectileDefID
-local spGetUnitDefID          = Spring.GetUnitDefID
-local spGetUnitPosition       = Spring.GetUnitPosition
-local spGetUnitRadius         = Spring.GetUnitRadius
-local spGetUnitTeam           = Spring.GetUnitTeam
-local spGetUnitsInSphere      = Spring.GetUnitsInSphere
-local spGetProjectileTeamID   = Spring.GetProjectileTeamID
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundNormal = Spring.GetGroundNormal
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitRadius = Spring.GetUnitRadius
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetTeamAllyTeamID     = Spring.GetTeamAllyTeamID
-local spSpawnProjectile       = Spring.SpawnProjectile
-local spDeleteProjectile      = Spring.DeleteProjectile
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spSpawnProjectile = Spring.SpawnProjectile
+local spDeleteProjectile = Spring.DeleteProjectile
 
-local gameSpeed  = Game.gameSpeed
+local gameSpeed = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
 local addShieldDamage, damageToShields, getShieldPosition, getBlockingShieldUnits, isInShield -- see unit_shield_behaviour
@@ -96,17 +98,27 @@ local spawnableTypes = {
 
 local clusterWeaponDefs = {}
 
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	for _, weapon in pairs(unitDef.weapons) do
+for _, unitDef in ipairs(UnitDefs) do
+	for _, weapon in ipairs(unitDef.weapons) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
 		local clusterDefName = weaponDef.customParams.cluster_def
 
 		if clusterDefName then
 			local clusterDef = WeaponDefNames[clusterDefName]
-			local clusterCount = tonumber(weaponDef.customParams.cluster_number)
+			local clusterCount = tonumber(weaponDef.customParams.cluster_number) or 0
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
-				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
+				Spring.Log(
+					gadget:GetInfo().name,
+					LOG.WARNING,
+					weaponDef.name
+						.. ": cluster_count of "
+						.. clusterCount
+						.. ", clamping to "
+						.. minSpawnNumber
+						.. "-"
+						.. maxSpawnNumber
+				)
 				clusterCount = clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
 			end
 
@@ -121,16 +133,20 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 					end
 
 					clusterWeaponDefs[weaponDefID] = {
-						number      = clusterCount,
-						weaponID    = clusterDef.id,
+						number = clusterCount,
+						weaponID = clusterDef.id,
 						weaponSpeed = clusterSpeed,
-						weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
+						weaponTtl = clusterDef.flighttime or defaultSpawnTtl,
 					}
 				else
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Invalid weapon spawn type: " .. clusterDef.type)
 				end
 			else
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Could not find weapon def matching cluster_def: ' .. clusterDefName)
+				Spring.Log(
+					gadget:GetInfo().name,
+					LOG.ERROR,
+					"Could not find weapon def matching cluster_def: " .. clusterDefName
+				)
 			end
 		end
 	end
@@ -138,12 +154,14 @@ end
 
 local removeIDs = {}
 for weaponDefID, weaponData in pairs(clusterWeaponDefs) do
-	if clusterWeaponDefs[weaponData.weaponID] and clusterWeaponDefs[clusterWeaponDefs[weaponData.weaponID].weaponID] then
+	if
+		clusterWeaponDefs[weaponData.weaponID] and clusterWeaponDefs[clusterWeaponDefs[weaponData.weaponID].weaponID]
+	then
 		removeIDs[weaponData.weaponID] = true
 	end
 end
 for weaponDefID in pairs(removeIDs) do
-	Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Preventing nested explosions: ' .. WeaponDefs[weaponDefID].name)
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Preventing nested explosions: " .. WeaponDefs[weaponDefID].name)
 	clusterWeaponDefs[weaponDefID] = nil
 end
 
@@ -170,7 +188,7 @@ local function getUnitVolume(unitDef)
 end
 
 local useCrushingMass = {
-	wall           = true,
+	wall = true,
 	indestructable = true,
 }
 
@@ -193,7 +211,8 @@ local function getUnitBulk(unitDef)
 		fromMetal = max(fromMetal, sqrt(unitDef.moveDef.crushStrength))
 	end
 
-	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
+	local fromHealthAndMetal = fromHealth + fromMetal + sqrt(fromHealth * fromMetal)
+	local bulkiness = fromHealthAndMetal + min(fromVolume, fromHealthAndMetal * 3)
 	bulkiness = clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
 	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 
@@ -229,24 +248,27 @@ for unitDefID in ipairs(UnitDefs) do
 	end
 end
 
-local spawnCache  = {
-	pos     = { 0, 0, 0 },
-	speed   = { 0, 0, 0 },
-	owner   = -1,
-	team    = -1,
-	ttl     = defaultSpawnTtl,
+local spawnCache = {
+	pos = { 0, 0, 0 },
+	speed = { 0, 0, 0 },
+	owner = -1,
+	team = -1,
+	ttl = defaultSpawnTtl,
 	gravity = mapGravity,
 }
 
 local directions = DirectionsUtil.Directions
 local maxDataNum = 2
 for _, data in pairs(clusterWeaponDefs) do
-	if data.number > maxDataNum then maxDataNum = data.number end
+	if data.number > maxDataNum then
+		maxDataNum = data.number
+	end
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
 -- When not using the engine's shield bounce, clusters add their own deflection.
-local customShieldDeflect = table.contains({"unchanged", "absorbeverything"}, Spring.GetModOptions().experimentalshields)
+local customShieldDeflect =
+	table.contains({ "unchanged", "absorbeverything" }, Spring.GetModOptions().experimentalshields)
 local projectileHitShield = {}
 
 -- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
@@ -255,8 +277,8 @@ local projectiles = setmetatable({
 	[-1] = false, -- beam weapons use projectileID -1
 }, {
 	__index = function(tbl, key)
-		return clusterWeaponDefs[spGetProjectileDefID(key)]
-	end
+		return clusterWeaponDefs[spGetProjectileDefID(key)] ~= nil
+	end,
 })
 
 --------------------------------------------------------------------------------
@@ -325,7 +347,7 @@ local function getSurfaceDeflection(x, y, z)
 	for _, unitID in ipairs(unitsNearby) do
 		bounce = unitBulks[spGetUnitDefID(unitID)]
 		if bounce then
-			_,_,_,unitX,unitY,unitZ = spGetUnitPosition(unitID, true)
+			_, _, _, unitX, unitY, unitZ = spGetUnitPosition(unitID, true)
 			radius = spGetUnitRadius(unitID)
 			if unitY + radius > 0 then
 				unitX, unitY, unitZ = x - unitX, y - unitY, z - unitZ
@@ -404,8 +426,11 @@ end
 
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
+	if not vx then
+		return 0, 0, 0 -- Death explosions have no projectile.
+	end
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
-	local scale = 0.5 / max(vw, 1)
+	local scale = 0.5 / max(vw or 0, 1)
 	return vx * scale, vy * scale, vz * scale
 end
 
@@ -447,6 +472,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	params.owner = attackerID or -1
 	params.team = attackerTeam
 	params.ttl = data.weaponTtl
+
 	local speed = params.speed
 	local position = params.pos
 
@@ -496,10 +522,7 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
+	spawnClusterProjectiles(clusterWeaponDefs[weaponDefID], x, y, z, attackerID, projectileID)
 end
 
 function gadget:GameFramePost(frame)
@@ -510,7 +533,21 @@ function gadget:GameFramePost(frame)
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local shieldPreDamaged = function(
+	projectileID,
+	attackerID,
+	shieldWeaponIndex,
+	shieldUnitID,
+	bounceProjectile,
+	beamWeaponIndex,
+	beamUnitID,
+	startX,
+	startY,
+	startZ,
+	hitX,
+	hitY,
+	hitZ
+)
 	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
 		local hitShields = projectileHitShield[projectileID]
 		if hitShields then
@@ -528,8 +565,11 @@ function gadget:Initialize()
 		return
 	end
 
-	for weaponDefID in pairs(clusterWeaponDefs) do
-		Script.SetWatchExplosion(weaponDefID, true)
+	-- Submunitions take their damage scaling from the parent weapon:
+	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
+	for weaponDefID, data in pairs(clusterWeaponDefs) do
+		gadgetHandler:RegisterExplosion(weaponDefID)
+		setWeaponDefParent(data.weaponID, weaponDefID)
 	end
 
 	if not GG.Shields then

@@ -34,10 +34,11 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorHovercraft",
+			reaimtime = 5,
+			subfolder = "Legion/Hovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -158,4 +159,3 @@ return {
 		},
 	},
 }
-

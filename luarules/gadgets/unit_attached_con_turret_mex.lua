@@ -1,36 +1,42 @@
-local gadget = gadget ---@class Gadget
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = 'Legion Con Turret Metal Extractor',
-        desc      = 'Allows the mex to function as a con turret by replacing it with a fake mex with a con turret attached',
-        author    = 'EnderRobo',
-        version   = 'v2',
-        date      = 'September 2024',
-        license   = 'GNU GPL, v2 or later',
-        layer     = 12, -- TODO: Why?
-        enabled   = true, -- auto-disables
-    }
+	return {
+		name = "Legion Con Turret Metal Extractor",
+		desc = "Allows the mex to function as a con turret by replacing it with a fake mex with a con turret attached",
+		author = "EnderRobo",
+		version = "v2",
+		date = "September 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 12, -- TODO: Why?
+		enabled = true, -- auto-disables
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
+local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 
--- TODO: do not use hardcoded unit names
-local unitDefData = {
-	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
-}
-for unitName, unitPair in pairs(unitDefData) do
-	if not unitName:find("_scav") then
-		unitDefData[unitName .. "_scav"] = {
-			mex = unitPair.mex .. "_scav",
-			con = unitPair.con .. "_scav",
-		}
+local ATTRIBUTE_SOURCE = "con_turret_mex"
+
+-- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
+-- mark builds that split into a mex plus an attached con turret; scav copies inherit the
+-- params and get the _scav variants of both spawned defs
+local unitDefData = {}
+for udid, ud in pairs(UnitDefs) do
+	local con = ud.customParams.attached_con_turret
+	local mex = ud.customParams.attached_con_turret_mex
+	if con and mex then
+		if ud.customParams.isscavenger then
+			con = con .. "_scav"
+			mex = mex .. "_scav"
+		end
+		unitDefData[ud.name] = { mex = mex, con = con }
 	end
 end
 
@@ -87,9 +93,8 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID, true)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	GG.UnitAttributes.SetUnitAttribute(mexID, "stealth", true, ATTRIBUTE_SOURCE)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -100,8 +105,22 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitHealth(conID, unitHealth)
 
-	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6, true)
+	local piece = resolveAttachPiece(conID)
+	if not piece then
+		Spring.DestroyUnit(conID, false, true)
+		Spring.DestroyUnit(mexID, false, true)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		return
+	end
+
+	-- transported units can't be targeted, so the turret carries the mex
+	Spring.UnitAttach(conID, mexID, piece, true)
+	-- attaching resets these
+	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitNoMinimap(mexID, true)
+	Spring.SetUnitIconDraw(mexID, false)
+	Spring.SetUnitNoDraw(mexID, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
@@ -150,15 +169,23 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 		mexesToSwap[unitID] = {
 			swapDefs = swapDefs,
-			x        = ux,
-			y        = uy,
-			z        = uz,
-			facing   = Spring.GetUnitBuildFacing(unitID),
-			metal    = metalCost,
-			energy   = energyCost,
-			frame    = Spring.GetGameFrame() + 1,
+			x = ux,
+			y = uy,
+			z = uz,
+			facing = Spring.GetUnitBuildFacing(unitID),
+			metal = metalCost,
+			energy = energyCost,
+			frame = Spring.GetGameFrame() + 1,
 		}
-    end
+	end
+end
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	local pairedID = mexTurretDefID[unitDefID] and pairedUnits[unitID]
+	if capture or not pairedID or Spring.GetUnitTeam(pairedID) == newTeam or GG.IsTransferForced(newTeam) then
+		return true
+	end
+	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -167,39 +194,94 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		if not pairedID and Spring.GetUnitRulesParam then
 			pairedID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 		end
-		if pairedID and pairedID ~= 0 then
-			Spring.TransferUnit(pairedID, newTeam)
-		end
-    end
-end
-
-local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
-	local health, maxHealth = spGetUnitHealth(unitID)
-
-	if health - damage < 0 and damage < maxHealth * 0.5 then
-		local buildAsUnitName = mexTurretDefID[unitDefID]
-		local xx, yy, zz = Spring.GetUnitPosition(unitID)
-		local facing = Spring.GetUnitBuildFacing(unitID)
-
-		-- todo: "damage" is not "recent damage" is not "damage severity"
-		if damage < maxHealth * 0.25 then
-			local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
-			if featureID then
-				Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
-			end
-		else
-			Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
+		if
+			pairedID
+			and pairedID ~= 0
+			and Spring.GetUnitTeam(pairedID --[[@as UnitID]]) ~= newTeam
+		then
+			Spring.TransferUnit(pairedID, newTeam, Spring.AreTeamsAllied(newTeam, oldTeam))
 		end
 	end
 end
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+
+-- Remains are derived from its base build def, created manually on death.
+local recentDamage = {} -- con turret unitID -> summed damage taken this frame
+local recentDamageFrame = {} -- con turret unitID -> frame of that damage
+local deathDamage = {} -- con turret unitID -> recent damage that proved lethal
+
+local function createRemains(unitID, unitDefID, unitTeam)
+	local buildAsUnitName = mexTurretDefID[unitDefID]
+	if not buildAsUnitName then
+		return
+	end
+
+	-- only damage kills leave remains; reclaim, self-destruct and pair-removal don't
+	local damage = deathDamage[unitID]
+	if not damage then
+		return
+	end
+
+	local xx, yy, zz = Spring.GetUnitPosition(unitID)
+	if not xx then
+		return
+	end
+
+	-- killing-blow severity picks between wreck, heap and nothing
+	local maxHealth = UnitDefs[unitDefID].health
+	local facing = Spring.GetUnitBuildFacing(unitID)
+
+	if damage > maxHealth * 0.5 then
+		return -- obliterated: nothing left to salvage
+	elseif damage <= maxHealth * 0.25 then
+		local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead", xx, yy, zz, facing, unitTeam)
+		if featureID then
+			Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
+		end
+	else
+		Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
+	end
+end
+
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
 	if mexTurretDefID[unitDefID] and not paralyzer then
-        doUnitDamaged(unitID, unitDefID, unitTeam, damage)
-    end
+		local frame = Spring.GetGameFrame()
+		if recentDamageFrame[unitID] == frame then
+			recentDamage[unitID] = recentDamage[unitID] + damage
+		else
+			recentDamage[unitID] = damage
+			recentDamageFrame[unitID] = frame
+		end
+
+		local health = spGetUnitHealth(unitID) -- post-damage; at or below zero this hit is lethal
+		if health and health <= 0 then
+			deathDamage[unitID] = recentDamage[unitID]
+		end
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	mexesToSwap[unitID] = nil
+	-- Runs nested inside the swap loop: a write to an absent key, even nil, breaks its pairs.
+	if mexesToSwap[unitID] then
+		mexesToSwap[unitID] = nil
+	end
+
+	if mexTurretDefID[unitDefID] then
+		createRemains(unitID, unitDefID, unitTeam)
+		recentDamage[unitID] = nil
+		recentDamageFrame[unitID] = nil
+		deathDamage[unitID] = nil
+	end
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
 		local pairedUnitID = pairedUnits[unitID]
@@ -211,7 +293,19 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	unitTeam,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	-- accepts CMD.ONOFF:
 	if mexTurretDefID[unitDefID] then
 		local mexID = pairedUnits[unitID]
@@ -232,6 +326,8 @@ function gadget:Initialize()
 			gadget:UnitFinished(unitID, unitDefID)
 
 			if mexActualDefID[unitDefID] then
+				GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
+
 				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID

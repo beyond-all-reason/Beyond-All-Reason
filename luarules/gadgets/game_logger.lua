@@ -1,29 +1,25 @@
-
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Logger",
-        desc      = "log certain events of interest",
-        author    = "Floris",
-        date      = "April 2023",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Logger",
+		desc = "log certain events of interest",
+		author = "Floris",
+		date = "April 2023",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local validation = string.randomString(2)
 	_G.validationLog = validation
-
 else
-
 	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local validation = SYNCED.validationLog
@@ -35,7 +31,15 @@ else
 			isCommander[udefID] = true
 		end
 		if not def.canMove then
-			if def.metalMake > 0.5 or def.energyMake > 5 or def.energyUpkeep < 0 or def.windGenerator > 0 or def.tidalGenerator > 0 or def.customParams.solar or def.customParams.energyconv_capacity then
+			if
+				def.metalMake > 0.5
+				or def.energyMake > 5
+				or def.energyUpkeep < 0
+				or def.windGenerator > 0
+				or def.tidalGenerator > 0
+				or def.customParams.solar
+				or def.customParams.energyconv_capacity
+			then
 				isEcoUnit[udefID] = true
 			end
 		end
@@ -43,7 +47,7 @@ else
 
 	local isDgun = {}
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		if weaponDef.type == 'DGun' and weaponDef.damages  then -- to filter out decoy comm -- and weaponDef.damage.default > 5000
+		if weaponDef.type == "DGun" and weaponDef.damages then -- to filter out decoy comm -- and weaponDef.damage.default > 5000
 			for _, v in pairs(weaponDef.damages) do
 				if v > 99000 then
 					isDgun[weaponDefID] = true
@@ -52,13 +56,13 @@ else
 		end
 	end
 
-	local myTeamID = Spring.GetMyTeamID()
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myTeamID = Spring.GetMyTeamID()
+			myTeamID = Spring.GetLocalTeamID()
 			mySpec, fullview = Spring.GetSpectatingState()
 		end
 	end
@@ -68,11 +72,21 @@ else
 		-- Only send a message from the attacker, when attacking a different team
 		if (not mySpec and attackerTeam == myTeamID) and (unitTeam ~= attackerTeam) then
 			-- Check if its a commander doing shenanigan to others eco units
-			if (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) and isCommander[attackerDefID] then
+			if
+				(isEcoUnit[unitDefID] or isCommander[unitDefID])
+				and spAreTeamsAllied(unitTeam, attackerTeam)
+				and isCommander[attackerDefID]
+			then
 				-- This is an 'only attack friendlies with commander' type thing
-				local msg = string.format("l0g%s:friendlyfire:%d:%s:%d:%d:%d", validation,
-					Spring.GetGameFrame(), 'ud',
-					unitTeam, attackerTeam, unitDefID)
+				local msg = string.format(
+					"l0g%s:friendlyfire:%d:%s:%d:%d:%d",
+					validation,
+					Spring.GetGameFrame(),
+					"ud",
+					unitTeam,
+					attackerTeam,
+					unitDefID
+				)
 				--Spring.Echo(msg)
 				spSendLuaRulesMsg(msg)
 			end
@@ -82,10 +96,18 @@ else
 	function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 		if not mySpec and transportTeam == myTeamID and unitTeam ~= transportTeam and isCommander[unitDefID] then
 			local _, _, _, isAiTeam = Spring.GetTeamInfo(unitTeam, false)
-			if isAiTeam then return end
-			local msg = string.format("l0g%s:allycommloaded:%d:%s:%d:%d:%d", validation,
-			Spring.GetGameFrame(), 'ud',
-			unitTeam, transportTeam, unitDefID)
+			if isAiTeam then
+				return
+			end
+			local msg = string.format(
+				"l0g%s:allycommloaded:%d:%s:%d:%d:%d",
+				validation,
+				Spring.GetGameFrame(),
+				"ud",
+				unitTeam,
+				transportTeam,
+				unitDefID
+			)
 			spSendLuaRulesMsg(msg)
 		end
 	end

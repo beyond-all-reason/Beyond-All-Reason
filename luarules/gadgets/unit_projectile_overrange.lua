@@ -6,11 +6,13 @@ function gadget:GetInfo()
 		desc = "Destroys projectiles if they exceed defined ranges",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 ---- unit customParams ----
 -- use weaponDef customparams overrange_distance to destroy projectiles exceeding its limit.
@@ -67,11 +69,13 @@ local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerat
 	local framesToMaxVelocity = (maximumVelocity - initialVelocity) / accelerationRate
 
 	-- Distance traveled while accelerating
-	local distanceAccelerating = initialVelocity * framesToMaxVelocity + 0.5 * accelerationRate * framesToMaxVelocity^2
+	local distanceAccelerating = initialVelocity * framesToMaxVelocity
+		+ 0.5 * accelerationRate * framesToMaxVelocity ^ 2
 
 	if distanceAccelerating > totalDistance then
 		-- We already traveled too much, so just calculate time with accelerated movement + quadratic equation formula
-		totalFrames = (mathSqrt(initialVelocity^2 + 2 * totalDistance * accelerationRate) - initialVelocity) / accelerationRate
+		totalFrames = (mathSqrt(initialVelocity ^ 2 + 2 * totalDistance * accelerationRate) - initialVelocity)
+			/ accelerationRate
 	else
 		-- Linear movement after accelerating
 		totalFrames = framesToMaxVelocity + (totalDistance - distanceAccelerating) / maximumVelocity
@@ -82,7 +86,7 @@ local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerat
 end
 
 local function uptimeTurnFrames(turnRate)
-	local framesRequired = math.floor(math.rad(90) / turnRate)--the turning period is negated from uptime frames for StarburstMissiles
+	local framesRequired = math.floor(math.rad(90) / turnRate) --the turning period is negated from uptime frames for StarburstMissiles
 	return framesRequired
 end
 
@@ -102,8 +106,12 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.type == "StarburstLauncher" then
 			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate))
 		end
-		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed,
-			weaponDef.weaponAcceleration, overRange) + ascentFrames
+		watchParams.flightTimeFrames = calculateFlightFrames(
+			weaponDef.startvelocity,
+			weaponDef.projectilespeed,
+			weaponDef.weaponAcceleration,
+			overRange
+		) + ascentFrames
 		watchParams.weaponDefID = weaponDefID
 
 		--destruction methods
@@ -115,10 +123,9 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		end
 
 		defWatchTable[weaponDefID] = watchParams
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
 	end
 end
-
 
 local function leashCheck(maxRangeSq, proOwnerID, proX, proZ)
 	local ownerX, _, ownerZ = spGetUnitPosition(proOwnerID)
@@ -133,7 +140,6 @@ local function leashCheck(maxRangeSq, proOwnerID, proX, proZ)
 	end
 end
 
-
 local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
 	local dx = x2 - x1
 	local dz = z2 - z1
@@ -142,7 +148,9 @@ local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
 	-- Check if the projectile is within the max range
 	if distance < maxRange then
 		local vx, _, vz = spGetProjectileVelocity(proID)
-		if not vx or not vz then return false end --invalid projectile
+		if not vx or not vz then
+			return false
+		end --invalid projectile
 
 		local remainingDistance = maxRange - distance
 
@@ -163,7 +171,6 @@ local function setDestructionFrame(proID, newFlightTime)
 	killQueue[triggerFrame][#killQueue[triggerFrame] + 1] = proID
 end
 
-
 local function setFlightTimeFrame(proID, newFlightTime)
 	local triggerFrame = gameFrame + newFlightTime
 
@@ -171,23 +178,27 @@ local function setFlightTimeFrame(proID, newFlightTime)
 	flightTimeWatch[triggerFrame][#flightTimeWatch[triggerFrame] + 1] = proID
 end
 
+function gadget:Initialize()
+	if not next(defWatchTable) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	local defData = defWatchTable[weaponDefID]
-	if not defData then return end
-
-	setFlightTimeFrame(proID, defData.flightTimeFrames)
-
 	local originX, _, originZ = spGetUnitPosition(proOwnerID)
 	if not originX then
 		originX, _, originZ = spGetProjectilePosition(proID)
 	end
-	if not originX or not originZ then return end
+	if not originX or not originZ then
+		return
+	end
 
-	proWeaponDefID[proID] = weaponDefID
-	proOwnerByID[proID] = proOwnerID
 	proOriginX[proID] = originX
 	proOriginZ[proID] = originZ
+	proWeaponDefID[proID] = weaponDefID
+	proOwnerByID[proID] = proOwnerID
+	setFlightTimeFrame(proID, defWatchTable[weaponDefID].flightTimeFrames)
 end
 
 function gadget:ProjectileDestroyed(proID)
@@ -207,7 +218,14 @@ function gadget:GameFrame(frame)
 				local weaponDefID = proWeaponDefID[proID]
 				if weaponDefID then
 					local defData = defWatchTable[weaponDefID]
-					local newFlightTime = recalculateFlightTime(proID, defData.overRange, proOriginX[proID], proOriginZ[proID], projectileX, projectileZ)
+					local newFlightTime = recalculateFlightTime(
+						proID,
+						defData.overRange,
+						proOriginX[proID],
+						proOriginZ[proID],
+						projectileX,
+						projectileZ
+					)
 					if newFlightTime then
 						setFlightTimeFrame(proID, newFlightTime)
 					else
@@ -278,7 +296,12 @@ function gadget:GameFrame(frame)
 			local velocityX, velocityY, velocityZ, velocityOverall = spGetProjectileVelocity(proID)
 			if velocityY and velocityX and velocityZ and velocityOverall then
 				local newVelocityY = velocityY - velocityOverall * descentMultiplier
-				spSetProjectileVelocity(proID, velocityX * lateralMultiplier, newVelocityY, velocityZ * lateralMultiplier)
+				spSetProjectileVelocity(
+					proID,
+					velocityX * lateralMultiplier,
+					newVelocityY,
+					velocityZ * lateralMultiplier
+				)
 				descentTable[proID] = descentMultiplier * compoundingMultiplier
 			else
 				descentTable[proID] = nil

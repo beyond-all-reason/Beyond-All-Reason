@@ -1,4 +1,4 @@
-return {						--costs should be same as legmohocon and legmohoconin
+return { --costs should be same as legmohocon and legmohoconin
 	legmohoconct = {
 		activatewhenbuilt = true,
 		maxacc = 0,
@@ -17,8 +17,8 @@ return {						--costs should be same as legmohocon and legmohoconin
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "31 32 31",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "70 40 70",
 		collisionvolumetype = "CylY",
 		usePieceCollisionVolumes = true,
 		explodeas = "largeBuildingexplosiongeneric",
@@ -28,6 +28,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 		health = 3900,
 		maxslope = 10,
 		maxwaterdepth = 0,
+		metalstorage = 600,
 		movementclass = "NANO",
 		objectname = "Units/LEGMOHOCON.s3o",
 		onoffable = true,
@@ -46,9 +47,10 @@ return {						--costs should be same as legmohocon and legmohoconin
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Economy",
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			scav_swap_override_captured = "legmohocon", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			techlevel = 2,

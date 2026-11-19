@@ -54,7 +54,7 @@
 "behaviour": {
 //	"<UnitDef>": {
 		// "role": [<main>, <enemy>, <enemy>, ...]
-		// <main> is the role to make desicions of when to build it and what task to assign
+		// <main> is the role to make decisions of when to build it and what task to assign
 		// <enemy> is to decide how to counter enemy unit, if missing then equals to <main>
 		// Roles: builder, scout, raider, riot, assault, skirmish, artillery, anti_air, anti_sub, anti_heavy, bomber, support, mine, transport, air, sub, static, heavy, super, commander
 		// Auto-assigned roles: builder, air, static, super, commander
@@ -64,7 +64,7 @@
 		// skirmish: regular attacker, according to response.json it is built when enemy has many riots or assaults.
 //		"role": ["builder"],
 
-		// Attributes - optinal states; can contain roles to count it as response; if factoty has support attribute then it's back-line building.
+		// Attributes - optional states; can contain roles to count it as response; if factory has support attribute then it's back-line building.
 		// "melee" - always move close to target, disregard attack range
 		// "boost" - boost speed on retreat
 		// "no_jump" - disable jump on retreat

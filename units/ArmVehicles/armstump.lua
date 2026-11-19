@@ -3,7 +3,7 @@ return {
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 3400,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "34 18 40",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -44,8 +44,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -126,6 +124,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 225,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 				damage = {
 					default = 97,
 					vtol = 18,

@@ -1,12 +1,12 @@
 local widgetName = "Blueprint"
 
-function skip()
+local function skip()
 	-- TODO re-enable and debug. Disabled 2025-09-30 to unblock CICD
 	-- return Spring.GetGameFrame() <= 0
 	return true
 end
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -20,14 +20,14 @@ function setup()
 	})
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-function test()
+local function test()
 	assert(widget)
 
 	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
@@ -40,7 +40,7 @@ function test()
 
 	local builderUnitDefName = "armck"
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 1
@@ -60,16 +60,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE),
-		1,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 
@@ -97,3 +88,5 @@ function test()
 	widget.handleBlueprintDeleteAction()
 	assert(widget.selectedBlueprintIndex == nil, widget.selectedBlueprintIndex)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

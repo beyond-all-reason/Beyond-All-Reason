@@ -3,7 +3,7 @@ return {
 		builddistance = 110,
 		builder = true,
 		buildpic = "legafcv.DDS",
-		buildtime = 4000,
+		buildtime = 5145,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "20 17 30",
@@ -45,7 +45,7 @@ return {
 			"legdrag",
 			"legrad",
 			"legmex",
-			"leglht"
+			"leglht",
 		},
 		customparams = {
 			model_author = "ZephyrSkies",

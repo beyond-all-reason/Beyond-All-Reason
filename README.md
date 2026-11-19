@@ -16,7 +16,7 @@ https://www.beyondallreason.info/guides
 
 Beyond All Reason (BAR), consists of 2 primary components, the lobby (Chobby - https://github.com/beyond-all-reason/BYAR-Chobby) and the game code itself (this repository).
 
-The game runs on top of the Recoil engine https://github.com/beyond-all-reason/spring.
+The game runs on top of the Recoil engine <https://github.com/beyond-all-reason/RecoilEngine>.
 
 In order to develop the game (this repository) you first need a working install of the lobby/launcher. There are 2 ways to do this:
 
@@ -40,7 +40,7 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 
 4. Now you have the game code launch the full game from the launcher as normal. Then go to `Settings > Developer > Singleplayer` and select `Beyond All Reason Dev`.
 
-5. Now you can launch a match normally through the game UI. This match will use the dev copy of the LUA code which is in `BAR-install-directory/data/games/BAR.sdd`.
+5. Now you can launch a match normally through the game UI. This match will use the development copy of the Lua code in the `BAR.sdd` directory you cloned in step 3.
 
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
@@ -152,4 +152,3 @@ Then open **User Settings (JSON)** and add:
     }
 ],
 ```
-

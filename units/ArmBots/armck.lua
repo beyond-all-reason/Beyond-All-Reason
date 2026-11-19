@@ -68,6 +68,7 @@ return {
 			[30] = "armsy",
 		},
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",

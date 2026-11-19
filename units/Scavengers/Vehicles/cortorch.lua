@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
-		sightdistance = 308,
+		sightdistance = 330,
 		trackoffset = 0,
 		trackstrength = 6,
 		tracktype = "corparrowtracks",
@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 4.7,
 		turnrate = 364,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka, Itanthias kitbash",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.0130,

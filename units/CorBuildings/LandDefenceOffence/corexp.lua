@@ -29,7 +29,7 @@ return {
 		script = "Units/COREXP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 455,
+		sightdistance = 500,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -131,9 +131,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
-				customparams = {
-					exclude_preaim = true,
-				},
 				damage = {
 					commanders = 112.5,
 					default = 75,

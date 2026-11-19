@@ -4,7 +4,7 @@ return {
 		buildtime = 12600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
-        collisionvolumescales = "40.0 40.0 46.0",
+		collisionvolumescales = "40.0 40.0 46.0",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		energycost = 9000,
@@ -35,7 +35,7 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/bots/T2 Bots",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "weapon",
 		},

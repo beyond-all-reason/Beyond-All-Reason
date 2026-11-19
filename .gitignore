@@ -7,4 +7,4 @@
 *.iml
 .project
 *.code-workspace
-.lux/
+.lux

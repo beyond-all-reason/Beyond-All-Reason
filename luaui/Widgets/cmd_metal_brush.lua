@@ -15,18 +15,23 @@ end
 local MSG_PAINT = "$metal_paint$"
 local MSG_STAMP = "$metal_stamp$"
 local MSG_CLEAR = "$metal_clear$"
-local MSG_LOAD  = "$metal_load$"
-local MSG_UNDO  = "$metal_undo$"
-local MSG_REDO  = "$metal_redo$"
+local MSG_LOAD = "$metal_load$"
+local MSG_UNDO = "$metal_undo$"
+local MSG_REDO = "$metal_redo$"
 local CHEAT_TAG = "$c$"
 
 local function SendLuaRulesMsg(header, payload)
 	local tag = Spring.IsCheatingEnabled() and CHEAT_TAG or ""
 	Spring.SendLuaRulesMsg(header .. tag .. payload)
+	-- Every message here changes the metal map (a project load's own load
+	-- message is ignored by markDirty while the load runs).
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("metal")
+	end
 end
 
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetMetalAmount = Spring.GetMetalAmount
 local GetMetalMapSize = Spring.GetMetalMapSize
@@ -54,7 +59,7 @@ local cos = math.cos
 local sin = math.sin
 local abs = math.abs
 local pi = math.pi
-local sqrt = math.sqrt
+local WorldTool = require("luaui/Include/tf_world_tool")
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -65,20 +70,33 @@ local UPDATE_INTERVAL = 0.05
 local MIN_METAL_VALUE = 0.01
 local MAX_METAL_VALUE = 50.0
 local DEFAULT_METAL_VALUE = 2.0
-local DEFAULT_RADIUS = METAL_SQ + METAL_SQ * 0.5  -- 3x3 metal pixels (n=1)
+local DEFAULT_RADIUS = METAL_SQ + METAL_SQ * 0.5 -- 3x3 metal pixels (n=1)
 local SAVE_DIR = "Terraform Brush/MetalMaps/"
 
-local CACHE_REBUILD_THROTTLE   = 0.25
-local CACHE_REBUILD_DELAY      = 0.12  -- wait for gadget RecvLuaMsg to apply SetMetalAmount
-local cacheRebuildHoldUntil    = 0     -- os.clock() threshold; don't rebuild before this
+local CACHE_REBUILD_THROTTLE = 0.25
+local CACHE_REBUILD_DELAY = 0.12 -- wait for gadget RecvLuaMsg to apply SetMetalAmount
+---@type number
+local cacheRebuildHoldUntil = 0 -- os.clock() threshold; don't rebuild before this
+-- Declared here so the paint and stamp senders below mark these, not globals
+local spotsCacheDirty = true
+local clusterCacheDirty = true
+local overlayListDirty = true
+local clusterVisDirty = true
+---@type number
+local lastCacheBuildClock = 0
+local balanceAxisSumsDirty = true
 
 -- State
 local active = false
-local subMode = "stamp"       -- "paint" or "stamp"
+local subMode = "stamp" -- "paint", "stamp" or "remove"
 local metalValue = DEFAULT_METAL_VALUE
 local painting = false
-local paintButton = 0         -- 1 = LMB (raise), 3 = RMB (lower/erase)
+---@type number
+local paintButton = 0 -- 1 = LMB (raise), 3 = RMB (lower/erase)
+---@type number
 local lastPaintTime = 0
+---@type number
+local edgeFade = 1 -- 1 on-map; <1 while the cursor is past the map edge (fades cursor visuals)
 
 local function getSharedState()
 	if WG.TerraformBrush then
@@ -104,27 +122,136 @@ end
 
 -- Snap a world position to the nearest metal map square centre
 local function snapToMetalGrid(wx, wz)
-	return floor(wx / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5,
-	       floor(wz / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5
+	return floor(wx / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5, floor(wz / METAL_SQ) * METAL_SQ + METAL_SQ * 0.5
+end
+
+-- Where a stamp at this cursor position lands (before the payload's floor).
+local function stampCentre(worldX, worldZ, ss)
+	local tb = WG.TerraformBrush
+	if ss.gridSnap then
+		return snapToMetalGrid(worldX, worldZ)
+	elseif tb and tb.snapWorld then
+		return tb.snapWorld(worldX, worldZ, ss.rotationDeg)
+	end
+	return worldX, worldZ
+end
+
+-- ============================================================
+-- What a stamp can reach. One metal square holds at most maxMetal * 255, so a
+-- spot holds at most (its squares x that) / 1000 whatever METAL VALUE says. Real
+-- maps (maxMetal 2 or so) rarely get there; New Map canvases on the current
+-- engine keep its default maxMetal 0.02 (5.1 per square). LuaUI cannot measure
+-- it: the gadget publishes it when asked.
+-- ============================================================
+local MSG_CAP = "$metal_cap$"
+local TINY_SQUARE_CAP = 25.5 -- maxMetal below 0.1: the panel explains the cap
+local STAMP_SPOT_RAD = max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+local BrushShapes = require("common/brush_shapes")
+local reachState = {
+	capRequestClock = -1e9,
+	key = nil, -- the stamp the count below is for
+	count = 0,
+	centreX = nil, -- last stamp centre the cursor showed or a stamp used
+	centreZ = nil,
+}
+
+-- maxMetal * 255, or nil until the gadget answered (asked every 2 s while the tool is on).
+local function getSquareCap()
+	local cap = Spring.GetGameRulesParam("mb_square_cap") -- no value at all until published
+	cap = cap and tonumber(cap)
+	if cap and cap > 0 then
+		return cap
+	end
+	if active and os.clock() - reachState.capRequestClock > 2 then
+		reachState.capRequestClock = os.clock()
+		Spring.SendLuaRulesMsg(MSG_CAP .. (IsCheatingEnabled() and CHEAT_TAG or ""))
+	end
+	return nil
+end
+
+-- The gadget's own shape test (isInsideShape in luarules/gadgets/cmd_metal_brush.lua):
+-- its hexagon and octagon are not the common/brush_shapes ones.
+local function insideStampShape(dx, dz, radius, shape, angleDeg)
+	if shape == "triangle" then
+		return (BrushShapes.isInside(dx, dz, radius, shape, angleDeg))
+	end
+	local rx, rz = BrushShapes.rotateInv(dx, dz, angleDeg)
+	if shape == "circle" then
+		return math.sqrt(rx * rx + rz * rz) <= radius
+	elseif shape == "square" then
+		return max(abs(rx), abs(rz)) <= radius
+	elseif shape == "hexagon" then
+		local ax, az = abs(rx), abs(rz)
+		return max(ax * 0.866025 + az * 0.5, az) <= radius
+	elseif shape == "octagon" then
+		local ax, az = abs(rx), abs(rz)
+		return max(ax, az, (ax + az) * 0.7071068) <= radius
+	end
+	return false
+end
+
+-- The spot (summed metal / 1000) a stamp centred here can reach, and whether
+-- METAL VALUE is above it. Counts the squares the gadget's applyStamp fills.
+-- nil before the gadget published the cap.
+---@return number?, boolean
+local function stampReach(cx, cz, radius, shape, angleDeg)
+	local cap = getSquareCap()
+	if not cap then
+		return nil, false
+	end
+	cx, cz = floor(cx), floor(cz)
+	radius = max(8, min(2000, tonumber(radius) or 32))
+	angleDeg = tonumber(angleDeg) or 0
+	local key = format("%d %d %s %s %s %s", cx, cz, radius, shape, angleDeg, cap)
+	if reachState.key ~= key then
+		local mmX, mmZ = GetMetalMapSize()
+		local halfSq = METAL_SQ * 0.5
+		-- Squares past the spot radius never count, so the box stops there.
+		local r = min(radius, STAMP_SPOT_RAD + METAL_SQ)
+		local spotRadSq = STAMP_SPOT_RAD * STAMP_SPOT_RAD
+		local count = 0
+		for mz = max(0, floor((cz - r) / METAL_SQ)), min(mmZ - 1, floor((cz + r) / METAL_SQ)) do
+			local dz = mz * METAL_SQ + halfSq - cz
+			for mx = max(0, floor((cx - r) / METAL_SQ)), min(mmX - 1, floor((cx + r) / METAL_SQ)) do
+				local dx = mx * METAL_SQ + halfSq - cx
+				if dx * dx + dz * dz <= spotRadSq and insideStampShape(dx, dz, radius, shape, angleDeg) then
+					count = count + 1
+				end
+			end
+		end
+		reachState.key, reachState.count = key, count
+	end
+	-- The value as the stamp message sends it; capped once it needs more than every square full.
+	local want = max(0.01, tonumber(format("%.2f", metalValue)) or metalValue) * 1000
+	return reachState.count * cap / 1000, want > reachState.count * cap + cap / 510
+end
+
+local function formatReach(reach)
+	return format(reach < 0.1 and "%.3f" or "%.2f", reach)
+end
+
+-- 0.02 and 5.1, not 0.020 and 5.10.
+local function trimNumber(v, decimals)
+	local s = format("%." .. decimals .. "f", v):gsub("0+$", ""):gsub("%.$", "")
+	return s
 end
 
 local function getWorldPos()
-	local mx, my = GetMouseState()
-	local kind, pos = TraceScreenRay(mx, my, true)
-	if kind == "ground" then
-		return pos[1], pos[3]
-	end
-	return nil, nil
+	local wx, wz, fade = WorldTool.cursor(getSharedState().radius, WorldTool.groundCursor)
+	edgeFade = fade
+	return wx, wz
 end
 
 -- Per-draw-frame mouse trace shared between DrawWorld and DrawScreen (both
 -- run inside the same draw pass, so the raw trace result is identical).
 local frameTraceDF = -1
+---@type number?, number?
 local frameTraceX, frameTraceZ = nil, nil
 
 local function sendPaintMessage(worldX, worldZ)
 	local ss = getSharedState()
-	local direction = (paintButton == 1) and 1 or -1
+	-- Remove submode always erases, whichever button started the drag
+	local direction = (subMode ~= "remove" and paintButton == 1) and 1 or -1
 	local tb = WG.TerraformBrush
 	local positions
 	if ss.gridSnap then
@@ -140,14 +267,22 @@ local function sendPaintMessage(worldX, worldZ)
 	end
 	for i = 1, #positions do
 		local p = positions[i]
-		local payload = direction .. " "
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. ss.radius .. " "
-			.. ss.shape .. " "
-			.. (p.rot or ss.rotationDeg) .. " "
-			.. format("%.1f", ss.curve) .. " "
-			.. format("%.1f", ss.intensity) .. " "
+		local payload = direction
+			.. " "
+			.. floor(p.x)
+			.. " "
+			.. floor(p.z)
+			.. " "
+			.. ss.radius
+			.. " "
+			.. ss.shape
+			.. " "
+			.. (p.rot or ss.rotationDeg)
+			.. " "
+			.. format("%.1f", ss.curve)
+			.. " "
+			.. format("%.1f", ss.intensity)
+			.. " "
 			.. format("%.2f", metalValue)
 		SendLuaRulesMsg(MSG_PAINT, payload)
 	end
@@ -157,7 +292,7 @@ local function sendPaintMessage(worldX, worldZ)
 	clusterVisDirty = true
 	balanceAxisSumsDirty = true
 	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
-	lastCacheBuildClock   = 0
+	lastCacheBuildClock = 0
 end
 
 local function sendStampMessage(worldX, worldZ)
@@ -165,11 +300,7 @@ local function sendStampMessage(worldX, worldZ)
 	local direction = (paintButton == 3) and -1 or 1
 	local tb = WG.TerraformBrush
 	local positions
-	if ss.gridSnap then
-		worldX, worldZ = snapToMetalGrid(worldX, worldZ)
-	elseif tb and tb.snapWorld then
-		worldX, worldZ = tb.snapWorld(worldX, worldZ, ss.rotationDeg)
-	end
+	worldX, worldZ = stampCentre(worldX, worldZ, ss)
 	if tb and tb.getSymmetricPositions then
 		positions = tb.getSymmetricPositions(worldX, worldZ, ss.rotationDeg)
 	end
@@ -178,14 +309,37 @@ local function sendStampMessage(worldX, worldZ)
 	end
 	for i = 1, #positions do
 		local p = positions[i]
-		local payload = floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. ss.radius .. " "
-			.. format("%.2f", metalValue) .. " "
-			.. ss.shape .. " "
-			.. (p.rot or ss.rotationDeg) .. " "
+		local payload = floor(p.x)
+			.. " "
+			.. floor(p.z)
+			.. " "
+			.. ss.radius
+			.. " "
+			.. format("%.2f", metalValue)
+			.. " "
+			.. ss.shape
+			.. " "
+			.. (p.rot or ss.rotationDeg)
+			.. " "
 			.. direction
 		SendLuaRulesMsg(MSG_STAMP, payload)
+	end
+	-- One line per stamp when the map's per-square cap stops it short of METAL VALUE.
+	reachState.centreX, reachState.centreZ = worldX, worldZ
+	local reach, capped = stampReach(worldX, worldZ, ss.radius, ss.shape, ss.rotationDeg)
+	if direction > 0 and reach and capped then
+		local cap = getSquareCap() or 0
+		local line = format(
+			"[Metal Brush] Stamp reached %s, not %.2f: this map caps metal at %s per square (maxMetal: one metal square holds at most %s), so a spot this size can hold no more. A larger brush gives a bigger spot.",
+			formatReach(reach),
+			metalValue,
+			trimNumber(cap / 255, 3),
+			trimNumber(cap, 2)
+		)
+		if cap < TINY_SQUARE_CAP then
+			line = line .. " New Map canvases on the current engine use the engine defaults until its update."
+		end
+		Echo(line)
 	end
 	spotsCacheDirty = true
 	clusterCacheDirty = true
@@ -193,7 +347,7 @@ local function sendStampMessage(worldX, worldZ)
 	clusterVisDirty = true
 	balanceAxisSumsDirty = true
 	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
-	lastCacheBuildClock   = 0
+	lastCacheBuildClock = 0
 end
 
 -- ============================================================
@@ -212,13 +366,19 @@ local function drawShapeOutline(worldX, worldZ, radius, shape, angleDeg)
 		end)
 	else
 		local sides = 4
-		if shape == "hexagon" then sides = 6
-		elseif shape == "octagon" then sides = 8 end
-		-- square/hexagon isInsideShape uses inradius (center-to-edge = radius);
-		-- offset vertices by half-step and scale to circumradius so outline matches painted area.
-		-- octagon isInsideShape uses circumradius, so no correction needed.
-		local angleOffset = (shape ~= "octagon") and (pi / sides) or 0
-		local outlineRadius = (shape ~= "octagon") and (radius / cos(pi / sides)) or radius
+		if shape == "hexagon" then
+			sides = 6
+		elseif shape == "octagon" then
+			sides = 8
+		elseif shape == "triangle" then
+			sides = 3
+		end
+		-- The gadget's square/hexagon test uses the inradius as `radius`, so offset
+		-- the vertices half a step and scale to the circumradius to match the painted
+		-- area. Octagon and triangle (common/brush_shapes) already use the circumradius.
+		local inradiusShape = shape ~= "octagon" and shape ~= "triangle"
+		local angleOffset = inradiusShape and (pi / sides) or 0
+		local outlineRadius = inradiusShape and (radius / cos(pi / sides)) or radius
 		local angleRad = (angleDeg or 0) * pi / 180
 		local c, s = cos(angleRad), sin(angleRad)
 		glBeginEnd(GL_LINE_LOOP, function()
@@ -245,8 +405,10 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 	mxMax = min(mxMax, mmX - 1)
 	mzMax = min(mzMax, mmZ - 1)
 
-	-- Cap to prevent excessive draw calls
-	if (mxMax - mxMin + 1) * (mzMax - mzMin + 1) > 4000 then return end
+	-- Skip huge brushes: one draw call per metal square.
+	if (mxMax - mxMin + 1) * (mzMax - mzMin + 1) > 4000 then
+		return
+	end
 
 	glPolygonOffset(-2, -2)
 	for mz = mzMin, mzMax do
@@ -256,7 +418,7 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 			if amount > 0.01 then
 				local wx = mx * METAL_SQ + halfSq
 				local brightness = min(1.0, amount / 120)
-				glColor(0.1, 0.4 + brightness * 0.6, 0.1, 0.35 + brightness * 0.3)
+				glColor(0.1, 0.4 + brightness * 0.6, 0.1, (0.35 + brightness * 0.3) * edgeFade)
 				local y = GetGroundHeight(wx, wz) + 0.5
 				glBeginEnd(GL_QUADS, function()
 					glVertex(wx - halfSq, y, wz - halfSq)
@@ -271,11 +433,12 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 end
 
 local function drawCursorInfo(worldX, worldZ)
-	-- Sum metal within extractor radius (predicted mex "spot worth" at baseline T1)
+	-- Metal within the extractor radius: what a T1 mex here would be worth.
 	local cx = floor(worldX / METAL_SQ)
 	local cz = floor(worldZ / METAL_SQ)
 	local cellRange = floor(EXTRACTOR_RADIUS / METAL_SQ) + 1
 	local mmX, mmZ = GetMetalMapSize()
+	---@type number
 	local spotMetal = 0
 	local halfSq = METAL_SQ * 0.5
 	for dz = -cellRange, cellRange do
@@ -296,17 +459,61 @@ local function drawCursorInfo(worldX, worldZ)
 
 	local sx, sy = WorldToScreenCoords(worldX, GetGroundHeight(worldX, worldZ), worldZ)
 
+	-- Anchor the readout just below the brush outline, right-aligned to it, so it
+	-- never covers the painted area. 8 samples on the circumradius (square and
+	-- hexagon corners reach past ss.radius) give the screen-space extents at any
+	-- camera angle.
+	do
+		local ss = getSharedState()
+		local bound = ss.radius or 0
+		if ss.shape == "square" then
+			bound = bound * 1.4143
+		elseif ss.shape == "hexagon" then
+			bound = bound * 1.1548
+		end
+		local bottomY, rightX = sy, sx
+		for i = 0, 7 do
+			local a = i * (pi * 0.25)
+			local px = worldX + bound * cos(a)
+			local pz = worldZ + bound * sin(a)
+			local psx, psy = WorldToScreenCoords(px, GetGroundHeight(px, pz), pz)
+			if psy and psy < bottomY then
+				bottomY = psy
+			end
+			if psx and psx > rightX then
+				rightX = psx
+			end
+		end
+		sx = rightX
+		sy = bottomY - 30
+	end
+
 	local text
+	local capped = false
 	if subMode == "stamp" then
-		text = format("STAMP: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
+		-- Above what this brush size can hold on this map: say the most it gets, in amber.
+		local ss = getSharedState()
+		local cx, cz = stampCentre(worldX, worldZ, ss)
+		reachState.centreX, reachState.centreZ = cx, cz
+		local reach
+		reach, capped = stampReach(cx, cz, ss.radius, ss.shape, ss.rotationDeg)
+		if reach and capped then
+			text = format("STAMP: %.1f  (max %s here)  [spot: %.2f]", metalValue, formatReach(reach), spotMetal * 0.001)
+		else
+			text = format("STAMP: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
+		end
 	else
 		text = format("Metal: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
 	end
 
-	glColor(0, 0, 0, 0.92)
-	glText(text, sx + 2, sy + 18, 24, "co")
-	glColor(1, 1, 1, 1.0)
-	glText(text, sx, sy + 20, 24, "co")
+	glColor(0, 0, 0, 0.92 * edgeFade)
+	glText(text, sx + 2, sy - 2, 24, "ro")
+	if capped then
+		glColor(1, 0.75, 0.3, 1.0 * edgeFade)
+	else
+		glColor(1, 1, 1, 1.0 * edgeFade)
+	end
+	glText(text, sx, sy, 24, "ro")
 end
 
 -- ============================================================
@@ -336,10 +543,17 @@ local function saveMetalMap()
 			if amount > 0.001 then
 				local wx = mx * METAL_SQ + METAL_SQ * 0.5
 				local wz = mz * METAL_SQ + METAL_SQ * 0.5
-				lines[#lines + 1] = "    {x=" .. format("%.0f", wx)
-					.. ",z=" .. format("%.0f", wz)
-					.. ",mx=" .. mx .. ",mz=" .. mz
-					.. ",amount=" .. format("%.3f", amount) .. "},"
+				lines[#lines + 1] = "    {x="
+					.. format("%.0f", wx)
+					.. ",z="
+					.. format("%.0f", wz)
+					.. ",mx="
+					.. mx
+					.. ",mz="
+					.. mz
+					.. ",amount="
+					.. format("%.3f", amount)
+					.. "},"
 				spotCount = spotCount + 1
 			end
 		end
@@ -363,12 +577,13 @@ local function loadMetalMap()
 	local mapName = Game.mapName or "unknown"
 	local filename = SAVE_DIR .. mapName .. "_metalmap.lua"
 
-	local chunk, err = loadfile(filename)
+	local chunk, _err = loadfile(filename)
 	if not chunk then
 		Echo("[Metal Brush] No saved metal map found: " .. filename)
 		return
 	end
 
+	setfenv(chunk, {})
 	local ok, data = pcall(chunk)
 	if not ok or type(data) ~= "table" or not data.spots then
 		Echo("[Metal Brush] ERROR: Invalid metal map file: " .. filename)
@@ -419,31 +634,54 @@ end
 local DEFAULT_CLUSTER_RADIUS = 256
 
 local mapOverlay = false
-local MAP_OVERLAY_DIM = 0.45  -- darkness applied to map while overlay is active
-local savedDarknessBeforeOverlay = nil  -- non-nil while we've applied overlay dim
-local savedBrushBeforeMetal = nil       -- {gridSnap, radius, shape} to restore on tool exit
+local MAP_OVERLAY_DIM = 0.45 -- alpha of the map-dim quad drawn while overlay is active
+---@type {gridSnap: boolean, radius: number?, shape: (BrushShape|"ring"|"fill")?}?
+local savedBrushBeforeMetal = nil -- {gridSnap, radius, shape} to restore on tool exit
 local clusterCounter = false
+---@type number
 local clusterRadius = DEFAULT_CLUSTER_RADIUS
 local lassoActive = false
-local lassoPoints = {}       -- in-progress polygon (not yet committed)
-local lassos = {}            -- array of { points = {...}, total = number } committed loops
+---@type {x: number, z: number}[]
+local lassoPoints = {} -- in-progress polygon (not yet committed)
+---@type {points: {x: number, z: number}[], total: number}[]
+local lassos = {} -- array of { points = {...}, total = number } committed loops
 
 -- Free-draw (drag-while-held) lasso tracking
+---@type number?, number?
 local lassoDragStartSx, lassoDragStartSy = nil, nil
 local lassoDragDetected = false
 local LASSO_DRAG_THRESHOLD_PX = 6
 local LASSO_FREEDRAW_MIN_SPACING_SQ = 24 * 24 -- world elmos^2 between appended points
 
+---One metal map square with metal on it.
+---@class MetalSpot
+---@field mx integer
+---@field mz integer
+---@field wx number
+---@field wz number
+---@field amount number
+---@field cluster integer? Index into the cluster cache.
+
+---A greedy cluster of metal squares, centred on its amount-weighted mean.
+---@class MetalCluster
+---@field cx number
+---@field cz number
+---@field sumX number
+---@field sumZ number
+---@field sumW number
+---@field totalAmount number
+---@field count integer
+---@field members integer[] Indices into the spot cache.
+
+---@type MetalSpot[]?
 local spotsCache = nil
-local spotsCacheDirty = true
+---@type MetalCluster[]?
 local clusterCache = nil
 local clusterCacheRadius = -1
-local clusterCacheDirty = true
+---@type integer?
 local overlayList = nil
-local overlayListDirty = true
+---@type integer?
 local clusterVisList = nil
-local clusterVisDirty = true
-local lastCacheBuildClock = 0
 
 local function invalidateMetalCaches()
 	spotsCacheDirty = true
@@ -451,7 +689,7 @@ local function invalidateMetalCaches()
 	overlayListDirty = true
 	clusterVisDirty = true
 	cacheRebuildHoldUntil = os.clock() + CACHE_REBUILD_DELAY
-	lastCacheBuildClock   = 0  -- once hold elapses, bypass throttle for immediate rebuild
+	lastCacheBuildClock = 0 -- once hold elapses, bypass throttle for immediate rebuild
 end
 
 local function buildSpotCache()
@@ -473,7 +711,9 @@ local function buildSpotCache()
 end
 
 local function ensureSpotCache()
-	if os.clock() < cacheRebuildHoldUntil then return end  -- waiting for gadget to apply paint
+	if os.clock() < cacheRebuildHoldUntil then
+		return
+	end -- waiting for gadget to apply paint
 	if not spotsCache then
 		buildSpotCache()
 	elseif spotsCacheDirty and (os.clock() - lastCacheBuildClock) > CACHE_REBUILD_THROTTLE then
@@ -483,10 +723,17 @@ end
 
 local function buildClusters(radius)
 	ensureSpotCache()
+	-- The first build can still be on hold (waiting for the gadget to apply paint):
+	-- leave the clusters dirty so the next frame builds them.
+	if not spotsCache then
+		return
+	end
 	local r2 = radius * radius
+	---@type MetalCluster[]
 	local clusters = {}
 	for i = 1, #spotsCache do
 		local s = spotsCache[i]
+		---@type integer?, number
 		local best, bestD2 = nil, r2
 		for ci = 1, #clusters do
 			local c = clusters[ci]
@@ -500,6 +747,7 @@ local function buildClusters(radius)
 		end
 		if best then
 			local c = clusters[best]
+			---@cast c -nil
 			c.totalAmount = c.totalAmount + s.amount
 			c.count = c.count + 1
 			c.sumX = c.sumX + s.wx * s.amount
@@ -511,9 +759,13 @@ local function buildClusters(radius)
 			s.cluster = best
 		else
 			clusters[#clusters + 1] = {
-				cx = s.wx, cz = s.wz,
-				sumX = s.wx * s.amount, sumZ = s.wz * s.amount, sumW = s.amount,
-				totalAmount = s.amount, count = 1,
+				cx = s.wx,
+				cz = s.wz,
+				sumX = s.wx * s.amount,
+				sumZ = s.wz * s.amount,
+				sumW = s.amount,
+				totalAmount = s.amount,
+				count = 1,
 				members = { i },
 			}
 			s.cluster = #clusters
@@ -534,11 +786,17 @@ end
 -- Convex hull (Andrew's monotone chain) on an array of {x,z} points.
 local function convexHull2D(pts)
 	local n = #pts
-	if n < 3 then return pts end
+	if n < 3 then
+		return pts
+	end
 	local sorted = {}
-	for i = 1, n do sorted[i] = pts[i] end
+	for i = 1, n do
+		sorted[i] = pts[i]
+	end
 	table.sort(sorted, function(a, b)
-		if a.x == b.x then return a.z < b.z end
+		if a.x == b.x then
+			return a.z < b.z
+		end
 		return a.x < b.x
 	end)
 	local function cross(o, a, b)
@@ -560,15 +818,17 @@ local function convexHull2D(pts)
 	end
 	lower[#lower] = nil
 	upper[#upper] = nil
-	for i = 1, #upper do lower[#lower + 1] = upper[i] end
+	for i = 1, #upper do
+		lower[#lower + 1] = upper[i]
+	end
 	return lower
 end
 
--- Color palette for clusters (HSV → RGB rotated by cluster id for contrast).
+-- Cluster colours: hue steps by the golden ratio per cluster id for contrast.
 local function clusterColor(idx)
 	local golden = 0.61803398875
 	local h = (idx * golden) % 1.0
-	-- HSV (h, 0.65, 1.0) → RGB
+	-- HSV (h, 0.70, 1.0) -> RGB
 	local s, v = 0.70, 1.0
 	local i = floor(h * 6)
 	local f = h * 6 - i
@@ -576,18 +836,30 @@ local function clusterColor(idx)
 	local q = v * (1 - f * s)
 	local t = v * (1 - (1 - f) * s)
 	local im = i % 6
-	if im == 0 then return v, t, p
-	elseif im == 1 then return q, v, p
-	elseif im == 2 then return p, v, t
-	elseif im == 3 then return p, q, v
-	elseif im == 4 then return t, p, v
-	else return v, p, q end
+	if im == 0 then
+		return v, t, p
+	elseif im == 1 then
+		return q, v, p
+	elseif im == 2 then
+		return p, v, t
+	elseif im == 3 then
+		return p, q, v
+	elseif im == 4 then
+		return t, p, v
+	else
+		return v, p, q
+	end
 end
 
 local function buildClusterVisList()
 	ensureClusters()
-	if clusterCacheDirty then return end -- still throttled
-	if clusterVisList then gl.DeleteList(clusterVisList); clusterVisList = nil end
+	if clusterCacheDirty then
+		return
+	end -- still throttled
+	if clusterVisList then
+		gl.DeleteList(clusterVisList)
+		clusterVisList = nil
+	end
 	local spots = spotsCache
 	local clusters = clusterCache
 	if not spots or not clusters or #clusters == 0 then
@@ -606,6 +878,7 @@ local function buildClusterVisList()
 			glBeginEnd(GL_QUADS, function()
 				for mi = 1, #mem do
 					local s = spots[mem[mi]]
+					---@cast s -nil
 					local wx, wz = s.wx, s.wz
 					local y = GetGroundHeight(wx, wz) + 0.6
 					glVertex(wx - halfSq, y, wz - halfSq)
@@ -625,6 +898,7 @@ local function buildClusterVisList()
 				local mem = c.members
 				for mi = 1, #mem do
 					local s = spots[mem[mi]]
+					---@cast s -nil
 					pts[#pts + 1] = { x = s.wx, z = s.wz }
 				end
 				local hull = convexHull2D(pts)
@@ -646,9 +920,12 @@ local function buildClusterVisList()
 	clusterVisDirty = false
 end
 
+---@return boolean
 local function pointInPoly(px, pz, pts)
 	local n = #pts
-	if n < 3 then return false end
+	if n < 3 then
+		return false
+	end
 	local inside = false
 	local j = n
 	for i = 1, n do
@@ -663,8 +940,14 @@ local function pointInPoly(px, pz, pts)
 end
 
 local function computePointsSum(points)
-	if not points or #points < 3 then return 0 end
+	if not points or #points < 3 then
+		return 0
+	end
 	ensureSpotCache()
+	if not spotsCache then
+		return 0
+	end
+	---@type number
 	local total = 0
 	for i = 1, #spotsCache do
 		local s = spotsCache[i]
@@ -676,8 +959,11 @@ local function computePointsSum(points)
 end
 
 local function lassoGrandTotal()
+	---@type number
 	local t = 0
-	for i = 1, #lassos do t = t + (lassos[i].total or 0) end
+	for i = 1, #lassos do
+		t = t + (lassos[i].total or 0)
+	end
 	return t
 end
 
@@ -686,23 +972,23 @@ end
 local function commitCurrentLasso()
 	if #lassoPoints >= 3 then
 		local pts = {}
-		for i = 1, #lassoPoints do pts[i] = lassoPoints[i] end
+		for i = 1, #lassoPoints do
+			pts[i] = lassoPoints[i]
+		end
 		lassos[#lassos + 1] = { points = pts, total = computePointsSum(pts) }
 	end
 	lassoPoints = {}
 end
 
--- Refresh every committed lasso's total (call after the spot cache changes).
-local function recomputeAllLassoTotals()
-	for i = 1, #lassos do
-		lassos[i].total = computePointsSum(lassos[i].points)
-	end
-end
-
 local function buildOverlayList()
 	ensureSpotCache()
-	if spotsCacheDirty then return end -- still throttled; retry next frame
-	if overlayList then gl.DeleteList(overlayList); overlayList = nil end
+	if spotsCacheDirty then
+		return
+	end -- still throttled; retry next frame
+	if overlayList then
+		gl.DeleteList(overlayList)
+		overlayList = nil
+	end
 	local spots = spotsCache
 	local halfSq = METAL_SQ * 0.5
 	overlayList = gl.CreateList(function()
@@ -766,6 +1052,7 @@ local function drawLassoWorld(cursorX, cursorZ)
 			glBeginEnd(GL_LINE_STRIP, function()
 				for i = 1, n do
 					local p = lassoPoints[i]
+					---@cast p -nil
 					glVertex(p.x, GetGroundHeight(p.x, p.z) + 4, p.z)
 				end
 			end)
@@ -773,6 +1060,7 @@ local function drawLassoWorld(cursorX, cursorZ)
 		local cx, cz = cursorX, cursorZ
 		if cx then
 			local last = lassoPoints[n]
+			---@cast last -nil
 			glBeginEnd(GL_LINES, function()
 				glVertex(last.x, GetGroundHeight(last.x, last.z) + 4, last.z)
 				glVertex(cx, GetGroundHeight(cx, cz) + 4, cz)
@@ -787,6 +1075,9 @@ end
 
 local function drawClusterLabels()
 	ensureClusters()
+	if not clusterCache then
+		return
+	end
 	for i = 1, #clusterCache do
 		local c = clusterCache[i]
 		local gy = GetGroundHeight(c.cx, c.cz)
@@ -803,9 +1094,14 @@ end
 
 local function polyCenter(pts)
 	local n = #pts
-	if n == 0 then return nil end
+	if n == 0 then
+		return nil
+	end
 	local cx, cz = 0, 0
-	for i = 1, n do cx = cx + pts[i].x; cz = cz + pts[i].z end
+	for i = 1, n do
+		cx = cx + pts[i].x
+		cz = cz + pts[i].z
+	end
 	return cx / n, cz / n
 end
 
@@ -832,14 +1128,20 @@ local function drawLassoInfo()
 	-- Grand total + in-progress hint (screen bottom-center-ish overlay)
 	local nLassos = #lassos
 	local inProg = #lassoPoints
-	if nLassos == 0 and inProg == 0 then return end
+	if nLassos == 0 and inProg == 0 then
+		return
+	end
 	local vsx, vsy = gl.GetViewSizes()
 	local ox = vsx * 0.5
 	local oy = vsy * 0.08
 
 	if nLassos > 0 then
-		local txt = format("TOTAL %d lasso%s = %.2f   (RMB to remove last)",
-			nLassos, nLassos == 1 and "" or "s", lassoGrandTotal())
+		local txt = format(
+			"TOTAL %d lasso%s = %.2f   (RMB to remove last)",
+			nLassos,
+			nLassos == 1 and "" or "s",
+			lassoGrandTotal()
+		)
 		glColor(0, 0, 0, 0.92)
 		glText(txt, ox + 2, oy - 2, 22, "co")
 		glColor(1, 0.85, 0.25, 1)
@@ -859,29 +1161,24 @@ local function setMapOverlay(v)
 	mapOverlay = v and true or false
 	if mapOverlay then
 		invalidateMetalCaches()
-		-- Dim the map so metal patches stand out; save previous darkness to restore later
-		if savedDarknessBeforeOverlay == nil and WG['darkenmap'] then
-			savedDarknessBeforeOverlay = WG['darkenmap'].getMapDarkness()
-			WG['darkenmap'].setMapDarkness(MAP_OVERLAY_DIM)
-		end
-	else
-		-- Restore map brightness
-		if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
-			WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
-		end
-		savedDarknessBeforeOverlay = nil
 	end
 end
 
 local function setClusterCounter(v)
 	clusterCounter = v and true or false
-	if clusterCounter then clusterCacheDirty = true end
+	if clusterCounter then
+		clusterCacheDirty = true
+	end
 end
 
 local function setClusterRadius(r)
 	r = tonumber(r) or DEFAULT_CLUSTER_RADIUS
-	if r < 32 then r = 32 end
-	if r > 4096 then r = 4096 end
+	if r < 32 then
+		r = 32
+	end
+	if r > 4096 then
+		r = 4096
+	end
 	clusterRadius = r
 	clusterCacheDirty = true
 end
@@ -910,7 +1207,9 @@ end
 -- Remove the most recently committed lasso. Returns true if one was removed.
 local function popLastLasso()
 	local n = #lassos
-	if n == 0 then return false end
+	if n == 0 then
+		return false
+	end
 	lassos[n] = nil
 	return true
 end
@@ -928,16 +1227,20 @@ end
 -- ============================================================
 
 local balanceAxisActive = false
-local balanceAxisAngleDeg = 0           -- 0 = axis runs along X (east-west line)
-local balanceAxisOriginX = nil          -- nil -> map center
+---@type number
+local balanceAxisAngleDeg = 0 -- 0 = axis runs along X (east-west line)
+---@type number?
+local balanceAxisOriginX = nil -- nil -> map center
+---@type number?
 local balanceAxisOriginZ = nil
-local balanceAxisPlacingOrigin = false  -- next LMB sets origin
-local balanceAxisSumA = 0               -- positive side (normal direction)
-local balanceAxisSumB = 0               -- negative side
-local balanceAxisSumsDirty = true
+local balanceAxisPlacingOrigin = false -- next LMB sets origin
+---@type number
+local balanceAxisSumA = 0 -- positive side (normal direction)
+---@type number
+local balanceAxisSumB = 0 -- negative side
 local balanceAxisHovering = false
 local balanceAxisDragging = false
-local BALANCE_AXIS_HOVER_DIST = 48   -- world elmos perpendicular hover threshold
+local BALANCE_AXIS_HOVER_DIST = 48 -- world elmos perpendicular hover threshold
 
 local function getBalanceAxisOrigin()
 	local ox = balanceAxisOriginX or (Game.mapSizeX * 0.5)
@@ -947,7 +1250,9 @@ end
 
 local function recomputeBalanceAxisSums()
 	ensureSpotCache()
-	if spotsCacheDirty then return end -- throttled; retry next frame
+	if spotsCacheDirty then
+		return
+	end -- throttled; retry next frame
 	local spots = spotsCache
 	if not spots then
 		balanceAxisSumA, balanceAxisSumB = 0, 0
@@ -959,6 +1264,7 @@ local function recomputeBalanceAxisSums()
 	-- axis direction (cosA, sinA); normal perpendicular is (-sinA, cosA)
 	local nx = -sin(ang)
 	local nz = cos(ang)
+	---@type number, number
 	local a, b = 0, 0
 	for i = 1, #spots do
 		local s = spots[i]
@@ -974,11 +1280,7 @@ local function recomputeBalanceAxisSums()
 	balanceAxisSumsDirty = false
 end
 
-local function invalidateBalanceAxisSums()
-	balanceAxisSumsDirty = true
-end
-
--- Extend cache invalidator so map-edits refresh axis sums too.
+-- Wrap the cache invalidator so metal edits refresh the axis sums too.
 local _origInvalidateMetalCaches = invalidateMetalCaches
 invalidateMetalCaches = function()
 	_origInvalidateMetalCaches()
@@ -987,8 +1289,12 @@ end
 
 local function setBalanceAxisActive(v)
 	balanceAxisActive = v and true or false
-	if balanceAxisActive then balanceAxisSumsDirty = true end
-	if not balanceAxisActive then balanceAxisPlacingOrigin = false end
+	if balanceAxisActive then
+		balanceAxisSumsDirty = true
+	end
+	if not balanceAxisActive then
+		balanceAxisPlacingOrigin = false
+	end
 end
 
 local function toggleBalanceAxis()
@@ -1021,9 +1327,15 @@ local function clipAxisToMap(ox, oz, dx, dz)
 	if abs(dx) > 1e-6 then
 		local t1 = (0 - ox) / dx
 		local t2 = (mx - ox) / dx
-		if t1 > t2 then t1, t2 = t2, t1 end
-		if t1 > tmin then tmin = t1 end
-		if t2 < tmax then tmax = t2 end
+		if t1 > t2 then
+			t1, t2 = t2, t1
+		end
+		if t1 > tmin then
+			tmin = t1
+		end
+		if t2 < tmax then
+			tmax = t2
+		end
 	elseif ox < 0 or ox > mx then
 		return nil
 	end
@@ -1031,13 +1343,21 @@ local function clipAxisToMap(ox, oz, dx, dz)
 	if abs(dz) > 1e-6 then
 		local t1 = (0 - oz) / dz
 		local t2 = (mz - oz) / dz
-		if t1 > t2 then t1, t2 = t2, t1 end
-		if t1 > tmin then tmin = t1 end
-		if t2 < tmax then tmax = t2 end
+		if t1 > t2 then
+			t1, t2 = t2, t1
+		end
+		if t1 > tmin then
+			tmin = t1
+		end
+		if t2 < tmax then
+			tmax = t2
+		end
 	elseif oz < 0 or oz > mz then
 		return nil
 	end
-	if tmin > tmax then return nil end
+	if tmin > tmax then
+		return nil
+	end
 	return ox + dx * tmin, oz + dz * tmin, ox + dx * tmax, oz + dz * tmax
 end
 
@@ -1047,7 +1367,9 @@ local function drawBalanceAxisWorld()
 	local ang = balanceAxisAngleDeg * pi / 180
 	local dx, dz = cos(ang), sin(ang)
 	local x1, z1, x2, z2 = clipAxisToMap(ox, oz, dx, dz)
-	if not x1 then return end
+	if not x1 then
+		return
+	end
 	glLineWidth(balanceAxisDragging and 4 or (balanceAxisHovering and 3.5 or 3))
 	if balanceAxisDragging then
 		glColor(1.0, 1.0, 0.6, 1.0)
@@ -1092,7 +1414,9 @@ local function drawBalanceAxisWorld()
 end
 
 local function drawBalanceAxisInfo()
-	if balanceAxisSumsDirty then recomputeBalanceAxisSums() end
+	if balanceAxisSumsDirty then
+		recomputeBalanceAxisSums()
+	end
 	local ox, oz = getBalanceAxisOrigin()
 	local ang = balanceAxisAngleDeg * pi / 180
 	local nx, nz = -sin(ang), cos(ang)
@@ -1129,53 +1453,54 @@ end
 -- ============================================================
 
 local function activate(mode)
-	-- Snapshot the shared brush settings on ENTRY (not on paint/stamp submode
-	-- re-activations) so leaving the metal tool can restore them — the forced
-	-- snap/square/3x3 defaults below must not bleed into the other tools
+	-- Snapshot the shared brush settings on entry (not on a submode switch) so
+	-- leaving the tool restores them: the forced snap / square / 3x3 defaults
+	-- below must not bleed into the other tools.
 	if not active and savedBrushBeforeMetal == nil then
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState()
 		if st then
 			savedBrushBeforeMetal = {
 				gridSnap = st.gridSnap and true or false,
-				radius   = st.radius,
-				shape    = st.shape,
+				radius = st.radius,
+				shape = st.shape,
 			}
 		end
 	end
 	active = true
 	subMode = mode or "stamp"
 	painting = false
-	-- Apply metal-friendly defaults: 3x3 square brush, grid snap, map overlay
+	-- Metal defaults: 3x3 square brush, grid snap, map overlay
 	local tb = WG.TerraformBrush
 	if tb then
 		tb.setRadius(DEFAULT_RADIUS)
 		tb.setShape("square")
-		if tb.setGridSnap then tb.setGridSnap(true) end
+		if tb.setGridSnap then
+			tb.setGridSnap(true)
+		end
 	end
-	if not mapOverlay then setMapOverlay(true) end
-	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
+	if not mapOverlay then
+		setMapOverlay(true)
+	end
 end
 
 local function deactivate()
-	if active then
-		Echo("[Metal Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
-	-- Restore map brightness if overlay was on when we deactivated
-	if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
-		WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
-	end
-	savedDarknessBeforeOverlay = nil
 	-- Hand the pre-metal brush settings back to the shared brush
 	if savedBrushBeforeMetal ~= nil then
 		local tb = WG.TerraformBrush
 		if tb then
-			if tb.setGridSnap then tb.setGridSnap(savedBrushBeforeMetal.gridSnap) end
-			if tb.setRadius and savedBrushBeforeMetal.radius then tb.setRadius(savedBrushBeforeMetal.radius) end
-			if tb.setShape and savedBrushBeforeMetal.shape then tb.setShape(savedBrushBeforeMetal.shape) end
+			if tb.setGridSnap then
+				tb.setGridSnap(savedBrushBeforeMetal.gridSnap)
+			end
+			if tb.setRadius and savedBrushBeforeMetal.radius then
+				tb.setRadius(savedBrushBeforeMetal.radius)
+			end
+			if tb.setShape and savedBrushBeforeMetal.shape then
+				tb.setShape(savedBrushBeforeMetal.shape)
+			end
 		end
 		savedBrushBeforeMetal = nil
 	end
@@ -1190,7 +1515,17 @@ local function setMetalValue(v)
 end
 
 local function getState()
+	-- What a stamp can reach at the current brush size, at the last stamp centre
+	-- (the map centre before the cursor ever showed one).
+	local ss = getSharedState()
+	local rcx = reachState.centreX or (floor(Game.mapSizeX / 2 / METAL_SQ) + 0.5) * METAL_SQ
+	local rcz = reachState.centreZ or (floor(Game.mapSizeZ / 2 / METAL_SQ) + 0.5) * METAL_SQ
+	local stampReachNow, stampCapped = stampReach(rcx, rcz, ss.radius, ss.shape, ss.rotationDeg)
 	return {
+		stampReach = stampReachNow, -- nil until the gadget published the cap
+		stampCapped = stampCapped,
+		squareCap = getSquareCap(), -- maxMetal * 255
+		tinySquareCap = TINY_SQUARE_CAP,
 		active = active,
 		subMode = subMode,
 		metalValue = metalValue,
@@ -1198,10 +1533,10 @@ local function getState()
 		clusterCounter = clusterCounter,
 		clusterRadius = clusterRadius,
 		lassoActive = lassoActive,
-		lassoClosed = (#lassos > 0),        -- back-compat: true if any committed loop exists
+		lassoClosed = (#lassos > 0), -- true if any committed loop exists
 		lassoPointCount = #lassoPoints,
-		lassoTotal = lassoGrandTotal(),     -- back-compat: now the grand total across all committed loops
-		lassoCount = #lassos,               -- new: number of committed loops
+		lassoTotal = lassoGrandTotal(), -- grand total across all committed loops
+		lassoCount = #lassos, -- number of committed loops
 		balanceAxisActive = balanceAxisActive,
 		balanceAxisAngleDeg = balanceAxisAngleDeg,
 		balanceAxisOriginX = balanceAxisOriginX,
@@ -1239,19 +1574,24 @@ function widget:Initialize()
 		setBalanceAxisOrigin = setBalanceAxisOrigin,
 		setBalanceAxisPlacingOrigin = setBalanceAxisPlacingOrigin,
 		refreshAnalysis = invalidateMetalCaches,
-		undo = function() SendLuaRulesMsg(MSG_UNDO, "") end,
-		redo = function() SendLuaRulesMsg(MSG_REDO, "") end,
+		undo = function()
+			SendLuaRulesMsg(MSG_UNDO, "")
+		end,
+		redo = function()
+			SendLuaRulesMsg(MSG_REDO, "")
+		end,
 	}
 end
 
 function widget:Shutdown()
 	WG.MetalBrush = nil
-	if overlayList then gl.DeleteList(overlayList); overlayList = nil end
-	if clusterVisList then gl.DeleteList(clusterVisList); clusterVisList = nil end
-	-- Restore map brightness if overlay dim was active
-	if savedDarknessBeforeOverlay ~= nil and WG['darkenmap'] then
-		WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
-		savedDarknessBeforeOverlay = nil
+	if overlayList then
+		gl.DeleteList(overlayList)
+		overlayList = nil
+	end
+	if clusterVisList then
+		gl.DeleteList(clusterVisList)
+		clusterVisList = nil
 	end
 end
 
@@ -1260,7 +1600,9 @@ function widget:IsAbove(x, y)
 end
 
 function widget:MousePress(mx, my, button)
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	-- Balance axis origin placement: consume next LMB as origin, RMB cancels.
 	if balanceAxisPlacingOrigin then
@@ -1277,20 +1619,20 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	-- Balance axis drag: LMB on the line starts a drag (translates origin along
-	-- the axis normal so the whole line slides perpendicular to itself).
+	-- LMB on the balance axis line starts a drag that slides it along its normal.
 	if balanceAxisActive and balanceAxisHovering and button == 1 then
 		balanceAxisDragging = true
 		return true
 	end
 
-	-- Lasso tool: intercepts clicks before anything else (works without cheat)
+	-- Lasso clicks are handled before the cheat gate: the lasso works without cheat.
 	if lassoActive then
 		local worldX, worldZ = getWorldPos()
-		if not worldX then return false end
+		if not worldX then
+			return false
+		end
 		if button == 1 then
-			-- Reset drag tracking for this press; drag-mode activates if the
-			-- cursor moves beyond threshold before release (free-draw loop).
+			-- Moving past the drag threshold before release turns this press into a free-draw loop.
 			lassoDragStartSx, lassoDragStartSy = mx, my
 			lassoDragDetected = false
 
@@ -1306,9 +1648,8 @@ function widget:MousePress(mx, my, button)
 			lassoPoints[#lassoPoints + 1] = { x = worldX, z = worldZ }
 			return true
 		elseif button == 3 then
-			-- RMB behaviour:
-			--   * in-progress polygon exists -> close it (commit if ≥3 pts, else discard)
-			--   * otherwise -> remove the most recently committed loop
+			-- RMB closes the in-progress polygon (committed with 3+ points, else
+			-- discarded), or with none removes the most recent committed loop.
 			if #lassoPoints > 0 then
 				commitCurrentLasso()
 			else
@@ -1318,14 +1659,18 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	if not IsCheatingEnabled() then return false end
+	if not IsCheatingEnabled() then
+		return false
+	end
 
-	-- Defer to measure tool when active so metal paint doesn't consume the click
+	-- Leave the click to the measure tool while it is active.
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st and st.measureActive then return false end
-		-- Defer to symmetry origin placement / drag-grab so terraform can handle it
+		if st and st.measureActive then
+			return false
+		end
+		-- ... and to symmetry origin placement or dragging, which the terraform brush handles.
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1334,7 +1679,9 @@ function widget:MousePress(mx, my, button)
 	end
 
 	local worldX, worldZ = getWorldPos()
-	if not worldX then return false end
+	if not worldX then
+		return false
+	end
 
 	if button == 1 or button == 3 then
 		paintButton = button
@@ -1353,7 +1700,7 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:MouseMove(mx, my, dx, dy, button)
-	-- Balance axis drag: slide origin along axis normal so line stays parallel.
+	-- Balance axis drag: slide the origin along the normal so the line stays parallel.
 	if balanceAxisDragging then
 		local wx, wz = getWorldPos()
 		if wx then
@@ -1366,14 +1713,16 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		return
 	end
 
-	-- Lasso free-draw: while LMB is held, append points along the cursor path
-	-- once the drag has crossed a small pixel threshold. Converts a single
-	-- click-and-drag gesture into a closed loop on release.
-	if not active or not lassoActive then return end
-	if not lassoDragStartSx then return end
-	-- button arg can be the held button id or nil depending on caller; we
-	-- already know LMB is held because MousePress captured it and we clear
-	-- the drag-start markers on release.
+	-- Lasso free-draw: once a held LMB drag crosses the pixel threshold, append
+	-- points along the cursor path; release closes the loop.
+	if not active or not lassoActive then
+		return
+	end
+	if not lassoDragStartSx then
+		return
+	end
+	-- `button` is unreliable here; the drag-start marker set by MousePress and
+	-- cleared on release already means LMB is held.
 
 	if not lassoDragDetected then
 		local sdx = mx - lassoDragStartSx
@@ -1385,13 +1734,18 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	end
 
 	local wx, wz = getWorldPos()
-	if not wx then return end
+	if not wx then
+		return
+	end
 	local n = #lassoPoints
 	if n > 0 then
 		local last = lassoPoints[n]
+		---@cast last -nil
 		local ddx = wx - last.x
 		local ddz = wz - last.z
-		if ddx * ddx + ddz * ddz < LASSO_FREEDRAW_MIN_SPACING_SQ then return end
+		if ddx * ddx + ddz * ddz < LASSO_FREEDRAW_MIN_SPACING_SQ then
+			return
+		end
 	end
 	lassoPoints[n + 1] = { x = wx, z = wz }
 end
@@ -1414,9 +1768,8 @@ function widget:MouseRelease(mx, my, button)
 	if painting and button == paintButton then
 		painting = false
 		paintButton = 0
-		-- sendPaintMessage already set cacheRebuildHoldUntil and lastCacheBuildClock=0.
-		-- Just mark the visual lists dirty; the hold mechanism defers the cache
-		-- rebuild until the gadget has had time to apply SetMetalAmount.
+		-- Only mark dirty: sendPaintMessage already armed the hold that defers the
+		-- rebuild until the gadget has applied SetMetalAmount.
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true
@@ -1425,28 +1778,34 @@ function widget:MouseRelease(mx, my, button)
 	end
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
-	if not active then return false end
+	if not active then
+		return false
+	end
 	local alt, ctrl, _, shift = Spring.GetModKeyState()
 	local space = Spring.GetKeyState(0x20)
 
 	-- Space+scroll: metalValue (counterpart of intensity)
 	if space then
 		local step = 0.1
-		if metalValue > 10.0 then step = 1.0
-		elseif metalValue > 5.0 then step = 0.5
+		if metalValue > 10.0 then
+			step = 1.0
+		elseif metalValue > 5.0 then
+			step = 0.5
 		end
 		if up then
 			metalValue = min(MAX_METAL_VALUE, metalValue + step)
 		else
 			metalValue = max(MIN_METAL_VALUE, metalValue - step)
 		end
-		Echo("[Metal Brush] Metal value: " .. format("%.2f", metalValue))
 		return true
 	end
 
 	local tb = WG.TerraformBrush
-	if not tb then return false end
+	if not tb then
+		return false
+	end
 	local st = tb.getState()
 
 	-- Ctrl+Alt+scroll: length
@@ -1456,17 +1815,22 @@ function widget:MouseWheel(up, value)
 		return true
 	end
 
-	-- Ctrl+scroll: size — step by one metal pixel ring (METAL_SQ per step)
+	-- Ctrl+scroll: size, one metal square ring per step
 	if ctrl then
 		local currentR = st.radius or DEFAULT_RADIUS
-		local n = floor(currentR / METAL_SQ)  -- current pixel ring index
-		if up then n = n + 1 else n = max(0, n - 1) end
-		tb.setRadius(n * METAL_SQ + METAL_SQ * 0.5)  -- snapped to n*METAL_SQ + halfSq
+		local n = floor(currentR / METAL_SQ) -- current pixel ring index
+		if up then
+			n = n + 1
+		else
+			n = max(0, n - 1)
+		end
+		tb.setRadius(n * METAL_SQ + METAL_SQ * 0.5) -- snapped to n*METAL_SQ + halfSq
 		return true
 	end
 
-	-- Alt+scroll: rotation (snap to TB protractor step when angleSnap on)
+	-- Alt+scroll: rotation (the angle snap step when angle snap is on)
 	if alt then
+		---@type number
 		local step = 3
 		if st.angleSnap and (st.angleSnapStep or 0) > 0 then
 			step = st.angleSnapStep
@@ -1488,7 +1852,16 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+-- Set by RecvLuaMsg, run in Update: reloading widgets inside a callin would change the list being dispatched.
+---@type fun()
+local refreshSpotWidgets
+local spotWidgetsPending = false
+
 function widget:Update(dt)
+	if spotWidgetsPending then
+		spotWidgetsPending = false
+		refreshSpotWidgets()
+	end
 	-- Balance axis hover check (when not dragging, not placing)
 	if active and balanceAxisActive and not balanceAxisDragging and not balanceAxisPlacingOrigin then
 		local wx, wz = getWorldPos()
@@ -1505,20 +1878,49 @@ function widget:Update(dt)
 		balanceAxisHovering = false
 	end
 
-	if not active or not painting then return end
+	if not active or not painting then
+		return
+	end
 
 	lastPaintTime = lastPaintTime + dt
-	if lastPaintTime < UPDATE_INTERVAL then return end
+	if lastPaintTime < UPDATE_INTERVAL then
+		return
+	end
 	lastPaintTime = 0
 
 	local worldX, worldZ = getWorldPos()
-	if not worldX then return end
+	if not worldX then
+		return
+	end
 
 	sendPaintMessage(worldX, worldZ)
 end
 
+function widget:DrawWorldPreUnit()
+	-- Map dim under the metal overlay, drawn pre-unit like the stock Darken map
+	-- widget so units stay bright. Not done through WG.darkenmap: that widget
+	-- saves its live value, so a crash would keep the dim as the user's setting.
+	if active and mapOverlay then
+		local drawMode = Spring.GetMapDrawMode()
+		if drawMode == "height" or drawMode == "path" then
+			return
+		end
+		local camX, camY, camZ = Spring.GetCameraPosition()
+		local dirX, dirY, dirZ = Spring.GetCameraDirection()
+		gl.PushMatrix()
+		glColor(0, 0, 0, MAP_OVERLAY_DIM)
+		gl.Translate(camX + dirX * 360, camY + dirY * 360, camZ + dirZ * 360)
+		gl.Billboard()
+		gl.Rect(-5000, -5000, 5000, 5000)
+		gl.PopMatrix()
+		glColor(1, 1, 1, 1)
+	end
+end
+
 function widget:DrawWorld()
-	if not active then return end
+	if not active then
+		return
+	end
 
 	-- One raw mouse trace per draw pass, shared with helpers and DrawScreen
 	local worldX, worldZ = getWorldPos()
@@ -1526,14 +1928,22 @@ function widget:DrawWorld()
 
 	-- Map-wide metal overlay (full map)
 	if mapOverlay then
-		if overlayListDirty or not overlayList then buildOverlayList() end
-		if overlayList then gl.CallList(overlayList) end
+		if overlayListDirty or not overlayList then
+			buildOverlayList()
+		end
+		if overlayList then
+			gl.CallList(overlayList)
+		end
 	end
 
 	-- Cluster membership visualization (colored pixels + convex hull per cluster)
 	if clusterCounter then
-		if clusterVisDirty or not clusterVisList then buildClusterVisList() end
-		if clusterVisList then gl.CallList(clusterVisList) end
+		if clusterVisDirty or not clusterVisList then
+			buildClusterVisList()
+		end
+		if clusterVisList then
+			gl.CallList(clusterVisList)
+		end
 	end
 
 	-- Lasso polygon
@@ -1556,7 +1966,9 @@ function widget:DrawWorld()
 			worldX, worldZ = tb.getUnmouseTarget(ss2 and ss2.radius or 200, 1.0)
 		end
 	end
-	if not worldX then return end
+	if not worldX then
+		return
+	end
 
 	local ss = getSharedState()
 
@@ -1586,18 +1998,28 @@ function widget:DrawWorld()
 		outlinePositions = outlineTb.getSymmetricPositions(worldX, worldZ, ss.rotationDeg)
 	end
 	if not outlinePositions or #outlinePositions == 0 then
-		outlinePositions = {{ x = worldX, z = worldZ, rot = ss.rotationDeg }}
+		outlinePositions = { { x = worldX, z = worldZ, rot = ss.rotationDeg } }
 	end
-	glColor(colorR, colorG, colorB, 0.85)
+	glColor(colorR, colorG, colorB, 0.85 * edgeFade)
 	glLineWidth(2)
 	for oi = 1, #outlinePositions do
 		local op = outlinePositions[oi]
 		drawShapeOutline(op.x, op.z, ss.radius, ss.shape, op.rot or ss.rotationDeg)
 	end
+	-- A stamp only lays metal within a centred mex's reach (the gadget's applyStamp): show that
+	-- circle when the brush is wider, so the outline does not promise metal that never lands
+	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+	if subMode == "stamp" and ss.radius > spotRad then
+		glColor(1, 1, 1, 0.6 * edgeFade)
+		for oi = 1, #outlinePositions do
+			local op = outlinePositions[oi]
+			drawShapeOutline(op.x, op.z, spotRad, "circle", 0)
+		end
+	end
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
-	glColor(1, 1, 1, 0.5)
+	glColor(1, 1, 1, 0.5 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		glVertex(worldX - 8, groundY + 2, worldZ)
 		glVertex(worldX + 8, groundY + 2, worldZ)
@@ -1610,11 +2032,19 @@ function widget:DrawWorld()
 end
 
 function widget:DrawScreen()
-	if not active then return end
+	if not active then
+		return
+	end
 
-	if clusterCounter then drawClusterLabels() end
-	if lassoActive or #lassos > 0 then drawLassoInfo() end
-	if balanceAxisActive then drawBalanceAxisInfo() end
+	if clusterCounter then
+		drawClusterLabels()
+	end
+	if lassoActive or #lassos > 0 then
+		drawLassoInfo()
+	end
+	if balanceAxisActive then
+		drawBalanceAxisInfo()
+	end
 
 	-- Reuse DrawWorld's mouse trace from this draw pass when available
 	local worldX, worldZ
@@ -1623,22 +2053,55 @@ function widget:DrawScreen()
 	else
 		worldX, worldZ = getWorldPos()
 	end
-	if not worldX then return end
+	if not worldX then
+		return
+	end
 
 	drawCursorInfo(worldX, worldZ)
+end
+
+-- The gadget rescanned the resource spots after the metal stopped changing ("mb_spots_refreshed"): rescan
+-- LuaUI's copy too (refilled in place, so Area Mex and Extractor Snap follow on their own), then reload
+-- the widgets that build their state from the spot list once at start, or drop out on a map with too
+-- few spots. Only the ones switched on in the widget list: the saved config says which.
+local SPOT_WIDGETS = { "Metalspots", "Quick Build (mex/geo)" }
+refreshSpotWidgets = function()
+	local finder = WG.resource_spot_finder
+	if not (finder and finder.Refresh) then
+		return
+	end
+	local spots = finder.Refresh()
+	local order = {}
+	local chunk = loadfile("LuaUI/Config/" .. Game.gameShortName .. ".lua")
+	if chunk then
+		setfenv(chunk, {})
+		local ok, cfg = pcall(chunk)
+		if ok and type(cfg) == "table" and type(cfg.order) == "table" then
+			order = cfg.order
+		end
+	end
+	for _, name in ipairs(SPOT_WIDGETS) do
+		if (order[name] or 1) > 0 then
+			Spring.SendCommands("luaui disablewidget " .. name)
+			Spring.SendCommands("luaui enablewidget " .. name)
+		end
+	end
+	Spring.Echo("[Metal Brush] mex widgets updated: " .. (type(spots) == "table" and #spots or "metal map") .. " spots")
 end
 
 -- Gadget signals "mb_metal_updated" after every SetMetalAmount batch so we
 -- know the values are committed and can cancel the blind timer hold, letting
 -- the overlay cache rebuild on the very next DrawWorld call.
 function widget:RecvLuaMsg(msg, playerID)
-	if msg == "mb_metal_updated" then
-		spotsCacheDirty    = true
-		clusterCacheDirty  = true
-		overlayListDirty   = true
-		clusterVisDirty    = true
+	if msg == "mb_spots_refreshed" then
+		spotWidgetsPending = true
+	elseif msg == "mb_metal_updated" then
+		spotsCacheDirty = true
+		clusterCacheDirty = true
+		overlayListDirty = true
+		clusterVisDirty = true
 		balanceAxisSumsDirty = true
-		cacheRebuildHoldUntil = 0  -- cancel timer hold; gadget already applied changes
-		lastCacheBuildClock   = 0  -- bypass throttle so next DrawWorld rebuilds immediately
+		cacheRebuildHoldUntil = 0 -- cancel timer hold; gadget already applied changes
+		lastCacheBuildClock = 0 -- bypass throttle so next DrawWorld rebuilds immediately
 	end
 end

@@ -1,14 +1,14 @@
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // tilt_bank_mobileunit.h
-// This header defines wether a unit shoud tilt forward and backward when accelerating
-// And wether it should lean bank left and right when turning
+// This header defines whether a unit should tilt forward and backward when accelerating
+// And whether it should lean bank left and right when turning
 // NOTE: 
 //1.  Needs the following, with the defaults shown below. Redefine them if you want to change defaults
 /*
 #define TB_BASE base 
-#define TB_TURNRATE <30.0> 
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.03> // Do not define this if you dont want banking
+#define TB_TURNRATE <30.0> // Turn rate for tilting and banking
+#define TB_TILT_X <0.1>  // Forward-backward tilt effect strength based on acceleration
+#define TB_BANK_Z <0.03> // Banking effect strength based on turning, Do not define this if you dont want banking
 #define TB_FRAMES 3 // how frequently you want updates
 #include "../tilt_bank_mobileunit.h"
 
@@ -143,7 +143,7 @@ TiltBank(reversing)
         #endif
 		
 		#if TB_CANREVERSE == 1 
-			// Reversing isnt very reliable, but can be used here to flip directions
+			// Reversing isn't very reliable, but can be used here to flip directions
 			if (reversing){
 				deltaHeading = -1 * deltaHeading;
 				deltaSpeed   = -1 * deltaSpeed;

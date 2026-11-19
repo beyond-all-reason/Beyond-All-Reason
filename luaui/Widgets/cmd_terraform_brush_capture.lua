@@ -1,14 +1,13 @@
 function widget:GetInfo()
 	return {
-		name      = "Terraform Brush Capture",
-		desc      = "Exports a maximum-resolution top-down photo of the map plus a Figma-ready SVG layer of every placed unit. Console: /tfcapture",
-		author    = "PtaQ",
-		date      = "2026",
-		license   = "GPL-2.0+",
-		layer     = 0,
-		-- Off by default like the rest of the Terraform Brush suite
-		-- (cmd_terraform_brush, cmd_map_project): enabled from the widget list.
-		enabled   = false,
+		name = "Terraform Brush Capture",
+		desc = "Exports a maximum-resolution top-down photo of the map plus a Figma-ready SVG layer of every placed unit. Console: /tfcapture",
+		author = "PtaQ",
+		date = "2026",
+		license = "GPL-2.0+",
+		layer = 0,
+		-- Off by default like the rest of the suite: cmd_terraform_suite.lua enables it.
+		enabled = false,
 	}
 end
 
@@ -16,57 +15,42 @@ end
 Capture pipeline
 ================
 
-The map photo is a camera walk, not a single screenshot. Per tile we park the
-camera high above the tile looking straight down, let the frame render, copy the
-composited screen, then run a reprojection shader that maps every OUTPUT texel
-to its true world (x,z), looks the ground height up in $heightmap, projects that
-world point through the frame's real view-projection matrix and reads the screen
-copy at the resulting UV.
+The map photo is a camera walk. Per tile the camera looks straight down, the
+frame renders, and a reprojection shader maps every output texel to world (x,z),
+looks up ground height, projects through the frame's view-projection matrix and
+samples the screen copy. Reprojection (not cropping) makes tiles stitch
+pixel-exact, since a crop bakes in perspective and seams show ridges.
 
-Reprojecting rather than cropping screenshots is what makes tiles stitch
-pixel-exact: a plain crop bakes in the frame's perspective, so hilltops shift
-outward from screen centre and every tile seam shows a ridge discontinuity.
-Reprojection is orthographic in world XZ by construction, so neighbouring tiles
-agree on every shared texel regardless of where the camera happened to be.
+Tiles go into one large FBO and a single gl.SaveImage when it fits; otherwise
+each tile row is written as its own strip. Output width is capped by
+GL_MAX_TEXTURE_SIZE, not screen size: more, smaller tiles give more detail.
 
-Tiles are composited into ONE oversized FBO (sub-rect per tile) and written with
-a single gl.SaveImage, so there is no external stitching step. Output resolution
-is therefore capped by GL_MAX_TEXTURE_SIZE, not by screen resolution: the screen
-only limits pixels-per-TILE, and we simply use more, smaller tiles for more
-detail (halving the world span per tile doubles px/elmo).
-
-Units are NOT in the photo -- they are hidden for the walk and exported as a
-separate SVG whose <image> children each carry a base64 PNG. Figma imports that
-as one movable layer per unit, which is the whole point: a campaign designer
-drops photo + unit layer into one frame and re-blocks the mission by dragging.
-
-Reads the unit list through WG.MapProject.requestUnits (a synced gadget
-round-trip). The widget-side unit view is LOS-limited, so enumerating here would
-silently drop every unit outside the player's own LOS -- exactly the units a
-mission draft is about.
+Units are hidden for the walk and exported as a separate SVG of base64 PNGs, one
+movable Figma layer per unit. The unit list comes from WG.MapProject.requestUnits
+(synced round-trip): the widget-side view is LOS-limited.
 ]]
 
 --------------------------------------------------------------------------------
 -- Tunables
 --------------------------------------------------------------------------------
 
-local OUT_ROOT            = "Terraform Brush/Captures/"
-local SETTLE_FRAMES       = 2      -- frames to let a camera move land before sampling
-local TILE_SCREEN_FRAC    = 0.80   -- fraction of the short screen axis a tile may cover
-local CAPTURE_FOV         = 30     -- narrow FOV keeps the walk near-orthographic (less occlusion)
-local FIT_MARGIN          = 0.04   -- NDC slack required around a tile before we accept the frame
-local FIT_MAX_TRIES       = 6
-local SPRITES_PER_FRAME   = 4
-local MAX_TEX_FALLBACK    = 8192   -- used when GL_MAX_TEXTURE_SIZE cannot be queried
+local OUT_ROOT = "Terraform Brush/Captures/"
+local SETTLE_FRAMES = 2 -- frames to let a camera move land before sampling
+local TILE_SCREEN_FRAC = 0.80 -- fraction of the short screen axis a tile may cover
+local CAPTURE_FOV = 30 -- narrow FOV keeps the walk near-orthographic (less occlusion)
+local FIT_MARGIN = 0.04 -- NDC slack required around a tile before we accept the frame
+local FIT_MAX_TRIES = 6
+local SPRITES_PER_FRAME = 4
+local MAX_TEX_FALLBACK = 8192 -- used when GL_MAX_TEXTURE_SIZE cannot be queried
 local GL_MAX_TEXTURE_SIZE = 0x0D33
 -- Second ceiling beside GL_MAX_TEXTURE_SIZE: gl.SaveImage reads the whole mosaic
 -- back into RAM (4 bytes/px) and then PNG-encodes it, so a target that allocates
 -- fine on the GPU can still fail on the readback. 120 MPix ~= 480 MB.
-local MAX_OUT_PIXELS      = 120e6
+local MAX_OUT_PIXELS = 120e6
 -- Readback chunk used when a whole-image save is refused; the mosaic is re-cut
 -- into horizontal bands of roughly this many pixels each.
-local BAND_PIXELS         = 24e6
-local SPRITE_MAX_PX       = 256    -- raster ceiling per sprite (SVG size is what it is)
+local BAND_PIXELS = 24e6
+local SPRITE_MAX_PX = 256 -- raster ceiling per sprite (SVG size is what it is)
 
 local floor, ceil, min, max, abs = math.floor, math.ceil, math.min, math.max, math.abs
 local sqrt, pi = math.sqrt, math.pi
@@ -77,25 +61,40 @@ local Echo = Spring.Echo
 -- Settings (mirrored into the Terraform Brush UI through WG.TerraformCapture)
 --------------------------------------------------------------------------------
 
+---@class TerraformCaptureSettings
+---@field detail number Output pixels per elmo.
+---@field photoWater boolean
+---@field photoShadows boolean
+---@field photoBloom boolean
+---@field photoFog boolean
+---@field photoFeatures boolean Bake features into the photo.
+---@field unitLayer boolean
+---@field unitStyle "portrait"|"topdown" A buildpic tile or a model render.
+---@field unitSize number Sprite pixels at detail 1, scaled with detail.
+---@field unitScaling number `0` draws every sprite the same size, `1` scales them fully with their footprint.
+---@field unitGroupTeam boolean
+---@field unitLabels boolean
+---@field featureLayer boolean Also export features as their own layer.
+---@field commentLayer boolean
 local settings = {
-	detail        = 1,          -- output pixels per elmo: 0.5 / 1 / 2
-	photoWater    = true,
-	photoShadows  = true,
-	photoBloom    = true,
-	photoFog      = false,
-	photoFeatures = true,       -- features baked into the photo
-	unitLayer     = true,
-	unitStyle     = "portrait", -- "portrait" (buildpic tile) | "topdown" (model render)
-	unitSize      = 96,         -- sprite px at detail 1x; scales with detail so it stays map-relative
-	unitScaling   = 0.35,       -- 0 = every sprite equal, 1 = fully proportional to footprint
+	detail = 1, -- output pixels per elmo: 0.5 / 1 / 2
+	photoWater = true,
+	photoShadows = true,
+	photoBloom = true,
+	photoFog = false,
+	photoFeatures = true, -- features baked into the photo
+	unitLayer = true,
+	unitStyle = "portrait", -- "portrait" (buildpic tile) | "topdown" (model render)
+	unitSize = 96, -- sprite px at detail 1x; scales with detail so it stays map-relative
+	unitScaling = 0.35, -- 0 = every sprite equal, 1 = fully proportional to footprint
 	unitGroupTeam = true,
-	unitLabels    = false,
-	featureLayer  = false,      -- features ALSO as their own movable SVG layer
-	commentLayer  = false,
+	unitLabels = false,
+	featureLayer = false, -- features ALSO as their own movable SVG layer
+	commentLayer = false,
 }
 
 --------------------------------------------------------------------------------
--- Base64 (SVG images must be inlined -- Figma will not fetch local files)
+-- Base64 (SVG images must be inlined: Figma will not fetch local files)
 --------------------------------------------------------------------------------
 
 local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -125,10 +124,13 @@ local function base64(data)
 		oi = oi + 1
 		out[oi] = B64:sub(floor(v / 4096) + 1, floor(v / 4096) + 1)
 			.. B64:sub(floor(v / 64) % 64 + 1, floor(v / 64) % 64 + 1)
-			.. B64:sub(v % 64 + 1, v % 64 + 1) .. "="
+			.. B64:sub(v % 64 + 1, v % 64 + 1)
+			.. "="
 	end
 	local s = table.concat(out, "", 1, oi)
-	for i = 1, oi do out[i] = nil end
+	for i = 1, oi do
+		out[i] = nil
+	end
 	return s
 end
 
@@ -215,18 +217,12 @@ local SPRITE_FRAG = [[
 	}
 ]]
 
--- Plan-view model sprites. gl.UnitShape with rawState=true runs the model's
--- DrawStatic() and nothing else -- no shader, no textures, no team colour --
--- which rasterises a flat white hull. rawState=false is not the answer either:
--- the engine's setup path RESETS the projection and modelview matrices, which
--- throws away the orthographic transform this bake depends on and renders
--- nothing. So we keep rawState=true, push the model's textures by hand, and
--- supply this shader.
---
--- gl.UnitShape scopes to the LEGACY model drawer, so the fixed-function vertex
--- aliases are valid here (same as modelmaterials/Templates/defaultMaterialTemplate.lua).
--- Team colour lives in the diffuse ALPHA channel, not a second texture:
--- mix(texColor1.rgb, teamColor.rgb, texColor1.a), per cus_gl4.frag.glsl.
+-- Plan-view model sprites. gl.UnitShape with rawState=true draws a flat white
+-- hull (no shader, textures or team colour); rawState=false resets the projection
+-- and modelview matrices and loses the ortho bake. So rawState stays true, the
+-- textures are bound by hand and this shader is supplied.
+-- gl.UnitShape uses the legacy model drawer, so fixed-function vertex aliases are
+-- valid. Team colour is the diffuse alpha: mix(tex1.rgb, teamColor.rgb, tex1.a).
 local MODEL_VERT = [[
 	#version 150 compatibility
 	varying vec3 vNormal;
@@ -253,13 +249,15 @@ local MODEL_FRAG = [[
 	}
 ]]
 
+---@type integer|false|nil, integer|false|nil, integer|false|nil
 local reprojShader, spriteShader, modelShader
 local uRe, uSp, uMdl = {}, {}, {}
 
 local function initShaders()
 	if reprojShader == nil then
 		reprojShader = gl.CreateShader({
-			vertex = VERT_SRC, fragment = REPROJ_FRAG,
+			vertex = VERT_SRC,
+			fragment = REPROJ_FRAG,
 			uniformInt = { screenTex = 0, heightMap = 1 },
 			uniformFloat = { worldOrigin = { 0, 0 }, worldExtent = { 1, 1 }, mapSize = { 1, 1 }, clampWater = 1 },
 		})
@@ -274,7 +272,8 @@ local function initShaders()
 	end
 	if spriteShader == nil then
 		spriteShader = gl.CreateShader({
-			vertex = VERT_SRC, fragment = SPRITE_FRAG,
+			vertex = VERT_SRC,
+			fragment = SPRITE_FRAG,
 			uniformInt = { pic = 0 },
 			uniformFloat = { teamCol = { 1, 1, 1 }, sizePx = 96, borderPx = 4, radiusPx = 14, inset = 0.1 },
 		})
@@ -289,7 +288,8 @@ local function initShaders()
 	end
 	if modelShader == nil then
 		modelShader = gl.CreateShader({
-			vertex = MODEL_VERT, fragment = MODEL_FRAG,
+			vertex = MODEL_VERT,
+			fragment = MODEL_FRAG,
 			uniformInt = { tex0 = 0 },
 			uniformFloat = { teamCol = { 1, 1, 1 } },
 		})
@@ -309,9 +309,13 @@ end
 -- Small helpers
 --------------------------------------------------------------------------------
 
+---@type integer?
 local maxTexSize
+---@return integer
 local function getMaxTexSize()
-	if maxTexSize then return maxTexSize end
+	if maxTexSize then
+		return maxTexSize
+	end
 	local ok, v = pcall(gl.GetNumber, GL_MAX_TEXTURE_SIZE)
 	if ok and type(v) == "number" and v >= 1024 then
 		maxTexSize = floor(v)
@@ -341,7 +345,9 @@ end
 
 local function writeText(path, text)
 	local f = io.open(path, "wb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	f:write(text)
 	f:close()
 	return #text
@@ -349,7 +355,9 @@ end
 
 local function readBinary(path)
 	local f = io.open(path, "rb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local d = f:read("*a")
 	f:close()
 	return d
@@ -367,35 +375,99 @@ end
 -- Capture job state
 --------------------------------------------------------------------------------
 
-local job = nil          -- nil when idle
-local status = { active = false, phase = "", step = 0, total = 0, message = "",
-	lastPath = "", lastSummary = "", error = "" }
+---@class TerraformCaptureJob
+---@field phase string
+---@field dir string
+---@field detail number
+---@field outW integer
+---@field outH integer
+---@field tilesX integer
+---@field tilesZ integer
+---@field sprites table
+---@field spriteList table[]
+---@field spriteIndex integer
+---@field settle integer
+---@field tileIndex integer
+---@field fitTries integer
+---@field tiles table[]?
+---@field maxRowH number?
+---@field sceneChanged boolean?
+---@field savedCam table?
+---@field hiddenUnits integer[]?
+---@field hiddenFeatures integer[]?
+---@field savedFog number[]?
+---@field savedWater integer?
+---@field savedShadows integer?
+---@field bloomDisabled boolean?
+---@field savedSampleRate number?
+---@field guiHidden boolean?
+---@field unitsRequested boolean?
+---@field units table[]?
+---@field unitsDone boolean?
+---@field unitsError string?
+---@field mapProjectEnableTried boolean?
+---@field collectTicks integer?
+---@field features table[]?
+---@field mosaic any render target
+---@field strip any render target, strip mode only
+---@field stripMode boolean?
+---@field stripH number?
+---@field screenTex any
+---@field terrainFiles table?
+---@field minH number?
+---@field maxH number?
+---@field probeIndex integer?
+---@field probeBest table?
+
+--- `|any`: nil while idle, but the phases only run while it exists.
+---@type TerraformCaptureJob|any
+local job = nil -- nil when idle
+local status =
+	{ active = false, phase = "", step = 0, total = 0, message = "", lastPath = "", lastSummary = "", error = "" }
 
 -- The camera state that actually points straight down is resolved empirically
 -- once per session: the tilt field and its sign differ between camera
 -- controllers, and guessing wrong would silently produce oblique tiles.
+---@type table?
 local downCam = nil
 
 local function setStatus(phase, stepN, totalN, msg)
 	status.phase = phase
 	status.step = stepN or 0
 	status.total = totalN or 0
-	if msg then status.message = msg end
+	if msg then
+		status.message = msg
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Estimation (drives the live readout in the Capture window)
 --------------------------------------------------------------------------------
 
+---What a capture at a given detail level would produce.
+---@class TerraformCaptureEstimate
+---@field detail number Pixels per elmo the estimate was made for.
+---@field effectiveDetail number What the capture will actually use, lowered when `capped`.
+---@field capped boolean The requested detail exceeds the GPU texture limit.
+---@field maxTex integer The GPU's maximum texture dimension in pixels.
+---@field strips boolean Too large for one image, so the output lands as horizontal strips.
+---@field outW integer Output width in pixels.
+---@field outH integer Output height in pixels.
+---@field tilesX integer
+---@field tilesZ integer
+---@field tiles integer Total camera moves the walk needs.
+---@field seconds number Rough wall-clock cost of the walk.
+
+---Works out the output size and cost of a capture without starting one.
+---@param detail number? Pixels per elmo. Defaults to the current setting.
+---@return TerraformCaptureEstimate
 local function estimate(detail)
 	detail = tonumber(detail) or settings.detail
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
 	local cap = getMaxTexSize()
 
-	-- Only the WIDTH is a hard limit. A full-height mosaic is attempted first
-	-- because it yields a single PNG, but when it will not allocate the capture
-	-- falls back to one strip per tile row -- and a strip is only outW wide, so
-	-- output height is unbounded.
+	-- Only the width is a hard limit: when a full mosaic will not allocate the
+	-- capture falls back to one outW-wide strip per tile row, so height is unbounded.
 	local effective = detail
 	local capped = false
 	local widthLimit = cap / mapX
@@ -422,8 +494,11 @@ local function estimate(detail)
 		capped = capped,
 		maxTex = cap,
 		strips = strips,
-		outW = outW, outH = outH,
-		tilesX = tilesX, tilesZ = tilesZ, tiles = tiles,
+		outW = outW,
+		outH = outH,
+		tilesX = tilesX,
+		tilesZ = tilesZ,
+		tiles = tiles,
 		-- Each tile costs a camera move plus its settle frames.
 		seconds = (tiles * (SETTLE_FRAMES + 1)) / 60,
 	}
@@ -433,12 +508,21 @@ end
 -- Scene state save / restore
 --------------------------------------------------------------------------------
 
+-- FOCUS MODE (the panel's eye button) hides the game interface on purpose; a
+-- capture may start under it and has to leave it hidden when done.
+local function focusModeOn()
+	local ui = WG.TerraformBrushUI
+	return (ui and ui.isFocusMode and ui.isFocusMode()) == true
+end
+
 -- Everything the walk changes is restored through this one function, which also
 -- runs from Shutdown and from the cancel path: a capture that dies half way
 -- through must never leave the session with invisible units.
 local function restoreScene()
 	local j = job
-	if not j or not j.sceneChanged then return end
+	if not j or not j.sceneChanged then
+		return
+	end
 	j.sceneChanged = false
 
 	if j.hiddenUnits then
@@ -466,7 +550,9 @@ local function restoreScene()
 		j.savedShadows = nil
 	end
 	if j.bloomDisabled then
-		pcall(function() widgetHandler:EnableWidget("Bloom Shader Deferred") end)
+		pcall(function()
+			widgetHandler:EnableWidget("Bloom Shader Deferred")
+		end)
 		j.bloomDisabled = nil
 	end
 	if j.savedSampleRate then
@@ -474,7 +560,8 @@ local function restoreScene()
 		j.savedSampleRate = nil
 	end
 	if j.guiHidden then
-		pcall(Spring.SendCommands, "hideinterface 0")
+		-- Back to what the editor wants, not blindly on: focus mode keeps it hidden.
+		Spring.SendCommands(focusModeOn() and "hideinterface 1" or "hideinterface 0")
 		j.guiHidden = nil
 	end
 	if j.savedCam then
@@ -494,7 +581,9 @@ local function prepareScene()
 	local hidden = {}
 	local units = Spring.GetAllUnits() or {}
 	for i = 1, #units do
-		if pcall(Spring.SetUnitNoDraw, units[i], true) then hidden[#hidden + 1] = units[i] end
+		if pcall(Spring.SetUnitNoDraw, units[i], true) then
+			hidden[#hidden + 1] = units[i]
+		end
 	end
 	j.hiddenUnits = hidden
 
@@ -502,7 +591,9 @@ local function prepareScene()
 		local hf = {}
 		local feats = Spring.GetAllFeatures() or {}
 		for i = 1, #feats do
-			if pcall(Spring.SetFeatureNoDraw, feats[i], true) then hf[#hf + 1] = feats[i] end
+			if pcall(Spring.SetFeatureNoDraw, feats[i], true) then
+				hf[#hf + 1] = feats[i]
+			end
 		end
 		j.hiddenFeatures = hf
 	end
@@ -528,7 +619,9 @@ local function prepareScene()
 		local w = widgetHandler:FindWidget("Bloom Shader Deferred")
 		if w then
 			j.bloomDisabled = true
-			pcall(function() widgetHandler:DisableWidget("Bloom Shader Deferred") end)
+			pcall(function()
+				widgetHandler:DisableWidget("Bloom Shader Deferred")
+			end)
 		end
 	end
 
@@ -555,7 +648,9 @@ local function cameraDownness()
 	local dx, dy, dz = Spring.GetCameraDirection()
 	if not dy then
 		local m = { gl.GetMatrixData("view") }
-		if #m ~= 16 then return nil end
+		if #m ~= 16 then
+			return nil
+		end
 		return -m[7]
 	end
 	local len = sqrt((dx or 0) ^ 2 + dy ^ 2 + (dz or 0) ^ 2)
@@ -563,17 +658,16 @@ local function cameraDownness()
 end
 
 local DOWN_CANDIDATES = {
-	{ name = "ta",     mode = 1, tilt = "angle", value = 0 },
-	{ name = "ta",     mode = 1, tilt = "angle", value = -pi * 0.5 },
-	{ name = "ta",     mode = 1, tilt = "angle", value = pi * 0.5 },
-	{ name = "spring", mode = 2, tilt = "rx",    value = pi * 0.5 },
-	{ name = "spring", mode = 2, tilt = "rx",    value = -pi * 0.5 },
-	{ name = "spring", mode = 2, tilt = "rx",    value = pi },
+	{ name = "ta", mode = 1, tilt = "angle", value = 0 },
+	{ name = "ta", mode = 1, tilt = "angle", value = -pi * 0.5 },
+	{ name = "ta", mode = 1, tilt = "angle", value = pi * 0.5 },
+	{ name = "spring", mode = 2, tilt = "rx", value = pi * 0.5 },
+	{ name = "spring", mode = 2, tilt = "rx", value = -pi * 0.5 },
+	{ name = "spring", mode = 2, tilt = "rx", value = pi },
 }
 
 local function applyCam(cand, cx, cz, groundY, height)
-	local cs = { name = cand.name, mode = cand.mode, fov = CAPTURE_FOV,
-		px = cx, py = groundY, pz = cz }
+	local cs = { name = cand.name, mode = cand.mode, fov = CAPTURE_FOV, px = cx, py = groundY, pz = cz }
 	cs[cand.tilt] = cand.value
 	if cand.name == "ta" then
 		cs.height = height
@@ -595,13 +689,18 @@ end
 -- trusting a computed altitude: tall terrain near the camera eats coverage.
 local function tileFits(j, t)
 	local m = { gl.GetMatrixData("viewprojection") }
-	if #m ~= 16 then return false, 2 end
+	if #m ~= 16 then
+		return false, 2
+	end
+	---@type number
 	local worst = 0
 	for _, x in ipairs({ t.wx0, t.wx1 }) do
 		for _, z in ipairs({ t.wz0, t.wz1 }) do
 			for _, y in ipairs({ j.minH, j.maxH }) do
 				local cx, cy, cw = projectPoint(m, x, y, z)
-				if cw <= 0 then return false, 2 end
+				if cw <= 0 then
+					return false, 2
+				end
 				local ax, ay = abs(cx / cw), abs(cy / cw)
 				worst = max(worst, ax, ay)
 			end
@@ -615,7 +714,9 @@ local function drawTile(j, t)
 	gl.CopyToTexture(j.screenTex, 0, 0, 0, 0, vsx, vsy)
 
 	local vp = { gl.GetMatrixData("viewprojection") }
-	if #vp ~= 16 then return false end
+	if #vp ~= 16 then
+		return false
+	end
 
 	-- Pixel rect inside the render target, converted to NDC. Image row 0 is world
 	-- z=0 (north up), so the tile's low-z edge maps to the target's top. In strip
@@ -632,8 +733,12 @@ local function drawTile(j, t)
 	gl.RenderToTexture(target, function()
 		gl.Blending(false)
 		gl.DepthTest(false)
-		gl.MatrixMode(GL.PROJECTION); gl.PushMatrix(); gl.LoadIdentity()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 
 		gl.UseShader(reprojShader)
 		gl.Uniform(uRe.worldOrigin, t.wx0, t.wz0)
@@ -646,46 +751,52 @@ local function drawTile(j, t)
 		gl.Texture(1, "$heightmap")
 
 		gl.BeginEnd(GL.QUADS, function()
-			gl.TexCoord(0, 0); gl.Vertex(x0n, yTop, 0)
-			gl.TexCoord(1, 0); gl.Vertex(x1n, yTop, 0)
-			gl.TexCoord(1, 1); gl.Vertex(x1n, yBot, 0)
-			gl.TexCoord(0, 1); gl.Vertex(x0n, yBot, 0)
+			gl.TexCoord(0, 0)
+			gl.Vertex(x0n, yTop, 0)
+			gl.TexCoord(1, 0)
+			gl.Vertex(x1n, yTop, 0)
+			gl.TexCoord(1, 1)
+			gl.Vertex(x1n, yBot, 0)
+			gl.TexCoord(0, 1)
+			gl.Vertex(x0n, yBot, 0)
 		end)
 
 		gl.UseShader(0)
 		gl.Texture(0, false)
 		gl.Texture(1, false)
-		gl.MatrixMode(GL.PROJECTION); gl.PopMatrix()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PopMatrix()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
 		gl.Blending(true)
 	end)
 	return true
 end
 
--- Write image rows [imgY0, imgY1) of a render target as a PNG. Row 0 is the TOP
--- of the target while glReadPixels counts from the bottom, hence the flipped
--- origin.
---
--- yflip stays at the engine default (true). yflip=false — which the other
--- SaveImage callers in this repo use — skips the bottom-up-to-top-down flip, so
--- every image comes out vertically mirrored: the terrain landed south-up while
--- the unit SVG places y=0 at world z=0, and the two only lined up after
--- mirroring one of them. Wrapped in a pcall because a large readback is exactly
--- where gl.SaveImage gives up, and that has to read as a message, not a crash.
+-- Write image rows [imgY0, imgY1) of a render target as a PNG. Row 0 is the top
+-- of the target while glReadPixels counts from the bottom, hence the flipped origin.
+-- yflip stays true (the engine default): yflip=false, as other SaveImage callers
+-- use, mirrors the image vertically against the unit SVG. The pcall turns a
+-- refused large readback into a message instead of a crash.
 local function saveTargetRegion(tex, w, texH, imgY0, imgY1, path)
 	local h = imgY1 - imgY0
-	if h <= 0 then return false, "empty region" end
+	if h <= 0 then
+		return false, "empty region"
+	end
 	local ran, saved = false, false
 	local okCall, callErr = pcall(gl.RenderToTexture, tex, function()
 		ran = true
-		-- Returns boolean? — nil counts as success (older builds return nothing);
-		-- only an explicit false is a refusal.
+		-- Returns boolean?: nil counts as success (some engine builds return
+		-- nothing), only an explicit false is a refusal.
 		saved = (gl.SaveImage(0, texH - imgY1, w, h, path, { yflip = true, alpha = false }) ~= false)
 	end)
-	if okCall and ran and saved then return true end
-	return false, (not okCall) and tostring(callErr)
-		or (not ran) and "render target could not be bound"
-		or "the image encoder refused it"
+	if okCall and ran and saved then
+		return true
+	end
+	return false,
+		(not okCall) and tostring(callErr)
+			or (not ran) and "render target could not be bound"
+			or "the image encoder refused it"
 end
 
 --------------------------------------------------------------------------------
@@ -694,17 +805,25 @@ end
 
 local function teamColor(teamID)
 	local r, g, b = Spring.GetTeamColor(teamID)
-	if not r then return 0.7, 0.7, 0.75 end
+	if not r then
+		return 0.7, 0.7, 0.75
+	end
 	return r, g, b
 end
 
 local function bakePortrait(j, spr)
 	local px = spr.px
 	local fbo = gl.CreateTexture(px, px, {
-		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fbo then return false end
+	if not fbo then
+		return false
+	end
 	local r, g, b = teamColor(spr.team)
 	local saved = false
 
@@ -712,8 +831,12 @@ local function bakePortrait(j, spr)
 		gl.Blending(false)
 		gl.DepthTest(false)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		gl.MatrixMode(GL.PROJECTION); gl.PushMatrix(); gl.LoadIdentity()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 
 		gl.UseShader(spriteShader)
 		gl.Uniform(uSp.teamCol, r, g, b)
@@ -724,10 +847,14 @@ local function bakePortrait(j, spr)
 		gl.Texture(0, "#" .. spr.defID)
 
 		gl.BeginEnd(GL.QUADS, function()
-			gl.TexCoord(0, 1); gl.Vertex(-1, -1, 0)
-			gl.TexCoord(1, 1); gl.Vertex(1, -1, 0)
-			gl.TexCoord(1, 0); gl.Vertex(1, 1, 0)
-			gl.TexCoord(0, 0); gl.Vertex(-1, 1, 0)
+			gl.TexCoord(0, 1)
+			gl.Vertex(-1, -1, 0)
+			gl.TexCoord(1, 1)
+			gl.Vertex(1, -1, 0)
+			gl.TexCoord(1, 0)
+			gl.Vertex(1, 1, 0)
+			gl.TexCoord(0, 0)
+			gl.Vertex(-1, 1, 0)
 		end)
 
 		gl.UseShader(0)
@@ -735,8 +862,10 @@ local function bakePortrait(j, spr)
 		gl.SaveImage(0, 0, px, px, j.dir .. spr.file, { yflip = true, alpha = true })
 		saved = true
 
-		gl.MatrixMode(GL.PROJECTION); gl.PopMatrix()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PopMatrix()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
 		gl.Blending(true)
 	end)
 
@@ -748,13 +877,21 @@ end
 -- true plan view at map scale, which is what makes the SVG layer read as a
 -- battlefield rather than a legend.
 local function bakeTopDown(j, spr)
-	if not modelShader then return false end
+	if not modelShader then
+		return false
+	end
 	local px = spr.px
 	local fbo = gl.CreateTexture(px, px, {
-		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fbo then return false end
+	if not fbo then
+		return false
+	end
 	local half = spr.worldSize * 0.5
 	local saved = false
 
@@ -769,9 +906,13 @@ local function bakeTopDown(j, spr)
 		gl.Culling(GL.BACK)
 		gl.Blending(false)
 
-		gl.MatrixMode(GL.PROJECTION); gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 		gl.Ortho(-half, half, -half, half, -half * 8, half * 8)
-		gl.MatrixMode(GL.MODELVIEW); gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 		-- +90 about X sends world +y to eye +z, i.e. the camera ends up above the
 		-- model looking down; world -z lands at the top of the sprite.
 		gl.Rotate(90, 1, 0, 0)
@@ -786,8 +927,10 @@ local function bakeTopDown(j, spr)
 		gl.UseShader(0)
 		gl.UnitShapeTextures(spr.defID, false)
 
-		gl.MatrixMode(GL.PROJECTION); gl.PopMatrix()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PopMatrix()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
 		gl.Culling(false)
 		gl.DepthTest(false)
 
@@ -801,13 +944,21 @@ local function bakeTopDown(j, spr)
 end
 
 local function bakeFeature(j, spr)
-	if not modelShader then return false end
+	if not modelShader then
+		return false
+	end
 	local px = spr.px
 	local fbo = gl.CreateTexture(px, px, {
-		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fbo then return false end
+	if not fbo then
+		return false
+	end
 	local half = spr.worldSize * 0.5
 	local saved = false
 
@@ -817,9 +968,13 @@ local function bakeFeature(j, spr)
 		gl.DepthTest(true)
 		gl.Culling(GL.BACK)
 		gl.Blending(false)
-		gl.MatrixMode(GL.PROJECTION); gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 		gl.Ortho(-half, half, -half, half, -half * 8, half * 8)
-		gl.MatrixMode(GL.MODELVIEW); gl.PushMatrix(); gl.LoadIdentity()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
 		gl.Rotate(90, 1, 0, 0)
 
 		-- Same state pairing as bakeTopDown; see the note there. Features carry no
@@ -831,8 +986,10 @@ local function bakeFeature(j, spr)
 		gl.UseShader(0)
 		gl.FeatureShapeTextures(spr.defID, false)
 
-		gl.MatrixMode(GL.PROJECTION); gl.PopMatrix()
-		gl.MatrixMode(GL.MODELVIEW);  gl.PopMatrix()
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
 		gl.Culling(false)
 		gl.DepthTest(false)
 		gl.SaveImage(0, 0, px, px, j.dir .. spr.file, { yflip = true, alpha = true })
@@ -850,9 +1007,14 @@ end
 
 local function svgHeader(w, h, title)
 	return format(
-		'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\n' ..
-		'     width="%d" height="%d" viewBox="0 0 %d %d" id="%s">\n',
-		w, h, w, h, xmlEscape(title))
+		'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\n'
+			.. '     width="%d" height="%d" viewBox="0 0 %d %d" id="%s">\n',
+		w,
+		h,
+		w,
+		h,
+		xmlEscape(title)
+	)
 end
 
 -- One <image> per object. Figma turns each into its own movable layer and takes
@@ -862,15 +1024,30 @@ local function svgImage(id, x, y, w, h, rotDeg, dataURI)
 	if rotDeg and abs(rotDeg) > 0.01 then
 		transform = format(' transform="rotate(%.2f %.2f %.2f)"', rotDeg, x + w * 0.5, y + h * 0.5)
 	end
-	return format('  <image id="%s" x="%.2f" y="%.2f" width="%.2f" height="%.2f"%s xlink:href="%s"/>\n',
-		xmlEscape(id), x, y, w, h, transform, dataURI)
+	return format(
+		'  <image id="%s" x="%.2f" y="%.2f" width="%.2f" height="%.2f"%s xlink:href="%s"/>\n',
+		xmlEscape(id),
+		x,
+		y,
+		w,
+		h,
+		transform,
+		dataURI
+	)
 end
 
 local function svgLabel(id, x, y, sizePx, text)
-	return format('  <text id="%s" x="%.2f" y="%.2f" font-family="Arial" font-size="%.1f" ' ..
-		'fill="#ffffff" stroke="#000000" stroke-width="%.1f" paint-order="stroke" ' ..
-		'text-anchor="middle">%s</text>\n',
-		xmlEscape(id), x, y, sizePx, max(1, sizePx * 0.18), xmlEscape(text))
+	return format(
+		'  <text id="%s" x="%.2f" y="%.2f" font-family="Arial" font-size="%.1f" '
+			.. 'fill="#ffffff" stroke="#000000" stroke-width="%.1f" paint-order="stroke" '
+			.. 'text-anchor="middle">%s</text>\n',
+		xmlEscape(id),
+		x,
+		y,
+		sizePx,
+		max(1, sizePx * 0.18),
+		xmlEscape(text)
+	)
 end
 
 --------------------------------------------------------------------------------
@@ -891,18 +1068,27 @@ local function buildTiles(j)
 			tiles[#tiles + 1] = {
 				-- row/rowZ0/rowH drive strip mode, where each tile row is
 				-- rendered and written on its own instead of into one mosaic.
-				row = r, rowZ0 = pz0, rowH = pz1 - pz0,
+				row = r,
+				rowZ0 = pz0,
+				rowH = pz1 - pz0,
 				lastInRow = (c == j.tilesX - 1),
-				px0 = px0, px1 = px1, pz0 = pz0, pz1 = pz1,
-				wx0 = px0 / j.outW * mapX, wx1 = px1 / j.outW * mapX,
-				wz0 = pz0 / j.outH * mapZ, wz1 = pz1 / j.outH * mapZ,
+				px0 = px0,
+				px1 = px1,
+				pz0 = pz0,
+				pz1 = pz1,
+				wx0 = px0 / j.outW * mapX,
+				wx1 = px1 / j.outW * mapX,
+				wz0 = pz0 / j.outH * mapZ,
+				wz1 = pz1 / j.outH * mapZ,
 			}
 		end
 	end
 	j.tiles = tiles
 	j.maxRowH = 0
 	for i = 1, #tiles do
-		if tiles[i].rowH > j.maxRowH then j.maxRowH = tiles[i].rowH end
+		if tiles[i].rowH > j.maxRowH then
+			j.maxRowH = tiles[i].rowH
+		end
 	end
 end
 
@@ -914,7 +1100,9 @@ end
 -- the SVG inlines that one payload per instance.
 local function addSprite(j, kind, defID, team, def)
 	local key = spriteKey(kind, defID, team)
-	if j.sprites[key] then return j.sprites[key] end
+	if j.sprites[key] then
+		return j.sprites[key]
+	end
 
 	local footX = (def.xsize or 8) * 8
 	local footZ = (def.zsize or 8) * 8
@@ -940,9 +1128,18 @@ local function finish(err)
 	restoreScene()
 	local j = job
 	if j then
-		if j.mosaic then gl.DeleteTexture(j.mosaic); j.mosaic = nil end
-		if j.strip then gl.DeleteTexture(j.strip); j.strip = nil end
-		if j.screenTex then gl.DeleteTexture(j.screenTex); j.screenTex = nil end
+		if j.mosaic then
+			gl.DeleteTexture(j.mosaic)
+			j.mosaic = nil
+		end
+		if j.strip then
+			gl.DeleteTexture(j.strip)
+			j.strip = nil
+		end
+		if j.screenTex then
+			gl.DeleteTexture(j.screenTex)
+			j.screenTex = nil
+		end
 	end
 	job = nil
 	status.active = false
@@ -961,15 +1158,15 @@ local function phaseCollect(j)
 			return
 		end
 
-		-- The unit list comes from Map Project's synced round-trip, and that
-		-- widget ships disabled. Enable it ourselves rather than failing the
-		-- headline feature on a dependency the user never chose to skip, then
-		-- give it one frame to publish WG.MapProject.
+		-- The unit list comes from Map Project, which ships disabled: enable it
+		-- and give it one frame to publish WG.MapProject.
 		if not (WG.MapProject and WG.MapProject.requestUnits) then
 			if not j.mapProjectEnableTried then
 				j.mapProjectEnableTried = true
 				setStatus("collect", 0, 0, "loading Map Project...")
-				pcall(function() widgetHandler:EnableWidget("Map Project") end)
+				pcall(function()
+					widgetHandler:EnableWidget("Map Project")
+				end)
 				return
 			end
 			j.unitsRequested, j.units, j.unitsDone = true, {}, true
@@ -1011,11 +1208,16 @@ local function phaseCollect(j)
 		for i = 1, #ids do
 			local fid = ids[i]
 			local defID = Spring.GetFeatureDefID(fid)
+			---@type table?
 			local def = defID and FeatureDefs[defID]
+			---@type number?, number?, number?
 			local x, _, z = Spring.GetFeaturePosition(fid)
 			if def and x then
 				j.features[#j.features + 1] = {
-					defID = defID, def = def, x = x, z = z,
+					defID = defID,
+					def = def,
+					x = x,
+					z = z,
 					rot = Spring.GetFeatureHeading(fid) or 0,
 				}
 			end
@@ -1026,18 +1228,25 @@ local function phaseCollect(j)
 end
 
 local function phasePrep(j)
-	if not initShaders() then return finish("shader compile failed (see console)") end
+	if not initShaders() then
+		return finish("shader compile failed (see console)")
+	end
 
-	-- One mosaic is preferred (it yields a single PNG), but a full-resolution
-	-- target is hundreds of MB and the allocation is allowed to fail. Falling
-	-- back to one tile row at a time keeps VRAM at a few tens of MB and keeps
-	-- the capture working at any resolution; the cost is one PNG per row.
+	-- One mosaic gives a single PNG, but it can be hundreds of MB and fail to
+	-- allocate. One tile row at a time keeps VRAM to tens of MB at the cost of
+	-- one PNG per row.
 	local cap = getMaxTexSize()
 	local trySingle = (j.outH <= cap) and ((j.outW * j.outH) <= MAX_OUT_PIXELS)
-	j.mosaic = trySingle and gl.CreateTexture(j.outW, j.outH, {
-		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
-	}) or nil
+	j.mosaic = trySingle
+			and gl.CreateTexture(j.outW, j.outH, {
+				border = false,
+				min_filter = GL.LINEAR,
+				mag_filter = GL.LINEAR,
+				wrap_s = GL.CLAMP_TO_EDGE,
+				wrap_t = GL.CLAMP_TO_EDGE,
+				fbo = true,
+			})
+		or nil
 	if j.mosaic then
 		gl.RenderToTexture(j.mosaic, function()
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
@@ -1045,15 +1254,26 @@ local function phasePrep(j)
 	else
 		j.stripMode = true
 		j.stripH = j.maxRowH
-		Echo(format("[TF Capture] %dx%d in one piece needs %d MB; writing one %dx%d strip per tile row instead",
-			j.outW, j.outH, floor(j.outW * j.outH * 4 / 1048576), j.outW, j.stripH))
+		Echo(
+			format(
+				"[TF Capture] %dx%d in one piece needs %d MB; writing one %dx%d strip per tile row instead",
+				j.outW,
+				j.outH,
+				floor(j.outW * j.outH * 4 / 1048576),
+				j.outW,
+				j.stripH
+			)
+		)
 		local probe = gl.CreateTexture(j.outW, j.stripH, {
-			border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-			wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
+			border = false,
+			min_filter = GL.LINEAR,
+			mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE,
+			wrap_t = GL.CLAMP_TO_EDGE,
+			fbo = true,
 		})
 		if not probe then
-			return finish(format("could not allocate even a %dx%d strip -- lower the detail setting",
-				j.outW, j.stripH))
+			return finish(format("could not allocate even a %dx%d strip -- lower the detail setting", j.outW, j.stripH))
 		end
 		gl.DeleteTexture(probe)
 	end
@@ -1061,10 +1281,15 @@ local function phasePrep(j)
 
 	local vsx, vsy = Spring.GetViewGeometry()
 	j.screenTex = gl.CreateTexture(vsx, vsy, {
-		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
 	})
-	if not j.screenTex then return finish("could not allocate screen copy texture") end
+	if not j.screenTex then
+		return finish("could not allocate screen copy texture")
+	end
 
 	local iMin, iMax, cMin, cMax = Spring.GetGroundExtremes()
 	j.minH = min(iMin or 0, cMin or 0, 0)
@@ -1123,10 +1348,16 @@ local function phaseTiles(j)
 	-- Strip mode: open a fresh one-row target when this tile starts a new row.
 	if j.stripMode and not j.strip then
 		j.strip = gl.CreateTexture(j.outW, j.stripH, {
-			border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-			wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE, fbo = true,
+			border = false,
+			min_filter = GL.LINEAR,
+			mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE,
+			wrap_t = GL.CLAMP_TO_EDGE,
+			fbo = true,
 		})
-		if not j.strip then return finish("could not allocate the row strip mid-capture") end
+		if not j.strip then
+			return finish("could not allocate the row strip mid-capture")
+		end
 		gl.RenderToTexture(j.strip, function()
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		end)
@@ -1157,9 +1388,12 @@ local function phaseTiles(j)
 		if j.fitTries > FIT_MAX_TRIES then
 			-- Almost always the camera controller refusing to climb any higher.
 			-- Raising the detail shrinks the tiles, which needs LESS altitude.
-			return finish(format(
-				"tile %d never fit on screen -- the camera cannot get high enough; try a higher detail setting (smaller tiles)",
-				j.tileIndex))
+			return finish(
+				format(
+					"tile %d never fit on screen -- the camera cannot get high enough; try a higher detail setting (smaller tiles)",
+					j.tileIndex
+				)
+			)
 		end
 		t.height = t.height * min(2.0, max(1.08, worst / (1 - FIT_MARGIN)))
 		t.posted = false
@@ -1197,8 +1431,14 @@ local function phaseSave(j)
 			-- The mosaic itself rendered fine; only the one-shot readback failed.
 			-- Re-cut it into bands from the SAME texture: no re-render, identical
 			-- pixels, and each readback is a fraction of the size.
-			Echo(format("[TF Capture] one-piece save of %dx%d failed (%s); writing bands instead",
-				j.outW, j.outH, tostring(err)))
+			Echo(
+				format(
+					"[TF Capture] one-piece save of %dx%d failed (%s); writing bands instead",
+					j.outW,
+					j.outH,
+					tostring(err)
+				)
+			)
 			local bandH = max(256, floor(BAND_PIXELS / j.outW))
 			local y = 0
 			while y < j.outH do
@@ -1206,15 +1446,16 @@ local function phaseSave(j)
 				local name = format("terrain_y%d.png", y)
 				local bok, berr = saveTargetRegion(j.mosaic, j.outW, j.outH, y, y1, j.dir .. name)
 				if not bok then
-					return finish(format("could not write %s (%d\195\151%d): %s",
-						name, j.outW, y1 - y, tostring(berr)))
+					return finish(format("could not write %s (%d\195\151%d): %s", name, j.outW, y1 - y, tostring(berr)))
 				end
 				j.terrainFiles[#j.terrainFiles + 1] = { file = name, x = 0, y = y, w = j.outW, h = y1 - y }
 				y = y1
 			end
 		end
 	end
-	if #j.terrainFiles == 0 then return finish("no terrain image was written") end
+	if #j.terrainFiles == 0 then
+		return finish("no terrain image was written")
+	end
 
 	-- The world is only borrowed for the walk; give it back before the (slower)
 	-- sprite and SVG work so the session looks normal again as early as possible.
@@ -1225,6 +1466,7 @@ local function phaseSave(j)
 	for i = 1, #(j.units or {}) do
 		local u = j.units[i]
 		local defID = UnitDefNames[u.name] and UnitDefNames[u.name].id
+		---@type table?
 		local def = defID and UnitDefs[defID]
 		if def then
 			u.defID = defID
@@ -1257,15 +1499,21 @@ local function phaseSprites(j)
 		j.spriteIndex = j.spriteIndex + 1
 		done = done + 1
 	end
-	setStatus("sprites", j.spriteIndex - 1, #j.spriteList,
-		format("sprite %d / %d", min(j.spriteIndex - 1, #j.spriteList), #j.spriteList))
+	setStatus(
+		"sprites",
+		j.spriteIndex - 1,
+		#j.spriteList,
+		format("sprite %d / %d", min(j.spriteIndex - 1, #j.spriteList), #j.spriteList)
+	)
 	if j.spriteIndex > #j.spriteList then
 		j.phase = "svg"
 	end
 end
 
 local function spriteDataURI(j, spr)
-	if spr.uri ~= nil then return spr.uri end
+	if spr.uri ~= nil then
+		return spr.uri
+	end
 	if not spr.baked then
 		spr.uri = false
 		return false
@@ -1277,8 +1525,10 @@ end
 
 local function phaseSvg(j)
 	local written = {}
-	for i = 1, #j.terrainFiles do written[i] = j.terrainFiles[i].file end
-	local scale = j.detail            -- world elmos -> output pixels
+	for i = 1, #j.terrainFiles do
+		written[i] = j.terrainFiles[i].file
+	end
+	local scale = j.detail -- world elmos -> output pixels
 
 	-- Units -------------------------------------------------------------------
 	if settings.unitLayer and j.units and #j.units > 0 then
@@ -1288,7 +1538,10 @@ local function phaseSvg(j)
 			local u = j.units[i]
 			if u.sprite then
 				local key = settings.unitGroupTeam and (u.team or 0) or 0
-				if not byTeam[key] then byTeam[key] = {}; order[#order + 1] = key end
+				if not byTeam[key] then
+					byTeam[key] = {}
+					order[#order + 1] = key
+				end
 				local g = byTeam[key]
 				g[#g + 1] = u
 			end
@@ -1298,9 +1551,7 @@ local function phaseSvg(j)
 		local out = { svgHeader(j.outW, j.outH, "Units") }
 		local median = 8 * 8
 		for _, key in ipairs(order) do
-			local groupName = settings.unitGroupTeam
-				and format("Team %d", key)
-				or "Units"
+			local groupName = settings.unitGroupTeam and format("Team %d", key) or "Units"
 			out[#out + 1] = format(' <g id="%s">\n', xmlEscape(groupName))
 			local group = byTeam[key]
 			for i = 1, #group do
@@ -1329,8 +1580,13 @@ local function phaseSvg(j)
 					local label = format("%s - %s", u.def.humanName or u.def.name, u.def.name)
 					out[#out + 1] = svgImage(label, cx - w * 0.5, cy - w * 0.5, w, w, rot, uri)
 					if settings.unitLabels then
-						out[#out + 1] = svgLabel(label .. " (label)", cx, cy + w * 0.5 + w * 0.22,
-							max(8, w * 0.2), u.def.humanName or u.def.name)
+						out[#out + 1] = svgLabel(
+							label .. " (label)",
+							cx,
+							cy + w * 0.5 + w * 0.22,
+							max(8, w * 0.2),
+							u.def.humanName or u.def.name
+						)
 					end
 				end
 			end
@@ -1353,8 +1609,13 @@ local function phaseSvg(j)
 				local cx, cy = f.x * scale, f.z * scale
 				out[#out + 1] = svgImage(
 					format("%s - %s", f.def.humanName or f.def.name, f.def.name),
-					cx - w * 0.5, cy - w * 0.5, w, w,
-					180 + (f.rot or 0) * 360 / 65536, uri)
+					cx - w * 0.5,
+					cy - w * 0.5,
+					w,
+					w,
+					180 + (f.rot or 0) * 360 / 65536,
+					uri
+				)
 			end
 		end
 		out[#out + 1] = " </g>\n</svg>\n"
@@ -1368,16 +1629,23 @@ local function phaseSvg(j)
 		local labels = WG.MapLabels.getLabels() or {}
 		if #labels > 0 then
 			local out = { svgHeader(j.outW, j.outH, "Comments"), ' <g id="Comments">\n' }
+			---@type number
 			local r = max(6, 14 * scale)
 			for i = 1, #labels do
+				---@type table
 				local L = labels[i]
 				local cx, cy = L.x * scale, L.z * scale
 				out[#out + 1] = format(
 					'  <circle id="pin %d" cx="%.2f" cy="%.2f" r="%.2f" fill="%s" stroke="#000000" stroke-width="%.2f"/>\n',
-					L.id or i, cx, cy, r, xmlEscape(L.color or "#ffcc00"), max(1, r * 0.15))
+					L.id or i,
+					cx,
+					cy,
+					r,
+					xmlEscape(L.color or "#ffcc00"),
+					max(1, r * 0.15)
+				)
 				if L.text and L.text ~= "" then
-					out[#out + 1] = svgLabel(format("comment %d", L.id or i), cx, cy - r * 1.6,
-						max(9, r * 1.1), L.text)
+					out[#out + 1] = svgLabel(format("comment %d", L.id or i), cx, cy - r * 1.6, max(9, r * 1.1), L.text)
 				end
 			end
 			out[#out + 1] = " </g>\n</svg>\n"
@@ -1389,25 +1657,24 @@ local function phaseSvg(j)
 
 	-- Manifest ----------------------------------------------------------------
 	local meta = {
-		'return {',
-		format('\tmap = %q,', Game.mapName or ""),
-		format('\tmapSizeX = %d, mapSizeZ = %d,', Game.mapSizeX, Game.mapSizeZ),
-		format('\timageW = %d, imageH = %d,', j.outW, j.outH),
-		format('\tpixelsPerElmo = %.6f,', j.detail),
-		format('\ttiles = %d,', #j.tiles),
-		format('\tunitStyle = %q,', settings.unitStyle),
-		format('\tunits = %d,', #(j.units or {})),
-		'\t-- image pixel = world elmo * pixelsPerElmo; row 0 is world z = 0',
-		'\t-- terrain: place each file at its x/y in a canvas of imageW x imageH',
-		'\tterrain = {',
+		"return {",
+		format("\tmap = %q,", Game.mapName or ""),
+		format("\tmapSizeX = %d, mapSizeZ = %d,", Game.mapSizeX, Game.mapSizeZ),
+		format("\timageW = %d, imageH = %d,", j.outW, j.outH),
+		format("\tpixelsPerElmo = %.6f,", j.detail),
+		format("\ttiles = %d,", #j.tiles),
+		format("\tunitStyle = %q,", settings.unitStyle),
+		format("\tunits = %d,", #(j.units or {})),
+		"\t-- image pixel = world elmo * pixelsPerElmo; row 0 is world z = 0",
+		"\t-- terrain: place each file at its x/y in a canvas of imageW x imageH",
+		"\tterrain = {",
 	}
 	for i = 1, #j.terrainFiles do
 		local f = j.terrainFiles[i]
-		meta[#meta + 1] = format('\t\t{ file = %q, x = %d, y = %d, w = %d, h = %d },',
-			f.file, f.x, f.y, f.w, f.h)
+		meta[#meta + 1] = format("\t\t{ file = %q, x = %d, y = %d, w = %d, h = %d },", f.file, f.x, f.y, f.w, f.h)
 	end
-	meta[#meta + 1] = '\t},'
-	meta[#meta + 1] = '}'
+	meta[#meta + 1] = "\t},"
+	meta[#meta + 1] = "}"
 	writeText(j.dir .. "capture.lua", table.concat(meta, "\n") .. "\n")
 	written[#written + 1] = "capture.lua"
 
@@ -1422,9 +1689,19 @@ local function phaseSvg(j)
 		status.lastSummary = status.lastSummary .. format(" \194\183 %d units", unitCount)
 	end
 
-	Echo(format("[TF Capture] wrote %s (%dx%d in %d image%s, %d tiles, %d units, %d sprites)",
-		j.dir, j.outW, j.outH, #j.terrainFiles, (#j.terrainFiles == 1) and "" or "s",
-		#j.tiles, unitCount, #j.spriteList))
+	Echo(
+		format(
+			"[TF Capture] wrote %s (%dx%d in %d image%s, %d tiles, %d units, %d sprites)",
+			j.dir,
+			j.outW,
+			j.outH,
+			#j.terrainFiles,
+			(#j.terrainFiles == 1) and "" or "s",
+			#j.tiles,
+			unitCount,
+			#j.spriteList
+		)
+	)
 	if #j.terrainFiles > 1 then
 		Echo("[TF Capture] terrain came out as strips; each filename carries its Y offset (x is always 0)")
 	end
@@ -1439,9 +1716,16 @@ end
 -- Driver
 --------------------------------------------------------------------------------
 
+---Starts the map capture walk, which runs across later frames.
+---@return boolean started
+---@return string? reason Why the capture could not start.
 local function startCapture()
-	if job then return false, "a capture is already running" end
-	if Spring.IsGUIHidden and Spring.IsGUIHidden() then
+	if job then
+		return false, "a capture is already running"
+	end
+	-- A plain F5 is refused (the user hid the UI, the photo path must not un-hide
+	-- it behind their back); focus mode is the editor's own hide and is fine.
+	if Spring.IsGUIHidden and Spring.IsGUIHidden() and not focusModeOn() then
 		return false, "hide-interface is on; turn it off first"
 	end
 
@@ -1451,10 +1735,16 @@ local function startCapture()
 		phase = "collect",
 		dir = OUT_ROOT .. mapBaseName() .. "_" .. stamp .. "/",
 		detail = est.effectiveDetail,
-		outW = est.outW, outH = est.outH,
-		tilesX = est.tilesX, tilesZ = est.tilesZ,
-		sprites = {}, spriteList = {}, spriteIndex = 1,
-		settle = 0, tileIndex = 1, fitTries = 0,
+		outW = est.outW,
+		outH = est.outH,
+		tilesX = est.tilesX,
+		tilesZ = est.tilesZ,
+		sprites = {},
+		spriteList = {},
+		spriteIndex = 1,
+		settle = 0,
+		tileIndex = 1,
+		fitTries = 0,
 	}
 	buildTiles(job)
 	status.active = true
@@ -1463,39 +1753,51 @@ local function startCapture()
 	status.lastSummary = ""
 	setStatus("collect", 0, #job.tiles, "starting...")
 	if est.capped then
-		Echo(format("[TF Capture] %.2fx is wider than the %d px texture limit -- capped to %.2fx (%dx%d)",
-			est.detail, est.maxTex, est.effectiveDetail, est.outW, est.outH))
+		Echo(
+			format(
+				"[TF Capture] %.2fx is wider than the %d px texture limit -- capped to %.2fx (%dx%d)",
+				est.detail,
+				est.maxTex,
+				est.effectiveDetail,
+				est.outW,
+				est.outH
+			)
+		)
 	end
 	return true
 end
 
 local PHASES = {
 	collect = phaseCollect,
-	prep    = phasePrep,
-	probe   = phaseProbe,
-	tiles   = phaseTiles,
-	save    = phaseSave,
+	prep = phasePrep,
+	probe = phaseProbe,
+	tiles = phaseTiles,
+	save = phaseSave,
 	sprites = phaseSprites,
-	svg     = phaseSvg,
+	svg = phaseSvg,
 }
 
--- Everything runs from DrawScreenEffects: it is the one callin that is both
--- allowed to gl.RenderToTexture and guaranteed to see the finished world frame
--- (bloom draws last in DrawWorld) without any interface on top of it yet.
--- The status bar has room for one line, and a bare GL error message is useless
--- without knowing which call raised it, so the traceback is attached here and
--- echoed to the console/infolog.
+-- Phases run from DrawScreenEffects: it may gl.RenderToTexture and sees the
+-- finished world frame (bloom included) before any interface is drawn.
+-- A bare GL error does not say which call raised it, so the traceback is
+-- attached and echoed to the infolog.
 local function phaseTraceback(err)
 	local tb = (debug and debug.traceback) and debug.traceback("", 2) or "(no traceback available)"
 	return tostring(err) .. "\n" .. tb
 end
 
 function widget:DrawScreenEffects()
-	if not job then return end
+	if not job then
+		return
+	end
 	local phase = job.phase
 	local fn = PHASES[phase]
-	if not fn then return finish("internal phase error: " .. tostring(phase)) end
-	local ok, err = xpcall(function() return fn(job) end, phaseTraceback)
+	if not fn then
+		return finish("internal phase error: " .. tostring(phase))
+	end
+	local ok, err = xpcall(function()
+		return fn(job)
+	end, phaseTraceback)
 	if not ok then
 		Echo("[TF Capture] crash in phase '" .. tostring(phase) .. "':\n" .. tostring(err))
 		finish("crashed in phase " .. tostring(phase) .. " -- traceback in console (F10)")
@@ -1503,7 +1805,9 @@ function widget:DrawScreenEffects()
 end
 
 function widget:DrawScreen()
-	if not job then return end
+	if not job then
+		return
+	end
 	local vsx, vsy = Spring.GetViewGeometry()
 	local x, y = vsx * 0.5, vsy * 0.82
 	gl.Color(0, 0, 0, 0.6)
@@ -1531,34 +1835,73 @@ end
 local function captureAction(_, _, params)
 	local arg = (type(params) == "table") and params[1] or params
 	if arg == "cancel" then
-		if job then finish("cancelled") end
+		if job then
+			finish("cancelled")
+		end
 		return true
 	end
 	local detail = tonumber(arg)
-	if detail then settings.detail = detail end
+	if detail then
+		settings.detail = detail
+	end
 	local ok, err = startCapture()
-	if not ok then Echo("[TF Capture] " .. tostring(err)) end
+	if not ok then
+		Echo("[TF Capture] " .. tostring(err))
+	end
 	return true
 end
 
 function widget:Initialize()
 	widgetHandler:AddAction("tfcapture", captureAction, nil, "t")
 	WG.TerraformCapture = {
+		---@return TerraformCaptureSettings settings A shallow copy, so mutating it
+		---does not affect the live settings.
 		getSettings = function()
 			local copy = {}
-			for k, v in pairs(settings) do copy[k] = v end
-			return copy
+			for k, v in pairs(settings) do
+				copy[k] = v
+			end
+			return copy --[[@as TerraformCaptureSettings]]
 		end,
+		---Changes one capture setting.
+		---@param key string
+		---@param value string|number|boolean Must match the kind the setting already holds;
+		---no conversion or validation is done beyond checking that `key` exists.
+		---@return boolean set `false` when `key` is not a known setting.
 		setSetting = function(key, value)
-			if settings[key] == nil then return false end
+			if settings[key] == nil then
+				return false
+			end
 			settings[key] = value
 			return true
 		end,
 		estimate = estimate,
 		start = startCapture,
-		cancel = function() if job then finish("cancelled") end end,
-		isBusy = function() return job ~= nil end,
-		getStatus = function() return status end,
+		---Aborts a running capture and restores the scene. Safe to call when idle.
+		cancel = function()
+			if job then
+				finish("cancelled")
+			end
+		end,
+		---@return boolean busy Whether a capture is running.
+		isBusy = function()
+			return job ~= nil
+		end,
+		---Progress of the current or last capture.
+		---@class TerraformCaptureStatus
+		---@field active boolean Whether a capture is running.
+		---@field phase string Which stage the capture is in.
+		---@field step integer Tiles completed.
+		---@field total integer Tiles to do in total.
+		---@field message string Human-readable progress line.
+		---@field lastPath string Where the last capture was written.
+		---@field lastSummary string One-line summary of the last capture.
+		---@field error string Empty unless the last capture failed.
+
+		---@return TerraformCaptureStatus status The live table; do not mutate.
+		getStatus = function()
+			return status
+		end,
 	}
 end
 
@@ -1566,14 +1909,26 @@ function widget:Shutdown()
 	-- A reload mid-capture must not leave the scene stripped.
 	restoreScene()
 	if job then
-		if job.mosaic then gl.DeleteTexture(job.mosaic) end
-		if job.strip then gl.DeleteTexture(job.strip) end
-		if job.screenTex then gl.DeleteTexture(job.screenTex) end
+		if job.mosaic then
+			gl.DeleteTexture(job.mosaic)
+		end
+		if job.strip then
+			gl.DeleteTexture(job.strip)
+		end
+		if job.screenTex then
+			gl.DeleteTexture(job.screenTex)
+		end
 		job = nil
 	end
-	if reprojShader then gl.DeleteShader(reprojShader) end
-	if spriteShader then gl.DeleteShader(spriteShader) end
-	if modelShader then gl.DeleteShader(modelShader) end
+	if reprojShader then
+		gl.DeleteShader(reprojShader)
+	end
+	if spriteShader then
+		gl.DeleteShader(spriteShader)
+	end
+	if modelShader then
+		gl.DeleteShader(modelShader)
+	end
 	widgetHandler:RemoveAction("tfcapture")
 	WG.TerraformCapture = nil
 end

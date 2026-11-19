@@ -21,7 +21,7 @@ function gadget:GetInfo()
 		date = "May 27, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -37,7 +37,24 @@ local fontfileScale = 1 + (vsx * vsy / 5700000)
 local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+-- created only while enabled: rasterizing outlined fonts at high resolutions costs load time
+local font ---@type LuaFont
+local fontLoaded = false
+if enabled then
+	font = gl.LoadFont(
+		fontfile,
+		fontfileSize * fontfileScale,
+		fontfileOutlineSize * fontfileScale,
+		fontfileOutlineStrength
+	)
+	fontLoaded = true
+end
+
+local function loadResizedFont()
+	local fontScale = 1 + (vsx * vsy / 5700000)
+	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
+	fontLoaded = true
+end
 
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
@@ -63,7 +80,9 @@ local math_ceil = math.ceil
 local math_random = math.random
 local math_max = math.max
 local math_min = math.min
-local damageSortFunc = function(m1, m2) return m1.damage < m2.damage end
+local damageSortFunc = function(m1, m2)
+	return m1.damage < m2.damage
+end
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -86,7 +105,7 @@ local heightList = {}
 local drawTextLists = {}
 local drawTextListsDeath = {}
 local drawTextListsEmp = {}
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local _, fullview = Spring.GetSpectatingState()
 local chobbyInterface
 local ignoreDamageTypes = {}
@@ -116,9 +135,10 @@ ignoreDamageTypes[Game.envDamageTypes.UnitScript] = true -- likely to be self-da
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
-	local fontScale = 1 + (vsx * vsy / 5700000)
 	gadget:Shutdown()
-	font = gl.LoadFont(fontfile, 52 * fontScale, 17 * fontScale, 1.3)
+	if enabled then
+		loadResizedFont()
+	end
 end
 
 local function unitHeight(unitDefID)
@@ -214,7 +234,18 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	end
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
 	if not enabled then
 		return
 	end
@@ -273,9 +304,9 @@ local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
 			drawTextListsDeath[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 0.5, 0.5)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
-			end)	-- rare error on this line: "table index is NaN"
+			end) -- rare error on this line: "table index is NaN"
 		end
 		glCallList(drawTextListsDeath[damage])
 	else
@@ -283,7 +314,7 @@ local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
 			drawTextLists[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 1, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -302,7 +333,7 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 			drawTextListsEmp[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(0.5, 0.5, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -312,7 +343,7 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 			drawTextLists[damage] = gl.CreateList(function()
 				font:Begin()
 				font:SetTextColor(1, 1, 1)
-				font:Print(damage, 0, 0, textSize, 'cnO')
+				font:Print(damage, 0, 0, textSize, "cnO")
 				font:End()
 			end)
 		end
@@ -321,15 +352,21 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 end
 
 function gadget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	_, fullview = Spring.GetSpectatingState()
 end
 
-local LOA_B1 = string.byte('L') -- 76, first byte of 'LobbyOverlayActive'
+local LOA_B1 = string.byte("L") -- 76, first byte of 'LobbyOverlayActive'
 
 function gadget:RecvLuaMsg(msg, playerID)
-	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= 'LobbyOverlayActive' then return end
-	chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	-- FIXME: We cannot distinguish LuaMenu from an actual player 0.
+	if playerID ~= 0 then
+		return
+	end
+	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= "LobbyOverlayActive" then
+		return
+	end
+	chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 end
 
 function checkEnabled()
@@ -347,6 +384,9 @@ function checkEnabled()
 		drawTextListsDeath = {}
 		drawTextListsEmp = {}
 		if enabled then
+			if not fontLoaded then
+				loadResizedFont()
+			end
 			gadgetHandler:UpdateCallIn("UnitDamaged")
 			gadgetHandler:UpdateCallIn("UnitTaken")
 			gadgetHandler:UpdateCallIn("UnitDestroyed")
@@ -411,8 +451,17 @@ function gadget:DrawWorld()
 			damageTable[i] = nil
 		else
 			if fullview or CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
-				glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset),
-					damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
+				glDrawFuncAtUnit(
+					damage.unitID,
+					false,
+					DrawUnitFunc,
+					(damage.height + damage.heightOffset),
+					damage.offset,
+					damage.damage,
+					damage.textSize,
+					damage.lifeSpan,
+					damage.paralyze
+				)
 			end
 			if not paused then
 				--if damage.paralyze then
@@ -420,7 +469,7 @@ function gadget:DrawWorld()
 				--  damage.textSize = (damage.textSize + 0.2)
 				--else
 				damage.heightOffset = (damage.heightOffset + damage.riseTime)
-				if (damage.heightOffset > 25) then
+				if damage.heightOffset > 25 then
 					damage.lifeSpan = (damage.lifeSpan - damage.fadeTime)
 				end
 				--end
@@ -430,7 +479,7 @@ function gadget:DrawWorld()
 	for i, death in pairs(deadList) do
 		if death.lifeSpan <= 0 then
 			deadList[i] = nil
-		elseif type(death.damage) == "number" then	-- checking this cause someone got an error that this was being NaN ...UPDATE: STILL ERRORS REGARDLESS
+		elseif type(death.damage) == "number" then -- checking this cause someone got an error that this was being NaN ...UPDATE: STILL ERRORS REGARDLESS
 			drawDeathDPS(death.damage, death.x, death.y, death.z, death.textSize, death.red, death.lifeSpan)
 			if not paused then
 				death.y = (death.y + death.riseTime)
@@ -456,5 +505,8 @@ function gadget:Shutdown()
 	for k, _ in pairs(drawTextListsEmp) do
 		gl.DeleteList(drawTextListsEmp[k])
 	end
-	gl.DeleteFont(font)
+	if fontLoaded then
+		gl.DeleteFont(font)
+		fontLoaded = false
+	end
 end

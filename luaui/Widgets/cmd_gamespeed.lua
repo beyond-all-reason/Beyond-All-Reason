@@ -1,15 +1,15 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-	name      = "Game Speed",
-	desc      = "Overrides increasing/decreasing game speed behaviour",
-	author    = "Beherith",
-	date      = "2020",
-	license   = "GNU GPL, v2 or later",
-	layer     = -999999,
-	enabled   = true,
-  }
+	return {
+		name = "Game Speed",
+		desc = "Overrides increasing/decreasing game speed behaviour",
+		author = "Beherith",
+		date = "2020",
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
+		enabled = true,
+	}
 end
 
 -- The number of speed gradations should be minimized,
@@ -31,7 +31,7 @@ local speedLevels = {
 }
 
 local function setGameSpeed(speed)
-	if Spring.Utilities.Gametype.IsSinglePlayer() or Spring.IsCheatingEnabled() or Spring.IsReplay() then
+	if BAR.Utilities.Gametype.IsSinglePlayer() or Spring.IsCheatingEnabled() or Spring.IsReplay() then
 		Spring.SendCommands("setspeed " .. speed)
 	end
 end
@@ -67,6 +67,6 @@ local function decreaseSpeed()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("increasespeed", increaseSpeed, nil, 'pR')
-	widgetHandler:AddAction("decreasespeed", decreaseSpeed, nil, 'pR')
+	widgetHandler:AddAction("increasespeed", increaseSpeed, nil, "pR")
+	widgetHandler:AddAction("decreasespeed", decreaseSpeed, nil, "pR")
 end

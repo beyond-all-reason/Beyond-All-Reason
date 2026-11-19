@@ -12,12 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local myTeamID
 

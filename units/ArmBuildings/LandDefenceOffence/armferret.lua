@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
-		stealthy = true,
+		stealth = true,
 		yardmap = "ooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -141,6 +141,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 125,
 				},

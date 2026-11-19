@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "2026.06.28",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -23,7 +23,7 @@ end
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
 local INLOS = { inlos = true }
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -44,7 +44,19 @@ local function setUserFirestate(unitID, state)
 	settingEngineFirestate = false
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	if cmdID == CMD_USER_FIRESTATE then
 		local state = cmdParams[1]
 		if CustomFirestateDefs.toEngineFirestate(state) ~= nil then

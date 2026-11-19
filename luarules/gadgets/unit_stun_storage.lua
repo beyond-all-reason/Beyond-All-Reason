@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "June 15, 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -24,8 +24,7 @@ local paralyzedUnits = {}
 local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
-	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
-
+	if not ud.canMove then -- this is to exclude transportable units since they get stunned while being transported
 		-- instead of checking every unit to see if it is a commander we add them in late, except we don't cause they move
 		-- i don't understand our decision making but i'm future proofing this
 		-- commanders were tested to be excluded for the first 150 game frames
@@ -33,7 +32,6 @@ for udid, ud in pairs(UnitDefs) do
 		if ud.customParams.iscommander then
 			isCommander[udid] = true
 		else
-
 			if ud.metalStorage >= 50 then
 				if not storageDefs[udid] then
 					storageDefs[udid] = {}

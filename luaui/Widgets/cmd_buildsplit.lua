@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -32,6 +31,11 @@ end
 local buildID = 0
 local buildLocs = {}
 local buildCount = 0
+
+-- The consumed commands never reach the LuaRules command limiter, so the batch
+-- is bounded here (same figure as the limiter).
+local MAX_BUILDINGS = 700
+local limitReported = false
 
 local gameStarted = false
 local isSpec = false
@@ -61,7 +65,7 @@ end
 local function getBuilderInfos(unitIDs)
 	local builders = {}
 	for _, unitID in ipairs(unitIDs) do
-		local builderInfo = WG["api_build_orders"].getBuilderInfo(unitID)
+		local builderInfo = WG.api_build_orders.getBuilderInfo(unitID)
 		if builderInfo and unitBuildOptions[builderInfo.unitDefID] then
 			table.insert(builders, builderInfo)
 		end
@@ -69,12 +73,12 @@ local function getBuilderInfos(unitIDs)
 	return builders
 end
 
----@param builderIDs number[]
+---@param builderIDs UnitID[]
 ---@param buildings BuildingInfo[]
 ---@param cmdOpts table
 local function splitBuildings(builderIDs, buildings, cmdOpts)
 	local builders = getBuilderInfos(builderIDs)
-	WG["api_build_orders"].splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
 end
 
 function widget:Initialize()
@@ -88,8 +92,10 @@ function widget:Initialize()
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
 
-	WG['build_split'] = {
-		isActive = function() return activeModifier end,
+	WG.build_split = {
+		isActive = function()
+			return activeModifier
+		end,
 		splitBuildings = splitBuildings,
 	}
 end
@@ -108,9 +114,19 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 		return false
 	end
 
+	if buildCount >= MAX_BUILDINGS then
+		if not limitReported then
+			limitReported = true
+			Spring.Echo(string.format("[Build Split] limiting to %d buildings", MAX_BUILDINGS))
+		end
+		return true
+	end
+
 	--if #cmdParams < 4 then return false end -- Probably not possible, commented for now
 	if spTestBuildOrder(-cmdID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]) == 0 then
-		return false
+		-- A blocked spot is skipped. Passing it on would hand it to every
+		-- selected builder, and to CommandInsert when its modifier is held too.
+		return true
 	end
 
 	buildID = -cmdID
@@ -133,8 +149,7 @@ function widget:Update()
 
 	local builderIDs = {}
 	for uDefID, uIDs in pairs(selUnits) do
-		local uDef = UnitDefs[uDefID]
-		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
+		if unitBuildOptions[uDefID] then
 			for _, uID in ipairs(uIDs) do
 				table.insert(builderIDs, uID)
 			end
@@ -154,8 +169,9 @@ function widget:Update()
 	splitBuildings(builderIDs, buildings, { "shift" })
 
 	buildCount = 0
+	limitReported = false
 end
 
 function widget:Shutdown()
-	WG['build_split'] = nil
+	WG.build_split = nil
 end

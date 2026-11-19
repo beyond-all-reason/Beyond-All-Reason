@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Tax Debuff Forwarding',
-		desc    = 'Forwards buildspeed debuff events from synced to LuaUI for the easytax modoption.',
-		author  = 'RebelNode',
-		date    = 'March 2026',
-		license = 'GNU GPL, v2 or later',
-		layer   = 0,
-		enabled = true
+		name = "Tax Debuff Forwarding",
+		desc = "Forwards buildspeed debuff events from synced to LuaUI for the easytax modoption.",
+		author = "RebelNode",
+		date = "March 2026",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -33,7 +33,7 @@ local function unitBuildspeedDebuffEnd(cmd, unitID)
 end
 
 function gadget:Initialize()
-	gadgetHandler:AddSyncAction("unitBuildspeedDebuff",    unitBuildspeedDebuff)
+	gadgetHandler:AddSyncAction("unitBuildspeedDebuff", unitBuildspeedDebuff)
 	gadgetHandler:AddSyncAction("unitBuildspeedDebuffEnd", unitBuildspeedDebuffEnd)
 end
 

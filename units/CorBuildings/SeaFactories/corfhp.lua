@@ -40,6 +40,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
 			techlevel = 1.5,

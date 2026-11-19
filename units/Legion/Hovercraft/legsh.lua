@@ -30,10 +30,10 @@ return {
 		turninplacespeedlimit = 2.9634,
 		turnrate = 540,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmHovercraft",
+			subfolder = "Legion/Hovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -134,6 +134,7 @@ return {
 				weaponvelocity = 950,
 				damage = {
 					default = 60,
+					vtol = 12,
 				},
 			},
 		},

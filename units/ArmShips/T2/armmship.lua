@@ -186,11 +186,11 @@ return {
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
 					model = "airbomb",
-					noattackrangearc = 1,
 					number = "6",
 					speceffect = "split",
 					speceffect_def = "armmship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					commanders = 350,
@@ -234,6 +234,9 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					soundstart_volume_multiplier = 0.7,
+				},
 				damage = {
 					commanders = 223,
 					default = 350,

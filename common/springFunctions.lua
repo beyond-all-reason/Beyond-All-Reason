@@ -1,16 +1,19 @@
-local utilitiesDirectory = 'common/springUtilities/'
+local utilitiesDirectory = "common/springUtilities/"
 
-local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
-local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
-local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
-local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
-local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
-local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
-local facingFunctions = VFS.Include(utilitiesDirectory .. 'facingFunctions.lua')
+local tga = VFS.Include(utilitiesDirectory .. "image_tga.lua")
+local team = VFS.Include(utilitiesDirectory .. "teamFunctions.lua")
+local player = VFS.Include(utilitiesDirectory .. "playerFunctions.lua")
+local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
+local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
+local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
+local safeLuaTableParser = VFS.Include(utilitiesDirectory .. "safeluaparser.lua")
+local objectFunctions = VFS.Include(utilitiesDirectory .. "objectFunctions.lua")
+local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
 
-local utilities = {
+local utilities ---@type table forward-declared to resolve scoping
+utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
@@ -25,25 +28,29 @@ local utilities = {
 	GetRaptorTeamID = team.GetRaptorTeamID,
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
+	CanTeamReceiveUnits = team.CanTeamReceiveUnits,
+
+	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
+	IsPlayerLagging = player.IsPlayerLagging,
 
 	IsDevMode = function()
-		local devMode = Spring.GetGameRulesParam('isDevMode')
+		local devMode = Spring.GetGameRulesParam("isDevMode")
 		return (devMode and devMode > 0) and true or false
 	end,
 
-	ShowDevUI = function ()
-		local devUI = Spring.GetConfigInt('DevUI', 0)
+	ShowDevUI = function()
+		local devUI = Spring.GetConfigInt("DevUI", 0)
 		return (devUI > 0) and true or false
 	end,
 
 	--- Cached variant of IsDevMode, refreshed per call but avoids repeated lookups
 	--- within the same frame when multiple widgets query it.
-	_devModeCache = nil,
+	_devModeCache = false,
 	_devModeCacheFrame = -1,
 	IsDevModeCached = function()
 		local frame = Spring.GetGameFrame()
 		if frame ~= utilities._devModeCacheFrame then
-			local devMode = Spring.GetGameRulesParam('isDevMode')
+			local devMode = Spring.GetGameRulesParam("isDevMode")
 			utilities._devModeCache = (devMode and devMode > 0) and true or false
 			utilities._devModeCacheFrame = frame
 		end
@@ -53,15 +60,22 @@ local utilities = {
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
+	CompassAngleToHeading = facingFunctions.CompassAngleToHeading,
+	DirectionToHeading = facingFunctions.DirectionToHeading,
 	FacingToHeading = facingFunctions.FacingToHeading,
+	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
+
+	GetObjectPosition = objectFunctions and objectFunctions.GetObjectPosition,
+	GetObjectCentroid = objectFunctions and objectFunctions.GetObjectCentroid,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
 
+	---@param playerID PlayerID
 	GetAccountID = function(playerID)
-		local cached = accountIDCache[playerID]
+		local cached = accountIDCache[playerID] ---@as integer?
 		if cached then
 			return cached
 		end
@@ -74,7 +88,7 @@ local utilities = {
 	end,
 }
 
-local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
+local debugUtilities = VFS.Include(utilitiesDirectory .. "debug.lua")
 
 local debugFuncs = {
 	ParamsEcho = debugUtilities.ParamsEcho,

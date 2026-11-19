@@ -28,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 6000,
@@ -45,7 +45,7 @@ return {
 		radardistance = 800,
 		radaremitheight = 44,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legevocom1.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -92,14 +92,17 @@ return {
 			"leghelios",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			maxrange = 300,
+			unitgroup = "builder",
 			iscommander = true,
 			effigy_offset = 1,
 			evocomlvl = 2,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			reaimtime = 5,
+			subfolder = "Legion/Legion EvoCom",
+			tombstone = "legstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "legcomlvl3",
 			evolution_condition = "timer",
@@ -113,7 +116,7 @@ return {
 			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -128,7 +131,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2000,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -285,7 +288,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 1.2,
@@ -357,7 +360,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
@@ -365,11 +369,12 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

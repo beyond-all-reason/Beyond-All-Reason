@@ -5,7 +5,9 @@
 -- energy shapes that mimic the old staged trailing ball look.
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -22,31 +24,36 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho                      = Spring.Echo
-local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileTeamID       = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
-local spGetSpectatingState        = Spring.GetSpectatingState
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
+local spEcho = Spring.Echo
+local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spGetTeamList = Spring.GetTeamList
+local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraDirection = Spring.GetCameraDirection
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
+local glBlending = gl.Blending
+local glTexture = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_TRIANGLES = GL.TRIANGLES
 
-local mathMin    = math.min
-local mathSqrt   = math.sqrt
+local mathMin = math.min
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -56,59 +63,73 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 --------------------------------------------------------------------------------
 
 -- Limits
-local INITIAL_VBO_SIZE = 128   -- starting VBO capacity (doubles automatically when exceeded)
-local IDLE_SKIP_FRAMES = 3    -- draw-frames to skip polling when no projectiles active
+local INITIAL_VBO_SIZE = 128 -- starting VBO capacity (doubles automatically when exceeded)
 
 -- Textures
-local plasmaTexture = "bitmaps/projectiletextures/plasmaball.tga"
-local glowTexture   = "bitmaps/projectiletextures/glow2.tga"
+local glowTexture = "bitmaps/projectiletextures/glow2.tga"
 
 -- Glow billboard config
-local GLOW_SIZE_MULT   = 10   -- glow billboard size as multiple of projectile cross-section size
-local GLOW_BRIGHTNESS  = 0.1   -- glow color multiplier (faint)
-local GLOW_REF_SIZE    = 5.0   -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
+local GLOW_SIZE_MULT = 10 -- glow billboard size as multiple of projectile cross-section size
+local GLOW_BRIGHTNESS = 0.1 -- glow color multiplier (faint)
+local GLOW_REF_SIZE = 5.0 -- weapons at this size (after SIZE_MULT) get full glow; smaller ones dim proportionally
 
 -- Cross-section billboard (camera-facing round blob, visible when looking along velocity)
-local CROSS_SECTION_BRIGHTNESS = 0.7  -- brightness multiplier for the head-on cross-section
+local CROSS_SECTION_BRIGHTNESS = 0.7 -- brightness multiplier for the head-on cross-section
 
 -- Projectile sizing: the quad is elongated along velocity to create the trail shape
-local SIZE_MULT          = 1.5    -- global multiplier on weapon projectile size (cross-section width)
-local RANGE_SIZE_BONUS   = 2.0    -- max extra size added for long-range weapons (at RANGE_SIZE_REF range)
-local RANGE_SIZE_REF     = 1500   -- weapon range (elmos) at which full RANGE_SIZE_BONUS is applied
+local SIZE_MULT = 1.5 -- global multiplier on weapon projectile size (cross-section width)
+local RANGE_SIZE_BONUS = 2.0 -- max extra size added for long-range weapons (at RANGE_SIZE_REF range)
+local RANGE_SIZE_REF = 1500 -- weapon range (elmos) at which full RANGE_SIZE_BONUS is applied
 
 -- Core color boost
-local CORE_COLOR_ADD     = 0.4  -- added to weapon RGB to create brighter core color
+local CORE_COLOR_ADD = 0.4 -- added to weapon RGB to create brighter core color
 
 -- Shader config (injected as #defines)
 local shaderConfig = {
 	-- Shape (elongation scales with speed: min at rest, max at ELONGATION_SPEED_REF elmos/frame)
-	ELONGATION_MIN     = 2.2,  -- elongation at zero speed (nearly round)
-	ELONGATION_MAX     = 6.5,  -- elongation at or above reference speed
+	ELONGATION_MIN = 2.2, -- elongation at zero speed (nearly round)
+	ELONGATION_MAX = 6.5, -- elongation at or above reference speed
 	ELONGATION_SPEED_REF = 25, -- speed (elmos/frame) at which max elongation is reached
 
 	-- Noise displacement for blobby organic shape
-	NOISE_SCALE        = 4.5,    -- frequency of noise pattern (lower = bigger blobs)
-	NOISE_STRENGTH     = 1.1,   -- how much noise distorts the shape (higher = more blobby)
-	NOISE_SPEED        = 50.0,    -- animation speed of noise
-	SWIRL_SPEED        = 365.0,    -- rotation speed of swirl effect
-	SWIRL_STRENGTH     = 5,    -- intensity of swirl distortion (higher = more visible rotation)
+	NOISE_SCALE = 4.5, -- frequency of noise pattern (lower = bigger blobs)
+	NOISE_STRENGTH = 1.1, -- how much noise distorts the shape (higher = more blobby)
+	NOISE_SPEED = 50.0, -- animation speed of noise
+	SWIRL_SPEED = 365.0, -- rotation speed of swirl effect
+	SWIRL_STRENGTH = 5, -- intensity of swirl distortion (higher = more visible rotation)
 
 	-- Core/edge color blending (radially from center)
-	CORE_EDGE_START    = 0.1,   -- radial distance where core-to-edge blend starts
-	CORE_EDGE_END      = 0.25,    -- radial distance where blend is fully edge color
-	CORE_BRIGHTNESS    = 1.0,    -- extra brightness for core center
-	BRIGHTNESS_MULT    = 0.75,    -- overall brightness multiplier (compensates for 2 additive cross passes)
-	EDGE_SOFTNESS      = 0.22,    -- how soft the outer edge is
+	CORE_EDGE_START = 0.1, -- radial distance where core-to-edge blend starts
+	CORE_EDGE_END = 0.25, -- radial distance where blend is fully edge color
+	CORE_BRIGHTNESS = 1.0, -- extra brightness for core center
+	BRIGHTNESS_MULT = 0.75, -- overall brightness multiplier (compensates for the 2 additive crossed planes)
+	EDGE_SOFTNESS = 0.22, -- how soft the outer edge is
 
 	-- Trail shape: the blob is shifted forward and fades toward the back
-	TRAIL_SHIFT        = 0,    -- how much the bright center shifts toward the front (0 = centered)
-	TRAIL_FALLOFF      = 2,    -- how quickly brightness drops off toward the back (higher = sharper tail)
+	TRAIL_SHIFT = 0, -- how much the bright center shifts toward the front (0 = centered)
+	TRAIL_FALLOFF = 2, -- how quickly brightness drops off toward the back (higher = sharper tail)
 }
 
 --------------------------------------------------------------------------------
 -- Build weaponDefID -> plasma config lookup
 --------------------------------------------------------------------------------
 local weaponConfigs = {}
+
+-- Cannon weapons that cannot damage anything are gadget triggers (drone carrier spawners, energy
+-- chargers, ...) rather than plasma shells, so they must not get a plasma projectile drawn.
+local numArmorTypes = #Game.armorTypes
+local function weaponDealsDamage(weaponDef)
+	local damages = weaponDef.damages
+	if not damages then
+		return false
+	end
+	for armorTypeID = 0, numArmorTypes do
+		if (damages[armorTypeID] or 0) > 0 then
+			return true
+		end
+	end
+	return false
+end
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	local vis = weaponDef.visuals or {}
@@ -122,25 +143,32 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		local cp = weaponDef.customParams or {}
-		if not cp.bogus then
-		local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
-		local range = weaponDef.range or 300
+		if not cp.bogus and weaponDealsDamage(weaponDef) then
+			local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
+			local range = weaponDef.range or 300
 
-		size = (size * 0.55) + (weaponDef.damageAreaOfEffect / 66)  -- add blast radius to size for better core/edge color distribution
-		size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF)  -- longer-range weapons get bigger projectiles
+			size = (size * 0.55) + (weaponDef.damageAreaOfEffect / 66) -- add blast radius to size for better core/edge color distribution
+			size = size + RANGE_SIZE_BONUS * mathMin(1, range / RANGE_SIZE_REF) -- longer-range weapons get bigger projectiles
 
-		weaponConfigs[weaponID] = {
-			colorR = r,    colorG = g,    colorB = b,
-			coreR = coreR, coreG = coreG, coreB = coreB,
-			size = size * SIZE_MULT,
-		}
+			weaponConfigs[weaponID] = {
+				colorR = r,
+				colorG = g,
+				colorB = b,
+				coreR = coreR,
+				coreG = coreG,
+				coreB = coreB,
+				size = size * SIZE_MULT,
+			}
 		end
 	end
 end
 
 -- Check if we have any cannon weapons
 local hasConfigs = false
-for _ in pairs(weaponConfigs) do hasConfigs = true; break end
+for _ in pairs(weaponConfigs) do
+	hasConfigs = true
+	break
+end
 if not hasConfigs then
 	function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
@@ -149,21 +177,20 @@ if not hasConfigs then
 end
 
 --------------------------------------------------------------------------------
--- Projectile tracking (stable noise seed per projectile)
+-- Projectile tracking
 --------------------------------------------------------------------------------
-local projectileSeeds = {}  -- proID -> random seed
+-- Noise seed per projectile: golden ratio steps spread projectile IDs evenly over 0..1
+local SEED_STEP = 0.6180339887498949
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When nil, we fall back to calling Spring.GetVisibleProjectiles directly.
 local dispatchHandle = nil
 
 --------------------------------------------------------------------------------
--- Shader sources: Plasma (velocity-aligned elongated billboard)
--- The quad is stretched along the projectile's velocity direction to create
--- a comet/trail shape. The fragment shader adds noise, swirl, and a core/edge
--- color gradient to make it look like an energy blob.
+-- Vertex shader head shared by all passes: the instance layout and the motion
+-- between sim frames (the instance VBO only changes once per sim frame).
 --------------------------------------------------------------------------------
-local plasmaVsSrc = [[
+local vsHead = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -172,25 +199,51 @@ local plasmaVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-// Quad vertex: xy = corner position (-1..1), zw = UV
-layout (location = 0) in vec4 position_xy_uv;
+// Quad vertex: xy = corner position (-1..1), z = 1 on the second (crossed) plasma plane
+layout (location = 0) in vec4 quadVertex;
 
 // Per-instance data
-layout (location = 1) in vec4 posAndSize;       // xyz = world position, w = cross-section size
+layout (location = 1) in vec4 posAndSize;       // xyz = sim frame position, w = cross-section size
 layout (location = 2) in vec4 coreColor;        // rgb = core color, a = alpha
 layout (location = 3) in vec4 edgeColorAndSeed; // rgb = edge color, a = noise seed
-layout (location = 4) in vec4 velocityAndLife;  // xyz = velocity dir (normalized), w = speed (elmap units/frame)
+layout (location = 4) in vec4 velocity;         // xyz = velocity (elmos/frame)
+
+// Drawn position between sim frames, flight direction (normalized) and speed (elmos/frame)
+void plasmaMotion(out vec3 worldPos, out vec3 velDir, out float speed)
+{
+	vec3 vel = velocity.xyz;
+	speed = length(vel);
+	worldPos = posAndSize.xyz;
+	velDir = vec3(0.0, 1.0, 0.0);
+	if (speed > 0.001) {
+		velDir = vel / speed;
+		worldPos += vel * (timeInfo.w - 1.0);
+	}
+}
+]]
+
+--------------------------------------------------------------------------------
+-- Shader sources: Plasma (velocity-aligned elongated billboard)
+-- The quad is stretched along the projectile's velocity direction to create
+-- a comet/trail shape. The fragment shader adds noise, swirl, and a core/edge
+-- color gradient to make it look like an energy blob. Each instance draws two
+-- planes turned 90 degrees about the velocity, a cross that provides visual
+-- volume from all camera angles.
+--------------------------------------------------------------------------------
+local plasmaVsSrc = vsHead
+	.. [[
+#line 11000
 
 out DataVS {
 	vec2 texCoords;
 	vec4 vCoreColor;
 	vec4 vEdgeColor;
 	float noiseSeed;
+	flat vec2 swirlCosSin;
 };
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
 	float size = posAndSize.w;
 
 	if (size <= 0.0) {
@@ -198,11 +251,12 @@ void main()
 		return;
 	}
 
-	vec3 velDir = velocityAndLife.xyz;
-	float speed = velocityAndLife.w;
+	vec3 worldPos, velDir;
+	float speed;
+	plasmaMotion(worldPos, velDir, speed);
 
 	// Fixed world-derived perpendicular axis (does not rotate with camera).
-	// The cross pass uses the other perpendicular — together they form a
+	// The second plane uses the other perpendicular — together they form a
 	// stable cross shape visible from all angles.
 	vec3 axis1 = cross(velDir, vec3(0.0, 1.0, 0.0));
 	float axis1Len = length(axis1);
@@ -211,6 +265,7 @@ void main()
 	} else {
 		axis1 = axis1 / axis1Len;
 	}
+	vec3 axis = (quadVertex.z > 0.5) ? cross(axis1, velDir) : axis1;
 
 	// Vertex x: across width (-1..1), vertex y: along velocity (-1..1)
 	// Elongate along velocity direction, scaled by speed
@@ -225,16 +280,19 @@ void main()
 	float paddedHalfLength = halfLength * (1.0 + abs(TRAIL_SHIFT));
 
 	vec3 vertexWorld = worldPos
-		+ axis1  * position_xy_uv.x * halfWidth
-		+ velDir * position_xy_uv.y * paddedHalfLength;
+		+ axis   * quadVertex.x * halfWidth
+		+ velDir * quadVertex.y * paddedHalfLength;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
 	// UV: 0..1
-	texCoords = position_xy_uv.zw;
+	texCoords = quadVertex.xy * 0.5 + 0.5;
 	vCoreColor = coreColor;
 	vEdgeColor = edgeColorAndSeed;
 	noiseSeed = edgeColorAndSeed.a;
+
+	float swirlAngle = timeInfo.z * SWIRL_SPEED + noiseSeed * 6.28;
+	swirlCosSin = vec2(cos(swirlAngle), sin(swirlAngle));
 }
 ]]
 
@@ -247,13 +305,12 @@ local plasmaFsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-uniform sampler2D plasmaTex;
-
 in DataVS {
 	vec2 texCoords;
 	vec4 vCoreColor;
 	vec4 vEdgeColor;
 	float noiseSeed;
+	flat vec2 swirlCosSin;
 };
 
 out vec4 fragColor;
@@ -306,10 +363,9 @@ void main(void)
 	float time = timeInfo.z;
 	float seed = noiseSeed;
 
-	// Swirl: rotate UV around center over time for spinning energy look
-	float swirlAngle = time * SWIRL_SPEED + seed * 6.28;
-	float cosA = cos(swirlAngle);
-	float sinA = sin(swirlAngle);
+	// Swirl: rotate UV around center over time for spinning energy look (angle per instance, from the VS)
+	float cosA = swirlCosSin.x;
+	float sinA = swirlCosSin.y;
 	vec2 swirled = vec2(
 		centered.x * cosA - centered.y * sinA,
 		centered.x * sinA + centered.y * cosA
@@ -325,13 +381,13 @@ void main(void)
 	// Displace the radial distance - creates blobby, shifting edges
 	float noisedDist = dist + displacement * NOISE_STRENGTH;
 
+	// Outer edge mask - noise makes it blobby (tested before the tendril noise, which it does not need)
+	float outerEdge = 1.0 - smoothstep(0.5 - EDGE_SOFTNESS, 0.5 + EDGE_SOFTNESS, noisedDist);
+	if (outerEdge < 0.001) discard;
+
 	// Additional high-freq noise layer for energy tendrils inside the blob
 	float tendrilNoise = noise3D(noisePos * 3.5 + vec3(0.0, 0.0, time * NOISE_SPEED * 1.3));
 	float tendrils = smoothstep(0.1, 0.5, abs(tendrilNoise)) * 0.4;
-
-	// Outer edge mask - noise makes it blobby
-	float outerEdge = 1.0 - smoothstep(0.5 - EDGE_SOFTNESS, 0.5 + EDGE_SOFTNESS, noisedDist);
-	if (outerEdge < 0.001) discard;
 
 	// Trail fade: back of the blob fades out
 	float trailFade = 1.0 - smoothstep(0.0, 1.0, max(0.0, yShifted) * TRAIL_FALLOFF * 0.7);
@@ -363,98 +419,14 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
--- Shader sources: Cross billboard (90-degree rotated plasma quad)
--- Uses 'up' vector instead of 'right' so the two quads form a cross shape
--- that provides visual volume from all camera angles.
--- Reuses the same fragment shader as the main plasma pass.
---------------------------------------------------------------------------------
-local crossVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-#line 50000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-layout (location = 1) in vec4 posAndSize;
-layout (location = 2) in vec4 coreColor;
-layout (location = 3) in vec4 edgeColorAndSeed;
-layout (location = 4) in vec4 velocityAndLife;
-
-out DataVS {
-	vec2 texCoords;
-	vec4 vCoreColor;
-	vec4 vEdgeColor;
-	float noiseSeed;
-};
-
-void main()
-{
-	vec3 worldPos = posAndSize.xyz;
-	float size = posAndSize.w;
-
-	if (size <= 0.0) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		return;
-	}
-
-	vec3 velDir = velocityAndLife.xyz;
-
-	// Second perpendicular axis: cross(axis1, velDir) where axis1 = cross(velDir, worldUp).
-	// Together with the main pass (which uses axis1) this forms a stable cross.
-	vec3 axis1 = cross(velDir, vec3(0.0, 1.0, 0.0));
-	float axis1Len = length(axis1);
-	if (axis1Len < 0.001) {
-		axis1 = normalize(cross(velDir, vec3(1.0, 0.0, 0.0)));
-	} else {
-		axis1 = axis1 / axis1Len;
-	}
-	vec3 axis2 = cross(axis1, velDir);
-
-	float speed = velocityAndLife.w;
-	float speedFrac = clamp(speed / float(ELONGATION_SPEED_REF), 0.0, 1.0);
-	float elongation = mix(float(ELONGATION_MIN), float(ELONGATION_MAX), speedFrac);
-	float halfWidth  = size;
-	float halfLength = size * elongation;
-	float paddedHalfLength = halfLength * (1.0 + abs(TRAIL_SHIFT));
-
-	vec3 vertexWorld = worldPos
-		+ axis2  * position_xy_uv.x * halfWidth
-		+ velDir * position_xy_uv.y * paddedHalfLength;
-
-	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
-
-	texCoords = position_xy_uv.zw;
-	vCoreColor = coreColor;
-	vEdgeColor = edgeColorAndSeed;
-	noiseSeed = edgeColorAndSeed.a;
-}
-]]
-
---------------------------------------------------------------------------------
 -- Shader sources: Cross-section (camera-facing circular billboard)
 -- Visible when looking along the velocity direction (head-on).
 -- Fades out when viewed from the side so it doesn't double-up with the
 -- main elongated quads.
 --------------------------------------------------------------------------------
-local crossSectionVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local crossSectionVsSrc = vsHead
+	.. [[
 #line 60000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-layout (location = 1) in vec4 posAndSize;
-layout (location = 2) in vec4 coreColor;
-layout (location = 3) in vec4 edgeColorAndSeed;
-layout (location = 4) in vec4 velocityAndLife;
 
 out DataVS {
 	vec2 texCoords;
@@ -462,11 +434,11 @@ out DataVS {
 	vec4 vEdgeColor;
 	float noiseSeed;
 	float headOnFactor;
+	flat vec2 swirlCosSin;
 };
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
 	float size = posAndSize.w;
 
 	if (size <= 0.0) {
@@ -474,7 +446,9 @@ void main()
 		return;
 	}
 
-	vec3 velDir = velocityAndLife.xyz;
+	vec3 worldPos, velDir;
+	float speed;
+	plasmaMotion(worldPos, velDir, speed);
 
 	// How head-on is the camera view? (1 = looking along velocity, 0 = side view)
 	vec3 camPos = cameraViewInv[3].xyz;
@@ -492,16 +466,19 @@ void main()
 	vec3 camUp    = cameraViewInv[1].xyz;
 
 	vec3 vertexWorld = worldPos
-		+ camRight * position_xy_uv.x * size
-		+ camUp    * position_xy_uv.y * size;
+		+ camRight * quadVertex.x * size
+		+ camUp    * quadVertex.y * size;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
-	texCoords = position_xy_uv.zw;
+	texCoords = quadVertex.xy * 0.5 + 0.5;
 	vCoreColor = coreColor;
 	vEdgeColor = edgeColorAndSeed;
 	noiseSeed = edgeColorAndSeed.a;
 	headOnFactor = smoothstep(0.3, 0.7, headOn);
+
+	float swirlAngle = timeInfo.z * SWIRL_SPEED + noiseSeed * 6.28;
+	swirlCosSin = vec2(cos(swirlAngle), sin(swirlAngle));
 }
 ]]
 
@@ -520,6 +497,7 @@ in DataVS {
 	vec4 vEdgeColor;
 	float noiseSeed;
 	float headOnFactor;
+	flat vec2 swirlCosSin;
 };
 
 out vec4 fragColor;
@@ -556,10 +534,9 @@ void main(void)
 	float time = timeInfo.z;
 	float seed = noiseSeed;
 
-	// Swirling noise for blobby circular shape
-	float swirlAngle = time * SWIRL_SPEED + seed * 6.28;
-	float cosA = cos(swirlAngle);
-	float sinA = sin(swirlAngle);
+	// Swirling noise for blobby circular shape (angle per instance, from the VS)
+	float cosA = swirlCosSin.x;
+	float sinA = swirlCosSin.y;
 	vec2 swirled = vec2(
 		centered.x * cosA - centered.y * sinA,
 		centered.x * sinA + centered.y * cosA
@@ -594,21 +571,9 @@ void main(void)
 -- Reads the same VBO as the plasma shader. Uses posAndSize for position,
 -- edgeColorAndSeed.rgb for tint color. Creates a camera-facing billboard.
 --------------------------------------------------------------------------------
-local glowVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local glowVsSrc = vsHead
+	.. [[
 #line 30000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-// Per-instance (shared layout with plasma VBO)
-layout (location = 1) in vec4 posAndSize;       // xyz = world pos, w = cross-section size
-layout (location = 3) in vec4 edgeColorAndSeed; // rgb = edge color
-layout (location = 4) in vec4 velocityAndLife;  // xyz = velocity dir (normalized)
 
 out DataVS {
 	vec2 texCoords;
@@ -617,7 +582,6 @@ out DataVS {
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
 	float size = posAndSize.w;
 
 	if (size <= 0.0) {
@@ -625,10 +589,12 @@ void main()
 		return;
 	}
 
+	vec3 worldPos, velDir;
+	float speed;
+	plasmaMotion(worldPos, velDir, speed);
+
 	// Offset glow center to match the visual bright center of the plasma shape,
 	// which is shifted backward along velocity by TRAIL_SHIFT in UV space.
-	vec3 velDir = velocityAndLife.xyz;
-	float speed = velocityAndLife.w;
 	float speedFrac = clamp(speed / float(ELONGATION_SPEED_REF), 0.0, 1.0);
 	float elongation = mix(float(ELONGATION_MIN), float(ELONGATION_MAX), speedFrac);
 	vec3 glowCenter = worldPos - velDir * (size * elongation * float(TRAIL_SHIFT));
@@ -640,11 +606,11 @@ void main()
 	vec3 camUp    = cameraViewInv[1].xyz;
 
 	vec3 vertexWorld = glowCenter
-		+ camRight * position_xy_uv.x * glowSize
-		+ camUp    * position_xy_uv.y * glowSize;
+		+ camRight * quadVertex.x * glowSize
+		+ camUp    * quadVertex.y * glowSize;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
-	texCoords = position_xy_uv.zw;
+	texCoords = quadVertex.xy * 0.5 + 0.5;
 	float glowBright = GLOW_BRIGHTNESS * clamp(size / GLOW_REF_SIZE, 0.0, 1.0);
 	glowColor = edgeColorAndSeed.rgb * glowBright;
 }
@@ -683,24 +649,31 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local plasmaVBO
-local plasmaShader
-local crossShader        -- 90-degree rotated copy for volume from all angles
+---@type VAO
+local plasmaVAO
+local plasmaShader -- both crossed velocity-aligned planes
 local crossSectionShader -- camera-facing circular billboard for head-on view
 local glowShader
 
-local idleSkipCounter = 0
+-- Instances are rebuilt once per sim frame; the vertex shaders move them between sim frames
+local builtFrame = -1
+local needsRebuild = true
+local slotConfig = {} -- per instance slot: the config whose constant attributes it holds
 
 -- Paused-state camera tracking: while paused, projectiles are frozen so the
--- only thing that can change the rendered output is the camera moving.
-local lastUpdateWasPaused = false
+-- only thing that can change the drawn set is the camera moving.
+local wasPaused = false
 local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
 local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
 local pausedLastRebuildTimer = nil
 local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
-local cachedAllyTeamID = spGetMyAllyTeamID()
-local cachedSpecFullView = false
+local myAllyTeamID = spGetMyAllyTeamID()
+local specFullView = false
+local alliedTeams = {} -- teamID -> true for the teams of myAllyTeamID
 
 local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
@@ -711,7 +684,7 @@ local function initGL4()
 		vsSrc = plasmaVsSrc,
 		fsSrc = plasmaFsSrc,
 		shaderName = "PlasmaCannonGL4",
-		uniformInt = { plasmaTex = 0 },
+		uniformInt = {},
 		uniformFloat = {},
 		shaderConfig = shaderConfig,
 		forceupdate = true,
@@ -719,22 +692,6 @@ local function initGL4()
 	plasmaShader = LuaShader.CheckShaderUpdates(plasmaShaderCache)
 	if not plasmaShader then
 		goodbye("Failed to compile plasma shader")
-		return false
-	end
-
-	-- Cross shader (90-degree rotated plasma quad, same FS)
-	local crossShaderCache = {
-		vsSrc = crossVsSrc,
-		fsSrc = plasmaFsSrc,
-		shaderName = "PlasmaCannonCrossGL4",
-		uniformInt = { plasmaTex = 0 },
-		uniformFloat = {},
-		shaderConfig = shaderConfig,
-		forceupdate = true,
-	}
-	crossShader = LuaShader.CheckShaderUpdates(crossShaderCache)
-	if not crossShader then
-		goodbye("Failed to compile cross shader")
 		return false
 	end
 
@@ -787,39 +744,49 @@ local function initGL4()
 		return false
 	end
 
-	-- Shared quad VBOs
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"plasmaQuadVBO"
-	)
-	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("plasmaIndexVBO")
+	-- Two crossed quads of 6 vertices (xy = corner, z = plane); the billboard passes draw the first
+	local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not quadVBO then
+		goodbye("Failed to create quad VBO")
+		return false
+	end
+	local corners = { -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1 }
+	local quadVertices = {}
+	for plane = 0, 1 do
+		for i = 1, #corners, 2 do
+			local n = #quadVertices
+			quadVertices[n + 1] = corners[i]
+			quadVertices[n + 2] = corners[i + 1]
+			quadVertices[n + 3] = plane
+			quadVertices[n + 4] = 0
+		end
+	end
+	quadVBO:Define(12, { { id = 0, name = "quadVertex", size = 4 } })
+	quadVBO:Upload(quadVertices)
 
 	-- Instance VBO layout: 4 vec4s = stride 16
 	local plasmaLayout = {
-		{id = 1, name = 'posAndSize',       size = 4},  -- xyz = pos, w = size
-		{id = 2, name = 'coreColor',        size = 4},  -- rgb = core, a = alpha
-		{id = 3, name = 'edgeColorAndSeed', size = 4},  -- rgb = edge, a = noise seed
-		{id = 4, name = 'velocityAndLife',  size = 4},  -- xyz = velDir (normalized), w = speed
+		{ id = 1, name = "posAndSize", size = 4 }, -- xyz = sim frame pos, w = size
+		{ id = 2, name = "coreColor", size = 4 }, -- rgb = core, a = alpha
+		{ id = 3, name = "edgeColorAndSeed", size = 4 }, -- rgb = edge, a = noise seed
+		{ id = 4, name = "velocity", size = 4 }, -- xyz = velocity (elmos/frame), w = unused
 	}
 	plasmaVBO = gl.InstanceVBOTable.makeInstanceVBOTable(plasmaLayout, INITIAL_VBO_SIZE, "plasmaCannonVBO")
 	if not plasmaVBO then
 		goodbye("Failed to create plasma VBO")
 		return false
 	end
-	plasmaVBO.numVertices = numVertices
-	plasmaVBO.vertexVBO = quadVBO
-	plasmaVBO.VAO = plasmaVBO:makeVAOandAttach(quadVBO, plasmaVBO.instanceVBO)
-	plasmaVBO.primitiveType = GL.TRIANGLES
-	plasmaVBO.VAO:AttachIndexBuffer(indexVBO)
-	plasmaVBO.indexVBO = indexVBO
+	plasmaVAO = plasmaVBO:makeVAOandAttach(quadVBO, plasmaVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(plasmaVAO, false, true)
 
 	return true
 end
 
 local function resizePlasmaVBO(needed)
 	local newMax = plasmaVBO.maxElements
-	while newMax < needed do newMax = newMax * 2 end
+	while newMax < needed do
+		newMax = newMax * 2
+	end
 	plasmaVBO.maxElements = newMax
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	newInstanceVBO:Define(newMax, plasmaVBO.layout)
@@ -827,49 +794,50 @@ local function resizePlasmaVBO(needed)
 	plasmaVBO.instanceVBO = newInstanceVBO
 	local data = plasmaVBO.instanceData
 	local step = plasmaVBO.instanceStep
-	for i = #data + 1, step * newMax do data[i] = 0 end
-	plasmaVBO.VAO:Delete()
-	plasmaVBO.VAO = plasmaVBO:makeVAOandAttach(plasmaVBO.vertexVBO, plasmaVBO.instanceVBO)
-	plasmaVBO.VAO:AttachIndexBuffer(plasmaVBO.indexVBO)
+	for i = #data + 1, step * newMax do
+		data[i] = 0
+	end
+	plasmaVAO:Delete()
+	plasmaVAO = plasmaVBO:makeVAOandAttach(plasmaVBO.vertexVBO, plasmaVBO.instanceVBO)
+	gl.InstanceVBOTable.fillVAOSlots(plasmaVAO, false, true)
 end
 
 local function cleanupGL4()
-	if plasmaVBO then plasmaVBO:Delete(); plasmaVBO = nil end
+	if plasmaVBO then
+		plasmaVBO:Delete()
+		plasmaVBO = nil
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
 local function drawAll()
-	if plasmaVBO.usedElements == 0 then return end
+	local count = plasmaVBO.usedElements
+	if count == 0 then
+		return
+	end
+	local vao = plasmaVAO
 
 	glDepthTest(true)
 	glDepthMask(false)
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
-	-- Plasma pass
-	glTexture(0, plasmaTexture)
+	-- Plasma pass: both crossed planes
 	plasmaShader:Activate()
-	plasmaVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 12, 0, count)
 	plasmaShader:Deactivate()
-
-	-- Cross pass (90-degree rotated plasma quad for volume from all angles)
-	crossShader:Activate()
-	plasmaVBO:Draw()
-	crossShader:Deactivate()
-
-	glTexture(0, false)
 
 	-- Cross-section pass (camera-facing circular blob for head-on view)
 	crossSectionShader:Activate()
-	plasmaVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 6, 0, count)
 	crossSectionShader:Deactivate()
 
 	-- Glow pass (same VBO, glow shader reads posAndSize + edgeColor)
 	glTexture(0, glowTexture)
 	glowShader:Activate()
-	plasmaVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 6, 0, count)
 	glowShader:Deactivate()
 	glTexture(0, false)
 
@@ -879,46 +847,9 @@ local function drawAll()
 end
 
 --------------------------------------------------------------------------------
--- Per-frame scan + VBO upload
+-- Per-sim-frame scan + VBO upload
 --------------------------------------------------------------------------------
-local mathRandom = math.random
-local lastCleanupFrame = 0
-
-local function updateProjectiles()
-	-- While paused, skip the full scan + VBO upload when the camera hasn't
-	-- moved since the last paused rebuild (uncapped paused FPS otherwise makes
-	-- this a large cost). Camera move forces a fresh rebuild so projectiles
-	-- panned back on-screen reappear.
-	local _, _, isPaused = Spring.GetGameSpeed()
-	local usePausedCache = isPaused and lastUpdateWasPaused
-	lastUpdateWasPaused = isPaused
-	if usePausedCache then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		local dx, dy, dz = Spring.GetCameraDirection()
-		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
-			and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
-			return
-		end
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
-			return
-		end
-		pausedLastRebuildTimer = now
-		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
-		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
-	elseif isPaused then
-		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
-		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
-		pausedLastRebuildTimer = nil
-	end
-
-	if idleSkipCounter > 0 then
-		idleSkipCounter = idleSkipCounter - 1
-		return
-	end
-
-	plasmaVBO.usedElements = 0
-
+local function rebuildInstances()
 	-- Pull the pre-filtered plasma projectile list from the shared dispatcher.
 	-- When the dispatcher is loaded it has already called GetProjectileDefID
 	-- once per projectile (shared with every other gfx_*_gl4 consumer) and
@@ -935,19 +866,14 @@ local function updateProjectiles()
 		projectiles = spGetVisibleProjectiles(-1, false, true, false)
 		nProj = projectiles and #projectiles or 0
 	end
-	if not projectiles or nProj == 0 then
-		idleSkipCounter = IDLE_SKIP_FRAMES
-		projectileSeeds = {}
-		return
-	end
 
-	local ftoAdj = spGetFrameTimeOffset() - 1.0
 	local data = plasmaVBO.instanceData
 	local count = 0
-	local myAllyTeam = cachedAllyTeamID
-	local needLosCheck = not cachedSpecFullView
-	local seeds = projectileSeeds
+	local myAllyTeam = myAllyTeamID
+	local allied = alliedTeams
+	local needLosCheck = not specFullView
 	local configs = weaponConfigs
+	local slots = slotConfig
 
 	for i = 1, nProj do
 		local proID = projectiles[i]
@@ -961,57 +887,35 @@ local function updateProjectiles()
 		end
 		if cfg then
 			local px, py, pz = spGetProjectilePosition(proID)
-			if px then
-				-- LOS check: own allyteam always visible
-				if needLosCheck then
-					local proTeam = spGetProjectileTeamID(proID)
-					local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-					if proAlly ~= myAllyTeam and not spIsPosInAirLos(px, 0, pz, myAllyTeam) then
-						cfg = nil  -- reuse variable to skip without deep nesting
-					end
-				end
-				if cfg then
-					local vx, vy, vz = spGetProjectileVelocity(proID)
-					if vx then
-						local speed = mathSqrt(vx*vx + vy*vy + vz*vz)
-						local dirX, dirY, dirZ
-						if speed > 0.001 then
-							local invSpeed = 1.0 / speed
-							dirX = vx * invSpeed
-							dirY = vy * invSpeed
-							dirZ = vz * invSpeed
-							px = px + vx * ftoAdj
-							py = py + vy * ftoAdj
-							pz = pz + vz * ftoAdj
-						else
-							dirX, dirY, dirZ = 0, 1, 0
-						end
-
-						local seed = seeds[proID]
-						if not seed then
-							seed = mathRandom()
-							seeds[proID] = seed
-						end
-
-						count = count + 1
-						local offset = (count - 1) * 16
-						data[offset + 1]  = px
-						data[offset + 2]  = py
-						data[offset + 3]  = pz
-						data[offset + 4]  = cfg.size
-						data[offset + 5]  = cfg.coreR
-						data[offset + 6]  = cfg.coreG
-						data[offset + 7]  = cfg.coreB
-						data[offset + 8]  = 1.0
-						data[offset + 9]  = cfg.colorR
+			local visible = px ~= nil
+			-- LOS check: own allyteam always visible
+			if visible and needLosCheck and not allied[spGetProjectileTeamID(proID)] then
+				visible = spIsPosInAirLos(px, 0, pz, myAllyTeam)
+			end
+			if visible then
+				local vx, vy, vz = spGetProjectileVelocity(proID)
+				if vx then
+					count = count + 1
+					local offset = (count - 1) * 16
+					data[offset + 1] = px
+					data[offset + 2] = py
+					data[offset + 3] = pz
+					if slots[count] ~= cfg then
+						slots[count] = cfg
+						data[offset + 4] = cfg.size
+						data[offset + 5] = cfg.coreR
+						data[offset + 6] = cfg.coreG
+						data[offset + 7] = cfg.coreB
+						data[offset + 8] = 1.0
+						data[offset + 9] = cfg.colorR
 						data[offset + 10] = cfg.colorG
 						data[offset + 11] = cfg.colorB
-						data[offset + 12] = seed
-						data[offset + 13] = dirX
-						data[offset + 14] = dirY
-						data[offset + 15] = dirZ
-						data[offset + 16] = speed
+						data[offset + 16] = 0
 					end
+					data[offset + 12] = (proID * SEED_STEP) % 1
+					data[offset + 13] = vx
+					data[offset + 14] = vy
+					data[offset + 15] = vz
 				end
 			end
 		end
@@ -1019,26 +923,61 @@ local function updateProjectiles()
 
 	plasmaVBO.usedElements = count
 	if count > 0 then
-		idleSkipCounter = 0
 		if count > plasmaVBO.maxElements then
 			resizePlasmaVBO(count)
 		end
 		uploadAllElements(plasmaVBO)
-	else
-		idleSkipCounter = IDLE_SKIP_FRAMES
-		projectileSeeds = {}
 	end
+end
 
-	-- Periodic cleanup of stale seed entries (every ~2 seconds of game time)
-	local gameFrame = spGetGameFrame()
-	if gameFrame - lastCleanupFrame >= 60 then
-		lastCleanupFrame = gameFrame
-		for proID in pairs(seeds) do
-			if not configs[spGetProjectileDefID(proID)] then
-				seeds[proID] = nil
-			end
+-- While paused only the camera can change which projectiles are visible: rebuild when it
+-- moves (throttled, paused FPS is uncapped) so projectiles panned back on-screen reappear.
+local function pausedViewChanged()
+	local _, _, isPaused = spGetGameSpeed()
+	local firstPausedDraw = isPaused and not wasPaused
+	wasPaused = isPaused
+	if not isPaused then
+		return false
+	end
+	local cx, cy, cz = spGetCameraPosition()
+	local dx, dy, dz = spGetCameraDirection()
+	if firstPausedDraw then
+		pausedLastRebuildTimer = nil
+	else
+		if
+			cx == pausedCamX
+			and cy == pausedCamY
+			and cz == pausedCamZ
+			and dx == pausedCamDX
+			and dy == pausedCamDY
+			and dz == pausedCamDZ
+		then
+			return false
+		end
+		local now = spGetTimer()
+		if pausedLastRebuildTimer and spDiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return false
+		end
+		pausedLastRebuildTimer = now
+	end
+	pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+	pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
+	return true
+end
+
+local function updateLosView()
+	myAllyTeamID = spGetMyAllyTeamID()
+	local _, fullView = spGetSpectatingState()
+	specFullView = fullView
+	alliedTeams = {}
+	local teams = spGetTeamList()
+	---@cast teams -?
+	for i = 1, #teams do
+		if spGetTeamAllyTeamID(teams[i]) == myAllyTeamID then
+			alliedTeams[teams[i]] = true
 		end
 	end
+	needsRebuild = true
 end
 
 --------------------------------------------------------------------------------
@@ -1046,9 +985,15 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:Initialize()
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
+	-- PlayerChanged does not fire at game start
+	updateLosView()
 	local n = 0
-	for _ in pairs(weaponConfigs) do n = n + 1 end
+	for _ in pairs(weaponConfigs) do
+		n = n + 1
+	end
 
 	-- Subscribe to the shared projectile dispatcher so we share the per-frame
 	-- GetVisibleProjectiles + GetProjectileDefID scan with the other gfx_*_gl4
@@ -1056,7 +1001,9 @@ function gadget:Initialize()
 	local PS = GG.ProjectileScan
 	if PS then
 		local defIDSet = {}
-		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		for wDefID in pairs(weaponConfigs) do
+			defIDSet[wDefID] = true
+		end
 		dispatchHandle = PS.Subscribe("plasma_cannon", defIDSet, PS.SCAN_VISIBLE)
 	end
 
@@ -1068,12 +1015,15 @@ function gadget:Shutdown()
 end
 
 function gadget:PlayerChanged()
-	cachedAllyTeamID = spGetMyAllyTeamID()
-	local _, fullView = spGetSpectatingState()
-	cachedSpecFullView = fullView
+	updateLosView()
 end
 
 function gadget:DrawWorld()
-	updateProjectiles()
+	local gameFrame = spGetGameFrame()
+	if pausedViewChanged() or gameFrame ~= builtFrame or needsRebuild then
+		builtFrame = gameFrame
+		needsRebuild = false
+		rebuildInstances()
+	end
 	drawAll()
 end

@@ -1,6 +1,5 @@
 return {
 	legkam = {
-		acceleration = 0.3,
 		blocking = false,
 		maxdec = 0.1,
 		energycost = 2000,
@@ -38,11 +37,12 @@ return {
 		speedtofront = 0.06183,
 		turnradius = 48,
 		turnrate = 750,
-		usesmoothmesh = true,
+		usesmoothmesh = false,
 		wingangle = 0.06296,
 		wingdrag = 0.06,
 		customparams = {
-			unitgroup = 'weapon',
+			attacksafetydistance = 2000,
+			unitgroup = "weapon",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
@@ -51,7 +51,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:genericunitexplosion-large",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -75,25 +76,29 @@ return {
 		},
 		weapondefs = {
 			trigger = {
-				areaofeffect = 0,
+				areaofeffect = 4,
 				avoidfeature = false,
-				burst = 3,
-				burstrate = 0.5,
+				burstrate = 0.1,
 				collidefriendly = 0,
 				commandfire = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
+				firetolerance = 50,
 				impulsefactor = 0,
-				model = "legnade.s3o",
-				mygravity = 0.23,
 				name = "Martyr trigger",
-				range = 1280,
+				predictboost = 1.0,
+				range = 500,
 				reloadtime = 10,
-				weapontype = "AircraftBomb",
+				turret = true,
+				weapontype = "LaserCannon",
+				weaponvelocity = 236,
 				customparams = {
 					bogus = 1,
+					release_gravity = 0.2,
+					release_pitch_tolerance = 0.5,
+					release_heading_tolerance = 18,
 				},
 				damage = {
 					default = 1,
@@ -160,8 +165,8 @@ return {
 		weapons = {
 			[1] = {
 				def = "TRIGGER",
-				maindir = "0 -1 1",
-				maxangledif = 150,
+				maindir = "0 -0.392 1",
+				maxangledif = 40,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {

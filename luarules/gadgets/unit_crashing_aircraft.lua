@@ -2,21 +2,19 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Crashing Aircraft",
-		desc      = "Make aircraft crashing down instead of just exploding",
-		author    = "Beherith",
-		date      = "aug 2012",
-		license   = "GNU GPL, v2 or later",
-		layer     = 1000,
-		enabled   = true,
+		name = "Crashing Aircraft",
+		desc = "Make aircraft crashing down instead of just exploding",
+		author = "Beherith",
+		date = "aug 2012",
+		license = "GNU GPL, v2 or later",
+		layer = 1000,
+		enabled = true,
 	}
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local gravityMult = 1.7
 
-	local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 	local SetUnitWeaponState = Spring.SetUnitWeaponState
 	local GetUnitHealth = Spring.GetUnitHealth
 	local GetGameFrame = Spring.GetGameFrame
@@ -31,25 +29,27 @@ if gadgetHandler:IsSyncedCode() then
 	local SetUnitNoSelect = Spring.SetUnitNoSelect
 	local SetUnitNoMinimap = Spring.SetUnitNoMinimap
 	local SetUnitIconDraw = Spring.SetUnitIconDraw
-	local SetUnitStealth = Spring.SetUnitStealth
 	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
 	local SetUnitNeutral = Spring.SetUnitNeutral
 	local SetUnitBlocking = Spring.SetUnitBlocking
 	local SetUnitCrashing = Spring.SetUnitCrashing
 
 	local COB_CRASHING = COB.CRASHING
-	local COM_BLAST = WeaponDefNames['commanderexplosion'].id	-- used to prevent them being boosted and flying far away
+	local COM_BLAST = WeaponDefNames.commanderexplosion.id -- used to prevent them being boosted and flying far away
 	local CMD_STOP = CMD.STOP
 
-	local crashing = {}
-	GG.Crashing = crashing  -- read-only reference for other gadgets
-	local crashingCount = 0
+	local ATTRIBUTE_SOURCE = "crashing"
+	local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
+
+	-- Shared membership; values are destruction deadlines, not booleans.
+	-- Consumers can acquire this table before the controller loads.
+	local crashing = table.ensureTable(GG, "Crashing")
 
 	local isAircon = {}
-	local crashable  = {}
+	local crashable = {}
 	local unitWeaponCount = {}
-	for udid,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true and (not UnitDef.customParams.crashable or UnitDef.customParams.crashable ~= '0') then
+	for udid, UnitDef in pairs(UnitDefs) do
+		if UnitDef.canFly == true and (not UnitDef.customParams.crashable or UnitDef.customParams.crashable ~= "0") then
 			crashable[UnitDef.id] = true
 			if UnitDef.buildSpeed > 1 then
 				isAircon[udid] = true
@@ -61,47 +61,63 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if paralyzer then return damage,1 end
+	local function hideFromSensors(unitID)
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+			setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
+		end
+	end
+
+	function gadget:UnitPreDamaged(
+		unitID,
+		unitDefID,
+		unitTeam,
+		damage,
+		paralyzer,
+		weaponDefID,
+		projectileID,
+		attackerID,
+		attackerDefID,
+		attackerTeam
+	)
+		if paralyzer then
+			return damage, 1
+		end
 		if crashing[unitID] then
-			return 0,0
+			return 0, 0
 		end
 
 		if crashable[unitDefID] and (damage > GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 			-- increase gravity so it crashes faster
 			local moveTypeData = GetUnitMoveTypeData(unitID)
-			if moveTypeData['myGravity'] then
-				SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * gravityMult)
+			if moveTypeData.myGravity then
+				SetAirMoveTypeData(unitID, "myGravity", moveTypeData.myGravity * gravityMult)
 			end
 			-- make it crash
-			crashingCount = crashingCount + 1
 			crashing[unitID] = GetGameFrame() + 450
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID, true)
 			SetUnitNoMinimap(unitID, true)
 			SetUnitIconDraw(unitID, false)
-			SetUnitStealth(unitID, true)
+			GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
 			SetUnitAlwaysVisible(unitID, false)
 			SetUnitNeutral(unitID, true)
 			SetUnitBlocking(unitID, false)
 			SetUnitCrashing(unitID, true)
 			local wCount = unitWeaponCount[unitDefID]
 			if wCount then
+				local setUnitWeaponAttribute = GG.UnitAttributes.SetUnitWeaponAttribute
+				setUnitWeaponAttribute(unitID, nil, "reloadTime", 9999, ATTRIBUTE_SOURCE)
+				setUnitWeaponAttribute(unitID, nil, "maxWeaponRange", 0, ATTRIBUTE_SOURCE)
 				for i = 1, wCount do
 					SetUnitWeaponState(unitID, i, "reloadState", 0)
-					SetUnitWeaponState(unitID, i, "reloadTime", 9999)
-					SetUnitWeaponState(unitID, i, "range", 0)
 					SetUnitWeaponState(unitID, i, "burst", 0)
 					SetUnitWeaponState(unitID, i, "aimReady", 0)
 					SetUnitWeaponState(unitID, i, "salvoLeft", 0)
 					SetUnitWeaponState(unitID, i, "nextSalvo", 9999)
 				end
 			end
-			-- remove sensors
-			SetUnitSensorRadius(unitID, "los", 0)
-			SetUnitSensorRadius(unitID, "airLos", 0)
-			SetUnitSensorRadius(unitID, "radar", 0)
-			SetUnitSensorRadius(unitID, "sonar", 0)
+			hideFromSensors(unitID)
 
 			-- make sure aircons stop building
 			if isAircon[unitDefID] then
@@ -115,14 +131,14 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitRulesParam(attackerID, "kills", kills + 1)
 			end
 		end
-		return damage,1
+		return damage, 1
 	end
 
 	local crashDestroyList = {}
 	local crashDestroyCount = 0
 
 	function gadget:GameFrame(gf)
-		if crashingCount > 0 and gf % 44 == 1 then
+		if gf % 44 == 1 and next(crashing) then
 			-- Collect first: DestroyUnit triggers UnitDestroyed synchronously,
 			-- which nils entries from 'crashing', invalidating the pairs() iterator
 			crashDestroyCount = 0
@@ -140,19 +156,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		if crashing[unitID] then
-			crashingCount = crashingCount - 1
-			crashing[unitID] = nil
-		end
+		crashing[unitID] = nil
 	end
-
-
-else	-- UNSYNCED
-
-
+else -- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetUnitLosState = Spring.GetUnitLosState
-	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local GetMyAllyTeamID = Spring.GetLocalAllyTeamID
 	local SetUnitNoGroup = Spring.SetUnitNoGroup
 
 	local function notifyCrashingAircraft(unitID, unitDefID, unitTeam)
@@ -186,5 +195,4 @@ else	-- UNSYNCED
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("crashingAircraft")
 	end
-
 end

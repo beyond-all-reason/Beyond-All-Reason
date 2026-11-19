@@ -6,7 +6,7 @@
 - [ ] add stippling support and circumference tags
 - [ ] dont use goddamned gl.Color to set color, use the uniform! 
 - [ ] Ensure all widgets support inboundsness
-- [ ] Ensure sonar isnt drawn below ground
+- [ ] Ensure sonar isn't drawn below ground
     - [ ] modulate opacity within vertex shader with a define 
 - Varyings - Stencil pass
     - [x] The stencil pass does not need color at all, could be completely removed

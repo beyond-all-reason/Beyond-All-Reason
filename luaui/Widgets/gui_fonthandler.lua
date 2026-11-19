@@ -2,28 +2,27 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Font handler",
-		desc      = "handles font object creation",
-		author    = "Floris",
-		date      = "June 2020",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1200001,
-		enabled   = true
+		name = "Font handler",
+		desc = "handles font object creation",
+		author = "Floris",
+		date = "June 2020",
+		license = "GNU GPL, v2 or later",
+		layer = -1200001,
+		enabled = true,
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
+local mathAbs = math.abs
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
-
-local vsx,vsy = spGetViewGeometry()
 
 local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+-- the configured ones (the settings'), for when another set of fonts is put back
+local configuredFont, configuredFont2 = defaultFont, defaultFont2
 local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local defaultSize = 34
@@ -33,61 +32,37 @@ local defaultOutlineSize -- assigned in ViewResize
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
-local fonts = {}
-local fontScale = 1
-local sceduledDeleteFonts = {}
-local sceduledDeleteFontsClock
+local rescaleTolerance = 0.05 -- fonts are remade only when the view scale moves further than this from theirs
+local mergeTolerance = 0.1 -- a request this close in size to a loaded font of the same face and outline gets that font
 
-local function createFont(file, size, outlineSize, outlineStrength)
-	local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
-	if fonts[id] ~= nil then
-		sceduledDeleteFonts[#sceduledDeleteFonts+1] = fonts[id]
-		sceduledDeleteFontsClock = os.clock() + 5
-	end
-	fonts[id] = gl.LoadFont(file, size*fontScale, outlineSize*fontScale, outlineStrength)
-end
-
-
-local sec = 0
-function widget:Update(dt)
-	-- sec = sec + dt
-	-- if sec > 4 then
-	-- 	sec = 0
-	-- 	local i = 0
-	-- 	for id,font in pairs(fonts) do
-	-- 		i = i + 1
-	-- 		if string.find(id, 'Exo') then
-	-- 			spEcho(id)
-	-- 		end
-	-- 	end
-	-- 	for id,font in pairs(fonts) do
-	-- 		if not string.find(id, 'Exo') then
-	-- 			spEcho(id)
-	-- 		end
-	-- 	end
-	-- 	spEcho(i)
-	-- end
-
-	if sceduledDeleteFontsClock and sceduledDeleteFontsClock < os.clock() then
-		for i,font in pairs(sceduledDeleteFonts) do
-			gl.DeleteFont(font)
-		end
-		sceduledDeleteFonts = {}
-		sceduledDeleteFontsClock = nil
-	end
-end
+-- the scale the loaded fonts were made at; 0 makes the first ViewResize set it
+local fontScale = 0 ---@type number
+local fonts = {} -- by request
+local loadedFonts = {} -- by face and outline: { font, size } for each size loaded
 
 function widget:Initialize()
 	if gl.AddFallbackFont then
-		gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
-		gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
+		gl.AddFallbackFont("fallbacks/NotoEmoji-VariableFont_wght.ttf")
+		gl.AddFallbackFont("fallbacks/SourceHanSans-Regular.ttc")
 	end
 
-	vsx,vsy = spGetViewGeometry()
-	widget:ViewResize(vsx, vsy, true)
+	widget:ViewResize(spGetViewGeometry())
 
-	WG['fonts'] = {}
-	WG['fonts'].getFont = function(file, size, outlineSize, outlineStrength)
+	WG.fonts = {}
+	---Fonts 1 and 2 for what asks for them from here on, in place of the configured ones for this
+	---game only (FlowUI2 sets its own while it runs, so the widgets without a FlowUI2 copy match it);
+	---nil puts the configured one back. Fonts already handed out stay as they are.
+	---@param file1 string? e.g. "fonts/Montserrat-Medium.ttf"
+	---@param file2 string?
+	WG.fonts.setDefaultFonts = function(file1, file2)
+		defaultFont = file1 or configuredFont
+		defaultFont2 = file2 or configuredFont2
+	end
+	---@return string font1, string font2 the files fonts 1 and 2 are now
+	WG.fonts.getDefaultFonts = function()
+		return defaultFont, defaultFont2
+	end
+	WG.fonts.getFont = function(file, size, outlineSize, outlineStrength)
 		if not file or file == 1 then
 			file = defaultFont
 		elseif file == 2 then
@@ -99,43 +74,45 @@ function widget:Initialize()
 		outlineSize = mathFloor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
 		outlineStrength = (outlineStrength and outlineStrength or defaultOutlineStrength)
 
-		local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
-		if fonts[id] == nil then
-			createFont(file, size, outlineSize, outlineStrength)
+		local id = file .. "_" .. size .. "_" .. outlineSize .. "_" .. outlineStrength
+		local loaded = fonts[id]
+		if loaded == nil then
+			local face = file .. "_" .. outlineSize .. "_" .. outlineStrength
+			local sameFace = loadedFonts[face]
+			if sameFace == nil then
+				sameFace = {}
+				loadedFonts[face] = sameFace
+			end
+			local closest = mergeTolerance
+			for i = 1, #sameFace do
+				local difference = mathAbs(sameFace[i].size / size - 1)
+				if difference <= closest then
+					loaded, closest = sameFace[i], difference
+				end
+			end
+			if loaded == nil then
+				local px, outlinePx = mathFloor(size * fontScale), mathFloor(outlineSize * fontScale)
+				loaded = { font = gl.LoadFont(file, px, outlinePx, outlineStrength), size = size }
+				sameFace[#sameFace + 1] = loaded
+			end
+			fonts[id] = loaded
 		end
-		return fonts[id], size*fontScale
+		return loaded.font, loaded.size * fontScale
 	end
 end
 
-function widget:ViewResize(vsx, vsy, init)
-	vsx,vsy = spGetViewGeometry()
+function widget:ViewResize(_, vsy)
 	local newFontScale = (vsy / 1080) * ui_scale
-
-	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
-	defaultOutlineSize = 0.22*(outlineMult*0.9)
-
-	if fontScale ~= newFontScale then
-		fontScale = newFontScale
-
-		for id, font in pairs(fonts) do
-			gl.DeleteFont(font)
-		end
-		fonts = {}
+	if mathAbs(newFontScale / fontScale - 1) <= rescaleTolerance then
+		return
 	end
-end
+	fontScale = newFontScale
 
-function widget:GetConfigData()
-	return {
-		fonts = fonts,
-		fontScale = fontScale
-	}
-end
+	local outlineMult = math.clamp(1 / (vsy / 1400), 1, 1.5)
+	defaultOutlineSize = 0.22 * (outlineMult * 0.9)
 
-function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 then
-		if data.fonts ~= nil then
-			fonts = data.fonts		-- not sure why BYAR.lua just shows empty table while it has the fonts when restoring o_0
-			fontScale = data.fontScale
-		end
-	end
+	-- Not gl.DeleteFont: widgets still hold these fonts until they ask again, and a deleted font
+	-- errors on use. The garbage collector frees each one once nobody holds it.
+	fonts = {}
+	loadedFonts = {}
 end

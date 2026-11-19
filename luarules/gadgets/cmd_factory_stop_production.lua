@@ -15,7 +15,6 @@ end
 local identifier = "StopProduction"
 
 if gadgetHandler:IsSyncedCode() then
-
 	local isFactory = {}
 	for udid = 1, #UnitDefs do
 		local ud = UnitDefs[udid]
@@ -26,6 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spGetRealBuildQueue = Spring.GetRealBuildQueue
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
 	local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 		while count > 0 do
 			local opts = DEQUEUE_OPTS
 			if count >= 100 then
-			count = count - 100
+				count = count - 100
 				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
 			elseif count >= 20 then
 				count = count - 20
@@ -85,9 +85,10 @@ if gadgetHandler:IsSyncedCode() then
 				total = total + count
 			end
 			local keepDefID
-			if total > 1 then
+			-- the first order is kept as it is being built: an unfinished factory builds nothing yet
+			if total > 1 and not spGetUnitIsBeingBuilt(unitID) then
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
-				local firstID = firstCommand[1]['id']
+				local firstID = firstCommand[1].id
 				if firstID < 0 then
 					keepDefID = -firstID
 				end
@@ -102,7 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
+		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't re-add it.
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
 		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
@@ -129,12 +130,12 @@ else
 
 	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
 		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
-			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, { coded = 0 })
 		end
 	end
 
 	function gadget:PlayerChanged()
-		myTeamID = Spring.GetMyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
 		isSpec = Spring.GetSpectatingState()
 	end
 

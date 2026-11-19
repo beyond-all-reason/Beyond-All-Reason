@@ -6,7 +6,9 @@
 -- Also picks up the visual chain bolts spawned by unit_lightning_splash_dmg.lua.
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -23,38 +25,39 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetProjectilePosition     = Spring.GetProjectilePosition
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity
-local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetProjectileTeamID       = Spring.GetProjectileTeamID
-local spGetTeamAllyTeamID         = Spring.GetTeamAllyTeamID
-local spIsPosInLos                = Spring.IsPosInLos
-local spIsPosInAirLos             = Spring.IsPosInAirLos
-local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
-local spGetSpectatingState        = Spring.GetSpectatingState
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetGameSpeed              = Spring.GetGameSpeed
-local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spIsPosInLos = Spring.IsPosInLos
+local spIsPosInAirLos = Spring.IsPosInAirLos
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When nil, we fall back to calling Spring.GetProjectilesInRectangle directly.
 local dispatchHandle = nil
-local spIsAABBInView              = Spring.IsAABBInView
+local spIsAABBInView = Spring.IsAABBInView
 
-local glBlending  = gl.Blending
+local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_TRIANGLES = GL.TRIANGLES
 
-local mathMin    = math.min
-local mathMax    = math.max
-local mathSqrt   = math.sqrt
-local mathFloor  = math.floor
+local mathMin = math.min
+local mathMax = math.max
+local mathSqrt = math.sqrt
+local mathFloor = math.floor
 local mathRandom = math.random
 
 local LuaShader = gl.LuaShader
@@ -62,88 +65,89 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 --------------------------------------------------------------------------------
 -- Configuration
--- Each lightning bolt is rendered as N quad-instances (one per segment) sharing
--- the same per-bolt data. Adjacent segments compute their boundary points using
--- the same deterministic hash (seed, segIndex), guaranteeing the path is
--- continuous (no gaps) while still being procedurally jagged.
+-- Each arm (main bolt or branch) is ONE instance drawn over a strip of
+-- SEGMENTS_MAX quads, one quad per segment. Adjacent segments compute their
+-- boundary points using the same deterministic hash (seed, segIndex), guaranteeing
+-- the path is continuous (no gaps) while still being procedurally jagged.
 --------------------------------------------------------------------------------
 
 -- VBO sizing
-local INITIAL_VBO_SIZE  = 256
-local IDLE_SKIP_FRAMES  = 3
+local INITIAL_VBO_SIZE = 256
 
 -- Bolt geometry
-local SEGMENTS_MIN      = 3    -- minimum segments per bolt (short close-range bolts)
-local SEGMENTS_MAX      = 10    -- maximum segments per bolt (long high-range bolts)
-local SEGMENTS_PER_ELMO = 0.04  -- segments added per elmo of bolt length
+local SEGMENTS_MIN = 3 -- minimum segments per bolt (short close-range bolts)
+local SEGMENTS_MAX = 10 -- maximum segments per bolt (long high-range bolts)
+local SEGMENTS_PER_ELMO = 0.04 -- segments added per elmo of bolt length
 
 -- Branch / fork generation (CPU side, deterministic per-bolt seed)
-local BRANCH_COUNT_MIN     = 1     -- min forks for low-damage weapons
-local BRANCH_COUNT_MAX     = 3     -- max forks for high-damage weapons
-local BRANCH_DAMAGE_REF    = 200   -- damage at which BRANCH_COUNT_MAX is reached
-local BRANCH_LENGTH_FRAC   = 0.15  -- branch length as fraction of main-bolt length
-local BRANCH_LENGTH_VAR    = 0.40  -- random variation around BRANCH_LENGTH_FRAC (0..1)
-local BRANCH_ANCHOR_MIN    = 0.20  -- earliest spawn point on main bolt (0..1)
-local BRANCH_ANCHOR_MAX    = 0.95  -- latest spawn point on main bolt (0..1)
-local BRANCH_ANGLE_SPREAD  = 0.85  -- max angular deviation from main direction (radians ~= 49deg)
-local BRANCH_WIDTH_FRAC    = 0.55  -- branch width as fraction of main width
-local BRANCH_JITTER_FRAC   = 0.65  -- branch jitter as fraction of main jitter
-local BRANCH_GLOW_FRAC     = 0.55  -- branch glow brightness fraction
-local BRANCH_SEGMENTS_FRAC = 0.55  -- branch segment count as fraction of main count
+local BRANCH_COUNT_MIN = 1 -- min forks for low-damage weapons
+local BRANCH_COUNT_MAX = 3 -- max forks for high-damage weapons
+local BRANCH_DAMAGE_REF = 200 -- damage at which BRANCH_COUNT_MAX is reached
+local BRANCH_LENGTH_FRAC = 0.15 -- branch length as fraction of main-bolt length
+local BRANCH_LENGTH_VAR = 0.40 -- random variation around BRANCH_LENGTH_FRAC (0..1)
+local BRANCH_ANCHOR_MIN = 0.20 -- earliest spawn point on main bolt (0..1)
+local BRANCH_ANCHOR_MAX = 0.95 -- latest spawn point on main bolt (0..1)
+local BRANCH_ANGLE_SPREAD = 0.85 -- max angular deviation from main direction (radians ~= 49deg)
+local BRANCH_WIDTH_FRAC = 0.55 -- branch width as fraction of main width
+local BRANCH_JITTER_FRAC = 0.65 -- branch jitter as fraction of main jitter
+local BRANCH_GLOW_FRAC = 0.55 -- branch glow brightness fraction
+local BRANCH_SEGMENTS_FRAC = 0.55 -- branch segment count as fraction of main count
 
 -- Width (base thickness for the bolt core quad)
-local WIDTH_MIN              = 0.25  -- minimum bolt width in elmos
-local WIDTH_MAX              = 1.2   -- maximum bolt width in elmos
-local WIDTH_DAMAGE_REF       = 250   -- damage at which WIDTH_MAX is reached
-local WIDTH_THICKNESS_MULT   = 0.45  -- multiplier on weapon's `thickness` to add on top
+local WIDTH_MIN = 0.25 -- minimum bolt width in elmos
+local WIDTH_MAX = 1.2 -- maximum bolt width in elmos
+local WIDTH_DAMAGE_REF = 250 -- damage at which WIDTH_MAX is reached
+local WIDTH_THICKNESS_MULT = 0.45 -- multiplier on weapon's `thickness` to add on top
 
 -- Jitter (perpendicular offset amplitude in elmos)
-local JITTER_MIN             = 2     -- baseline jitter amplitude in elmos
-local JITTER_MAX             = 6    -- maximum jitter for highest-damage weapons
-local JITTER_DAMAGE_REF      = 250   -- damage at which JITTER_MAX is reached
-local JITTER_RANGE_BONUS     = 0.012 -- extra jitter per elmo of bolt length
-local JITTER_RANGE_BONUS_MAX = 12    -- cap on the range-derived bonus
+local JITTER_MIN = 2 -- baseline jitter amplitude in elmos
+local JITTER_MAX = 6 -- maximum jitter for highest-damage weapons
+local JITTER_DAMAGE_REF = 250 -- damage at which JITTER_MAX is reached
+local JITTER_RANGE_BONUS = 0.012 -- extra jitter per elmo of bolt length
+local JITTER_RANGE_BONUS_MAX = 12 -- cap on the range-derived bonus
 
 -- Glow (wide soft halo around the bolt)
-local GLOW_WIDTH_MULT        = 13.0   -- glow quad width as multiple of bolt width (drawn along straight bolt axis)
-local GLOW_BRIGHTNESS        = 0.2  -- base additive glow brightness
-local GLOW_DAMAGE_BONUS      = 0.4  -- extra brightness scaling with damage (multiplier)
-local GLOW_FALLOFF_POWER     = 5.0   -- gaussian falloff sharpness (higher = tighter core)
+local GLOW_WIDTH_MULT = 13.0 -- glow quad width as multiple of bolt width (drawn along straight bolt axis)
+local GLOW_BRIGHTNESS = 0.2 -- base additive glow brightness
+local GLOW_DAMAGE_BONUS = 0.4 -- extra brightness scaling with damage (multiplier)
+local GLOW_FALLOFF_POWER = 5.0 -- gaussian falloff sharpness (higher = tighter core)
 
 -- Core brightness / color mixing
-local CORE_COLOR_ADD         = 0.4   -- added to weapon RGB to create the bright core color (clamped)
-local CORE_BRIGHTNESS        = 2.3  -- extra brightness multiplier for hot core pixels
-local BRIGHTNESS_MULT        = 2.5   -- overall bolt brightness multiplier
-local CORE_EDGE_START        = 0.03  -- |x| where core->edge color mix begins
-local CORE_EDGE_END          = 0.3  -- |x| where mix is fully edge color
-local MIN_PIXEL_WIDTH        = 0.0018 -- minimum bolt screen width (anti-aliasing at distance)
-local GLOW_MIN_PIXEL_WIDTH   = 0.005  -- minimum glow halo screen width (keeps glow visible far away)
+local CORE_COLOR_ADD = 0.4 -- added to weapon RGB to create the bright core color (clamped)
+local CORE_BRIGHTNESS = 2.3 -- extra brightness multiplier for hot core pixels
+local BRIGHTNESS_MULT = 2.5 -- overall bolt brightness multiplier
+local CORE_EDGE_START = 0.03 -- |x| where core->edge color mix begins
+local CORE_EDGE_END = 0.3 -- |x| where mix is fully edge color
+local MIN_PIXEL_WIDTH = 0.0018 -- minimum bolt screen width (anti-aliasing at distance)
+local GLOW_MIN_PIXEL_WIDTH = 0.005 -- minimum glow halo screen width (keeps glow visible far away)
 
 -- Lifetime / fading
-local BOLT_LIFE_FRAMES       = 3     -- total render-frame lifetime per bolt (including ghosts)
-local FADE_IN_END            = 0.15  -- lifeFrac where width/alpha fade-in completes
-local FADE_OUT_START         = 0.5  -- lifeFrac where fade-out begins
-local FLICKER_AMPLITUDE      = 0.45  -- per-frame brightness flicker amplitude (0..1)
-local THICKNESS_VARIATION    = 0.7  -- per-segment random thickness variation (0..1)
-local SEGMENT_LENGTH_VAR     = 0.75  -- per-segment length variation (0..1, fraction of base segment length)
-local JITTER_MAX_BOLT_FRAC   = 0.07  -- cap jitter amplitude to this fraction of bolt length (keeps silhouette consistent at any zoom)
-local BRUSH_MAX_JITTER_FRAC  = 0.5   -- cap brush width to this fraction of jitter amplitude (prevents fat-brush chunky saw at distance)
+local BOLT_LIFE_FRAMES = 3 -- total render-frame lifetime per bolt (including ghosts)
+local FADE_IN_END = 0.15 -- lifeFrac where width/alpha fade-in completes
+local FADE_OUT_START = 0.5 -- lifeFrac where fade-out begins
+local FLICKER_AMPLITUDE = 0.45 -- per-frame brightness flicker amplitude (0..1)
+local THICKNESS_VARIATION = 0.7 -- per-segment random thickness variation (0..1)
+local SEGMENT_LENGTH_VAR = 0.75 -- per-segment length variation (0..1, fraction of base segment length)
+local JITTER_MAX_BOLT_FRAC = 0.07 -- cap jitter amplitude to this fraction of bolt length (keeps silhouette consistent at any zoom)
+local BRUSH_MAX_JITTER_FRAC = 0.5 -- cap brush width to this fraction of jitter amplitude (prevents fat-brush chunky saw at distance)
 
 -- Endpoint impact spark (additive billboard at the bolt's far endpoint)
-local IMPACT_SIZE_MIN        = 5     -- spark billboard min size in elmos
-local IMPACT_SIZE_MAX        = 18    -- spark billboard max size in elmos
+local IMPACT_SIZE_MIN = 5 -- spark billboard min size in elmos
+local IMPACT_SIZE_MAX = 18 -- spark billboard max size in elmos
 local IMPACT_SIZE_DAMAGE_REF = 250
-local IMPACT_BRIGHTNESS      = 1.5   -- additive brightness of impact billboard
+local IMPACT_BRIGHTNESS = 1.5 -- additive brightness of impact billboard
 
 -- LOS
-local USE_AIR_LOS            = true  -- if true, use air-LOS (less restrictive)
-local spLosCheck             = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
+local USE_AIR_LOS = true -- if true, use air-LOS (less restrictive)
+local spLosCheck = USE_AIR_LOS and spIsPosInAirLos or spIsPosInLos
 
 -- Textures
 local impactTexture = "bitmaps/projectiletextures/flare2.tga"
 
 -- Per-weapon segment cap (must not exceed SEGMENTS_MAX)
-if SEGMENTS_MAX > 64 then SEGMENTS_MAX = 64 end
+if SEGMENTS_MAX > 64 then
+	SEGMENTS_MAX = 64
+end
 
 --------------------------------------------------------------------------------
 -- Per-weapon configuration table
@@ -162,12 +166,18 @@ if SEGMENTS_MAX > 64 then SEGMENTS_MAX = 64 end
 --------------------------------------------------------------------------------
 local weaponConfigs = {}
 
-local function clamp(v, lo, hi) return v < lo and lo or (v > hi and hi or v) end
+local function clamp(v, lo, hi)
+	return v < lo and lo or (v > hi and hi or v)
+end
 
 local function buildWeaponConfig(weaponID, weaponDef)
-	if weaponDef.type ~= "LightningCannon" then return end
+	if weaponDef.type ~= "LightningCannon" then
+		return
+	end
 	local cp = weaponDef.customParams or {}
-	if cp.lightning_no_render == "1" or cp.bogus then return end
+	if cp.lightning_no_render == "1" or cp.bogus then
+		return
+	end
 
 	-- Visual params (read originals stashed by alldefs_post; fall back to live values)
 	local vis = weaponDef.visuals or {}
@@ -180,8 +190,8 @@ local function buildWeaponConfig(weaponID, weaponDef)
 	local coreB = tonumber(cp.lightning_core_color_b) or mathMin(1, b + CORE_COLOR_ADD)
 
 	local origThickness = tonumber(cp.lightning_thickness_orig) or weaponDef.thickness or 1.5
-	local damage        = (weaponDef.damages and tonumber(weaponDef.damages[0])) or 30
-	local range         = weaponDef.range or 300
+	local damage = (weaponDef.damages and tonumber(weaponDef.damages[0])) or 30
+	local range = weaponDef.range or 300
 
 	-- Normalized damage / range factors (0..1, capped)
 	local damageNorm = clamp(damage / WIDTH_DAMAGE_REF, 0, 1)
@@ -191,8 +201,8 @@ local function buildWeaponConfig(weaponID, weaponDef)
 
 	-- Width: damage-scaled base + thickness contribution, all user-multipliable
 	local widthMult = tonumber(cp.lightning_thickness) or 1.0
-	local baseWidth = (WIDTH_MIN + (WIDTH_MAX - WIDTH_MIN) * damageNorm
-		+ origThickness * WIDTH_THICKNESS_MULT) * widthMult
+	local baseWidth = (WIDTH_MIN + (WIDTH_MAX - WIDTH_MIN) * damageNorm + origThickness * WIDTH_THICKNESS_MULT)
+		* widthMult
 
 	-- Jitter: damage-scaled, with range bonus, user-multipliable
 	local jitterMult = tonumber(cp.lightning_jitter) or 1.0
@@ -230,24 +240,29 @@ local function buildWeaponConfig(weaponID, weaponDef)
 	local aabbPad = baseWidth * GLOW_WIDTH_MULT + jitterAmp + impactSize
 
 	weaponConfigs[weaponID] = {
-		r = r, g = g, b = b,
-		coreR = coreR, coreG = coreG, coreB = coreB,
-		baseWidth         = baseWidth,
-		jitterAmp         = jitterAmp,
-		glowBrightness    = glowBrightness,
-		branchCount       = branchCount,
-		branchLengthFrac  = branchLengthFrac,
+		r = r,
+		g = g,
+		b = b,
+		coreR = coreR,
+		coreG = coreG,
+		coreB = coreB,
+		baseWidth = baseWidth,
+		jitterAmp = jitterAmp,
+		glowBrightness = glowBrightness,
+		branchCount = branchCount,
+		armCount = 1 + branchCount,
+		branchLengthFrac = branchLengthFrac,
 		branchAngleSpread = branchAngleSpread,
-		segments          = segments,
-		branchSegments    = branchSegments,
-		branchWidth       = baseWidth * BRANCH_WIDTH_FRAC,
-		branchJitter      = jitterAmp * BRANCH_JITTER_FRAC,
-		branchGlow        = glowBrightness * BRANCH_GLOW_FRAC,
-		impactSize        = impactSize,
-		damage            = damage,
-		range             = range,
-		invRangeSq        = 1.0 / mathMax(range * range, 1),
-		aabbPad           = aabbPad,
+		segments = segments,
+		branchSegments = branchSegments,
+		branchWidth = baseWidth * BRANCH_WIDTH_FRAC,
+		branchJitter = jitterAmp * BRANCH_JITTER_FRAC,
+		branchGlow = glowBrightness * BRANCH_GLOW_FRAC,
+		impactSize = impactSize,
+		damage = damage,
+		range = range,
+		invRangeSq = 1.0 / mathMax(range * range, 1),
+		aabbPad = aabbPad,
 	}
 end
 
@@ -257,9 +272,14 @@ end
 
 -- Bail out early if there are no LightningCannon weapons
 local hasConfigs = false
-for _ in pairs(weaponConfigs) do hasConfigs = true; break end
+for _ in pairs(weaponConfigs) do
+	hasConfigs = true
+	break
+end
 if not hasConfigs then
-	function gadget:Initialize() gadgetHandler:RemoveGadget() end
+	function gadget:Initialize()
+		gadgetHandler:RemoveGadget()
+	end
 	return
 end
 
@@ -269,25 +289,27 @@ end
 -- consistent across the few frames it remains on screen. Tracked by proID;
 -- ghost rendering continues for BOLT_LIFE_FRAMES after the projectile is gone.
 --------------------------------------------------------------------------------
-local tracked       = {}      -- proID -> { cfg, px,py,pz, ex,ey,ez, seed, firstSeen, lastSeenFrame, ownerAllyTeam }
-local liveSet       = {}      -- proID -> true (reused; cleared each frame)
-local liveList      = {}
-local removeList    = {}
-local hasTracked    = false
+local tracked = {} -- proID -> { cfg, px,py,pz, ex,ey,ez, seed, firstSeen, lastSeenFrame, ownerAllyTeam }
+-- Recs seen within the last BOLT_LIFE_FRAMES frames, the only ghost candidates
+local recent = {}
+local nRecent = 0
+local removeList = {}
 
 -- Object pools: lightning bolts are short-lived (a few sim frames each), so the
 -- per-bolt tracked record and its branch geometry array would otherwise be
 -- allocated and discarded continuously, producing significant GC pressure
 -- under sustained lightning fire. Recycle them through free lists.
-local recPool        = {}
-local recPoolN       = 0
+local recPool = {}
+local recPoolN = 0
 local branchListPool = {}
 local branchListPoolN = 0
-local branchPool     = {}
-local branchPoolN    = 0
+local branchPool = {}
+local branchPoolN = 0
 
 local function releaseBranchList(list)
-	if not list then return end
+	if not list then
+		return
+	end
 	for i = 1, #list do
 		local b = list[i]
 		if b then
@@ -309,8 +331,7 @@ local function releaseRec(rec)
 	recPoolN = recPoolN + 1
 	recPool[recPoolN] = rec
 end
-local idleSkipCounter = 0
-local lastBuildFrame  = -1   -- last sim frame for which the VBO was rebuilt
+local lastBuildFrame = -1 -- last sim frame for which the VBO was rebuilt
 local lastDrawSimFrame = -1
 local sawSpareDrawFrame = false
 local pendingBuildFrame = nil
@@ -325,7 +346,7 @@ local pausedLastRebuildTimer = nil
 local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
 -- Cached spectating / ally
-local cachedAllyTeamID  = spGetMyAllyTeamID()
+local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
 -- Last sim frame in which DrawWorld ran (skip GameFrame redundant scan when keeping up)
@@ -337,8 +358,9 @@ local mapSizeZ = Game.mapSizeZ
 -- Shader sources
 --
 -- Bolt VS:
---   Each instance is ONE quad for ONE segment of a bolt. Per-instance attributes
---   carry the WHOLE bolt's start/end and a segIndex / segCount. The vertex shader
+--   Each instance is ONE arm; its quads come from the segment strip, whose vertex
+--   z is the segIndex. Per-instance attributes carry the WHOLE arm's start/end and
+--   segCount; quads past segCount are culled. The vertex shader
 --   computes t0 = segIndex/segCount and t1 = (segIndex+1)/segCount, then offsets
 --   both endpoints perpendicular to the bolt direction using a hash of
 --   (seed, segIndex). Because hash(seed, k) is deterministic, segment N's end
@@ -367,15 +389,15 @@ local boltVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-// Quad vertex: xy = corner (-1..1), zw = UV
-layout (location = 0) in vec4 position_xy_uv;
+// Strip vertex: xy = quad corner (-1..1), z = segment index
+layout (location = 0) in vec4 cornerAndSeg;
 
-// Per-instance
+// Per-instance (one per arm)
 layout (location = 1) in vec4 startPosAndWidth;   // xyz = bolt start, w = base width
 layout (location = 2) in vec4 endPosAndLife;       // xyz = bolt end,   w = life fraction (0..1)
 layout (location = 3) in vec4 coreColor;           // rgb = core color, a = alpha
 layout (location = 4) in vec4 edgeColor;           // rgb = edge color, a = range falloff
-layout (location = 5) in vec4 boltParams;          // x = seed, y = segIndex, z = segCount, w = jitterAmp
+layout (location = 5) in vec4 boltParams;          // x = seed, y = unused, z = segCount, w = jitterAmp
 layout (location = 6) in vec4 extraParams;         // x = isBranch flag, y = widthScale, z = glowMult, w = impactSize
 
 out DataVS {
@@ -400,14 +422,16 @@ void cullVertex() {
 
 void main()
 {
+	float segIndex = cornerAndSeg.z;
+	float segCount = boltParams.z;
+	if (segIndex >= segCount) { cullVertex(); return; }
+
 	vec3 startPos = startPosAndWidth.xyz;
 	float baseWidth = startPosAndWidth.w * extraParams.y;
 	vec3 endPos = endPosAndLife.xyz;
 	float lifeFrac = endPosAndLife.w;
 
 	float seed     = boltParams.x;
-	float segIndex = boltParams.y;
-	float segCount = boltParams.z;
 	float jitterAmp= boltParams.w;
 
 	vec3 boltDir = endPos - startPos;
@@ -430,7 +454,7 @@ void main()
 	// (seed, boundaryIndex). Endpoints (index 0 and segCount) stay fixed so the
 	// bolt always meets its start/end. Adjacent segments share the boundary hash,
 	// so segment N's t1 == segment N+1's t0 (no gaps).
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;  // 0..1: 0 = segment start, 1 = segment end
+	float yNorm = cornerAndSeg.y * 0.5 + 0.5;  // 0..1: 0 = segment start, 1 = segment end
 	float invSeg = 1.0 / segCount;
 	float lenVarAmp = SEGMENT_LENGTH_VAR * invSeg * 0.5;
 	float b0 = segIndex;
@@ -515,12 +539,12 @@ void main()
 	float coverageVal = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
 
-	vec3 vertexWorld = posHere + right * position_xy_uv.x * width;
+	vec3 vertexWorld = posHere + right * cornerAndSeg.x * width;
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
 	vCoreColor = coreColor.rgb;
 	vEdgeColor = edgeColor.rgb;
-	widthPos = position_xy_uv.x;
+	widthPos = cornerAndSeg.x;
 	coverage = coverageVal;
 	segPos = tHere;
 
@@ -593,7 +617,7 @@ local glowVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-layout (location = 0) in vec4 position_xy_uv;
+layout (location = 0) in vec4 cornerAndSeg;
 layout (location = 1) in vec4 startPosAndWidth;
 layout (location = 2) in vec4 endPosAndLife;
 layout (location = 3) in vec4 coreColor;
@@ -621,15 +645,13 @@ void main()
 	float lifeFrac = endPosAndLife.w;
 
 	float seed     = boltParams.x;
-	float segIndex = boltParams.y;
 	float segCount = boltParams.z;
 
 	vec3 boltDir = endPos - startPos;
 	float boltLen = length(boltDir);
 	if (boltLen < 0.01 || segCount < 1.0) { gl_Position = vec4(2.0,2.0,2.0,1.0); return; }
-	// Glow is drawn as ONE quad per bolt spanning the full length (start->end).
-	// All segIndex > 0 instances are culled here, saving (N-1)/N of glow shader work.
-	if (segIndex > 0.5) { gl_Position = vec4(2.0,2.0,2.0,1.0); return; }
+	// Glow is drawn as ONE quad per arm spanning the full length (start->end):
+	// drawAll only draws the first quad of the segment strip for this pass.
 	vec3 forward = boltDir / boltLen;
 
 	// Lifetime envelope first so we can early-out
@@ -639,7 +661,7 @@ void main()
 	if (lifePulse < 0.001) { gl_Position = vec4(2.0,2.0,2.0,1.0); return; }
 
 	// Position on the STRAIGHT bolt axis (no jitter). yNorm = 0 at start, 1 at end.
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+	float yNorm = cornerAndSeg.y * 0.5 + 0.5;
 	float tHere = yNorm;
 	vec3 posOnAxis = mix(startPos, endPos, tHere);
 
@@ -672,10 +694,10 @@ void main()
 	float coverageVal = clamp(glowWidth / max(minWidth, 0.001), 0.0, 1.0);
 	glowWidth = max(glowWidth, minWidth);
 
-	vec3 vertexWorld = posOnAxis + right * position_xy_uv.x * glowWidth;
+	vec3 vertexWorld = posOnAxis + right * cornerAndSeg.x * glowWidth;
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
-	widthPos = position_xy_uv.x;
+	widthPos = cornerAndSeg.x;
 	// Pass tHere through and compute the sin in the FS. Doing sin() in the VS
 	// would make the value at the two end-vertices both 0 and the GPU's linear
 	// interpolation would yield 0 across the entire quad (since the quad now
@@ -732,9 +754,9 @@ void main(void)
 
 --------------------------------------------------------------------------------
 -- Impact spark (camera-facing billboard at the bolt's far endpoint).
--- Reuses the same instance VBO; rendered only for segIndex == 0 instances of
--- main bolts (extraParams.x < 0.5 and extraParams.w > 0). Branches have
--- extraParams.w = 0 so they emit no spark.
+-- Reuses the same instance VBO, drawn with the first strip quad only; rendered
+-- only for main bolts (extraParams.w > 0). Branches have extraParams.w = 0 so
+-- they emit no spark.
 --------------------------------------------------------------------------------
 local impactVsSrc = [[
 #version 420
@@ -745,7 +767,7 @@ local impactVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-layout (location = 0) in vec4 position_xy_uv;
+layout (location = 0) in vec4 cornerAndSeg;
 layout (location = 2) in vec4 endPosAndLife;
 layout (location = 3) in vec4 coreColor;
 layout (location = 5) in vec4 boltParams;
@@ -763,9 +785,8 @@ float hash11(float x) {
 
 void main()
 {
-	float segIndex  = boltParams.y;
 	float impactSize= extraParams.w;
-	if (segIndex > 0.5 || impactSize <= 0.0) {
+	if (impactSize <= 0.0) {
 		gl_Position = vec4(2.0,2.0,2.0,1.0); return;
 	}
 
@@ -785,11 +806,11 @@ void main()
 	vec3 camUp    = cameraViewInv[1].xyz;
 	float size = impactSize * lifePulse * flicker;
 	vec3 vert = worldPos
-		+ camRight * position_xy_uv.x * size
-		+ camUp    * position_xy_uv.y * size;
+		+ camRight * cornerAndSeg.x * size
+		+ camUp    * cornerAndSeg.y * size;
 
 	gl_Position = cameraViewProj * vec4(vert, 1.0);
-	texCoords = position_xy_uv.zw;
+	texCoords = cornerAndSeg.xy * 0.5 + 0.5;
 	vColor = coreColor.rgb;
 	alpha = coreColor.a * lifePulse * flicker;
 }
@@ -842,40 +863,42 @@ local function ensureFloatDefines(cfg)
 end
 
 local boltShaderConfig = {
-	FADE_IN_END         = FADE_IN_END,
-	FADE_OUT_START      = FADE_OUT_START,
-	FLICKER_AMPLITUDE   = FLICKER_AMPLITUDE,
+	FADE_IN_END = FADE_IN_END,
+	FADE_OUT_START = FADE_OUT_START,
+	FLICKER_AMPLITUDE = FLICKER_AMPLITUDE,
 	THICKNESS_VARIATION = THICKNESS_VARIATION,
-	SEGMENT_LENGTH_VAR  = SEGMENT_LENGTH_VAR,
+	SEGMENT_LENGTH_VAR = SEGMENT_LENGTH_VAR,
 	JITTER_MAX_BOLT_FRAC = JITTER_MAX_BOLT_FRAC,
 	BRUSH_MAX_JITTER_FRAC = BRUSH_MAX_JITTER_FRAC,
-	CORE_EDGE_START     = CORE_EDGE_START,
-	CORE_EDGE_END       = CORE_EDGE_END,
-	CORE_BRIGHTNESS     = CORE_BRIGHTNESS,
-	BRIGHTNESS_MULT     = BRIGHTNESS_MULT,
-	MIN_PIXEL_WIDTH     = MIN_PIXEL_WIDTH,
+	CORE_EDGE_START = CORE_EDGE_START,
+	CORE_EDGE_END = CORE_EDGE_END,
+	CORE_BRIGHTNESS = CORE_BRIGHTNESS,
+	BRIGHTNESS_MULT = BRIGHTNESS_MULT,
+	MIN_PIXEL_WIDTH = MIN_PIXEL_WIDTH,
 }
 
 local glowShaderConfig = {
-	FADE_IN_END        = FADE_IN_END,
-	FADE_OUT_START     = FADE_OUT_START,
-	FLICKER_AMPLITUDE  = FLICKER_AMPLITUDE,
-	GLOW_WIDTH_MULT    = GLOW_WIDTH_MULT,
+	FADE_IN_END = FADE_IN_END,
+	FADE_OUT_START = FADE_OUT_START,
+	FLICKER_AMPLITUDE = FLICKER_AMPLITUDE,
+	GLOW_WIDTH_MULT = GLOW_WIDTH_MULT,
 	GLOW_FALLOFF_POWER = GLOW_FALLOFF_POWER,
 	GLOW_MIN_PIXEL_WIDTH = GLOW_MIN_PIXEL_WIDTH,
 }
 
 local impactShaderConfig = {
-	FADE_IN_END       = FADE_IN_END,
-	FADE_OUT_START    = FADE_OUT_START,
+	FADE_IN_END = FADE_IN_END,
+	FADE_OUT_START = FADE_OUT_START,
 	FLICKER_AMPLITUDE = FLICKER_AMPLITUDE,
 	IMPACT_BRIGHTNESS = IMPACT_BRIGHTNESS,
-	BRIGHTNESS_MULT   = BRIGHTNESS_MULT,
+	BRIGHTNESS_MULT = BRIGHTNESS_MULT,
 }
 
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local boltVBO
 local boltShader
 local glowShader
@@ -884,6 +907,34 @@ local impactShader
 local function goodbye(reason)
 	Spring.Echo("[Lightning Cannon GL4] removing self: " .. tostring(reason))
 	gadgetHandler:RemoveGadget()
+end
+
+-- One quad per segment, 4 vertices of (corner x, corner y, segIndex, 0) each.
+local function makeSegmentStrip(numQuads)
+	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if not vertexVBO or not indexVBO then
+		return nil
+	end
+	local corners = { -1, -1, -1, 1, 1, 1, 1, -1 }
+	local vertices, indices = {}, {}
+	for q = 0, numQuads - 1 do
+		for c = 0, 3 do
+			local v = (q * 4 + c) * 4
+			vertices[v + 1] = corners[c * 2 + 1]
+			vertices[v + 2] = corners[c * 2 + 2]
+			vertices[v + 3] = q
+			vertices[v + 4] = 0
+		end
+		local b, i = q * 4, q * 6
+		indices[i + 1], indices[i + 2], indices[i + 3] = b, b + 1, b + 2
+		indices[i + 4], indices[i + 5], indices[i + 6] = b + 2, b + 3, b
+	end
+	vertexVBO:Define(numQuads * 4, { { id = 0, name = "cornerAndSeg", size = 4 } })
+	vertexVBO:Upload(vertices)
+	indexVBO:Define(numQuads * 6)
+	indexVBO:Upload(indices)
+	return vertexVBO, indexVBO
 end
 
 local function initGL4()
@@ -899,7 +950,10 @@ local function initGL4()
 		shaderConfig = boltShaderConfig,
 		forceupdate = true,
 	})
-	if not boltShader then goodbye("Failed to compile bolt shader"); return false end
+	if not boltShader then
+		goodbye("Failed to compile bolt shader")
+		return false
+	end
 
 	glowShader = LuaShader.CheckShaderUpdates({
 		vsSrc = glowVsSrc,
@@ -909,7 +963,10 @@ local function initGL4()
 		shaderConfig = glowShaderConfig,
 		forceupdate = true,
 	})
-	if not glowShader then goodbye("Failed to compile glow shader"); return false end
+	if not glowShader then
+		goodbye("Failed to compile glow shader")
+		return false
+	end
 
 	impactShader = LuaShader.CheckShaderUpdates({
 		vsSrc = impactVsSrc,
@@ -920,35 +977,39 @@ local function initGL4()
 		shaderConfig = impactShaderConfig,
 		forceupdate = true,
 	})
-	if not impactShader then goodbye("Failed to compile impact shader"); return false end
+	if not impactShader then
+		goodbye("Failed to compile impact shader")
+		return false
+	end
 
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1, 0, 0, 1, 1, "lightningCannonQuadVBO"
-	)
-	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("lightningCannonIndexVBO")
+	local stripVBO, indexVBO = makeSegmentStrip(SEGMENTS_MAX)
+	if not stripVBO then
+		goodbye("Failed to create segment strip")
+		return false
+	end
 
 	local boltLayout = {
-		{id = 1, name = "startPosAndWidth", size = 4},
-		{id = 2, name = "endPosAndLife",    size = 4},
-		{id = 3, name = "coreColor",        size = 4},
-		{id = 4, name = "edgeColor",        size = 4},
-		{id = 5, name = "boltParams",       size = 4},
-		{id = 6, name = "extraParams",      size = 4},
+		{ id = 1, name = "startPosAndWidth", size = 4 },
+		{ id = 2, name = "endPosAndLife", size = 4 },
+		{ id = 3, name = "coreColor", size = 4 },
+		{ id = 4, name = "edgeColor", size = 4 },
+		{ id = 5, name = "boltParams", size = 4 },
+		{ id = 6, name = "extraParams", size = 4 },
 	}
 	boltVBO = gl.InstanceVBOTable.makeInstanceVBOTable(boltLayout, INITIAL_VBO_SIZE, "lightningCannonVBO")
-	if not boltVBO then goodbye("Failed to create bolt VBO"); return false end
-	boltVBO.numVertices = numVertices
-	boltVBO.vertexVBO = quadVBO
-	boltVBO.VAO = boltVBO:makeVAOandAttach(quadVBO, boltVBO.instanceVBO)
-	boltVBO.primitiveType = GL.TRIANGLES
-	boltVBO.VAO:AttachIndexBuffer(indexVBO)
-	boltVBO.indexVBO = indexVBO
+	if not boltVBO then
+		goodbye("Failed to create bolt VBO")
+		return false
+	end
+	boltVBO.VAO = boltVBO:makeVAOandAttach(stripVBO, boltVBO.instanceVBO, indexVBO)
 	return true
 end
 
 local function resizeBoltVBO(needed)
 	local newMax = boltVBO.maxElements
-	while newMax < needed do newMax = newMax * 2 end
+	while newMax < needed do
+		newMax = newMax * 2
+	end
 	boltVBO.maxElements = newMax
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	newInstanceVBO:Define(newMax, boltVBO.layout)
@@ -956,102 +1017,69 @@ local function resizeBoltVBO(needed)
 	boltVBO.instanceVBO = newInstanceVBO
 	local data = boltVBO.instanceData
 	local step = boltVBO.instanceStep
-	for i = #data + 1, step * newMax do data[i] = 0 end
+	for i = #data + 1, step * newMax do
+		data[i] = 0
+	end
 	boltVBO.VAO:Delete()
-	boltVBO.VAO = boltVBO:makeVAOandAttach(boltVBO.vertexVBO, boltVBO.instanceVBO)
-	boltVBO.VAO:AttachIndexBuffer(boltVBO.indexVBO)
+	boltVBO.VAO = boltVBO:makeVAOandAttach(boltVBO.vertexVBO, boltVBO.instanceVBO, boltVBO.indexVBO)
 end
 
 local function cleanupGL4()
-	if boltVBO then boltVBO:Delete(); boltVBO = nil end
+	if boltVBO then
+		boltVBO:Delete()
+		boltVBO = nil
+	end
 end
 
 --------------------------------------------------------------------------------
 -- Per-frame scan + VBO upload
 --------------------------------------------------------------------------------
 
--- Push one segment-instance into beamData
-local function pushSegment(beamData, offset, cfg, px, py, pz, ex, ey, ez,
-		lifeFrac, seed, segIndex, segCount, jitterAmp,
-		isBranch, widthScale, glowMult, impactSize, intensityFalloff)
-	beamData[offset + 1]  = px
-	beamData[offset + 2]  = py
-	beamData[offset + 3]  = pz
-	beamData[offset + 4]  = cfg.baseWidth
-	beamData[offset + 5]  = ex
-	beamData[offset + 6]  = ey
-	beamData[offset + 7]  = ez
-	beamData[offset + 8]  = lifeFrac
-	beamData[offset + 9]  = cfg.coreR
-	beamData[offset + 10] = cfg.coreG
-	beamData[offset + 11] = cfg.coreB
-	beamData[offset + 12] = 1.0
-	beamData[offset + 13] = cfg.r
-	beamData[offset + 14] = cfg.g
-	beamData[offset + 15] = cfg.b
-	beamData[offset + 16] = intensityFalloff
-	beamData[offset + 17] = seed
-	beamData[offset + 18] = segIndex
-	beamData[offset + 19] = segCount
-	beamData[offset + 20] = jitterAmp
-	beamData[offset + 21] = isBranch
-	beamData[offset + 22] = widthScale
-	beamData[offset + 23] = glowMult
-	beamData[offset + 24] = impactSize
-end
-
 local INSTANCE_STRIDE = 24
 
--- Reused branch position scratch (avoids allocations in hot loop)
+-- Writes one instance for the main arm and one per branch. Both blocks follow
+-- the instance layout of the bolt shader; keep them in sync.
 local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 	-- Range falloff: longer bolts get dimmer toward the tip (matches beam laser)
 	local vx = t.ex - t.px
 	local vy = t.ey - t.py
 	local vz = t.ez - t.pz
-	local boltLenSq = vx*vx + vy*vy + vz*vz
+	local boltLenSq = vx * vx + vy * vy + vz * vz
 	local intensity = 0.1 + 0.4 * mathMin(boltLenSq * cfg.invRangeSq, 1.0)
 
-	-- Localize all per-bolt cfg fields once (avoid table lookups in the hot inner loop)
 	local cBaseWidth = cfg.baseWidth
 	local cCoreR, cCoreG, cCoreB = cfg.coreR, cfg.coreG, cfg.coreB
 	local cR, cG, cB = cfg.r, cfg.g, cfg.b
-	local cJitterAmp = cfg.jitterAmp
-	local cGlowB = cfg.glowBrightness
-	local cImpactSize = cfg.impactSize
 	local tPx, tPy, tPz = t.px, t.py, t.pz
-	local tEx, tEy, tEz = t.ex, t.ey, t.ez
 	local tSeed = t.seed
 
-	-- Main bolt: segCount segment-instances (inlined pushSegment for hot path)
-	local segs = cfg.segments
-	for s = 0, segs - 1 do
-		beamData[offset + 1]  = tPx
-		beamData[offset + 2]  = tPy
-		beamData[offset + 3]  = tPz
-		beamData[offset + 4]  = cBaseWidth
-		beamData[offset + 5]  = tEx
-		beamData[offset + 6]  = tEy
-		beamData[offset + 7]  = tEz
-		beamData[offset + 8]  = lifeFrac
-		beamData[offset + 9]  = cCoreR
-		beamData[offset + 10] = cCoreG
-		beamData[offset + 11] = cCoreB
-		beamData[offset + 12] = 1.0
-		beamData[offset + 13] = cR
-		beamData[offset + 14] = cG
-		beamData[offset + 15] = cB
-		beamData[offset + 16] = intensity
-		beamData[offset + 17] = tSeed
-		beamData[offset + 18] = s
-		beamData[offset + 19] = segs
-		beamData[offset + 20] = cJitterAmp
-		beamData[offset + 21] = 0.0           -- isBranch
-		beamData[offset + 22] = 1.0           -- widthScale
-		beamData[offset + 23] = cGlowB
-		beamData[offset + 24] = (s == 0) and cImpactSize or 0.0
-		offset = offset + INSTANCE_STRIDE
-		beamCount = beamCount + 1
-	end
+	-- Main bolt
+	beamData[offset + 1] = tPx
+	beamData[offset + 2] = tPy
+	beamData[offset + 3] = tPz
+	beamData[offset + 4] = cBaseWidth
+	beamData[offset + 5] = t.ex
+	beamData[offset + 6] = t.ey
+	beamData[offset + 7] = t.ez
+	beamData[offset + 8] = lifeFrac
+	beamData[offset + 9] = cCoreR
+	beamData[offset + 10] = cCoreG
+	beamData[offset + 11] = cCoreB
+	beamData[offset + 12] = 1.0
+	beamData[offset + 13] = cR
+	beamData[offset + 14] = cG
+	beamData[offset + 15] = cB
+	beamData[offset + 16] = intensity
+	beamData[offset + 17] = tSeed
+	beamData[offset + 18] = 0.0 -- unused
+	beamData[offset + 19] = cfg.segments
+	beamData[offset + 20] = cfg.jitterAmp
+	beamData[offset + 21] = 0.0 -- isBranch
+	beamData[offset + 22] = 1.0 -- widthScale
+	beamData[offset + 23] = cfg.glowBrightness
+	beamData[offset + 24] = cfg.impactSize
+	offset = offset + INSTANCE_STRIDE
+	beamCount = beamCount + 1
 
 	-- Branches: each branch is its own short jagged bolt forking off the main path.
 	-- Geometry is cached per-bolt in rec.branches since the seed and endpoints are
@@ -1075,12 +1103,16 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 			local fwx, fwy, fwz = vx / boltLen, vy / boltLen, vz / boltLen
 			-- Build an arbitrary stable perpendicular basis
 			local upRefX, upRefY, upRefZ = 0, 1, 0
-			if math.abs(fwy) > 0.9 then upRefX, upRefY, upRefZ = 1, 0, 0 end
+			if math.abs(fwy) > 0.9 then
+				upRefX, upRefY, upRefZ = 1, 0, 0
+			end
 			local pAx = fwy * upRefZ - fwz * upRefY
 			local pAy = fwz * upRefX - fwx * upRefZ
 			local pAz = fwx * upRefY - fwy * upRefX
-			local pALen = mathSqrt(pAx*pAx + pAy*pAy + pAz*pAz)
-			if pALen > 0.001 then pAx, pAy, pAz = pAx/pALen, pAy/pALen, pAz/pALen end
+			local pALen = mathSqrt(pAx * pAx + pAy * pAy + pAz * pAz)
+			if pALen > 0.001 then
+				pAx, pAy, pAz = pAx / pALen, pAy / pALen, pAz / pALen
+			end
 			local pBx = fwy * pAz - fwz * pAy
 			local pBy = fwz * pAx - fwx * pAz
 			local pBz = fwx * pAy - fwy * pAx
@@ -1088,16 +1120,23 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 			local seed = tSeed
 			local angleSpread = cfg.branchAngleSpread
 			local lengthFrac = cfg.branchLengthFrac
-			branches = {}
 			for b = 1, nBranches do
 				local r1 = (math.sin(seed * 12.9 + b * 91.7) * 43758.5) % 1.0
-				if r1 < 0 then r1 = r1 + 1 end
+				if r1 < 0 then
+					r1 = r1 + 1
+				end
 				local r2 = (math.sin(seed * 41.7 + b * 17.3) * 43758.5) % 1.0
-				if r2 < 0 then r2 = r2 + 1 end
+				if r2 < 0 then
+					r2 = r2 + 1
+				end
 				local r3 = (math.sin(seed * 5.3 + b * 53.1) * 43758.5) % 1.0
-				if r3 < 0 then r3 = r3 + 1 end
+				if r3 < 0 then
+					r3 = r3 + 1
+				end
 				local r4 = (math.sin(seed * 23.7 + b * 7.1) * 43758.5) % 1.0
-				if r4 < 0 then r4 = r4 + 1 end
+				if r4 < 0 then
+					r4 = r4 + 1
+				end
 
 				local anchorT = BRANCH_ANCHOR_MIN + r1 * (BRANCH_ANCHOR_MAX - BRANCH_ANCHOR_MIN)
 				local angle = (r2 * 2.0 - 1.0) * angleSpread
@@ -1119,13 +1158,17 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 					branchPool[branchPoolN] = nil
 					branchPoolN = branchPoolN - 1
 					br.anchorT = anchorT
-					br.dirX = dirX; br.dirY = dirY; br.dirZ = dirZ
+					br.dirX = dirX
+					br.dirY = dirY
+					br.dirZ = dirZ
 					br.lenFrac = lenFrac
 					br.branchSeed = seed * 0.71 + b * 13.7
 				else
 					br = {
 						anchorT = anchorT,
-						dirX = dirX, dirY = dirY, dirZ = dirZ,
+						dirX = dirX,
+						dirY = dirY,
+						dirZ = dirZ,
 						lenFrac = lenFrac,
 						branchSeed = seed * 0.71 + b * 13.7,
 					}
@@ -1139,7 +1182,6 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 		local bsegs = cfg.branchSegments
 		local cBranchJitter = cfg.branchJitter
 		local cBranchGlow = cfg.branchGlow
-		local cBranchWidthFrac = BRANCH_WIDTH_FRAC
 		for b = 1, nBranches do
 			local br = branches[b]
 			local anchorT = br.anchorT
@@ -1147,39 +1189,32 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 			local ay = tPy + vy * anchorT
 			local az = tPz + vz * anchorT
 			local blen = boltLen * br.lenFrac
-			local bex = ax + br.dirX * blen
-			local bey = ay + br.dirY * blen
-			local bez = az + br.dirZ * blen
-			local branchSeed = br.branchSeed
-			for s = 0, bsegs - 1 do
-				-- Inlined pushSegment for hot path (eliminates closure call per segment)
-				beamData[offset + 1]  = ax
-				beamData[offset + 2]  = ay
-				beamData[offset + 3]  = az
-				beamData[offset + 4]  = cBaseWidth
-				beamData[offset + 5]  = bex
-				beamData[offset + 6]  = bey
-				beamData[offset + 7]  = bez
-				beamData[offset + 8]  = lifeFrac
-				beamData[offset + 9]  = cCoreR
-				beamData[offset + 10] = cCoreG
-				beamData[offset + 11] = cCoreB
-				beamData[offset + 12] = 1.0
-				beamData[offset + 13] = cR
-				beamData[offset + 14] = cG
-				beamData[offset + 15] = cB
-				beamData[offset + 16] = intensity
-				beamData[offset + 17] = branchSeed
-				beamData[offset + 18] = s
-				beamData[offset + 19] = bsegs
-				beamData[offset + 20] = cBranchJitter
-				beamData[offset + 21] = 1.0                -- isBranch
-				beamData[offset + 22] = cBranchWidthFrac   -- widthScale
-				beamData[offset + 23] = cBranchGlow        -- glowMult
-				beamData[offset + 24] = 0.0                -- impactSize (no spark on branches)
-				offset = offset + INSTANCE_STRIDE
-				beamCount = beamCount + 1
-			end
+			beamData[offset + 1] = ax
+			beamData[offset + 2] = ay
+			beamData[offset + 3] = az
+			beamData[offset + 4] = cBaseWidth
+			beamData[offset + 5] = ax + br.dirX * blen
+			beamData[offset + 6] = ay + br.dirY * blen
+			beamData[offset + 7] = az + br.dirZ * blen
+			beamData[offset + 8] = lifeFrac
+			beamData[offset + 9] = cCoreR
+			beamData[offset + 10] = cCoreG
+			beamData[offset + 11] = cCoreB
+			beamData[offset + 12] = 1.0
+			beamData[offset + 13] = cR
+			beamData[offset + 14] = cG
+			beamData[offset + 15] = cB
+			beamData[offset + 16] = intensity
+			beamData[offset + 17] = br.branchSeed
+			beamData[offset + 18] = 0.0 -- unused
+			beamData[offset + 19] = bsegs
+			beamData[offset + 20] = cBranchJitter
+			beamData[offset + 21] = 1.0 -- isBranch
+			beamData[offset + 22] = BRANCH_WIDTH_FRAC -- widthScale
+			beamData[offset + 23] = cBranchGlow -- glowMult
+			beamData[offset + 24] = 0.0 -- impactSize (no spark on branches)
+			offset = offset + INSTANCE_STRIDE
+			beamCount = beamCount + 1
 		end
 	end
 
@@ -1204,8 +1239,12 @@ local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTe
 		else
 			rec = {
 				cfg = cfg,
-				px = px, py = py, pz = pz,
-				ex = ex, ey = ey, ez = ez,
+				px = px,
+				py = py,
+				pz = pz,
+				ex = ex,
+				ey = ey,
+				ez = ez,
 				seed = mathRandom() * 1000.0 + (proID % 997),
 				firstSeen = frame,
 				lastSeenFrame = frame,
@@ -1213,7 +1252,6 @@ local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTe
 			}
 		end
 		tracked[proID] = rec
-		hasTracked = true
 	else
 		rec.px, rec.py, rec.pz = px, py, pz
 		rec.ex, rec.ey, rec.ez = ex, ey, ez
@@ -1229,12 +1267,17 @@ local function getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, ownerAllyTe
 			end
 		end
 	end
+	if not rec.inRecent then
+		rec.inRecent = true
+		nRecent = nRecent + 1
+		recent[nRecent] = rec
+	end
 	return rec
 end
 
 local function updateBolts()
-	-- Idle skip throttles when no bolts/ghosts are active. Disabled while paused
-	-- so camera pans always re-cull the existing tracked set against the view.
+	-- No idle skip: lightning projectiles live a single sim frame, so any frame
+	-- without a scan loses the bolts fired in it.
 	local _, _, isPaused = spGetGameSpeed()
 	local usePausedCache = isPaused and lastUpdateWasPaused
 	lastUpdateWasPaused = isPaused
@@ -1245,8 +1288,14 @@ local function updateBolts()
 	if usePausedCache then
 		local cx, cy, cz = Spring.GetCameraPosition()
 		local dx, dy, dz = Spring.GetCameraDirection()
-		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
-			and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
+		if
+			cx == pausedCamX
+			and cy == pausedCamY
+			and cz == pausedCamZ
+			and dx == pausedCamDX
+			and dy == pausedCamDY
+			and dz == pausedCamDZ
+		then
 			return
 		end
 		local now = Spring.GetTimer()
@@ -1262,17 +1311,9 @@ local function updateBolts()
 		pausedLastRebuildTimer = nil
 	end
 
-	if not isPaused and idleSkipCounter > 0 then
-		idleSkipCounter = idleSkipCounter - 1
-		return
-	end
-
 	boltVBO.usedElements = 0
 
 	local frame = spGetGameFrame()
-	-- Clear previous live set
-	for i = 1, #liveList do liveSet[liveList[i]] = nil end
-	local liveCount = 0
 
 	-- Scan map-wide for projectiles ONCE (at sim rate via DrawWorld gate).
 	-- Prefer the shared dispatcher: it caches the map-wide weapon scan once
@@ -1345,22 +1386,23 @@ local function updateBolts()
 					if visible then
 						-- AABB cull (padded for glow + jitter + impact spark)
 						local pad = cfg.aabbPad
-						if spIsAABBInView(
-							mathMin(px, ex) - pad, mathMin(py, ey) - pad, mathMin(pz, ez) - pad,
-							mathMax(px, ex) + pad, mathMax(py, ey) + pad, mathMax(pz, ez) + pad
-						) then
+						if
+							spIsAABBInView(
+								mathMin(px, ex) - pad,
+								mathMin(py, ey) - pad,
+								mathMin(pz, ez) - pad,
+								mathMax(px, ex) + pad,
+								mathMax(py, ey) + pad,
+								mathMax(pz, ez) + pad
+							)
+						then
 							rec = getOrTrack(proID, cfg, px, py, pz, ex, ey, ez, frame, proAlly)
-							if not liveSet[proID] then
-								liveSet[proID] = true
-								liveCount = liveCount + 1
-								liveList[liveCount] = proID
-							end
 
 							-- Live bolts always render at the fade-in / sustain end of life
 							local lifeFrac = FADE_IN_END * 0.5
 							-- Capacity check before emit (cheaper than checking inside emit)
-							if beamCount + cfg.segments + cfg.branchCount * cfg.branchSegments > boltVBO.maxElements then
-								resizeBoltVBO(beamCount + cfg.segments + cfg.branchCount * cfg.branchSegments + 64)
+							if beamCount + cfg.armCount > boltVBO.maxElements then
+								resizeBoltVBO(beamCount + cfg.armCount + 64)
 								beamData = boltVBO.instanceData
 							end
 							offset, beamCount = emitBolt(beamData, offset, beamCount, cfg, rec, lifeFrac)
@@ -1370,43 +1412,55 @@ local function updateBolts()
 			end
 		end
 	end
-	for i = liveCount + 1, #liveList do liveList[i] = nil end
 
-	-- Ghost bolts: projectile is gone but we keep rendering the fade-out tail
-	if hasTracked then
-		for proID, rec in pairs(tracked) do
-			if not liveSet[proID] then
-				local age = frame - rec.lastSeenFrame
-				if age >= 1 and age <= BOLT_LIFE_FRAMES then
-					local cfg = rec.cfg
-					local pad = cfg.aabbPad
-					local visible = true
-					if needLos and rec.ownerAllyTeam and rec.ownerAllyTeam ~= myAlly then
-						visible = spLosCheck(rec.px, 0, rec.pz, myAlly) or spLosCheck(rec.ex, 0, rec.ez, myAlly)
+	-- Ghost bolts: projectile is gone but we keep rendering the fade-out tail.
+	-- At age BOLT_LIFE_FRAMES the tail has fully faded, so the rec drops out.
+	local kept = 0
+	for i = 1, nRecent do
+		local rec = recent[i]
+		local age = frame - rec.lastSeenFrame
+		if age < BOLT_LIFE_FRAMES then
+			kept = kept + 1
+			recent[kept] = rec
+			if age >= 1 then
+				local cfg = rec.cfg
+				local pad = cfg.aabbPad
+				local visible = true
+				if needLos and rec.ownerAllyTeam and rec.ownerAllyTeam ~= myAlly then
+					visible = spLosCheck(rec.px, 0, rec.pz, myAlly) or spLosCheck(rec.ex, 0, rec.ez, myAlly)
+				end
+				if
+					visible
+					and spIsAABBInView(
+						mathMin(rec.px, rec.ex) - pad,
+						mathMin(rec.py, rec.ey) - pad,
+						mathMin(rec.pz, rec.ez) - pad,
+						mathMax(rec.px, rec.ex) + pad,
+						mathMax(rec.py, rec.ey) + pad,
+						mathMax(rec.pz, rec.ez) + pad
+					)
+				then
+					-- lifeFrac sweeps from sustain through FADE_OUT_START to 1.0 across BOLT_LIFE_FRAMES
+					local lifeFrac = FADE_OUT_START + (age / BOLT_LIFE_FRAMES) * (1.0 - FADE_OUT_START)
+					if beamCount + cfg.armCount > boltVBO.maxElements then
+						resizeBoltVBO(beamCount + cfg.armCount + 32)
+						beamData = boltVBO.instanceData
 					end
-					if visible and spIsAABBInView(
-						mathMin(rec.px, rec.ex) - pad, mathMin(rec.py, rec.ey) - pad, mathMin(rec.pz, rec.ez) - pad,
-						mathMax(rec.px, rec.ex) + pad, mathMax(rec.py, rec.ey) + pad, mathMax(rec.pz, rec.ez) + pad
-					) then
-						-- lifeFrac sweeps from sustain through FADE_OUT_START to 1.0 across BOLT_LIFE_FRAMES
-						local lifeFrac = FADE_OUT_START + (age / BOLT_LIFE_FRAMES) * (1.0 - FADE_OUT_START)
-						if beamCount + cfg.segments + cfg.branchCount * cfg.branchSegments > boltVBO.maxElements then
-							resizeBoltVBO(beamCount + cfg.segments + cfg.branchCount * cfg.branchSegments + 32)
-							beamData = boltVBO.instanceData
-						end
-						offset, beamCount = emitBolt(beamData, offset, beamCount, cfg, rec, lifeFrac)
-					end
+					offset, beamCount = emitBolt(beamData, offset, beamCount, cfg, rec, lifeFrac)
 				end
 			end
+		else
+			rec.inRecent = false
 		end
 	end
+	for i = kept + 1, nRecent do
+		recent[i] = nil
+	end
+	nRecent = kept
 
 	boltVBO.usedElements = beamCount
 	if beamCount > 0 then
-		idleSkipCounter = 0
 		uploadAllElements(boltVBO)
-	else
-		idleSkipCounter = IDLE_SKIP_FRAMES
 	end
 end
 
@@ -1414,16 +1468,22 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 local function drawAll()
-	if boltVBO.usedElements == 0 then return end
+	if boltVBO.usedElements == 0 then
+		return
+	end
 
 	glDepthTest(true)
 	glDepthMask(false)
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
+	-- Glow and impact spark use one quad per arm: the first quad of the strip
+	local vao = boltVBO.VAO
+	local arms = boltVBO.usedElements
+
 	-- Glow halo (drawn first, behind bolt)
 	glowShader:Activate()
-	boltVBO:Draw()
+	vao:DrawElements(GL_TRIANGLES, 6, 0, arms)
 	glowShader:Deactivate()
 
 	-- Bolt body (procedural; no texture)
@@ -1431,10 +1491,10 @@ local function drawAll()
 	boltVBO:Draw()
 	boltShader:Deactivate()
 
-	-- Impact spark billboard at the bolt's far endpoint (segIndex==0 instances only)
+	-- Impact spark billboard at the bolt's far endpoint
 	gl.Texture(0, impactTexture)
 	impactShader:Activate()
-	boltVBO:Draw()
+	vao:DrawElements(GL_TRIANGLES, 6, 0, arms)
 	impactShader:Deactivate()
 	gl.Texture(0, false)
 
@@ -1450,13 +1510,10 @@ local cleanupFrame = 0
 
 local function cleanupTrackedBolts(n)
 	local removeCount = 0
-	local anyRemain = false
 	for proID, rec in pairs(tracked) do
 		if n - (rec.lastSeenFrame or 0) > BOLT_LIFE_FRAMES + 2 then
 			removeCount = removeCount + 1
 			removeList[removeCount] = proID
-		else
-			anyRemain = true
 		end
 	end
 	for i = 1, removeCount do
@@ -1464,20 +1521,25 @@ local function cleanupTrackedBolts(n)
 		local rec = tracked[proID]
 		tracked[proID] = nil
 		removeList[i] = nil
-		if rec then releaseRec(rec) end
+		if rec then
+			releaseRec(rec)
+		end
 	end
-	hasTracked = anyRemain
 end
 
 function gadget:Initialize()
-	if not initGL4() then return end
+	if not initGL4() then
+		return
+	end
 
 	-- Subscribe to the shared projectile dispatcher (map-wide weapon scan,
 	-- shared with the beam laser gadget).
 	local PS = GG.ProjectileScan
 	if PS then
 		local defIDSet = {}
-		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		for wDefID in pairs(weaponConfigs) do
+			defIDSet[wDefID] = true
+		end
 		dispatchHandle = PS.Subscribe("lightning_cannon", defIDSet, PS.SCAN_MAP_WEAPONS)
 	end
 end

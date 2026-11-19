@@ -1,8 +1,8 @@
 return {
 	noweapon = {
-        range = 0,
+		range = 0,
 		damage = {
 			default = 0,
 		},
-    },
+	},
 }

@@ -49,7 +49,6 @@ out DataVS {
 	vec4 v_mincolor;
 	vec4 v_maxcolor;
 	vec4 v_centerpos;
-	vec4 v_uvoffsets;
 	vec4 v_parameters;
 	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
@@ -112,7 +111,7 @@ void main()
 	v_centerpos.y += height_timers.x; // Add per-instance height offset
 
 	// This is not needed since the switch to .drawPos
-	//if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
+	//if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of whether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 
 	v_bartype_index_ssboloc = bartype_index_ssboloc;
@@ -124,7 +123,7 @@ void main()
 		//v_parameters.x =  UNITUNIFORMS.userDefined[uint(i / 5u)][uint(mod(i,4u))];
 		v_parameters.x =  UNITUNIFORMS.userDefined[0].y;
 
-	}else{ // this is a health bar, dont draw it if the unit is being built and its health doesnt really differ from the full health
+	}else{ // this is a health bar, dont draw it if the unit is being built and its health doesn't really differ from the full health
 		// TODO: this is kinda buggy, as buildprogess in the the unit uniforms is somehow lagging behind health.
 		float buildprogress = UNITUNIFORMS.userDefined[0].x; // this is -1.0 for fully built units
 		#ifndef DEBUGSHOW

@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Custom weapon behaviours",
-		desc    = "Handler for special weapon behaviours",
-		author  = "Doo",
-		date    = "Sept 19th 2017",
+		name = "Custom weapon behaviours",
+		desc = "Handler for special weapon behaviours",
+		author = "Doo",
+		date = "Sept 19th 2017",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -41,6 +41,7 @@ local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -54,8 +55,8 @@ local spSpawnProjectile = Spring.SpawnProjectile
 
 local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 
-local targetedGround = string.byte('g')
-local targetedUnit = string.byte('u')
+local targetedGround = string.byte("g")
+local targetedUnit = string.byte("u")
 
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
@@ -66,9 +67,10 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectilesData = {}
-
 local gameFrame = 0
+
+-- Spawned projectiles take their damage scaling from the parent weapon:
+local childDefByParent = {} ---@type table<WeaponDefID, WeaponDefID> only the defs that spawn one
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -133,13 +135,14 @@ local function isProjectileInWater(projectileID)
 end
 
 local function equalTargets(target1, target2)
-	return target1 == target2 or (
-		type(target1) == "table" and
-		type(target2) == "table" and
-		target1[1] == target2[1] and
-		target1[2] == target2[2] and
-		target1[3] == target2[3]
-	)
+	return target1 == target2
+		or (
+			type(target1) == "table"
+			and type(target2) == "table"
+			and target1[1] == target2[1]
+			and target1[2] == target2[2]
+			and target1[3] == target2[3]
+		)
 end
 
 local readAs = { read = -1 }
@@ -165,8 +168,8 @@ local function getTargetPositionWithError(projectileID)
 end
 
 ---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
----@param projectileID integer
----@param target integer|xyz?
+---@param projectileID ProjectileID
+---@param target UnitOrPosition?
 ---@param targetType TargetType
 local function setProjectileTarget(projectileID, target, targetType)
 	if targetType == 1 then
@@ -182,15 +185,15 @@ local getProjectileArgs
 do
 	---@class ProjectileParams
 	local projectileParams = {
-		pos     = { 0, 0, 0 },
-		speed   = { 0, 0, 0 },
+		pos = { 0, 0, 0 },
+		speed = { 0, 0, 0 },
 		gravity = gravityPerFrame,
-		ttl     = 3000,
-		owner   = -1,
-		team    = -1,
+		ttl = 3000,
+		owner = -1,
+		team = -1,
 	}
 
-	---@return integer weaponDefID
+	---@return WeaponDefID weaponDefID
 	---@return ProjectileParams projectileParams
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)
@@ -205,7 +208,7 @@ do
 		vel[1], vel[2], vel[3], parentSpeed = spGetProjectileVelocity(projectileID)
 
 		projectile.owner = spGetProjectileOwnerID(projectileID) or -1
-		projectile.team  = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
+		projectile.team = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
 		projectile.cegTag = params.cegtag
 		projectile.model = params.model
 
@@ -220,7 +223,7 @@ end
 weaponCustomParamKeys.cruise = {
 	cruise_min_height = toPositiveNumber, -- Minimum ground clearance. Checked each frame, but no lookahead.
 	cruise_max_height = toPositiveNumber, -- Maximum ground clearance. Checked each frame, but no lookahead.
-	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
+	lockon_dist = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
 local useSmoothMeshHeight = 40 -- altitude used to switch between actual and smoothed terrain normals
@@ -233,10 +236,21 @@ end
 local cruiseWaitingDefs = {}
 local cruiseEngagedDefs = {}
 
-local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+local function applyCruiseCorrection(
+	projectileID,
+	elevation,
+	cruiseHeight,
+	positionX,
+	positionY,
+	positionZ,
+	velocityX,
+	velocityY,
+	velocityZ
+)
 	local responseY = 0
 	if elevation > 0 then
-		local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, cruiseHeight - elevation >= useSmoothMeshHeight)
+		local normalX, normalY, normalZ =
+			spGetGroundNormal(positionX, positionZ, cruiseHeight - elevation >= useSmoothMeshHeight)
 		responseY = velocityY - normalY * (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
 	end
 	velocityY = velocityY + (responseY - velocityY) * responseRatio
@@ -259,7 +273,17 @@ specialEffectFunction.cruise = function(params, projectileID)
 	elseif elevation > 0 and speed > 0 and spGetProjectileTimeToLive(projectileID) > 0 then
 		local _, normalY = spGetGroundNormal(positionX, positionZ, true)
 		if velocityY / speed <= normalY then
-			applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+			applyCruiseCorrection(
+				projectileID,
+				elevation,
+				cruiseHeight,
+				positionX,
+				positionY,
+				positionZ,
+				velocityX,
+				velocityY,
+				velocityZ
+			)
 		end
 	end
 
@@ -273,13 +297,24 @@ local function cruiseWaiting(params, projectileID)
 		local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
 		local distance = params.lockon_dist
 
-		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+		if
+			not targetX
+			or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ)
+		then
 			local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
 			local cruiseHeight = elevation + params.cruise_min_height
 			-- Avoid going below the minimum cruise height while ignoring the maximum cruise height.
 			if positionY < cruiseHeight then
 				projectiles[projectileID] = cruiseEngagedDefs[spGetProjectileDefID(projectileID)]
-				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, spGetProjectileVelocity(projectileID))
+				applyCruiseCorrection(
+					projectileID,
+					elevation,
+					cruiseHeight,
+					positionX,
+					positionY,
+					positionZ,
+					spGetProjectileVelocity(projectileID)
+				)
 			end
 			return false
 		end
@@ -294,13 +329,27 @@ local function cruiseEngaged(params, projectileID)
 		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 		local distance = params.lockon_dist
 
-		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+		if
+			not targetX
+			or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ)
+		then
 			local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
-			local cruiseHeight = math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
+			local cruiseHeight =
+				math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
 			local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 			-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
 			if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
-				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+				applyCruiseCorrection(
+					projectileID,
+					elevation,
+					cruiseHeight,
+					positionX,
+					positionY,
+					positionZ,
+					velocityX,
+					velocityY,
+					velocityZ
+				)
 			end
 			return false
 		end
@@ -311,26 +360,59 @@ end
 -- Retarget
 -- Missile guidance behavior that changes the projectile's target when its intended target is destroyed.
 -- This could be made much more efficient by creating an explicit death dependence (in another gadget).
--- The retargeting behavior relies on the owner unit's primary weapon, so ends when it is also destroyed.
+-- The retargeting behavior relies on the owner unit's weapon, so it ends when its unit is destroyed.
 
--- Uses no weapon customParams.
+weaponCustomParamKeys.retarget = {
+	-- Specify another weapon (by its full weapondef name) as the targeting weapon.
+	retarget_weapon = function(value)
+		return value and toWeaponDefID(value) or false
+	end,
+}
 
-specialEffectFunction.retarget = function(projectileID)
-	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local targetType, target = spGetProjectileTarget(projectileID)
-
-		if targetType == targetedUnit then
-			if spGetUnitIsDead(target) ~= false then
-				local ownerID = spGetProjectileOwnerID(projectileID)
-				-- Hardcoded to retarget only from the primary weapon and only units or ground
-				local ownerTargetType, fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-				setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
-			end
-			return false
+local retargetWeapons = {}
+local hashBaseDefs = #WeaponDefs + 1
+assert(hashBaseDefs * (#UnitDefs + 1) <= math.int_max)
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local weaponDefToNum = {}
+	for weaponNum, weapon in ipairs(unitDef.weapons) do
+		weaponDefToNum[weapon.weaponDef] = weaponDefToNum[weapon.weaponDef] or weaponNum
+	end
+	for weaponDefID, weaponNum in pairs(weaponDefToNum) do
+		local customParams = WeaponDefs[weaponDefID].customParams
+		if customParams.speceffect == "retarget" then
+			local targetingDef = customParams.retarget_weapon and WeaponDefNames[customParams.retarget_weapon]
+			local retargetNum = targetingDef and weaponDefToNum[targetingDef.id] or weaponNum
+			retargetWeapons[weaponDefID + unitDefID * hashBaseDefs] = retargetNum
 		end
-	else
+	end
+end
+
+specialEffectFunction.retarget = function(_, projectileID)
+	if spGetProjectileTimeToLive(projectileID) <= 0 then
 		return true
 	end
+
+	local targetType, target = spGetProjectileTarget(projectileID)
+	if targetType ~= targetedUnit then
+		return true -- retarget doesn't allow prefiring at the ground & reaiming onto targets
+	end
+	---@cast target UnitID
+	if spGetUnitIsDead(target) == false then
+		return false
+	end
+
+	local ownerID = spGetProjectileOwnerID(projectileID)
+	local ownerDefID = ownerID and spGetUnitDefID(ownerID)
+	if not ownerDefID then
+		return true
+	end
+
+	---@diagnostic disable-next-line: need-check-nil -- OK: projectile is alive
+	local weaponNum = retargetWeapons[spGetProjectileDefID(projectileID) + ownerDefID * hashBaseDefs] or 1
+	---@diagnostic disable-next-line: param-type-mismatch -- OK: owner is alive
+	local ownerTargetType, _fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, weaponNum)
+	setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
+	return false
 end
 
 -- Guidance
@@ -350,8 +432,8 @@ weaponCustomParamKeys.guidance = {
 ---@class GuidanceEffectResult
 ---@field [1] boolean isFiring
 ---@field [2] TargetType guidanceType
----@field [3] boolean isUserTarget, nil when guidanceType is `0`
----@field [4] integer|xyz guidanceTarget, nil when guidanceType is `0`
+---@field [3] boolean? isUserTarget, nil when guidanceType is `0`
+---@field [4] (UnitOrPosition|ProjectileID)? guidanceTarget, nil when guidanceType is `0`
 
 local guidanceResults = {} ---@type table<integer, GuidanceEffectResult|xyz>
 
@@ -418,7 +500,8 @@ local noGuidance = { false, 0, false, -1 }
 
 local function getGuidanceResult(ownerID)
 	local nextSalvo = spGetUnitWeaponState(ownerID, 1, "nextSalvo")
-	local result = nextSalvo and (nextSalvo + 1 >= gameFrame) and { true, spGetUnitWeaponTarget(ownerID, 1) } or noGuidance
+	local result = nextSalvo and (nextSalvo + 1 >= gameFrame) and { true, spGetUnitWeaponTarget(ownerID, 1) }
+		or noGuidance
 	guidanceResults[ownerID] = result
 	return result
 end
@@ -432,7 +515,10 @@ specialEffectFunction.guidance = function(params, projectileID)
 			local result = guidanceResults[ownerID] or getGuidanceResult(ownerID)
 			if result[1] then
 				local guidanceType, guidanceTarget = result[2], result[4]
-				if equalTargets(guidanceTarget, target) or setProjectileTarget(projectileID, guidanceTarget, guidanceType) then
+				if
+					equalTargets(guidanceTarget, target)
+					or setProjectileTarget(projectileID, guidanceTarget, guidanceType)
+				then
 					return false
 				end
 			end
@@ -485,11 +571,11 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	number            = tonumber, -- count of projectiles to spawn
+	speceffect_def = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	number = tonumber, -- count of projectiles to spawn
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
-	cegtag            = tostring, -- as `projectileParams.cegTag`
-	model             = tostring, -- as `projectileParams.model`
+	cegtag = tostring, -- as `projectileParams.cegTag`
+	model = tostring, -- as `projectileParams.model`
 }
 
 local function split(params, projectileID)
@@ -528,9 +614,9 @@ end
 
 weaponCustomParamKeys.cannonwaterpen = {
 	speceffect_def = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	waterpenceg    = tostring, -- name of spawned CEG (use a small splash, there is no damage)
-	cegtag         = tostring, -- as `projectileParams.cegTag`
-	model          = tostring, -- as `projectileParams.model`
+	waterpenceg = tostring, -- name of spawned CEG (use a small splash, there is no damage)
+	cegtag = tostring, -- as `projectileParams.cegTag`
+	model = tostring, -- as `projectileParams.model`
 }
 
 local function cannonWaterPen(params, projectileID)
@@ -596,11 +682,9 @@ local function torpedoWaterPen(params, projectileID)
 
 	-- Apply terrain avoidance proportionate to the shallowness of the water depth.
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
-	local avoidanceY = velocityY - normalY * (
-		velocityX * (normalX + 0) * 0.5 +
-		velocityY * (normalY + 1) * 0.5 +
-		velocityZ * (normalZ + 0) * 0.5
-	)
+	local avoidanceY = velocityY
+		- normalY
+			* (velocityX * (normalX + 0) * 0.5 + velocityY * (normalY + 1) * 0.5 + velocityZ * (normalZ + 0) * 0.5)
 	velocityY = velocityY + (avoidanceY - velocityY) * (shallowness * 0.5 + 0.5)
 
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
@@ -636,6 +720,9 @@ function gadget:Initialize()
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+					if effectParams.speceffect_def then
+						childDefByParent[weaponDefID] = effectParams.speceffect_def
+					end
 
 					if effectName == "cruise" then
 						cruiseWaitingDefs[weaponDefID] = setmetatable(table.copy(effectParams), cruiseWaitingMetatable)
@@ -649,9 +736,14 @@ function gadget:Initialize()
 		end
 	end
 
+	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
+	for parentDefID, childDefID in pairs(childDefByParent) do
+		setWeaponDefParent(childDefID, parentDefID)
+	end
+
 	if next(weaponDefEffect) then
 		for weaponDefID in pairs(weaponDefEffect) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 		gameFrame = Spring.GetGameFrame()
 	else
@@ -661,9 +753,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
-	end
+	projectiles[projectileID] = weaponDefEffect[weaponDefID]
 end
 
 function gadget:ProjectileDestroyed(projectileID)

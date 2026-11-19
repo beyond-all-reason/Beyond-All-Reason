@@ -19,13 +19,10 @@ local function empReworkUnitTweaks(name, unitDef)
 
 	if name == "armdfly" then
 		weapondefs.armdfly_paralyzer.paralyzetime = 1
-		weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
-		weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
-		weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
-		weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
-
-
-
+		weapondefs.armdfly_paralyzer.beamdecay = 0.05 --testing
+		weapondefs.armdfly_paralyzer.beamtime = 0.1 --testing
+		weapondefs.armdfly_paralyzer.areaofeffect = 8 --testing
+		weapondefs.armdfly_paralyzer.targetmoveerror = 0.05 --testing
 
 		--mono beam settings
 		--weapondefs.armdfly_paralyzer.reloadtime = 0.05--testing
@@ -41,7 +38,6 @@ local function empReworkUnitTweaks(name, unitDef)
 		--weapondefs.armdfly_paralyzer.beamBurst = true--testing
 		--weapondefs.armdfly_paralyzer.burst = 10--testing
 		--weapondefs.armdfly_paralyzer.burstRate = 0.1--testing
-
 	end
 
 	if name == "armemp" then
@@ -50,7 +46,6 @@ local function empReworkUnitTweaks(name, unitDef)
 		weapondefs.armemp_weapon.edgeeffectiveness = -0.10
 		weapondefs.armemp_weapon.paralyzetime = 22
 		weapondefs.armemp_weapon.damage.default = 60000
-
 	end
 	if name == "armshockwave" then
 		weapondefs.hllt_bottom.areaofeffect = 150
@@ -66,7 +61,7 @@ local function empReworkUnitTweaks(name, unitDef)
 		weapondefs.empmissile.damage.default = 20000
 		weapondefs.empmissile.paralyzetime = 5
 		weapondefs.emp.damage.default = 200
-		weapondefs.emp.reloadtime = .5
+		weapondefs.emp.reloadtime = 0.5
 		weapondefs.emp.paralyzetime = 1
 	end
 
@@ -85,16 +80,16 @@ local function empReworkUnitTweaks(name, unitDef)
 
 	local customparams = unitDef.customparams
 
-	if (name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
+	if name == "corfmd" or name == "armamd" or name == "cormabm" or name == "armscab" then
 		customparams.paralyzemultiplier = 1.5
 	end
 
-	if (name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo") then
+	if name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo" then
 		customparams.paralyzemultiplier = 2
 	end
 
 	--if name == "corsumo" then
-		--customparams.paralyzemultiplier = 0.9
+	--customparams.paralyzemultiplier = 0.9
 	--end
 
 	if name == "armmar" then
@@ -106,49 +101,49 @@ local function empReworkUnitTweaks(name, unitDef)
 	end
 
 	--if name == "armraz" then
-		--customparams.paralyzemultiplier = 1.2
+	--customparams.paralyzemultiplier = 1.2
 	--end
 	--if name == "armvang" then
-		--customparams.paralyzemultiplier = 1.1
+	--customparams.paralyzemultiplier = 1.1
 	--end
 
 	--if name == "armlun" then
-		--customparams.paralyzemultiplier = 1.05
+	--customparams.paralyzemultiplier = 1.05
 	--end
 
 	--if name == "corshiva" then
-		--customparams.paralyzemultiplier = 1.1
+	--customparams.paralyzemultiplier = 1.1
 	--end
 
 	--if name == "corcat" then
-		--customparams.paralyzemultiplier = 1.05
+	--customparams.paralyzemultiplier = 1.05
 	--end
 
 	--if name == "corkarg" then
-		--customparams.paralyzemultiplier = 1.2
+	--customparams.paralyzemultiplier = 1.2
 	--end
 	--if name == "corsok" then
-		--customparams.paralyzemultiplier = 1.1
+	--customparams.paralyzemultiplier = 1.1
 	--end
 	--if name == "cordemont4" then
-		--customparams.paralyzemultiplier = 1.2
+	--customparams.paralyzemultiplier = 1.2
 	--end
 end
 
 local function empReworkWeaponTweaks(name, wDef)
-	if name == 'empblast' then
+	if name == "empblast" then
 		wDef.areaofeffect = 350
 		wDef.edgeeffectiveness = 0.6
 		wDef.paralyzetime = 12
 		wDef.damage.default = 50000
 	end
-	if name == 'spybombx' then
+	if name == "spybombx" then
 		wDef.areaofeffect = 350
 		wDef.edgeeffectiveness = 0.4
 		wDef.paralyzetime = 20
 		wDef.damage.default = 16000
 	end
-	if name == 'spybombxscav' then
+	if name == "spybombxscav" then
 		wDef.edgeeffectiveness = 0.50
 		wDef.paralyzetime = 12
 		wDef.damage.default = 35000

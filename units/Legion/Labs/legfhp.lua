@@ -38,9 +38,10 @@ return {
 			[6] = "legcar",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
 			techlevel = 1.5,
 		},
@@ -48,8 +49,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "96 35 96",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "96 35 96",
 				collisionvolumetype = "Box",
 				damage = 2014,
 				footprintx = 8,

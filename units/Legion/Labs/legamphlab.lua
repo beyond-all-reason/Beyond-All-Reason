@@ -26,22 +26,22 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
 		terraformspeed = 750,
-		workertime = 150,
+		workertime = 300,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
-	-- 	yardmap = [[h
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- ]],
+		-- 	yardmap = [[h
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- ]],
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",
@@ -57,7 +57,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",

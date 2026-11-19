@@ -2,7 +2,12 @@ local widget = widget ---@type RulesUnsyncedCallins
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
--- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
+-- - If Ctrl is pressed and hovering over a unit, targets all units in the area.
+--   For wrecks, it targets all wrecks with the same tech level unless splitting with Shift+Meta.
+--   Ctrl has special-case interactions with area commands:
+--   - Attack + Ctrl removes matching queued attacks instead of adding any.
+--   - Attack + Ctrl + Meta filters as usual (queue front; split targets with Shift).
+--   - Set Target + Ctrl also issues "sticky" orders that are kept after Stop.
 -- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
 -- - If Meta is pressed, orders are put in front of the order queue.
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
@@ -14,7 +19,7 @@ function widget:GetInfo()
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- Has to be run before Smart Area Reclaim widget
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -41,7 +46,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -56,14 +61,18 @@ local UNIT = "unit"
 
 local commandLimit = 2000
 
+local SplitTargets = require("modules/split_targets")
+local splitRoundRobin = SplitTargets.RoundRobin
+local splitRivers = SplitTargets.Rivers
+
 local myAllyTeamID
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
 
----@field position1 table {x, y, z}
----@field position2 table {x, y, z}
+---@param position1 table {x, y, z}
+---@param position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
@@ -134,7 +143,7 @@ local function distributeTargetsToTransports(transports, targets)
 							allValidPassengers = {},
 							passengersByPriority = {},
 							maxPriority = -1,
-							transportHealth = transportDef.health
+							transportHealth = transportDef.health,
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
@@ -155,23 +164,25 @@ local function distributeTargetsToTransports(transports, targets)
 
 		for _, targetId in ipairs(targets) do
 			local passengerDefId = spGetUnitDefID(targetId)
-			local isValid = false
-			local position = toPositionTable(spGetUnitPosition(targetId))
-			passengerPositions[targetId] = position
-			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
+			if passengerDefId then
+				local isValid = false
+				local position = toPositionTable(spGetUnitPosition(targetId))
+				passengerPositions[targetId] = position
+				validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
 
-			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
-				isValid = true
-			elseif not cantBeTransported[passengerDefId] then
-				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
-				if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+				if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
 					isValid = true
-					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+				elseif not cantBeTransported[passengerDefId] then
+					local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
+					if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+						isValid = true
+						validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+					end
 				end
-			end
-			if isValid then
-				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				tableInsert(transportTypeData.allValidPassengers, targetId)
+				if isValid then
+					passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
+					tableInsert(transportTypeData.allValidPassengers, targetId)
+				end
 			end
 		end
 		if #transportTypeData.allValidPassengers == 0 then
@@ -227,7 +238,7 @@ local function distributeTargetsToTransports(transports, targets)
 	--- with small units and "small" transports remain empty. After picking transport we search for passengers.
 	--- Passengers are grouped by priority - the smaller the number, the harder they are to transport.
 	--- We start with the hardest passengers and pick the one which is the closest to the transport. We look at lower
-	--- priority passengers only when there are noone left in the higher bracket.
+	--- priority passengers only when there are no one left in the higher bracket.
 	for _, transDefId in ipairs(orderedTransportDefs) do
 		local transportTypeData = transportTypeDataMap[transDefId]
 		local passengersByPriority = transportTypeData.passengersByPriority
@@ -239,14 +250,12 @@ local function distributeTargetsToTransports(transports, targets)
 			local transportPos = transportInfo.position
 
 			while transportInfo.capacity > 0 do
-
 				local bestPassengerId
 				local passengerFound = false
 
 				for priority = 1, transportTypeData.maxPriority do
 					local passengers = passengersByPriority[priority]
 					if passengers then
-
 						local closestPassengerId
 						local closestDistSq
 
@@ -281,7 +290,6 @@ local function distributeTargetsToTransports(transports, targets)
 				if not passengerFound then
 					break
 				end
-
 			end
 		end
 	end
@@ -315,57 +323,67 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
+-- Keep Set Target orders sticky after Stop.
+local commandInheritsCtrl = {
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
+-- Keep Ctrl removal consistent for drags starting on ground or units; Meta retains queue insertion/splitting.
+local function leaveToEngine(cmdId, options)
+	return cmdId == CMD.ATTACK and options.ctrl and not options.meta
+end
+
+-- The engine only reads these, so one table per modifier set is shared by all orders.
+local OPTS_NONE = {}
+local OPTS_SHIFT = { "shift" }
+local OPTS_CTRL = { "ctrl" }
+local OPTS_CTRL_SHIFT = { "ctrl", "shift" }
+
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
 	maxCommands = maxCommands or commandLimit
-	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
+	local keepCtrl = options.ctrl and commandInheritsCtrl[cmdId]
+
+	-- Every order after the first is queued; the first one only when Shift is held.
+	local queuedOpts = keepCtrl and OPTS_CTRL_SHIFT or OPTS_SHIFT
+	local firstOpts = options.shift and queuedOpts or (keepCtrl and OPTS_CTRL or OPTS_NONE)
+	local insertFront = options.meta and not options.shift
+	local insertedOptions = keepCtrl and CMD.OPT_CTRL or 0
+
 	for i, targetId in ipairs(filteredTargets) do
-		local cmdOpts = {}
-		if not firstTarget or options.shift then
-			tableInsert(cmdOpts, "shift")
-		end
-		if options.meta and not options.shift then
-			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
+		if insertFront then
+			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, insertedOptions, targetId }, CMD.OPT_ALT)
 		else
-			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
+			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, i == 1 and firstOpts or queuedOpts)
 		end
-		firstTarget = false
 		if i * selectedUnitsLen > maxCommands then
 			return
 		end
 	end
 end
 
-local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
-	end
-	return unitTargetsMap
+local function sortClosestToGroup(units, targets)
+	sortTargetsByDistance(units, targets, true)
 end
 
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local split = splitStrategy or splitRivers
+	local unitTargetsMap =
+		split(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup, selectedUnitsLen)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
-		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
+		giveOrders(cmdId, { selectedUnitId }, targets, options, maxAllowedTargetsPerUnit)
 	end
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	if options.shift and options.meta then
-		splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
@@ -398,8 +416,9 @@ end
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field splitStrategy function? Pins the split strategy instead of choosing it by selection size.
 
-local function commandConfig(targetTypes, targetAllegiance, handler)
+local function commandConfig(targetTypes, targetAllegiance, handler, splitStrategy)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -408,6 +427,7 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	config.handle = handler or defaultHandler
 	config.allowedTargetTypes = allowedTargetTypes
 	config.targetAllegiance = targetAllegiance
+	config.splitStrategy = splitStrategy
 	return config
 end
 
@@ -415,8 +435,9 @@ end
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	-- Set Target does not move the unit, so its split has no distance to shorten:
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -425,11 +446,10 @@ local allowedCommands = {
 }
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
-	local alt = options.alt
 	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local unitDefId = spGetUnitDefID(targetId)
-	if not unitDefId then
+	if not (ctrl or unitDefId) then
 		return nil
 	end
 
@@ -473,6 +493,8 @@ end
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
 	local alt = options.alt
 	local ctrl = options.ctrl
+	-- Ctrl selects the area for splitting, rather than restricting wrecks by tech level.
+	local split = ctrl and options.shift and options.meta
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -485,14 +507,16 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	end
 
 	local targetTechLevel
-	if ctrl then
+	if ctrl and not split then
 		targetTechLevel = getTechLevel(targetUnitDefName)
 	end
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
 		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
-		if ctrl then
+		if split and not alt then
+			shouldInsert = true
+		elseif ctrl and not split then
 			local unitDefName = spGetFeatureResurrect(featureId)
 			local unitTechLevel = getTechLevel(unitDefName)
 			if unitTechLevel == targetTechLevel then
@@ -513,12 +537,47 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	return filteredTargets
 end
 
+-- Keep the object under the cursor when the drag starts. Reconstructing it
+-- from the ground-space area center can pick a different object for aircraft.
+local areaStart
+
+function widget:MousePress(x, y, button)
+	areaStart = nil
+	if button ~= 1 and button ~= 3 then
+		return false
+	end
+	local _, commandID = Spring.GetActiveCommand()
+	local command = allowedCommands[commandID]
+	if command and command.allowedTargetTypes[UNIT] then
+		local targetType, targetID = spTraceScreenRay(x, y)
+		areaStart = { commandID = commandID, button = button, targetType = targetType, targetID = targetID }
+	end
+	return false
+end
+
+function widget:Update()
+	if not areaStart then
+		return
+	end
+	-- This widget does not own the mouse, so it receives no MouseRelease.
+	-- CommandNotify runs before Update when the engine handles the release.
+	local _, _, leftPressed, _, rightPressed = Spring.GetMouseState()
+	if not ((areaStart.button == 1 and leftPressed) or (areaStart.button == 3 and rightPressed)) then
+		areaStart = nil
+	end
+end
+
 function widget:CommandNotify(cmdId, params, options)
+	local start = areaStart
+	areaStart = nil
 	if not (options.alt or options.ctrl) then
 		return false
 	end
 
 	if #params ~= 4 then
+		return false
+	end
+	if leaveToEngine(cmdId, options) then
 		return false
 	end
 
@@ -533,8 +592,13 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	local targetType, targetId
+	if start and start.commandID == cmdId and start.button == (options.right and 3 or 1) then
+		targetType, targetId = start.targetType, start.targetID
+	else
+		local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
+		targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	end
 
 	if not currentCommand.allowedTargetTypes[targetType] then
 		return false
@@ -557,7 +621,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options, currentCommand.splitStrategy)
 	return true
 end
 

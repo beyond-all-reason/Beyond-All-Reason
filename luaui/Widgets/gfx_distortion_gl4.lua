@@ -10,17 +10,15 @@ function widget:GetInfo()
 		license = "GNU GPL v2",
 		layer = -999999999, -- should be the last call of DrawWorld
 		enabled = true,
-		depends = {'gl4'},
+		depends = { "gl4" },
 	}
 end
-
 
 -- Localized functions for performance
 local mathMax = math.max
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local stringFormat = string.format
-local stringFind = string.find
 local pairs = pairs
 local ipairs = ipairs
 local type = type
@@ -41,14 +39,11 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
 local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -65,25 +60,25 @@ local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glDeleteTexture = gl.DeleteTexture
 local glCreateTexture = gl.CreateTexture
-local glLoadFont = gl.LoadFont
+local glGetQuery = gl.GetQuery
+local glRunQuery = gl.RunQuery
 
 -------------------------------- Notes, TODO ----------------------------------
 do
---
--- Rendering passes:
--- 1. Render all distortion effects to a screen-sized buffer, DistortionTexture
--- 	1.1 Call widget:DrawDistortion(textureset)
---
--- 2. Perform the distortion pass,
+	--
+	-- Rendering passes:
+	-- 1. Render all distortion effects to a screen-sized buffer, DistortionTexture
+	-- 	1.1 Call widget:DrawDistortion(textureset)
+	--
+	-- 2. Perform the distortion pass,
 	-- inputs are DistortionTexture, Depth Buffers, ScreenCopy
 	-- Output is the final screen
--- Perform a compression pass on distortionParams, culling idents
+	-- Perform a compression pass on distortionParams, culling idents
 end
 
------------------------------ Localize for optmization ------------------------------------
+----------------------------- Localize for optimization ------------------------------------
 local glBlending = gl.Blending
 local glTexture = gl.Texture
-
 
 -- Strong:
 local spGetProjectilePosition = Spring.GetProjectilePosition
@@ -92,14 +87,12 @@ local spGetProjectileType = Spring.GetProjectileType
 local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView  = Spring.IsSphereInView
-local spGetUnitPosition  = Spring.GetUnitPosition
+local spIsSphereInView = Spring.IsSphereInView
+local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 
-
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -119,18 +112,37 @@ local skipdraw = false
 local unitDefDistortions
 local featureDefDistortions
 local unitEventDistortions -- Table of distortions per unitDefID
-local muzzleFlashDistortions  -- one distortion per weaponDefID
-local projectileDefDistortions  -- one distortion per weaponDefID
-local explosionDistortions  -- one distortion per weaponDefID
-local gibDistortion  -- one distortion for all pieceprojectiles
+local muzzleFlashDistortions -- one distortion per weaponDefID
+local projectileDefDistortions -- one distortion per weaponDefID
+local explosionDistortions -- one distortion per weaponDefID
+local gibDistortion -- one distortion for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
+
+-- Render the distortion offsets at 1/N of the screen resolution. The distortion volumes run a
+-- heavy per-pixel shader and only produce low-frequency UV offsets, so 2 costs a quarter of the
+-- fragment work for the same look; set to 1 for the full-resolution original. The combine pass
+-- samples the offsets bilinearly, so edges of the effect bleed by up to N-1 screen pixels.
+local distortionResolutionDivider = 2
+
+-- Skip the screen copy and the full-screen combine pass on frames where no distortion volume
+-- produced a fragment: an occlusion query over the volume pass, read without waiting once the GPU
+-- has caught up with it, three frames later (needs the engine's non-blocking gl.GetQuery, older
+-- engines keep the unconditional passes). A newly added distortion forces both passes until its
+-- own query is read. A game with one unit that owns a permanent effect otherwise pays both passes
+-- every frame. false restores the unconditional passes.
+local skipCombineWhenEmpty = true
+
+-- Heat distortion (effect type 0) was tuned while its distance falloff was applied twice.
+-- false switches the shader to the single, documented falloff (noticeably weaker heat).
+local heatLegacyDoubleFalloff = true
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	CHROMATIC_ABERRATION = 1.02, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 	UNIFORMSBUFFERCOPY = nil, -- enable this for experimental unit uniforms buffer copy
+	HEAT_LEGACY_DOUBLE_FALLOFF = heatLegacyDoubleFalloff and 1 or 0,
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
@@ -138,31 +150,46 @@ local radiusMultiplier = 1.0
 local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
-local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
-local pointDistortionVBO = {} -- an instanceVBOTable
-local coneDistortionVBO = {} -- an instanceVBOTable
-local beamDistortionVBO = {} -- an instanceVBOTable
-local distortionVBOMap -- a table of the above 3, keyed by distortion type, {point = pointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local pointDistortionVBO
+---@type InstanceVBOTable?
+local coneDistortionVBO
+---@type InstanceVBOTable?
+local beamDistortionVBO
+---Table of the above 3, keyed by distortion shape, {point = pointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local distortionVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based distortions
-local unitPointDistortionVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeDistortionVBO = {} -- an instanceVBOTable
-local unitBeamDistortionVBO = {} -- an instanceVBOTable
-local unitDistortionVBOMap -- a table of the above 3, keyed by distortion type,  {point = unitPointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local unitPointDistortionVBO
+---@type InstanceVBOTable?
+local unitConeDistortionVBO
+---@type InstanceVBOTable?
+local unitBeamDistortionVBO
+---Table of the above 3, keyed by distortion shape,  {point = unitPointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local unitDistortionVBOMap
 
 local unitAttachedDistortions = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
-	--{unitID = { instanceID = targetVBO, ... }}
+--{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptdistortions to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointDistortionVBO = {}  -- for plasma balls
-local projectileBeamDistortionVBO = {}  -- for lasers
-local projectileConeDistortionVBO = {} -- for rockets
-local projectileDistortionVBOMap -- a table of the above 3, keyed by distortion type
+---@type InstanceVBOTable?
+local projectilePointDistortionVBO -- for plasma balls
+---@type InstanceVBOTable?
+local projectileBeamDistortionVBO -- for lasers
+---@type InstanceVBOTable?
+local projectileConeDistortionVBO -- for rockets
+---Keyed by distortion shape: `point`, `beam`, `cone`.
+---@type table<lightVBOType, InstanceVBOTable?>
+local projectileDistortionVBOMap
 
 local distortionRemoveQueue = {} -- stores distortions that have expired life {gameframe = {distortionIDs ... }}
 
@@ -170,7 +197,9 @@ local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
 local distortionParamTableSize = 29
 local distortionCacheTable = {} -- this is a reusable table cache for saving memory later on
-for i = 1, distortionParamTableSize do distortionCacheTable[i] = 0 end
+for i = 1, distortionParamTableSize do
+	distortionCacheTable[i] = 0
+end
 local pieceIndexPos = 25
 local spawnFramePos = 17
 distortionCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
@@ -192,46 +221,58 @@ local distortionEffectTypes = {
 	motionBlur = 11,
 	tachyonBeam = 12,
 	distortionCircleGround = 13,
-
 }
 
-local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable distortion parameters
-	-- worldposrad:
-	posx = 1, posy = 2, posz = 3, radius = 4,
+local distortionParamKeyOrder =
+	{ -- This table is a 'quick-ish' way of building the lua array from human-readable distortion parameters
+		-- worldposrad:
+		posx = 1,
+		posy = 2,
+		posz = 3,
+		radius = 4,
 
-	-- worldposrad2:
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cones: specify direction and half-angle in radians
-	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
+		-- worldposrad2:
+		dirx = 5,
+		diry = 6,
+		dirz = 7,
+		theta = 8, -- cones: specify direction and half-angle in radians
+		pos2x = 5,
+		pos2y = 6,
+		pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 
+		-- baseparams
+		yoffset = 9, -- the offset along the y axis for this effect
+		effectStrength = 10, -- Default 1, multiply with any effect's final strength
+		startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
+		unused = 12,
 
-	-- baseparams
-	yoffset = 9, -- the offset along the y axis for this effect
-	effectStrength = 10, -- Default 1, multiply with any effect's final strength
-	startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
-	unused = 12,
+		-- universalParams
+		noiseStrength = 13,
+		noiseScaleSpace = 14,
+		distanceFalloff = 15,
+		onlyModelMap = 16,
 
-	-- universalParams
-	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16,
+		-- lifeParams:
+		--spawnFrame = 17, is reserved!
+		lifeTime = 18,
+		rampUp = 19,
+		decay = 20,
 
-	-- lifeParams:
-	--spawnFrame = 17, is reserved!
-	lifeTime = 18, rampUp = 19, decay = 20,
+		-- effectParams
+		effectParam1 = 21,
+		riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
+		shockWidth = 21, -- note how width is identical to effectParam1 for clarity
+		magnificationRate = 21,
 
-	-- effectParams
-	effectParam1 = 21,
-	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
-	shockWidth = 21,    -- note how width is identical to effectParam1 for clarity
-	magnificationRate = 21,
+		effectParam2 = 22, --note how refractiveIndex is identical to effectParam2 for clarity
+		refractiveIndex = 22,
 
-	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
-	refractiveIndex = 22,
-
-	windAffected = 23,  effectType = 24,
-	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
-}
+		windAffected = 23,
+		effectType = 24,
+		--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
+	}
 
 local autoDistortionInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
-
 
 local gameFrame = 0
 
@@ -239,41 +280,35 @@ local trackedProjectiles = {} -- used or finding out which projectiles can be cu
 local trackedProjectileTypes = {} -- we have to track the types [point, distortion, cone] of projectile distortions for efficient updates
 local lastGameFrame = -2
 
-
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local uploadAllElements = InstanceVBOTable.uploadAllElements
+local uploadElementRange = InstanceVBOTable.uploadElementRange
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local deferredDistortionShader = nil
 
 local distortionShaderSourceCache = {
-	shaderName = 'Deferred Distortions GL4',
+	shaderName = "Deferred Distortions GL4",
 	vssrcpath = "LuaUI/Shaders/distortion_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/distortion_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		mapDepths = 0,
 		modelDepths = 1,
-		mapNormals = 2,
-		modelNormals = 3,
-		mapDiffuse = 4,
-		modelDiffuse = 5,
-		noise3DCube = 6,
-		},
+		noise3DCube = 2,
+	},
 	uniformFloat = {
 		pointbeamcone = 0,
 		--fadeDistance = 3000,
 		attachedtounitID = 0,
-		nightFactor = 1.0,
-		windXZ = {0,0},
+		windXZ = { 0, 0 },
 		radiusMultiplier = 1.0,
 		intensityMultiplier = 1.0,
-	  },
+	},
 }
-
 
 local numAddDistortions = 0 -- how many times AddDistortion was called
 
@@ -282,48 +317,61 @@ local spec = spGetSpectatingState()
 local vsx, vsy, vpx, vpy
 local invVsx, invVsy = 0, 0
 local DistortionTexture -- RGBA 8bit
+-- A ring of occlusion queries over the volume pass, each read when it is the oldest; see skipCombineWhenEmpty.
+-- The GPU typically runs 2-3 frames behind: asking for a newer result costs a driver flush and gets no answer.
+local distortionQueryCount = 4
+local distortionSampleQueries, distortionQueryFrame = nil, 0
+local distortionHadSamples = true
+local forceCombineFrames = 0 -- frames the combine runs whatever the queries say, set by new distortions
 local ScreenCopy -- RGBA 8bit
 
 local screenDistortionShader = nil
 local screenDistortionShaderSourceCache = {
-	shaderName = 'ScreenDistortionShader GL4',
+	shaderName = "ScreenDistortionShader GL4",
 	vssrcpath = "LuaUI/Shaders/screen_distortion_combine_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/screen_distortion_combine_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
-		mapDepths = 0,
-		modelDepths = 1,
-		screenCopyTexture = 2,
-		distortionTexture = 3,
-		},
+		screenCopyTexture = 0,
+		distortionTexture = 1,
+	},
 	uniformFloat = {
 		distortionStrength = 1.0,
-		},
+	},
 }
 
 local fullScreenQuadVAO = nil
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
-
 local function goodbye(reason)
-	spEcho('Deferred Distortions GL4 exiting:', reason)
+	spEcho("Deferred Distortions GL4 exiting:", reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one distortion instance buffer and attaches its VAO.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
-	if vertexVBO == nil or targetDistortionVBO == nil then goodbye("Failed to make "..VBOname) end
+	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
+	if vertexVBO == nil or targetDistortionVBO == nil then
+		goodbye("Failed to make " .. VBOname)
+	end
 	targetDistortionVBO.vertexVBO = vertexVBO
 	targetDistortionVBO.numVertices = numVertices
 	targetDistortionVBO.indexVBO = indexVBO
-	targetDistortionVBO.VAO = InstanceVBOTable.makeVAOandAttach(targetDistortionVBO.vertexVBO, targetDistortionVBO.instanceVBO, targetDistortionVBO.indexVBO)
+	targetDistortionVBO.VAO = InstanceVBOTable.makeVAOandAttach(
+		targetDistortionVBO.vertexVBO,
+		targetDistortionVBO.instanceVBO,
+		targetDistortionVBO.indexVBO
+	)
 	return targetDistortionVBO
 end
 
 function widget:ViewResize()
 	vsx, vsy, vpx, vpy = spGetViewGeometry()
-	if ScreenCopy then glDeleteTexture(ScreenCopy) end
-	ScreenCopy = glCreateTexture(vsx  , vsy, {
+	if ScreenCopy then
+		glDeleteTexture(ScreenCopy)
+	end
+	ScreenCopy = glCreateTexture(vsx, vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
@@ -332,18 +380,28 @@ function widget:ViewResize()
 	})
 	local GL_RGBA16F_ARB = 0x881A
 	--local GL_DEPTH_COMPONENT32 = 0x81A7
-	if DistortionTexture then glDeleteTexture(DistortionTexture) end
-	DistortionTexture = glCreateTexture(vsx , vsy, {
+	if DistortionTexture then
+		glDeleteTexture(DistortionTexture)
+	end
+	local distW = math.max(1, math.floor(vsx / distortionResolutionDivider))
+	local distH = math.max(1, math.floor(vsy / distortionResolutionDivider))
+	DistortionTexture = glCreateTexture(distW, distH, {
 		border = false,
 		format = GL_RGBA16F_ARB,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 		fbo = true,
 	})
-	if not ScreenCopy then spEcho("Distortions GL4 Manager failed to create a ScreenCopy") return false end
-	if not DistortionTexture then spEcho("ScreenCopy Manager failed to create a DistortionTexture") return false end
+	if not ScreenCopy then
+		spEcho("Distortions GL4 Manager failed to create a ScreenCopy")
+		return false
+	end
+	if not DistortionTexture then
+		spEcho("ScreenCopy Manager failed to create a DistortionTexture")
+		return false
+	end
 	invVsx = 1 / vsx
 	invVsy = 1 / vsy
 	return true
@@ -367,76 +425,111 @@ local function initGL4()
 		return false
 	end
 
-	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	fullScreenQuadVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO()) --  -1, -1, 1, 0,   0,0,1, 0.5)
 	-- init the VBO
 	local vboLayout = {
-			{id = 3, name = 'worldposrad', 			size = 4},
-				-- for spot, this is center.xyz and radius
-				-- for cone, this is center.xyz and height
-				-- for beam this is center.xyz and radiusleft
-			{id = 4, name = 'worldposrad2', 		size = 4},
-				-- for spot, this is direction.xyz for unitattached, or world anim params
-				-- for cone, this is direction.xyz and angle in radians
-				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'baseparams', 		size = 4}, -- yoffset, effectStrength, startRadius,  unused
-			{id = 6, name = 'universalParams', 		size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
-			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
-			{id = 8, name = 'effectParams', size = 4}, -- effectParam1, effectParam2, windAffectd, effectType
-			{id = 9, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
-			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+		{ id = 3, name = "worldposrad", size = 4 },
+		-- for spot, this is center.xyz and radius
+		-- for cone, this is center.xyz and height
+		-- for beam this is center.xyz and radiusleft
+		{ id = 4, name = "worldposrad2", size = 4 },
+		-- for spot, this is direction.xyz for unitattached, or world anim params
+		-- for cone, this is direction.xyz and angle in radians
+		-- for beam this is end.xyz and radiusright
+		{ id = 5, name = "baseparams", size = 4 }, -- yoffset, effectStrength, startRadius,  unused
+		{ id = 6, name = "universalParams", size = 4 }, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
+		{ id = 7, name = "lifeParams", size = 4 }, -- spawnFrame, lifeTime, rampUp, decay
+		{ id = 8, name = "effectParams", size = 4 }, -- effectParam1, effectParam2, windAffectd, effectType
+		{ id = 9, name = "pieceIndex", size = 1, type = GL.UNSIGNED_INT },
+		{ id = 10, name = "instData", size = 4, type = GL.UNSIGNED_INT },
 	}
 
 	local pointVBO, numVerts, pointIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(8, 4, 1) -- could use an icosahedron (v12/i60/f20) maybe?
 	--spEcho('numVerts', numVerts, numIndices) -- (v45, i144, f45) for a sphere
-	pointDistortionVBO 			= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Distortion VBO")
-	unitPointDistortionVBO 		= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Distortion VBO", 10)
-	projectilePointDistortionVBO = createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Distortion VBO")
+	pointDistortionVBO = createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Distortion VBO")
+	unitPointDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Distortion VBO", 10)
+	projectilePointDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Distortion VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
-	coneDistortionVBO 			= createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Distortion VBO")
-	unitConeDistortionVBO 		= createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Distortion VBO", 10)
-	projectileConeDistortionVBO  = createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Distortion VBO")
-
 	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
-	beamDistortionVBO 			= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Distortion VBO")
-	unitBeamDistortionVBO 		= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Distortion VBO", 10)
-	projectileBeamDistortionVBO 	= createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Distortion VBO")
+	-- engines without the LuaVAO keep-partial fix rebuild a VAO on every draw unless it also has an index buffer
+	local meshIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if meshIndexVBO then
+		local meshIndices = {}
+		for i = 1, mathMax(numConeVertices, numBeamVertices) do
+			meshIndices[i] = i - 1
+		end
+		meshIndexVBO:Define(#meshIndices)
+		meshIndexVBO:Upload(meshIndices)
+	end
 
-	projectileDistortionVBOMap = { point = projectilePointDistortionVBO,  beam = projectileBeamDistortionVBO,  cone = projectileConeDistortionVBO, }
-	unitDistortionVBOMap = { point = unitPointDistortionVBO,  beam = unitBeamDistortionVBO,  cone = unitConeDistortionVBO, }
-	distortionVBOMap = { point = pointDistortionVBO,  beam = beamDistortionVBO,  cone = coneDistortionVBO, }
+	coneDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Cone Distortion VBO")
+	unitConeDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Unit Cone Distortion VBO", 10)
+	projectileConeDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Projectile Cone Distortion VBO")
+
+	beamDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Beam Distortion VBO")
+	unitBeamDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Unit Beam Distortion VBO", 10)
+	projectileBeamDistortionVBO =
+		createDistortionInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Projectile Beam Distortion VBO")
+
+	projectileDistortionVBOMap = {
+		point = projectilePointDistortionVBO,
+		beam = projectileBeamDistortionVBO,
+		cone = projectileConeDistortionVBO,
+	}
+	unitDistortionVBOMap =
+		{ point = unitPointDistortionVBO, beam = unitBeamDistortionVBO, cone = unitConeDistortionVBO }
+	distortionVBOMap = { point = pointDistortionVBO, beam = beamDistortionVBO, cone = coneDistortionVBO }
 	return pointDistortionVBO and unitPointDistortionVBO and coneDistortionVBO and beamDistortionVBO
 end
 
-
 ---InitializeDistortion(distortionTable, unitID)
----Takes a distortion definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
----@param unitID number
+---@param unitID UnitID
 local function InitializeDistortion(distortionTable, unitID)
-	if not distortionTable.initComplete then  -- late init
-		-- do the table to flattable conversion, if it doesnt exist yet
+	if not distortionTable.initComplete then -- late init
+		-- do the table to flattable conversion, if it doesn't exist yet
 		if not distortionTable.distortionParamTable then -- perform correct init
 			local distortionparams = {}
-			for i = 1, distortionParamTableSize do distortionparams[i] = 0 end
-			if distortionTable.distortionConfig == nil then Spring.Debug.TraceFullEcho() end
+			for i = 1, distortionParamTableSize do
+				distortionparams[i] = 0
+			end
+			if distortionTable.distortionConfig == nil then
+				BAR.Debug.TraceFullEcho()
+			end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
-				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == 'string' then
-					distortionparams[tablepos] = distortionEffectTypes[distortionTable.distortionConfig[paramname]] or distortionparams[tablepos]
+				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == "string" then
+					distortionparams[tablepos] = distortionEffectTypes[distortionTable.distortionConfig[paramname]]
+						or distortionparams[tablepos]
 				else
-					distortionparams[tablepos] = distortionTable.distortionConfig[paramname] or distortionparams[tablepos]
+					distortionparams[tablepos] = distortionTable.distortionConfig[paramname]
+						or distortionparams[tablepos]
 				end
 			end
 			--distortionparams[distortionParamKeyOrder.radius] = distortionparams[distortionParamKeyOrder.radius]
 			--distortionparams[distortionParamKeyOrder.a] =  distortionparams[distortionParamKeyOrder.a] or 1
-			distortionparams[distortionParamKeyOrder.lifeTime] = mathFloor( distortionparams[distortionParamKeyOrder.lifeTime] ) or 0
-			distortionparams[distortionParamKeyOrder.noiseStrength] = distortionTable.distortionConfig.noiseStrength or 1
-			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
-			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
-			distortionparams[distortionParamKeyOrder.effectStrength] = distortionTable.distortionConfig.effectStrength or 1
+			distortionparams[distortionParamKeyOrder.lifeTime] = mathFloor(
+				distortionparams[distortionParamKeyOrder.lifeTime]
+			) or 0
+			distortionparams[distortionParamKeyOrder.noiseStrength] = distortionTable.distortionConfig.noiseStrength
+				or 1
+			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace
+				or 1
+			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff
+				or 1
+			distortionparams[distortionParamKeyOrder.effectStrength] = distortionTable.distortionConfig.effectStrength
+				or 1
 			local startRadius = distortionTable.distortionConfig.startRadius
 			if startRadius then
-				if (startRadius > 0) and (startRadius < 1 ) then
+				if (startRadius > 0) and (startRadius < 1) then
 					startRadius = startRadius * (distortionTable.distortionConfig.radius or 100)
 				end
 				distortionparams[distortionParamKeyOrder.startRadius] = startRadius
@@ -449,18 +542,16 @@ local function InitializeDistortion(distortionTable, unitID)
 			distortionTable.distortionParamTable = distortionparams
 			--distortionTable.distortionConfig = nil -- never used again after initialization
 			local cnt = 0
-			for k,v in pairs(distortionTable.distortionParamTable) do
-				cnt = cnt +1
+			for k, v in pairs(distortionTable.distortionParamTable) do
+				cnt = cnt + 1
 			end
 			if cnt ~= distortionParamTableSize then
-
-				for k,v in pairs(distortionTable.distortionParamTable) do
-					spEcho(k,v)
+				for k, v in pairs(distortionTable.distortionParamTable) do
+					spEcho(k, v)
 				end
 				spEcho("DistortionTable size mismatch", cnt, distortionParamTableSize)
 				spEcho(distortionTable)
 			end
-
 		end
 		if unitID then
 			local unitDefID = spGetUnitDefID(unitID)
@@ -478,7 +569,7 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionTable.pieceIndex = pieceMap[distortionTable.pieceName]
 				distortionTable.distortionParamTable[pieceIndexPos] = distortionTable.pieceIndex
 			end
-				--spEcho(distortionname, distortionParams.pieceName, pieceMap[distortionParams.pieceName])
+			--spEcho(distortionname, distortionParams.pieceName, pieceMap[distortionParams.pieceName])
 		end
 
 		distortionTable.initComplete = true
@@ -505,13 +596,13 @@ end
 ---AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesn't have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
 ---@param targetVBO table specify which one you want it to
 ---@param distortionparams table a valid table of distortion parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
+---@param noUpload bool true if it shouldn't be uploaded to gpu yet
 ---@return instanceID for future reuse
 local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 	if instanceID == nil then
@@ -528,44 +619,22 @@ local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distorti
 	end
 	if unitID then
 		if unitAttachedDistortions[unitID] == nil then
-			unitAttachedDistortions[unitID] = {[instanceID] = targetVBO}
+			unitAttachedDistortions[unitID] = { [instanceID] = targetVBO }
 		else
 			unitAttachedDistortions[unitID][instanceID] = targetVBO
 		end
 	end
 	numAddDistortions = numAddDistortions + 1
+	forceCombineFrames = distortionQueryCount
 	return instanceID
-end
-
----updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
----This function is for internal use only, to update the position of a distortion.
----Only use if you know the consequences of updating a VBO in-place!
-local function updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
-	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then return nil end
-	instanceIndex = (instanceIndex - 1 ) * distortionVBO.instanceStep
-	local instData = distortionVBO.instanceData
-	if posx then
-		instData[instanceIndex + 1] = posx
-		instData[instanceIndex + 2] = posy
-		instData[instanceIndex + 3] = posz
-	end
-	if radius then instData[instanceIndex + 4] = radius end
-
-	if p2x then
-		instData[instanceIndex + 5] = p2x
-		instData[instanceIndex + 6] = p2y
-		instData[instanceIndex + 7] = p2z
-	end
-	if theta then instData[instanceIndex + 8] = theta end
-	distortionVBO.dirty = true
-	return instanceIndex
 end
 
 -- Specialized fast path for projectile position updates: no nil-checks, always writes pos+dir
 local function updateProjectilePosition(distortionVBO, instanceID, posx, posy, posz, dx, dy, dz)
 	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then return nil end
+	if instanceIndex == nil then
+		return nil
+	end
 	instanceIndex = (instanceIndex - 1) * distortionVBO.instanceStep
 	local instData = distortionVBO.instanceData
 	instData[instanceIndex + 1] = posx
@@ -582,20 +651,33 @@ end
 
 local function AddStaticDistortionsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefDistortions[unitDefID] then
-		if spGetUnitIsBeingBuilt(unitID) then return end
+		if spGetUnitIsBeingBuilt(unitID) then
+			return
+		end
 		local unitDefDistortion = unitDefDistortions[unitDefID]
-		if unitDefDistortion.initComplete ~= true then  -- late init
+		if unitDefDistortion.initComplete ~= true then -- late init
 			for distortionname, distortionParams in pairs(unitDefDistortion) do
-				if not InitializeDistortion(distortionParams, unitID) then return end
+				if not InitializeDistortion(distortionParams, unitID) then
+					return
+				end
 			end
 			unitDefDistortion.initComplete = true
 		end
 		for distortionname, distortionParams in pairs(unitDefDistortion) do
-			if distortionname ~= 'initComplete' then
+			if distortionname ~= "initComplete" then
 				local targetVBO = unitDistortionVBOMap[distortionParams.distortionType]
 
-				if (not spec) and distortionParams.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
-				AddDistortion(stringFormat("%d%s", unitID, distortionname), unitID, distortionParams.pieceIndex, targetVBO, distortionParams.distortionParamTable, noUpload)
+				if (not spec) and distortionParams.alliedOnly == true and spIsUnitAllied(unitID) == false then
+					return
+				end
+				AddDistortion(
+					stringFormat("%d%s", unitID, distortionname),
+					unitID,
+					distortionParams.pieceIndex,
+					targetVBO,
+					distortionParams.distortionParamTable,
+					noUpload
+				)
 			end
 		end
 	end
@@ -610,14 +692,14 @@ local function RemoveUnitAttachedDistortions(unitID, instanceID)
 	local numremoved = 0
 	if unitAttachedDistortions[unitID] then
 		if instanceID and unitAttachedDistortions[unitID][instanceID] then
-			popElementInstance(unitAttachedDistortions[unitID][instanceID],instanceID)
+			popElementInstance(unitAttachedDistortions[unitID][instanceID], instanceID)
 			numremoved = numremoved + 1
 			unitAttachedDistortions[unitID][instanceID] = nil
 		else
 			for instanceID, targetVBO in pairs(unitAttachedDistortions[unitID]) do
 				if targetVBO.instanceIDtoIndex[instanceID] then
 					numremoved = numremoved + 1
-					popElementInstance(targetVBO,instanceID)
+					popElementInstance(targetVBO, instanceID)
 				else
 					--spEcho("Distortion attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
@@ -635,7 +717,7 @@ end
 ---Remove a distortion
 ---@param distortionshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the distortion to remove
----@param unitID number make this non-nil to remove it from a unit
+---@param unitID UnitID? make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the distortion was not found
 local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	if unitID then
@@ -644,7 +726,12 @@ local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 			unitAttachedDistortions[unitID][instanceID] = nil
 			return popElementInstance(targetVBO, instanceID)
 		else
-			spEcho("RemoveDistortion tried to remove a non-existing unitdistortion", distortionshape, instanceID, unitID)
+			spEcho(
+				"RemoveDistortion tried to remove a non-existing unitdistortion",
+				distortionshape,
+				instanceID,
+				unitID
+			)
 		end
 	elseif distortionshape then
 		return popElementInstance(distortionVBOMap[distortionshape], instanceID)
@@ -654,21 +741,22 @@ local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	return nil
 end
 
-
 local function LoadDistortionConfig()
 	local effectTypes = {}
 	local function findeffecttypes(t, res)
-		if not autoupdate then return end
+		if not autoupdate then
+			return
+		end
 		for k, v in pairs(t) do
-			if type(v) == 'table' then
+			if type(v) == "table" then
 				findeffecttypes(v, res)
-			elseif k == 'effectType' then
+			elseif k == "effectType" then
 				res[v] = (res[v] or 0) + 1
 			end
 		end
 		return res
 	end
-	local success, result =	pcall(VFS.Include, 'luaui/configs/DistortionGL4Config.lua')
+	local success, result = pcall(VFS.Include, "luaui/configs/DistortionGL4Config.lua")
 	--spEcho("Loading GL4 distortion config", success, result)
 	if success then
 		--spEcho("Loaded GL4 distortion config")
@@ -679,12 +767,11 @@ local function LoadDistortionConfig()
 		findeffecttypes(unitDefDistortions, effectTypes)
 		findeffecttypes(unitEventDistortions, effectTypes)
 		findeffecttypes(featureDefDistortions, effectTypes)
-
 	else
 		spEcho("Failed to load GL4 Unit distortion config", success, result)
 	end
 
-	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DistortionGL4WeaponsConfig.lua')
+	local success2, result2 = pcall(VFS.Include, "luaui/configs/DistortionGL4WeaponsConfig.lua")
 	--spEcho("Loading GL4 weapon distortion config", success2, result2)
 	if success2 then
 		gibDistortion = result2.gibDistortion
@@ -718,17 +805,12 @@ local function LoadDistortionConfig()
 	end
 	if autoupdate and false then
 		spEcho("GL4 Distortion effect types found:")
-		for k,v in pairs(effectTypes) do
-			spEcho(k,v)
+		for k, v in pairs(effectTypes) do
+			spEcho(k, v)
 		end
 	end
 	return success and success2
 end
-
-local nightFactor = 1 --0.33
-local unitNightFactor = 1 -- applied above nightFactor default 1.2
-local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
-
 
 local targetable = {}
 for wdid, wd in pairs(WeaponDefs) do
@@ -737,60 +819,97 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py-7300 > Spring.GetGroundHeight(px, pz) then	-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionDistortions[weaponID] then
-		for i, distortion in pairs(explosionDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px,pz) or 1
-				py = math_max(groundHeight + (distortion.yOffset or 0), py)
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local distortions = explosionDistortions[weaponID]
+		-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if distortions and not (targetable[weaponID] and py - 7300 > spGetGroundHeight(px, pz)) then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					local groundHeight = spGetGroundHeight(px, pz) or 1
+					py = math_max(groundHeight + (distortion.yOffset or 0), py)
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashDistortions[weaponID] then
-		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px,pz) or 1
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local distortions = muzzleFlashDistortions[weaponID]
+		if distortions then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	--spEcho("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
-	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventDistortions.UnitScriptDistortions[unitDefID] and unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex] then
+	if
+		spValidUnitID(unitID)
+		and spGetUnitIsDead(unitID) == false
+		and visibleUnits[unitID]
+		and unitEventDistortions.UnitScriptDistortions[unitDefID]
+		and unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex]
+	then
 		local distortionTable = unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex]
 		if not distortionTable.alwaysVisible then
-			local px,py,pz = spGetUnitPosition(unitID)
-			if px == nil or spIsSphereInView(px,py,pz, distortionTable[4]) == false then return end
+			local px, py, pz = spGetUnitPosition(unitID)
+			if px == nil or spIsSphereInView(px, py, pz, distortionTable[4]) == false then
+				return
+			end
 		end
-		if (not spec) and distortionTable.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
-		if distortionTable.initComplete == nil then InitializeDistortion(distortionTable, unitID) end
-		local instanceID = stringFormat("%d_%s_UnitScriptDistortion%d_%s", unitID, unitName[unitDefID], distortionIndex, param)
-		AddDistortion(instanceID, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionTable.distortionParamTable)
+		if (not spec) and distortionTable.alliedOnly == true and spIsUnitAllied(unitID) == false then
+			return
+		end
+		if distortionTable.initComplete == nil then
+			InitializeDistortion(distortionTable, unitID)
+		end
+		local instanceID =
+			stringFormat("%d_%s_UnitScriptDistortion%d_%s", unitID, unitName[unitDefID], distortionIndex, param)
+		AddDistortion(
+			instanceID,
+			unitID,
+			distortionTable.pieceIndex,
+			unitDistortionVBOMap[distortionTable.distortionType],
+			distortionTable.distortionParamTable
+		)
 	end
 end
 
 local function GetDistortionVBO(vboName)
 	return nil
 end
-
-
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	visibleUnits[unitID] = unitDefID
@@ -822,15 +941,25 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("distortionGL4stats", "t")
 	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
 	-- TODO: delete the VBOs and shaders like a good boy
-	WG['distortionsgl4'] = nil
-	widgetHandler:DeregisterGlobal('AddDistortion')
-	widgetHandler:DeregisterGlobal('RemoveDistortion')
+	WG.distortionsgl4 = nil
+	widgetHandler:DeregisterGlobal("AddDistortion")
+	widgetHandler:DeregisterGlobal("RemoveDistortion")
 
 	deferredDistortionShader:Delete()
+	if type(screenDistortionShader) == "table" then
+		screenDistortionShader:Finalize()
+		screenDistortionShader = nil
+	end
 	local ram = 0
-	for distortiontype, vbo in pairs(unitDistortionVBOMap) do ram = ram + vbo:Delete() end
-	for distortiontype, vbo in pairs(projectileDistortionVBOMap) do ram = ram + vbo:Delete() end
-	for distortiontype, vbo in pairs(distortionVBOMap) do ram = ram + vbo:Delete() end
+	for distortiontype, vbo in pairs(unitDistortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for distortiontype, vbo in pairs(projectileDistortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for distortiontype, vbo in pairs(distortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
 
 	--spEcho("distortionGL4 ram usage MB = ", ram / 1000000)
 	--spEcho("featureDefDistortions", table.countMem(featureDefDistortions))
@@ -846,16 +975,21 @@ function widget:Shutdown()
 	unitEventDistortions = nil
 	muzzleFlashDistortions = nil
 	projectileDefDistortions = nil
-	explosionDistortions  = nil
+	explosionDistortions = nil
 	gibDistortion = nil
 
 	glDeleteTexture(ScreenCopy)
 	glDeleteTexture(DistortionTexture)
 	ScreenCopy, DistortionTexture = nil, nil
+	if distortionSampleQueries then
+		for _, query in ipairs(distortionSampleQueries) do
+			gl.DeleteQuery(query)
+		end
+		distortionSampleQueries = nil
+	end
 
 	--collectgarbage("collect")
 	--collectgarbage("collect")
-
 end
 
 local windX = 0
@@ -885,13 +1019,15 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventDistortions[eventName] then
 		if unitEventDistortions[eventName] then
 			-- get the default event if it is defined
-			local distortionList =  unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName]['default']
+			local distortionList = unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName].default
 			if distortionList then
 				for distortionname, distortionTable in pairs(distortionList) do
 					local visible = distortionTable.alwaysVisible
-					local px,py,pz = spGetUnitPosition(unitID)
+					local px, py, pz = spGetUnitPosition(unitID)
 					if not visible then
-						if px and spIsSphereInView(px,py,pz, distortionTable[4]) then visible = true end
+						if px and spIsSphereInView(px, py, pz, distortionTable[4]) then
+							visible = true
+						end
 					end
 
 					-- bail if only for allies
@@ -917,26 +1053,54 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 						if distortionTable.pieceName then
 							if distortionTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
 								-- this is done via a quick copy of the table
-								for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
+								for i = 1, distortionParamTableSize do
+									distortionCacheTable[i] = distortionParamTable[i]
+								end
 								local unitHeight = spGetUnitHeight(unitID)
 								if unitHeight == nil then
 									local losstate = spGetUnitLosState(unitID)
-									spEcho("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, distortionname, 'losstate', losstate and losstate.los)
+									spEcho(
+										"Unitheight is nil for unitID",
+										unitID,
+										"unitDefName",
+										unitName[unitDefID],
+										eventName,
+										distortionname,
+										"losstate",
+										losstate and losstate.los
+									)
 								end
 
-								distortionCacheTable[2] = distortionCacheTable[2] + distortionTable.aboveUnit + (unitHeight or 0)
+								distortionCacheTable[2] = distortionCacheTable[2]
+									+ distortionTable.aboveUnit
+									+ (unitHeight or 0)
 								distortionParamTable = distortionCacheTable
 							end
-							AddDistortion(stringFormat("%s%d%s", eventName, unitID, distortionname), unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionParamTable)
+							AddDistortion(
+								stringFormat("%s%d%s", eventName, unitID, distortionname),
+								unitID,
+								distortionTable.pieceIndex,
+								unitDistortionVBOMap[distortionTable.distortionType],
+								distortionParamTable
+							)
 						else
-							for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
+							for i = 1, distortionParamTableSize do
+								distortionCacheTable[i] = distortionParamTable[i]
+							end
 							distortionCacheTable[1] = distortionCacheTable[1] + px
-							distortionCacheTable[2] = distortionParamTable[2] + py + ((distortionTable.aboveUnit and spGetUnitHeight(unitID)) or 0)
+							distortionCacheTable[2] = distortionParamTable[2]
+								+ py
+								+ ((distortionTable.aboveUnit and spGetUnitHeight(unitID)) or 0)
 							distortionCacheTable[3] = distortionCacheTable[3] + pz
-							AddDistortion(stringFormat("%s%d%s", eventName, unitID, distortionname), nil, distortionTable.pieceIndex, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
+							AddDistortion(
+								stringFormat("%s%d%s", eventName, unitID, distortionname),
+								nil,
+								distortionTable.pieceIndex,
+								distortionVBOMap[distortionTable.distortionType],
+								distortionCacheTable
+							)
 						end
 					end
-
 				end
 			end
 		end
@@ -954,8 +1118,8 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	eventDistortionSpawner("UnitCreated", unitID, unitDefID, teamID)
 end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	eventDistortionSpawner("UnitFromFactory", unitID, unitDefID, teamID)  -- i have no idea of the differences here
-	eventDistortionSpawner("UnitFromFactoryBuilder", factID, factDefID, teamID)
+	eventDistortionSpawner("UnitFromFactory", unitID, unitDefID, unitTeam) -- i have no idea of the differences here
+	eventDistortionSpawner("UnitFromFactoryBuilder", factID, factDefID, unitTeam)
 end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached distortions here!
 	eventDistortionSpawner("UnitDestroyed", unitID, unitDefID, teamID)
@@ -964,9 +1128,9 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedDistortions(unitID)
 end
 
--- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+-- THIS ONE DOESN'T WORK, some shit is being pulled and i can't get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
-	--eventDistortionSpawner("UnitTaken", unitID, unitDefID, teamID)
+--eventDistortionSpawner("UnitTaken", unitID, unitDefID, teamID)
 --end
 function widget:UnitGiven(unitID, unitDefID, teamID)
 	eventDistortionSpawner("UnitGiven", unitID, unitDefID, teamID)
@@ -987,21 +1151,30 @@ function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount,
 	end
 end
 
-function widget:FeatureCreated(featureID,allyteam)
+function widget:FeatureCreated(featureID, allyteam)
 	-- TODO: Allow team-colored feature distortions by getting teamcolor and putting it into distortionCacheTable
 	local featureDefID = spGetFeatureDefID(featureID)
 	if featureDefDistortions[featureDefID] then
 		for distortionname, distortionTable in pairs(featureDefDistortions[featureDefID]) do
-			if not distortionTable.initComplete then InitializeDistortion(distortionTable) end
+			if not distortionTable.initComplete then
+				InitializeDistortion(distortionTable)
+			end
 			local px, py, pz = spGetFeaturePosition(featureID)
 			if px then
-
 				local distortionParamTable = distortionTable.distortionParamTable
-				for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
+				for i = 1, distortionParamTableSize do
+					distortionCacheTable[i] = distortionParamTable[i]
+				end
 				distortionCacheTable[1] = distortionCacheTable[1] + px
 				distortionCacheTable[2] = distortionCacheTable[2] + py
 				distortionCacheTable[3] = distortionCacheTable[3] + pz
-				AddDistortion(stringFormat("%d%s", featureID, distortionname), nil, nil, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
+				AddDistortion(
+					stringFormat("%d%s", featureID, distortionname),
+					nil,
+					nil,
+					distortionVBOMap[distortionTable.distortionType],
+					distortionCacheTable
+				)
 			end
 		end
 	end
@@ -1020,9 +1193,9 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID )
-	Spring.Debug.TraceFullEcho()
+	local weapon, _ = Spring.GetProjectileType(projectileID)
+	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
+	BAR.Debug.TraceFullEcho()
 end
 
 -- Cache for the view ground rectangle, used to limit spGetProjectilesInRectangle
@@ -1036,8 +1209,8 @@ local viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = 0, 0, mapSizeX, m
 local lastViewRectMinX, lastViewRectMinZ = -1, -1
 local lastViewRectMaxX, lastViewRectMaxZ = -1, -1
 local VIEW_RECT_PAD = 1500 -- padding for projectile arcs / effect radius slop
-local viewRectCornersX = {0, 0, 0, 0}
-local viewRectCornersY = {0, 0, 0, 0}
+local viewRectCornersX = { 0, 0, 0, 0 }
+local viewRectCornersY = { 0, 0, 0, 0 }
 -- Cached camera state so we can skip the TraceScreenRay calls when the camera
 -- hasn't moved (e.g. paused with a static view).
 local lastCamPx, lastCamPy, lastCamPz = nil, nil, nil
@@ -1045,38 +1218,54 @@ local lastCamDx, lastCamDy, lastCamDz = nil, nil, nil
 
 local function updateViewGroundRect()
 	local drawFrame = Spring.GetDrawFrame and Spring.GetDrawFrame() or 0
-	if drawFrame == viewRectFrame then return end
+	if drawFrame == viewRectFrame then
+		return
+	end
 	viewRectFrame = drawFrame
 
 	-- Cheap early-out: if the camera position and forward direction are
 	-- byte-identical to the previous frame, the view rect can't have changed.
 	local cpx, cpy, cpz = spGetCameraPosition()
 	local cdx, cdy, cdz = spGetCameraDirection()
-	if cpx == lastCamPx and cpy == lastCamPy and cpz == lastCamPz
-		and cdx == lastCamDx and cdy == lastCamDy and cdz == lastCamDz then
+	if
+		cpx == lastCamPx
+		and cpy == lastCamPy
+		and cpz == lastCamPz
+		and cdx == lastCamDx
+		and cdy == lastCamDy
+		and cdz == lastCamDz
+	then
 		return
 	end
 	lastCamPx, lastCamPy, lastCamPz = cpx, cpy, cpz
 	lastCamDx, lastCamDy, lastCamDz = cdx, cdy, cdz
 
-	viewRectCornersX[1], viewRectCornersY[1] = 0,   0
+	viewRectCornersX[1], viewRectCornersY[1] = 0, 0
 	viewRectCornersX[2], viewRectCornersY[2] = vsx, 0
-	viewRectCornersX[3], viewRectCornersY[3] = 0,   vsy
+	viewRectCornersX[3], viewRectCornersY[3] = 0, vsy
 	viewRectCornersX[4], viewRectCornersY[4] = vsx, vsy
-	local minX, maxX =  1e30, -1e30
-	local minZ, maxZ =  1e30, -1e30
+	local minX, maxX = 1e30, -1e30
+	local minZ, maxZ = 1e30, -1e30
 	local hits = 0
 	for i = 1, 4 do
 		-- onlyCoords=true, useMinimap=false, includeSky=true to get the
 		-- ground/sky-plane intersection at each corner
 		local _, pos = spTraceScreenRay(viewRectCornersX[i], viewRectCornersY[i], true, false, true)
-		if type(pos) == 'table' then
+		if type(pos) == "table" then
 			hits = hits + 1
 			local x, z = pos[1], pos[3]
-			if x < minX then minX = x end
-			if x > maxX then maxX = x end
-			if z < minZ then minZ = z end
-			if z > maxZ then maxZ = z end
+			if x < minX then
+				minX = x
+			end
+			if x > maxX then
+				maxX = x
+			end
+			if z < minZ then
+				minZ = z
+			end
+			if z > maxZ then
+				maxZ = z
+			end
 		end
 	end
 	if hits < 2 then
@@ -1088,18 +1277,37 @@ local function updateViewGroundRect()
 	-- Also include camera position so projectiles next to/behind the camera
 	-- still get picked up if they're within the padded range.
 	if cpx then
-		if cpx < minX then minX = cpx end
-		if cpx > maxX then maxX = cpx end
-		if cpz < minZ then minZ = cpz end
-		if cpz > maxZ then maxZ = cpz end
+		if cpx < minX then
+			minX = cpx
+		end
+		if cpx > maxX then
+			maxX = cpx
+		end
+		if cpz < minZ then
+			minZ = cpz
+		end
+		if cpz > maxZ then
+			maxZ = cpz
+		end
 	end
-	minX = minX - VIEW_RECT_PAD; if minX < 0 then minX = 0 end
-	minZ = minZ - VIEW_RECT_PAD; if minZ < 0 then minZ = 0 end
-	maxX = maxX + VIEW_RECT_PAD; if maxX > mapSizeX then maxX = mapSizeX end
-	maxZ = maxZ + VIEW_RECT_PAD; if maxZ > mapSizeZ then maxZ = mapSizeZ end
+	minX = minX - VIEW_RECT_PAD
+	if minX < 0 then
+		minX = 0
+	end
+	minZ = minZ - VIEW_RECT_PAD
+	if minZ < 0 then
+		minZ = 0
+	end
+	maxX = maxX + VIEW_RECT_PAD
+	if maxX > mapSizeX then
+		maxX = mapSizeX
+	end
+	maxZ = maxZ + VIEW_RECT_PAD
+	if maxZ > mapSizeZ then
+		maxZ = mapSizeZ
+	end
 	viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = minX, minZ, maxX, maxZ
 end
-
 
 local function updateProjectileDistortions(newgameframe)
 	-- Use GetProjectilesInRectangle to also capture BeamLaser projectiles
@@ -1113,16 +1321,18 @@ local function updateProjectileDistortions(newgameframe)
 	-- Skip entirely if neither the game frame advanced nor the view changed:
 	-- projectiles haven't moved, no new ones can spawn, and the visible set
 	-- can't have changed. This is the dominant cost while paused.
-	local viewRectChanged =
-		viewRectMinX ~= lastViewRectMinX or viewRectMaxX ~= lastViewRectMaxX or
-		viewRectMinZ ~= lastViewRectMinZ or viewRectMaxZ ~= lastViewRectMaxZ
-	if (not newgameframe) and (not viewRectChanged) then
+	local viewRectChanged = viewRectMinX ~= lastViewRectMinX
+		or viewRectMaxX ~= lastViewRectMaxX
+		or viewRectMinZ ~= lastViewRectMinZ
+		or viewRectMaxZ ~= lastViewRectMaxZ
+	if (not newgameframe) and not viewRectChanged then
 		return
 	end
 	lastViewRectMinX, lastViewRectMinZ = viewRectMinX, viewRectMinZ
 	lastViewRectMaxX, lastViewRectMaxZ = viewRectMaxX, viewRectMaxZ
 
-	local nowprojectiles = spGetProjectilesInRectangle(viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ, false, true)
+	local nowprojectiles =
+		spGetProjectilesInRectangle(viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ, false, true)
 	gameFrame = gf
 	lastGameFrame = gf
 	-- turn off uploading vbo
@@ -1132,7 +1342,7 @@ local function updateProjectileDistortions(newgameframe)
 	local noUpload = true
 	local nowprojectilesLen = #nowprojectiles
 	local projectileDistortionVBOMapCache = projectileDistortionVBOMap
-	for i= 1, nowprojectilesLen do
+	for i = 1, nowprojectilesLen do
 		local projectileID = nowprojectiles[i]
 		local trackedProjectile = trackedProjectiles[projectileID]
 		if trackedProjectile then
@@ -1141,13 +1351,23 @@ local function updateProjectileDistortions(newgameframe)
 			-- means the projectile had no distortion to add in the first place).
 			if newgameframe then
 				local distortionType = trackedProjectileTypes[projectileID]
-				if distortionType ~= 'beam' and distortionType ~= 'none' then
+				if distortionType ~= "beam" and distortionType ~= "none" then
 					local px, py, pz = spGetProjectilePosition(projectileID)
 					if px then
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						local instanceIndex = updateProjectilePosition(projectileDistortionVBOMapCache[distortionType],
-							projectileID, px,py,pz, dx,dy,dz)
-						if debugproj then spEcho("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
+						local instanceIndex = updateProjectilePosition(
+							projectileDistortionVBOMapCache[distortionType],
+							projectileID,
+							px,
+							py,
+							pz,
+							dx,
+							dy,
+							dz
+						)
+						if debugproj then
+							spEcho("Updated", instanceIndex, projectileID, px, py, pz, dx, dy, dz)
+						end
 					end
 				end
 				-- Refresh timestamp so the cleanup loop doesn't drop it.
@@ -1159,7 +1379,7 @@ local function updateProjectileDistortions(newgameframe)
 			-- Untracked: need position for the add branch.
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then
-				local distortionType = 'none' -- 'none' = saw the projectile but added nothing
+				local distortionType = "none" -- 'none' = saw the projectile but added nothing
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
 					-- Frustum-cull gibs whose effect sphere is outside the
@@ -1172,22 +1392,22 @@ local function updateProjectileDistortions(newgameframe)
 						gib[2] = py
 						gib[3] = pz
 						AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
-						distortionType = 'point'
+						distortionType = "point"
 					end
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
+					local weaponDefID = spGetProjectileDefID(projectileID)
 					local projectileDefDistortion = projectileDefDistortions[weaponDefID]
-					if projectileDefDistortion and ( projectileID % (projectileDefDistortion.fraction or 1) == 0 ) then
+					if projectileDefDistortion and (projectileID % (projectileDefDistortion.fraction or 1) == 0) then
 						local distortionParamTable = projectileDefDistortion.distortionParamTable
 						local thisType = projectileDefDistortion.distortionType
 
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
 						-- Frustum cull: skip projectiles whose effect bounds
 						-- are entirely outside the view.
 						local cullRadius = distortionParamTable[4] or 0
 						local inView
-						if thisType == 'beam' then
+						if thisType == "beam" then
 							inView = spIsSphereInView(px, py, pz, cullRadius)
 								or spIsSphereInView(px + (dx or 0), py + (dy or 0), pz + (dz or 0), cullRadius)
 						else
@@ -1197,9 +1417,11 @@ local function updateProjectileDistortions(newgameframe)
 							distortionParamTable[1] = px
 							distortionParamTable[2] = py
 							distortionParamTable[3] = pz
-							if debugproj then spEcho(thisType, projectileDefDistortion.distortionClassName) end
+							if debugproj then
+								spEcho(thisType, projectileDefDistortion.distortionClassName)
+							end
 
-							if thisType == 'beam' then
+							if thisType == "beam" then
 								distortionParamTable[5] = px + dx
 								distortionParamTable[6] = py + dy
 								distortionParamTable[7] = pz + dz
@@ -1209,62 +1431,81 @@ local function updateProjectileDistortions(newgameframe)
 								distortionParamTable[6] = dy
 								distortionParamTable[7] = dz
 							end
-							if debugproj then spEcho(thisType, px,py,pz, dx, dy,dz) end
+							if debugproj then
+								spEcho(thisType, px, py, pz, dx, dy, dz)
+							end
 
-							AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[thisType], distortionParamTable,noUpload)
+							AddDistortion(
+								projectileID,
+								nil,
+								nil,
+								projectileDistortionVBOMapCache[thisType],
+								distortionParamTable,
+								noUpload
+							)
 							distortionType = thisType
 						end
 						--AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, distortionParamTable)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then spEcho("Adding projdistortion", projectileID, spGetProjectileName(projectileID)) end
+				if debugproj then
+					spEcho("Adding projdistortion", projectileID, spGetProjectileName(projectileID))
+				end
 				trackedProjectileTypes[projectileID] = distortionType
 				trackedProjectiles[projectileID] = gameFrame
 			end
 		end
 	end
-	-- remove the ones that werent updated
+	-- remove the ones that weren't updated
 	local numremoved = 0
 	if newgameframe then
-	-- Any tracked projectile whose timestamp wasn't refreshed this frame is
-	-- either dead or has left the view rect. In both cases we drop tracking
-	-- and pop its VBO entry. If it's alive and re-enters the view rect later,
-	-- the add branch above will re-add it. This avoids per-game-frame
-	-- spGetProjectilePosition probes on every off-screen alive projectile,
-	-- which was the dominant remaining cost.
-	for projectileID, pgf in pairs(trackedProjectiles) do
-		if pgf < gf then
-			numremoved = numremoved + 1
-			trackedProjectiles[projectileID] = nil
-			local distortionType = trackedProjectileTypes[projectileID]
-			local vbo = projectileDistortionVBOMapCache[distortionType]
-			if vbo and vbo.instanceIDtoIndex[projectileID] then -- god the indirections here ...
-				local success = popElementInstance(vbo, projectileID, noUpload)
-				if success == nil then PrintProjectileInfo(projectileID) end
+		-- Any tracked projectile whose timestamp wasn't refreshed this frame is
+		-- either dead or has left the view rect. In both cases we drop tracking
+		-- and pop its VBO entry. If it's alive and re-enters the view rect later,
+		-- the add branch above will re-add it. This avoids per-game-frame
+		-- spGetProjectilePosition probes on every off-screen alive projectile,
+		-- which was the dominant remaining cost.
+		for projectileID, pgf in pairs(trackedProjectiles) do
+			if pgf < gf then
+				numremoved = numremoved + 1
+				trackedProjectiles[projectileID] = nil
+				local distortionType = trackedProjectileTypes[projectileID]
+				local vbo = projectileDistortionVBOMapCache[distortionType]
+				if vbo and vbo.instanceIDtoIndex[projectileID] then -- god the indirections here ...
+					local success = popElementInstance(vbo, projectileID, noUpload)
+					if success == nil then
+						PrintProjectileInfo(projectileID)
+					end
+				end
+				trackedProjectileTypes[projectileID] = nil
 			end
-			trackedProjectileTypes[projectileID] = nil
 		end
-	end
 	end -- newgameframe guard
 	-- upload all changed elements in one go
-	if projectilePointDistortionVBO.dirty then uploadAllElements(projectilePointDistortionVBO) end
-	if projectileBeamDistortionVBO.dirty then uploadAllElements(projectileBeamDistortionVBO) end
-	if projectileConeDistortionVBO.dirty then uploadAllElements(projectileConeDistortionVBO) end
+	if projectilePointDistortionVBO.dirty then
+		uploadAllElements(projectilePointDistortionVBO)
+	end
+	if projectileBeamDistortionVBO.dirty then
+		uploadAllElements(projectileBeamDistortionVBO)
+	end
+	if projectileConeDistortionVBO.dirty then
+		uploadAllElements(projectileConeDistortionVBO)
+	end
 	--if debugproj then
 	--	spEcho("#points", projectilePointDistortionVBO.usedElements, '#projs', #nowprojectiles )
 	--end
 end
 
-local configCache = {lastUpdate = spGetTimer()}
+local configCache = { lastUpdate = spGetTimer() }
 local function checkConfigUpdates()
 	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
-		local newconfa = VFS.LoadFile('luaui/configs/DistortionGL4Config.lua')
-		local newconfb = VFS.LoadFile('luaui/configs/DistortionGL4WeaponsConfig.lua')
+		local newconfa = VFS.LoadFile("luaui/configs/DistortionGL4Config.lua")
+		local newconfb = VFS.LoadFile("luaui/configs/DistortionGL4WeaponsConfig.lua")
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadDistortionConfig()
-			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+			if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+				widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
@@ -1275,145 +1516,167 @@ local function checkConfigUpdates()
 end
 
 function widget:Update(dt)
-	if autoupdate then checkConfigUpdates() end
+	if autoupdate then
+		checkConfigUpdates()
+	end
 
 	updateProjectileDistortions()
 end
 
 ------------------------------- Drawing all the distortions ---------------------------------
 
+-- draws one shape group, setting its uniforms only when it has instances
+local function drawDistortionGroup(attachedToUnit, pointBeamCone, vbo, projectileVBO)
+	if vbo.usedElements > 0 or (projectileVBO and projectileVBO.usedElements > 0) then
+		deferredDistortionShader:SetUniformFloat("attachedtounitID", attachedToUnit)
+		deferredDistortionShader:SetUniformFloat("pointbeamcone", pointBeamCone)
+		vbo:draw()
+		if projectileVBO then
+			projectileVBO:draw()
+		end
+	end
+end
 
-local function DrawDistortionFunction2(gf) -- For render-to-texture
-		-- Set is as black with zero alpha
-		glClear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
+local function DrawDistortionFunction2() -- For render-to-texture
+	-- Set is as black with zero alpha
+	glClear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
 
-		-- So we are gonna multiply each effect with its own alpha, and then add them together on the destination
-		-- This means we also will be ignoring the destination alpha channel.
-		-- The default blending function is GL_FUNC_ADD
-		glBlending(GL.SRC_ALPHA, GL.ONE)
-		--if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
-
-		glCulling(false)
-		glDepthTest(false)
-		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-		glTexture(0, "$map_gbuffer_zvaltex")
-		glTexture(1, "$model_gbuffer_zvaltex")
-		glTexture(2, "$map_gbuffer_normtex")
-		glTexture(3, "$model_gbuffer_normtex")
-		glTexture(4, "$map_gbuffer_difftex")
-		glTexture(5, "$model_gbuffer_difftex")
-		glTexture(6, noisetex3dcube)
-		if shaderConfig.UNIFORMSBUFFERCOPY then
-			local UniformsBufferCopy = WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy()
-			if not UniformsBufferCopy then
-				spEcho("DistortionGL4: UniformsBufferCopy not found")
-				return
-			end
-
-			UniformsBufferCopy:BindBufferRange(4)
+	if shaderConfig.UNIFORMSBUFFERCOPY then
+		local copyApi = WG.api_unitbufferuniform_copy
+		local UniformsBufferCopy = copyApi and copyApi.GetUnitUniformBufferCopy()
+		if not UniformsBufferCopy then
+			spEcho("DistortionGL4: UniformsBufferCopy not found")
+			return
 		end
 
-		deferredDistortionShader:Activate()
-		deferredDistortionShader:SetUniformFloat("nightFactor", nightFactor)
+		UniformsBufferCopy:BindBufferRange(4)
+	end
 
-		deferredDistortionShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
-		deferredDistortionShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
-		deferredDistortionShader:SetUniformFloat("windXZ", windX, windZ)
+	-- only the samplers the distortion shaders read
+	glTexture(0, "$map_gbuffer_zvaltex")
+	glTexture(1, "$model_gbuffer_zvaltex")
+	glTexture(2, noisetex3dcube)
 
+	deferredDistortionShader:Activate()
+	deferredDistortionShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
+	deferredDistortionShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
+	deferredDistortionShader:SetUniformFloat("windXZ", windX, windZ)
 
-		-- Fixed worldpos distortions, cursors, projectiles, world distortions
-		deferredDistortionShader:SetUniformFloat("attachedtounitID", 0) -- worldpos stuff
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 0)
+	-- Fixed worldpos distortions, cursors, projectiles, world distortions
+	drawDistortionGroup(0, 0, pointDistortionVBO, projectilePointDistortionVBO)
+	drawDistortionGroup(0, 1, beamDistortionVBO, projectileBeamDistortionVBO)
+	drawDistortionGroup(0, 2, coneDistortionVBO, projectileConeDistortionVBO)
 
-		pointDistortionVBO:draw()
-		projectilePointDistortionVBO:draw()
+	-- Unit Attached Distortions
+	drawDistortionGroup(1, 0, unitPointDistortionVBO)
+	drawDistortionGroup(1, 1, unitBeamDistortionVBO)
+	drawDistortionGroup(1, 2, unitConeDistortionVBO)
 
+	deferredDistortionShader:Deactivate()
 
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 1)
-		beamDistortionVBO:draw()
-		projectileBeamDistortionVBO:draw()
-
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 2)
-		coneDistortionVBO:draw()
-		projectileConeDistortionVBO:draw()
-
-		-- Unit Attached Distortions
-		deferredDistortionShader:SetUniformFloat("attachedtounitID", 1)
-
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 0)
-		unitPointDistortionVBO:draw()
-
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 1)
-		unitBeamDistortionVBO:draw()
-
-		deferredDistortionShader:SetUniformFloat("pointbeamcone", 2)
-		unitConeDistortionVBO:draw()
-
-		deferredDistortionShader:Deactivate()
-
-		for i = 0, 6 do glTexture(i, false) end
-		glCulling(GL.BACK)
-		glDepthTest(true)
-		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
-		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glTexture(0, false)
+	glTexture(1, false) -- unit 2 holds a 3D texture, which gl.Texture never enables
 end
 
 -- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
-	if skipdraw then return end
+	if skipdraw then
+		return
+	end
 	if autoupdate then
-		deferredDistortionShader = LuaShader.CheckShaderUpdates(distortionShaderSourceCache, 0) or deferredDistortionShader
+		deferredDistortionShader = LuaShader.CheckShaderUpdates(distortionShaderSourceCache, 0)
+			or deferredDistortionShader
 	end
 
-	local hasAtLeastOneDistortion =
-		pointDistortionVBO.usedElements > 0 or
-		beamDistortionVBO.usedElements > 0 or
-		coneDistortionVBO.usedElements > 0 or
-		unitPointDistortionVBO.usedElements > 0 or
-		unitBeamDistortionVBO.usedElements > 0 or
-		unitConeDistortionVBO.usedElements > 0 or
-		projectilePointDistortionVBO.usedElements > 0 or
-		projectileBeamDistortionVBO.usedElements > 0 or
-		projectileConeDistortionVBO.usedElements > 0
+	local hasAtLeastOneDistortion = pointDistortionVBO.usedElements > 0
+		or beamDistortionVBO.usedElements > 0
+		or coneDistortionVBO.usedElements > 0
+		or unitPointDistortionVBO.usedElements > 0
+		or unitBeamDistortionVBO.usedElements > 0
+		or unitConeDistortionVBO.usedElements > 0
+		or projectilePointDistortionVBO.usedElements > 0
+		or projectileBeamDistortionVBO.usedElements > 0
+		or projectileConeDistortionVBO.usedElements > 0
 
-	if (not hasAtLeastOneDistortion) then return end
+	if not hasAtLeastOneDistortion then
+		return
+	end
+
+	if skipCombineWhenEmpty and gl.CreateQuery and gl.QueryCounter then -- gl.QueryCounter marks the engine with non-blocking gl.GetQuery
+		if not distortionSampleQueries then
+			local queries, created = {}, true
+			for i = 1, distortionQueryCount do
+				queries[i] = gl.CreateQuery() -- GL_SAMPLES_PASSED, available on every engine
+				created = created and queries[i] ~= nil
+			end
+			distortionSampleQueries = created and queries or false
+		end
+	end
+
+	-- both passes run without culling, depth test or depth writes
+	glCulling(false)
+	glDepthTest(false)
+	glDepthMask(false)
+	-- So we are gonna multiply each effect with its own alpha, and then add them together on the destination
+	-- This means we also will be ignoring the destination alpha channel.
+	-- The default blending function is GL_FUNC_ADD
+	glBlending(GL.SRC_ALPHA, GL.ONE)
+
+	if distortionSampleQueries then
+		local queryFrame = distortionQueryFrame
+		if queryFrame >= distortionQueryCount - 1 then
+			-- the oldest query of the ring, read without waiting; while it is still pending keep the previous decision
+			local samples = glGetQuery(distortionSampleQueries[(queryFrame + 1) % distortionQueryCount + 1], false)
+			if samples ~= nil then
+				distortionHadSamples = samples > 0
+			end
+		end
+		glRunQuery(
+			distortionSampleQueries[queryFrame % distortionQueryCount + 1],
+			glRenderToTexture,
+			DistortionTexture,
+			DrawDistortionFunction2
+		)
+		distortionQueryFrame = queryFrame + 1
+	else
+		glRenderToTexture(DistortionTexture, DrawDistortionFunction2)
+	end
+
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	local forceCombine = forceCombineFrames > 0
+	if forceCombine then
+		forceCombineFrames = forceCombineFrames - 1
+	end
+	if not (distortionHadSamples or forceCombine) then
+		-- nothing was drawn into the distortion texture last frame: no screen copy, no combine
+		glCulling(GL.BACK)
+		glDepthTest(true)
+		return
+	end
 
 	tracy.ZoneBeginN("CopyToTexture")
 	-- Blend the distortion:
 	glCopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 	tracy.ZoneEnd()
 
-
-
-	glRenderToTexture(DistortionTexture, DrawDistortionFunction2, spGetGameFrame())
-	--tracy.ZoneEnd()
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
 	if autoupdate then
-		screenDistortionShader = LuaShader.CheckShaderUpdates(screenDistortionShaderSourceCache, 0) or screenDistortionShader
+		screenDistortionShader = LuaShader.CheckShaderUpdates(screenDistortionShaderSourceCache, 0)
+			or screenDistortionShader
 	end
 
-	gl.Texture(0, "$map_gbuffer_zvaltex")
-	gl.Texture(1, "$model_gbuffer_zvaltex")
-	gl.Texture(2, ScreenCopy)
-	gl.Texture(3, DistortionTexture)
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	glCulling(false) -- ffs
-	glDepthTest(false)
-	glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-	--spEcho("Drawing Distortion")
+	glTexture(0, ScreenCopy)
+	glTexture(1, DistortionTexture)
 	screenDistortionShader:Activate()
-
 	screenDistortionShader:SetUniformFloat("inverseScreenResolution", invVsx, invVsy)
-	screenDistortionShader:SetUniformFloat("distortionOverallStrength", 1)
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	screenDistortionShader:Deactivate()
-
-	for i = 0,3 do gl.Texture(i, false) end
+	glTexture(0, false)
+	glTexture(1, false)
 	tracy.ZoneEnd()
-
 
 	glDepthTest(true)
 	--local t1 = 	Spring.GetTimerMicros()
@@ -1427,16 +1690,27 @@ end
 if autoupdate then
 	function widget:DrawScreen()
 		--spEcho("DrawScreen", deferredDistortionShader.DrawPrintf)
-		if deferredDistortionShader.DrawPrintf then deferredDistortionShader.DrawPrintf(0) end
+		if deferredDistortionShader.DrawPrintf then
+			deferredDistortionShader.DrawPrintf(0)
+		end
 	end
 end
 
 local function distortionGL4statsCmd(_, line)
-	spEcho(stringFormat("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
+	spEcho(
+		stringFormat(
+			"distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
 			numAddDistortions,
-			pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
-			unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,
-			projectilePointDistortionVBO.usedElements, projectileBeamDistortionVBO.usedElements, projectileConeDistortionVBO.usedElements)
+			pointDistortionVBO.usedElements,
+			beamDistortionVBO.usedElements,
+			coneDistortionVBO.usedElements,
+			unitPointDistortionVBO.usedElements,
+			unitBeamDistortionVBO.usedElements,
+			unitConeDistortionVBO.usedElements,
+			projectilePointDistortionVBO.usedElements,
+			projectileBeamDistortionVBO.usedElements,
+			projectileConeDistortionVBO.usedElements
+		)
 	)
 	return true
 end
@@ -1451,9 +1725,14 @@ function widget:Initialize()
 	widgetHandler:AddAction("distortionGL4stats", distortionGL4statsCmd, nil, "t")
 	widgetHandler:AddAction("distortionGL4skipdraw", distortionGL4skipdrawCmd, nil, "t")
 
-	Spring.Debug.TraceEcho("Initialize distortionGL4")
-	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
-		spEcho('Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
+	BAR.Debug.TraceEcho("Initialize distortionGL4")
+	if
+		spGetConfigString("AllowDeferredMapRendering") == "0"
+		or spGetConfigString("AllowDeferredModelRendering") == "0"
+	then
+		spEcho(
+			"Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!"
+		)
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -1462,33 +1741,35 @@ function widget:Initialize()
 		return
 	end
 
-	if initGL4() == false then return end
+	if initGL4() == false then
+		return
+	end
 
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 
 	for _, featureID in ipairs(spGetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
-	WG['distortionsgl4'] = {}
-	WG['distortionsgl4'].AddDistortion  = AddDistortion
-	WG['distortionsgl4'].RemoveDistortion  = RemoveDistortion
-	WG['distortionsgl4'].GetDistortionVBO  = GetDistortionVBO
+	WG.distortionsgl4 = {}
+	WG.distortionsgl4.AddDistortion = AddDistortion
+	WG.distortionsgl4.RemoveDistortion = RemoveDistortion
+	WG.distortionsgl4.GetDistortionVBO = GetDistortionVBO
 
-	WG['distortionsgl4'].IntensityMultiplier = function(value)
+	WG.distortionsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG['distortionsgl4'].RadiusMultiplier = function(value)
+	WG.distortionsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
 
-	widgetHandler:RegisterGlobal('AddDistortion', WG['distortionsgl4'].AddDistortion)
-	widgetHandler:RegisterGlobal('RemoveDistortion', WG['distortionsgl4'].RemoveDistortion)
-	widgetHandler:RegisterGlobal('GetDistortionVBO', WG['distortionsgl4'].GetDistortionVBO)
+	widgetHandler:RegisterGlobal("AddDistortion", WG.distortionsgl4.AddDistortion)
+	widgetHandler:RegisterGlobal("RemoveDistortion", WG.distortionsgl4.RemoveDistortion)
+	widgetHandler:RegisterGlobal("GetDistortionVBO", WG.distortionsgl4.GetDistortionVBO)
 end
 
 function widget:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)

@@ -14,11 +14,11 @@ Also, we use some custom bindings for Lua 5.1 — for security, functionality, a
 
 #### Engine calls
 
-* Each call to the engine (`Spring.CallName()`) has an overhead. Minimize this if possible.  
-* Minimize the data you pass to and receive from the engine if possible.  
+* Each call to the engine (`Spring.CallName()`) has an overhead. Minimize this if possible.
+* Minimize the data you pass to and receive from the engine if possible.
   * Especially reduce the number of tables and strings created solely for engine calls.
   * High table and string creation increases garbage collection and heap compaction.
-  * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.  
+  * Prefer e.g. `GetUnitCurrentCommand` over `GetUnitCommands`.
 
 _Even more Recoil-specific Lua conventions and best practices can be found in the [Recoil wupget guide](https://recoilengine.org/docs/guides/wupget/)._
 
@@ -30,7 +30,7 @@ Reading from the “Defs” tables — UnitDefs, WeaponDefs, and FeatureDefs —
 
 ```lua
 local function getSpeed(unitDefID)
-	return UnitDefs[unitDefID].speed -- slow table access  
+	return UnitDefs[unitDefID].speed -- slow table access
 end
 ```
 
@@ -39,12 +39,12 @@ end
 ```lua
 local unitSpeed = {}
 
-for unitDefID, unitDef in ipairs(UnitDefs) do  
+for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitSpeed[unitDefID] = unitDef.speed -- cached access
 end
 
-local function getSpeed(unitDefID)  
-	return unitSpeed[unitDefID] -- fast table access  
+local function getSpeed(unitDefID)
+	return unitSpeed[unitDefID] -- fast table access
 end
 ```
 
@@ -62,12 +62,13 @@ You should prefer common functions, then, over potential shortcuts. For example,
 
 #### General code style
 
-* Comments must explain reasons, not behavior. What your code does should be self-explanatory from reading the code. We want to know only “why”, not “what”.  
-* Do not use magic numbers. Constant values should be declared together toward the top of the file and labeled as configurable or not, when non-obvious.  
+* Comments must explain reasons, not behavior. What your code does should be self-explanatory from reading the code. We want to know only “why”, not “what”.
+* Do not use magic numbers. Constant values should be declared together toward the top of the file and labeled as configurable or not, when non-obvious.
 * Prefer tab-indentation over space-indentation.
-* Do not avoid newlines in code. Add extra newlines after blocks (loops, if/then statements) to aid future readers and reviewers. You can skip some extra newlines, like between immediately-nested if/elseif/else/then/end statements.  
-* Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.  
+* Do not avoid newlines in code. Add extra newlines after blocks (loops, if/then statements) to aid future readers and reviewers. You can skip some extra newlines, like between immediately-nested if/elseif/else/then/end statements.
+* Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.
 * Do not keep throwaway debug code. Logging invalid or unexpected state is ok, as is debug code gated behind a debug flag.
+* Consume all function returns, assigning unused ones to `_`, or to `_name` where the name documents what is being discarded.
 
 #### Lua 5.1 hard limits
 
@@ -82,16 +83,15 @@ Plan for these limits **before** writing code. To stay under them:
 * Use `do ... end` blocks to scope temporary locals (they stop counting once the block ends).
 * Pass values as arguments instead of capturing upvalues.
 * Split large functions into smaller helpers.
-* Run `tools/count_locals.py` to audit counts before and after changes.
 
 #### Variable naming
 
-* Use local variables often and name them using `camelCase`.  
-* Use globals as necessary and name them using `PascalCase`.  
-* Constants can be treated as locals or globals or named using `ALL_CAPS`.  
-* Do not use abbreviations, with notable exceptions like `ID` for “identifier”.  
-* Do not use mathematical shorthands, with notable exceptions like “x” coordinates.  
-* Try, as much as possible, not to be unique. Use familiar names from similar code to your own.  
+* Use local variables often and name them using `camelCase`.
+* Use globals as necessary and name them using `PascalCase`.
+* Constants can be treated as locals or globals or named using `ALL_CAPS`.
+* Do not use abbreviations, with notable exceptions like `ID` for “identifier”.
+* Do not use mathematical shorthands, with notable exceptions like “x” coordinates.
+* Try, as much as possible, not to be unique. Use familiar names from similar code to your own.
 * Do not pollute method signatures with "\_" as an excluded argument to call-ins.
 
 ### File encoding
@@ -99,7 +99,9 @@ Plan for these limits **before** writing code. To stay under them:
 All Lua, RML, and RCSS files must be **UTF-8 without BOM**. A BOM (`EF BB BF`) causes Lua to fail to parse and RmlUI to silently ignore the file. Watch out for PowerShell's `Set-Content`/`Out-File`, which default to BOM-prefixed UTF-8.
 ## Licensing and versioning
 
-The license we use is “GNU GPL, v2 or later”.
+Code is licensed under GNU GPL v2 or later (SPDX identifier `GPL-2.0-or-later`); a file may use a more permissive GPL-compatible license if its header says so.
+
+Art and audio are licensed per file. When a pull request adds art or audio, the CLA bot inserts a license choice into the PR description: tick **BAR Project License (CLA)** or **CC-BY-SA 4.0**, then comment `/confirm-license`. Edits and moves of existing assets need no new license. If you submit someone else's work, use the proxy checkbox so the artist can confirm with `/confirm-authorship`. Purchased or stock material (asset stores, sound libraries) may not be added to this repository; ask a maintainer about the private asset repository. The policy, CLA text and FAQ are in [legal/](legal/); see [LICENSE.md](LICENSE.md) for the overview.
 
 Expect your code to be modified. We encourage you to use release versioning and to increment versions when modifying other contributor’s gadgets/widgets. This helps to distinguish the many copies of very-similar code that are sometimes floating around.
 

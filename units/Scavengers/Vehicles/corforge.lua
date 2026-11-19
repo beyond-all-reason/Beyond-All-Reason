@@ -1,7 +1,7 @@
 return {
 	corforge = {
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		energycost = 4700,
 		metalcost = 330,
 		buildpic = "CORFORGE.DDS",
@@ -47,7 +47,7 @@ return {
 			[7] = "corspec",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "MASHUP",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",

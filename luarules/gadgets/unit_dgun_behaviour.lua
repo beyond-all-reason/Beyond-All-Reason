@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
 		author = "Anarchid, Sprung, SethDGamre",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -45,6 +45,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	if weaponDef.cylinderTargeting >= 1 then
 		return function(unitID, projectileID)
 			local ux, uy, uz = spGetUnitPosition(unitID)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (pz - uz) * dz
@@ -53,6 +56,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	else -- treat all other as cylinder == 0:
 		return function(unitID, projectileID)
 			local _, _, _, ux, uy, uz = spGetUnitPosition(unitID, true)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (py - uy) * dy + (pz - uz) * dz
@@ -63,8 +69,8 @@ end
 
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
-	if weaponDef.type == 'DGun' then
-		Script.SetWatchProjectile(weaponDefID, true)
+	if weaponDef.type == "DGun" then
+		gadgetHandler:RegisterProjectile(weaponDefID)
 		dgunDef[weaponDefID] = weaponDef
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
 	end
@@ -95,11 +101,9 @@ local flyingDGuns = {}
 local groundedDGuns = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if dgunDef[weaponDefID] then
-		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
-		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
-	end
+	dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
+	flyingDGuns[proID] = true
+	dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
 end
 
 function gadget:ProjectileDestroyed(proID)
@@ -113,7 +117,7 @@ end
 function gadget:GameFrame(frame)
 	for proID in pairsNext, flyingDGuns do
 		local x, y, z = spGetProjectilePosition(proID)
-		local h = spGetGroundHeight(x, z)
+		local h = spGetGroundHeight(x or 0, z or 0)
 
 		if y < h + 1 or y < 1 then -- assume ground or water collision
 			-- normalize horizontal velocity
@@ -137,7 +141,7 @@ function gadget:GameFrame(frame)
 		local x, y, z = spGetProjectilePosition(proID)
 		-- place projectile slightly under ground to ensure fiery trail
 		local verticalOffset = 1
-		spSetProjectilePosition(proID, x, mathMax(spGetGroundHeight(x, z), 0) - verticalOffset, z)
+		spSetProjectilePosition(proID, x or 0, mathMax(spGetGroundHeight(x or 0, z or 0), 0) - verticalOffset, z or 0)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
@@ -160,9 +164,23 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
-							   attackerDefID, attackerTeam)
-	if dgunDef[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+function gadget:UnitPreDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	if
+		dgunDef[weaponDefID]
+		and isCommander[attackerDefID]
+		and (isCommander[unitDefID] or isDecoyCommander[unitDefID])
+	then
 		if isDecoyCommander[unitDefID] then
 			return dgunDef[weaponDefID].damages[0]
 		else
@@ -178,7 +196,21 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local shieldPreDamaged = function(
+	proID,
+	proOwnerID,
+	shieldEmitterWeaponNum,
+	shieldCarrierUnitID,
+	bounceProjectile,
+	beamEmitterWeaponNum,
+	beamEmitterUnitID,
+	startX,
+	startY,
+	startZ,
+	hitX,
+	hitY,
+	hitZ
+)
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID
@@ -204,6 +236,14 @@ local function shieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shiel
 end
 
 function gadget:Initialize()
+	if not next(dgunDef) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+
+	for weaponDefID in pairs(dgunDef) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return

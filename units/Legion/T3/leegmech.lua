@@ -34,11 +34,12 @@ return {
 		turnrate = 450,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			customrange = 400,
 			model_author = "Kremenchuk",
 			normaltex = "unittextures/leegmech_normal.dds",
-			subfolder = "leggantry",
+			reaimtime = 5,
+			subfolder = "Legion/T3",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -283,7 +284,7 @@ return {
 				firestarter = 0,
 				impulsefactor = 1.5,
 				intensity = 0.8,
-				name = "Rapid-fire anti-air machine guns",
+				name = "Rapid-fire Anti-Air Machine Guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,

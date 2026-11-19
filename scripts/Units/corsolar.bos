@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 
 piece  base, fan, d1,d2,d3,d4;
@@ -100,7 +101,7 @@ HitByWeapon(anglex, anglez)
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	sleep 8000;
+	sleep deactivateTime;
 	recentlyHit = 0;
 	if (wantOpen){
 		start-script Open();

@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		date = "Aug 17, 2010",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -21,38 +21,57 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
-local MINE2 = UnitDefNames["cormine4"].id
 local mines = {}
 local MINE_BLAST = {}
-MINE_BLAST[WeaponDefNames["mine_light"].id] = true
-MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
-MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true
+MINE_BLAST[WeaponDefNames.mine_light.id] = true
+MINE_BLAST[WeaponDefNames.mine_medium.id] = true
+MINE_BLAST[WeaponDefNames.mine_heavy.id] = true
 
-local isBuilding = {}
-local isCommando = {}
+local ATTRIBUTE_SOURCE = "commando_watch"
+
+local isMine = {}
+local isParatrooper = {}
+local isMineResistant = {}
+local isStealthsTransport = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'cormando') then
-		isCommando[udid] = true
+	local cp = ud.customParams
+	if cp.mine then
+		isMine[udid] = true
 	end
-	if ud.isBuilding then
-		isBuilding[udid] = true
+	if cp.paratrooper then
+		isParatrooper[udid] = true
+	end
+	if cp.mine_resistant then
+		isMineResistant[udid] = true
+	end
+	if cp.stealths_transport then
+		isStealthsTransport[udid] = true
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if isCommando[unitDefID] then
-		if weaponID < 0 then
-			local x, y, z = Spring.GetUnitPosition(unitID)
-			if x < 0 or z < 0 or x > MAPSIZEX or z > MAPSIZEZ then
-				Spring.DestroyUnit(unitID)
-				return damage, 1
-			end
-			x, y, z = Spring.GetUnitVelocity(unitID)
-			Spring.AddUnitImpulse(unitID, x * -0.66, y * -0.66, z * -0.66)
-			return damage * 0.12, 0
-		elseif MINE_BLAST[weaponID] then
-			return damage * 0.12, 0.24
+function gadget:UnitPreDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	if isParatrooper[unitDefID] and weaponID < 0 then
+		local x, y, z = Spring.GetUnitPosition(unitID)
+		if x < 0 or z < 0 or x > MAPSIZEX or z > MAPSIZEZ then
+			Spring.DestroyUnit(unitID)
+			return damage, 1
 		end
+		x, y, z = Spring.GetUnitVelocity(unitID)
+		Spring.AddUnitImpulse(unitID, x * -0.66, y * -0.66, z * -0.66)
+		return damage * 0.12, 0
+	elseif isMineResistant[unitDefID] and MINE_BLAST[weaponID] then
+		return damage * 0.12, 0.24
 	elseif mines[unitID] and (attackerID == mines[unitID]) then
 		return 0, 0
 	end
@@ -60,27 +79,45 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if builderID and unitDefID == MINE2 and isCommando[Spring.GetUnitDefID(builderID)] then
+	if builderID and isMine[unitDefID] and isMineResistant[Spring.GetUnitDefID(builderID)] then
 		mines[unitID] = builderID
 	end
 end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	mines[unitID] = nil
-end
-
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
 end
 
+local function stealthSource(unitID)
+	return ATTRIBUTE_SOURCE .. unitID -- so unloading one unit does not drop another passenger's factors
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	mines[unitID] = nil
+	if isStealthsTransport[unitDefID] then
+		local transportID = Spring.GetUnitTransporter(unitID) -- unit dies without "unloading"
+		if transportID then
+			GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", nil, stealthSource(unitID))
+		end
+	end
+end
+
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	if isCommando[unitDefID] then
-		Spring.SetUnitStealth(transportID, true)
+	if isStealthsTransport[unitDefID] then
+		GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", true, stealthSource(unitID))
 	end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-	if isCommando[unitDefID] then
-		Spring.SetUnitStealth(transportID, false)
+	if isStealthsTransport[unitDefID] then
+		GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", nil, stealthSource(unitID))
+	end
+end
+
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local transportID = Spring.GetUnitTransporter(unitID)
+		if transportID then
+			gadget:UnitLoaded(unitID, Spring.GetUnitDefID(unitID), nil, transportID, nil)
+		end
 	end
 end

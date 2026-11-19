@@ -7,8 +7,8 @@ return {
 		buildpic = "LEGCAR.DDS",
 		buildtime = 11000,
 		canmove = true,
-		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "42 12 42",
+		collisionvolumeoffsets = "0 -1 1",
+		collisionvolumescales = "39 17 46",
 		collisionvolumetype = "Box",
 		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
@@ -31,10 +31,10 @@ return {
 		turninplacespeedlimit = 1.9768,
 		turnrate = 410,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "hovercraft",
+			subfolder = "Legion/Hovercraft",
 		},
 		featuredefs = {
 			dead = {

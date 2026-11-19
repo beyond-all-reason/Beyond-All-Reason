@@ -19,12 +19,23 @@ end
 local MODEL_NAME = "weather_brush_model"
 local RML_PATH = "luaui/RmlWidgets/gui_weather_brush/gui_weather_brush.rml"
 
+---@type table<string, any>
 local WG = WG
-local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 25
 
+---@class WeatherBrushPanelState
+---@field rmlContext table?
+---@field document table?
+---@field dmHandle table?
+---@field rootElement table?
+---@field libraryBuilt boolean
+---@field cegListFilter string
+---@field cegListBuilt boolean
+---@field dragHandle table?
+---@field selectedCegsLabelEl table?
+---@field lastSelectedCegsRml string?
 local widgetState = {
 	rmlContext = nil,
 	document = nil,
@@ -37,17 +48,15 @@ local widgetState = {
 
 local manuallyHidden = false
 local lastActive = false
-local userDragged = false  -- once user drags, stop auto-positioning
+local userDragged = false -- once user drags, stop auto-positioning
 
 local function buildRootStyle()
-	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio and stays
-	-- readable via `min-width: Npx`. We only emit position here.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio; only the position is set here.
+	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local initialModel = {
-	-- Root panel visibility — driven by data-class-hidden on #wb-root
+	-- Root panel visibility (data-class-hidden on #wb-root)
 	hidden = true,
 	-- Two-way-bound CEG name filter (data-value on #wb-ceg-filter)
 	filter = "",
@@ -56,7 +65,7 @@ local initialModel = {
 }
 
 -- ===========================================================================
--- Declarative event handlers (called from RML via onclick="widget:Foo()")
+-- Event handlers called from the RML (onclick="widget:Foo()")
 -- ===========================================================================
 function widget:OnQuit()
 	manuallyHidden = true
@@ -66,19 +75,15 @@ function widget:OnQuit()
 end
 
 function widget:OnFilterFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnFilterBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
--- data-value="filter" only writes dm.filter AFTER the change event fires
--- (RmlUi quirk), so read the input element's value directly here. Without
--- this the per-frame poll of dm.filter never saw typed text, so the CEG
--- browser search appeared to do nothing.
+-- RmlUi writes data-value="filter" only after the change event fires, so read
+-- the input element directly; the per-frame poll of dm.filter would miss typing.
 function widget:OnFilterChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("wb-ceg-filter")
@@ -89,7 +94,9 @@ function widget:OnFilterChange()
 end
 
 function widget:OnClearCegs()
-	if WG.WeatherBrush then WG.WeatherBrush.clearSelectedCegs() end
+	if WG.WeatherBrush then
+		WG.WeatherBrush.clearSelectedCegs()
+	end
 	if widgetState.dmHandle then
 		widgetState.dmHandle.filter = ""
 	end
@@ -101,13 +108,19 @@ local ALTITUDE_MAX = 2000
 local function clampAltitude(v)
 	v = tonumber(v) or 0
 	v = math.floor(v + 0.5)
-	if v < ALTITUDE_MIN then v = ALTITUDE_MIN end
-	if v > ALTITUDE_MAX then v = ALTITUDE_MAX end
+	if v < ALTITUDE_MIN then
+		v = ALTITUDE_MIN
+	end
+	if v > ALTITUDE_MAX then
+		v = ALTITUDE_MAX
+	end
 	return v
 end
 
 function widget:OnAltitudeChange(event)
-	if not WG.WeatherBrush then return end
+	if not WG.WeatherBrush then
+		return
+	end
 	-- Prefer event.parameters.value (RmlUi 'change' payload); fall back to DM.
 	local raw
 	if event and event.parameters and event.parameters.value ~= nil then
@@ -123,7 +136,9 @@ function widget:OnAltitudeChange(event)
 end
 
 function widget:OnAltitudeStep(delta)
-	if not WG.WeatherBrush then return end
+	if not WG.WeatherBrush then
+		return
+	end
 	local st = WG.WeatherBrush.getState()
 	local v = clampAltitude((st and st.altitude or 0) + delta)
 	WG.WeatherBrush.setAltitude(v)
@@ -133,81 +148,81 @@ function widget:OnAltitudeStep(delta)
 end
 
 function widget:OnAltitudeFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnAltitudeBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
 -- Icon map for weather conditions (unicode weather symbols)
 local iconMap = {
 	-- Precipitation
-	rain_light      = "&#x1F327;",
-	rain_heavy      = "&#x26C8;",
-	storm           = "&#x26A1;",
-	rain_acid       = "&#x2623;",
-	snow_light      = "&#x2744;",
-	blizzard        = "&#x1F328;",
-	hail            = "&#x1F327;",
+	rain_light = "&#x1F327;",
+	rain_heavy = "&#x26C8;",
+	storm = "&#x26A1;",
+	rain_acid = "&#x2623;",
+	snow_light = "&#x2744;",
+	blizzard = "&#x1F328;",
+	hail = "&#x1F327;",
 	-- Wind & Sand
-	sandstorm       = "&#x1F32A;",
-	dust_devil      = "&#x1F300;",
+	sandstorm = "&#x1F32A;",
+	dust_devil = "&#x1F300;",
 	-- Fog & Atmosphere
-	fog             = "&#x1F32B;",
-	mist            = "&#x1F32B;",
-	overcast        = "&#x2601;",
-	toxic           = "&#x2623;",
-	mist_purple     = "&#x1F52E;",
+	fog = "&#x1F32B;",
+	mist = "&#x1F32B;",
+	overcast = "&#x2601;",
+	toxic = "&#x2623;",
+	mist_purple = "&#x1F52E;",
 	-- Fire & Volcanic
-	volcanic        = "&#x1F30B;",
-	embers          = "&#x1F525;",
-	lava            = "&#x1F525;",
-	steam           = "&#x2668;",
+	volcanic = "&#x1F30B;",
+	embers = "&#x1F525;",
+	lava = "&#x1F525;",
+	steam = "&#x2668;",
 	-- Ambient & Magical
-	fireflies       = "&#x2728;",
+	fireflies = "&#x2728;",
 	fireflies_green = "&#x2728;",
-	fireflies_purple= "&#x2728;",
-	pollen          = "&#x1F33C;",
-	dust_motes      = "&#x2727;",
+	fireflies_purple = "&#x2728;",
+	pollen = "&#x1F33C;",
+	dust_motes = "&#x2727;",
 	-- Storm & Energy
-	lightning       = "&#x26A1;",
+	lightning = "&#x26A1;",
 	lightning_green = "&#x26A1;",
 	-- Smoke & Industrial
-	smoke           = "&#x1F4A8;",
-	nuke            = "&#x2622;",
+	smoke = "&#x1F4A8;",
+	nuke = "&#x2622;",
 	-- Special
-	meteor          = "&#x2604;",
+	meteor = "&#x2604;",
 }
 
--- Category groups: { label, startIndex, endIndex }
--- These insert visual headers into the library grid to organize presets
+-- Category groups { label, startIndex, endIndex }: headers inserted into the library grid
 local categoryGroups = {
 	{ label = "PRECIPITATION", startIdx = 1 },
 	{ label = "WIND &amp; SAND", startIdx = 8 },
 	{ label = "FOG &amp; ATMOSPHERE", startIdx = 10 },
 	{ label = "FIRE &amp; VOLCANIC", startIdx = 15 },
 	{ label = "AMBIENT &amp; MAGICAL", startIdx = 19 },
-	{ label = "STORM &amp; ENERGY", startIdx = 25 },
-	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 27 },
-	{ label = "SPECIAL", startIdx = 29 },
+	{ label = "STORM &amp; ENERGY", startIdx = 24 },
+	{ label = "SMOKE &amp; INDUSTRIAL", startIdx = 26 },
+	{ label = "SPECIAL", startIdx = 28 },
 }
 
 -- ===========================================================================
--- Event Listeners (imperative — drag handle only; click/focus/blur live in RML)
+-- Event listeners: the drag handle only; click/focus/blur live in the RML
 -- ===========================================================================
 local function attachEventListeners()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	-- Drag handle
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "wb-handle", widgetState.rootElement,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "wb-handle", widgetState.rootElement, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -239,7 +254,9 @@ function widget:Initialize()
 	end
 
 	widgetState.rootElement = document:GetElementById("wb-root")
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	if widgetState.rootElement then
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+	end
 
 	attachEventListeners()
 end
@@ -248,13 +265,15 @@ end
 -- Update: sync widget state to UI
 -- ===========================================================================
 function widget:Update()
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	-- Poll-based window drag (position only; mouseup ends the drag via a doc listener)
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 	local wbActive = wbState and wbState.active
 
-	-- Show/hide entire panel (driven via data-class-hidden on #wb-root)
+	-- Show/hide the whole panel (data-class-hidden on #wb-root)
 	if wbActive and not lastActive then
 		manuallyHidden = false
 	end
@@ -270,25 +289,31 @@ function widget:Update()
 			widgetState.dmHandle.altitude = stateAlt
 		end
 	end
-	if not wbActive then return end
+	if not wbActive then
+		return
+	end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
+	local mainPanel = WG.TerraformerShared
+		and WG.TerraformerShared.getElementRect
 		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
-			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;",
-					mainPanel.left - myWidth - gap, mainPanel.top))
+			widgetState.rootElement:SetAttribute(
+				"style",
+				string.format("left: %dpx; top: %dpx;", mainPanel.left - myWidth - gap, mainPanel.top)
+			)
 		end
 	end
 
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
-	-- Selected CEGs label (cached element + dirty-check: runs every Update tick)
+	-- Selected CEGs label: cached element and dirty check, since this runs every Update
 	local selectedLabel = widgetState.selectedCegsLabelEl
 	if not selectedLabel then
 		selectedLabel = doc:GetElementById("wb-selected-cegs-label")
@@ -300,7 +325,9 @@ function widget:Update()
 			display = '<span style="color: #6b7280;">none</span>'
 		else
 			display = table.concat(wbState.selectedCegs, ", ")
-			if #display > 50 then display = display:sub(1, 47) .. "..." end
+			if #display > 50 then
+				display = display:sub(1, 47) .. "..."
+			end
 		end
 		if widgetState.lastSelectedCegsRml ~= display then
 			widgetState.lastSelectedCegsRml = display
@@ -367,7 +394,7 @@ function widget:Update()
 		end
 	end
 
-	-- CEG list: rebuild when filter changes (filter is two-way bound via data-value)
+	-- CEG list: rebuild when dm.filter changes (OnFilterChange keeps it current)
 	local filter = (widgetState.dmHandle and widgetState.dmHandle.filter) or ""
 	if filter ~= widgetState.cegListFilter or not widgetState.cegListBuilt then
 		widgetState.cegListFilter = filter
@@ -382,12 +409,17 @@ function widget:Update()
 			for _, name in ipairs(cegNames) do
 				if filterLower == "" or name:lower():find(filterLower, 1, true) then
 					shown = shown + 1
-					if shown > maxShow then break end
+					if shown > maxShow then
+						break
+					end
 					local item = doc:CreateElement("div")
 					item:SetClass("wb-ceg-item", true)
 					local isSelected = false
 					for _, sel in ipairs(wbState.selectedCegs) do
-						if sel == name then isSelected = true; break end
+						if sel == name then
+							isSelected = true
+							break
+						end
 					end
 					item:SetClass("selected", isSelected)
 					item.inner_rml = name
@@ -409,15 +441,14 @@ function widget:Update()
 				end
 			end
 			if shown == 0 then
-				listEl.inner_rml = '<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">No matching CEGs</div>'
+				listEl.inner_rml =
+					'<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">No matching CEGs</div>'
 			end
 		end
 	end
 end
 
 function widget:Shutdown()
-	WG.WeatherBrushInputFocused = nil
-
 	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
 		WG.TerraformerShared.unregisterDocument("weather_brush")
 	end

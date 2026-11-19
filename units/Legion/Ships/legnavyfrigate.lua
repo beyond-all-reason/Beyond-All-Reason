@@ -22,7 +22,7 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		movestate = 0,
-		nochasecategory = "VTOL UNDERWATER",
+		nochasecategory = "VTOL",
 		objectname = "Units/legnavyfrigate.s3o",
 		script = "Units/legnavyfrigate.cob",
 		seismicsignature = 0,
@@ -34,7 +34,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponsub',
+			unitgroup = "weaponsub",
 			model_author = "EnderRobo (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
@@ -176,11 +176,9 @@ return {
 				waterweapon = true,
 				weaponacceleration = 2,
 				weapontimer = 4,
-				weapontype = "MissileLauncher",
+				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					speceffect = "torpwaterpen",
-					tracking_turn_radius = 2000,
 					weapons_group = 2,
 				},
 				damage = {

@@ -32,7 +32,8 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			islrpc = true,
+			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -124,7 +125,7 @@ return {
 				tolerance = 364,
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				name = "Very Long-Range High-Trajectory 63-Salvo Plasma Launcher",
 				noselfdamage = true,
 				range = 6100,
@@ -187,12 +188,12 @@ return {
 				--engine bug?
 				burstControlWhenOutOfArc = 1,
 				maindir = "0 0 1",
-               --maxangledif = 10,
+				--maxangledif = 10,
 			},
 			[2] = {
 				def = "energycharger",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

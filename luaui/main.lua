@@ -16,24 +16,29 @@ Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
 
 local spSendCommands = Spring.SendCommands
 spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
+-- Widgets draw the menus, the engine's control panel shows no buttons (layout.lua). Set here as well, not left to
+-- that file (the engine's own): without it the panel's empty frame draws as a grey box on the left while the
+-- selected units have commands, and takes the clicks over it.
+Spring.LoadCtrlPanelConfig("frameAlpha 0\nselectThrough 1")
 
 VFS.Include("init.lua", nil, VFS.ZIP)
 
-VFS.Include(LUAUI_DIRNAME .. "rml_setup.lua",  nil, VFS.ZIP)
-Spring.I18N.setLanguage( Spring.GetConfigString('language', 'en') )
+VFS.Include(LUAUI_DIRNAME .. "rml_setup.lua", nil, VFS.ZIP)
+BAR.I18N.setLanguage(Spring.GetConfigString("language", "en"))
 
-VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "savetable.lua",  nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "debug.lua",      nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "layout.lua",     nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "utils.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "debug.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "layout.lua", nil, VFS.ZIP)
+
+local widgetHandler = VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
 
 --------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 function Say(msg)
-	spSendCommands('say ' .. msg)
+	spSendCommands("say " .. msg)
 end
 
 -------------------------------------------------------------------------------
@@ -44,7 +49,6 @@ function Update()
 	widgetHandler:Update()
 	return
 end
-
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -144,12 +148,9 @@ function GroupChanged(groupID)
 	return widgetHandler:GroupChanged(groupID)
 end
 
-
 --
 -- The unit (and some of the Draw) call-ins are handled
 -- differently (see LuaUI/widgets.lua / UpdateCallIns())
 --
 
-
 --------------------------------------------------------------------------------
-

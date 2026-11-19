@@ -31,8 +31,10 @@ return {
 		turnrate = 506,
 		upright = true,
 		customparams = {
+			maxrange = 275,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weaponaa",

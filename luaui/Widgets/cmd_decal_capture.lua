@@ -1,44 +1,42 @@
 function widget:GetInfo()
 	return {
-		name      = "Decal Capture",
-		desc      = "Capture a top-down PNG of the map's diffuse gbuffer for use as a ground decal. Console: /decalcapture <name> [radius]",
-		author    = "PtaQ",
-		date      = "2026",
-		license   = "GPL-2.0+",
-		layer     = 0,
-		enabled   = false,
+		name = "Decal Capture",
+		desc = "Capture a top-down PNG of the map's diffuse gbuffer for use as a ground decal. Console: /decalcapture <name> [radius]",
+		author = "PtaQ",
+		date = "2026",
+		license = "GPL-2.0+",
+		layer = 0,
+		enabled = false,
 	}
 end
 
 --[[
-Pipeline (diffuse-only MVP):
-  1. User runs `/decalcapture <name> [radius]` (radius in elmos, default 256).
-     Capture is centered on cursor world position.
-  2. On next DrawScreen we run a fullscreen-quad fragment shader that, for
-     each output texel, computes its world (x,z), samples $heightmap to get
-     y, projects through the current view-projection matrix into screen UV,
-     and reads $map_gbuffer_difftex at that UV. Off-screen / behind-camera
-     texels write transparent. Radial feather alpha at edge.
-  3. SaveImage writes PNG to LuaUI/Cache/decal_captures/<name>.png in the
-     spring write dir; echo absolute path.
+Pipeline (diffuse only):
+  1. `/decalcapture <name> [radius]` (elmos, default 256), centred on the
+     cursor's world position.
+  2. On the next DrawScreen a fullscreen fragment shader maps each output
+     texel to world (x,z), samples $heightmap for y, projects through the
+     current view-projection into screen UV and reads $map_gbuffer_difftex.
+     Off-screen or behind-camera texels are transparent; the edge gets a
+     radial feather.
+  3. SaveImage writes LuaUI/Cache/decal_captures/<name>.png in the write dir.
+  4. autoInstall copies the PNG into the .sdd's bitmaps/decals/ and appends
+     it to gamedata/resources.lua `graphics.decals`. Outside a writable .sdd
+     it says so and the copy is manual.
 
-Limitations (will iterate):
-  - Captures only what's on-screen RIGHT NOW. Fly your camera so the area
-    is fully visible before issuing the command.
-  - Diffuse only. Normal/specular channels later.
-  - Alpha is currently a radial feather only — no smart color isolation
-    yet (next iteration).
-  - No engine atlas auto-registration. After capture the user must:
-      a) move PNG into bitmaps/decals/
-      b) append filename to gamedata/resources.lua `graphics.decals`
-      c) restart the game so the atlas rebuilds.
+Limitations:
+  - Captures only what is on screen now: frame the whole area first.
+  - Diffuse only, no normal or specular.
+  - Alpha is a radial feather, no colour isolation.
+  - The engine builds the decal atlas at startup, so a new capture shows up
+    in the decal library only after a restart.
 ]]
 
-local OUT_SIZE         = 512
-local DEFAULT_RADIUS   = 256
-local CACHE_SUBDIR     = "LuaUI/Cache/decal_captures/"
+local OUT_SIZE = 512
+local DEFAULT_RADIUS = 256
+local CACHE_SUBDIR = "LuaUI/Cache/decal_captures/"
 
-local pendingCaptures  = {}    -- queue of { name=, cx=, cz=, radius= }
+local pendingCaptures = {} -- queue of { name=, cx=, cz=, radius= }
 local captureShader
 local uniViewProj, uniWorldOrigin, uniWorldExtent, uniMapSize, uniFeatherStart
 
@@ -53,7 +51,7 @@ local VERT_SRC = [[
 	}
 ]]
 
--- Fragment: project world→screen, sample current-frame gbuffer.
+-- Fragment: project world to screen, sample the current-frame gbuffer.
 --
 -- INPUT
 --   tex0           : $map_gbuffer_difftex (screen-space lit diffuse)
@@ -117,15 +115,17 @@ local FRAG_SRC = [[
 ]]
 
 local function initShader()
-	if captureShader ~= nil then return captureShader and true or false end
+	if captureShader ~= nil then
+		return captureShader and true or false
+	end
 	captureShader = gl.CreateShader({
-		vertex      = VERT_SRC,
-		fragment    = FRAG_SRC,
-		uniformInt  = { tex0 = 0, heightMap = 1 },
+		vertex = VERT_SRC,
+		fragment = FRAG_SRC,
+		uniformInt = { tex0 = 0, heightMap = 1 },
 		uniformFloat = {
-			worldOrigin  = { 0, 0 },
-			worldExtent  = { 1, 1 },
-			mapSize      = { 1, 1 },
+			worldOrigin = { 0, 0 },
+			worldExtent = { 1, 1 },
+			mapSize = { 1, 1 },
 			featherStart = 0.85,
 		},
 	})
@@ -134,29 +134,33 @@ local function initShader()
 		captureShader = false
 		return false
 	end
-	uniViewProj     = gl.GetUniformLocation(captureShader, "viewProj")
-	uniWorldOrigin  = gl.GetUniformLocation(captureShader, "worldOrigin")
-	uniWorldExtent  = gl.GetUniformLocation(captureShader, "worldExtent")
-	uniMapSize      = gl.GetUniformLocation(captureShader, "mapSize")
+	uniViewProj = gl.GetUniformLocation(captureShader, "viewProj")
+	uniWorldOrigin = gl.GetUniformLocation(captureShader, "worldOrigin")
+	uniWorldExtent = gl.GetUniformLocation(captureShader, "worldExtent")
+	uniMapSize = gl.GetUniformLocation(captureShader, "mapSize")
 	uniFeatherStart = gl.GetUniformLocation(captureShader, "featherStart")
 	return true
 end
 
 --------------------------------------------------------------------------------
--- Capture (must run inside DrawScreen — gl.RenderToTexture restriction)
+-- Capture (DrawScreen only: gl.RenderToTexture restriction)
 --------------------------------------------------------------------------------
 local function runCapture(job)
-	if not initShader() then return false, "shader unavailable" end
+	if not initShader() then
+		return false, "shader unavailable"
+	end
 
 	local fbo = gl.CreateTexture(OUT_SIZE, OUT_SIZE, {
-		border     = false,
+		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
-		wrap_s     = GL.CLAMP_TO_EDGE,
-		wrap_t     = GL.CLAMP_TO_EDGE,
-		fbo        = true,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fbo then return false, "FBO create failed" end
+	if not fbo then
+		return false, "FBO create failed"
+	end
 
 	local cx, cz, r = job.cx, job.cz, job.radius
 	local ox, oz = cx - r, cz - r
@@ -196,17 +200,21 @@ local function runCapture(job)
 
 		-- Quad in NDC; tex coords carry the 0..1 sampling space.
 		gl.BeginEnd(GL.QUADS, function()
-			gl.TexCoord(0, 0); gl.Vertex(-1, -1, 0)
-			gl.TexCoord(1, 0); gl.Vertex( 1, -1, 0)
-			gl.TexCoord(1, 1); gl.Vertex( 1,  1, 0)
-			gl.TexCoord(0, 1); gl.Vertex(-1,  1, 0)
+			gl.TexCoord(0, 0)
+			gl.Vertex(-1, -1, 0)
+			gl.TexCoord(1, 0)
+			gl.Vertex(1, -1, 0)
+			gl.TexCoord(1, 1)
+			gl.Vertex(1, 1, 0)
+			gl.TexCoord(0, 1)
+			gl.Vertex(-1, 1, 0)
 		end)
 
 		gl.UseShader(0)
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 
-		-- Save inside the FBO callback (proven pattern: dp_preview_bake.lua)
+		-- gl.SaveImage must run inside the FBO callback to read this target.
 		gl.SaveImage(0, 0, OUT_SIZE, OUT_SIZE, outPath, { yflip = false, alpha = true })
 		saved = true
 
@@ -225,9 +233,13 @@ end
 -- Action handler
 --------------------------------------------------------------------------------
 local function sanitizeName(s)
-	if not s then return nil end
+	if not s then
+		return nil
+	end
 	s = tostring(s):gsub("[^%w_-]", "_")
-	if s == "" then return nil end
+	if s == "" then
+		return nil
+	end
 	return s
 end
 
@@ -260,93 +272,18 @@ local function actionCapture(_, _, params)
 	local cx, cz = pos[1], pos[3]
 
 	pendingCaptures[#pendingCaptures + 1] = {
-		name   = name,
-		cx     = cx,
-		cz     = cz,
+		name = name,
+		cx = cx,
+		cz = cz,
 		radius = radius,
 	}
-	Spring.Echo(string.format(
-		"[DecalCapture] queued '%s' at (%d, %d) r=%d", name, cx, cz, radius))
 	return true
 end
 
 --------------------------------------------------------------------------------
--- Widget callins
---------------------------------------------------------------------------------
-local function actionDump()
-	local names, files = Spring.GetGroundDecalTextures(true, true)
-	names = names or {}
-	files = files or {}
-	Spring.Echo(string.format("[DecalCapture] atlas textures: %d", #names))
-	for i, n in ipairs(names) do
-		Spring.Echo(string.format("  [%d] %s -> %s", i, tostring(n), tostring(files[i])))
-	end
-	return true
-end
-
-local function actionDumpRes()
-	-- Show what the VFS actually serves for resources.lua and graphics.decals
-	local path = "gamedata/resources.lua"
-	local raw = VFS.LoadFile(path, VFS.MOD)
-	if not raw then
-		raw = VFS.LoadFile(path, VFS.ZIP)
-	end
-	if not raw then
-		raw = VFS.LoadFile(path)
-	end
-	if raw then
-		Spring.Echo(string.format("[DecalCapture] VFS resources.lua bytes=%d", #raw))
-		-- Echo a slice around 'decals = {' so we can see what entries the VFS sees.
-		local s, e = raw:find("decals%s*=%s*{")
-		if s then
-			local snippet = raw:sub(s, math.min(e + 400, #raw))
-			Spring.Echo("[DecalCapture] VFS resources.lua decals block:")
-			for line in snippet:gmatch("[^\r\n]+") do
-				Spring.Echo("  " .. line)
-			end
-		else
-			Spring.Echo("[DecalCapture] could not find 'decals = {' in VFS resources.lua")
-		end
-	else
-		Spring.Echo("[DecalCapture] VFS.LoadFile returned nil for resources.lua")
-	end
-
-	local ok, tbl = pcall(VFS.Include, path, nil, VFS.MOD)
-	if not ok or type(tbl) ~= "table" then
-		ok, tbl = pcall(VFS.Include, path)
-	end
-	if ok and type(tbl) == "table" and type(tbl.graphics) == "table" and type(tbl.graphics.decals) == "table" then
-		local d = tbl.graphics.decals
-		Spring.Echo(string.format("[DecalCapture] VFS.Include graphics.decals length=%d", #d))
-		for i = 1, #d do
-			Spring.Echo(string.format("  [%d] %s", i, tostring(d[i])))
-		end
-	else
-		Spring.Echo("[DecalCapture] VFS.Include failed or no graphics.decals table")
-	end
-
-	-- Probe direct file presence in the VFS for both files we expect.
-	for _, f in ipairs({
-		"bitmaps/decals/atg_metal_spot.png",
-		"bitmaps/decals/mexatg.png",
-	}) do
-		local exists = VFS.FileExists(f)
-		local existsMod = VFS.FileExists(f, VFS.MOD)
-		Spring.Echo(string.format("[DecalCapture] VFS.FileExists %s any=%s mod=%s",
-			f, tostring(exists), tostring(existsMod)))
-	end
-	return true
-end
-
---------------------------------------------------------------------------------
--- Auto-install: copy capture into the .sdd's bitmaps/decals/ and append the
--- entry to gamedata/resources.lua so a single restart picks it up.
---
--- Returns true on success, false (with echo'd reason) otherwise. Uses io.*
--- with absolute paths derived from VFS.GetFileAbsolutePath. Only works when
--- the mod is loaded from a writable .sdd directory; falls back gracefully
--- for .sdz/.sd7 archives.
---------------------------------------------------------------------------------
+-- Auto-install: copy the capture into the .sdd's bitmaps/decals/ and append it
+-- to gamedata/resources.lua so one restart picks it up. Returns false (with an
+-- echoed reason) when the game is not loaded from a writable .sdd directory.
 local function autoInstall(name, capturedRel)
 	local resAbs = VFS.GetFileAbsolutePath("gamedata/resources.lua", VFS.MOD)
 	if not resAbs then
@@ -372,7 +309,9 @@ local function autoInstall(name, capturedRel)
 	-- gl.SaveImage writes relative to Spring.GetWriteDir(), not to the .sdd.
 	local springWrite = (Spring.GetWriteDir and Spring.GetWriteDir()) or writeDir
 	springWrite = springWrite:gsub("\\", "/")
-	if not springWrite:find("/$") then springWrite = springWrite .. "/" end
+	if not springWrite:find("/$") then
+		springWrite = springWrite .. "/"
+	end
 	local srcAbs = springWrite .. capturedRel
 
 	local dstRel = "bitmaps/decals/" .. name .. ".png"
@@ -396,14 +335,15 @@ local function autoInstall(name, capturedRel)
 		Spring.Echo("[DecalCapture] cannot open captured PNG: " .. srcAbs)
 		return false
 	end
-	local data = fi:read("*a"); fi:close()
+	local data = fi:read("*a")
+	fi:close()
 	local fo = (dstWriteRel and io.open(dstWriteRel, "wb")) or io.open(dstAbs, "wb")
 	if not fo then
 		Spring.Echo("[DecalCapture] cannot write: " .. dstAbs .. " (read-only?)")
 		return false
 	end
-	fo:write(data); fo:close()
-	Spring.Echo("[DecalCapture] copied -> " .. dstAbs)
+	fo:write(data)
+	fo:close()
 
 	local resWriteRel = sddName ~= "" and ("games/" .. sddName .. "/gamedata/resources.lua") or nil
 	local rfi = (resWriteRel and io.open(resWriteRel, "rb")) or io.open(resAbs, "rb")
@@ -411,7 +351,8 @@ local function autoInstall(name, capturedRel)
 		Spring.Echo("[DecalCapture] cannot read resources.lua at " .. resAbs)
 		return false
 	end
-	local res = rfi:read("*a"); rfi:close()
+	local res = rfi:read("*a")
+	rfi:close()
 	local entry = "decals/" .. name .. ".png"
 	if res:find(entry, 1, true) then
 		Spring.Echo("[DecalCapture] resources.lua already lists '" .. entry .. "'")
@@ -431,7 +372,9 @@ local function autoInstall(name, capturedRel)
 		local searchFrom = blockStart
 		while true do
 			local s, e = res:find("'decals/[^']+'%s*,", searchFrom)
-			if not s or s > blockEnd then break end
+			if not s or s > blockEnd then
+				break
+			end
 			lastEnd = e
 			searchFrom = e + 1
 		end
@@ -450,7 +393,8 @@ local function autoInstall(name, capturedRel)
 			Spring.Echo("[DecalCapture] cannot write resources.lua: " .. resAbs)
 			return false
 		end
-		rfo:write(newRes); rfo:close()
+		rfo:write(newRes)
+		rfo:close()
 		Spring.Echo("[DecalCapture] appended '" .. entry .. "' to resources.lua")
 	end
 
@@ -461,14 +405,10 @@ end
 function widget:Initialize()
 	-- Cache dir is created at capture time, not at load.
 	widgetHandler:AddAction("decalcapture", actionCapture, nil, "t")
-	widgetHandler:AddAction("decalsdump", actionDump, nil, "t")
-	widgetHandler:AddAction("decaldumpres", actionDumpRes, nil, "t")
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("decalcapture")
-	widgetHandler:RemoveAction("decalsdump")
-	widgetHandler:RemoveAction("decaldumpres")
 	if captureShader then
 		gl.DeleteShader(captureShader)
 		captureShader = nil
@@ -476,7 +416,9 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
-	if #pendingCaptures == 0 then return end
+	if #pendingCaptures == 0 then
+		return
+	end
 	local job = table.remove(pendingCaptures, 1)
 	local ok, info = runCapture(job)
 	if ok then

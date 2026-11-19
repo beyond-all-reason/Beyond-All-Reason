@@ -3,7 +3,7 @@ return {
 		airsightdistance = 1000,
 		buildangle = 8192,
 		buildpic = "CORFLAK.DDS",
-		buildtime = 20100,
+		buildtime = 20000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 34 28",
@@ -144,6 +144,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

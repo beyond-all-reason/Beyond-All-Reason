@@ -27,7 +27,7 @@ function SkipAlliedUpgradeWidget.filterOutAlliedSpots(spots, unitDefIdsToCheck)
 	end
 	local filteredSpots = {}
 	local nextFilteredSpotIndex = 1 -- to avoid recalculating table length in case of large 'spots' table
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	for i = 1, #spots do
 		local spot = spots[i]
@@ -56,10 +56,14 @@ end
 
 function widget:Initialize()
 	toggleIsActive = false
-	WG['skip_allied_upgrade'] = SkipAlliedUpgradeWidget
+	WG.skip_allied_upgrade = SkipAlliedUpgradeWidget
 
-	widgetHandler:AddAction("toggle_allied_upgrade", function() toggleIsActive = true end, nil, "p")
-	widgetHandler:AddAction("toggle_allied_upgrade", function() toggleIsActive = false end, nil, "r")
+	widgetHandler:AddAction("toggle_allied_upgrade", function()
+		toggleIsActive = true
+	end, nil, "p")
+	widgetHandler:AddAction("toggle_allied_upgrade", function()
+		toggleIsActive = false
+	end, nil, "r")
 end
 
 function widget:Shutdown()

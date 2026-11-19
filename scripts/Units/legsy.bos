@@ -4,7 +4,7 @@
 
 piece  base, pad, ventsmoke1, ventsmoke2, cylinder1, cylinder2, domelight, domelight_emit, lrail, rrail, lpivot, rpivot, larm, rarm, lnano1, lnano2, rnano1, rnano2, beam1, beam2, beam3, beam4;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -35,6 +35,7 @@ Create()
 	spray = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -108,25 +109,24 @@ StopBuilding()
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	turn larm to x-axis <-90> speed <90>;
-	turn rarm to x-axis <90> speed <90>;
-	wait-for-turn rarm around x-axis;
-	
+	if( !hasOpened )
+	{
+		turn larm to x-axis <-90> speed <90>;
+		turn rarm to x-axis <90> speed <90>;
+		wait-for-turn rarm around x-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	
-	sleep 5000;
-
-	turn larm to x-axis <0> speed <90>;
-	turn rarm to x-axis <0> speed <90>;
-	wait-for-turn rarm around x-axis;
 
 	FACTORY_CLOSE_BUILD;
 }

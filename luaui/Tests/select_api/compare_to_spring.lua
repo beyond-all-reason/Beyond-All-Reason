@@ -4,16 +4,15 @@ local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 
-
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0 or not Platform.gl
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Spring.SendCommands("setspeed " .. 1)
 end
 
@@ -69,14 +68,10 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 			-- these have weird behaviour for the "Not_Builder" filter
 			-- they behave as expected for the "Builder" filter
-			local isWeirdOutlier = (filter == "Not_Builder" and (
-					name == "cormlv" or
-					name == "armmlv"
-				))
-				-- api command selects these, but spring select doesn't
-				-- I think they spawn? don't seem to exist during build script
-				or name == "armdrone" or name == "corvacct"
-				or name == "armtl"
+			local isWeirdOutlier = (filter == "Not_Builder" and (name == "cormlv" or name == "armmlv"))
+				or name == "armdrone"
+				or name == "corvacct" -- api command selects these, but spring select doesn't
+				or name == "armtl" -- I think they spawn? don't seem to exist during build script
 
 			if not isWeirdOutlier then
 				table.insert(missingInSpring, uid)
@@ -88,9 +83,7 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 end
 
 local function createAndAddUnit(udefid, name, x, z, uids, group)
-	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube'
-		or name == 'lootboxplatinum'
-	then -- weird buggy units
+	if name == "dbg_sphere" or name == "dbg_sphere_fullmetal" or name == "pbr_cube" or name == "lootboxplatinum" then -- weird buggy units
 		return
 	end
 
@@ -102,7 +95,6 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 
 		local y = Spring.GetGroundHeight(x, z)
 		local unitID = Spring.CreateUnit(udefid, x, y, z, "east", 0)
-
 
 		if group == 1 then
 			Spring.SetUnitGroup(unitID, 1)
@@ -169,7 +161,7 @@ local comparableConclusions = {
 	["ClearSelection_SelectAll+"] = true,
 	["SelectAll+"] = true,
 	["ClearSelection_SelectClosestToCursor+"] = true,
-	["SelectClosestToCursor+"] = true
+	["SelectClosestToCursor+"] = true,
 }
 
 local function test_command(preSelectedUnitIDs, filter, command, conclusion)
@@ -202,8 +194,9 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 		local prefix = "\n" .. type .. " " .. command .. " failed: "
 
 		if hasMissingInApi and hasMissingInSpring then
-			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
-				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
+				.. " | "
+				.. generateErrorMessage(missingInSpring, "missingInSpring")
 			print(prefix .. errorMessage)
 			passed = false
 		elseif hasMissingInApi then
@@ -234,7 +227,7 @@ end
 -- for each filter, the sum of {{filter}} and Not_{{filter}} always equals 537.
 -- this means 6 units are being created but then not included in the tests
 -- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
-function test()
+local function test()
 	passed = true
 	local uids = createUnits()
 	local halfSize = math.floor(#uids / 2)
@@ -297,7 +290,7 @@ function test()
 	}
 
 	local notImplementedApi = {
-		"RulesParamEquals_<string>_<integer>"
+		"RulesParamEquals_<string>_<integer>",
 	}
 
 	local notImplementedSpring = {
@@ -319,7 +312,7 @@ function test()
 		"Visible",
 		"PrevSelection",
 		"FromMouse_500",
-		"FromMouseC_500"
+		"FromMouseC_500",
 	}
 
 	local conclusions = {
@@ -349,3 +342,5 @@ function test()
 	end
 	assert(passed, "read errors above")
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

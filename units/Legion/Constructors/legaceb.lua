@@ -7,7 +7,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACEB.DDS",
-		buildtime = 9500,
+		buildtime = 11660,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 26 30",
@@ -57,10 +57,10 @@ return {
 			"legamph",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/constructors",
+			subfolder = "Legion/Constructors",
 			techlevel = 2,
 		},
 		featuredefs = {

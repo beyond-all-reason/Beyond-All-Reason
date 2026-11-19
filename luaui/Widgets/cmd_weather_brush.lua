@@ -16,7 +16,6 @@ end
 local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 local GetMouseState = Spring.GetMouseState
 local GetGroundHeight = Spring.GetGroundHeight
-local TraceScreenRay = Spring.TraceScreenRay
 local GetGameFrame = Spring.GetGameFrame
 local Echo = Spring.Echo
 
@@ -26,18 +25,16 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local GL_LINE_LOOP = GL.LINE_LOOP
 
 local floor = math.floor
 local max = math.max
 local min = math.min
-local cos = math.cos
-local sin = math.sin
-local pi = math.pi
 local random = math.random
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
+---@type table<string, any>
 local WG = WG
 
 -- ===========================================================================
@@ -64,10 +61,12 @@ local cegNames = {} -- sorted list of all discovered CEG names
 local cegNameSet = {} -- quick lookup set
 local cegsLoaded = false
 
--- Deferred from Initialize: DirList + include over the effects/ trees is real
--- load-time work every player would pay; consumers call this lazily instead.
+-- Lazy: DirList + include over the effects/ trees is real load-time work every
+-- player would pay in Initialize.
 local function loadCEGNames()
-	if cegsLoaded then return end
+	if cegsLoaded then
+		return
+	end
 	cegsLoaded = true
 	cegNames = {}
 	cegNameSet = {}
@@ -94,7 +93,7 @@ end
 -- ===========================================================================
 local weatherLibrary = {
 	-- ===================================================================
-	-- PRECIPITATION — multi-layer altitude: sky rain, mid-air haze, ground
+	-- PRECIPITATION: multi-layer altitude (sky rain, mid-air haze, ground)
 	-- ===================================================================
 	{
 		name = "Light Rain",
@@ -110,7 +109,7 @@ local weatherLibrary = {
 		-- Lift so end-of-life particles fade near ground, not underground.
 		altitude = 900,
 		persistence = 600,
-		cegLifetimeS = 4,   -- particlelife 34 + spread 90 = ~124 frames
+		cegLifetimeS = 4, -- particlelife 34 + spread 90 = ~124 frames
 	},
 	{
 		name = "Heavy Downpour",
@@ -123,8 +122,8 @@ local weatherLibrary = {
 		spawnCount = 12,
 		radius = 600,
 		cadence = 8,
-		-- Compromise: rain wants ~900 but watersplash is a ground hit.
-		-- 400 keeps rain mostly visible without floating splashes too high.
+		-- Rain wants ~900 but watersplash is a ground hit: 400 keeps rain mostly
+		-- visible without floating the splashes too high.
 		altitude = 400,
 		persistence = 600,
 		cegLifetimeS = 7,
@@ -133,7 +132,7 @@ local weatherLibrary = {
 		name = "Thunderstorm",
 		description = "Dark cloud ceiling, rain falling through, lightning arcing from sky to ground — full 3D storm",
 		icon = "storm",
-		-- HIGH: fogdirty as dark cloud ceiling (particles at y -50..+75, size 100-400)
+		-- HIGH: fogdirty as dark cloud ceiling (particles at y -50..+25, size 100-400)
 		-- MID-HIGH: lightningstorm spawns 14 bolts over 36s at y+128, length 1700
 		-- FALLING: raindrop from y+1250 downward
 		cegs = { "raindrop", "raindrop", "raindrop", "raindrop", "lightningstorm", "fogdirty" },
@@ -143,7 +142,7 @@ local weatherLibrary = {
 		-- rain wants ~900, fogdirty wants ~60; 400 is the visible compromise.
 		altitude = 400,
 		persistence = 300,
-		cegLifetimeS = 26,  -- fogdirty dominates: 520+260 frames
+		cegLifetimeS = 26, -- fogdirty dominates: 520+260 frames
 	},
 	{
 		name = "Acid Rain",
@@ -173,7 +172,7 @@ local weatherLibrary = {
 		-- weather_snowflake pos y already at 300-600; fall ~440 fits above ground.
 		altitude = 0,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 7,   -- particlelife 90 + spread 130 = ~220 frames
+		cegLifetimeS = 7, -- particlelife 90 + spread 130 = ~220 frames
 	},
 	{
 		name = "Blizzard",
@@ -189,7 +188,7 @@ local weatherLibrary = {
 		-- main flakes pos y 250-600, drift 20-80; mistycloud -20..+130.
 		altitude = 20,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 27,  -- mistycloud: 300+500 frames
+		cegLifetimeS = 27, -- mistycloud: 300+500 frames
 	},
 	{
 		name = "Hailstorm",
@@ -206,10 +205,10 @@ local weatherLibrary = {
 		-- Lift so streaks stay visible; splash also reads OK slightly raised.
 		altitude = 600,
 		persistence = 300,
-		cegLifetimeS = 2,   -- particlelife 22 + spread 30 = ~52 frames
+		cegLifetimeS = 2, -- particlelife 22 + spread 30 = ~52 frames
 	},
 	-- ===================================================================
-	-- WIND & SAND — lateral movement + overhead sand cloud layers
+	-- WIND & SAND: lateral movement and overhead sand cloud layers
 	-- ===================================================================
 	{
 		name = "Sandstorm",
@@ -224,7 +223,7 @@ local weatherLibrary = {
 		-- sandblast is horizontal ground-level; sandclouddense overhead at ~125.
 		altitude = 0,
 		persistence = 600,
-		cegLifetimeS = 15,  -- sandclouddense: 190+250 frames
+		cegLifetimeS = 15, -- sandclouddense: 190+250 frames
 	},
 	{
 		name = "Dust Devil",
@@ -239,16 +238,16 @@ local weatherLibrary = {
 		cadence = 3,
 		altitude = 0,
 		persistence = 300,
-		cegLifetimeS = 8,   -- dunedust: 120+120 frames
+		cegLifetimeS = 8, -- dunedust: 120+120 frames
 	},
 	-- ===================================================================
-	-- FOG & ATMOSPHERE — ground-hugging to mid-altitude
+	-- FOG & ATMOSPHERE: ground-hugging to mid-altitude
 	-- ===================================================================
 	{
 		name = "Ground Fog",
 		description = "Dense swirling fog banks at ground level using dirty fog texture — slow drift, massive particles",
 		icon = "fog",
-		-- fogdirty: pos y:-50..+75, size 100-400, life 520+260 frames,
+		-- fogdirty: pos y:-50..+25, size 100-400, life 520+260 frames,
 		-- airdrag 0.94, rotating slowly, fogdirty texture for gritty look
 		cegs = { "fogdirty" },
 		spawnCount = 3,
@@ -278,7 +277,7 @@ local weatherLibrary = {
 		name = "Overcast Sky",
 		description = "Enormous grey cloud layer 300m above the battlefield — blocks out the sky with slow lateral drift",
 		icon = "overcast",
-		-- thickcloud: cloudpuff 1240-3820 elmo particles!, pos y:-20..+130,
+		-- thickcloud: cloudpuff 1240-3820 elmo particles, pos y:-20..+130,
 		-- spawned with altitude offset 300 to push overhead
 		-- life 500+400 frames, extremely slow drift
 		cegs = { "thickcloud" },
@@ -319,7 +318,7 @@ local weatherLibrary = {
 		cegLifetimeS = 18,
 	},
 	-- ===================================================================
-	-- FIRE & VOLCANIC — ground fire + rising smoke/ash at altitude
+	-- FIRE & VOLCANIC: ground fire, rising smoke and ash at altitude
 	-- ===================================================================
 	{
 		name = "Volcanic Ash",
@@ -335,14 +334,14 @@ local weatherLibrary = {
 		-- ashfall pos y 200-500 falls slow; smokeblack y -50..+25 rises. Keep low.
 		altitude = 60,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 33,  -- smokeblack: 600+400 frames
+		cegLifetimeS = 33, -- smokeblack: 600+400 frames
 	},
 	{
 		name = "Rising Embers",
 		description = "Glowing orange sparks drifting upward from scorched earth with flickering ground fire below",
 		icon = "embers",
-		-- RISING: weather_embers — flare1 particles with positive Y gravity,
-		-- colormap fades orange→red→dark ember→invisible
+		-- RISING: weather_embers, flare1 particles with positive Y gravity,
+		-- colormap fades orange, red, dark ember, invisible
 		-- LOW: fire-burnground-small persistent ground flame glow
 		cegs = { "weather_embers", "weather_embers", "fire-burnground-small" },
 		spawnCount = 8,
@@ -350,13 +349,13 @@ local weatherLibrary = {
 		cadence = 5,
 		altitude = 0,
 		persistence = 600,
-		cegLifetimeS = 4,   -- embers: 45+85 frames
+		cegLifetimeS = 4, -- embers: 45+85 frames
 	},
 	{
 		name = "Lava Field",
 		description = "Molten rock splashes with rings, sparks, and smoke trails over persistent ground fire",
 		icon = "lava",
-		-- lavasplash: complex multi-layer — ring, waves, upward rush,
+		-- lavasplash: multi-layer (ring, waves, upward rush,
 		-- orange sparks, smoke trails, lava chunks
 		-- fire-burnground: persistent ground flames
 		cegs = { "lavasplash", "fire-burnground" },
@@ -382,14 +381,14 @@ local weatherLibrary = {
 		cegLifetimeS = 3,
 	},
 	-- ===================================================================
-	-- AMBIENT & MAGICAL — low-altitude living atmosphere
+	-- AMBIENT & MAGICAL: low-altitude living atmosphere
 	-- ===================================================================
 	{
 		name = "Fireflies",
 		description = "Warm yellow-orange pinpricks pulsing just above the ground — 60 sub-sprites per spawn, 25s cycle",
 		icon = "fireflies",
 		-- fireflies: CExpGenSpawner with 60 firefly sub-CEGs over 750 frames,
-		-- each at y:5-30 above ground, flare1 texture, beautiful 6-step colormap
+		-- each at y:5-30 above ground, flare1 texture, 6-step colormap
 		cegs = { "fireflies" },
 		spawnCount = 2,
 		radius = 300,
@@ -451,7 +450,7 @@ local weatherLibrary = {
 		cegLifetimeS = 25,
 	},
 	-- ===================================================================
-	-- STORM & ENERGY — lightning at altitude + ground effects
+	-- STORM & ENERGY: lightning at altitude and ground effects
 	-- ===================================================================
 	{
 		name = "Lightning Storm",
@@ -480,7 +479,7 @@ local weatherLibrary = {
 		cegLifetimeS = 1,
 	},
 	-- ===================================================================
-	-- SMOKE & INDUSTRIAL — rising columns + settling debris
+	-- SMOKE & INDUSTRIAL: rising columns and settling debris
 	-- ===================================================================
 	{
 		name = "Smoke Plumes",
@@ -535,51 +534,69 @@ local weatherLibrary = {
 -- ===========================================================================
 -- State
 -- ===========================================================================
+---@class WeatherBrushState
+---@field active boolean
+---@field mode string "scatter" | "point" | "remove"
+---@field shape string
+---@field radius number
+---@field lengthScale number
+---@field rotation number
+---@field spawnCount number
+---@field cadence number
+---@field altitude number
+---@field selectedCegs string[]
+---@field selectedCegSet table<string, boolean>
+---@field persistenceSeconds number
+---@field persistentMode boolean
+---@field cegLifetimeS number?
+---@field dragging boolean
+---@field dragAction string? "place" | "remove"
+---@field dragSpawnerCreated boolean?
+---@field persistentSpawners table[]
+---@field nextSpawnerId integer
+---@field edgeFade number cursor fade past the map edge (WorldTool.cursor)
 local wb = {
 	active = false,
-	mode = "scatter",       -- "scatter", "point", "remove"
-	shape = "circle",       -- "circle", "square", "hexagon", "octagon"
+	mode = "scatter", -- "scatter", "point", "remove"
+	shape = "circle", -- "circle", "square", "hexagon", "octagon"
 	radius = DEFAULT_RADIUS,
 	lengthScale = DEFAULT_LENGTH_SCALE,
 	rotation = 0,
-	rotRandom = 0,          -- 0-100
 	spawnCount = DEFAULT_COUNT,
-	cadence = DEFAULT_CADENCE,  -- 1-1000 logarithmic placement speed
-	frequency = 1.0,            -- spawn interval in seconds (0.1-60.0)
-	distribution = "random",
-	altitude = 0,            -- Y offset above ground for spawn point
+	cadence = DEFAULT_CADENCE, -- 1-1000 logarithmic placement speed
+	altitude = 0, -- Y offset above ground for spawn point
 
-	selectedCegs = {},       -- ordered list of selected CEG names
-	selectedCegSet = {},     -- quick lookup
+	selectedCegs = {}, -- ordered list of selected CEG names
+	selectedCegSet = {}, -- quick lookup
 
 	-- Persistence settings
-	persistenceSeconds = 0,  -- 0 = one-shot, PERSIST_PERMANENT = forever
-	persistentMode = false,  -- derived from persistenceSeconds > 0
-	cegLifetimeS = nil,      -- per-preset particle lifetime override (nil = use default)
+	persistenceSeconds = 0, -- 0 = one-shot, PERSIST_PERMANENT = forever
+	persistentMode = false, -- derived from persistenceSeconds > 0
+	cegLifetimeS = nil, -- per-preset particle lifetime override (nil = use default)
 
 	-- Drag state
 	dragging = false,
-	dragAction = nil,        -- "place" or "remove"
-	lockedWorldX = 0,
-	lockedWorldZ = 0,
-	placeTimer = 0,
+	dragAction = nil, -- "place" or "remove"
 
-	-- Active persistent spawner tracking
-	-- Each entry: { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
+	-- Active persistent spawners, each:
+	-- { cegs={}, x=, z=, radius=, count=, interval=, expireFrame=nil/number, nextFrame=0 }
 	persistentSpawners = {},
 	nextSpawnerId = 1,
+	edgeFade = 1,
 }
 
 -- ===========================================================================
 -- Utility functions
 -- ===========================================================================
+-- Follows the mouse up to one radius past the map edge, like the other brush tools.
+---@return number?, number?, number?
 local function getWorldMousePosition()
-	local mx, my = GetMouseState()
-	local _, coords = TraceScreenRay(mx, my, true)
-	if coords then
-		return coords[1], coords[2], coords[3]
+	local wx, wz, fade = WorldTool.cursor(wb.radius)
+	wb.edgeFade = fade
+	if not wx then
+		return nil, nil, nil
 	end
-	return nil, nil, nil
+	return wx, GetGroundHeight(wx, wz), wz
 end
 
 local function getCadenceInterval()
@@ -611,12 +628,16 @@ end
 -- CEG Spawning (routed through gadget via SendLuaRulesMsg)
 -- ===========================================================================
 local function sendCegBatch(entries)
-	if #entries == 0 then return end
+	if #entries == 0 then
+		return
+	end
 	SendLuaRulesMsg(CEG_HEADER .. table.concat(entries, "|"))
 end
 
 local function spawnWeatherAtArea(cegs, cx, cz, radius, count, shape, angleDeg, lengthScale, altitude)
-	if not cegs or #cegs == 0 then return end
+	if not cegs or #cegs == 0 then
+		return
+	end
 	local altStr = " " .. floor(altitude or 0)
 	local batch = {}
 	for i = 1, count do
@@ -628,7 +649,9 @@ local function spawnWeatherAtArea(cegs, cx, cz, radius, count, shape, angleDeg, 
 end
 
 local function spawnSingleCeg(cegs, x, z, altitude)
-	if not cegs or #cegs == 0 then return end
+	if not cegs or #cegs == 0 then
+		return
+	end
 	local altStr = " " .. floor(altitude or 0)
 	local batch = {}
 	for _, cegName in ipairs(cegs) do
@@ -641,14 +664,13 @@ end
 -- Persistent Spawner System
 -- ===========================================================================
 -- Fade constants: ramp spawn count over the first/last portion of lifetime
-local FADE_IN_SECONDS  = 5   -- seconds to ramp from 1 to full count
-local FADE_OUT_SECONDS = 8   -- seconds to ramp from full count down to 0
+local FADE_IN_SECONDS = 5 -- seconds to ramp from 1 to full count
+local FADE_OUT_SECONDS = 8 -- seconds to ramp from full count down to 0
 
--- Saturation: once enough cycles have run to reach steady-state particle
--- density, stop continuous spawning and switch to periodic refresh bursts
--- that fire once per particle lifetime so the area stays filled without
--- piling up additional particles on top of the existing ones.
-local ESTIMATED_PARTICLE_LIFETIME_S = 10  -- conservative CEG lifetime guess
+-- Saturation: once enough cycles have filled the area, stop continuous spawning
+-- and fire one refresh burst per particle lifetime, so the area stays filled
+-- without piling particles on top of each other.
+local ESTIMATED_PARTICLE_LIFETIME_S = 10 -- conservative CEG lifetime guess
 
 local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg, durationSeconds, cegLifetimeS)
 	local frameRate = Game.gameSpeed
@@ -684,6 +706,7 @@ local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg
 		refreshInterval = refreshInterval,
 		startFrame = startFrame,
 		expireFrame = expireFrame, -- nil = permanent
+		durationS = expireFrame and durationSeconds or nil, -- the lifetime a project saves
 		nextFrame = startFrame,
 		spawnCycles = 0,
 		saturationCycles = saturationCycles,
@@ -705,7 +728,9 @@ local function removePersistentSpawnersInArea(cx, cz, radius, shape, angleDeg, l
 end
 
 local function updatePersistentSpawners()
-	if next(wb.persistentSpawners) == nil then return end
+	if next(wb.persistentSpawners) == nil then
+		return
+	end
 	local frame = GetGameFrame()
 	local frameRate = Game.gameSpeed
 	local expired = {}
@@ -735,14 +760,22 @@ local function updatePersistentSpawners()
 				end
 			end
 
-			-- Saturation: once enough cycles have run to fill the area,
-			-- stop continuous spawning and switch to periodic refresh
-			-- bursts — one full burst per particle lifetime keeps the
-			-- density roughly constant without additive buildup.
+			-- Saturated: switch to one full burst per particle lifetime
+			-- (see ESTIMATED_PARTICLE_LIFETIME_S).
 			local isSaturated = spawner.spawnCycles >= spawner.saturationCycles
 
 			if effectiveCount > 0 then
-				spawnWeatherAtArea(spawner.cegs, spawner.x, spawner.z, spawner.radius, effectiveCount, spawner.shape, spawner.angleDeg, spawner.lengthScale, spawner.altitude)
+				spawnWeatherAtArea(
+					spawner.cegs,
+					spawner.x,
+					spawner.z,
+					spawner.radius,
+					effectiveCount,
+					spawner.shape,
+					spawner.angleDeg,
+					spawner.lengthScale,
+					spawner.altitude
+				)
 				spawner.spawnCycles = spawner.spawnCycles + 1
 			end
 
@@ -762,20 +795,46 @@ end
 -- ===========================================================================
 -- Placement Actions
 -- ===========================================================================
-local function doScatterPlace(cx, cz)
-	if #wb.selectedCegs == 0 then return end
+---@param rotation number? the area's turn in degrees, wb.rotation when nil (a symmetry copy passes its own)
+local function doScatterPlace(cx, cz, rotation)
+	rotation = rotation or wb.rotation
+	if #wb.selectedCegs == 0 then
+		return
+	end
 
-	spawnWeatherAtArea(wb.selectedCegs, cx, cz, wb.radius, wb.spawnCount, wb.shape, wb.rotation, wb.lengthScale, wb.altitude)
+	spawnWeatherAtArea(
+		wb.selectedCegs,
+		cx,
+		cz,
+		wb.radius,
+		wb.spawnCount,
+		wb.shape,
+		rotation,
+		wb.lengthScale,
+		wb.altitude
+	)
 
 	-- Only create ONE persistent spawner per drag (not per tick)
 	if wb.persistentMode and wb.persistenceSeconds ~= 0 and not wb.dragSpawnerCreated then
-		addPersistentSpawner(wb.selectedCegs, cx, cz, wb.radius, wb.spawnCount, wb.shape, wb.rotation, wb.persistenceSeconds, wb.cegLifetimeS)
+		addPersistentSpawner(
+			wb.selectedCegs,
+			cx,
+			cz,
+			wb.radius,
+			wb.spawnCount,
+			wb.shape,
+			rotation,
+			wb.persistenceSeconds,
+			wb.cegLifetimeS
+		)
 		wb.dragSpawnerCreated = true
 	end
 end
 
 local function doPointPlace(cx, cz)
-	if #wb.selectedCegs == 0 then return end
+	if #wb.selectedCegs == 0 then
+		return
+	end
 
 	spawnSingleCeg(wb.selectedCegs, cx, cz, wb.altitude)
 
@@ -786,27 +845,35 @@ local function doPointPlace(cx, cz)
 	end
 end
 
-local function doRemove(cx, cz)
-	local count = removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
-	if count > 0 then
-		Echo("[Weather Brush] Removed " .. count .. " persistent effect(s)")
-	end
+local function doRemove(cx, cz, rotation)
+	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, rotation or wb.rotation, wb.lengthScale)
 end
 
--- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.
+-- Apply the TerraformBrush grid snap and symmetric fan-out to a placement call.
 local function placeSymmetric(fn, cx, cz)
 	local tb = WG.TerraformBrush
 	local rot = wb.rotation or 0
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.angleSnap then
+			rot = st.rotationDeg or rot
+		end
 		if st.gridSnap and tb.snapWorld then
 			cx, cz = tb.snapWorld(cx, cz, rot)
 		end
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
-				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				-- "one persistent spawner per drag" holds per copy: each copy may make its own
+				local createdBefore = wb.dragSpawnerCreated
+				local created = createdBefore
+				for _, p in ipairs(positions) do
+					wb.dragSpawnerCreated = createdBefore
+					-- each copy turns with its symmetry copy (radial or mirrored), on top of the brush rotation
+					fn(p.x, p.z, wb.rotation + ((p.rot or rot) - rot))
+					created = created or wb.dragSpawnerCreated
+				end
+				wb.dragSpawnerCreated = created
 				return
 			end
 		end
@@ -821,8 +888,12 @@ local function activate(mode)
 	wb.active = true
 	wb.mode = mode or "scatter"
 	-- Deactivate terraform brush and feature placer
-	if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-	if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.deactivate()
+	end
+	if WG.FeaturePlacer then
+		WG.FeaturePlacer.deactivate()
+	end
 end
 
 local function deactivate()
@@ -840,12 +911,6 @@ end
 -- ===========================================================================
 -- Parameter Setters
 -- ===========================================================================
-local function setShape(shape)
-	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" then
-		wb.shape = shape
-	end
-end
-
 local function setRadius(val)
 	wb.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(val)))
 end
@@ -862,11 +927,6 @@ local function rotate(delta)
 	setRotation(wb.rotation + delta)
 end
 
-local function setRotRandom(val)
-	-- rotRandom is a 0-100% random-rotation amount applied per placement
-	wb.rotRandom = math.clamp(floor(val), 0, 100)
-end
-
 local function setSpawnCount(val)
 	wb.spawnCount = max(1, min(500, floor(val)))
 end
@@ -877,16 +937,6 @@ end
 
 local function setAltitude(val)
 	wb.altitude = max(0, min(2000, floor(val)))
-end
-
-local function setFrequency(val)
-	wb.frequency = max(0.1, min(60.0, val))
-end
-
-local function setDistribution(dist)
-	if dist == "random" or dist == "regular" then
-		wb.distribution = dist
-	end
 end
 
 local function setPersistenceSeconds(val)
@@ -901,13 +951,13 @@ local function setPersistenceSeconds(val)
 end
 
 -- CEG selection
--- Some CEGs are extremely bright, near full-screen flashes (the commander
--- death blast being the worst offender). Spraying them with the normal
--- multi-spawn / fast-cadence / persistent defaults flashbangs the player.
--- When such a CEG becomes the selection, clamp to a single, slow, one-shot
--- spawn so the effect stays usable without blinding.
+-- Some CEGs are near full-screen flashes (the commander death blast worst of
+-- all); the normal multi-spawn, fast-cadence, persistent defaults would
+-- flashbang the player, so selecting one clamps to a single slow one-shot.
 local function cegFlashbangOverride(name)
-	if not name then return nil end
+	if not name then
+		return nil
+	end
 	if name:upper():find("COMMANDER_EXPLOSION", 1, true) then
 		return { spawnCount = 1, cadence = 2, persistence = 0 }
 	end
@@ -916,7 +966,9 @@ end
 
 local function applyCegFlashbangOverride(name)
 	local ov = cegFlashbangOverride(name)
-	if not ov then return end
+	if not ov then
+		return
+	end
 	setSpawnCount(ov.spawnCount)
 	setCadence(ov.cadence)
 	setPersistenceSeconds(ov.persistence)
@@ -924,7 +976,9 @@ end
 
 local function selectCeg(name)
 	loadCEGNames()
-	if not cegNameSet[name] then return end
+	if not cegNameSet[name] then
+		return
+	end
 	wb.selectedCegs = { name }
 	wb.selectedCegSet = { [name] = true }
 	applyCegFlashbangOverride(name)
@@ -932,12 +986,16 @@ end
 
 local function toggleCeg(name)
 	loadCEGNames()
-	if not cegNameSet[name] then return end
+	if not cegNameSet[name] then
+		return
+	end
 	if wb.selectedCegSet[name] then
 		wb.selectedCegSet[name] = nil
 		local newList = {}
 		for _, v in ipairs(wb.selectedCegs) do
-			if v ~= name then newList[#newList + 1] = v end
+			if v ~= name then
+				newList[#newList + 1] = v
+			end
 		end
 		wb.selectedCegs = newList
 	else
@@ -954,7 +1012,9 @@ end
 
 local function applyWeatherPreset(index)
 	local preset = weatherLibrary[index]
-	if not preset then return end
+	if not preset then
+		return
+	end
 
 	wb.selectedCegs = {}
 	wb.selectedCegSet = {}
@@ -983,13 +1043,15 @@ local function clearAllPersistent()
 end
 
 -- Raw copies of all persistent spawners, for project serialization.
--- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames and
--- NOT portable across sessions; callers must convert to relative durations.
+-- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames, not
+-- portable across sessions: callers convert them to relative durations.
 local function getPersistentSpawners()
 	local out = {}
 	for _, s in pairs(wb.persistentSpawners) do
 		local cegs = {}
-		for i = 1, #s.cegs do cegs[i] = s.cegs[i] end
+		for i = 1, #s.cegs do
+			cegs[i] = s.cegs[i]
+		end
 		out[#out + 1] = {
 			cegs = cegs,
 			x = s.x,
@@ -1002,21 +1064,17 @@ local function getPersistentSpawners()
 			altitude = s.altitude,
 			interval = s.interval,
 			refreshInterval = s.refreshInterval,
-			startFrame = s.startFrame,
 			expireFrame = s.expireFrame,
-			nextFrame = s.nextFrame,
-			spawnCycles = s.spawnCycles,
-			saturationCycles = s.saturationCycles,
+			durationS = s.durationS,
 		}
 	end
 	return out
 end
 
--- Reconstruct a persistent spawner from a serialized project entry, honoring
--- the saved interval/refreshInterval instead of deriving them from the live UI
--- cadence (which addPersistentSpawner does). Synthesizes every runtime field
--- the Update loop dereferences — a missing one crashes the widget on the next
--- tick. entry.persistence: -1 = permanent, else remaining seconds.
+-- Rebuild a persistent spawner from a project entry, keeping its saved
+-- interval/refreshInterval rather than deriving them from the live cadence.
+-- Fills every runtime field the Update loop reads: a missing one crashes the
+-- widget on the next tick. entry.persistence: -1 = permanent, else seconds left.
 local function addSpawnerRaw(entry)
 	if type(entry) ~= "table" or type(entry.cegs) ~= "table" or #entry.cegs == 0 then
 		Echo("[Weather Brush] addSpawnerRaw: entry has no cegs, skipped")
@@ -1025,7 +1083,9 @@ local function addSpawnerRaw(entry)
 	local frameRate = Game.gameSpeed
 	local now = GetGameFrame()
 	local cegs = {}
-	for i = 1, #entry.cegs do cegs[i] = tostring(entry.cegs[i]) end
+	for i = 1, #entry.cegs do
+		cegs[i] = tostring(entry.cegs[i])
+	end
 	local interval = max(1, floor(tonumber(entry.interval) or frameRate))
 	local refreshInterval = max(interval, floor(tonumber(entry.refreshInterval) or interval))
 	local persistence = tonumber(entry.persistence) or PERSIST_PERMANENT
@@ -1049,6 +1109,7 @@ local function addSpawnerRaw(entry)
 		refreshInterval = refreshInterval,
 		startFrame = now,
 		expireFrame = expireFrame, -- nil = permanent
+		durationS = expireFrame and max(1, persistence) or nil,
 		nextFrame = now,
 		spawnCycles = 0,
 		saturationCycles = max(1, floor(refreshInterval / interval)),
@@ -1067,23 +1128,14 @@ local function getState()
 		radius = wb.radius,
 		lengthScale = wb.lengthScale,
 		rotation = wb.rotation,
-		rotRandom = wb.rotRandom,
 		spawnCount = wb.spawnCount,
 		cadence = wb.cadence,
-		frequency = wb.frequency,
-		distribution = wb.distribution,
 		altitude = wb.altitude,
 		selectedCegs = wb.selectedCegs,
 		persistenceSeconds = wb.persistenceSeconds,
 		persistentMode = wb.persistentMode,
-		persistentCount = 0, -- calculated below
+		persistentCount = table.count(wb.persistentSpawners),
 	}
-end
-
-local function getStateWithCount()
-	local state = getState()
-	state.persistentCount = table.count(wb.persistentSpawners)
-	return state
 end
 
 local function getCegNames()
@@ -1096,46 +1148,12 @@ local function getWeatherLibrary()
 end
 
 -- ===========================================================================
--- Drawing (Brush Outline in World)
--- ===========================================================================
-local function rotatePoint(x, z, angleDeg)
-	local rad = angleDeg * pi / 180
-	local c, s = cos(rad), sin(rad)
-	return x * c - z * s, x * s + z * c
-end
-
-local function drawRegularPolygon(cx, cy, cz, radius, sides, lengthScale)
-	lengthScale = lengthScale or 1.0
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local angle = (2 * pi * i) / sides
-			glVertex(cx + radius * cos(angle), cy, cz + radius * lengthScale * sin(angle))
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cy, cz, radius, angleDeg, lengthScale)
-	lengthScale = lengthScale or 1.0
-	local radiusZ = radius * lengthScale
-	glBeginEnd(GL_LINE_LOOP, function()
-		local corners = {
-			{ -radius, -radiusZ },
-			{  radius, -radiusZ },
-			{  radius,  radiusZ },
-			{ -radius,  radiusZ },
-		}
-		for _, corner in ipairs(corners) do
-			local rx, rz = rotatePoint(corner[1], corner[2], angleDeg)
-			glVertex(cx + rx, cy, cz + rz)
-		end
-	end)
-end
-
--- ===========================================================================
 -- Input Handling
 -- ===========================================================================
 function widget:KeyPress(key, mods, isRepeat)
-	if not wb.active then return false end
+	if not wb.active then
+		return false
+	end
 
 	-- Escape to deactivate
 	if key == 27 then -- ESCAPE
@@ -1151,15 +1169,21 @@ function widget:IsAbove(x, y)
 end
 
 function widget:MousePress(mx, my, button)
-	if not wb.active then return false end
-	if button ~= 1 and button ~= 3 then return false end
+	if not wb.active then
+		return false
+	end
+	if button ~= 1 and button ~= 3 then
+		return false
+	end
 
-	-- Defer to measure tool when active
+	-- Leave the click to the measure tool while it is active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
-		if st and st.measureActive then return false end
-		-- Defer to symmetry origin drag so terraform can grab the drag
+		if st and st.measureActive then
+			return false
+		end
+		-- Leave symmetry origin drags to the terraform brush
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1167,13 +1191,12 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	local wx, wy, wz = getWorldMousePosition()
-	if not wx then return false end
+	local wx, _, wz = getWorldMousePosition()
+	if not wx then
+		return false
+	end
 
 	wb.dragging = true
-	wb.lockedWorldX = wx
-	wb.lockedWorldZ = wz
-	wb.placeTimer = 0
 	wb.dragSpawnerCreated = false
 
 	if button == 3 then
@@ -1193,6 +1216,7 @@ function widget:MousePress(mx, my, button)
 	return true
 end
 
+---@return boolean?
 function widget:MouseRelease(mx, my, button)
 	if wb.dragging then
 		wb.dragging = false
@@ -1200,10 +1224,13 @@ function widget:MouseRelease(mx, my, button)
 	end
 end
 
+---@return boolean
 function widget:MouseWheel(up, value)
-	if not wb.active then return false end
+	if not wb.active then
+		return false
+	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, _, _ = Spring.GetModKeyState()
 
 	if ctrl and alt then
 		local delta = up and 0.1 or -0.1
@@ -1213,6 +1240,7 @@ function widget:MouseWheel(up, value)
 
 	if alt then
 		-- Alt+Scroll: rotate brush (snap to TB protractor step when angleSnap on)
+		---@type number
 		local step = 15
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
@@ -1239,17 +1267,24 @@ end
 -- ===========================================================================
 -- Update loop
 -- ===========================================================================
+---@type number
 local lastDt = 0
 
 function widget:Update(dt)
 	-- Update persistent spawners regardless of active state
 	updatePersistentSpawners()
 
-	if not wb.active then return end
-	if not wb.dragging then return end
+	if not wb.active then
+		return
+	end
+	if not wb.dragging then
+		return
+	end
 
 	lastDt = lastDt + dt
-	if lastDt < getCadenceInterval() then return end
+	if lastDt < getCadenceInterval() then
+		return
+	end
 	lastDt = 0
 
 	local lmb, _, rmb = GetMouseState()
@@ -1260,10 +1295,9 @@ function widget:Update(dt)
 	end
 
 	local wx, _, wz = getWorldMousePosition()
-	if not wx then return end
-
-	wb.lockedWorldX = wx
-	wb.lockedWorldZ = wz
+	if not wx then
+		return
+	end
 
 	if wb.dragAction == "remove" then
 		placeSymmetric(doRemove, wx, wz)
@@ -1278,34 +1312,53 @@ end
 -- Drawing (World)
 -- ===========================================================================
 function widget:DrawWorld()
-	if not wb.active then return end
+	if not wb.active then
+		return
+	end
 
 	local wx, wy, wz = getWorldMousePosition()
 	do
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			wx, wz = tb.animateUnmouse("weatherBrush", wx, wz, wb.radius, wb.lengthScale or 1.0)
-			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
+			if wx then
+				wy = (GetGroundHeight(wx, wz) or 0) + 4
+			end
 		elseif tb and tb.getUnmouseTarget and not wx then
 			wx, wz = tb.getUnmouseTarget(wb.radius, wb.lengthScale or 1.0)
-			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
+			if wx then
+				wy = (GetGroundHeight(wx, wz) or 0) + 4
+			end
 		end
 	end
-	if not wx then return end
+	if not wx then
+		return
+	end
+	-- the turn placement uses: the shared (snapped) rotation while angle snap is on
+	local rot = wb.rotation or 0
 	do
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
-		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
+			return
+		end
+		if st2 and st2.angleSnap then
+			rot = st2.rotationDeg or rot
+		end
+		-- and where it lands: the grid-snapped point, like placeSymmetric
+		if st2 and st2.gridSnap and tb2.snapWorld then
+			wx, wz = tb2.snapWorld(wx, wz, rot)
+		end
 	end
 
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
 
 	if wb.mode == "remove" or wb.dragAction == "remove" then
-		glColor(1, 0.3, 0.3, 0.8)
+		glColor(1, 0.3, 0.3, 0.8 * wb.edgeFade)
 	elseif wb.mode == "scatter" then
-		glColor(0.3, 0.8, 1, 0.8)
+		glColor(0.3, 0.8, 1, 0.8 * wb.edgeFade)
 	elseif wb.mode == "point" then
-		glColor(0.5, 0.5, 1, 0.8)
+		glColor(0.5, 0.5, 1, 0.8 * wb.edgeFade)
 	end
 
 	glLineWidth(2)
@@ -1320,25 +1373,15 @@ function widget:DrawWorld()
 			glVertex(wx, groundY, wz + s)
 		end)
 	else
-		-- Area brush outline
-		if wb.shape == "circle" then
-			drawRegularPolygon(wx, groundY, wz, wb.radius, CIRCLE_SEGMENTS, wb.lengthScale)
-		elseif wb.shape == "square" then
-			drawRotatedSquare(wx, groundY, wz, wb.radius, wb.rotation, wb.lengthScale)
-		elseif wb.shape == "hexagon" then
-			drawRotatedSquare(wx, groundY, wz, wb.radius, wb.rotation, wb.lengthScale) -- simplified
-			drawRegularPolygon(wx, groundY, wz, wb.radius, 6, wb.lengthScale)
-		elseif wb.shape == "octagon" then
-			drawRegularPolygon(wx, groundY, wz, wb.radius, 8, wb.lengthScale)
-		end
+		-- Area brush outline: the spawn area (an ellipse with length), turned and on the ground
+		WorldTool.drawShape(wb.shape, wx, wz, wb.radius, rot, wb.lengthScale, 4, nil, CIRCLE_SEGMENTS)
 	end
 
 	-- Draw persistent spawner markers
 	glColor(0.2, 0.9, 0.9, 0.4)
 	glLineWidth(1)
 	for _, spawner in pairs(wb.persistentSpawners) do
-		local sy = (GetGroundHeight(spawner.x, spawner.z) or 0) + 4
-		drawRegularPolygon(spawner.x, sy, spawner.z, min(spawner.radius, 60), 12)
+		WorldTool.drawPolygon(spawner.x, spawner.z, min(spawner.radius, 60), 0, 12, 1, 4, 1)
 	end
 
 	glColor(1, 1, 1, 1)
@@ -1351,48 +1394,19 @@ end
 function widget:Initialize()
 	-- CEG names load lazily on first UI/selection use, not here.
 
-	-- Register slash commands
-	widgetHandler:AddAction("weatherbrush", function(_, _, args)
-		local mode = args and args[1]
-		if mode == "off" then
-			deactivate()
-		else
-			activate(mode or "scatter")
-		end
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushscatter", function()
-		activate("scatter")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushpoint", function()
-		activate("point")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushremove", function()
-		activate("remove")
-	end, nil, "t")
-
-	widgetHandler:AddAction("weatherbrushoff",
-		deactivate, nil, "t")
-
-	-- Expose API for the RmlUI controller
+	-- API for the RmlUi panel
 	WG.WeatherBrush = {
 		activate = activate,
 		deactivate = deactivate,
 		setMode = setMode,
-		getState = getStateWithCount,
-		setShape = setShape,
+		getState = getState,
 		setRadius = setRadius,
 		setLengthScale = setLengthScale,
 		setRotation = setRotation,
 		rotate = rotate,
-		setRotRandom = setRotRandom,
 		setSpawnCount = setSpawnCount,
 		setCadence = setCadence,
 		setAltitude = setAltitude,
-		setFrequency = setFrequency,
-		setDistribution = setDistribution,
 		setPersistenceSeconds = setPersistenceSeconds,
 		selectCeg = selectCeg,
 		toggleCeg = toggleCeg,
@@ -1404,14 +1418,19 @@ function widget:Initialize()
 		getPersistentSpawners = getPersistentSpawners,
 		addSpawnerRaw = addSpawnerRaw,
 	}
+
+	-- The editor open on a map exported with weather: start from the map's spawners, so they show,
+	-- can be edited and are saved with a project (map_weather_loader stands down in the editor).
+	-- A project load clears the spawners first, so nothing doubles.
+	local mapFile = "mapconfig/weather.lua"
+	if next(wb.persistentSpawners) == nil and VFS.FileExists(mapFile, VFS.MAP) then
+		local ok, data = pcall(VFS.Include, mapFile, {}, VFS.MAP)
+		for _, s in ipairs(ok and type(data) == "table" and type(data.spawners) == "table" and data.spawners or {}) do
+			addSpawnerRaw(s)
+		end
+	end
 end
 
 function widget:Shutdown()
 	WG.WeatherBrush = nil
-
-	widgetHandler:RemoveAction("weatherbrush")
-	widgetHandler:RemoveAction("weatherbrushscatter")
-	widgetHandler:RemoveAction("weatherbrushpoint")
-	widgetHandler:RemoveAction("weatherbrushremove")
-	widgetHandler:RemoveAction("weatherbrushoff")
 end

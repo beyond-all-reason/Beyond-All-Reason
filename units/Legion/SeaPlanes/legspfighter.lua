@@ -47,7 +47,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-tiny-aa",
-			},		},
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -76,12 +77,14 @@ return {
 			leg_light_antiair_missile = {
 				areaofeffect = 16,
 				avoidfeature = false,
+				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				burst = 3,
 				burstrate = 0.005,
 				dance = 150,
 				cegtag = "missiletrailaa",
+				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

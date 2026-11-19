@@ -23,7 +23,6 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 100,
 		objectname = "Units/LEGLAB.s3o",
-		radardistance = 50,
 		script = "Units/LEGLAB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -47,10 +46,11 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandFactories",
+			quickstart_discountable = true,
+			subfolder = "Legion/Labs",
 		},
 		featuredefs = {
 			dead = {

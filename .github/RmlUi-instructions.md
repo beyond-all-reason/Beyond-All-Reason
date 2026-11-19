@@ -1,6 +1,22 @@
-# CLAUDE.md — RML Widget Framework
+# RmlUi Instructions — RML Widget Framework
 
-This file provides guidance to Claude Code (claude.ai/code) when building RML widgets in Beyond All Reason.
+This file provides guidance for building RML widgets in Beyond All Reason.
+
+> **Status: parts of this document describe infrastructure that is not currently in the repository.**
+> The `rml_starter` / `rml_style_guide` framework was reverted in #8240, but this document still describes it.
+> Verify a helper exists before calling it. Confirmed missing at the time of writing:
+>
+> - Helpers: `initializeRmlWidget()`, `shutdownRmlWidget()`, `combineClasses()`, `GetCurrentTheme()`,
+>   `setAndApplyTheme()` — no definitions anywhere under `luaui/`.
+> - Paths: `Include/rml_utilities/` (`utils.lua`, `common_class_groups.lua`, `theme_utils.lua`, `EzSVG.lua`),
+>   `components.rcss`, `themes/`, `svg/`, `rml_tooltip_layer/`, `rml_starter/generate-widget.sh`,
+>   `svg_shapes.lua`, `svg_decorators.lua`.
+> - `styles.rcss`, `rml-utility-classes.rcss`, and `palette-standard-global.rcss` exist only under
+>   `luaui/RmlWidgets/terraform_shared/`, not at the generic paths named below.
+>
+> Affected sections: Widget File Structure, Lua Initialization Pattern, Common Class Groups (CCG), Theme System,
+> Key Files, Reference Widgets, Decoration Patterns. The model-first doctrine, data binding, RCSS, and performance
+> guidance below remain accurate. Existing RmlUi widgets live in `luaui/RmlWidgets/`; use them as the reference.
 
 ## The model is king (read this first)
 

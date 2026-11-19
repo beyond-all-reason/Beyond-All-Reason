@@ -1,7 +1,9 @@
 -- constants.lua ---------------------------------------------------------------
 -- General game and engine constants, for use in general Lua environments.
 
-if not Engine or not Spring then return end
+if not Engine or not Spring then
+	return
+end
 
 --------------------------------------------------------------------------------
 -- Version handling ------------------------------------------------------------
@@ -23,27 +25,41 @@ end
 ---@type boolean Whether the `targetBorder` property is doubled for BeamLaser and LightningCannon.
 Engine.FeatureSupport.targetBorderBug = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
 
+---@type boolean Whether the spring camera's smooth height tracking (mode 2) follows the smooth mesh (RecoilEngine #3012).
+Engine.FeatureSupport.smoothCameraHeightTracking = isEngineMinVersion(2026, 9)
+
 --------------------------------------------------------------------------------
 -- Extended LuaConst -----------------------------------------------------------
 
+local anyID = "a"
+local noneID = "z"
+
 if CMD then
-	CMD.NIL   = "n" -- Handling for unintended nil's.
-	CMD.ANY   = "a" -- Matches on all command values.
+	CMD.NIL = "n" -- Handling for unintended nil's.
+	CMD.ANY = anyID -- Matches on all command values.
+	CMD.NONE = noneID -- Matches on no command values.
 	CMD.BUILD = "b" -- Filters for negative commands.
 
-	CMD.n     = "NIL"
-	CMD.a     = "ANY"
-	CMD.b     = "BUILD"
+	CMD.n = "NIL"
+	CMD.a = "ANY"
+	CMD.z = "NONE"
+	CMD.b = "BUILD"
 end
 
 --------------------------------------------------------------------------------
 -- Game constants --------------------------------------------------------------
 
 if Game then
+	---Registers a gadget's callin for every ID.
+	---@type string
+	Game.anyID = anyID
+	---Registers a gadget's callin not to receive any IDs.
+	---@type string
+	Game.noneID = noneID
+
 	---The first frame that units are spawned. Used for scenario units and commanders.
 	---@type integer
 	Game.spawnInitialFrame = 2 * Game.gameSpeed
-
 	---Non-scenario starting units spend a number of frames warping/teleporting in.
 	---@type integer
 	Game.spawnWarpInFrame = 3 * Game.gameSpeed

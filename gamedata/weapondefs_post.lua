@@ -9,8 +9,8 @@
 
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = VFS.Include("gamedata/alldefs_post.lua")
-local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+local alldefs = require("gamedata/alldefs_post")
+local savedefs = require("gamedata/post_save_to_customparams")
 
 local weaponDefPost = alldefs.WeaponDef_Post
 local modOptionsPost = alldefs.ModOptions_Post
@@ -50,22 +50,22 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 
 	-- convert the weapon names
 	local weapons = unitDef.weapons
-		for _, weapon in pairs(weapons) do
-			local fullName = prefix .. weapon.def:lower()
-			local weaponDef = WeaponDefs[fullName]
+	for _, weapon in pairs(weapons) do
+		local fullName = prefix .. weapon.def:lower()
+		local weaponDef = WeaponDefs[fullName]
 
-			if weaponDef then
-				weapon.name = fullName
-			end
-
-			weapon.def = nil
+		if weaponDef then
+			weapon.name = fullName
 		end
+
+		weapon.def = nil
+	end
 
 	-- convert the death explosions
 	if unitDef.explodeas then
 		local fullName = prefix .. unitDef.explodeas
 
-		if (WeaponDefs[fullName]) then
+		if WeaponDefs[fullName] then
 			unitDef.explodeas = fullName
 		end
 	end
@@ -73,7 +73,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	if unitDef.selfdestructas then
 		local fullName = prefix .. unitDef.selfdestructas
 
-		if (WeaponDefs[fullName]) then
+		if WeaponDefs[fullName] then
 			unitDef.selfdestructas = fullName
 		end
 	end

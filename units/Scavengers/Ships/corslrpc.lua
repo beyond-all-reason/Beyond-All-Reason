@@ -1,4 +1,3 @@
-local unitName = "Intimidator Ship"
 return {
 	corslrpc = {
 		maxacc = 0.005,
@@ -34,7 +33,7 @@ return {
 		turnrate = 60,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",
