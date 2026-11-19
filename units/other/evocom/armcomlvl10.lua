@@ -254,6 +254,7 @@ return {
 					projectile_destruction_method = "descend",
 					stockpilelimit = 5,
 					weapons_group = 1,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					default = 4400,
@@ -432,7 +433,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impulsefactor = 0,

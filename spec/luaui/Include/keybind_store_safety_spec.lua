@@ -1,80 +1,75 @@
 -- What the store does when handed something it cannot use: a keymap it is about to overwrite,
 -- a profiles file it cannot read, and a store claiming a name the game ships.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local Json = require("common/luaUtilities/json")
 
 local STORE = "LuaUI/Config/keybind_profiles.json"
 local KEYMAP = "uikeys.txt"
 
 local function run(files, writes, body)
-	local realOpen, realLoadFile = io.open, VFS.LoadFile
-	local realGetConfig, realSetConfig = Spring.GetConfigString, Spring.SetConfigString
-	local realGetKeyCode = Spring.GetKeyCode
+	local env = SpecEnv.new({
+		VFS = {
+			LoadFile = function(path)
+				if files[path] ~= nil then
+					return files[path] or nil
+				end
+				if writes[path] then
+					return writes[path]
+				end
 
-	VFS.LoadFile = function(path)
-		if files[path] ~= nil then
-			return files[path] or nil
-		end
-		if writes[path] then
-			return writes[path]
-		end
+				local file = io.open(path, "rb")
+				if not file then
+					return nil
+				end
 
-		local file = realOpen(path, "rb")
-		if not file then
-			return nil
-		end
+				local contents = file:read("*a")
+				file:close()
 
-		local contents = file:read("*a")
-		file:close()
+				return contents
+			end,
+		},
+		Spring = {
+			GetConfigString = function(_, default)
+				return default
+			end,
+			SetConfigString = function() end,
+			GetKeyCode = function()
+				return 1
+			end,
+		},
+		io = {
+			open = function(path, mode)
+				if mode == "w" then
+					writes[path] = ""
 
-		return contents
-	end
-	Spring.GetConfigString = function(_, default)
-		return default
-	end
-	Spring.SetConfigString = function() end
-	Spring.GetKeyCode = function()
-		return 1
-	end
-	io.open = function(path, mode)
-		if mode == "w" then
-			writes[path] = ""
+					return {
+						write = function(_, text)
+							writes[path] = writes[path] .. text
+						end,
+						close = function() end,
+					}
+				end
 
-			return {
-				write = function(_, text)
-					writes[path] = writes[path] .. text
-				end,
-				close = function() end,
-			}
-		end
+				-- So the backup naming sees the copies it has made rather than the real filesystem.
+				if files[path] or writes[path] then
+					return {
+						read = function()
+							return files[path] or writes[path]
+						end,
+						close = function() end,
+					}
+				end
 
-		-- So the backup naming sees the copies it has made rather than the real filesystem.
-		if files[path] or writes[path] then
-			return {
-				read = function()
-					return files[path] or writes[path]
-				end,
-				close = function() end,
-			}
-		end
+				return nil
+			end,
+		},
+	})
 
-		return nil
-	end
-
-	local ok, result = pcall(function()
-		return body(function()
-			local required = require("luaui/Include/keybind_profiles")
-			return required
-		end)
+	return body(function()
+		return SpecEnv.include(env, "luaui/Include/keybind_profiles.lua")
 	end)
-
-	io.open, VFS.LoadFile = realOpen, realLoadFile
-	Spring.GetConfigString, Spring.SetConfigString = realGetConfig, realSetConfig
-	Spring.GetKeyCode = realGetKeyCode
-
-	assert(ok, tostring(result))
-
-	return result
 end
 
 describe("keeping a copy of what is about to be overwritten", function()

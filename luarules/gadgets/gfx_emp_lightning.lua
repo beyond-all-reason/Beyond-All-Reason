@@ -100,7 +100,6 @@ local mathRandom = math.random
 -- State
 --------------------------------------------------------------------------------
 local empWeapons = {} -- [weaponDefID] = { aoe, damage }
-local watched = {} -- [weaponDefID] = true
 local pendingTailPulses = {} -- [{frame, x,y,z, aoe, sizeScale, intensityScale, burstCount, scatterRadiusScale}]
 
 --------------------------------------------------------------------------------
@@ -115,8 +114,7 @@ local function buildEmpWeaponTable()
 			local aoe = wd.damageAreaOfEffect or wd.areaOfEffect or 96
 			local damage = (dmgs and dmgs[0]) or 0
 			empWeapons[wdid] = { aoe = aoe, damage = damage }
-			Script.SetWatchExplosion(wdid, true)
-			watched[wdid] = true
+			gadgetHandler:RegisterExplosion(wdid)
 		end
 	end
 end
@@ -236,16 +234,12 @@ end
 -- Callins
 --------------------------------------------------------------------------------
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	local info = empWeapons[weaponDefID]
-	if not info then
-		return
-	end
-
 	local spawn = GG.SpawnEnvironmentalLightning
 	if not spawn then
 		return
 	end
 
+	local info = empWeapons[weaponDefID]
 	local aoe = info.aoe
 	local tier, tierIndex, dn = resolveTier(aoe, info.damage)
 
@@ -323,8 +317,5 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	for wdid in pairs(watched) do
-		Script.SetWatchExplosion(wdid, false)
-	end
 	pendingTailPulses = {}
 end

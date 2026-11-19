@@ -35,6 +35,7 @@ local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetFeatureDirection = Spring.SetFeatureDirection
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spSetUnitNoSelect = Spring.SetUnitNoSelect
 local spSpawnCEG = Spring.SpawnCEG
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitHealth = Spring.SetUnitHealth
@@ -98,6 +99,13 @@ for weaponDefID = 0, #WeaponDefs do
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
 		end
 		wantedList[#wantedList + 1] = weaponDefID
+	end
+end
+
+local droneUnitNames = {}
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.drone then
+		droneUnitNames[unitDef.name] = true
 	end
 end
 
@@ -240,6 +248,11 @@ local function SpawnUnit(spawnData)
 				return
 			end
 
+			if droneUnitNames[spawnUnitName] then
+				spSetUnitNoSelect(unitID, true)
+				SendToUnsynced("setUnitNoGroup", unitID, true)
+			end
+
 			if spawnDef.expire then
 				expireCount = expireCount + 1
 				expireByID[unitID] = expireCount
@@ -287,7 +300,10 @@ end
 
 function gadget:Initialize()
 	for i = 1, #wantedList do
-		Script.SetWatchExplosion(wantedList[i], true)
+		gadgetHandler:RegisterExplosion(wantedList[i])
+	end
+	if #wantedList == 0 then
+		gadgetHandler:RemoveCallIn("Explosion")
 	end
 end
 
@@ -309,26 +325,24 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		return
 	end
 
-	if spawnDefs[weaponDefID] then
-		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = proID and getProjectileTeam(proID, ownerID)
-		if not teamID then
-			return
-		end
-
-		-- Don't let awakening children embrace the glory of their birthright
-		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
-		spawnCount = spawnCount + 1
-		local spawnData = spawnList[spawnCount] or {}
-		spawnData.spawnDef = spawnDef
-		spawnData.x = x
-		spawnData.y = y
-		spawnData.z = z
-		spawnData.ownerID = ownerID
-		spawnData.teamID = teamID
-		spawnData.weaponDefID = weaponDefID
-		spawnList[spawnCount] = spawnData
+	local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
+	local teamID = proID and getProjectileTeam(proID, ownerID)
+	if not teamID then
+		return
 	end
+
+	-- Don't let awakening children embrace the glory of their birthright
+	-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
+	spawnCount = spawnCount + 1
+	local spawnData = spawnList[spawnCount] or {}
+	spawnData.spawnDef = spawnDef
+	spawnData.x = x
+	spawnData.y = y
+	spawnData.z = z
+	spawnData.ownerID = ownerID
+	spawnData.teamID = teamID
+	spawnData.weaponDefID = weaponDefID
+	spawnList[spawnCount] = spawnData
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile)

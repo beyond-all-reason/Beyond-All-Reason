@@ -46,6 +46,27 @@ imply contradictory rules mean at least one of them is wrong.
 
 ## What a spec must not do
 
+Do not write the shared globals. `Spring`, `VFS`, `Game`, `io`, `CMD`, `GameCMD`, `LOG`, `Json`, `string`, `table`,
+`math` and `os` are one set of tables shared by every spec file, so `Spring.GetFoo = ...` changes them for every file
+that runs after yours, in whatever order those happen to run. They are sealed, tables inside them included, so trying
+it is an error naming the line that did it, and so is enumerating one with `pairs`, `next` or `ipairs`. `GG` is the
+exception: every file gets a fresh one it can write. Build your own surface instead and hand it to the code under
+test:
+
+```lua
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local env = SpecEnv.new({ Spring = { GetModOptions = function() return modOptions end } })
+local subject = SpecEnv.include(env, "luaui/Include/mission_options.lua")
+```
+
+Anything the module or its own includes read or write lands in that env, so there is nothing to restore and no
+`after_each` to forget. `env.Spring.GetFoo = ...` inside a `before_each` is fine: that table is yours.
+
+Do not depend on the order spec files run in. Files run alphabetically, but that order is nobody's contract and a
+renamed file moves it. CI runs the suite a second time in reverse order, which `SPEC_ORDER=reverse` does locally. Run
+your spec on its own to check it stands up without whatever ran before it.
+
 Do not re-implement production logic inside the test harness. A builder that mirrors a production module is a second
 copy that drifts, and every spec that trusts it inherits the drift. Call the production module instead. A comment of
 the form `Mirrors <production file>` in anything under `spec/builders/` is a defect, not documentation.

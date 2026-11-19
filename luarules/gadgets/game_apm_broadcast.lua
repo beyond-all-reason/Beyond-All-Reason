@@ -51,10 +51,12 @@ if gadgetHandler:IsSyncedCode() then
 	-- be aware that these aren't exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then
-			if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then -- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+		if teamAddedActionFrame[teamID] ~= gameFrame and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then
+			-- entries up to the current frame count as expired, they are pruned only now and then
+			local ignoreUntil = ignoreUnits[unitID]
+			if (not ignoreUntil or ignoreUntil <= gameFrame) and not spGetUnitIsBeingBuilt(unitID) then -- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
 				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
-				teamAddedActionFrame[teamID] = true
+				teamAddedActionFrame[teamID] = gameFrame
 			end
 		end
 		ignoreUnits[unitID] = gameFrame + 7 -- dont count severe cmd spam
@@ -66,29 +68,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		gameFrame = gf
-		teamAddedActionFrame = {}
 		if gf % 300 == 1 then -- every 10 secs
 			local frameToMinute = 1 / ((gf - startFrame) / 1800)
 			for teamID, totalActions in pairs(totalTeamActions) do
 				local apm = mathFloor(totalActions * frameToMinute + 0.5)
 				SendToUnsynced("apmBroadcast", teamID, apm)
 			end
-		end
-		-- Batch cleanup: only iterate when necessary
-		if next(ignoreUnits) then
-			local expired
-			local expiredCount = 0
 			for unitID, frame in pairs(ignoreUnits) do
 				if frame <= gf then
-					if not expired then
-						expired = {}
-					end
-					expiredCount = expiredCount + 1
-					expired[expiredCount] = unitID
+					ignoreUnits[unitID] = nil
 				end
-			end
-			for i = 1, expiredCount do
-				ignoreUnits[expired[i]] = nil
 			end
 		end
 	end

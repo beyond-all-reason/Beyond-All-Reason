@@ -21,6 +21,11 @@
 -- Supported shapes: "circle", "square", "hexagon", "octagon", "triangle".
 -- Unknown shapes return (false, 1).
 
+---A brush footprint. `isInside` recognizes exactly these; anything else is
+---treated as outside. Tools that offer extra footprints of their own (the
+---terraform brush's `"ring"` and `"fill"`) do not route them through here.
+---@alias BrushShape "circle"|"square"|"hexagon"|"octagon"|"triangle"
+
 local cos = math.cos
 local sin = math.sin
 local abs = math.abs
@@ -33,6 +38,14 @@ local function rotateInv(dx, dz, angleDeg)
 		return dx, dz
 	end
 	local rad = -angleDeg * pi / 180
+	local c, s = cos(rad), sin(rad)
+	return dx * c - dz * s, dx * s + dz * c
+end
+
+-- The forward turn, the inverse of rotateInv: a positive angle turns +X toward
+-- +Z (clockwise on screen), the way every outline is drawn.
+local function rotate(dx, dz, angleDeg)
+	local rad = angleDeg * pi / 180
 	local c, s = cos(rad), sin(rad)
 	return dx * c - dz * s, dx * s + dz * c
 end
@@ -92,6 +105,7 @@ end
 
 return {
 	isInside = isInside,
+	rotate = rotate,
 	rotateInv = rotateInv,
 	computeFalloff = computeFalloff,
 }

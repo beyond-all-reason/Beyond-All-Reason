@@ -164,7 +164,7 @@ in Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS; // needs to be normalized due to varying interpolation
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1, or 2-3 the self-destruct pulse 0-1
 	flat vec4 teamCol; //.a contains selectedness
 	// main light vector(s)
 //	vec3 worldCameraDir;
@@ -183,6 +183,21 @@ in Data {
 //	flat int unitID;
 //	flat vec4 userDefined2;
 };
+
+// Jammed units highlight (gui_jammed_units.lua): red like the jammer preview. The shade adapts to the pixel underneath so
+// it stays visible on red team colors: bright red over dark pixels, deep red over bright ones (JAMMED_SHADE_* range)
+#define JAMMED_COLOR vec3(1.0, 0.25, 0.18)
+#define JAMMED_DARK_COLOR vec3(0.45, 0.02, 0.0)
+#define JAMMED_FILL 0.08 // tint strength over the whole unit
+#define JAMMED_RIM 0.22 // extra strength at grazing angles
+#define JAMMED_EDGE 0.3 // extra strength right at the silhouette
+#define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
+#define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
+
+// Self-destruct pulse (gfx_selfd_unit_pulse.lua): at the pulse's peak
+#define SELFD_COLOR vec3(1.0, 0.2, 0.12)
+#define SELFD_FILL 0.3 // tint strength over the whole unit
+#define SELFD_RIM 0.45 // extra strength at grazing angles
 
 
 /***********************************************************************/
@@ -1308,6 +1323,27 @@ void main(void){
 		}
 	#endif 
 
+	// JAMMED UNITS HIGHLIGHT
+	// uvCoords.w is 0-1 (faded in the vertex shader from unit buffer uniforms 1.w, #7, written by gui_jammed_units.lua)
+	// while the unit stands in allied jammer coverage: a faint red tint over the whole unit and a red rim at grazing angles.
+	float selfdPulse = (uvCoords.w > 1.5) ? uvCoords.w - 2.0 : 0.0; // (it takes the jammed highlight's place)
+	float jammedness = (uvCoords.w > 1.5) ? 0.0 : uvCoords.w;
+	if (selfdPulse > 0.001) {
+		float selfdRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
+		outColor.rgb = mix(outColor.rgb, SELFD_COLOR, selfdPulse * min(SELFD_FILL + SELFD_RIM * selfdRim * selfdRim, 1.0));
+	}
+	if (jammedness > 0.001) {
+		float jammedRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
+		jammedRim *= jammedRim;
+		// bright red over dark pixels, deep red over bright ones: a bright red alone vanishes on red team colors
+		float brightness = max(outColor.r, max(outColor.g, outColor.b));
+		vec3 jammedColor = mix(JAMMED_COLOR, JAMMED_DARK_COLOR, smoothstep(JAMMED_SHADE_DARK, JAMMED_SHADE_BRIGHT, brightness));
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * min(JAMMED_FILL + JAMMED_RIM * jammedRim, 1.0));
+		// thin, stronger edge along the silhouette
+		float jammedEdge = jammedRim * jammedRim * jammedRim;
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * JAMMED_EDGE * jammedEdge);
+	}
+
 	// CLOAK EFFECTS
 	#if ENABLE_OPTION_HEALTH_TEXTURING 
 		float cloakTime = worldVertexPos.w;
@@ -1379,7 +1415,13 @@ void main(void){
 			// This seems to be a silly way of forcing no bloom on trees, as only trees HASALPHASHADOWS
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 		#endif
-		fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
+			// unit pixels for gfx_outline_shader_gl4: green = 1, unitID + 1 in red (low byte) and blue (high byte)
+			uint outlineID = uint(unitID) + 1u;
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(outlineID & 255u) / 255.0, 1.0, float(outlineID >> 8u) / 255.0, alphaBin);
+		#else
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#endif
 	#endif
 }
 #else //shadow pass

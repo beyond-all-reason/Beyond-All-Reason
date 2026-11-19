@@ -20,66 +20,81 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local MAX_SLOW_FACTOR = 0.9
+local UPDATE_FRAMES = math.round(0.5 * Game.gameSpeed, 0)
+
+local math_floor = math.floor
+local math_max = math.max
+local math_min = math.min
+
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 
 local LOS_ACCESS = { inlos = true }
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
+local SLOW_BRAKE_BOOST = 1000 -- so a unit decelerates into its new max speed instead of coasting
+local SLOW_STEP = 1 / 64 -- quantize so an undecayed slow rewrites identical factors
+local SLOW_STEP_INV = 64
+local SLOW_RELOAD_RATE_MIN = 0.01
 
-local attritionWeaponDefs, MAX_SLOW_FACTOR, DEGRADE_TIMER, DEGRADE_FACTOR, UPDATE_PERIOD =
-	include("LuaRules/Configs/timeslow_defs.lua")
+local SOURCE = "timeslow"
+Spring.SetGameRulesParam(SOURCE, 1)
+
 local slowedUnits = {}
 
-Spring.SetGameRulesParam("slowState", 1)
-
-local function updateSlow(unitID, state)
-	--Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)
-
-	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
-	local health, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
-	if health then
-		local maxSlow = health * (MAX_SLOW_FACTOR + (state.extraSlowBound or 0))
-		if paralyzeDamage > maxSlow then
-			paralyzeDamage = maxSlow
-		end
-
-		--local percentSlow = state.slowDamage/health
-		--maybe hook to modrules.paralyze.paralyzeOnMaxHealth
-		-- 0.5  == 50% ?
-		--Spring.Echo("hornet pd=" .. (paralyzeDamage or 0))
-
-		local percentSlow = paralyzeDamage / maxHealth
-		if paralyzeDamage < 5 then
-			percentSlow = 0
-		end
-
-		--Spring.Echo("hornet updateSlow unit id " .. unitID .. " slowperc " .. percentSlow)
-		spSetUnitRulesParam(unitID, "slowState", percentSlow, LOS_ACCESS)
-		GG.UpdateUnitAttributes(unitID)
-
-		--if paralyzeDamage < 5 then
-		--Spring.Echo("hornetdebug removing unit" .. unitID)
-
-		--slowedUnits[unitID] = nil
-		----reset speeds to max in case something lingered?
-		--spSetUnitRulesParam(unitID,"slowState",0, LOS_ACCESS)
-		--GG.UpdateUnitAttributes(unitID)
-		--end
-	end
+local function removeUnit(unitID)
+	slowedUnits[unitID] = nil
 end
 
---nani the what now
---function gadget:UnitPreDamaged_GetWantedWeaponDef()
---	local wantedWeaponList = {}
---	for wdid = 1, #WeaponDefs do
---		if attritionWeaponDefs[wdid] then
---			wantedWeaponList[#wantedWeaponList + 1] = wdid
---		end
---	end
---	return wantedWeaponList
---end
+local function applySlow(unitID, percent)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	local setUnitWeaponModifier = GG.UnitAttributes.SetUnitWeaponModifier
+
+	if percent <= 0.0 then
+		setUnitModifier(unitID, "speed", nil, SOURCE)
+		setUnitModifier(unitID, "turnRate", nil, SOURCE)
+		setUnitModifier(unitID, "maxAcc", nil, SOURCE)
+		setUnitModifier(unitID, "maxDec", nil, SOURCE)
+		setUnitModifier(unitID, "buildSpeed", nil, SOURCE)
+		setUnitWeaponModifier(unitID, nil, "reloadTime", nil, SOURCE)
+		return
+	end
+
+	local moveFactor = 1.0 - math_min(percent, MAX_SLOW_FACTOR)
+	setUnitModifier(unitID, "speed", moveFactor, SOURCE)
+	setUnitModifier(unitID, "turnRate", moveFactor, SOURCE)
+	setUnitModifier(unitID, "maxAcc", moveFactor, SOURCE)
+	setUnitModifier(unitID, "maxDec", SLOW_BRAKE_BOOST, SOURCE)
+	setUnitModifier(unitID, "buildSpeed", moveFactor, SOURCE)
+
+	local reloadTime = 1 / math_max(1.0 - percent * 2.0, SLOW_RELOAD_RATE_MIN)
+	setUnitWeaponModifier(unitID, nil, "reloadTime", reloadTime, SOURCE)
+end
+
+local function updateSlow(unitID)
+	local health, maxHealth, paralyzeDamage = spGetUnitHealth(unitID)
+	if not health then
+		return
+	end
+
+	if paralyzeDamage < 5 then
+		applySlow(unitID, 0.0)
+		spSetUnitRulesParam(unitID, SOURCE, nil, LOS_ACCESS)
+		return true
+	end
+
+	local maxSlow = health * MAX_SLOW_FACTOR
+	if paralyzeDamage > maxSlow then
+		paralyzeDamage = maxSlow
+	end
+
+	local percentSlow = paralyzeDamage / maxHealth
+	percentSlow = math_floor(percentSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+
+	spSetUnitRulesParam(unitID, SOURCE, percentSlow, LOS_ACCESS)
+	applySlow(unitID, percentSlow)
+end
 
 function gadget:UnitPreDamaged(
 	unitID,
@@ -92,52 +107,17 @@ function gadget:UnitPreDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	--if (not spValidUnitID(unitID)) or (not weaponID) or (not attritionWeaponDefs[weaponID]) or ((not attackerID) and attritionWeaponDefs[weaponID].noDeathBlast)
-
-	if not weaponID or not paralyzer or not spValidUnitID(unitID) then
-		return damage
-	else
-		if not slowedUnits[unitID] then
-			slowedUnits[unitID] = {
-				slowDamage = damage,
-				degradeTimer = DEGRADE_TIMER,
-			}
-		else
-			slowedUnits[unitID].slowDamage = slowedUnits[unitID].slowDamage + damage
-			slowedUnits[unitID].degradeTimer = DEGRADE_TIMER
-		end
-		updateSlow(unitID, slowedUnits[unitID]) -- without this unit does not fire slower, only moves slower
+	if weaponID and paralyzer and spValidUnitID(unitID) then
+		slowedUnits[unitID] = true
+		updateSlow(unitID)
 	end
 end
 
-local function removeUnit(unitID)
-	slowedUnits[unitID] = nil
-end
-
 function gadget:GameFrame(f)
-	if (f - 1) % UPDATE_PERIOD == 0 then
-		for unitID, state in pairs(slowedUnits) do
-			--if state.extraSlowBound then
-			--state.extraSlowBound = state.extraSlowBound - DEGRADE_FACTOR
-			--if state.extraSlowBound <= 0 then
-			--state.extraSlowBound = nil
-			--end
-			--end
-			if state.degradeTimer <= 0 then
-				--local health = spGetUnitHealth(unitID) or 0
-				--state.slowDamage = state.slowDamage - health*DEGRADE_FACTOR
-			else
-				state.degradeTimer = state.degradeTimer - 1
-			end
-
-			local _, _, paralyzeDamage = spGetUnitHealth(unitID)
-			if paralyzeDamage < 5 then
-				--Spring.Echo('hornet debug removing '.. unitID ..' via gameframe');
-				--state.slowDamage = 0
-				updateSlow(unitID, state)
+	if (f - 1) % UPDATE_FRAMES == 0 then
+		for unitID in pairs(slowedUnits) do
+			if updateSlow(unitID) then
 				removeUnit(unitID)
-			else
-				updateSlow(unitID, state)
 			end
 		end
 	end
@@ -145,4 +125,15 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	removeUnit(unitID)
+end
+
+function gadget:Initialize()
+	slowedUnits = {}
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local _, _, paralyzeDamage = spGetUnitHealth(unitID)
+		if paralyzeDamage >= 5 then
+			slowedUnits[unitID] = true
+			updateSlow(unitID)
+		end
+	end
 end

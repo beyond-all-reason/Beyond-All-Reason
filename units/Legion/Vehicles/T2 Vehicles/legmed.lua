@@ -21,6 +21,7 @@ return {
 		speed = 39.0,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGMED.s3o",
 		script = "Units/LEGMED.cob",
@@ -144,6 +145,7 @@ return {
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 			laser = {

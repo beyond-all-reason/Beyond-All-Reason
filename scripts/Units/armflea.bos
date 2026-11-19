@@ -143,7 +143,6 @@ Create()
 {
 	hide flare;
 	hide aimy1;
-	hide flare;
 	isMoving = FALSE;
 	isAiming = FALSE;
 	restore_delay = 3000;

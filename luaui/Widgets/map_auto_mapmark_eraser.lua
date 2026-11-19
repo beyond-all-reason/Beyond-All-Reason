@@ -16,6 +16,7 @@ local eraseTime = 60
 local frame = -1
 local pointsToErase = {}
 local recentlyErased = {}
+local erasing = false
 
 function widget:Initialize()
 	WG.autoeraser = {}
@@ -27,6 +28,9 @@ function widget:Initialize()
 	end
 	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and won't activate on auto erasing
 		return recentlyErased
+	end
+	WG.autoeraser.isErasing = function() -- true while our own erase is dispatched to MapDrawCmd
+		return erasing
 	end
 end
 
@@ -48,7 +52,9 @@ function widget:GameFrame(f)
 	if pointsToErase[f] then
 		for i = 1, #pointsToErase[f] do
 			local point = pointsToErase[f][i]
+			erasing = true
 			Spring.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4], true)
+			erasing = false
 			recentlyErased[#recentlyErased + 1] = { f, point[1], point[2], point[3] }
 		end
 		pointsToErase[f] = nil

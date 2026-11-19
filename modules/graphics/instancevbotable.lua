@@ -296,6 +296,49 @@ local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a ve
 	return newVAO
 end
 
+local placeholderIndexVBO, placeholderInstanceVBO -- shared by every VAO of this Lua state that fillVAOSlots completes
+-- the VAOs fillVAOSlots completed, so a resize completes their replacements too
+local filledVAOs = setmetatable({}, { __mode = "k" }) ---@type table<VAO, boolean>
+
+--- Attaches placeholder buffers to the index and instance slots a VAO leaves empty: engines without
+--- RecoilEngine #3446 rebuild a VAO on every draw unless all three slots are filled. DrawArrays never
+--- reads the index buffer. The instance buffer holds one element (attribute 15), so only leave
+--- `hasInstance` unset on VAOs drawn with at most one instance. Call it after attaching the VAO's own
+--- buffers, a slot cannot be attached twice.
+---@param vao VAO?
+---@param hasIndex boolean? the VAO has its own index buffer
+---@param hasInstance boolean? the VAO has its own instance buffer
+---@return VAO? vao
+local function fillVAOSlots(vao, hasIndex, hasInstance)
+	if not vao then
+		return vao
+	end
+	if not hasIndex then
+		if not placeholderIndexVBO then
+			placeholderIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+			if not placeholderIndexVBO then
+				return vao
+			end
+			placeholderIndexVBO:Define(1)
+			placeholderIndexVBO:Upload({ 0 })
+		end
+		vao:AttachIndexBuffer(placeholderIndexVBO)
+	end
+	if not hasInstance then
+		if not placeholderInstanceVBO then
+			placeholderInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+			if not placeholderInstanceVBO then
+				return vao
+			end
+			placeholderInstanceVBO:Define(1, { { id = 15, name = "placeholder", size = 1 } })
+			placeholderInstanceVBO:Upload({ 0 })
+		end
+		vao:AttachInstanceBuffer(placeholderInstanceVBO)
+	end
+	filledVAOs[vao] = true
+	return vao
+end
+
 --------------- DEBUG HELPERS --------------------------
 local function comparetables(t1, t2, name)
 	for k, v in pairs(t1) do
@@ -482,7 +525,7 @@ local function resizeInstanceVBOTable(iT)
 				isValidID = Spring.ValidUnitID(objectID)
 			end
 			if isValidID then
-				local offset = new_usedElements * iTStep
+				local offset = (i - 1) * iTStep -- the element's old place, not its new one
 				for j = 1, iTStep do
 					new_instanceData_count = new_instanceData_count + 1
 					new_instanceData[new_instanceData_count] = iT.instanceData[j + offset]
@@ -520,8 +563,12 @@ local function resizeInstanceVBOTable(iT)
 	end
 
 	if iT.VAO then -- reattach new if updated :D
+		local filled = filledVAOs[iT.VAO]
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO, iT.instanceVBO, iT.indexVBO)
+		if filled then
+			fillVAOSlots(iT.VAO, iT.indexVBO ~= nil, iT.vertexVBO ~= nil)
+		end
 	end
 
 	if iT.indextoUnitID then
@@ -582,6 +629,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	if (iTusedElements + 1) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
 		resizeInstanceVBOTable(iT)
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
+		endOffset = iTusedElements * iTStep
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID] -- this too, can change, TODO, also do this in VBOIDtable!
 	end
 
@@ -735,7 +783,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 				) -- TODO TODO
 			end
 
-			if iT.debugZombies then
+			-- Only zombies left from earlier pops need the frame; a new one checks it itself below
+			if iT.debugZombies and iT.numZombies and iT.numZombies > 0 then
 				local gf = Spring.GetGameFrame()
 				--Spring.Echo("Popping", instanceID)
 				if iT.lastpopgameframe == nil then
@@ -849,9 +898,10 @@ local function uploadAllElements(iT)
 	end
 end
 
+--- Uploads elements startElementIndex + 1 to endElementIndex.
 ---@param iT InstanceVBOTable
----@param startElementIndex integer
----@param endElementIndex integer
+---@param startElementIndex integer 0 based index of the first element, the number of elements before it
+---@param endElementIndex integer 1 based index of the last element
 local function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(
 		iT.instanceData, -- The lua mirrored VBO data
@@ -864,13 +914,13 @@ local function uploadElementRange(iT, startElementIndex, endElementIndex)
 		--we need to reslice the table
 		local unitIDRange = {}
 		local indextoUnitID = iT.indextoUnitID
-		for i = startElementIndex, endElementIndex do
-			unitIDRange[#unitIDRange + 1] = indextoUnitID[i]
+		for i = startElementIndex + 1, endElementIndex do
+			unitIDRange[i - startElementIndex] = indextoUnitID[i]
 		end
 		if iT.featureIDs then
-			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		else
-			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		end
 	end
 end
@@ -1780,6 +1830,7 @@ local InstanceVBOTableModule = {
 	makeInstanceVBOTable = makeInstanceVBOTable,
 	clearInstanceTable = clearInstanceTable,
 	makeVAOandAttach = makeVAOandAttach,
+	fillVAOSlots = fillVAOSlots,
 	locateInvalidUnits = locateInvalidUnits,
 	pushElementInstance = pushElementInstance,
 	popElementInstance = popElementInstance,

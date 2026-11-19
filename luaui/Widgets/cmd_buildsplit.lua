@@ -32,6 +32,11 @@ local buildID = 0
 local buildLocs = {}
 local buildCount = 0
 
+-- The consumed commands never reach the LuaRules command limiter, so the batch
+-- is bounded here (same figure as the limiter).
+local MAX_BUILDINGS = 700
+local limitReported = false
+
 local gameStarted = false
 local isSpec = false
 
@@ -109,9 +114,19 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 		return false
 	end
 
+	if buildCount >= MAX_BUILDINGS then
+		if not limitReported then
+			limitReported = true
+			Spring.Echo(string.format("[Build Split] limiting to %d buildings", MAX_BUILDINGS))
+		end
+		return true
+	end
+
 	--if #cmdParams < 4 then return false end -- Probably not possible, commented for now
 	if spTestBuildOrder(-cmdID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]) == 0 then
-		return false
+		-- A blocked spot is skipped. Passing it on would hand it to every
+		-- selected builder, and to CommandInsert when its modifier is held too.
+		return true
 	end
 
 	buildID = -cmdID
@@ -134,8 +149,7 @@ function widget:Update()
 
 	local builderIDs = {}
 	for uDefID, uIDs in pairs(selUnits) do
-		local uDef = UnitDefs[uDefID]
-		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
+		if unitBuildOptions[uDefID] then
 			for _, uID in ipairs(uIDs) do
 				table.insert(builderIDs, uID)
 			end
@@ -155,6 +169,7 @@ function widget:Update()
 	splitBuildings(builderIDs, buildings, { "shift" })
 
 	buildCount = 0
+	limitReported = false
 end
 
 function widget:Shutdown()

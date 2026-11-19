@@ -28,10 +28,8 @@ end
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -41,9 +39,6 @@ local math_min = math.min
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
-local CMD_OPT_CTRL = CMD.OPT_CTRL
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 -------------------------------------------------------------------------------
 --- STATIC VALUES
@@ -153,8 +148,11 @@ local costOverrides = {}
 --- KEYBIND VALUES
 -------------------------------------------------------------------------------
 
-include("keysym.h.lua")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
+local KEY = {
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LSHIFT = Spring.GetKeyCode("shift"),
+}
 
 local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -368,26 +366,49 @@ local isPregame
 local grid = require("luaui/configs/gridmenu_config")
 local units = require("luaui/configs/unit_buildmenu_config")
 
-local unitBuildOptions = {}
+local defBuildOptions = {} -- unitDefID -> the def's build options, shared by every team
+local unitBuildOptions = {} -- unitDefID -> build options for the local team; the def list until a change copies it
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
 
-local function refreshUnitDefs()
-	unitBuildOptions = {}
-	unitMetal_extractor = {}
-	unitTranslatedHumanName = {}
-	unitTranslatedTooltip = {}
-	iconTypes = {}
-	local orgIconTypes = require("gamedata/icontypes")
+local function patchBuildOption(builderDefID, builtDefID, added)
+	local buildOptions = unitBuildOptions[builderDefID]
+	if not buildOptions then
+		return
+	end
+	if buildOptions == defBuildOptions[builderDefID] then
+		buildOptions = { unpack(buildOptions) }
+		unitBuildOptions[builderDefID] = buildOptions
+	end
+	dynamicBuildOptions.patch(buildOptions, builtDefID, added)
+end
 
-	-- unit names and icons
+-- Resets the builders an earlier team's changes patched, then applies the local team's
+local function refreshBuildOptions()
+	for udid, buildOptions in pairs(defBuildOptions) do
+		unitBuildOptions[udid] = buildOptions
+	end
+	for builderDefID, options in pairs(dynamicBuildOptions.getChanges(Spring.GetLocalTeamID())) do
+		for builtDefID, added in pairs(options) do
+			patchBuildOption(builderDefID, builtDefID, added)
+		end
+	end
+end
+
+local function refreshUnitNames()
 	for udid, ud in pairs(UnitDefs) do
-		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
+	end
+end
 
+-- Once: icontypes.lua includes every unit file, and each UnitDefs buildOptions read builds a new table
+local function loadUnitDefs()
+	local orgIconTypes = require("gamedata/icontypes")
+	for udid, ud in pairs(UnitDefs) do
+		defBuildOptions[udid] = ud.buildOptions
 		if ud.customParams.metal_extractor then
 			unitMetal_extractor[udid] = ud.customParams.metal_extractor
 		end
@@ -395,7 +416,8 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
+	refreshUnitNames()
+	refreshBuildOptions()
 end
 
 -------------------------------------------------------------------------------
@@ -591,8 +613,8 @@ end
 local function cmdOptsToFactoryQueueChange(cmdOpts)
 	local optTable = {}
 	if type(cmdOpts) == "number" then
-		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
-		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
+		optTable.ctrl = getCodedOptState(cmdOpts, CMD.OPT_CTRL)
+		optTable.shift = getCodedOptState(cmdOpts, CMD.OPT_SHIFT)
 		optTable.right = getCodedOptState(cmdOpts, CMD.OPT_RIGHT)
 	else
 		optTable = cmdOpts
@@ -671,7 +693,7 @@ local function updateBuildProgress()
 	end
 
 	local unitBuildID = Spring.GetUnitIsBuilding(activeBuilderID)
-	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
+	local unitBuildDefID = unitBuildID and Spring.GetUnitDefID(unitBuildID)
 
 	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
 
@@ -1210,7 +1232,7 @@ local function queueUnit(uDefID, opts, quantity)
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
 				for _ = 1, quantity do
-					spGiveOrderToUnit(uid, -uDefID, 0, opts)
+					Spring.GiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
 		end
@@ -1264,6 +1286,21 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	return quantity
 end
 
+--- unitDefID currently shown in the grid cell at (row, col), or nil.
+--- Rows and columns are the 3x4 grid the keybinds address, even when docked to the bottom.
+---@param row integer|string 1..3
+---@param col integer|string 1..4
+---@return integer?
+local function getUnitDefIDByRowCol(row, col)
+	row = tonumber(row)
+	col = tonumber(col)
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
+		return nil
+	end
+	local cell = cellRects[(row - 1) * 4 + col]
+	return cell and cell.opts and cell.opts.uDefID or nil
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1272,11 +1309,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
 
-	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
-		return
-	end
-
-	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
+	local uDefID = getUnitDefIDByRowCol(row, col)
 	if not uDefID or units.isRestricted(uDefID, activeBuilder) then
 		return
 	end
@@ -1410,7 +1443,10 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
-	refreshUnitDefs()
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
+	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
+	loadUnitDefs()
 	units.loadBlocked()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1470,6 +1506,12 @@ function widget:Initialize()
 
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
+	end
+	WG.gridmenu.getUnitDefIDByRowCol = getUnitDefIDByRowCol
+	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
+		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
+			updateQueueNr(unitDefID, change)
+		end
 	end
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
@@ -1850,7 +1892,7 @@ end
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
 	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
-	refreshUnitDefs()
+	refreshUnitNames()
 	redraw = true
 end
 
@@ -2794,7 +2836,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if key == KEYSYMS.ESCAPE then
+	if key == KEY.ESCAPE then
 		if currentCategory then
 			clearCategory()
 			return true
@@ -2807,7 +2849,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:KeyRelease(key)
-	if key ~= KEYSYMS.LSHIFT then
+	if key ~= KEY.LSHIFT then
 		return
 	end
 
@@ -3050,7 +3092,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3068,12 +3110,13 @@ function widget:DrawScreen()
 				end, true)
 			end
 			if not buildmenuTex then
+				local ss = WG.FlowUI.supersample or 2
 				buildmenuTex = gl.CreateTexture(
-					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
-					math_floor(buildersRectYend - backgroundRect.y) * 2,
-					{ --*(vsy<1400 and 2 or 2)
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * ss,
+					math_floor(buildersRectYend - backgroundRect.y) * ss,
+					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3282,7 +3325,13 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = Spring.GetLocalTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshBuildOptions()
+		doUpdate = true
+	end
 end
 
 function widget:GetConfigData()
@@ -3341,11 +3390,11 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
-	local buildOptions = unitBuildOptions[builderUnitDefID]
-	if buildOptions then
-		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
 	end
+	patchBuildOption(builderUnitDefID, builtUnitDefID, added)
 	if builderUnitDefID == activeBuilder then
 		doUpdate = true
 	end

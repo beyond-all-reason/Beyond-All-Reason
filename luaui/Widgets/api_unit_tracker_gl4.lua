@@ -142,17 +142,13 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 	end
 end
 
+-- The listeners are called through the handler directly: Script.LuaUI would go through the engine
+-- (a new closure, a callin lookup and a protected call) for every event.
 local function alliedUnitsChanged()
 	if debuglevel >= 2 then
 		BAR.Debug.TraceEcho()
 	end
-	if Script.LuaUI("AlliedUnitsChanged") then
-		Script.LuaUI.AlliedUnitsChanged(visibleUnits, numVisibleUnits)
-	else
-		if debuglevel > 0 then
-			spEcho("Script.LuaUI.AlliedUnitsChanged() unavailable")
-		end
-	end
+	widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 end
 
 local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
@@ -171,14 +167,8 @@ local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if silent then
 		return
 	end
-	if Script.LuaUI("AlliedUnitAdded") then
-		Script.LuaUI.AlliedUnitAdded(unitID, unitDefID, unitTeam)
-	else
-		if debuglevel >= 1 then
-			spEcho("Script.LuaUI.AlliedUnitAdded() unavailable")
-		end
-	end
 	-- call all listeners
+	widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 local function alliedUnitsRemove(unitID, reason)
@@ -192,9 +182,7 @@ local function alliedUnitsRemove(unitID, reason)
 		alliedUnitsTeam[unitID] = nil
 		numAlliedUnits = numAlliedUnits - 1
 		-- call all listeners
-		if Script.LuaUI("AlliedUnitRemoved") then
-			Script.LuaUI.AlliedUnitRemoved(unitID, unitDefID, unitTeam)
-		end
+		widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	else
 		if debuglevel >= 2 then
 			spEcho("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason)
@@ -206,13 +194,7 @@ local function visibleUnitsChanged()
 	if debuglevel >= 3 then
 		BAR.Debug.TraceEcho()
 	end
-	if Script.LuaUI("VisibleUnitsChanged") then
-		Script.LuaUI.VisibleUnitsChanged(visibleUnits, numVisibleUnits)
-	else
-		if debuglevel > 0 then
-			spEcho("Script.LuaUI.VisibleUnitsChanged() unavailable")
-		end
-	end
+	widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 end
 
 local instanceVBOCacheTable = {
@@ -267,13 +249,7 @@ local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if silent then
 		return
 	end
-	if Script.LuaUI("VisibleUnitAdded") then
-		Script.LuaUI.VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
-	else
-		if debuglevel >= 1 then
-			spEcho("Script.LuaUI.VisibleUnitAdded() unavailable")
-		end
-	end
+	widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 end
 
 local function visibleUnitsRemove(unitID, reason)
@@ -294,9 +270,7 @@ local function visibleUnitsRemove(unitID, reason)
 			popElementInstance(unitTrackerVBO, unitID)
 		end
 		-- call all listeners
-		if Script.LuaUI("VisibleUnitRemoved") then
-			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
-		end
+		widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	else
 		if debuglevel >= 2 then
 			spEcho("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason)
@@ -330,10 +304,8 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	if unitDefID == nil then
 		return false
 	end
-	if spValidUnitID(unitID) ~= true then
-		return false
-	end
-	if spGetUnitIsDead(unitID) == true then
+	-- also nil (not false) for an invalid unit, or one we cannot see, so this covers ValidUnitID
+	if spGetUnitIsDead(unitID) ~= false then
 		return false
 	end
 	if unitDefIgnore[unitDefID] then
@@ -374,7 +346,8 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	return true
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent) -- this was visible at the time
+-- The callins below call these instead of their widget: counterparts, which the handler wraps in a pcall
+local function unitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent) -- this was visible at the time
 	--[[
 	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
@@ -451,13 +424,21 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID, reason)
+local function unitDestroyed(unitID, unitDefID, unitTeam, reason)
 	if debuglevel >= 3 then
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
 		spEcho("UnitDestroyed", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
 	visibleUnitsRemove(unitID, reason or "UnitDestroyed")
 	alliedUnitsRemove(unitID, reason or "UnitDestroyed")
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent)
+	unitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID, reason)
+	unitDestroyed(unitID, unitDefID, unitTeam, reason)
 end
 
 --function widget:CrashingAircraft(unitID, unitDefID, teamID)
@@ -470,12 +451,12 @@ end
 --end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
-	widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitFinished")
-	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
+	unitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
+	unitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitTaken")
+	unitDestroyed(unitID, unitDefID, oldTeam, "UnitTaken")
 	-- not needed, as the unit will call enemyenteredlos, but what if we are spec?
 	if not fullview then
 		-- todo, look at this real closely if its even needed!
@@ -484,8 +465,8 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is onl
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam) --2.  this is only called when my team captures a unit
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitGiven") -- to ensure that team changes will trigger from this!
-	widget:UnitCreated(unitID, unitDefID, newTeam, nil, "UnitGiven")
+	unitDestroyed(unitID, unitDefID, oldTeam, "UnitGiven") -- to ensure that team changes will trigger from this!
+	unitCreated(unitID, unitDefID, newTeam, nil, "UnitGiven")
 end
 
 -- one of the most difficult test cases here, when the transfer of a unit happens between two other teams (1 and 2, we are 0)
@@ -514,19 +495,18 @@ end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	if not fullview then
-		widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitEnteredLos")
+		unitCreated(unitID, unitDefID, unitTeam, nil, "UnitEnteredLos")
 	end
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if not fullview then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitLeftLos")
+		unitDestroyed(unitID, unitDefID, unitTeam, "UnitLeftLos")
 	end
 end
 
-function widget:GameFrame()
-	--spEcho("GameFrame", gameFrame, "->", spGetGameFrame())
-	gameFrame = spGetGameFrame()
+function widget:GameFrame(n)
+	gameFrame = n
 	if debuglevel >= 1 then -- here we will scan all units and ensure that they match what we expect
 		if (debuglevel <= 2) and (math.random() > 0.05) then
 			return
@@ -652,8 +632,9 @@ local function initializeAllUnits()
 	end
 
 	local allunits = spGetAllUnits()
-	for i, unitID in pairs(allunits) do
-		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initializeAllUnits", true) -- silent is true
+	for i = 1, #allunits do
+		local unitID = allunits[i]
+		unitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initializeAllUnits", true) -- silent is true
 	end
 
 	WG.unittrackerapi.visibleUnits = visibleUnits

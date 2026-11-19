@@ -1,9 +1,4 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-
-//piece  base, flare, turret, barrel, sleeve;
+#include "../recoil_common_includes.h"
 
 piece base, turretBase, turretSleeve, barrelPivot, 
 barrelSleeveA, barrelA, flareA,
@@ -14,14 +9,22 @@ exhaustDoorA, exhaustDoorB, exhaustDoorC,
 exhaustSmokeA,
 exhaustSmokeB;
 
-static-var guncount, issmoking;
-// Signal definitions
-#define SIG_AIM				2
+static-var guncount, exhaustSmokeRunning;
 
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
 
 Create()
 {
-
 	hide flareA;
 	hide flareB;
 	hide flareC;
@@ -30,7 +33,7 @@ Create()
 	hide exhaustSmokeB;
 
 	guncount = 7;
-	issmoking = 0;
+	exhaustSmokeRunning = 0;
 
 	move exhaustCell to z-axis [9] now;
 	turn exhaustDoorA to x-axis <-45> now;
@@ -45,10 +48,7 @@ Create()
 	move barrelB to z-axis [-25] now;
 	move barrelC to z-axis [-25] now;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 200;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
 	spin barrelPivot around z-axis speed <145>;
 
@@ -68,22 +68,13 @@ Create()
 	wait-for-move barrelC along z-axis;
 	stop-spin barrelPivot around z-axis;
 	turn barrelPivot to z-axis <0> speed <400>;
-	
 }
-
-lua_UnitScriptLight(lightIndex, count)
-{
-	return 0;
-}
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
 SmokeItUp()
-{	
-	if (issmoking == 0 OR TRUE)
+{
+	if (exhaustSmokeRunning == 0 OR TRUE)
 	{
-		issmoking = 1;
+		exhaustSmokeRunning = 1;
 		emit-sfx 257 from exhaustSmokeA;
 		emit-sfx 257 from exhaustSmokeB;
 		emit-sfx 257 from exhaustSmokeCell;
@@ -116,27 +107,23 @@ SmokeItUp()
 		emit-sfx 257 from exhaustSmokeB;
 		emit-sfx 257 from exhaustSmokeCell;
 		sleep 1000;
-		issmoking = 0;
+		exhaustSmokeRunning = 0;
 	}
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turretBase to y-axis heading speed <5.000000>;
-	turn turretSleeve to x-axis <0.000000> - pitch speed <3.500000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turretBase to y-axis heading speed <5.0>;
+	turn turretSleeve to x-axis <0.0> - pitch speed <3.5>;
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretSleeve around x-axis;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	
-	//shotcount = shotcount + 1;
-	//move barrel to z-axis [-8.000000] speed [500.000000];
-
 	//barrelA
 	call-script lua_UnitScriptLight(1, guncount);
 	call-script lua_UnitScriptLight(2, guncount);
@@ -159,11 +146,6 @@ FirePrimary()
 	sleep 50;
 	wait-for-turn barrelPivot around y-axis;
 
-	/**sleep 200;
-	//wait-for-move barrelC along z-axis;
-	move barrelA to z-axis [0.000000] speed [3.500000];
-	move barrelB to z-axis [0.000000] speed [3.500000];
-	move barrelC to z-axis [0.000000] speed [3.500000];**/
 	sleep 7500;
 	move exhaustCell to z-axis [9] speed [5];
 	turn exhaustDoorA to x-axis <-45> speed <20>;
@@ -171,25 +153,24 @@ FirePrimary()
 	turn exhaustDoorC to x-axis <-45> speed <20>;
 }
 
-TargetCleared(Func_Var_1)
+TargetCleared(state)
 {
-	if( Func_Var_1 == 1 )
+	if( state == 1 )
 	{
-		signal SIG_AIM;
+		signal SIGNAL_AIM1;
 		stop-spin turretBase around y-axis;
 		stop-spin turretSleeve around x-axis;
 	}
 }
 
-Shot1(heading, pitch) {
-
+Shot1(heading, pitch)
+{
 	if (guncount == 7){
 		emit-sfx 1024 + 0 from flareA;
 		move barrelA to z-axis [-15] now;
 		move barrelSleeveA to z-axis [-10] now;
 		sleep 100;
 		turn barrelPivot to z-axis <-120> speed <400>;
-		//wait-for-turn barrelPivot around z-axis;
 		guncount = 10;
 	}
 	if (guncount == 10){
@@ -199,7 +180,6 @@ Shot1(heading, pitch) {
 		move barrelSleeveB to z-axis [-10] now;
 		sleep 100;
 		turn barrelPivot to z-axis <-240> speed <400>;
-		//wait-for-turn barrelPivot around z-axis;
 		guncount = 13;
 	}
 	if (guncount == 13){
@@ -214,38 +194,30 @@ Shot1(heading, pitch) {
 		start-script SmokeItUp();
 		sleep 100;
 		turn barrelPivot to z-axis <0> speed <400>;
-		//wait-for-turn barrelPivot around z-axis;
 		guncount = 7;
 		sleep 200;
-		//wait-for-move barrelC along z-axis;
-		move barrelSleeveA to z-axis [0.000000] speed [8.000000];
+		move barrelSleeveA to z-axis [0.0] speed [8.0];
 		sleep 200;
-		move barrelSleeveB to z-axis [0.000000] speed [8.000000];
+		move barrelSleeveB to z-axis [0.0] speed [8.0];
 		sleep 200;
-		move barrelSleeveC to z-axis [0.000000] speed [8.000000];
+		move barrelSleeveC to z-axis [0.0] speed [8.0];
 		wait-for-move barrelSleeveA along z-axis;
-		move barrelA to z-axis [0.000000] speed [3.500000];
+		move barrelA to z-axis [0.0] speed [3.5];
 		sleep 200;
-		move barrelB to z-axis [0.000000] speed [3.500000];
+		move barrelB to z-axis [0.0] speed [3.5];
 		sleep 200;
-		move barrelC to z-axis [0.000000] speed [3.500000];
-
+		move barrelC to z-axis [0.0] speed [3.5];
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = guncount;
+	pieceIndex = guncount;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrelPivot;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = barrelPivot;
 }
 
 Killed(severity, corpsetype)

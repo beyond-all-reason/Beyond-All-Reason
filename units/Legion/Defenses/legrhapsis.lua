@@ -13,7 +13,6 @@ return {
 		collisionvolumescales = "33 40 33",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energyupkeep = 5,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -137,6 +136,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2500,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 15,
 				},

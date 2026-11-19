@@ -56,6 +56,10 @@ uniform float intensityMultiplier = 1.0;
 
 uniform vec2 windXZ = vec2(0.0, 0.0);
 
+#ifndef HEAT_LEGACY_DOUBLE_FALLOFF
+	#define HEAT_LEGACY_DOUBLE_FALLOFF 1
+#endif
+
 out vec4 fragColor;
 
 // Kinda useful debug macro:
@@ -88,37 +92,6 @@ vec4 closestdistortionlp_distance (vec3 ro, vec3 rd, vec3 P){
 
 // Given two rays, returns the minimum distance between them 
 //https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
-float distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
-	//todo handle the case where e1 == e2
-	vec3 n = cross(e1, e2); // n is the normal of the line connecting them
-	float distance = dot ( n, r1-r2) / length(n);
-	return distance;
-}
-
-// Given a ray origin and direction, and a line segment start and end point, which point on the ray is closest to the line segment?
-vec3 ray_linesegment_closestpoint(vec3 rayOrigin, vec3 rayDirection, vec3 lineStart, vec3 lineEnd){
-
-	vec3 lineDir = lineEnd - lineStart;
-	vec3 rayToLineStart = lineStart - rayOrigin;
-	vec3 rayToLineEnd = lineEnd - rayOrigin;
-
-	float t1 = dot(rayToLineStart, rayDirection);
-	float t2 = dot(rayToLineEnd, rayDirection);
-
-	vec3 closestPointOnRayToLineStart = rayOrigin + t1 * rayDirection;
-	vec3 closestPointOnRayToLineEnd = rayOrigin + t2 * rayDirection;
-
-	float distToLineStart = length(closestPointOnRayToLineStart - lineStart);
-	float distToLineEnd = length(closestPointOnRayToLineEnd - lineEnd);
-
-	if (distToLineStart < distToLineEnd) {
-		return closestPointOnRayToLineStart;
-	} else {
-		return closestPointOnRayToLineEnd;
-	}
-}
-
-
 
 // https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
 vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, float sphereRadius) {
@@ -142,57 +115,7 @@ vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, fl
 }
 
 // Given a ray origin and a direction, returns the closes point on the ray in xyz and the distance in w
-// marginally faster, about the cost as a single octave of perlin
-vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamStart, beamEnd
-	// returns the squared distance of the ray and the line segment in w
-	// returns the closest point on beam in xyz
-	float rd_dot_rd_inv = 1.0 / dot(rayDirection, rayDirection);
-	
-	float t1 = dot(rayDirection, cap1 - rayOrigin) * rd_dot_rd_inv;
-	vec3 intersectPoint1 = rayOrigin + t1 * rayDirection;
-	
-	float t2 = dot(rayDirection, cap2 - rayOrigin) * rd_dot_rd_inv;
-	vec3 intersectPoint2 = rayOrigin + t2 * rayDirection;
-	
-	vec3 cap2tocap1 = cap2 - cap1;
 
-	vec3 interSectToC2 = cap2 - intersectPoint2;
-	vec3 interSectToC1 = cap1 - intersectPoint1;	
-
-	float angle1 = dot(cap2tocap1, interSectToC1);
-	float angle2 = dot(cap2tocap1, interSectToC2);
-	
-	vec3 connectornormal = cross(rayDirection, cap2tocap1); // n is the normal of the line connecting them
-	float dd = dot(connectornormal, rayOrigin - cap1); // this is the angle between the connector normal and 
-	float sqdistline = dd*dd / dot(connectornormal, connectornormal); // sqdistline; 
-
-	float distcap2 = dot(interSectToC2, interSectToC2) ;
-	float distcap1 = dot(interSectToC1, interSectToC1) ;  //sqdistends
-	
-	vec3 closestpointbeam = cap1 + cap2tocap1 * sqrt(abs(distcap1 - sqdistline)/dot(cap2tocap1,cap2tocap1));
-	vec4 finalposanddist = mix(vec4(cap1, distcap1) ,
-		vec4(cap2, distcap2) ,
-		step(distcap2, distcap1));
-		
-	if (angle1 < 0 && angle2 > 0){ // this means that our ray is hitting between the caps
-		finalposanddist.w = sqdistline;
-		finalposanddist.xyz = closestpointbeam;
-	}
-	finalposanddist.w = sqrt(finalposanddist.w);
-	return finalposanddist;
-}
-
-
-vec3 plane_point_dir_to_normal(vec3 point, vec3 planeDir, vec3 viewDirection){
-	vec3 planeTangent = normalize(cross(planeDir, viewDirection)); // this is now tangential to the plane
-	return normalize(cross(planeTangent, planeDir));
-}
-
-vec4 ray_to_plane_intersection_point( vec3 ro, vec3 rd, vec3 planeNormal, vec3 planePoint){
-	float d = dot(planeNormal, planePoint);
-	float t = (d - dot(planeNormal, ro)) / dot(planeNormal, rd);
-	return vec4(ro + t * rd, t);
-}
 //http://www.realtimerendering.com/intersections.html
 
 
@@ -392,132 +315,17 @@ vec2 intersectRoundedCone(vec3 rayPos, vec3 rayDir, vec3 pointA, vec3 pointB, fl
 
 // https://iquilezles.org/articles/distfunctions
 float dot2(in vec3 v ) { return dot(v,v); }
-float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2)
-{
-    // sampling independent computations (only depend on shape)
-    vec3  ba = b - a;
-    float l2 = dot(ba,ba);
-    float rr = r1 - r2;
-    float a2 = l2 - rr*rr;
-    float il2 = 1.0/l2;
-    
-    // sampling dependent computations
-    vec3 pa = p - a;
-    float y = dot(pa,ba);
-    float z = y - l2;
-    float x2 = dot2( pa*l2 - ba*y );
-    float y2 = y*y*l2;
-    float z2 = z*z*l2;
-
-    // single square root!
-    float k = sign(rr)*rr*rr*x2;
-    if( sign(z)*a2*z2 > k ) return  sqrt(x2 + z2)        *il2 - r2;
-    if( sign(y)*a2*y2 < k ) return  sqrt(x2 + y2)        *il2 - r1;
-                            return (sqrt(x2*a2*il2)+y*rr)*il2 - r1;
-}
 
 
 //  Value Noise 3D Deriv
 //  Return value range of 0.0->1.0, with format vec4( value, xderiv, yderiv, zderiv )
 //
-vec4 Value3D_Deriv( vec3 P )
-{
-    //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D_Deriv.glsl
 
-    // establish our grid cell and unit position
-    vec3 Pi = floor(P);
-    vec3 Pf = P - Pi;
-    vec3 Pf_min1 = Pf - 1.0;
-
-    // clamp the domain
-    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
-    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
-
-    // calculate the hash
-    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
-    Pt *= Pt;
-    Pt = Pt.xzxz * Pt.yyww;
-    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
-    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
-    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
-
-    //	blend the results and return
-    vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-    vec3 blendDeriv = Pf * Pf * (Pf * (Pf * 30.0 - 60.0) + 30.0);
-    vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
-    vec4 res1 = mix( res0.xyxz, res0.zwyw, blend.yyxx );
-    vec4 res3 = mix( vec4( hash_lowz.xy, hash_highz.xy ), vec4( hash_lowz.zw, hash_highz.zw ), blend.y );
-    vec2 res4 = mix( res3.xz, res3.yw, blend.x );
-    return vec4( res1.x, 0.0, 0.0, 0.0 ) + ( vec4( res1.yyw, res4.y ) - vec4( res1.xxz, res4.x ) ) * vec4( blend.x, blendDeriv );
-}
-
-vec4 curl3d( vec3 P )
-{
-	vec4 n1 =  Value3D_Deriv( P );
-	vec4 n2 =  Value3D_Deriv( P * 1.72198 );
-	return vec4( n1.x + n2.x, cross(n1.yzw, n2.yzw) );
-}
 
 // shockwave UV Displacement
 // Calculate how much the UV coordinates should be displaced at currentpos in world space of the screen copy texture to simulate a shockwave starting from position centerpos, with the camera looking at viewdirections. 
 // The maximum radius of the shockwave is given in shockwaveRadius, and the timeFraction goes from 0 to 1 to simulate the shockwave expanding over time.
 // Ensure that the UV displacement is correctly rotated given the angle between the viewDirection and the direction of the shockwave starting from centerpos
-
-vec3 shockWaveDisplacement2(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction) {
-	vec3 displacement = vec3(0.0);
-	vec3 toCenter = currentpos - centerpos;
-	float distance = length(toCenter);
-	float normalizedDistance = distance / shockwaveRadius;
-
-	if (normalizedDistance < 1.0) {
-		float wave = sin(normalizedDistance * 3.14159 * 2.0 - timeFraction * 3.14159 * 2.0);
-		float attenuation = 1.0 - normalizedDistance;
-		displacement = viewDirection * wave * attenuation;
-	}
-
-	return displacement;
-}
-
-vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction) {
-    // Calculate direction vector from center to current position
-    vec3 dir = currentpos - centerpos;
-
-    // Define the up vector (assuming Y-up coordinate system)
-    vec3 up = vec3(0.0, 1.0, 0.0);
-
-    // Calculate the camera's right and up vectors
-    vec3 right = normalize(cross(viewDirection, up));
-    vec3 cameraUp = normalize(cross(right, viewDirection));
-
-    // Transform the direction vector into the camera's coordinate space
-    vec3 dirInCameraSpace;
-    dirInCameraSpace.x = dot(dir, right);
-    dirInCameraSpace.y = dot(dir, cameraUp);
-    dirInCameraSpace.z = dot(dir, -viewDirection);
-
-    // Compute the 2D distance from the center in camera space
-    float distance = length(dirInCameraSpace.xy);
-    // Calculate the current radius of the shockwave
-    float currentRadius = shockwaveRadius * timeFraction;
-    // Compute the difference between the distance and the shockwave's current radius
-    float diff = distance - currentRadius;
-
-    // Define the width and amplitude of the shockwave effect
-    float width = 100.1;    // Controls the width of the shockwave ring
-    float amplitude = 0.1; // Maximum displacement amount
-
-    // Calculate the displacement amount using a Gaussian function
-    float displacementAmount = amplitude * exp(-diff * diff / (2.0 * width * width));
-
-    // Normalize the direction in camera space
-    vec2 dirNormalized = dirInCameraSpace.xy / distance;
-
-    // Compute the displacement vector in 2D
-    vec2 displacement = dirNormalized * displacementAmount;
-
-    // Return the displacement vector with zero z-component
-    return vec3(displacement * 10, 0.0);
-}
 
 // returns the Screen UV coordinates [0-1] and estimated depth of a given world position
 vec3 worldToScreenUVZ(vec3 worldPosition){
@@ -529,19 +337,10 @@ vec3 worldToScreenUVZ(vec3 worldPosition){
 
 // Parabola (try it in graphtoy.com) A nice choice to remap the 0..1 interval into 0..1, such that the corners are mapped to 0 and the center to 1. You can then rise the parabolar to a power k to control its shape.
 // https://iquilezles.org/articles/functions/
-float parabola( float x, float k )
-{
-    return pow( 4.0*x*(1.0-x), k );
-}
 
 // Power Curve This is a generalization of the Parabola() above. It also maps the 0..1 interval into 0..1 by keeping the corners mapped to 0. But in this generalziation you can control the shape one either side of the curve, which comes handy when creating leaves, eyes, and many other interesting shapes.
 // https://iquilezles.org/articles/functions/
 // Play with it here: https://www.desmos.com/calculator/2gecekm83w
-float pcurve( float x, float a, float b )
-{
-    float k = pow(a+b,a+b)/(pow(a,a)*pow(b,b));
-    return k*pow(x,a)*pow(1.0-x,b);
-}
 
 // The precomputed scaling factor version
 // Precompute K with the calculator here: https://www.desmos.com/calculator/2gecekm83w
@@ -557,8 +356,8 @@ void main(void)
 	int effectType = int(round(EFFECTTYPE));
 	
 	// TODO: Get the view vector before fetching texels for speedups, we can't really bail on all that many fragments...
-	float mapdepth = texture(mapDepths, v_screenUV).x;
-	float modeldepth = texture(modelDepths, v_screenUV).x;
+	float mapdepth = textureLod(mapDepths, v_screenUV, 0.0).x;
+	float modeldepth = textureLod(modelDepths, v_screenUV, 0.0).x;
 
 	float worlddepth = min(mapdepth, modeldepth);
 	// TODO: isn't modeldepth 0 where there is no model fucking up everything later on?
@@ -580,17 +379,10 @@ void main(void)
 	//DEBUGPOS(fragWorldPos.xyz * 0.1); // Debug fragment world position
 	
 	vec3 camPos = cameraViewInv[3].xyz;
-	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
 
 	float fragDistance = length(camPos - fragWorldPos.xyz);
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 
-	vec3 viewDirFromDepth = viewDirection;
-	
-	vec4 viewDirWithoutDepth = vec4( vec3(v_screenUV.xy * 2.0 - 1.0, 0.0),  1.0);
-	viewDirWithoutDepth = cameraViewProjInv * viewDirWithoutDepth;
-	viewDirWithoutDepth.xyz = viewDirWithoutDepth.xyz/viewDirWithoutDepth.w;
-	viewDirWithoutDepth.xyz = normalize(camPos - viewDirWithoutDepth.xyz);
 	
 	float distortionRadius = v_worldPosRad.w;
 	float distortionRadiusInv = 1.0 / distortionRadius;
@@ -615,6 +407,9 @@ void main(void)
 	//fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0); return; // Debug fragment world position
 
 	#line 32000
+	// Fragments that add nothing are discarded (not written as zero): the widget runs an
+	// occlusion query over this pass, and only when samples passed does it copy the screen
+	// and run the full-screen combine pass. Additive blending of zero and a discard look the same.
 	if (pointbeamcone < 0.5){ //point
 		distortionPosition = v_worldPosRad.xyz;
 		distortionEmitPosition.xyz = distortionPosition;
@@ -697,8 +492,7 @@ void main(void)
 		volumetricFraction = 1.0 - clamp( abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
 	}
 	if (fragDistance < nearFarDistances.x || nearFarDistances.x < 0.0) {
-		fragColor.rgba = vec4(0.0);
-		return;
+		discard; // nothing to add
 	}
 
 	// Check if the volume is occluded, bail if yes!
@@ -856,25 +650,12 @@ void main(void)
 	}
 
 	
-	//------------------------- BEGIN AIRJET -------------------------
-	else if (effectType == 3){
-
+	//------------------------- AIRJET (3), GRAVITYLENS (4), FUSIONSPHERE (5), CLOAKDISTORTION (6) -------------------------
+	// not implemented: write nothing rather than leaving fragColor undefined
+	else if (effectType >= 3 && effectType <= 6){
+		discard; // nothing to add
 	}
 
-	//------------------------- BEGIN GRAVITYLENS -------------------------
-	else if (effectType == 4){
-
-	}
-
-	//------------------------- BEGIN FUSIONSPHERE -------------------------
-	else if (effectType == 5){
-
-	}
-	
-	//------------------------- BEGIN CLOAKDISTORTION -------------------------
-	else if (effectType == 6){
-
-	}
 
 	//------------------------- BEGIN SHIELDSPHERE -------------------------
 	else if (effectType == 7){
@@ -887,8 +668,7 @@ void main(void)
 		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.7, 100.0, 17.0);
 		shieldEdgeFactor = smoothstep(0.1, 1.0, shieldEdgeFactor);
 		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
-			fragColor.rgba = vec4(0.0);
-			return;
+			discard; // nothing to add
 		}
 
 		//D
@@ -950,7 +730,7 @@ void main(void)
 		vec3 unitUV = worldToScreenUVZ(v_worldPosRad.xyz);
 		vec3 unitUV2 = worldToScreenUVZ(v_worldPosRad.xyz + v_worldPosRad2.xyz);
 		vec3 travelDirectionScreen = unitUV2 - unitUV;
-		if (length(travelDirectionScreen) < 0.001) {fragColor.rgba = vec4(0.0); return;}
+		if (length(travelDirectionScreen) < 0.001) { discard; }
 		travelDirectionScreen = normalize(travelDirectionScreen);
 
 		float travelSpeedMult = clamp((v_worldPosRad2.w - EFFECTPARAM1) * EFFECTPARAM2, 0.0, 1.0);
@@ -958,7 +738,7 @@ void main(void)
 		fragColor.rgba = vec4(travelDirectionScreen.xy * EFFECTSTRENGTH, -10.0, 1.0);
 
 		if (fragDistance > nearFarDistances.y){
-			fragColor.rgba = vec4(0.0);
+			discard; // nothing to add
 		}
 	}
 
@@ -973,8 +753,7 @@ void main(void)
 		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.1, 100.0, 75.0);
 		shieldEdgeFactor = smoothstep(0.2, 1.5, shieldEdgeFactor);
 		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
-			fragColor.rgba = vec4(0.0);
-			return;
+			discard; // nothing to add
 		}
 
 		//D
@@ -1036,8 +815,7 @@ else if (effectType == 13) { // Keeping type 13
 
     // If fragment is outside the maximum possible radius, exit early.
     if (distWorld > maxRadius || maxRadius <= 0.0) { // Added check for maxRadius > 0
-        fragColor.rgba = vec4(0.0);
-        return;
+        discard; // nothing to add
     }
 
     // --- ONLYMODELMAP Check ---
@@ -1047,7 +825,7 @@ else if (effectType == 13) { // Keeping type 13
     // Otherwise: Show on both
     if (abs(ONLYMODELMAP) > 0.5) { // Check if filtering is active
         // Sample the model depth map at the fragment's screen UV
-        float modelDepthValue = texture(modelDepths, v_screenUV).r;
+        float modelDepthValue = textureLod(modelDepths, v_screenUV, 0.0).r;
 
         // --- CRITICAL: Depth Linearization ---
         // Ensure fragDistance and modelDepthValue are comparable (linear depth).
@@ -1062,15 +840,13 @@ else if (effectType == 13) { // Keeping type 13
         if (ONLYMODELMAP > 0.5) { // Only show on MAP (discard if fragment IS model)
             // Discard if the fragment's depth is very close to the model's depth
             if (abs(fragDistance - linearModelDepth) < depthEpsilon) {
-                fragColor.rgba = vec4(0.0);
-                return; // Fragment is part of the model surface, discard
+                discard; // nothing to add // Fragment is part of the model surface, discard
             }
         } else { // ONLYMODELMAP < -0.5: Only show on MODEL (discard if fragment IS map/background)
             // Discard if the fragment's depth is significantly further than the model's depth
             // (This logic seemed to work according to the user, keeping it)
             if (fragDistance > linearModelDepth + depthEpsilon) {
-                fragColor.rgba = vec4(0.0);
-                return; // Fragment is behind the model's surface, discard
+                discard; // nothing to add // Fragment is behind the model's surface, discard
             }
         }
     }
@@ -1106,8 +882,7 @@ else if (effectType == 13) { // Keeping type 13
 
     // If the effect hasn't expanded/ramped up enough, or is fully attenuated by distance, exit.
     if (distortionAttenuation <= 0.0) { // Check combined attenuation
-        fragColor.rgba = vec4(0.0);
-        return;
+        discard; // nothing to add
     }
 
     // --- Noise Calculation (Adapted from effectType 0 / previous version) ---
@@ -1130,8 +905,7 @@ else if (effectType == 13) { // Keeping type 13
     // This check remains relevant even with ONLYMODELMAP, ensuring the effect
     // doesn't draw in front of closer scene objects that might occlude the effect volume.
     if (fragDistance < nearFarDistances.x) {
-        fragColor.rgba = vec4(0.0); // Hard cut for now
-        return;
+        discard; // nothing to add
     }
     // --- End Occlusion Check ---
 
@@ -1142,8 +916,6 @@ else if (effectType == 13) { // Keeping type 13
     fragColor.rgba = vec4(displacementAmount, 0.0, distortionAttenuation);
 }
 // ------------------------ END FILLED DISTORTION CIRCLE (Updated ONLYMODELMAP & Y-Offset) ------------------
-
-
 
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
 	// Debugging check attenuations for each distortion source type:
@@ -1169,19 +941,21 @@ else if (effectType == 13) { // Keeping type 13
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
 
-		// Attenuate with distance:
-		distortionAttenuation *= distance_attenuation;
-		
-		// TODO: plug in custom distoriton falloff power
-		distortionAttenuation = pow(distortionAttenuation, DISTANCEFALLOFF); 
+		#if (HEAT_LEGACY_DOUBLE_FALLOFF == 1)
+			// The original code applied the distance attenuation and the DISTANCEFALLOFF power a
+			// second time here. Every heat effect was tuned against that, so it stays the default;
+			// gfx_distortion_gl4.lua can switch it off to get the single, documented falloff.
+			distortionAttenuation *= distance_attenuation;
+			distortionAttenuation = pow(distortionAttenuation, DISTANCEFALLOFF);
+		#endif
+
 
 		// Take into account relative distance of ray point closest to distortion source to the distortion source
 		distortionAttenuation *= volumetricFraction;
 
 		// if the fragment is closer to the camera than the distortion source plus its radius, we can completely skip the distortion
 		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
-			fragColor.rgba = vec4(0.0);
-			return;
+			discard; // nothing to add
 		}
 
 		// --- ADD THE RAMPUP LOGIC HERE ---
@@ -1226,9 +1000,9 @@ else if (effectType == 13) { // Keeping type 13
 	}
 	
 	// is a model fragment and we only want to affect map
-	if ((ismodel > 0.5) && (ONLYMODELMAP > 0.5)) fragColor.a = 0.0; 
+	if ((ismodel > 0.5) && (ONLYMODELMAP > 0.5)) discard;
 
-	 // is map fragment and we only want to to affect models
-	if ((ismodel < 0.5) && (ONLYMODELMAP < -0.5)) fragColor.a = 0.0;
-	// final scaling:
+	// is map fragment and we only want to to affect models
+	if ((ismodel < 0.5) && (ONLYMODELMAP < -0.5)) discard;
+
 }

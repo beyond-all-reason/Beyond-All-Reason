@@ -145,6 +145,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "EMGX",
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

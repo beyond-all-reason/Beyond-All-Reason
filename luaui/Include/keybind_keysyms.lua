@@ -6,7 +6,9 @@
 local KEYSYMS = KEYSYMS
 
 if not KEYSYMS then
-	local env = {}
+	-- keysym.h.lua's proxy calls setmetatable() at load time, and its __pairs
+	-- closure calls next later, so this bare env needs both or it errors.
+	local env = { setmetatable = setmetatable, next = next }
 	-- the engine installs its own LuaUI/Headers loose, and the default mode reads raw files first
 	VFS.Include("luaui/Headers/keysym.h.lua", env, VFS.ZIP)
 	KEYSYMS = env.KEYSYMS

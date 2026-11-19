@@ -569,7 +569,7 @@ function gadget:Initialize()
 
 	if next(weaponDefEffect) then
 		for weaponDefID in pairs(weaponDefEffect) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 	else
 		gadgetHandler:RemoveGadget(self)

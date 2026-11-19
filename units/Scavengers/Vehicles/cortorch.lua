@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
-		sightdistance = 308,
+		sightdistance = 330,
 		trackoffset = 0,
 		trackstrength = 6,
 		tracktype = "corparrowtracks",

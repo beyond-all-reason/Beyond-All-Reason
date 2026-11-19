@@ -1,24 +1,25 @@
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local base64 = require("common/luaUtilities/base64")
 
-local missionOptions = require("luaui/Include/mission_options")
-
 local modOptions = {}
-local previousGetModOptions
+
+local env = SpecEnv.new({
+	Spring = {
+		GetModOptions = function()
+			return modOptions
+		end,
+	},
+})
+
+local missionOptions = SpecEnv.include(env, "luaui/Include/mission_options.lua")
 
 local function setMissionOptions(json)
 	modOptions.missionoptions = json and base64.Encode(VFS.ZlibCompress(json)) or nil
 end
 
 describe("mission options", function()
-	before_each(function()
-		previousGetModOptions = Spring.GetModOptions
-		Spring.GetModOptions = function()
-			return modOptions
-		end
-	end)
-
 	after_each(function()
-		Spring.GetModOptions = previousGetModOptions
 		modOptions = {}
 	end)
 

@@ -93,16 +93,58 @@ describe("json string escapes", function()
 		-- characters or pushes the rest of the literal out of step, so it has to be caught
 		-- where it is parsed rather than surfacing as a loadstring failure later.
 		it("is rejected rather than silently dropped", function()
-			assert.has_error(function() Json.decode([[{"a":"\u47"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"\uZZZZ"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"\u"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"x\u47y"}]]) end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\u47"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\uZZZZ"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\u"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"x\u47y"}]])
+			end)
 		end)
 
 		it("names the escape it choked on", function()
 			local ok, err = pcall(Json.decode, [[{"a":"\uZZZZ"}]])
 			assert.is_false(ok)
 			assert.is_truthy(tostring(err):find("\uZZZZ", 1, true))
+		end)
+	end)
+
+	describe("control characters on the way out", function()
+		-- JSON has no literal control characters and the decoder has no token for most
+		-- of them, so encoding one raw produced a file this module could not read back.
+		local function roundTrip(text)
+			return Json.decode(Json.encode({ a = text })).a
+		end
+
+		it("escapes the ones with a shorthand", function()
+			assert.are.equal([[{"a":"\b\f\n\r\t"}]], Json.encode({ a = "\b\f\n\r\t" }))
+		end)
+
+		it("escapes the rest as code points", function()
+			local encoded = Json.encode({ a = string.char(0, 27, 31) })
+
+			assert.is_truthy(encoded:find("u0000", 1, true))
+			assert.is_truthy(encoded:find("u001b", 1, true))
+			assert.is_truthy(encoded:find("u001f", 1, true))
+			assert.is_nil(encoded:find(string.char(0), 1, true))
+		end)
+
+		it("reads back every control character it writes", function()
+			for byte = 0, 0x1f do
+				local text = "a" .. string.char(byte) .. "b"
+				assert.are.equal(text, roundTrip(text), "byte " .. byte)
+			end
+		end)
+
+		it("leaves printable characters alone", function()
+			local text = "eco/lab " .. string.char(195, 169)
+
+			assert.are.equal('{"a":"' .. text .. '"}', Json.encode({ a = text }))
 		end)
 	end)
 
@@ -117,8 +159,7 @@ describe("json string escapes", function()
 			assert.is_table(decoded, path .. " failed to decode")
 			-- Asserting the value, not just that it parsed: an interpreter that treats an
 			-- unknown escape as the bare character decodes happily but corrupts the string.
-			assert.are.equal(true,
-				decoded.cmd.set.AutoAddBuiltUnitsToFactoryGroup:find("factory's", 1, true) ~= nil)
+			assert.are.equal(true, decoded.cmd.set.AutoAddBuiltUnitsToFactoryGroup:find("factory's", 1, true) ~= nil)
 		end)
 	end)
 end)

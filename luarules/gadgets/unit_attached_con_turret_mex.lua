@@ -22,6 +22,8 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
 local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 
+local ATTRIBUTE_SOURCE = "con_turret_mex"
+
 -- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
 -- mark builds that split into a mex plus an attached con turret; scav copies inherit the
 -- params and get the _scav variants of both spawned defs
@@ -92,7 +94,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	GG.UnitAttributes.SetUnitAttribute(mexID, "stealth", true, ATTRIBUTE_SOURCE)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -178,14 +180,26 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	local pairedID = mexTurretDefID[unitDefID] and pairedUnits[unitID]
+	if capture or not pairedID or Spring.GetUnitTeam(pairedID) == newTeam or GG.IsTransferForced(newTeam) then
+		return true
+	end
+	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
+end
+
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if mexTurretDefID[unitDefID] then
 		local pairedID = pairedUnits[unitID]
 		if not pairedID and Spring.GetUnitRulesParam then
 			pairedID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 		end
-		if pairedID and pairedID ~= 0 then
-			Spring.TransferUnit(pairedID, newTeam)
+		if
+			pairedID
+			and pairedID ~= 0
+			and Spring.GetUnitTeam(pairedID --[[@as UnitID]]) ~= newTeam
+		then
+			Spring.TransferUnit(pairedID, newTeam, Spring.AreTeamsAllied(newTeam, oldTeam))
 		end
 	end
 end
@@ -257,7 +271,10 @@ function gadget:UnitDamaged(
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	mexesToSwap[unitID] = nil
+	-- Runs nested inside the swap loop: a write to an absent key, even nil, breaks its pairs.
+	if mexesToSwap[unitID] then
+		mexesToSwap[unitID] = nil
+	end
 
 	if mexTurretDefID[unitDefID] then
 		createRemains(unitID, unitDefID, unitTeam)
@@ -309,6 +326,8 @@ function gadget:Initialize()
 			gadget:UnitFinished(unitID, unitDefID)
 
 			if mexActualDefID[unitDefID] then
+				GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
+
 				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID

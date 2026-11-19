@@ -40,7 +40,6 @@ Propcontrol()
 Create()
 {
 	hide flare;
-	start-script Propcontrol();
 	call-script TB_Init();
 }
 

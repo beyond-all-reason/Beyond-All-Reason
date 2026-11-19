@@ -22,24 +22,13 @@ local aprilFoolsModels = {
 }
 
 local halloweenModels = {
-	armcom = { model = "units/event/halloween/armcom.s3o" },
-	armdecom = { model = "units/event/halloween/armcom.s3o" },
-	corcom = { model = "units/event/halloween/corcom.s3o", hats = 2 },
-	cordecom = { model = "units/event/halloween/corcom.s3o" },
-	legcom = { model = "units/event/halloween/legcom.s3o" },
-	legdecom = { model = "units/event/halloween/legcom.s3o" },
 	correap = { model = "units/event/halloween/correap.s3o" },
 	leggob = { model = "units/event/halloween/leggob.s3o" },
 	armrectr = { model = "units/event/halloween/armrectr.s3o" },
 	armspy = { model = "units/event/halloween/armspy.s3o" },
 }
 
-local xmasModels = {
-	armcom = { model = "units/event/xmas/armcom.s3o" },
-	armdecom = { model = "units/event/xmas/armcom.s3o" },
-	corcom = { model = "units/event/xmas/corcom.s3o" },
-	cordecom = { model = "units/event/xmas/corcom.s3o" },
-}
+local xmasModels = {}
 
 return {
 	AprilFools = aprilFoolsModels,

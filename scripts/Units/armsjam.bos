@@ -1,9 +1,9 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h"
 
 piece  base, fork1, fork2, ground, jam;
 
-static-var  oldHead;
 static-var recently_damaged, desired_activation;
 
 // Signal definitions
@@ -19,7 +19,7 @@ static-var recently_damaged, desired_activation;
 #define RB_PITCH_ACCELERATION 10
 #define RB_ROLL_ACCELERATION 6
 #define RB_WAKE_PIECE ground
-#define RB_WAKE_PERIOD 6 
+#define RB_WAKE_PERIOD 6
 #define RB_WAKE_CEG 1024 + 0
 #define RB_ONHIT start-script OffOnHit();
 #include "../bar_ships_common.h"
@@ -56,7 +56,6 @@ Activate()
 
 Deactivate()
 {
-	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
 	// no easy way to tell if an on-off action is 
 	// script/gadget controlled or user controlled
 	// assume a deactivate command is a user command 
@@ -81,11 +80,11 @@ Deactivate()
 static-var  Stunned;
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    start-script Deactivate();
+		start-script Deactivate();
 	} else {
-	    set ACTIVATION to desired_activation;
+		set ACTIVATION to desired_activation;
 	}
 }
 
@@ -95,7 +94,7 @@ OffOnHit()
 	set-signal-mask SIGNAL_OFF;
 	recently_damaged = 1;
 	set ACTIVATION to 0; // turn off unit
-	sleep 8000; //hardcoded time to stay off after being hit
+	sleep deactivateTime;
 	recently_damaged = 0;
 	set ACTIVATION to desired_activation;
 }
@@ -137,9 +136,9 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode fork2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode fork1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode fork2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode fork1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

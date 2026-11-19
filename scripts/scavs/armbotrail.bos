@@ -1,63 +1,35 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, rail, flare, round, door;
 
 static-var   restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define SIGNAL_AIM1 256
 
 
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare;
 	restore_delay = 2000;
-	//move door to z-axis [-30] now;
-	start-script SmokeUnit();
 }
 
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <5.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <5.0>;
 	turn rail to x-axis <0> - pitch speed <3.5>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rail around x-axis;
@@ -78,7 +50,7 @@ Shot1()
 	move door to z-axis [0] speed [125];
 }
 
-FirePrimary()
+FireWeapon1()
 {
 //	hide round;
 //	sleep 200;
@@ -91,19 +63,16 @@ FirePrimary()
 //	move door to z-axis [0] speed [180];
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-AimFromPrimary(piecenum)
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

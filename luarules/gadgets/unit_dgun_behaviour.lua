@@ -45,6 +45,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	if weaponDef.cylinderTargeting >= 1 then
 		return function(unitID, projectileID)
 			local ux, uy, uz = spGetUnitPosition(unitID)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (pz - uz) * dz
@@ -53,6 +56,9 @@ local function generateWeaponTtlFunction(weaponDef)
 	else -- treat all other as cylinder == 0:
 		return function(unitID, projectileID)
 			local _, _, _, ux, uy, uz = spGetUnitPosition(unitID, true)
+			if not ux then
+				return range / speed
+			end
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (py - uy) * dy + (pz - uz) * dz
@@ -64,7 +70,7 @@ end
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	if weaponDef.type == "DGun" then
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
 		dgunDef[weaponDefID] = weaponDef
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
 	end
@@ -95,11 +101,9 @@ local flyingDGuns = {}
 local groundedDGuns = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if dgunDef[weaponDefID] then
-		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
-		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
-	end
+	dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
+	flyingDGuns[proID] = true
+	dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
 end
 
 function gadget:ProjectileDestroyed(proID)
@@ -232,6 +236,14 @@ local shieldPreDamaged = function(
 end
 
 function gadget:Initialize()
+	if not next(dgunDef) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+
+	for weaponDefID in pairs(dgunDef) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return

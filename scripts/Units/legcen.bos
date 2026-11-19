@@ -4,12 +4,12 @@
 piece  	base, armor, aimy, turret, aimx, sleeve, barrel1, barrel2, flare1, flare2, 
 		flthigh, flleg, flfoot, frthigh, frleg, frfoot, blthigh, blleg, blfoot, brthigh, brleg, brfoot;
 
-static-var  restore_delay, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, gun_1, last_primary_heading;
+static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, gun_1, last_primary_heading;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_FIRE1 512
 #define SIGNAL_MOVE 1
+#define SIGNAL_SHOOT1 16
 
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
@@ -247,7 +247,7 @@ StopWalking() {
 	turn frthigh to z-axis <10> speed <800.878922> / animSpeed;
 }
 
-// REMEMBER TO animspeed = 3 in Create() !!
+// REMEMBER TO animSpeed = 3 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 3; //we need to calc the frames per keyframe value, from the known animtime
@@ -256,14 +256,13 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animSpeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	
@@ -321,7 +320,7 @@ Create()
 	hide flare2;
 	last_primary_heading = -1000000;
 	restore_delay = 1000;
-	animspeed = 3;
+	animSpeed = 3;
 	gun_1 = 0;
 	
 	start-script UnitSpeed();
@@ -374,27 +373,25 @@ AimFromWeapon1(pieceIndex)
 
 FireWeapon1()
 {
-	return(0);
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	if (gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-4.0] now;
-		move barrel1 to z-axis [0.000000] speed [4.00000];
+		move barrel1 to z-axis [0.0] speed [4.0];
 	}
 	else if (gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-4.0] now;
-		move barrel2 to z-axis [0.000000] speed [4.00000];
+		move barrel2 to z-axis [0.0] speed [4.0];
 	}
 	gun_1 = !gun_1;
-	return(0);
 }
 
 QueryWeapon1(pieceIndex)
@@ -407,7 +404,6 @@ Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
-		// call-script DeathAnim();
 		corpsetype = 1;
 		return (corpsetype);
 	}

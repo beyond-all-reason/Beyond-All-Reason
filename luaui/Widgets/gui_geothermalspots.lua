@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
+local mathMax = math.max
 local mathSin = math.sin
 local mathCos = math.cos
 
@@ -30,14 +31,20 @@ local opacity = 0.5
 local innersize = 3.0 -- outersize-innersize = circle width
 local outersize = 3.32 -- outersize-innersize = circle width
 
+local occupiedRadius = 110 -- a geothermal extractor within this range occupies the spot
+local pollFrames = 151 -- every spot is re-checked this often (enemy extractors fire no callins)
+local fadeFrames = 16 -- a ring fades in or out over 15 frames in the shader
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode = Spring.GetMapDrawMode
 
-local spots = {}
+local spots = {} -- {x, y, z, occupied, instanceID}
 local numSpots = 0
+local numFree = 0 -- spots whose ring is shown
+local fadedFrame = 0 -- from this frame on, every ring of an occupied spot has faded out
 local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
@@ -70,23 +77,20 @@ local spGetAllFeatures = Spring.GetAllFeatures
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 
-local showGeothermalUnits = false
 local function checkGeothermalFeatures()
-	showGeothermalUnits = false
 	spots = {}
 	local features = spGetAllFeatures()
 	local spotCount = 0
 	local seen = {}
 	for i = 1, #features do
 		if geoFeatureDefs[spGetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
 			local x, y, z = spGetFeaturePosition(features[i])
 			-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
 			local key = spotKey(x, z)
 			if not seen[key] then
 				seen[key] = true
 				spotCount = spotCount + 1
-				spots[spotCount] = { x, y, z }
+				spots[spotCount] = { x = x, y = y, z = z, occupied = false, instanceID = key }
 			end
 		end
 	end
@@ -104,7 +108,7 @@ end
 -- 4. the way the updates are handled are far from ideal, the construction and destruction of any mex will trigger a full update
 --
 
-local spotVBO = nil
+local spotVBO, spotIndexVBO ---@type VBO?, VBO?
 ---@type InstanceVBOTable?
 local spotInstanceVBO = nil
 local spotShader = nil
@@ -114,7 +118,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
-local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 
 local vsSrc = [[
 #version 420
@@ -133,14 +137,26 @@ out DataVS {
 
 void main()
 {
+	float frame = timeInfo.x + timeInfo.w;
+	if (visibility.x > 0.5 ){ // turned unoccupied, fading into visibility from visibility.y
+		circlealpha = clamp((frame - visibility.y) / 30.0, 0.0, 0.5);
+	}else{ // going into occupied, so fade out from visibility.y
+		circlealpha = clamp(0.5 - (frame - visibility.y) / 30.0, 0.0, 0.5);
+	}
+	// a faded out ring blends to nothing, so collapse it instead of rasterizing it
+	if (circlealpha <= 0.0) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
+
 	// rotate for animation:
 	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
 	mat3 roty;
 	if (localpos_dir_angle.z < 0 ){
-		roty = rotation3dY((timeInfo.x + timeInfo.w)*0.005);
+		roty = rotation3dY(frame*0.005);
 	}else{
 		vertexWorldPos.x *= -1; // flip outer circle
-		roty = rotation3dY(-(timeInfo.x + timeInfo.w)*0.005);
+		roty = rotation3dY(-frame*0.005);
 	}
 	vertexWorldPos = roty * vertexWorldPos;
 
@@ -150,13 +166,6 @@ void main()
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
-
-	if (visibility.x > 0.5 ){ // going into occupied, so fade out from visibility.y
-		circlealpha =  clamp(( (timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
-	}else{ // turned unoccipied, fading into visibility
-		circlealpha = clamp(0.5 - ((timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
-	}
-	//circlealpha = visibility.x;
 }
 ]]
 
@@ -188,12 +197,32 @@ end
 
 local function makeSpotVBO()
 	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	if spotVBO == nil then
+	spotIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if spotVBO == nil or spotIndexVBO == nil then
 		goodbye("Failed to create spotVBO")
+		return nil
 	end
 	local VBOLayout = { { id = 0, name = "localpos_dir_angle", size = 4 } }
 	local VBOData = {}
+	local indices = {}
 	local n = 0 -- flat array write index
+	local numVertices = 0
+	local numIndices = 0
+
+	local function addVertex(angle, size, dir)
+		VBOData[n + 1] = mathSin(angle) * size
+		VBOData[n + 2] = mathCos(angle) * size
+		VBOData[n + 3] = dir
+		VBOData[n + 4] = angle
+		n = n + 4
+		numVertices = numVertices + 1
+	end
+	local function addTriangle(a, b, c)
+		indices[numIndices + 1] = a
+		indices[numIndices + 2] = b
+		indices[numIndices + 3] = c
+		numIndices = numIndices + 3
+	end
 
 	local width = circleSpaceUsage
 	local pieces = 3
@@ -203,115 +232,41 @@ local function makeSpotVBO()
 	for _, dir in ipairs({ -1, 1 }) do
 		local dirOffset = dir + 1
 		for i = 1, pieces do -- pieces
+			-- the inner arc is continuous: vertex k at firstInner + k, shared by segments k and k + 1
+			local firstInner = numVertices
+			for k = 0, detail do
+				local detailPartWidth = (widthPerDetail * k) + dirOffset
+				local angle = ((i + circleInnerOffset + detailPartWidth) * radstep) - (widthPerDetail * 0.6)
+				addVertex(angle, innersize, dir)
+			end
+			-- the outer arc has a notch between segments, so each segment gets its own two vertices
 			for d = 1, detail do -- detail
 				local detailPartWidth = (widthPerDetail * d) + dirOffset
-				local a1 = ((i + detailPartWidth - widthPerDetail) * radstep)
-				local a2 = ((i + detailPartWidth) * radstep) - (widthPerDetail * 1.2)
-				local a3 = ((i + circleInnerOffset + detailPartWidth - widthPerDetail) * radstep)
-					- (widthPerDetail * 0.6)
-				local a4 = ((i + circleInnerOffset + detailPartWidth) * radstep) - (widthPerDetail * 0.6)
-
-				-- Tri 1 vertex 1
-				n = n + 1
-				VBOData[n] = mathSin(a3) * innersize
-				n = n + 1
-				VBOData[n] = mathCos(a3) * innersize
-				n = n + 1
-				VBOData[n] = dir
-				n = n + 1
-				VBOData[n] = a3
-				-- Tri 1 vertices 2,3 (winding order depends on dir)
+				local outer = numVertices
+				addVertex(((i + detailPartWidth - widthPerDetail) * radstep), outersize, dir)
+				addVertex(((i + detailPartWidth) * radstep) - (widthPerDetail * 1.2), outersize, dir)
+				local innerPrev, innerCur = firstInner + d - 1, firstInner + d
+				-- dir mirrors the ring in the shader, so the winding flips with it
 				if dir == 1 then
-					n = n + 1
-					VBOData[n] = mathSin(a4) * innersize
-					n = n + 1
-					VBOData[n] = mathCos(a4) * innersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a4
-					n = n + 1
-					VBOData[n] = mathSin(a1) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a1) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a1
+					addTriangle(innerPrev, innerCur, outer)
+					addTriangle(outer + 1, outer, innerCur)
 				else
-					n = n + 1
-					VBOData[n] = mathSin(a1) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a1) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a1
-					n = n + 1
-					VBOData[n] = mathSin(a4) * innersize
-					n = n + 1
-					VBOData[n] = mathCos(a4) * innersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a4
+					addTriangle(innerPrev, outer, innerCur)
+					addTriangle(outer, outer + 1, innerCur)
 				end
-				-- Tri 2 vertices 1,2 (winding order depends on dir)
-				if dir == -1 then
-					n = n + 1
-					VBOData[n] = mathSin(a1) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a1) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a1
-					n = n + 1
-					VBOData[n] = mathSin(a2) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a2) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a2
-				else
-					n = n + 1
-					VBOData[n] = mathSin(a2) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a2) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a2
-					n = n + 1
-					VBOData[n] = mathSin(a1) * outersize
-					n = n + 1
-					VBOData[n] = mathCos(a1) * outersize
-					n = n + 1
-					VBOData[n] = dir
-					n = n + 1
-					VBOData[n] = a1
-				end
-				-- Tri 2 vertex 3
-				n = n + 1
-				VBOData[n] = mathSin(a4) * innersize
-				n = n + 1
-				VBOData[n] = mathCos(a4) * innersize
-				n = n + 1
-				VBOData[n] = dir
-				n = n + 1
-				VBOData[n] = a4
 			end
 		end
 	end
 
-	spotVBO:Define(n / 4, VBOLayout)
+	spotVBO:Define(numVertices, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, n / 4
+	spotIndexVBO:Define(numIndices)
+	spotIndexVBO:Upload(indices)
+	return spotVBO, spotIndexVBO, numIndices
 end
 
-local function cleanupGL4()
-	if spotShader then
+local function cleanupGL4(keepShader)
+	if spotShader and not keepShader then
 		spotShader:Finalize()
 		spotShader = nil
 	end
@@ -328,84 +283,87 @@ local function cleanupGL4()
 		spotVBO:Delete()
 		spotVBO = nil
 	end
+	if spotIndexVBO then
+		spotIndexVBO:Delete()
+		spotIndexVBO = nil
+	end
 end
 
 local function initGL4()
-	cleanupGL4()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	spotShader = LuaShader({
-		vertex = vsSrc,
-		fragment = fsSrc,
-	}, "geoSpotShader GL4")
-	shaderCompiled = spotShader:Initialize()
-	if not shaderCompiled then
-		goodbye("Failed to compile spotShader GL4 ")
+	cleanupGL4(true) -- a spot rebuild only needs new buffers, the shader does not depend on the spots
+	if not spotShader then
+		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		spotShader = LuaShader({
+			vertex = vsSrc,
+			fragment = fsSrc,
+		}, "geoSpotShader GL4")
+		if not spotShader:Initialize() then
+			goodbye("Failed to compile spotShader GL4 ")
+		end
 	end
-	local spotVBO, numVertices = makeSpotVBO()
+	local vertexVBO, indexVBO, numIndices = makeSpotVBO()
+	if not (vertexVBO and numIndices) then
+		return
+	end
 	local spotInstanceVBOLayout = {
 		{ id = 1, name = "worldpos_radius", size = 4 },
 		{ id = 2, name = "visibility", size = 4 },
 	}
-	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "geoSpotInstanceVBO")
-	spotInstanceVBO.numVertices = numVertices
-	spotInstanceVBO.vertexVBO = spotVBO
-	spotInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
+	-- room for every spot, so it never resizes
+	spotInstanceVBO =
+		InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, mathMax(8, numSpots + 2), "geoSpotInstanceVBO")
+	spotInstanceVBO.numVertices = numIndices -- drawn with DrawElements, so this is the index count
+	spotInstanceVBO.vertexVBO = vertexVBO
+	spotInstanceVBO.indexVBO = indexVBO
+	-- all three buffers attached, so the engine keeps the VAO instead of rebuilding it every draw
+	spotInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(vertexVBO, spotInstanceVBO.instanceVBO, indexVBO)
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
 end
 
+-- Returns whether a visible geothermal extractor is on the spot
+local function isSpotOccupied(spot)
+	local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, occupiedRadius)
+	for j = 1, #units do
+		if extractors[spGetUnitDefID(units[j])] then
+			return true
+		end
+	end
+	return false
+end
+
+-- Uploads the spot's height, and its occupancy if it flipped at flipFrame
+local function updateSpotInstance(spot, flipFrame)
+	local instanceTable = spotInstanceVBO
+	---@cast instanceTable -?
+	local index = instanceTable.instanceIDtoIndex[spot.instanceID] ---@type integer?
+	if index then
+		local offset = (index - 1) * instanceTable.instanceStep
+		local instanceData = instanceTable.instanceData
+		instanceData[offset + 2] = spot.y
+		if flipFrame then
+			instanceData[offset + 5] = spot.occupied and 0 or 1
+			instanceData[offset + 6] = flipFrame
+		end
+		uploadElementRange(instanceTable, index - 1, index)
+	end
+end
+
 local function checkGeothermalspots()
-	local now -- lazily initialized only if occupation changes
 	local gf = spGetGameFrame()
 	for i = 1, numSpots do
 		local spot = spots[i]
-		local sx, sy, sz = spot[1], spot[2], spot[3]
-		local newHeight = spGetGroundHeight(sx, sz)
-		local moved = sy ~= newHeight
-		if moved then
-			spot[2] = newHeight
-			sy = newHeight
-		end
-		local scale = spot[5] or 1
-		local units = spGetUnitsInSphere(sx, sy, sz, 110 * scale)
-		local occupied = false
-		for j = 1, #units do
-			if extractors[spGetUnitDefID(units[j])] then
-				occupied = true
-				break
-			end
-		end
-		local prevOccupied = spot[6] or false
-		local flipped = occupied ~= prevOccupied
-		if flipped then
-			if not now then
-				now = os.clock()
-			end
-			spot[7] = now
-			spot[6] = occupied
-		end
-		if moved or flipped then
-			local curSpotkey = spotKey(sx, sz)
-			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
-			oldinstance[2] = sy
-			if flipped then
-				oldinstance[5] = occupied and 0 or 1
-				oldinstance[6] = gf
-			end
-			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
+		local occupied = isSpotOccupied(spot)
+		if occupied ~= spot.occupied then
+			spot.occupied = occupied
+			numFree = numFree + (occupied and -1 or 1)
+			fadedFrame = gf + fadeFrames
+			updateSpotInstance(spot, gf)
 		end
 	end
-	sceduledCheckedSpotsFrame = gf + 151
+	sceduledCheckedSpotsFrame = gf + pollFrames
 	checkspots = false
-end
-
-function widget:ViewResize()
-	local old_vsx, old_vsy = vsx, vsy
-	vsx, vsy = Spring.GetViewGeometry()
-	if old_vsx ~= vsx or old_vsy ~= vsy then
-		widget:Initialize()
-	end
 end
 
 function widget:Initialize()
@@ -414,7 +372,7 @@ function widget:Initialize()
 		return
 	end
 	checkGeothermalFeatures()
-	if not showGeothermalUnits then
+	if numSpots == 0 then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -441,24 +399,27 @@ function widget:Initialize()
 		return metalViewOnly
 	end
 
-	local currentClock = os.clock()
-	local scale = 1
+	if not spotInstanceVBO then
+		return
+	end
+	numFree = 0
+	fadedFrame = 0
 	for i = 1, numSpots do
 		local spot = spots[i]
-		local sx, sz = spot[1], spot[3]
-
-		local units = spGetUnitsInSphere(sx, spot[2], sz, 115 * scale)
-		local occupied = false
-		for j = 1, #units do
-			if extractors[spGetUnitDefID(units[j])] then
-				occupied = true
-				break
-			end
+		spot.y = spGetGroundHeight(spot.x, spot.z)
+		spot.occupied = isSpotOccupied(spot)
+		if not spot.occupied then
+			numFree = numFree + 1
 		end
-		local y = spGetGroundHeight(sx, sz)
-		spots[i] = { sx, y, sz, 1, scale, occupied, currentClock }
-		pushElementInstance(spotInstanceVBO, { sx, y, sz, scale, occupied and 0 or 1, -1000, 0, 0 }, spotKey(sx, sz))
+		pushElementInstance(
+			spotInstanceVBO,
+			{ spot.x, spot.y, spot.z, 1, spot.occupied and 0 or 1, -1000, 0, 0 },
+			spot.instanceID,
+			nil,
+			true -- noUpload
+		)
 	end
+	InstanceVBOTable.uploadAllElements(spotInstanceVBO)
 end
 
 function widget:Shutdown()
@@ -494,10 +455,26 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
+-- keeps the spot heights current, so rings follow craters and terraforming right away
+function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
+	-- heightmap squares to elmos, one square wider for the interpolated ground height
+	x1, z1, x2, z2 = x1 * 8 - 8, z1 * 8 - 8, x2 * 8 + 8, z2 * 8 + 8
+	for i = 1, numSpots do
+		local spot = spots[i]
+		local x, z = spot.x, spot.z
+		if x >= x1 and x <= x2 and z >= z1 and z <= z2 then
+			local y = spGetGroundHeight(x, z)
+			if y ~= spot.y then
+				spot.y = y
+				updateSpotInstance(spot)
+			end
+		end
+	end
+end
+
 -- Geo vents can be placed and removed at runtime (map editor): rebuild the
--- spots list through Initialize, the same refresh path terrain-height changes
--- already use. Deferred by a frame because a feature is still alive inside
--- its own FeatureDestroyed callin.
+-- spots list through Initialize. Deferred by a frame because a feature is
+-- still alive inside its own FeatureDestroyed callin.
 local geoRebuildFrame = nil
 
 function widget:FeatureCreated(featureID, allyTeamID)
@@ -525,7 +502,7 @@ end
 
 function widget:DrawWorld()
 	-- Draw after water so underwater spots are not distorted by the water shader.
-	if numSpots == 0 then
+	if numFree == 0 and spGetGameFrame() >= fadedFrame then -- every ring has faded out
 		return
 	end
 	if chobbyInterface then

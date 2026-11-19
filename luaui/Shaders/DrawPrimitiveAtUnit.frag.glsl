@@ -12,6 +12,8 @@
 #line 30000
 uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
+uniform float transparency = TRANSPARENCY; // set it to change the opacity without recompiling
+uniform float teamcolorization = TEAMCOLORIZATION; // for POST_SHADING snippets, same idea
 in DataGS {
 	vec4 g_color;
 	vec4 g_uv;
@@ -26,7 +28,7 @@ void main(void)
 	#if (USETEXTURE == 1)
 		texcolor = texture(DrawPrimitiveAtUnitTexture, g_uv.xy);
 	#endif
-	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * TRANSPARENCY + addRadius);
+	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * transparency + addRadius);
 	POST_SHADING
 	//fragColor.rgba = vec4(1.0);
 	#if (DISCARD == 1)

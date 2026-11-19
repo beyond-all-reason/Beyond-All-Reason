@@ -22,6 +22,10 @@ end
 
 local COM_BLAST = WeaponDefNames.commanderexplosion.id
 
+function gadget:Initialize()
+	gadgetHandler:RegisterUnitPreDamagedWeapon(COM_BLAST)
+end
+
 function gadget:UnitPreDamaged(
 	unitID,
 	unitDefID,

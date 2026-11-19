@@ -1,27 +1,29 @@
-local unitI18Nfile = VFS.LoadFile("language/en/units.json")
-local unitI18Nlua = Json.decode(unitI18Nfile)
-local i18nDescriptionEntries = unitI18Nlua.units.descriptions
+-- With a default, a missing key is not logged.
+local function hasEnglishDescription(unitDefName)
+	return BAR.I18N("units.descriptions." .. unitDefName, { locale = "en", default = "" }) ~= ""
+end
 
 local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		local humanName, tooltip
-		local isScavenger = unitDef.customParams.isscavenger
+		local customParams = unitDef.customParams -- the engine builds a new table on every read
+		local isScavenger = customParams.isscavenger
 
 		if isScavenger then
-			local proxyUnitDefName = unitDef.customParams.fromunit
+			local proxyUnitDefName = customParams.fromunit
 			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
 			proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
 
 			local fromUnitHumanName = BAR.I18N("units.names." .. proxyUnitDefName)
 			humanName = BAR.I18N("units.scavenger", { name = fromUnitHumanName })
 
-			if i18nDescriptionEntries[unitDefName] then
+			if hasEnglishDescription(unitDefName) then
 				tooltip = BAR.I18N("units.descriptions." .. unitDefName)
 			else
 				tooltip = BAR.I18N("units.descriptions." .. proxyUnitDefName)
 			end
 		else
-			local proxyUnitDefName = unitDef.customParams.i18nfromunit or unitDefName
+			local proxyUnitDefName = customParams.i18nfromunit or unitDefName
 			humanName = BAR.I18N("units.names." .. proxyUnitDefName)
 			tooltip = BAR.I18N("units.descriptions." .. proxyUnitDefName)
 		end
@@ -32,9 +34,10 @@ local function refreshUnitDefs()
 end
 
 local function setCorpseDescription(unitHumanName, featureDef)
-	if featureDef.customParams.category == "corpses" then
+	local category = featureDef.customParams.category
+	if category == "corpses" then
 		featureDef.translatedDescription = BAR.I18N("units.dead", { name = unitHumanName })
-	elseif featureDef.customParams.category == "heaps" then
+	elseif category == "heaps" then
 		featureDef.translatedDescription = BAR.I18N("units.heap", { name = unitHumanName })
 	end
 end

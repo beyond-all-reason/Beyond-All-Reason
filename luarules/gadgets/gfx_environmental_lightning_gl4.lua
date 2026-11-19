@@ -161,6 +161,11 @@ end
 --   scatterIntensityScale intensity multiplier for sparks
 --   scatterWidthScale     width multiplier for sparks (thickness only)
 --   alwaysVisible     when true, bypasses local LOS filtering (still per-client)
+--
+-- Optional ground scorch at the origin, drawn by the Decals GL4 widget so it follows
+-- the terrain and stays under the unit platters (a CEG billboard does neither):
+--   scorch = { texture = decal atlas path, size = elmos, lifeFrames,
+--              alpha = start alpha (above 1 holds full opacity longer), fadeInFrames }
 --------------------------------------------------------------------------------
 local lightningConfigs = {
 	scavradiation = {
@@ -212,6 +217,45 @@ local lightningConfigs = {
 		-- lightLensflare   = 0.0,
 	},
 
+	zombiestrike = {
+		r = 0.50,
+		g = 0.4,
+		b = 1.00,
+		coreR = 0.88,
+		coreG = 0.78,
+		coreB = 1.00,
+		lifeFrames = 14,
+		intensity = 0.4,
+		feather = 0.4,
+		baseWidth = 3.2,
+		reach = 520,
+		branchCount = 1,
+		childCount = 2,
+		childDecay = 0.5,
+		maxDepth = 3,
+		segments = 10,
+		jitterAmp = 14,
+		glowBrightness = 0.5,
+		vbias = 1.0,
+		spread = 0.9,
+		growFrac = 0.12,
+		flowFrac = 0.05,
+		tipTaper = 0.3,
+		rootTaper = 0.6,
+		sizeVarMin = 0.9,
+		sizeVarMax = 1.1,
+		intensityVar = 0.2,
+		lifeVar = 0.2,
+		maxStrikes = 2,
+		strikeOverlap = 0.3,
+		restrikeChance = 1.0,
+		lightRadius = 520,
+		lightBrightness = 0.14,
+		lightSustainFrac = 0.5,
+		lightColor = { 0.88, 0.5, 1.0 },
+		lightModelFactor = 0.5,
+		lightScattering = 1.0,
+	},
 	junoareastorm = {
 		r = 0.44,
 		g = 0.94,
@@ -400,6 +444,14 @@ local lightningConfigs = {
 		scatterSizeMax = 0.7,
 		scatterIntensityScale = 1.0,
 		scatterWidthScale = 2.0,
+		-- full at the spawn explosion (CEG delay 20), fades out over the last ~40% of its life
+		scorch = {
+			texture = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.tga",
+			size = 160,
+			lifeFrames = 800,
+			alpha = 2.5,
+			fadeInFrames = 20,
+		},
 	},
 }
 
@@ -1694,6 +1746,27 @@ local function handleSpawn(_, configName, x, y, z, sizeScale, intensityScale, ow
 		return
 	end
 	requestLightning(configName, x, y, z, sizeScale, intensityScale)
+
+	local scorch = cfg and cfg.scorch
+	if scorch and Script.LuaUI("AddDecalGL4") then
+		Script.LuaUI.AddDecalGL4(
+			scorch.texture,
+			x,
+			z,
+			mathRandom() * 2 * mathPi,
+			scorch.size,
+			scorch.size,
+			0, -- heatstart
+			1, -- heatdecay
+			scorch.alpha,
+			scorch.alpha / scorch.lifeFrames,
+			1, -- maxalpha
+			0.5, -- bwfactor
+			0, -- glowsustain
+			0, -- glowadd
+			scorch.fadeInFrames * scorch.alpha -- the shader ramps alphastart over this, so this reaches 1 at fadeInFrames
+		)
+	end
 end
 
 function gadget:Initialize()
@@ -1702,6 +1775,18 @@ function gadget:Initialize()
 	end
 	updateViewCache()
 	gadgetHandler:AddSyncAction("envLightningSpawn", handleSpawn)
+	---Spawns a configured lightning effect for this client only, with no line-of-sight check.
+	---@param configName string
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param sizeScale number? Defaults to `1.0`.
+	---@param intensityScale number? Defaults to `1.0`.
+	GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale)
+		if lightningConfigs[configName] then
+			requestLightning(configName, x, y, z, sizeScale or 1.0, intensityScale or 1.0)
+		end
+	end
 end
 
 function gadget:PlayerChanged()
@@ -1710,6 +1795,7 @@ end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("envLightningSpawn")
+	GG.SpawnEnvironmentalLightning = nil
 	cleanupGL4()
 end
 

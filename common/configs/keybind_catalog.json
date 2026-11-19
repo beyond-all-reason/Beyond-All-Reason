@@ -23,23 +23,12 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"movereset",
-			"moverotate",
-			"moveslow",
-			"movetilt",
 			"pastetext",
 			"quitforce",
 			"quitmenu",
 			"quitmessage",
 			"reloadforce",
-			"selectbox_any",
-			"selectbox_append",
-			"selectbox_deselect",
-			"selectbox_mobile",
-			"selectloop_add",
-			"selectloop_invert",
 			"teamstatus_close",
-			"toggle_allied_upgrade",
 			"togglecammode",
 			"togglelos",
 			"toggleoverview",
@@ -100,6 +89,10 @@
 				"label": "actions.massSelect.deselectAll"
 			},
 			{
+				"prefix": "select ",
+				"selection": true
+			},
+			{
 				"action": "selectbox_idle",
 				"label": "actions.selection.boxIdle",
 				"alwaysModifier": "any"
@@ -107,6 +100,26 @@
 			{
 				"action": "selectbox_same",
 				"label": "actions.selection.boxSame",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_append",
+				"label": "actions.selection.boxAppend",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_deselect",
+				"label": "actions.selection.boxDeselect",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_mobile",
+				"label": "actions.selection.boxMobile",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_any",
+				"label": "actions.selection.boxAny",
 				"alwaysModifier": "any"
 			}
 		]
@@ -270,6 +283,11 @@
 				"label": "actions.unitStates.onoffOn"
 			},
 			{
+				"action": "repeat",
+				"label": "actions.unitStates.repeatToggle",
+				"description": "commands.repeat_tooltip"
+			},
+			{
 				"action": "repeat 0",
 				"label": "actions.unitStates.repeatOff",
 				"description": "commands.repeat_tooltip"
@@ -374,6 +392,36 @@
 				"action": "aplandat 1",
 				"label": "actions.unitStates.airPlantExitLand",
 				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "factoryqueuemode",
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 0",
+				"label": "actions.unitStates.factoryModeQueue",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 1",
+				"label": "actions.unitStates.factoryModeQuota",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryguard",
+				"label": "actions.unitStates.factoryGuard",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 0",
+				"label": "actions.unitStates.factoryGuardOff",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 1",
+				"label": "actions.unitStates.factoryGuardOn",
+				"description": "commands.factoryguard_tooltip"
 			}
 		]
 	},
@@ -560,17 +608,9 @@
 				"alwaysModifier": "any"
 			},
 			{
-				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode",
-				"description": "commands.factoryqueuemode_tooltip"
-			},
-			{
-				"prefix": "factoryguard ",
-				"label": "commands.factoryguard",
-				"members": [
-					"0",
-					"1"
-				]
+				"action": "toggle_allied_upgrade",
+				"label": "actions.buildHotkeys.skipAlliedUpgrade",
+				"alwaysModifier": "any"
 			}
 		]
 	},
@@ -698,6 +738,26 @@
 				"alwaysModifier": "any"
 			},
 			{
+				"action": "moveslow",
+				"label": "actions.camera.moveSlow",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movetilt",
+				"label": "actions.camera.tilt",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moverotate",
+				"label": "actions.camera.rotate",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movereset",
+				"label": "actions.camera.zoomReset",
+				"alwaysModifier": "any"
+			},
+			{
 				"prefix": "set_camera_anchor ",
 				"label": "actions.camera.setAnchor",
 				"members": [
@@ -728,18 +788,6 @@
 			{
 				"action": "cycleselected prev",
 				"label": "actions.camera.cycleSelectedPrev"
-			},
-			{
-				"action": "pip1_switch",
-				"label": "actions.camera.pipSwitch"
-			},
-			{
-				"action": "pip1_copy",
-				"label": "actions.camera.pipCopy"
-			},
-			{
-				"action": "pip1_track",
-				"label": "actions.camera.pipTrack"
 			},
 			{
 				"action": "pip_replay",
@@ -920,65 +968,6 @@
 				"label": "actions.keybindProfiles.activate",
 				"description": "actions.keybindProfiles.activateDescription",
 				"membersFrom": "profiles"
-			}
-		]
-	},
-	{
-		"category": "categories.other",
-		"items": [
-			{
-				"action": "selectloop",
-				"label": "actions.selection.loopActivate",
-				"alwaysModifier": "any"
-			},
-			{
-				"prefix": "factory_preset load ",
-				"label": "actions.factory.loadPreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"prefix": "factory_preset save ",
-				"label": "actions.factory.savePreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"action": "factory_preset_show",
-				"label": "actions.factory.showPresets",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "factory_preset_toggle",
-				"label": "actions.factory.togglePresets"
-			},
-			{
-				"action": "fov_inc 5",
-				"label": "actions.camera.fovIncrease"
-			},
-			{
-				"action": "fov_dec 5",
-				"label": "actions.camera.fovDecrease"
 			}
 		]
 	}

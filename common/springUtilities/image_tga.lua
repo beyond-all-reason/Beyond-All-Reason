@@ -7,6 +7,9 @@
 -- origin is bottom left by default
 -- Author: Beherith, 20210421
 ------------------------------------------------------------------
+local strbyte = string.byte
+local ROW_CHUNK = 4096 -- string.byte returns its bytes on the Lua stack, so long rows are read in pieces
+
 local function loadTGA(fileName) -- returns texture | nil, error on failure
 	local file = VFS.LoadFile(fileName)
 
@@ -40,23 +43,25 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 
 	--Spring.Echo("Trying to load",fileName,string.len(data), texture.width, texture.height, texture.channels)
 	local offset = 0
-	local channels = texture.channels
+	local rowLength = texture.width * texture.channels --[[@as integer]]
 	for j = 1, texture.height do
-		local line = {}
-		local lineIdx = 0
-		for i = 1, texture.width do
-			for k = 1, channels do
-				offset = offset + 1
-				local val = VFS.UnpackU8(data, offset)
-				if val and val >= 0 and val < 256 then
-				else
-					--Spring.Echo("LoadTGA failed to parse",j,i,k,val,offset)
-					val = 0
+		local line
+		if rowLength <= ROW_CHUNK then
+			line = { strbyte(data, offset + 1, offset + rowLength) }
+		else
+			line = {}
+			for first = 1, rowLength, ROW_CHUNK do
+				local last = first + ROW_CHUNK - 1
+				if last > rowLength then
+					last = rowLength
 				end
-				lineIdx = lineIdx + 1
-				line[lineIdx] = val
+				local chunk = { strbyte(data, offset + first, offset + last) }
+				for k = 1, #chunk do
+					line[first + k - 1] = chunk[k]
+				end
 			end
 		end
+		offset = offset + rowLength
 		texture[j] = line
 	end
 	return texture
@@ -78,10 +83,16 @@ local function saveTGA(texture, fileName) --return nil | error on failure
 	local header = VFS.PackU16(0, datatype, 0, 0, 0, 0, texture.width, texture.height, 8 * texture.channels)
 	file:write(header)
 
+	local rowLength = texture.width * texture.channels
 	for j = 1, texture.height do
-		for i = 1, texture.width do
-			for k = 1, texture.channels do
-				file:write(VFS.PackU8(texture[j][(i - 1) * texture.channels + k]))
+		local row = texture[j]
+		-- a table packs its leading run of numbers in one call; holes or extra values take the per-byte path
+		local packed = VFS.PackU8(row)
+		if packed and #packed == rowLength then
+			file:write(packed)
+		else
+			for i = 1, rowLength do
+				file:write(VFS.PackU8(row[i]))
 			end
 		end
 	end

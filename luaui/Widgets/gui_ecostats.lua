@@ -207,9 +207,6 @@ local function getTeamSums(allyIndex)
 end
 
 local function isTeamRealUncached(allyID)
-	if allyID == nil then
-		return false
-	end
 	local leaderID, isDead, unitCount, leaderName
 	for _, tID in ipairs(spGetTeamList(allyID)) do
 		_, leaderID, isDead = spGetTeamInfo(tID, false)
@@ -238,6 +235,9 @@ local function refreshIsTeamRealCache()
 end
 
 local function isTeamReal(allyID)
+	if allyID == nil then
+		return false
+	end
 	local cached = eco.isTeamRealCache[allyID]
 	if cached ~= nil then
 		return cached
@@ -796,7 +796,7 @@ local function makeTeamCompositionList()
 		end
 		uiBgTex = gl.CreateTexture(texWidth, texHeight, {
 			target = GL.TEXTURE_2D,
-			format = GL.ALPHA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		if uiTex then
@@ -804,7 +804,7 @@ local function makeTeamCompositionList()
 		end
 		uiTex = gl.CreateTexture(texWidth, texHeight, {
 			target = GL.TEXTURE_2D,
-			format = GL.ALPHA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 	end

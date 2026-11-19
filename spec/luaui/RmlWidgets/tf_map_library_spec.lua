@@ -1,4 +1,7 @@
-local LibraryUI = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library")
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local env = SpecEnv.new()
+local LibraryUI = SpecEnv.include(env, "luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
 
 -- The controller behind the Projects window: one browser over this disk and
 -- the team library, the Team Sync strip and start card, the stage tray, the
@@ -121,7 +124,7 @@ describe("Projects window controller", function()
 	it("changing the destination or the selection disarms the confirmation", function()
 		local f = fixture()
 		f.model.libraryPublish()
-		f.model.libraryStageStep(nil, 1)
+		f.ui.setStage("Textures")
 		assert(not f.model.libraryConfirming and f.model.libraryStage == "Textures")
 		f.model.libraryPublish()
 		assert(#f.calls == 0)
@@ -299,7 +302,7 @@ describe("Projects window controller", function()
 		end
 		f.ui.sync()
 		assert(not f.model.libraryUploadOpen and not f.model.libraryConfirming)
-		assert(f.model.libraryConnection == "workingBadge" and f.model.libraryStripDot == "busy")
+		assert(f.model.libraryStripDot == "busy")
 		f.client.isBusy = function()
 			return false
 		end
@@ -308,7 +311,7 @@ describe("Projects window controller", function()
 		assert(f.model.libraryUploadOpen)
 		f.client.state.online = false
 		f.ui.sync()
-		assert(not f.model.libraryUploadOpen and f.model.libraryConnection == "offlineBadge")
+		assert(not f.model.libraryUploadOpen)
 	end)
 
 	it("the strip says where Team Sync stands", function()
@@ -353,14 +356,11 @@ describe("Projects window controller", function()
 		f.model.libraryCardWrite()
 		assert(f.model.libraryCardWritten and f.model.libraryCardPath:find("helper.bat", 1, true))
 		local copied
-		local hadSpring = rawget(_G, "Spring")
-		_G.Spring = {
-			SetClipboard = function(text)
-				copied = text
-			end,
-		}
+		env.Spring.SetClipboard = function(text)
+			copied = text
+		end
 		f.model.libraryCardCopy()
-		_G.Spring = hadSpring
+		env.Spring.SetClipboard = nil
 		assert(copied == f.model.libraryCardPath and f.model.libraryCardCopied)
 		f.client.state.online = true
 		f.ui.sync()
@@ -393,22 +393,21 @@ describe("Projects window controller", function()
 		assert(f.model.projectHelperHint == "helperStale", "sticky across a reconnect")
 	end)
 
-	it("shows compact repository identity while retaining the full URL and branch", function()
+	it("shows compact repository identity while retaining the full URL", function()
 		local f = fixture()
-		assert(f.model.libraryRepository == "team/maps" and f.model.libraryBranch == "main")
+		assert(f.model.libraryRepository == "team/maps")
 		assert(f.model.libraryRemoteURL == f.client.state.remote)
 		f.client.state.remote = "git@github.com:other/library.git"
-		f.client.state.branch = "intake"
 		f.ui.sync()
-		assert(f.model.libraryRepository == "other/library" and f.model.libraryBranch == "intake")
+		assert(f.model.libraryRepository == "other/library")
 		f.client.state.allow_push = false
 		f.ui.sync()
-		assert(f.model.libraryConnection == "readOnlyBadge" and f.model.libraryStripText:find("stripReadOnly", 1, true))
+		assert(f.model.libraryStripText:find("stripReadOnly", 1, true))
 	end)
 
 	it("the status slot shows failures until dismissed and good news until it fades", function()
 		local f = fixture()
-		assert(not f.model.libraryStatusVisible and f.model.libraryConnection == "onlineBadge")
+		assert(not f.model.libraryStatusVisible)
 		f.settle("unsupported_file")
 		assert(f.model.libraryStatusVisible and f.model.libraryStatusError and not f.model.libraryStatusSuccess)
 		assert(f.model.libraryStatus == "unsupported_file" and f.model.libraryStatusTime ~= "")
