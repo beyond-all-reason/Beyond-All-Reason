@@ -98,8 +98,8 @@ local spawnableTypes = {
 
 local clusterWeaponDefs = {}
 
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	for _, weapon in pairs(unitDef.weapons) do
+for _, unitDef in ipairs(UnitDefs) do
+	for _, weapon in ipairs(unitDef.weapons) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
 		local clusterDefName = weaponDef.customParams.cluster_def
 
@@ -211,7 +211,8 @@ local function getUnitBulk(unitDef)
 		fromMetal = max(fromMetal, sqrt(unitDef.moveDef.crushStrength))
 	end
 
-	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
+	local fromHealthAndMetal = fromHealth + fromMetal + sqrt(fromHealth * fromMetal)
+	local bulkiness = fromHealthAndMetal + min(fromVolume, fromHealthAndMetal * 3)
 	bulkiness = clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
 	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 
@@ -276,7 +277,7 @@ local projectiles = setmetatable({
 	[-1] = false, -- beam weapons use projectileID -1
 }, {
 	__index = function(tbl, key)
-		return clusterWeaponDefs[spGetProjectileDefID(key)]
+		return clusterWeaponDefs[spGetProjectileDefID(key)] ~= nil
 	end,
 })
 
@@ -425,6 +426,9 @@ end
 
 local function inheritMomentum(projectileID)
 	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
+	if not vx then
+		return 0, 0, 0 -- Death explosions have no projectile.
+	end
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
 	local scale = 0.5 / max(vw or 0, 1)
 	return vx * scale, vy * scale, vz * scale
@@ -468,6 +472,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	params.owner = attackerID or -1
 	params.team = attackerTeam
 	params.ttl = data.weaponTtl
+
 	local speed = params.speed
 	local position = params.pos
 
@@ -517,10 +522,7 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
+	spawnClusterProjectiles(clusterWeaponDefs[weaponDefID], x, y, z, attackerID, projectileID)
 end
 
 function gadget:GameFramePost(frame)
@@ -563,8 +565,11 @@ function gadget:Initialize()
 		return
 	end
 
-	for weaponDefID in pairs(clusterWeaponDefs) do
-		Script.SetWatchExplosion(weaponDefID, true)
+	-- Submunitions take their damage scaling from the parent weapon:
+	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
+	for weaponDefID, data in pairs(clusterWeaponDefs) do
+		gadgetHandler:RegisterExplosion(weaponDefID)
+		setWeaponDefParent(data.weaponID, weaponDefID)
 	end
 
 	if not GG.Shields then

@@ -127,7 +127,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 1,
 				range = 211,
-				reloadtime = 2.1,
+				reloadtime = 1.2,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
@@ -142,8 +142,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 700,
 				damage = {
-					default = 15,
-					vtol = 6,
+					default = 10,
+					vtol = 4,
 				},
 			},
 			gauss = {
@@ -154,6 +154,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impactonly = 1,
 				impulsefactor = 0.123,
 				name = "Close-quarters g2g gauss-cannon",

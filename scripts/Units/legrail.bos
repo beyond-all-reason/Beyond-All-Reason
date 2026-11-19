@@ -3,13 +3,11 @@
 
 piece  base, btrack, fltrack, frtrack, aimpoint, armor, turret, sleeve, lrail, rrail, flare;
 
-static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, oldheading;
+static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, oldheading, Stunned;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_AIM1	2
-#define SIGNAL_AIM2	2
-#define SIGNAL_IDLE 8 
+#define SIGNAL_IDLE 8
 #define SIGNAL_SHOOT1 16
 
 #define BASEPIECE base
@@ -20,15 +18,14 @@ static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, old
 #define RECOIL_POWER 90000
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
+#define TB_BASE base
+#define TB_TURNRATE <15.0>
 #define TB_TILT_X <0.15>
 #define TB_BANK_Z <0.10> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 Create()
 {
-	//hide flare;
 	restore_delay = 3000;
 	shotcount = 0;
 	wpn1_lasthead = 1000000;
@@ -47,7 +44,7 @@ Steering(heading, steery, currentSpeed)
 	{
 		heading = get HEADING;
 		steery = (heading - oldheading)*2;
-		
+
 		turn fltrack to y-axis steery speed <120>;
 		turn frtrack to y-axis steery speed <120>;
 
@@ -78,10 +75,9 @@ ResetAiming()
 	aiming = 0;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	restore_delay = reloadMS * 2;
 }
 // End of Magic
 
@@ -98,12 +94,11 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	fired1 = 0;
 	fired2 = 0;
 	turn turret to y-axis <0> speed <50>;
@@ -113,9 +108,9 @@ ExecuteRestoreAfterDelay()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 
@@ -126,14 +121,14 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	start-script ResetAiming();
 	if (heading < <105> AND heading > <-105>){
 		turn turret to y-axis heading speed <120>;
-		turn sleeve to x-axis <0.000000> - pitch speed <120>;
+		turn sleeve to x-axis <0.0> - pitch speed <120>;
 		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 		{
 			wpn1_lasthead = 1000000;
@@ -150,7 +145,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -159,7 +154,7 @@ AimSecondary(heading, pitch)
 		return (0);
 	}
 	turn turret to y-axis heading speed <120>;
-	turn sleeve to x-axis <0.000000> - pitch speed <120>;
+	turn sleeve to x-axis <0.0> - pitch speed <120>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
@@ -175,40 +170,40 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	start-script ResetFire();
 	++shotcount;
- 	emit-sfx 1024 + 0 from flare;
+	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
-	
- 	move lrail to z-axis [-4] now;
- 	move rrail to z-axis [-4] now;
- 	move lrail to x-axis [-1] now;
- 	move rrail to x-axis [1] now;
+
+	move lrail to z-axis [-4] now;
+	move rrail to z-axis [-4] now;
+	move lrail to x-axis [-1] now;
+	move rrail to x-axis [1] now;
 	sleep 300;
- 	move lrail to z-axis [0] speed [2.5];
- 	move rrail to z-axis [0] speed [2.5];
- 	move lrail to x-axis [0] speed [2.5];
- 	move rrail to x-axis [0] speed [2.5];
+	move lrail to z-axis [0] speed [2.5];
+	move rrail to z-axis [0] speed [2.5];
+	move lrail to x-axis [0] speed [2.5];
+	move rrail to x-axis [0] speed [2.5];
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	start-script ResetFire();
 	++shotcount;
- 	emit-sfx 1024 + 0 from flare;
+	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
-	
- 	move lrail to z-axis [-6] now;
- 	move rrail to z-axis [-6] now;
- 	move lrail to x-axis [-1] now;
- 	move rrail to x-axis [1] now;
+
+	move lrail to z-axis [-6] now;
+	move rrail to z-axis [-6] now;
+	move lrail to x-axis [-1] now;
+	move rrail to x-axis [1] now;
 	sleep 300;
- 	move lrail to z-axis [0] speed [2.5];
- 	move rrail to z-axis [0] speed [2.5];
- 	move lrail to x-axis [0] speed [2.5];
- 	move rrail to x-axis [0] speed [2.5];
+	move lrail to z-axis [0] speed [2.5];
+	move rrail to z-axis [0] speed [2.5];
+	move lrail to x-axis [0] speed [2.5];
+	move rrail to x-axis [0] speed [2.5];
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -216,29 +211,24 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flare;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

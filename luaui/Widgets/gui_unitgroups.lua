@@ -64,7 +64,12 @@ local usedHeight = 0
 local uiTexWidth = 1
 local hovered = false
 local numGroups = 0
+local tip = { content = nil, groups = false, auto = false } -- the tooltip, made when first hovered
 local selectedUnits = Spring.GetSelectedUnits() or {}
+
+function widget:LanguageChanged()
+	tip.content = nil -- (made again in the new language)
+end
 local selectionHasChanged = true
 local selectedGroups = {}
 local doUpdate = true
@@ -603,7 +608,7 @@ local function updateList()
 		if not uiBgTex then
 			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4] - backgroundRect[2]), {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 			gl.R2tHelper.RenderInRect(
@@ -619,7 +624,7 @@ local function updateList()
 		if not uiTex then
 			uiTex = gl.CreateTexture(mathFloor(uiTexWidth) * 2, mathFloor(backgroundRect[4] - backgroundRect[2]) * 2, {
 				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
+				format = GL.RGBA8,
 				fbo = true,
 			})
 		end
@@ -711,24 +716,32 @@ function widget:Update(dt)
 		and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])
 	then
 		hovered = true
-		local tooltipAddition = ""
-		if numGroups >= 1 then
-			tooltipAddition = tooltipAddition
-				.. BAR.I18N("ui.unitGroups.shiftclick")
-				.. "\n"
-				.. BAR.I18N("ui.unitGroups.ctrlclick")
-				.. "\n"
-				.. BAR.I18N("ui.unitGroups.rightclick")
-		end
-		tooltipAddition = tooltipAddition .. (tooltipAddition ~= "" and "\n" or "") .. BAR.I18N("ui.unitGroups.tooltip")
-		if WG.autogroup ~= nil then
-			tooltipAddition = tooltipAddition
-				.. (tooltipAddition ~= "" and "\n\n" or "")
-				.. "\255\200\255\200"
-				.. BAR.I18N("ui.unitGroups.autogroupTooltip")
+		-- its shortcuts as a table (what, then its keys in the brighter column), as Unit Groups FlowUI2's: the clicks
+		-- while there are groups to click, Auto Group's while it runs (what it does in the note under them)
+		local hasGroups, auto = numGroups >= 1, WG.autogroup ~= nil
+		if not tip.content or tip.groups ~= hasGroups or tip.auto ~= auto then
+			local rows = {}
+			local function row(action, keys)
+				rows[#rows + 1] =
+					{ BAR.I18N("ui.unitGroups.shortcuts." .. action), BAR.I18N("ui.unitGroups.keys." .. keys) }
+			end
+			if hasGroups then
+				row("select", "click")
+				row("add", "shiftClick")
+				row("subtract", "ctrlClick")
+				row("view", "rightClick")
+			end
+			row("set", "ctrlNumber")
+			row("remove", "ctrlTilde")
+			if auto then
+				row("autoSet", "altNumber")
+				row("autoRemove", "altTilde")
+			end
+			tip.content = { rows = rows, note = auto and BAR.I18N("ui.unitGroups.shortcuts.autoNote") or nil }
+			tip.groups, tip.auto = hasGroups, auto
 		end
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip("unitgroups", tooltipAddition, nil, nil, BAR.I18N("ui.unitGroups.name"))
+			WG.tooltip.ShowTooltip("unitgroups", tip.content, nil, nil, BAR.I18N("ui.unitGroups.name"))
 		end
 		Spring.SetMouseCursor("cursornormal")
 		if b then

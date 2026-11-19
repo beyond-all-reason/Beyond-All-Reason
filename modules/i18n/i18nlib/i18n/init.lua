@@ -105,11 +105,53 @@ local function recursiveLoad(currentContext, data)
 	end
 end
 
-local function localizedTranslate(key, locale, data)
-	local path, length = dotSplit(locale .. "." .. key)
-	local node = store
+-- Keys and locales are split once; the cap only matters if a caller builds keys from unbounded input
+local splitCache, splitCacheSize = {}, 0
+local SPLIT_CACHE_MAX = 20000
 
-	for i = 1, length do
+local function cachedDotSplit(str)
+	local fields = splitCache[str]
+	if not fields then
+		if splitCacheSize >= SPLIT_CACHE_MAX then
+			splitCache, splitCacheSize = {}, 0
+		end
+		fields = dotSplit(str)
+		splitCache[str] = fields
+		splitCacheSize = splitCacheSize + 1
+	end
+	return fields
+end
+
+-- variants.fallbacks lists, by fallback locale then locale; read only
+local fallbacksCache = {}
+
+local function getFallbacks(usedLocale)
+	local byLocale = fallbacksCache[fallbackLocale]
+	if not byLocale then
+		byLocale = {}
+		fallbacksCache[fallbackLocale] = byLocale
+	end
+	local fallbacks = byLocale[usedLocale]
+	if not fallbacks then
+		fallbacks = variants.fallbacks(usedLocale, fallbackLocale)
+		byLocale[usedLocale] = fallbacks
+	end
+	return fallbacks
+end
+
+-- walks the same path as dotSplit(locale .. "." .. key)
+local function localizedTranslate(key, locale, data)
+	local node = store
+	local path = cachedDotSplit(locale)
+	for i = 1, #path do
+		node = node[path[i]]
+		if not node then
+			return nil
+		end
+	end
+
+	path = cachedDotSplit(key)
+	for i = 1, #path do
 		node = node[path[i]]
 		if not node then
 			return nil
@@ -139,21 +181,27 @@ function i18n.set(key, value)
 end
 
 local missingTranslations = {}
-function i18n.translate(key, data)
-	assertPresent("translate", "key", key)
+local emptyData = {} -- never written to
+local UNIT_NAMES_PREFIX = "units.names."
+local UNIT_NAMES_PREFIX_LENGTH = #UNIT_NAMES_PREFIX
 
-	data = data or {}
+function i18n.translate(key, data)
+	if type(key) ~= "string" or #key == 0 then
+		assertPresent("translate", "key", key)
+	end
+
+	data = data or emptyData
 	local usedLocale = data.locale or locale
 
 	-- if user elected to use English unit names, force `en` locale when translating a unit name
 	if
-		(Spring.GetConfigInt("language_english_unit_names", 1) == 1)
-		and key:sub(1, #"units.names.") == "units.names."
+		key:sub(1, UNIT_NAMES_PREFIX_LENGTH) == UNIT_NAMES_PREFIX
+		and Spring.GetConfigInt("language_english_unit_names", 1) == 1
 	then
 		usedLocale = "en"
 	end
 
-	local fallbacks = variants.fallbacks(usedLocale, fallbackLocale)
+	local fallbacks = getFallbacks(usedLocale)
 	for i = 1, #fallbacks do
 		local fallback = fallbacks[i]
 		local value = localizedTranslate(key, fallback, data)

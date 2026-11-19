@@ -8,7 +8,6 @@ static-var  gun_3, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, is
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_MOVE 1
 #define SIGNAL_AIM3 1024
 
 
@@ -160,29 +159,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 5;
 }
 
-
-
-AimFromWeapon1(pieceIndex)
-{
-	pieceIndex = head;
-}
-
-QueryWeapon1(pieceIndex)
-{
-	pieceIndex = rflare + gun_3;
-}
-
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = head;
-	return (0);
-}
-
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = rflare + gun_3;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -190,7 +166,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aimy1 to y-axis <0.0> speed <90.0>;
-	turn aimx1 to x-axis <0.000000> speed <90.000000>;
+	turn aimx1 to x-axis <0.0> speed <90.0>;
 	wpn2_lasthead = 0xbadface;
 }
 SetStunned(State)
@@ -207,11 +183,11 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimWeapon2(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	turn aimy1 to y-axis heading speed <225.0>;
-	turn aimx1 to x-axis  <0.000000> - pitch speed <225.000000>;
+	turn aimx1 to x-axis <0.0> - pitch speed <225.0>;
 	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
 		wpn2_lasthead = 0xbadface;
@@ -222,7 +198,7 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-FireWeapon2()
+FireWeapon1()
 {
 	if( gun_3 )
 	{
@@ -237,6 +213,17 @@ FireWeapon2()
 		move rbarrel to z-axis [0.0] speed [7.500000];
 	}
 	gun_3 = !gun_3;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = head;
+	return (0);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = rflare + gun_3;
 }
 
 Killed(severity, corpsetype)

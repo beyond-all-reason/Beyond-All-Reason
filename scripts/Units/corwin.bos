@@ -32,7 +32,7 @@ Create()
 	WindSpeed = 800;
 	WindDirection = 0;
 	LastDirection = 0;
-	Built = 0;	
+	Built = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	Built = 1;
 	call-script Go();

@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "Dec 9th 2017",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 	local numcegtospawn = #cegtospawn
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterProjectile(Game.anyID)
 		Script.SetWatchExplosion(-1, true) -- well that doesn't register anything!
 	end
 

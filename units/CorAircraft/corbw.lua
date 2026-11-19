@@ -2,7 +2,7 @@ return {
 	corbw = {
 		blocking = false,
 		buildpic = "CORBW.DDS",
-		buildtime = 2070,
+		buildtime = 2100,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
@@ -25,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 430,
-		speed = 280.5,
+		speed = 270,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,
 		upright = true,

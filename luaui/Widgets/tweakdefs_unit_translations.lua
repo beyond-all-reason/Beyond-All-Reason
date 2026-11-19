@@ -14,29 +14,41 @@ end
 
 local function updateTranslations()
 	local currentLanguage = Spring.GetConfigString("language", "en")
+	-- English too: unit names are looked up in English when language_english_unit_names is on,
+	-- and English is the fallback for missing keys
+	local languages = currentLanguage == "en" and { "en" } or { currentLanguage, "en" }
+	local anySet = false
 
 	for unitDefName, unitDef in pairs(UnitDefNames) do
-		--Naming convention for language overrides
-		local nameKey = "i18n_" .. currentLanguage .. "_humanname"
-		local tooltipKey = "i18n_" .. currentLanguage .. "_tooltip"
+		local customParams = unitDef.customParams -- the engine builds a new table on every read
+		for _, language in ipairs(languages) do
+			--Naming convention for language overrides
+			local customHumanName = customParams["i18n_" .. language .. "_humanname"]
+			local customTooltip = customParams["i18n_" .. language .. "_tooltip"]
 
-		local customHumanName = unitDef.customParams[nameKey]
-		local customTooltip = unitDef.customParams[tooltipKey]
+			if customHumanName then
+				BAR.I18N.set(language .. ".units.names." .. unitDefName, customHumanName)
+				anySet = true
+			end
 
-		if customHumanName then
-			BAR.I18N.set(currentLanguage .. ".units.names." .. unitDefName, customHumanName)
-		end
-
-		if customTooltip then
-			BAR.I18N.set(currentLanguage .. ".units.descriptions." .. unitDefName, customTooltip)
+			if customTooltip then
+				BAR.I18N.set(language .. ".units.descriptions." .. unitDefName, customTooltip)
+				anySet = true
+			end
 		end
 	end
+
+	return anySet
 end
 
 function widget:Initialize()
-	updateTranslations()
+	-- setupdefs.lua translated the defs before these overrides were set
+	if updateTranslations() then
+		require("luaui/i18nhelpers").RefreshDefs()
+	end
 end
 
 function widget:LanguageChanged()
+	-- gui_language refreshes the defs after this
 	updateTranslations()
 end

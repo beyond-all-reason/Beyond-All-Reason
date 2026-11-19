@@ -31,6 +31,7 @@ return {
 		sightdistance = 273,
 		yardmap = "yoooyoooooooooooooooyoooy",
 		customparams = {
+			deactivate_time = 8,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legsolar_aoplane.dds",
 			buildinggrounddecalsizey = 8,

@@ -40,6 +40,7 @@
 ---@field GetRaptorTeamID fun(): integer?
 ---@field GetScavTeamID fun(): integer?
 ---@field GetRaptorAllyTeamID fun(): integer?
+---@field CanTeamReceiveUnits fun(teamID: integer, unitCount: integer): boolean
 ---@field IsDevMode fun(): boolean
 ---@field ShowDevUI fun(): boolean
 ---@field IsDevModeCached fun(): boolean
@@ -48,6 +49,8 @@
 ---@field Color UtilitiesColor
 ---@field ConvertColor fun(r: number, g: number, b: number): string
 ---@field GetAccountID fun(playerID: number): number
+---@field GetObjectPosition fun(objectID: integer): number?, number?, number?
+---@field GetObjectCentroid fun(objects: integer[], getPosition: fun(objectID: integer): number?, number?, number?): number, number
 
 ---@type Utilities
 Utilities = {}

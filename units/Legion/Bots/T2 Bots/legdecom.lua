@@ -72,13 +72,14 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
+			maxrange = 300,
 			unitgroup = "buildert2",
 			canwearcosmetics = true,
 			decoyfor = "legcom",
 			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			reaimtime = 5,
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
@@ -292,6 +293,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "legcomlaser",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

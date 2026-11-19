@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 
 piece  flare1, base, wing1, wing2, thrusta, thrustb, thrustc, bomb1;
-static-var inAileronRoll, active;
+static-var inAileronRoll, activateFrame;
 
 
 #define BASEPIECE base
@@ -12,13 +12,13 @@ static-var inAileronRoll, active;
 #define MAXTILT 100
 
 MoveRate1() {
-	active = get(GAME_FRAME);
+	activateFrame = get(GAME_FRAME);
 }
 
 
 MoveRate2()
 {
-	active = get(GAME_FRAME);
+	activateFrame = get(GAME_FRAME);
 	if( Rand( 1, 10 ) == 1 AND ( !inAileronRoll ) )
 	{
 		inAileronRoll = 1;
@@ -37,7 +37,7 @@ Create()
 	hide thrusta;
 	hide thrustb;
 	hide flare1;
-	active = 0;
+	activateFrame = -1;
 	inAileronRoll = 0;
 }
 
@@ -48,7 +48,7 @@ ReloadBomb() {
 
 Activate()
 {
-	active = get(GAME_FRAME);
+	activateFrame = get(GAME_FRAME);
 	show thrustc;
 	show thrusta;
 	show thrustb;
@@ -62,7 +62,7 @@ Activate()
 
 Deactivate()
 {
-	active = 0;
+	activateFrame = -1;
 	hide thrustc;
 	hide thrusta;
 	hide thrustb;
@@ -82,7 +82,7 @@ FireWeapon1()
 
 AimWeapon1()
 {
-	if (active < (get(GAME_FRAME) - 60)) {
+	if ((activateFrame >= 0) AND (activateFrame < (get(GAME_FRAME) - 60))) {
 		return (1);//only shoot if we've been flying for more than a second
 	} else {
 		return (0);

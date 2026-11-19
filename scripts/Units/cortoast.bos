@@ -1,14 +1,15 @@
 
-
 #include "../recoil_common_includes.h"
 #include "smart_weapon_select.h"
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, stunned, trajectoryMode, lastHeading, cardinalHeading;
+static-var  restoreDelay, stunned, trajectoryMode, lastHeading, cardinalHeading;
 #define SIGNAL_AIM			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
+
+#include "../popup_openclose.h"
 
 openTurret()
 {
@@ -20,105 +21,95 @@ openTurret()
 	move door1 to y-axis [0] speed [17];
 	move door2 to y-axis [0] speed [17];
 	move turret to y-axis [0] speed [17];
-	sleep 700;
+	wait-for-move door1 along y-axis;
 
 	move bore to z-axis [0] speed [12];
 	move barrel to z-axis [0] speed [18];
-	sleep 316;
+	wait-for-move bore along z-axis;
 
-	sleep 10;
+	wait-for-move barrel along z-axis;
 	return (0);
 }
 
 closeTurret()
-{ 
-    if (lastHeading <= <-135.000000>)
-    {
-        cardinalHeading = <180.000000>;
-    }
-    else if (lastHeading <= <-45.000000>)
-    {
-        cardinalHeading = <270.000000>;
-    }
-    else if (lastHeading <= <45.000000>)
-    {
-        cardinalHeading = <0.000000>;
-    }
-    else if (lastHeading <= <135.000000>)
-    {
-        cardinalHeading = <90.000000>;
-    }
-    else
-    {
-        cardinalHeading = <180.000000>;
-    }
+{
+	if (lastHeading <= <-135.0>)
+	{
+		cardinalHeading = <180.0>;
+	}
+	else if (lastHeading <= <-45.0>)
+	{
+		cardinalHeading = <270.0>;
+	}
+	else if (lastHeading <= <45.0>)
+	{
+		cardinalHeading = <0.0>;
+	}
+	else if (lastHeading <= <135.0>)
+	{
+		cardinalHeading = <90.0>;
+	}
+	else
+	{
+		cardinalHeading = <180.0>;
+	}
 
 	turn turret to y-axis <0> speed <100>;
 	move bore to z-axis [-6] speed [12];
 	move barrel to z-axis [-9] speed [18];
-	sleep 316;
+	wait-for-move bore along z-axis;
 
 	move door1 to y-axis [17] speed [17];
 	move door2 to y-axis [17] speed [17];
 	move turret to y-axis [-17] speed [17];
-	sleep 700;
+	wait-for-move door1 along y-axis;
 
 	turn door1 to z-axis <-90> speed <300>;
 	turn door2 to z-axis <90> speed <300>;
 	wait-for-turn door1 around z-axis;
-	sleep 100;
 	turn turret to y-axis cardinalHeading speed <100>;
-	sleep 10;
-	return (0);;
+	wait-for-turn turret around y-axis;
 }
 
-Go()
+OpenAnim()
 {
-	if( !turretOpen )
-	{
-		call-script openTurret();
-	}
-	turretOpen = 1;
+	call-script openTurret();
 	set ARMORED to 0;
-	return (0);
 }
 
-Stop()
+CloseAnim()
 {
 	set ARMORED to 1;
-	turretOpen = 0;
 	call-script closeTurret();
-	return (0);
 }
 
 
 ExecuteRestoreAfterDelay()
 {
-    if (stunned)
+	if (stunned)
 	{
-        return (1);
-    }
+		return (1);
+	}
 
-	set-signal-mask 0;
 	turn turret to y-axis <0.0> speed <100.016484>;
 	turn turret to x-axis <0.0> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	
-	start-script Stop();
+	start-script RequestClose();
 }
 
 SetStunned(State)
 {
-    stunned = State;
+	stunned = State;
 	if (!stunned)
 	{
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM2;
 	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -128,15 +119,14 @@ Create()
 	hide aimpoint;
 	hide flare;
 	hide flare;
-	turretOpen = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restoreDelay = 10000;
 
 	SLEEP_UNTIL_UNITFINISHED;
 
 	start-script RestoreAfterDelay();
-	return (0);
 }
-
 
 #define BASEPIECE base
 #define MAXTILT 0
@@ -144,7 +134,7 @@ Create()
 
 aimCommon(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -162,11 +152,10 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	start-script Go();
+	start-script RequestOpen();
 
-
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -178,7 +167,7 @@ AimWeapon1(heading, pitch)
 	{
 		return(0);
 	}
-	
+
 	return (1);
 }
 
@@ -189,10 +178,10 @@ AimWeapon2(heading, pitch)
 		return(0);
 	}
 
-	start-script Go();
+	start-script RequestOpen();
 
-	signal SIGNAL_AIM;
-	set-signal-mask SIGNAL_AIM;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
@@ -208,9 +197,24 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimWeapon3(heading, pitch)
+AimWeapon3(pieceIndex)
 {
 	return (0);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 fireCommon()
@@ -262,11 +266,11 @@ QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
 }
+
 QueryWeapon3(pieceIndex)
 {
 	pieceIndex = turretmidpoint;
 }
-
 
 
 Killed(severity, corpsetype)

@@ -513,11 +513,13 @@ local function scavUnitDef_Post(name, uDef)
 	if name == "coraca_scav" or name == "corack_scav" or name == "coracv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corapt3_scav" -- T3 Aircraft Gantry
-		uDef.buildoptions[numBuildoptions + 2] = "corminibuzz_scav" -- Mini Calamity
+		uDef.buildoptions[numBuildoptions + 2] = "corobligator_scav" -- Obligator
 		uDef.buildoptions[numBuildoptions + 3] = "corhllllt_scav" -- Quad Guard - Quad Light Laser Turret
 		uDef.buildoptions[numBuildoptions + 4] = "cordoomt3_scav" -- Epic Bulwark
 		uDef.buildoptions[numBuildoptions + 5] = "corafust3_scav" -- Epic Fusion Reactor
 		uDef.buildoptions[numBuildoptions + 6] = "cormmkrt3_scav" -- Epic Energy Converter
+		uDef.buildoptions[numBuildoptions + 7] = "corhltfus_scav" -- Overlord - Weaponized Fusion Reactor
+
 	end
 
 	-- Cortex T2 Sea Constructors
@@ -562,7 +564,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 		uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 		uDef.buildoptions[numBuildoptions + 4] = "corthermite_scav" -- Thermite/Epic Termite
-		uDef.buildoptions[numBuildoptions + 5] = "cormandot4_scav" -- Epic Commando
 	end
 
 	-- Cortex T3 Underwater Gantry
@@ -571,7 +572,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
 		uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 		uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
-		uDef.buildoptions[numBuildoptions + 4] = "cormandot4_scav" -- Epic Commando
 	end
 
 	-- Legion T1 Land Constructors

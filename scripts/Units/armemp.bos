@@ -3,16 +3,17 @@
 
 piece  base, door1, door2, barrel,flare, greenlight, orangelight;
 
-static-var  gun_1, restore_delay, isOpen, missiles_stockpiled;
+static-var  gun_1, restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+
+#include "../popup_openclose.h"
 
 Create()
 {
 	hide flare;
 	gun_1 = base;
-	isOpen = FALSE;
 	restore_delay = 3000;
 	missiles_stockpiled = 0;
 	hide greenlight;
@@ -23,35 +24,24 @@ Create()
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Activate()
+OpenAnim()
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	if (!isOpen){
-		move door1 to x-axis [-13] speed [13];
-		move door2 to x-axis [13] speed [13];
-		wait-for-move door1 along x-axis;
+	move door1 to x-axis [-13] speed [13];
+	move door2 to x-axis [13] speed [13];
+	wait-for-move door1 along x-axis;
 
-		move barrel to y-axis [10] speed [20];
-		wait-for-move barrel along y-axis;
-		isOpen = TRUE;
-	}
+	move barrel to y-axis [10] speed [20];
+	wait-for-move barrel along y-axis;
 }
 
-Deactivate()
+CloseAnim()
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	if (isOpen){
-		move barrel to y-axis [0] speed [20];
-		wait-for-move barrel along y-axis;
+	move barrel to y-axis [0] speed [20];
+	wait-for-move barrel along y-axis;
 
-		move door1 to x-axis [0] speed [13];
-		move door2 to x-axis [0] speed [13];
-		wait-for-move door1 along x-axis;
-
-		isOpen = FALSE;
-	}
+	move door1 to x-axis [0] speed [13];
+	move door2 to x-axis [0] speed [13];
+	wait-for-move door1 along x-axis;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -66,8 +56,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script Deactivate();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -84,15 +73,20 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
+	start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	start-script Activate();
 	return (1);
 }
 
 FireWeapon1()
 {
-	start-script Deactivate(1);
+	start-script RequestClose();
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 QueryWeapon1(pieceIndex)

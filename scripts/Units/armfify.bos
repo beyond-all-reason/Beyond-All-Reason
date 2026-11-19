@@ -1,17 +1,11 @@
-#define TA			// This is a TA script
-#define SIGNAL_BUILD 2
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+
+#define SIGNAL_BUILD 2
 
 piece  base, nano, armhexla, armhexlb, armhexla_emit, armhexlb_emit;
 
-#define SIG_AIM				2
-
-#define IDLEHOVERSCALE 32
-#define IDLEHOVERSPEED 60
-#define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -21,13 +15,10 @@ piece  base, nano, armhexla, armhexlb, armhexla_emit, armhexlb_emit;
 
 Create()
 {
-    hide nano;
-    hide armhexla_emit;
-    hide armhexlb_emit;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	hide nano;
+	hide armhexla_emit;
+	hide armhexlb_emit;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -44,11 +35,9 @@ StartBuilding(heading, pitch)
 	show nano;
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
-	//turn aimy1 to y-axis heading speed <260.0>;
-	//wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
 	show armhexla_emit;
-    show armhexlb_emit;
+	show armhexlb_emit;
 }
 
 StopBuilding()
@@ -57,8 +46,7 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set INBUILDSTANCE to 0;
 	hide armhexla_emit;
-    hide armhexlb_emit;
-	//turn aimy1 to y-axis <0> speed <260.0>;
+	hide armhexlb_emit;
 }
 
 QueryNanoPiece(pieceIndex)

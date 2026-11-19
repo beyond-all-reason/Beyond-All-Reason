@@ -239,8 +239,10 @@ local function refreshUnitInfo()
 		if
 			unitDef.name == "armdl"
 			or unitDef.name == "cordl"
+			or unitDef.name == "legctl"
 			or unitDef.name == "armlance"
 			or unitDef.name == "cortitan"
+			or unitDef.name == "legatorpbomber"
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship)
 		then
 			if
@@ -435,7 +437,14 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			else
-				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+				if
+					unitDef.customParams.weapons_smart_select
+					and (
+						weaponDef.customParams.smart_priority
+						or weaponDef.customParams.smart_backup
+						or weaponDef.customParams.smart_trajectory_checker
+					)
+				then
 					unitExempt = true -- NB: I hate this thing
 					if weaponDef.customParams.smart_priority then
 						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
@@ -860,6 +869,12 @@ function widget:Initialize()
 	tracy.ZoneEnd()
 
 	widget:ViewResize()
+
+	-- load the kill count skull now, its first lazy load stalled a battle frame by up to 24 ms
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(":l:LuaUI/Images/skull.dds")
+		glTexture(false)
+	end))
 
 	WG.info = {}
 	WG.info.getShowBuilderBuildlist = function()
@@ -2809,7 +2824,7 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateBackgroundTexture")
 		infoBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderToTexture(infoBgTex, function()
@@ -2821,9 +2836,10 @@ function widget:DrawScreen()
 	end
 	if not infoTex then
 		tracy.ZoneBeginN("W:Info:DrawScreen:CreateInfoTexture")
-		infoTex = gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, {
+		local ss = WG.FlowUI.supersample or 2
+		infoTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		tracy.ZoneEnd()
@@ -3280,8 +3296,12 @@ end
 function widget:SelectionChanged(sel)
 	tracy.ZoneBeginN("W:Info:SelectionChanged")
 	local newSelectedUnitsCount = spGetSelectedUnitsCount()
-	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
+	if (SelectedUnitsCount == 0) ~= (newSelectedUnitsCount == 0) then
+		-- units picked from none, or all let go: this frame, not at the next check
+		sec = 1
 		doUpdate = true
+	end
+	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		SelectedUnitsCount = 0
 		-- Clear existing table instead of creating new one
 		for i = #selectedUnits, 1, -1 do

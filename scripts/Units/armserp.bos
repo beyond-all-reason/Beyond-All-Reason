@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  lturret, rturret, base, lprop, rprop, bprop;
+piece  lturret, rturret, base, lprop, rprop, bprop, lturretfirepoint, rturretfirepoint;
 
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
@@ -70,24 +70,24 @@ StopMoving()
 
 FireWeapon1()
 {
-	emit-sfx 1024 + 2 from lturret;
+	emit-sfx 1024 + 2 from lturretfirepoint;
 	sleep 200;
 }
 
 FireWeapon2()
 {
-	emit-sfx 1024 + 2 from rturret;
+	emit-sfx 1024 + 2 from rturretfirepoint;
 	sleep 200;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = lturret;
+	pieceIndex = lturretfirepoint;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = rturret;
+	pieceIndex = rturretfirepoint;
 }
 
 static-var  Stunned;

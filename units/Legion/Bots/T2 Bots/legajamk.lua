@@ -38,6 +38,7 @@ return {
 		turnrate = 1086.75,
 		upright = false,
 		customparams = {
+			deactivate_time = 8,
 			juno_kill = true,
 			model_author = "Tharsis, ZephyrSkies(helper)",
 			normaltex = "unittextures/leg_normal.dds",

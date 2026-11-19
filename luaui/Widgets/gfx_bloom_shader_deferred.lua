@@ -61,6 +61,7 @@ local bloomTexFormat = GL_R11F_G11F_B10F
 -- non-editables
 local vsx = 1 -- current viewport width
 local vsy = 1 -- current viewport height
+local viewPosX, viewPosY, viewSizeX, viewSizeY = 0, 0, 1, 1 -- world viewport, restored for the combine pass
 local qvsx, qvsy -- size of bloom mip 1 (top of chain)
 local iqvsx, iqvsy
 
@@ -72,13 +73,17 @@ local downsampleShader = nil
 local upsampleShader = nil
 local upsampleFinalShader = nil -- last upsample step + temporal blend fused into one pass
 local combineShader = nil
+local historyMixOn = false -- whether upsampleFinalShader's historyMix is temporalBlend (else 0)
+local brightShaderAmplifier = 0.0 -- glowAmplifier value brightShader currently uses
+local glowAmplifierLoc = -1 -- brightShader's fragGlowAmplifier location
 
-local bloomMips = {} -- array of { tex, w, h, ix, iy }
-local historyTextures = {} -- ping-pong pair (mip[1] resolution) holding the final bloom, used for temporal smoothing
-local historyIndex = 1 -- which of the two historyTextures holds last frame's result
+local bloomMips = {} -- array of { tex, fbo, w, h, ix, iy }
+local historyTargets = {} ---@type table<integer, table> ping-pong pair (mip[1] resolution) holding the final bloom, used for temporal smoothing
+local historyIndex = 1 -- which of the two historyTargets holds last frame's result
 local historyValid = false
 
-local rectVAO = nil
+local rectVAO ---@type VAO
+local rectVAOObjects = {} -- the VAO and its buffers, deleted on shutdown
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -87,8 +92,20 @@ local glGetSun = gl.GetSun
 
 local glCreateTexture = gl.CreateTexture
 local glDeleteTexture = gl.DeleteTexture
-local glRenderToTexture = gl.RenderToTexture
+local glCreateFBO = gl.CreateFBO
+local glDeleteFBO = gl.DeleteFBO
+local glIsValidFBO = gl.IsValidFBO
+local glRawBindFBO = gl.RawBindFBO
+local glViewport = gl.Viewport
 local glTexture = gl.Texture
+local glBlending = gl.Blending
+local glDepthMask = gl.DepthMask
+
+local GL_TRIANGLES = GL.TRIANGLES
+local GL_ONE = GL.ONE
+local GL_ZERO = GL.ZERO
+local GL_ONE_MINUS_DST_COLOR = GL.ONE_MINUS_DST_COLOR
+local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
 local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
@@ -116,22 +133,25 @@ local function RemoveMe(msg)
 	widgetHandler:RemoveWidget()
 end
 
+local function FreeTarget(target)
+	glDeleteFBO(target.fbo)
+	glDeleteTexture(target.tex)
+end
+
 local function FreeMips()
 	for i = 1, #bloomMips do
-		if bloomMips[i].tex then
-			glDeleteTexture(bloomMips[i].tex)
-		end
+		FreeTarget(bloomMips[i])
 	end
 	bloomMips = {}
-	for i = 1, #historyTextures do
-		glDeleteTexture(historyTextures[i])
+	for i = 1, #historyTargets do
+		FreeTarget(historyTargets[i])
 	end
-	historyTextures = {}
+	historyTargets = {}
 	historyValid = false
 end
 
 local function MakeBloomShaders()
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	viewSizeX, viewSizeY, viewPosX, viewPosY = Spring.GetViewGeometry()
 	local downscale = presets[preset].downscale
 	local mipCount = presets[preset].mipCount
 	--spEcho("New bloom init preset:", preset)
@@ -163,41 +183,48 @@ local function MakeBloomShaders()
 	-- Each successive mip halves both dimensions until mipCount.
 	FreeMips()
 
-	local function CreateBloomTexture(tw, th)
+	local function CreateBloomTarget(tw, th)
 		local tex = glCreateTexture(tw, th, {
-			fbo = true,
 			format = bloomTexFormat,
 			min_filter = GL.LINEAR,
 			mag_filter = GL.LINEAR,
 			wrap_s = GL.CLAMP_TO_EDGE,
 			wrap_t = GL.CLAMP_TO_EDGE,
 		})
-		if tex == nil and bloomTexFormat ~= GL_RGBA16F_ARB then
-			bloomTexFormat = GL_RGBA16F_ARB
-			return CreateBloomTexture(tw, th)
+		local fbo = tex and glCreateFBO({ color0 = tex, drawbuffers = { GL_COLOR_ATTACHMENT0_EXT } })
+		if fbo and glIsValidFBO(fbo) then
+			return { tex = tex, fbo = fbo, w = tw, h = th, ix = 1.0 / tw, iy = 1.0 / th }
 		end
-		return tex
+		if fbo then
+			glDeleteFBO(fbo)
+		end
+		if tex then
+			glDeleteTexture(tex)
+		end
+		if bloomTexFormat ~= GL_RGBA16F_ARB then
+			bloomTexFormat = GL_RGBA16F_ARB
+			return CreateBloomTarget(tw, th)
+		end
 	end
 
 	local mw, mh = qvsx, qvsy
 	for i = 1, mipCount do
 		local tw, th = mathMax(1, mw), mathMax(1, mh)
-		local tex = CreateBloomTexture(tw, th)
-		if tex == nil then
+		bloomMips[i] = CreateBloomTarget(tw, th)
+		if bloomMips[i] == nil then
 			spEcho("bloomMip[" .. i .. "] == nil (" .. tw .. "x" .. th .. ")")
 			RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
 			return
 		end
-		bloomMips[i] = { tex = tex, w = tw, h = th, ix = 1.0 / tw, iy = 1.0 / th }
 		mw = mathCeil(mw * 0.5)
 		mh = mathCeil(mh * 0.5)
 	end
 
-	-- History textures (same size as mip[1]) for temporal smoothing. Two of them,
+	-- History targets (same size as mip[1]) for temporal smoothing. Two of them,
 	-- ping-ponged each frame, so we never sample the texture being rendered to.
 	for i = 1, 2 do
-		historyTextures[i] = CreateBloomTexture(qvsx, qvsy)
-		if historyTextures[i] == nil then
+		historyTargets[i] = CreateBloomTarget(qvsx, qvsy)
+		if historyTargets[i] == nil then
 			RemoveMe("[BloomShader::ViewResize] removing widget, bad history texture target")
 			return
 		end
@@ -275,20 +302,25 @@ local function MakeBloomShaders()
 	end
 
 	-- Downsample shader: 13-tap Jimenez "next gen post processing in CoD:AW" filter.
-	-- On the very first downsample (firstPass==1) we apply a Karis luminance average to
+	-- On the very first downsample (source is mip[1]) we apply a Karis luminance average to
 	-- suppress fireflies (single super-bright HDR pixels causing flickering halos).
 	downsampleShader = LuaShader({
-		vertex = [[
-			#version 150 compatibility
+		vertex = "#version 150 compatibility\n" .. definesString .. [[
+			uniform sampler2D source;
+			flat out vec2 sourceTexelSize;
+			flat out int firstPass;
 			void main(void)	{
+				ivec2 sourceSize = textureSize(source, 0);
+				sourceTexelSize = 1.0 / vec2(sourceSize);
+				firstPass = int(sourceSize == ivec2(HSX, HSY));
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);
 			}
 		]],
 		fragment = "#version 150 compatibility\n" .. definesString .. [[
 			uniform sampler2D source;
-			uniform vec2 sourceTexelSize;
-			uniform int firstPass;
+			flat in vec2 sourceTexelSize;
+			flat in int firstPass;
 
 			float karisWeight(vec3 c) {
 				// Rec.709 luminance, then Karis average weight 1/(1+L)
@@ -339,10 +371,6 @@ local function MakeBloomShaders()
 		]],
 		uniformInt = {
 			source = 0,
-			firstPass = 0,
-		},
-		uniformFloat = {
-			sourceTexelSize = { 1.0, 1.0 },
 		},
 	}, "Bloom Downsample Shader")
 
@@ -356,14 +384,17 @@ local function MakeBloomShaders()
 	upsampleShader = LuaShader({
 		vertex = [[
 			#version 150 compatibility
+			uniform sampler2D source;
+			flat out vec2 sourceTexelSize;
 			void main(void)	{
+				sourceTexelSize = 1.0 / vec2(textureSize(source, 0));
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);
 			}
 		]],
 		fragment = "#version 150 compatibility\n" .. definesString .. [[
 			uniform sampler2D source;
-			uniform vec2 sourceTexelSize;
+			flat in vec2 sourceTexelSize;
 			uniform float filterRadius;
 
 			void main(void) {
@@ -391,7 +422,6 @@ local function MakeBloomShaders()
 			source = 0,
 		},
 		uniformFloat = {
-			sourceTexelSize = { 1.0, 1.0 },
 			filterRadius = upsampleRadius,
 		},
 	}, "Bloom Upsample Shader")
@@ -461,6 +491,7 @@ local function MakeBloomShaders()
 		spEcho(glGetShaderLog())
 		return
 	end
+	historyMixOn = false
 
 	brightShader = LuaShader({
 		vertex = [[
@@ -564,7 +595,7 @@ local function MakeBloomShaders()
 			modelDepthTex = 2,
 			mapDepthTex = 3,
 		},
-		-- these only change when the shaders are rebuilt, so bake them in here
+		-- these only change on a rebuild (fragGlowAmplifier also via setBrightness), so bake them in here
 		-- instead of re-uploading them every frame
 		uniformFloat = {
 			illuminationThreshold = illumThreshold,
@@ -579,9 +610,35 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed")
 		return
 	end
+	glowAmplifierLoc = brightShader.uniformLocations.fragGlowAmplifier or -1 -- GetUniformLocation needs it active
+	brightShaderAmplifier = glowAmplifier
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+-- a full-screen quad; with index and instance buffers attached too, engines without the LuaVAO
+-- keep-partial fix (RecoilEngine #3446) keep the VAO instead of rebuilding it every draw
+local function CreateRectVAO()
+	local vao = InstanceVBOTable.MakeTexRectVAO()
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	local instanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not (vao and indexVBO and instanceVBO) then
+		return false
+	end
+	indexVBO:Define(3)
+	indexVBO:Upload({ 0, 1, 2 })
+	instanceVBO:Define(1, { { id = 1, name = "unused", size = 1 } })
+	instanceVBO:Upload({ 0 })
+	vao:AttachIndexBuffer(indexVBO)
+	vao:AttachInstanceBuffer(instanceVBO)
+	rectVAOObjects = { vao, indexVBO, instanceVBO }
+	rectVAO = vao
+	return true
+end
+
+function widget:ViewResize()
+	local sizeX, sizeY, posX, posY = Spring.GetViewGeometry()
+	if sizeX == viewSizeX and sizeY == viewSizeY and posX == viewPosX and posY == viewPosY then
+		return -- the handler's first ViewResize after load repeats the geometry Initialize built for
+	end
 	MakeBloomShaders()
 end
 
@@ -605,8 +662,8 @@ function widget:Initialize()
 		return glowAmplifier
 	end
 	WG.bloomdeferred.setBrightness = function(value)
-		glowAmplifier = value
-		MakeBloomShaders()
+		glowAmplifier = value -- a uniform, uploaded by Bloom: no rebuild per slider step
+		historyValid = false -- switch at once, as the rebuild did
 	end
 	WG.bloomdeferred.getPreset = function()
 		return preset
@@ -617,11 +674,17 @@ function widget:Initialize()
 	end
 
 	MakeBloomShaders()
-	rectVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
+	if not CreateRectVAO() then
+		RemoveMe("[BloomShader::Initialize] removing widget, could not create the full-screen quad VAO")
+	end
 end
 
 function widget:Shutdown()
 	FreeMips()
+	for i = 1, #rectVAOObjects do
+		rectVAOObjects[i]:Delete()
+	end
+	rectVAOObjects = {}
 	if glDeleteShader then
 		if brightShader then
 			brightShader:Finalize()
@@ -642,101 +705,111 @@ function widget:Shutdown()
 	WG.bloomdeferred = nil
 end
 
-local function FullScreenQuad()
-	rectVAO:DrawArrays(GL.TRIANGLES)
+-- binds a bloom target for drawing, returns the previously bound FBO
+local function BindTarget(target)
+	local prevFBO = glRawBindFBO(target.fbo)
+	glViewport(0, 0, target.w, target.h)
+	return prevFBO
 end
 
 local function Bloom()
-	if #bloomMips == 0 then
+	local mipCount = #bloomMips
+	if mipCount == 0 then
 		return
 	end
 
-	gl.DepthMask(false)
+	glDepthMask(false)
 
 	-- 1) Bright pass: write into mip[1] (top of chain).
-	gl.Blending(false)
+	glBlending(false)
+	local prevFBO = BindTarget(bloomMips[1])
 	brightShader:Activate()
+	if brightShaderAmplifier ~= glowAmplifier then
+		gl.Uniform(glowAmplifierLoc, glowAmplifier * glowAmplifierMult)
+		brightShaderAmplifier = glowAmplifier
+	end
 
 	glTexture(0, "$model_gbuffer_difftex")
 	glTexture(1, "$model_gbuffer_emittex")
 	glTexture(2, "$model_gbuffer_zvaltex")
 	glTexture(3, "$map_gbuffer_zvaltex")
 
-	glRenderToTexture(bloomMips[1].tex, FullScreenQuad)
-
-	glTexture(1, false)
-	glTexture(2, false)
-	glTexture(3, false)
+	rectVAO:DrawArrays(GL_TRIANGLES)
 	brightShader:Deactivate()
 
 	local finalSrc = bloomMips[1].tex
 
 	if not debugBrightShader then
-		local mipCount = #bloomMips
-
 		-- 2) Downsample chain: mip[i] -> mip[i+1].
 		--    Karis luminance average on the very first downsample to kill fireflies.
 		downsampleShader:Activate()
 		for i = 1, mipCount - 1 do
-			local src = bloomMips[i]
-			downsampleShader:SetUniform("sourceTexelSize", src.ix, src.iy)
-			downsampleShader:SetUniformInt("firstPass", (i == 1) and 1 or 0)
-			glTexture(0, src.tex)
-			glRenderToTexture(bloomMips[i + 1].tex, FullScreenQuad)
+			glTexture(0, bloomMips[i].tex)
+			BindTarget(bloomMips[i + 1])
+			rectVAO:DrawArrays(GL_TRIANGLES)
 		end
 		downsampleShader:Deactivate()
 
 		-- 3) Upsample chain: mip[i+1] -> mip[i] additively (3x3 tent), down to mip[2].
-		gl.Blending(GL.ONE, GL.ONE)
+		glBlending(GL_ONE, GL_ONE)
 		upsampleShader:Activate()
 		for i = mipCount - 1, 2, -1 do
-			local src = bloomMips[i + 1]
-			upsampleShader:SetUniform("sourceTexelSize", src.ix, src.iy)
-			glTexture(0, src.tex)
-			glRenderToTexture(bloomMips[i].tex, FullScreenQuad)
+			glTexture(0, bloomMips[i + 1].tex)
+			BindTarget(bloomMips[i])
+			rectVAO:DrawArrays(GL_TRIANGLES)
 		end
 		upsampleShader:Deactivate()
 
 		-- 3.5) Fused final step: tent-upsample mip[2], add the bright pass (mip[1])
 		--      and blend with last frame's result, all in one pass. Ping-pong between
-		--      the two history textures so we never sample the render target.
+		--      the two history targets so we never sample the render target.
 		--      On the first frame there is no valid history yet: sample mip[1]
 		--      (any finite values) with historyMix = 0, which yields the current frame.
-		gl.Blending(false)
-		local histDst = historyTextures[3 - historyIndex]
+		glBlending(false)
+		local histDst = historyTargets[3 - historyIndex]
 		upsampleFinalShader:Activate()
-		upsampleFinalShader:SetUniform("historyMix", historyValid and temporalBlend or 0.0)
+		if historyMixOn ~= historyValid then
+			upsampleFinalShader:SetUniform("historyMix", historyValid and temporalBlend or 0.0)
+			historyMixOn = historyValid
+		end
 		glTexture(0, bloomMips[2].tex)
 		glTexture(1, bloomMips[1].tex)
-		glTexture(2, historyValid and historyTextures[historyIndex] or bloomMips[1].tex)
-		glRenderToTexture(histDst, FullScreenQuad)
-		glTexture(1, false)
-		glTexture(2, false)
+		glTexture(2, historyValid and historyTargets[historyIndex].tex or bloomMips[1].tex)
+		BindTarget(histDst)
+		rectVAO:DrawArrays(GL_TRIANGLES)
 		upsampleFinalShader:Deactivate()
 		historyIndex = 3 - historyIndex
 		historyValid = true
-		finalSrc = histDst
+		finalSrc = histDst.tex
 	end
+
+	glRawBindFBO(nil, nil, prevFBO)
+	glViewport(viewPosX, viewPosY, viewSizeX, viewSizeY)
 
 	-- 4) Combine: blend the accumulated bloom onto the screen.
 	if dbgDraw == 0 then
 		if useScreenBlend then
 			-- "Screen"-like blend: dst + src*(1-dst). Naturally soft-caps near 1.0
 			-- so already-bright scene pixels don't blow out from added bloom.
-			gl.Blending(GL.ONE_MINUS_DST_COLOR, GL.ONE)
+			glBlending(GL_ONE_MINUS_DST_COLOR, GL_ONE)
 		else
-			gl.Blending("alpha_add")
+			glBlending("alpha_add")
 		end
 	else
-		gl.Blending(GL.ONE, GL.ZERO)
+		glBlending(GL_ONE, GL_ZERO)
 	end
 	combineShader:Activate()
 	glTexture(0, finalSrc)
-	rectVAO:DrawArrays(GL.TRIANGLES)
-	glTexture(0, false)
+	rectVAO:DrawArrays(GL_TRIANGLES)
 	combineShader:Deactivate()
 
-	gl.Blending("reset")
+	-- gl.Texture enables GL_TEXTURE_2D on each unit it binds
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
+
+	glBlending("reset")
 end
 
 function widget:DrawWorld()

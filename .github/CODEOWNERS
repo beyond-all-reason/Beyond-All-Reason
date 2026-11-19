@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Licensing ledgers, manifests and policy paths: the licensing team reviews changes.
+
+# Signature and assignment ledgers
+.github/cla-signatures.json            @beyond-all-reason/licensing-maintainers
+.github/file-license-assignments.json  @beyond-all-reason/licensing-maintainers
+
+# Auto-generated per-folder license manifests (any depth)
+**/LICENSE_MANIFEST.md                 @beyond-all-reason/licensing-maintainers
+
+# Workflows and policy documents that govern the licensing system
+.github/workflows/cla-check.yml        @beyond-all-reason/licensing-maintainers
+.github/licensing.json                 @beyond-all-reason/licensing-maintainers
+.github/CODEOWNERS                     @beyond-all-reason/licensing-maintainers
+legal/                                 @beyond-all-reason/licensing-maintainers
+LICENSES/                              @beyond-all-reason/licensing-maintainers
