@@ -46,6 +46,19 @@ local GetGameSeconds = Spring.GetGameSeconds
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/scavpanel.png"
+local hungerBar = {
+	skull = "icons/skull.png",
+	hungerPattern = "LuaUI/Images/scav-tileable_v002_small.tga",
+	feedPattern = "LuaUI/Images/rapt-tileable_v002_small.tga",
+	hungerColor = { 0.45, 0.15, 0.75, 0.9 },
+	feedColor = { 1, 0.5, 0.1, 0.9 },
+	patternColor = { 1, 1, 1, 0.55 },
+	huntingOutline = { 0.25, 0.05, 0.4, 1 },
+	patternTiles = 2,
+	huntingOutlineSize = 0.5,
+	huntingOutlineStrength = 3,
+	blastMark = 0.3,
+}
 
 local panelFontSize = 14
 local waveFontSize = 36
@@ -86,9 +99,13 @@ local rules = {
 	"scavBossTime",
 	"scavBossAnger",
 	"scavBossesKilled",
+	"scavBossesTotal",
 	"scavTechAnger",
 	"scavGracePeriod",
 	"scavBossHealth",
+	"scavBossHunger",
+	"scavBossMeal",
+	"scavBossHealShield",
 	"lagging",
 	"scavDifficulty",
 	"scavCount",
@@ -121,6 +138,40 @@ local function CreatePanelDisplayList()
 	gl.Translate(x1, y1, 0)
 	gl.Scale(widgetScale, widgetScale, 1)
 	gl.CallList(displayList)
+	local hunger = gameInfo.scavBossAnger >= 100 and Spring.GetGameRulesParam("scavBossHunger") or -1
+	local meal = Spring.GetGameRulesParam("scavBossMeal") or -1
+	local hungerRow = Spring.GetGameRulesParam("scavBossStaggerActive") == false and 3 or 4
+	if nBosses > 1 then
+		hungerRow = 5
+	end
+	if hunger >= 0 then
+		local left, right, bottom = w * 0.45, w - panelMarginX * 3, PanelRow(hungerRow) - 2
+		local top, width = bottom + panelFontSize, right - left - 2
+		local feeding = meal >= 0
+		local fill = (feeding and meal or hunger) / 100
+		local fillRight = left + 1 + width * fill
+		gl.Texture(false)
+		gl.Color(0, 0, 0, 0.6)
+		gl.Rect(left, bottom, right, top)
+		gl.Color(feeding and hungerBar.feedColor or hungerBar.hungerColor)
+		gl.Rect(left + 1, bottom + 1, fillRight, top - 1)
+		gl.Texture(feeding and hungerBar.feedPattern or hungerBar.hungerPattern)
+		gl.Color(hungerBar.patternColor)
+		local strip = hungerBar.patternTiles * (panelFontSize - 2) / width
+		gl.TexRect(left + 1, bottom + 1, fillRight, top - 1, 0, 0, hungerBar.patternTiles * fill, strip)
+		if feeding then
+			local mark = left + 1 + width * hungerBar.blastMark
+			gl.Texture(false)
+			gl.Color(1, 1, 1, 1)
+			gl.Rect(mark - 1, bottom, mark + 1, top)
+		else
+			gl.Texture(hungerBar.skull)
+			gl.Color(1, 1, 1, 1)
+			gl.TexRect(left + 2, bottom, left + 2 + panelFontSize, top)
+		end
+		gl.Texture(false)
+		gl.Color(1, 1, 1, 1)
+	end
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
@@ -199,11 +250,21 @@ local function CreatePanelDisplayList()
 				""
 			)
 
-			if Spring.GetGameRulesParam("scavBossStaggerActive") == false then
+			local overheats = Spring.GetGameRulesParam("scavBossOverheats") == 1
+			local staggerText = overheats and "ui.scavs.bossOverheat" or "ui.scavs.bossStagger"
+			if Spring.GetGameRulesParam("scavBossHealShield") == 1 then
+				font:Print(
+					"\255\255\255\0" .. BAR.I18N("ui.scavs.bossHealShield", { count = nBosses }),
+					panelMarginX,
+					PanelRow(2),
+					panelFontSize,
+					""
+				)
+			elseif Spring.GetGameRulesParam("scavBossStaggerActive") == false then
 				font:Print(
 					textColor
 						.. BAR.I18N(
-							"ui.scavs.bossStaggerPercentage",
+							staggerText .. "Percentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("scavBossStaggerPercentage") }
 						),
 					panelMarginX,
@@ -213,7 +274,7 @@ local function CreatePanelDisplayList()
 				)
 			else
 				font:Print(
-					"\255\255\255\0" .. BAR.I18N("ui.scavs.bossStaggerActive", { count = nBosses }),
+					"\255\255\255\0" .. BAR.I18N(staggerText .. "Active", { count = nBosses }),
 					panelMarginX,
 					PanelRow(2),
 					panelFontSize,
@@ -222,7 +283,7 @@ local function CreatePanelDisplayList()
 				font:Print(
 					"\255\255\255\0"
 						.. BAR.I18N(
-							"ui.scavs.bossStaggerPercentage",
+							staggerText .. "Percentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("scavBossStaggerPercentage") }
 						),
 					panelMarginX,
@@ -237,6 +298,24 @@ local function CreatePanelDisplayList()
 						.. BAR.I18N("ui.scavs.bossesKilled", { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }),
 					panelMarginX,
 					PanelRow(4),
+					panelFontSize,
+					""
+				)
+			end
+			if hunger >= 0 and meal < 0 and hunger >= 100 then
+				hungerBar.font:SetOutlineColor(hungerBar.huntingOutline)
+				hungerBar.font:Print(
+					textColor .. BAR.I18N("ui.scavs.bossHunting"),
+					panelMarginX,
+					PanelRow(hungerRow),
+					panelFontSize,
+					"o"
+				)
+			elseif hunger >= 0 then
+				font:Print(
+					textColor .. BAR.I18N(meal >= 0 and "ui.scavs.bossFeeding" or "ui.scavs.bossHunger"),
+					panelMarginX,
+					PanelRow(hungerRow),
 					panelFontSize,
 					""
 				)
@@ -401,6 +480,9 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
+	if gameInfo.scavBossesTotal > 0 then
+		nBosses = gameInfo.scavBossesTotal
+	end
 	gameInfo.scavCounts = getScavCounts("Count")
 	gameInfo.scavKills = getScavCounts("Kills")
 
@@ -541,6 +623,7 @@ function widget:ViewResize()
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
+	hungerBar.font = WG.fonts.getFont(nil, 1, hungerBar.huntingOutlineSize, hungerBar.huntingOutlineStrength)
 
 	x1 = mathFloor(x1 - viewSizeX)
 	y1 = mathFloor(y1 - viewSizeY)

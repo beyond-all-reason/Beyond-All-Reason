@@ -1267,6 +1267,21 @@
 				"other": "Boss Healths: %{health}%%"
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
+			"bossHealShield": {
+				"one": "Boss Heal Shield is Active!",
+				"other": "Boss Heal Shields are Active!"
+			},
+			"bossHunger": "Boss Hunger",
+			"bossHunting": "Boss Hunting",
+			"bossFeeding": "Boss Feeding",
+			"bossOverheatActive": {
+				"one": "Boss is Overheated!",
+				"other": "Bosses are Overheated!"
+			},
+			"bossOverheatPercentage": {
+				"one": "Boss Overheat: %{value}%%",
+				"other": "Bosses Overheat: %{value}%%"
+			},
 			"bossResistantToList": {
 				"one": "Boss is resistant to:",
 				"other": "Bosses are resistant to:"
