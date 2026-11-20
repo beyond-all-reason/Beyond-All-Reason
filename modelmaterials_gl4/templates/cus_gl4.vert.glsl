@@ -434,15 +434,14 @@ void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msN
 
 				weights[bi] *= float(boneTx.trSc.w > 0.0);
 
-				// emulate boneTx * bposeInvTra * bposeTra * piecePos
-				vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
+				Transform skinTx = ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra));
 
-				tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
+				vec4 txPiecePos = ApplyTransform(skinTx, piecePos);
 
-				// emulate boneTx * bposeInvTra * bposeTra * normal
-				vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
-				vec3 txPieceTangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeTangent);
-				vec3 txPieceBitangent = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), safeBitangent);
+				// Rotation only: the vec3 ApplyTransform overload would add the bone's translation to the direction.
+				vec3 txPieceNormal = RotateByQuaternion(skinTx.quat, normal);
+				vec3 txPieceTangent = RotateByQuaternion(skinTx.quat, safeTangent);
+				vec3 txPieceBitangent = RotateByQuaternion(skinTx.quat, safeBitangent);
 
 				msPosition += txPiecePos    * weights[bi];
 				msNormal   += txPieceNormal * weights[bi];
