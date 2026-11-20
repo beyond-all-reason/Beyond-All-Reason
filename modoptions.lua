@@ -71,13 +71,25 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "allowuserwidgets",
-		name = "Allow Custom Widgets",
-		desc = "Allow custom user widgets or disallow them",
-		type = "bool",
-		def = true,
+		key = "userwidgetmode",
+		name = "Custom Widget Mode",
+		desc = "Which custom user widgets may load",
+		type = "list",
+		def = "verified",
 		hidden = true,
 		section = "options_main",
+		items = {
+			{
+				key = "all",
+				name = "All Widgets",
+				desc = "Load every custom user widget",
+			},
+			{
+				key = "verified",
+				name = "Verified Widgets Only",
+				desc = "Load only custom user widgets listed in the signed widget manifest",
+			},
+		},
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
