@@ -2667,14 +2667,25 @@ end
 --
 
 function widgetHandler:RegisterGlobal(owner, name, value)
+	local registeredBy = self.globals[name] ---@as Widget
+	-- Gadgets call these through Script.LuaUI expecting the game-widget globals.
+	-- We take them away from the user's registrations, as a matter of course:
+	local takeFromUser = registeredBy ~= nil and userWidgets[registeredBy] ~= nil and userWidgets[owner] == nil
+	if name == nil or ((_G[name] or registeredBy) and not takeFromUser) or CallInsMap[name] then
 	if
 		name == nil
-		or _G[name]
-		or self.globals[name]
+		or ((_G[name] or registeredBy) and not takeFromUser)
 		or CallInsMap[name]
 		or (userWidgets[owner] ~= nil and engineCallIns[name])
 	then
 		return false
+	end
+	if takeFromUser then
+		spLog(
+			"barwidgets.lua",
+			LOG.WARNING,
+			"A custom global " .. tostring(name) .. " was replaced by a game widget"
+		)
 	end
 	_G[name] = value
 	self.globals[name] = owner
