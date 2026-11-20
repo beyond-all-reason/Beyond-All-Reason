@@ -3071,7 +3071,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			capturableUnits[unitID] = true
 			unitCowardCooldown[unitID] = nil
-			if not UnitDefs[unitDefID].canMove then
+			if newTeam ~= gaiaTeamID and not UnitDefs[unitDefID].canMove then
 				squadPotentialTarget:Add(unitID)
 				if config.highValueTargets[unitDefID] then
 					squadPotentialHighValueTarget:Add(unitID)
