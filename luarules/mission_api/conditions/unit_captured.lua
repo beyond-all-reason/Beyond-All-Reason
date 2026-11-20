@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Gifted units go to UnitReceived.
 
@@ -7,6 +8,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'UnitCaptured',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
