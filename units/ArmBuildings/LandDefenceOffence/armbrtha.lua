@@ -114,7 +114,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge",
 				gravityaffected = "true",
 				heightboostfactor = 8,
-				impulsefactor = 1.1,
+				impulsefactor = 1.5,
 				leadbonus = 0,
 				name = "Long-range plasma cannon",
 				noselfdamage = true,
