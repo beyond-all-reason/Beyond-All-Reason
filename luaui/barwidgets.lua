@@ -372,6 +372,8 @@ local callInLists = {
 	--  'MouseRelease',
 }
 
+local unlistedCallIns = { "MouseMove", "MouseRelease", "GetConfigData", "SetConfigData" }
+
 local headlessDisabledCallIns = {
 	FontsChanged = true,
 	ViewResize = true,
@@ -411,6 +413,8 @@ do
 		widgetHandler[listname .. "List"] = {}
 	end
 end
+
+local engineCallIns = Script.GetCallInList()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1374,6 +1378,9 @@ local function moveUserCustomCommands(source, target)
 	end
 end
 
+-- Cannot be global. A user widget could register the name before the first locals-access load.
+local localsAccess
+
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = vfsLoadFile(
@@ -1435,7 +1442,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
-	self:FinalizeWidget(widget, filename, basename)
+	if fromZip then
+		self:FinalizeWidget(widget, filename, basename)
+	else
+		success, err = pcall(self.FinalizeWidget, self, widget, filename, basename)
+		if not success then
+			return loadFailed(basename, err)
+		end
+	end
 	local name = widget.whInfo.name
 
 	if zipOnly[name] and not fromZip then
@@ -1537,7 +1551,15 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
-		widget:SetConfigData(config)
+		if fromZip then
+			widget:SetConfigData(config)
+		else
+			success, err = pcall(widget.SetConfigData, widget, config)
+			if not success then
+				knownInfo.active = false
+				return loadFailed(basename, err)
+			end
+		end
 	end
 
 	-- It loaded, so whatever stopped it last time no longer is. What it raised stays in the
@@ -2018,6 +2040,14 @@ function widgetHandler:ValidateWidget(widget)
 	if widget.GetTooltip and not widget.IsAbove then
 		return "Widget has GetTooltip() but not IsAbove()"
 	end
+	local info = widget.whInfo
+	if type(info.name) ~= "string" then
+		return "GetInfo() name is not a string"
+	elseif type(info.layer) ~= "number" or info.layer ~= info.layer then
+		return "GetInfo() layer is not a number"
+	elseif info.depends ~= nil and type(info.depends) ~= "table" then
+		return "GetInfo() depends is not a list"
+	end
 	return nil
 end
 
@@ -2131,6 +2161,14 @@ local function SafeWrapWidget(widget)
 
 	if widget.Initialize then
 		widget.Initialize = wrap(widget.Initialize, "Initialize")
+	end
+
+	if userWidgets[widget] then
+		for _, funcName in ipairs(unlistedCallIns) do
+			if widget[funcName] then
+				widget[funcName] = wrap(widget[funcName], funcName)
+			end
+		end
 	end
 end
 
@@ -2634,6 +2672,12 @@ function widgetHandler:RegisterGlobal(owner, name, value)
 	-- We take them away from the user's registrations, as a matter of course:
 	local takeFromUser = registeredBy ~= nil and userWidgets[registeredBy] ~= nil and userWidgets[owner] == nil
 	if name == nil or ((_G[name] or registeredBy) and not takeFromUser) or CallInsMap[name] then
+	if
+		name == nil
+		or ((_G[name] or registeredBy) and not takeFromUser)
+		or CallInsMap[name]
+		or (userWidgets[owner] ~= nil and engineCallIns[name])
+	then
 		return false
 	end
 	if takeFromUser then
