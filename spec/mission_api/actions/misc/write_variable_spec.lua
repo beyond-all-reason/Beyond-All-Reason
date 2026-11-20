@@ -11,35 +11,22 @@ describe("mission_api.actions.write_variable", function()
 
 	before_each(function()
 		GG["MissionAPI"].Variables = { loaded = 1 }
-		GG["MissionAPI"].PersistentVariables = { loaded = true }
+		GG["MissionAPI"].PersistentVariableKeys = { loaded = true }
 	end)
 
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "WriteVariable",
-			key = "String!",
+			key = "VariableKey!",
 			value = "VariableValue!",
-			persistent = "Boolean",
 		}, summarizeSchema(action))
 	end)
 
 	describe("actionFunction", function()
-		it("writes the value without marking it persistent", function()
-			action.actionFunction("score", 5)
-			assert.are.equal(5, GG["MissionAPI"].Variables.score)
-			assert.are.same({ loaded = true }, GG["MissionAPI"].PersistentVariables)
-		end)
-
-		it("marks the key persistent when persistent is true", function()
-			action.actionFunction("unlocked", true, true)
-			assert.is_true(GG["MissionAPI"].Variables.unlocked)
-			assert.are.same({ loaded = true, unlocked = true }, GG["MissionAPI"].PersistentVariables)
-		end)
-
 		it("overwrites an existing value and keeps it persistent", function()
-			action.actionFunction("loaded", "two", false)
-			assert.are.equal("two", GG["MissionAPI"].Variables.loaded)
-			assert.is_true(GG["MissionAPI"].PersistentVariables.loaded)
+			action.actionFunction("loaded", 2)
+			assert.are.equal(2, GG["MissionAPI"].Variables.loaded)
+			assert.is_true(GG["MissionAPI"].PersistentVariableKeys.loaded)
 		end)
 
 		it("writes a copy of a table value", function()
