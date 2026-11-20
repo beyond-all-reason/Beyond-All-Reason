@@ -100,7 +100,7 @@ local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
 	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
-		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
+		:WithConditionDefinitions(V.definitions.ConditionDefinitions)
 		:Install()
 	-- As for a mission started with no options in its startscript.
 	GG["MissionAPI"].Options = {}

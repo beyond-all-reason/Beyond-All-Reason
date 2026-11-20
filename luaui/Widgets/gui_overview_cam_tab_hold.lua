@@ -45,6 +45,10 @@ function widget:Initialize()
 	setActionHotkeys("toggleoverview")
 end
 
+function widget:KeyBindingsChanged()
+	setActionHotkeys("toggleoverview")
+end
+
 function widget:KeyPress(key, modifier, isRepeat)
 	if not isCamKey(key) then
 		return false

@@ -462,29 +462,6 @@ return function(model)
 		-- 	  end
 		--   end,
 		-- },
-		{
-			id = "pip_engine_fallback_threshold",
-			parent = "minimappip",
-			group = "ui",
-			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.pip_engine_fallback_threshold"),
-			type = "slider",
-			min = 1500,
-			max = 5000,
-			step = 100,
-			value = 4000,
-			description = BAR.I18N("ui.settings.option.pip_engine_fallback_threshold_descr"),
-			onload = function(option)
-				if WG.minimap and WG.minimap.getEngineMinimapFallbackThreshold then
-					option.value = WG.minimap.getEngineMinimapFallbackThreshold()
-				end
-			end,
-			onchange = function(option, value)
-				if WG.minimap and WG.minimap.setEngineMinimapFallbackThreshold then
-					WG.minimap.setEngineMinimapFallbackThreshold(value)
-				end
-			end,
-		},
 
 		{
 			id = "pip",

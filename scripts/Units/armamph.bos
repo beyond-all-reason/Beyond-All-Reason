@@ -395,6 +395,7 @@ FireWeapon2()
 		gun_3 = 0;
 		return (0);
 	}
+	return (0);
 }
 
 AimWeapon2(heading, pitch)

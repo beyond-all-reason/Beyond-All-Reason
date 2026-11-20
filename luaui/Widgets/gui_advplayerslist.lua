@@ -4758,6 +4758,20 @@ function CheckPlayersChange()
 		end
 	end
 
+	-- AI teams become takeable when their host leaves
+	if curGameFrame > 0 then
+		for teamID = 0, teamN - 1 do
+			local p = player[teamID + specOffset]
+			if p and p.ai and p.allyteam == myAllyTeamID then
+				local totake = IsTakeable(teamID) == true
+				if totake ~= p.totake then
+					p.totake = totake
+					sorting = true
+				end
+			end
+		end
+	end
+
 	if sorting then
 		-- sorts the list again if change needs it
 		SortList()
