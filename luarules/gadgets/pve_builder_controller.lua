@@ -49,6 +49,14 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if builderDefs[unitDefID] and newTeam == scavengerAITeamID then
+		aliveBuilders[unitID] = builderDefs[unitDefID]
+	else
+		aliveBuilders[unitID] = nil
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 	if aliveBuilders[unitID] then
 		aliveBuilders[unitID] = nil
