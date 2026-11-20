@@ -32,6 +32,9 @@ VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "debug.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "layout.lua", nil, VFS.ZIP)
 
+-- Install before widgets cache Spring functions, including external replay extractors.
+VFS.Include(LUAUI_DIRNAME .. "Include/pregame_stats.lua", nil, VFS.ZIP)
+
 local widgetHandler = VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
 
 --------------------------------------------------------------------------------

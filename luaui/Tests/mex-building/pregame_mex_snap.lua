@@ -3,16 +3,18 @@ local function skip()
 end
 
 local function setup()
-	Test.clearMap()
+	local proxy = Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "pregameQueue_" .. Spring.GetMyPlayerID())
+	assert(proxy and proxy >= 0, "Pregame builder missing")
+	Spring.SelectUnitArray({ proxy })
 
 	widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
 	assert(widget_cmd_extractor_snap)
 
-	widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
+	widget_gui_pregame_build = widgetHandler:FindWidget("Pregame builder selection")
 	assert(widget_gui_pregame_build)
 
-	WG["pregame-build"].setBuildQueue({})
-	WG["pregame-build"].setPreGamestartDefID(nil)
+	WG.pregameQueue.setBuildQueue({})
+	Spring.SetActiveCommand(0)
 
 	initialCameraState = Spring.GetCameraState()
 
@@ -25,10 +27,9 @@ local function setup()
 end
 
 local function cleanup()
-	Test.clearMap()
 
-	WG["pregame-build"].setBuildQueue({})
-	WG["pregame-build"].setPreGamestartDefID(nil)
+	WG.pregameQueue.setBuildQueue({})
+	Spring.SetActiveCommand(0)
 
 	Spring.SetCameraState(initialCameraState)
 end
@@ -49,7 +50,7 @@ local function test()
 	end
 
 	-- Place a mex off of a mex spot - expect mex snap to position it on the spot, as close as possible to cursor position
-	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(-mexUnitDefId))
 	sx, sy, sz = Spring.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
 	Spring.WarpMouse(sx, sy)
 
@@ -71,7 +72,7 @@ local function test()
 	Test.waitTime(10)
 
 	-- did the mex get placed in the right spot?
-	buildQueue = WG["pregame-build"].getBuildQueue()
+	buildQueue = WG.pregameQueue.getBuildQueue()
 	assertEqual(#buildQueue, 1)
 	assertTablesEqual(buildQueue[1], {
 		mexUnitDefId,

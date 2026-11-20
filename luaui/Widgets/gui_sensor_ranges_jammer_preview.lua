@@ -1127,10 +1127,7 @@ local function previewSource()
 	local unitDefID ---@type number?
 	if cmdID and cmdID < 0 then
 		unitDefID = -cmdID
-	elseif spGetGameFrame() <= 0 then
-		-- before game start builds are queued through the pregame build widget, not via an active command
-		local pregameBuild = WG["pregame-build"]
-		unitDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
+
 	end
 	local def = unitDefID and jammerDefs[unitDefID]
 	if def and def.radiusCells >= 1 then
