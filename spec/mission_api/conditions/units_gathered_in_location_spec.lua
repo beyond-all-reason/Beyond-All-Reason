@@ -62,14 +62,14 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 	local function gatedContext()
 		local context = newContext()
 		local fires = 0
-		context.ActivateTrigger = function(t)
+		context.ActivateTrigger = ConditionContextBuilder.ReportsActivation(context, function(t)
 			if t.triggered and not t.settings.repeating then
 				return false
 			end
 			t.triggered = true
 			fires = fires + 1
 			return true
-		end
+		end)
 		return context, function()
 			return fires
 		end
@@ -253,13 +253,13 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 		local t = squadTrigger()
 		local context = newContext()
 		local valid, asks, fires = false, 0, 0
-		context.ActivateTrigger = function()
+		context.ActivateTrigger = ConditionContextBuilder.ReportsActivation(context, function()
 			asks = asks + 1
 			if valid then
 				fires = fires + 1
 			end
 			return valid
-		end
+		end)
 		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
 		frame(t, context)
 		valid = true

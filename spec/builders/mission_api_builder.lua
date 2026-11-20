@@ -457,6 +457,7 @@ function MB:Build(installed)
 		Stages = stages,
 		Objectives = objectives,
 		ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua"),
+		Batch = VFS.Include("luarules/mission_api/batch.lua"),
 	}
 
 	if self.realParameterTypes then

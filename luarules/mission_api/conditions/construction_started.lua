@@ -18,11 +18,18 @@ local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
 	return true
 end
 
+local function onActivationAttempted(trigger, triggerID, context, buildeeID, activated)
+	if activated then
+		context.ClaimConstructionStart(buildeeID, triggerID)
+	end
+end
+
 -- ConstructionStarted activates once per buildee: on its own build frame, or on the first
 -- build-assist the filters take. Only an activation that goes through claims the buildee.
+
 local function startConstruction(trigger, triggerID, context, buildeeID)
-	if not context.HasConstructionStarted(buildeeID, triggerID) and context.ActivateTrigger(trigger) then
-		context.ClaimConstructionStart(buildeeID, triggerID)
+	if not context.HasConstructionStarted(buildeeID, triggerID) then
+		context.ActivateTrigger(trigger, onActivationAttempted, triggerID, buildeeID)
 	end
 end
 

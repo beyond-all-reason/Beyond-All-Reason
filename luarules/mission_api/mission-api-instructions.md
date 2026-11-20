@@ -114,11 +114,15 @@ return {
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the
   matching `needs*` check or silently never fires.
-- Never fire actions yourself. `context.ActivateTrigger(trigger)` enforces the `settings` keys
-  `active`, `prerequisites`, `stages`, `repeating` with `maxRepeats`, `count`, and `difficulties` (see
-  Objectives and stages, and Difficulty), and returns `false` when the trigger was not eligible:
-  `active`, `prerequisites`, and `stages` can pass later, `maxRepeats` and `difficulties` never
-  will. Record a firing only on `true`, and decide what happens for each kind of refusal.
+- Never fire actions yourself. `context.ActivateTrigger(trigger)` activates the trigger when the batch
+  ends, enforcing the `settings` keys `active`, `prerequisites`, `stages`, `repeating` with
+  `maxRepeats`, `count`, and `difficulties` (see Objectives and stages, and Difficulty), and returns
+  nothing. A condition that needs the outcome calls
+  `context.ActivateTrigger(trigger, onActivationAttempted, triggerID, argument)`, and
+  `onActivationAttempted(trigger, triggerID, context, argument, activated)` runs once the activation
+  has been tried. When `activated` is false, `active`, `prerequisites`, and `stages` can pass later,
+  and `maxRepeats` and `difficulties` never will. Record an activation only when `activated` is true,
+  and decide what happens for each kind of refusal.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
   `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.

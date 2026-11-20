@@ -168,9 +168,9 @@ describe("mission_api.conditions.construction_started", function()
 		local watchTheSolar = trigger({ unitDefName = "armsolar" })
 		local activateTrigger = context.ActivateTrigger
 
-		context.ActivateTrigger = function()
+		context.ActivateTrigger = ConditionContextBuilder.ReportsActivation(context, function()
 			return false
-		end
+		end)
 		created(watchTheSolar, context, 1, 0, 10)
 		assert.are.equal(0, fired())
 

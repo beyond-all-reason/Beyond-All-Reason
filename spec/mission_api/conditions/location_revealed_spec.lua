@@ -102,9 +102,9 @@ describe("mission_api.conditions.location_revealed", function()
 		inLos = true
 
 		local activate = context.ActivateTrigger
-		context.ActivateTrigger = function()
+		context.ActivateTrigger = Builders.ConditionContext.ReportsActivation(context, function()
 			return false
-		end
+		end)
 		onGameFrame(t, "t", context, CHECK_FRAME)
 
 		context.ActivateTrigger = activate
