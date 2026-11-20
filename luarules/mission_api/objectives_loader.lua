@@ -11,7 +11,7 @@
 ]]
 
 local OBJECTIVE_CONDITION_PREFIX = "__objective_"
-local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost", "equals" }
 local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 
 --- Each objective contributes a condition record to the same space the triggers

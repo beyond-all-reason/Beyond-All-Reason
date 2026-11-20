@@ -374,7 +374,10 @@ describe("mission_api.validation.sections", function()
 			local result =
 				validateTrigger({ type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player" }, count = 3 })
 
-			V.assertMessage(result, "Metric conditions are thresholded with atLeast/atMost, not count. Trigger: t")
+			V.assertMessage(
+				result,
+				"Metric conditions are thresholded with atLeast, atMost, or equals, not count. Trigger: t"
+			)
 		end)
 
 		it("rejects atLeast on an event trigger", function()
@@ -384,13 +387,16 @@ describe("mission_api.validation.sections", function()
 				atLeast = 3,
 			})
 
-			V.assertMessage(result, "Event conditions are thresholded with count, not atLeast/atMost. Trigger: t")
+			V.assertMessage(
+				result,
+				"Event conditions are thresholded with count, not atLeast/atMost or equals. Trigger: t"
+			)
 		end)
 
 		it("requires a bound on a metric trigger", function()
 			local result = validateTrigger({ type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player" } })
 
-			V.assertMessage(result, "Metric conditions require atLeast and/or atMost. Trigger: t")
+			V.assertMessage(result, "Metric conditions require atLeast and/or atMost, or equals. Trigger: t")
 		end)
 
 		it("reports an unknown field", function()

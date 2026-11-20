@@ -65,7 +65,7 @@ local function resolveParameters(parameters)
 	end
 end
 
-local thresholdFields = { "count", "atLeast", "atMost" }
+local thresholdFields = { "count", "atLeast", "atMost", "equals" }
 
 local function resolveThresholds(condition)
 	for _, fieldName in ipairs(thresholdFields) do
