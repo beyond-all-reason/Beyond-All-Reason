@@ -115,6 +115,7 @@ local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 local isHeadless = Platform.isHeadless or false
 
 local SandboxedSystem = {}
+local callUserFunction ---@type function
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
 local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
 
@@ -946,7 +947,16 @@ local function CreateSandboxedSystem()
 	end
 
 	local sandboxedScript = copyTable(Script)
+	local scriptDelayByFrames = Script.DelayByFrames
 	local scriptLuaUI = Script.LuaUI
+	sandboxedScript.DelayByFrames = function(frames, func, ...)
+		if type(func) ~= "function" then
+			return scriptDelayByFrames(frames, func, ...)
+		end
+		return scriptDelayByFrames(frames, callUserFunction, func, ...)
+	end
+	sandboxedScript.GetGlobal = unavailableFunction
+	sandboxedScript.GetRegistry = unavailableFunction
 	sandboxedScript.LuaUI = setmetatable({}, {
 		__index = function(_, name)
 			if widgetHandler.globals[name] then
@@ -2169,6 +2179,41 @@ local function SafeWrapFuncUser(func, funcName)
 	end
 	guard.addWrapper(wrapper)
 	return wrapper
+end
+
+local function finishUserFunction(widget, guarded, ok, ...)
+	local message
+	if guarded and memoryGuard.leave() then
+		message = memoryGuard.TRIP_ERROR
+	elseif ok then
+		return ...
+	else
+		message = tostring((...))
+	end
+	return widgetFailure(widget, "callback", message)
+end
+
+-- The engine calls DelayByFrames functions outside the handler's call-in wrappers, so a user one runs like a call-in:
+-- under the memory guard, and an error removes its widget. One in an environment no user widget made never runs.
+callUserFunction = function(func, ...)
+	local env = getfenv(func)
+	local widget = ownedEnvs[env]
+	if widget == nil then
+		if env == _G then
+			return func(...)
+		end
+		warnOnce("A user function was not run because no user widget made its environment")
+		return
+	elseif not userWidgets[widget] then
+		return func(...)
+	elseif not table.getKeyOf(widgetHandler.widgets, widget) then
+		return
+	end
+	local guarded = memoryGuard ~= nil and memoryGuard.isUser(widget)
+	if guarded then
+		memoryGuard.enter(widget)
+	end
+	return finishUserFunction(widget, guarded, pcall(func, ...))
 end
 
 local function SafeWrapFunc(func, funcName)
