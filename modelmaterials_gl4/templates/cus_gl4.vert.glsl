@@ -636,9 +636,9 @@ void main(void)
 	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
-	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
-	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
+	uint teamIndex = (instData.z & 0x000007FFu); // palette index: teams, then custom colors from 256
+	// 2047 = no team (map features, team -1): cus_gl4.lua keeps that slot black
+	teamCol = teamColor[teamIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;

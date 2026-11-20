@@ -10,6 +10,7 @@ local unitEntryFields = {
 	{ name = "teamName", type = Types.TeamName, required = true },
 	{ name = "orientation", type = Types.FacingOrDirection },
 	{ name = "unitName", type = Types.String },
+	{ name = "color", type = Types.Color },
 	{ name = "construction", type = Types.Boolean },
 	{ name = "quantity", type = Types.Number },
 	{ name = "spacing", type = Types.Number },

@@ -14,6 +14,8 @@ local createdUnits
 local turnedUnits
 ---@type table<integer, number[]>
 local turnedUpDirs
+---@type table[]
+local rulesParams
 
 -- A created unit stands on a slope, as CreateUnit leaves a vehicle on uneven ground.
 local SLOPE_UP_DIR = { 0.1, 0.99, 0 }
@@ -52,8 +54,12 @@ local env = MissionSpecEnv.new({
 		Pos2BuildPos = function(_, x, y, z)
 			return x, y, z
 		end,
+		SetUnitRulesParam = function(unitID, key, value, access)
+			rulesParams[#rulesParams + 1] = { unitID = unitID, key = key, value = value, access = access }
+		end,
 	},
 })
+env.SendToUnsynced = function() end
 env.UnitDefs = { { name = "armwar", corpse = "armwar_dead" } }
 env.UnitDefNames = {
 	armwar = { xsize = 2, zsize = 2 },
@@ -63,6 +69,7 @@ env.FeatureDefNames = { armwar_dead = { id = 1 } }
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
 
 MissionApiBuilder.new():Install(env)
+env.GG["MissionAPI"].Modules.UnitColor = MissionSpecEnv.include(env, "luarules/mission_api/unit_color.lua")
 
 local loadout = MissionSpecEnv.include(env, "luarules/mission_api/loadout.lua")
 
@@ -119,6 +126,38 @@ describe("mission_api.loadout feature orientation", function()
 		spawnedHeading({ orientation = { angle = 100 } })
 
 		assert.are.equal("e", resurrectFacings[1])
+	end)
+end)
+
+describe("mission_api.loadout unit color", function()
+	before_each(function()
+		createdUnits, turnedUnits, turnedUpDirs, rulesParams = {}, {}, {}, {}
+	end)
+
+	it("publishes an entry's color on each of its units, to whoever sees them", function()
+		loadout.SpawnUnitLoadout({
+			{
+				unitDefName = "armwar",
+				position = { x = 0, z = 0 },
+				teamName = 0,
+				quantity = 2,
+				color = { r = 1, g = 0.5, b = 0 },
+			},
+		})
+
+		local value = 255 * 65536 + 128 * 256
+		assert.are.same({
+			{ unitID = 1, key = "mission_unit_color", value = value, access = { inlos = true } },
+			{ unitID = 2, key = "mission_unit_color", value = value, access = { inlos = true } },
+		}, rulesParams)
+	end)
+
+	it("publishes nothing for an entry without a color", function()
+		loadout.SpawnUnitLoadout({
+			{ unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = 0 },
+		})
+
+		assert.are.same({}, rulesParams)
 	end)
 end)
 
