@@ -780,6 +780,8 @@ vec3 NormalBlendUnpackedRNM(vec3 n1, vec3 n2) {
 /***********************************************************************/
 
 
+//__HOVER_SHIMMER__
+
 #if (RENDERING_MODE != 2) //non-shadow pass
 // Fragment shader main()
 void main(void){
@@ -1302,8 +1304,6 @@ void main(void){
 			float inselection = (selectedness == 1.0 || selectedness == 3.0) ? 1.0 : 0.0;
 			float mouseovered = (selectedness > 1.5 ) ? 1.0 : 0.0;
 			float allyselected = step(abs(fract(selectedness) - 0.5), 0.25);
-			
-			float mouseOverAnimation = fract(worldVertexPos.y * (1.0/30.0) + (simFrame)  * (2.0/40.0));
 
 			// Base highlight amount, rgb contains the color of the highlight
 			// Alpha contains the strength of the highlight
@@ -1318,7 +1318,7 @@ void main(void){
 
 			vec4 mouseOverHighlight = selectionHighlight;
 
-			outColor.rgb += mouseovered * mouseOverAnimation * mouseOverHighlight.rgb * 0.5;
+			outColor.rgb += mouseovered * HoverShimmer(worldVertexPos.y, simFrame, mouseOverHighlight.rgb);
 			outColor.rgb += inselection * highLightOpacity * selectionHighlight.rgb;
 		}
 	#endif 

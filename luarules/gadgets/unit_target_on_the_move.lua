@@ -800,7 +800,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			elseif nParams == 3 then
-				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND and not cmdOptions.keepheight then
 					SendToUnsynced("failCommand", unitTeam)
 					--tracy.ZoneEnd()
 					return false
@@ -808,7 +808,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				local target = cmdParams
 				local elevation = spGetGroundHeight(target[1], target[3])
-				if target[2] > elevation then
+				if not cmdOptions.keepheight and target[2] > elevation then
 					target[2] = elevation
 				end
 				if not unitHasWaterWeapon[unitDefID] then

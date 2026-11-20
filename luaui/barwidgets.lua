@@ -147,6 +147,8 @@ local Spring = copyTable(Spring)
 local Json = copyTable(Json)
 
 local widgetHandler = {
+	---@type Widget[]
+	DrawGhostList = {},
 	widgets = {},
 
 	configData = {},
@@ -182,6 +184,7 @@ local widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
+	---@type boolean
 	chobbyInterface = false, -- will be true when chobby interface is on top
 
 	xViewSize = 1,
@@ -250,6 +253,7 @@ local flexCallIns = {
 	"DrawGroundPostDeferred",
 	"DrawGroundDeferred",
 	"DrawWorld",
+	"DrawGhost",
 	"DrawWorldPreUnit",
 	"DrawPreDecals",
 	"DrawWorldPreParticles",
@@ -382,6 +386,7 @@ local headlessDisabledCallIns = {
 	DrawGenesis = true,
 	DrawGroundDeferred = true,
 	DrawWorld = true,
+	DrawGhost = true,
 	DrawWorldPreUnit = true,
 	DrawPreDecals = true,
 	DrawWorldPreParticles = true,
@@ -3707,6 +3712,19 @@ function widgetHandler:DrawWorld()
 	end
 	tracyZoneEnd()
 	return
+end
+
+function widgetHandler:DrawGhost(info)
+	if self.chobbyInterface then
+		return false
+	end
+	local list = self.DrawGhostList
+	for i = #list, 1, -1 do
+		if list[i]:DrawGhost(info) then
+			return true
+		end
+	end
+	return false
 end
 
 function widgetHandler:DrawWorldPreUnit()
