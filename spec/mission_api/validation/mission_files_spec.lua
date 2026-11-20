@@ -125,6 +125,12 @@ describe("mission_api mission files", function()
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false
 		end
+		-- The campaign AI missions run with startscript_mission_api_campaign_ai_quicksilver.txt, where an AI runs the enemy.
+		V.env.Spring.GetAIInfo = function(teamID)
+			if teamID == 1 then
+				return 0, "Enemy", 0
+			end
+		end
 	end)
 
 	it("finds the mission files", function()

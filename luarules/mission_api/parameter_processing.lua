@@ -130,6 +130,7 @@ local processors = {
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
 	[ParameterTypes.TeamName] = processTeamName,
+	[ParameterTypes.AiTeamName] = processTeamName,
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,

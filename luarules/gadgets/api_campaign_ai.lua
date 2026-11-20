@@ -5,90 +5,332 @@ function gadget:GetInfo()
 		name = "Campaign AI API for Gadgets",
 		desc = "Allows gadgets to communicate with the campaign AI",
 		date = "2026",
-		layer = 1, -- requires GG.MissionAPI, run after api_missions.lua
+		layer = 1, -- after api_missions.lua sets inMission
 		enabled = true,
 	}
 end
 
-local BroadcastUnitDefsEnabled
-local BroadcastUnitsCtrlEnabled
-local BroadcastSetAiActive
-local BroadcastSetAiState
+-- provides:
+--   GG.CampaignAI.SetUnitDefsEnabled(unitDefIDs, isEnabled, teamID)
+--   GG.CampaignAI.SetUnitsCtrlEnabled(unitIDs, isEnabled, teamID)
+--   GG.CampaignAI.SetAiActive(isActive, teamID)
+--   GG.CampaignAI.SetAiState(state, teamID)
+--   GG.CampaignAI.SetProductionEnabled(unitIDs, isEnabled, teamID)
+--   GG.CampaignAI.SetMexCap(share, countsAllies, teamID)
+--   GG.CampaignAI.SetMilitaryQuota(scouts, attackPower, raidPower, teamID), each quota optional
+--   GG.CampaignAI.SetUnitDefRetreat(unitDefID, retreat, teamID)
+--   GG.CampaignAI.DefineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+--   GG.CampaignAI.RunSquad(squadID, task, x, z, attackRange, teamID)
+--   GG.CampaignAI.CancelSquad(squadID, teamID)
+--   GG.CampaignAI.DisbandSquad(squadID, teamID)
+--   GG.CampaignAI.SetSquadRepeat(squadID, isRepeating, teamID)
+--   GG.CampaignAI.SetSquadRetreat(squadID, retreat, isAssembled, teamID)
+--   GG.CampaignAI.SetSquadTarget(squadID, unitID, teamID)
+--   GG.CampaignAI.SetSquadEscort(squadID, unitID, teamID)
+--   GG.CampaignAI.DefineAiRegion(regionID, polygon, teamID)
+--   GG.CampaignAI.ClearAiRegion(regionID, teamID)
+--   GG.CampaignAI.DefineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
+--   GG.CampaignAI.AddToBasePlan(basePlanID, unitDefID, x, z, isRebuilt, teamID)
+--   GG.CampaignAI.CancelBasePlan(basePlanID, teamID)
+--   GG.CampaignAI.ReadSignal(message, playerID), for RecvLuaMsg
+-- state is a value of AiState in campaign_ai_msg.lua and task one of Task. unitCounts maps
+-- unitDefID to a count. polygon is x1, z1, x2, z2, ... inside the map. facing is 0 to 3, from south.
+-- ReadSignal returns the AI's team, a value of Signal in campaign_ai_msg.lua and the one or two numbers
+-- it came with, or nil when the message is not a signal from the player hosting that team's AI.
 
-if not gadgetHandler:IsSyncedCode() then
-	local aiMsg = VFS.Include("luarules/utilities/campaign_ai_msg.lua")
+local SYNC_ACTION = "CampaignAI"
+local SYNC_ACTION_SIGNAL = SYNC_ACTION .. "Signal"
+local MESSAGE_SIGNAL = SYNC_ACTION_SIGNAL .. ":"
+
+if gadgetHandler:IsSyncedCode() then
+	local aiMsg = VFS.Include("luarules/Utilities/campaign_ai_msg.lua")
+	local Topic = aiMsg.Topic
+	local MsgBuilder = aiMsg.MsgBuilder
+	local Squad = aiMsg.Squad
+	local Military = aiMsg.Military
+	local Plan = aiMsg.Plan
+
+	local function setUnitDefsEnabled(unitDefIDs, isEnabled, teamID)
+		local topic = isEnabled and Topic.ENABLE_UNITDEFS or Topic.DISABLE_UNITDEFS
+		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdArray(topic, unitDefIDs):toString())
+	end
+
+	local function setUnitsCtrlEnabled(unitIDs, isEnabled, teamID)
+		local topic = isEnabled and Topic.ENABLE_UNITS_CONTROL or Topic.DISABLE_UNITS_CONTROL
+		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdArray(topic, unitIDs):toString())
+	end
+
+	local function setAiActive(isActive, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.SET_AI_ACTIVE, isActive and 1 or 0):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function setAiState(state, teamID)
+		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SET_AI_STATE, state):toString())
+	end
+
+	local function setProductionEnabled(unitIDs, isEnabled, teamID)
+		local message =
+			MsgBuilder.new():cmdDictArray(Topic.SET_FACTORY_ACTIVE, isEnabled and 1 or 0, unitIDs):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function setMexCap(share, countsAllies, teamID)
+		local message = MsgBuilder.new():cmdArray(Topic.SET_MEX_CAP, { share, countsAllies and 1 or 0 }):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function setMilitaryQuota(scouts, attackPower, raidPower, teamID)
+		local quotas = {} ---@type table
+		if scouts then
+			quotas[#quotas + 1] = { Military.SCOUTS_COUNT, scouts }
+		end
+		if attackPower then
+			quotas[#quotas + 1] = { Military.ATTACK_POWER, attackPower }
+		end
+		if raidPower then
+			quotas[#quotas + 1] = { Military.RAID_POWER, raidPower }
+		end
+
+		local message = MsgBuilder.new():cmdDictArray(Topic.AI_MILITARY_PARAMS, quotas[1][1], { quotas[1][2] })
+		for i = 2, #quotas do
+			message:paramValue(quotas[i][1], quotas[i][2])
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setUnitDefRetreat(unitDefID, retreat, teamID)
+		local message = MsgBuilder.new():cmdDictArray(Topic.SET_UNITDEF_RETREAT_HP, unitDefID, { retreat }):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function defineSquad(squadID, unitCounts, x, z, gatherRange, attackRange, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.POSITION, { x, z })
+			:paramValue(Squad.GATHER_RANGE, gatherRange)
+
+		if attackRange then
+			message:paramValue(Squad.ATTACK_RANGE, attackRange)
+		end
+
+		-- Sorted, so the message does not depend on the order pairs walks unitCounts in.
+		local unitDefIDs = table.keys(unitCounts)
+		table.sort(unitDefIDs)
+		message:cmdDictArray(Topic.SQUAD_REQUEST_COMPOSE, unitDefIDs[1], { unitCounts[unitDefIDs[1]] })
+
+		for i = 2, #unitDefIDs do
+			message:paramValue(unitDefIDs[i], unitCounts[unitDefIDs[i]])
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function runSquad(squadID, task, x, z, attackRange, teamID)
+		-- The position follows the task, which resets where the squad goes.
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_ID, squadID)
+			:cmdValue(Topic.SQUAD_TASK, task)
+			:cmdDictArray(Topic.SQUAD_PARAMS, Squad.POSITION, { x, z })
+
+		if attackRange then
+			message:paramValue(Squad.ATTACK_RANGE, attackRange)
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function cancelSquad(squadID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.SQUAD_REQUEST_CANCEL, squadID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function disbandSquad(squadID, teamID)
+		SendToUnsynced(SYNC_ACTION, teamID, MsgBuilder.new():cmdValue(Topic.SQUAD_DISBAND, squadID):toString())
+	end
+
+	local function setSquadRepeat(squadID, isRepeating, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.REBUILD, { isRepeating and 1 or 0 })
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setSquadRetreat(squadID, retreat, isAssembled, teamID)
+		-- The squad's definition holds what its next task starts with; its units take a change only directly.
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_REQUEST_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_REQUEST_PARAMS, Squad.RETREAT, { retreat })
+
+		if isAssembled then
+			message:cmdValue(Topic.SQUAD_ID, squadID):cmdDictArray(Topic.SQUAD_PARAMS, Squad.RETREAT, { retreat })
+		end
+
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setSquadTarget(squadID, unitID, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.SQUAD_ID, squadID)
+			:cmdDictArray(Topic.SQUAD_PARAMS, Squad.PRIO_TARGET, { unitID })
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function setSquadEscort(squadID, unitID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.SQUAD_ID, squadID):cmdValue(Topic.SQUAD_ESCORT, unitID)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function defineAiRegion(regionID, polygon, teamID)
+		local message = MsgBuilder.new():cmdDictArray(Topic.TRIGGER_REGION_ID, regionID, polygon):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function clearAiRegion(regionID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.TRIGGER_REGION_CLEAR, regionID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local function defineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
+		local message = MsgBuilder.new()
+			:cmdDictArray(Topic.BUILD_REGION_ID, buildAreaID, polygon)
+			:addValue(unitDefID)
+			:addValue(facing)
+			:addValue(buildsAtOnce)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function addToBasePlan(basePlanID, unitDefID, x, z, isRebuilt, teamID)
+		local message = MsgBuilder.new()
+			:cmdValue(Topic.BASE_PLAN_ID, basePlanID)
+			:cmdDictArray(Topic.BASE_ADD_BUILDTASK, Plan.UNITDEF, { unitDefID })
+			:paramArray(Plan.POSITION, { x, z })
+			:paramValue(Plan.REBUILD, isRebuilt and 1 or 0)
+		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
+	end
+
+	local function cancelBasePlan(basePlanID, teamID)
+		local message = MsgBuilder.new():cmdValue(Topic.BASE_PLAN_CANCEL, basePlanID):toString()
+		SendToUnsynced(SYNC_ACTION, teamID, message)
+	end
+
+	local SIGNAL_FROM_AI = "^" .. aiMsg.Signal.PREFIX .. "(%d+:.+)"
+	local SIGNAL_MESSAGE = "^" .. MESSAGE_SIGNAL .. "(%d+):(%d+):(%d+);?(%d*)$"
+
+	local function readSignal(message, playerID)
+		local team, signal, id, detailID = message:match(SIGNAL_MESSAGE)
+		local teamID = tonumber(team) --[[@as integer?]]
+		if not teamID then
+			return
+		end
+
+		local _, _, hostPlayerID = Spring.GetAIInfo(teamID)
+		if playerID ~= hostPlayerID then
+			return
+		end
+
+		return teamID, tonumber(signal), tonumber(id), tonumber(detailID)
+	end
+
+	GG.CampaignAI = {
+		SetUnitDefsEnabled = setUnitDefsEnabled,
+		SetUnitsCtrlEnabled = setUnitsCtrlEnabled,
+		SetAiActive = setAiActive,
+		SetAiState = setAiState,
+		SetProductionEnabled = setProductionEnabled,
+		SetMexCap = setMexCap,
+		SetMilitaryQuota = setMilitaryQuota,
+		SetUnitDefRetreat = setUnitDefRetreat,
+		DefineSquad = defineSquad,
+		RunSquad = runSquad,
+		CancelSquad = cancelSquad,
+		DisbandSquad = disbandSquad,
+		SetSquadRepeat = setSquadRepeat,
+		SetSquadRetreat = setSquadRetreat,
+		SetSquadTarget = setSquadTarget,
+		SetSquadEscort = setSquadEscort,
+		DefineAiRegion = defineAiRegion,
+		ClearAiRegion = clearAiRegion,
+		DefineBuildArea = defineBuildArea,
+		AddToBasePlan = addToBasePlan,
+		CancelBasePlan = cancelBasePlan,
+		ReadSignal = readSignal,
+	}
+
+	-- The AI calls this outside the simulation and only on the machine that hosts it, so the
+	-- signal takes the way round through the net to reach synced code on every client.
+	function gadget:RecvSkirmishAIMessage(teamID, message)
+		local signal = message:match(SIGNAL_FROM_AI)
+		if signal then
+			SendToUnsynced(SYNC_ACTION_SIGNAL, teamID, signal)
+		end
+	end
 
 	function gadget:Initialize()
 		if not Spring.GetGameRulesParam("inMission") then
 			gadgetHandler:RemoveGadget()
 			return
 		end
-		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
-		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
-		gadgetHandler:AddSyncAction("SetAiActive", BroadcastSetAiActive)
-		gadgetHandler:AddSyncAction("SetAiState", BroadcastSetAiState)
 	end
 
-	BroadcastUnitDefsEnabled = function(_, unitDefIDs, isEnabled, teamID)
-		local msg = aiMsg.MsgBuilder
-			.new()
-			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITDEFS or aiMsg.Topic.DISABLE_UNITDEFS, unitDefIDs)
-			:toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
+	function gadget:Shutdown()
+		GG.CampaignAI = nil
+	end
+else
+	local AI_SHORT_NAME = "CampaignAI"
+
+	-- The engine creates the AIs after GamePreload, so a message from before the game starts has to wait.
+	local aisExist = false
+	local heldMessages = {}
+	local warnedTeams = {}
+
+	-- A player can read the short name of the AIs they host only, the same AIs their messages reach.
+	local function send(teamID, message)
+		local _, _, _, shortName = Spring.GetAIInfo(teamID)
+		if shortName == AI_SHORT_NAME then
+			Spring.SendSkirmishAIMessage(teamID, message)
+		elseif shortName and shortName ~= "UNKNOWN" and not warnedTeams[teamID] then
+			warnedTeams[teamID] = true
+			local warning = "Team " .. teamID .. " is run by " .. shortName .. ", not by the campaign AI"
+			Spring.Log("Campaign AI API", LOG.WARNING, warning)
+		end
 	end
 
-	BroadcastUnitsCtrlEnabled = function(_, unitIDs, isEnabled, teamID)
-		local msg = aiMsg.MsgBuilder
-			.new()
-			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITS_CONTROL or aiMsg.Topic.DISABLE_UNITS_CONTROL, unitIDs)
-			:toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
+	local function sendToAI(_, teamID, message)
+		if aisExist then
+			send(teamID, message)
+		else
+			heldMessages[#heldMessages + 1] = { teamID, message }
+		end
 	end
 
-	BroadcastSetAiActive = function(_, isActive, teamID)
-		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_ACTIVE, isActive and 1 or 0):toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
+	function gadget:GameStart()
+		aisExist = true
+
+		for _, held in ipairs(heldMessages) do
+			send(held[1], held[2])
+		end
+
+		heldMessages = {}
 	end
 
-	BroadcastSetAiState = function(_, state, teamID)
-		-- state must correspond to an enum of aiMsg.AiState
-		local msg = aiMsg.MsgBuilder.new():cmdValue(aiMsg.Topic.SET_AI_STATE, state):toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
+	local function relaySignal(_, teamID, signal)
+		Spring.SendLuaRulesMsg(MESSAGE_SIGNAL .. teamID .. ":" .. signal)
 	end
-end
 
-GG.CampaignAI = {}
-
----@param unitDefIDs table of UnitDefID to allow construction
-GG.CampaignAI.SetUnitDefsEnabled = function(unitDefIDs, isEnabled, teamID)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("SetUnitDefsEnabled", unitDefIDs, isEnabled, teamID)
-	else
-		BroadcastUnitDefsEnabled("SetUnitDefsEnabled", unitDefIDs, isEnabled, teamID)
+	function gadget:Initialize()
+		if not Spring.GetGameRulesParam("inMission") then
+			gadgetHandler:RemoveGadget()
+			return
+		end
+		aisExist = Spring.GetGameFrame() > 0
+		gadgetHandler:AddSyncAction(SYNC_ACTION, sendToAI)
+		gadgetHandler:AddSyncAction(SYNC_ACTION_SIGNAL, relaySignal)
 	end
-end
 
----@param unitIDs table of UnitID to enable control by AI
-GG.CampaignAI.SetUnitsCtrlEnabled = function(unitIDs, isEnabled, teamID)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
-	else
-		BroadcastUnitsCtrlEnabled("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
-	end
-end
-
-GG.CampaignAI.SetAiActive = function(isActive, teamID)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("SetAiActive", isActive, teamID)
-	else
-		BroadcastSetAiActive("SetAiActive", isActive, teamID)
-	end
-end
-
-GG.CampaignAI.SetAiState = function(state, teamID)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("SetAiState", state, teamID)
-	else
-		BroadcastSetAiState("SetAiState", state, teamID)
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction(SYNC_ACTION)
+		gadgetHandler:RemoveSyncAction(SYNC_ACTION_SIGNAL)
 	end
 end

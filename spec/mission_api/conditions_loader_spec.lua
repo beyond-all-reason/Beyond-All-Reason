@@ -135,6 +135,12 @@ describe("mission_api.conditions_loader", function()
 			assert.is_function(C.CountdownEnded[T.TimeElapsed])
 			assert.is_nil(C.GameFrame[T.TimeElapsed])
 
+			-- Campaign AI signals drive the squad triggers:
+			assert.is_function(C.SquadAssembled[T.SquadAssembled])
+			assert.is_function(C.SquadDisbanded[T.SquadDisbanded])
+			assert.is_function(C.SquadEnteredRegion[T.SquadEnteredRegion])
+			assert.is_function(C.SquadLeftRegion[T.SquadLeftRegion])
+
 			-- GameFrame drives resource triggers:
 			assert.is_function(C.GameFrame[T.ResourceStored])
 			assert.is_function(C.GameFrame[T.ResourceIncome])

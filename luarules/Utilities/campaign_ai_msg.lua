@@ -64,7 +64,7 @@ local topic = { -- Message topic
 local signal = { -- Trigger signal
 	PREFIX = "ai_", -- signal message prefix
 	SQUAD_FINISHED = 201,
-	SQUAD_DESTROYED = 202,
+	SQUAD_DISBANDED = 202,
 	REGION_ENTER = 301,
 	REGION_EXIT = 302,
 }
