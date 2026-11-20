@@ -1376,6 +1376,9 @@ local function moveUserCustomCommands(source, target)
 	end
 end
 
+-- Cannot be global. A user widget could register the name before the first locals-access load.
+local localsAccess
+
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = vfsLoadFile(
