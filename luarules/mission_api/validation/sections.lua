@@ -707,6 +707,23 @@ local function validateWriteVariableAction(context, actionReport, actionID, acti
 	end
 end
 
+local function validateAddToVariableAction(context, actionReport, actionID, action)
+	if action.type ~= context.ActionTypes.AddToVariable or type(action.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(action.parameters.key)) do
+		local current = context.Variables[key]
+		if current ~= nil and type(current) ~= "number" then
+			actionReport.Error(
+				actionID,
+				"Variable '" .. key .. "' is a " .. type(current) .. ", so it cannot be added to",
+				"Parameter: key"
+			)
+		end
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -720,6 +737,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateAddBuildOptionAction(context, actionReport, actionID, action)
 			validateFollowCameraEnding(context, actionReport, actionID, action)
 			validateWriteVariableAction(context, actionReport, actionID, action)
+			validateAddToVariableAction(context, actionReport, actionID, action)
 		end
 	end
 end
