@@ -5,6 +5,13 @@ local WidgetLocalizations = VFS.Include("modules/i18n/widget_localizations.lua",
 
 local asianFont = "fallbacks/SourceHanSans-Regular.ttc"
 local translationDirs = VFS.SubDirs("language")
+-- a module's strings come with it, from modules/<name>/language/<code>/, found through the VFS alone so the lobby
+-- needs no module loader
+for _, moduleDir in ipairs(VFS.SubDirs("modules")) do
+	for _, languageDir in ipairs(VFS.SubDirs(moduleDir .. "language")) do
+		translationDirs[#translationDirs + 1] = languageDir
+	end
+end
 
 -- map of languageCode -> map of translation key -> translation string
 local languageTranslations = {}
@@ -45,9 +52,12 @@ end
 -- languageCode -> list of translation files associated with that language.
 local languageFiles = {}
 for _, languageDir in ipairs(translationDirs) do
-	local translationFiles = VFS.DirList(languageDir, "*.json")
 	local languageCode = table.remove(string.split(languageDir, "/"))
-	languageFiles[languageCode] = translationFiles
+	local files = languageFiles[languageCode] or {}
+	languageFiles[languageCode] = files
+	for _, file in ipairs(VFS.DirList(languageDir, "*.json")) do
+		files[#files + 1] = file
+	end
 end
 
 -- Loads all language translation files associated with languageCode.
@@ -104,6 +114,7 @@ function i18n.setLanguage(language)
 	i18n.setLocale(language)
 	loadRmlTranslations(language)
 
+	---@diagnostic disable-next-line: unnecessary-if -- an older engine has no fallback fonts
 	if gl.AddFallbackFont then
 		return
 	end
