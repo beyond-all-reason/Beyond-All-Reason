@@ -190,11 +190,38 @@ describe("ground AO atlas", function()
 	it("does not replace an unresolved explicit texture with an automatic match", function()
 		local create, calls = fixture({
 			definitions = {
-				[1] = { modelname = "old.s3o", customParams = { buildinggrounddecaltype = "decals/missing.png" } },
+				[1] = {
+					name = "missing_unit",
+					modelname = "old.s3o",
+					customParams = { buildinggrounddecaltype = "decals/missing.png" },
+				},
 			},
 		})
 		assert(create().plates[1] == nil)
 		equal(1, #calls.warnings)
+		equal(
+			"Ground AO (unit): cannot resolve decals/missing.png referenced by unitDef missing_unit",
+			calls.warnings[1]
+		)
+	end)
+
+	it("includes the featureDef name in unresolved texture warnings", function()
+		local create, calls = fixture({
+			kind = "feature",
+			definitions = {
+				[1] = {
+					name = "missing_feature",
+					modelname = "old.s3o",
+					customParams = { decalinfo_texfile = "decals/missing.png" },
+				},
+			},
+		})
+		assert(create().plates[1] == nil)
+		equal(1, #calls.warnings)
+		equal(
+			"Ground AO (feature): cannot resolve decals/missing.png referenced by featureDef missing_feature",
+			calls.warnings[1]
+		)
 	end)
 
 	it("honors boolean, numeric and string unit opt-outs", function()

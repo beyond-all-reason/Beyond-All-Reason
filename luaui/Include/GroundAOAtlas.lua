@@ -227,6 +227,7 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 	local needed = {}
 	for id, def in pairs(definitions) do
 		local cp = def.customParams or {}
+		local defName = def.name or ("#" .. tostring(id))
 		if feature or not disabled(cp.usebuildinggrounddecal) then
 			local reference = cp[textureParam]
 			local entry, x, z
@@ -235,10 +236,10 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 				if entry then
 					x, z = sizes(entry, cp, true)
 					if not x or not z then
-						warn("missing physical sizes for " .. reference)
+						warn("missing physical sizes for " .. reference .. " referenced by " .. kind .. "Def " .. defName)
 					end
 				else
-					warn("cannot resolve " .. reference)
+					warn("cannot resolve " .. reference .. " referenced by " .. kind .. "Def " .. defName)
 				end
 			else
 				entry, x, z = automatic(def, cp)
