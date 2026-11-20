@@ -412,6 +412,8 @@ do
 	end
 end
 
+local engineCallIns = Script.GetCallInList()
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -2627,8 +2629,6 @@ end
 --
 --  Global var/func management
 --
-
-local engineCallIns = Script.GetCallInList()
 
 function widgetHandler:RegisterGlobal(owner, name, value)
 	if
