@@ -509,6 +509,7 @@ end
 
 --------------------------------------------------------------------------------
 local unsortedWidgets ---@type table
+local unconfiguredOrders = {} ---@type table<string, true?>
 -- While Initialize inserts the startup widgets, each insert updates only the call-ins its widget has.
 local insertingStartupWidgets = false
 local springYield = Spring.Yield
@@ -1101,14 +1102,6 @@ function widgetHandler:Initialize()
 	unsortedWidgets = {}
 	CreateSandboxedSystem()
 
-	if self.allowUserWidgets and allowuserwidgets then
-		spEcho("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
-		loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
-	else
-		spEcho("LuaUI: Disallowing User Widgets")
-	end
-
 	loadWidgetFiles(WIDGET_DIRNAME, vfsZip)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, vfsZip)
 
@@ -1119,6 +1112,15 @@ function widgetHandler:Initialize()
 	end
 	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(vfsZip)) do
 		loadWidgetFiles(moduleWidgetDir, vfsZip)
+	end
+
+	-- After the game's, so game widgets run their files against the real libraries and claim their names first.
+	if self.allowUserWidgets and allowuserwidgets then
+		spEcho("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
+	else
+		spEcho("LuaUI: Disallowing User Widgets")
 	end
 	restoreReplaced()
 
@@ -1485,6 +1487,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		self.orderList[name] = 1 -- always load the widget selector
 	elseif hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
+		zipOnly[name] = filename
+		zipOnlyFiles[(stringGsub(stringLower(filename), "\\", "/"))] = name
 	end
 
 	err = self:ValidateWidget(widget)
@@ -1498,6 +1502,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	end
 
 	local knownInfo = self.knownWidgets[name]
+
+	if knownInfo and knownInfo.fromZip and not fromZip and not reload then
+		for i = #unsortedWidgets, 1, -1 do
+			if unsortedWidgets[i].whInfo.name == name then
+				tableRemove(unsortedWidgets, i)
+			end
+		end
+		self:ForgetWidget(name)
+		knownInfo = nil
+		if unconfiguredOrders[name] then
+			self.orderList[name] = nil -- let the user copy's `enabled` set it
+		end
+		spEcho("Using user copy: " .. filename .. "  (in place of the game's " .. name .. ")")
+	end
+
 	if knownInfo and not reload then
 		if knownInfo.active then
 			return loadFailed(basename, "duplicate name")
@@ -1545,6 +1564,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	else
 		if widget.whInfo.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
+		end
+		if fromZip then
+			unconfiguredOrders[name] = true
 		end
 	end
 
