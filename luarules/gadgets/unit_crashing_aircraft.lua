@@ -14,9 +14,14 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local gravityMult = 1.7
+	local crashTimeoutFrames = 15 * Game.gameSpeed
+	local fullExplosionCrashFrames = Game.gameSpeed
+	local aircraftCrashed = Game.envDamageTypes.AircraftCrashed
 
 	local SetUnitWeaponState = Spring.SetUnitWeaponState
 	local GetUnitHealth = Spring.GetUnitHealth
+	local GetUnitWeaponDamages = Spring.GetUnitWeaponDamages --[[@as fun(unitID: UnitID, weapon: string, key: integer|string): number]]
+	local SetUnitWeaponDamages = Spring.SetUnitWeaponDamages
 	local GetGameFrame = Spring.GetGameFrame
 	local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 	local SetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
@@ -43,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Shared membership; values are destruction deadlines, not booleans.
 	-- Consumers can acquire this table before the controller loads.
-	local crashing = table.ensureTable(GG, "Crashing")
+	local crashing = table.ensureTable(GG, "Crashing") ---@type table<UnitID, integer?>
 
 	local isAircon = {}
 	local crashable = {}
@@ -94,7 +99,7 @@ if gadgetHandler:IsSyncedCode() then
 				SetAirMoveTypeData(unitID, "myGravity", moveTypeData.myGravity * gravityMult)
 			end
 			-- make it crash
-			crashing[unitID] = GetGameFrame() + 450
+			crashing[unitID] = GetGameFrame() + crashTimeoutFrames
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID, true)
 			SetUnitNoMinimap(unitID, true)
@@ -155,8 +160,37 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+	local explosionDamageFields = {
+		"paralyzeDamageTime",
+		"impulseFactor",
+		"impulseBoost",
+		"craterMult",
+		"craterBoost",
+		"craterAreaOfEffect",
+		"damageAreaOfEffect",
+		"edgeEffectiveness",
+		"explosionSpeed",
+	}
+
+	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+		local deadline = crashing[unitID]
 		crashing[unitID] = nil
+		if
+			weaponDefID == aircraftCrashed
+			and deadline
+			and GetGameFrame() < deadline - crashTimeoutFrames + fullExplosionCrashFrames
+		then
+			-- The engine reads self-destruct damage after UnitDestroyed on aircraft impact.
+			local damages = {}
+			for armorType = 0, #Game.armorTypes do
+				damages[armorType] = GetUnitWeaponDamages(unitID, "explode", armorType)
+			end
+			for i = 1, #explosionDamageFields do
+				local field = explosionDamageFields[i]
+				damages[field] = GetUnitWeaponDamages(unitID, "explode", field)
+			end
+			SetUnitWeaponDamages(unitID, "selfDestruct", damages --[[@as WeaponDamages]])
+		end
 	end
 else -- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState

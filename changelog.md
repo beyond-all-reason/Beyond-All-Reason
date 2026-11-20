@@ -1,4 +1,5 @@
 # November
+- [Aircraft] Being shot down and crashing within one second uses normal death explosion damage and radius. Longer crashes and manual self-destruct are unchanged.
 - [Zombies]
   - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.
