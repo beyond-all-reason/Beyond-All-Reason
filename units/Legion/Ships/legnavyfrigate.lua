@@ -134,8 +134,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 250,
 				customparams = {
-					speceffect = "torpwaterpen",
-					tracking_turn_radius = 2000,
+					torpedo_guidance = "water_entry",
 					weapons_group = 1,
 				},
 				damage = {

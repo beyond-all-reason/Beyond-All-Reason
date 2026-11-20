@@ -121,6 +121,9 @@ return {
 				name = "Homing Torpedo Launcher",
 				noselfdamage = true,
 				numbounce = 1,
+				customparams = {
+					avoid_leaving_water = true,
+				},
 				range = 600,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
