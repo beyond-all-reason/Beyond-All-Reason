@@ -7,6 +7,7 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetModKeyState = Spring.GetModKeyState
+local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 
 local CYCLE_COUNT = 3
 local PIP_COUNT = 3
@@ -160,11 +161,52 @@ local function nextCycledVirtualIndex(virtualIndex, reverse)
 	return virtualIndex + 1
 end
 
-local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
-	if release then
+local function availableOrderActions()
+	local orderActions = {}
+	local activeCmdDescs = spGetActiveCmdDescs()
+	for index = 1, #activeCmdDescs do
+		local cmdDesc = activeCmdDescs[index]
+		if cmdDesc.action and not cmdDesc.disabled then
+			orderActions[cmdDesc.action] = true
+		end
+	end
+	return orderActions
+end
+
+local function gridMenuClaimsAction(action)
+	local claimsAction = WG.gridmenu and WG.gridmenu.claimsAction
+	if not claimsAction then
 		return false
 	end
-	if WG.gridmenu and WG.gridmenu.getActiveBuilder and WG.gridmenu.getActiveBuilder() ~= nil then
+	return claimsAction(action.command, string.split(action.extra))
+end
+
+local function mustYieldKey(actions, command, extra)
+	if not actions then
+		return false
+	end
+	local orderActions
+	local reachedOwnAction = false
+	for index = 1, #actions do
+		local action = actions[index]
+		if reachedOwnAction then
+			if gridMenuClaimsAction(action) then
+				return true
+			end
+		elseif action.command == command then
+			reachedOwnAction = action.extra == extra
+		else
+			orderActions = orderActions or availableOrderActions()
+			if orderActions[action.command] then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
+	if release then
 		return false
 	end
 	local selectedUnits = spGetSelectedUnits()
@@ -175,19 +217,20 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if virtualIndex == nil then
 		return false
 	end
+	if mustYieldKey(actions, cmd, optLine) then
+		return false
+	end
 	local param = optWords[1] and tonumber(optWords[1])
 	if param ~= nil then
 		local targetIndex = param + 1
 		if targetIndex < 1 or targetIndex > DIRECT_BIND_MAX then
 			return false
 		end
-		giveVirtualIndex(targetIndex, 0)
-		return false
+		return giveVirtualIndex(targetIndex, 0)
 	end
 	local _, _, shift = spGetModKeyState()
 	local nextIndex = nextCycledVirtualIndex(virtualIndex, shift)
-	giveVirtualIndex(nextIndex, 0)
-	return false
+	return giveVirtualIndex(nextIndex, 0)
 end
 
 local function hasMatchingStagedFirestate(engineParam)

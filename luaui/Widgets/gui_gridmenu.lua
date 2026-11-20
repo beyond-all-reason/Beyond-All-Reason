@@ -1508,6 +1508,18 @@ function widget:Initialize()
 		return activeBuilder
 	end
 	WG.gridmenu.getUnitDefIDByRowCol = getUnitDefIDByRowCol
+	WG.gridmenu.claimsAction = function(command, args)
+		if command == "gridmenu_key" then
+			if not getUnitDefIDByRowCol(args[1], args[2]) then
+				return false
+			end
+			if builderIsFactory then
+				return not useLabBuildMode or labBuildModeActive
+			end
+			return currentCategory ~= nil and (isPregame or activeBuilder ~= nil)
+		end
+		return activeBuilder ~= nil and string.find(command, "gridmenu_", 1, true) == 1
+	end
 	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
 		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
 			updateQueueNr(unitDefID, change)
