@@ -13,14 +13,32 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
-local tableInsert = table.insert
-
--- Localized Spring API for performance
-local spGetSpectatingState = Spring.GetSpectatingState
-
 local shapeOpacity = 0.24
 local maxUnitShapes = 4096
+local maxQueueDepth = 4
+local assistGhostInterval = 0.2
+
+-- Localized functions for performance
+local tableInsert = table.insert
+local mathFloor = math.floor
+local mathMin = math.min
+local halfPi = math.pi / 2
+
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitBuildFacing = Spring.GetUnitBuildFacing
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local CMD_REPAIR = CMD.REPAIR
+
+local builderQueueAPI --- @type BuilderQueueApi
+local builderQueueApiCallbacks = {} --- @type BuilderQueueEventCallback[]
 
 --Changelog
 -- before v2 developed by WarXperiment
@@ -36,25 +54,34 @@ local maxUnitShapes = 4096
 local myPlayerId = Spring.GetLocalPlayerID()
 local _, fullView, _ = spGetSpectatingState()
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local halfPi = math.pi / 2
-
 local reInitialize
+
+local isBuilder = {}
+local isBuildAssister = {}
+local isBuildOption = {}
+local unitWaterlineMap = {} -- ensure proper display of submerged buildings
+for unitDefId, unitDefinition in ipairs(UnitDefs) do
+	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.buildOptions[1] then
+		isBuilder[unitDefId] = true
+		for _, optionDefId in ipairs(unitDefinition.buildOptions) do
+			isBuildOption[optionDefId] = true
+		end
+	end
+	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.canAssist then
+		isBuildAssister[unitDefId] = true
+	end
+	if unitDefinition.waterline and unitDefinition.waterline > 0 then
+		unitWaterlineMap[unitDefId] = unitDefinition.waterline
+	end
+end
 
 local numUnitShapes = 0
 local unitShapes = {}
 local removedUnitShapes = {}
 
-local builderQueueAPI --- @type BuilderQueueApi
-local builderQueueApiCallbacks = {} --- @type BuilderQueueEventCallback[]
-
--- Used to ensure proper display of submerged buildings
-local unitWaterlineMap = {}
-for unitDefId, unitDefinition in ipairs(UnitDefs) do
-	if unitDefinition.waterline and unitDefinition.waterline > 0 then
-		unitWaterlineMap[unitDefId] = unitDefinition.waterline
-	end
-end
+local assistGhosts = {}
+local assistedFrameDefIds = {}
+local assistGhostTimer = 0 ---@type number
 
 --- @param buildCommand BuildCommandEntry
 local function drawUnitShape(shapeId, unitDefId, groundHeight, buildCommand)
@@ -126,6 +153,81 @@ local function onUnitFinished(_, commandId)
 	removeUnitShape(commandId)
 end
 
+-- TODO: Absorb assist nofications into the builder queue API, probably.
+local function updateAssistGhosts()
+	local selectedUnits = spGetSelectedUnits()
+
+	local hasAssistedFrame = false
+	for frameId in pairs(assistedFrameDefIds) do
+		assistedFrameDefIds[frameId] = nil
+	end
+	for i = 1, #selectedUnits do
+		local unitId = selectedUnits[i]
+		if isBuildAssister[spGetUnitDefID(unitId)] then
+			for c = 1, mathMin(maxQueueDepth, spGetUnitCommandCount(unitId)) do
+				local cmdId, _, _, paramX, paramY, _, _, paramRadius = spGetUnitCurrentCommand(unitId, c)
+				---@cast paramX UnitID
+				if cmdId == CMD_REPAIR and paramX and (not paramY or paramRadius) and spGetUnitIsBeingBuilt(paramX) then
+					local frameDefId = spGetUnitDefID(paramX)
+					if isBuildOption[frameDefId] then
+						assistedFrameDefIds[paramX] = frameDefId
+						hasAssistedFrame = true
+					end
+				end
+			end
+		end
+	end
+
+	-- The engine draws build ghosts for selected units, but skips build-assisters.
+	if hasAssistedFrame then
+		for i = 1, #selectedUnits do
+			local unitId = selectedUnits[i]
+			if isBuilder[spGetUnitDefID(unitId)] then
+				for c = 1, mathMin(maxQueueDepth, spGetUnitCommandCount(unitId)) do
+					local cmdId, _, _, paramX, _, paramZ = spGetUnitCurrentCommand(unitId, c)
+					if cmdId and cmdId < 0 and paramZ then
+						for frameId, frameDefId in pairs(assistedFrameDefIds) do
+							if frameDefId == -cmdId then
+								local frameX, _, frameZ = spGetUnitPosition(frameId)
+								if
+									mathFloor(frameX) == mathFloor(paramX)
+									and mathFloor(frameZ) == mathFloor(paramZ)
+								then
+									assistedFrameDefIds[frameId] = nil
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	for frameId in pairs(assistGhosts) do
+		if not assistedFrameDefIds[frameId] then
+			removeUnitShape(frameId)
+			assistGhosts[frameId] = nil
+		end
+	end
+
+	for frameId, frameDefId in pairs(assistedFrameDefIds) do
+		if not assistGhosts[frameId] then
+			local frameX, _, frameZ = spGetUnitPosition(frameId)
+			local assistGhost = {
+				unitDefId = frameDefId,
+				teamId = spGetUnitTeam(frameId),
+				positionX = frameX,
+				positionZ = frameZ,
+				rotation = spGetUnitBuildFacing(frameId) or 0,
+			}
+			onBuildCommandAdded(frameId, assistGhost)
+			if unitShapes[frameId] then
+				assistGhosts[frameId] = assistGhost
+			end
+		end
+	end
+end
+
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
@@ -149,6 +251,7 @@ function widget:Initialize()
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
 
 	unitShapes = {}
+	assistGhosts = {}
 	removedUnitShapes = {}
 	numUnitShapes = 0
 
@@ -182,7 +285,7 @@ end
 
 local prevGuiHidden = Spring.IsGUIHidden()
 
-function widget:Update()
+function widget:Update(dt)
 	if not WG.BuilderQueueApi then
 		error("API Builder Queue is disabled")
 		widget:Shutdown()
@@ -200,6 +303,12 @@ function widget:Update()
 		for k in pairs(removedUnitShapes) do
 			removedUnitShapes[k] = nil
 		end
+
+		assistGhostTimer = assistGhostTimer - dt
+		if assistGhostTimer <= 0 then
+			assistGhostTimer = assistGhostInterval
+			updateAssistGhosts()
+		end
 	end
 
 	if isGuiHidden ~= prevGuiHidden then
@@ -209,5 +318,23 @@ function widget:Update()
 		else
 			widget:Initialize()
 		end
+	end
+end
+
+function widget:SelectionChanged()
+	assistGhostTimer = 0
+end
+
+function widget:UnitFinished(unitId)
+	if assistGhosts[unitId] then
+		removeUnitShape(unitId)
+		assistGhosts[unitId] = nil
+	end
+end
+
+function widget:UnitDestroyed(unitId)
+	if assistGhosts[unitId] then
+		removeUnitShape(unitId)
+		assistGhosts[unitId] = nil
 	end
 end
