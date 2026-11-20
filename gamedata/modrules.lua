@@ -16,6 +16,7 @@ local modrules = {
 		constructionDecay = true, -- Do uncompleted building frames begin to decay if no builder is working on them?
 		constructionDecayTime = 9, -- The time in seconds before abandoned building frames begin to decay.
 		constructionDecaySpeed = 0.03, -- How fast build progress decays for abandoned building frames. Note that the rate is inversely proportional to the buildtime i.e. a building with a larger buildtime will decay more slowly for a given value of this tag than a building with a shorter buildtime.
+		useYardmapsForQueuedBuildOverlap = true, -- Allow queued buildings to use the same yardmap-compatible overlap as sequential construction.
 	},
 
 	reclaim = {
