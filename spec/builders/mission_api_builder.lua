@@ -52,6 +52,7 @@ end, math.huge)
 ---@field giveOrders table
 ---@field playSound table
 ---@field enqueueSound table
+---@field stopSound table
 ---@field processSoundQueue table
 ---@field activateStage table
 ---@field changeStage table
@@ -353,6 +354,7 @@ function MB:Build(installed)
 	local giveOrdersCalls = {}
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
+	local stopSoundCalls = {}
 	local processSoundQueueCalls = {}
 	local activateStageCalls = {}
 	local changeStageCalls = {}
@@ -393,6 +395,9 @@ function MB:Build(installed)
 		end,
 		EnqueueSound = function(soundfile, volume, position)
 			enqueueSoundCalls[#enqueueSoundCalls + 1] = { soundfile = soundfile, volume = volume, position = position }
+		end,
+		StopSound = function(soundfile)
+			stopSoundCalls[#stopSoundCalls + 1] = { soundfile = soundfile }
 		end,
 		ProcessSoundQueue = function(frameNumber)
 			processSoundQueueCalls[#processSoundQueueCalls + 1] = { frame = frameNumber }
@@ -532,6 +537,7 @@ function MB:Build(installed)
 			giveOrders = giveOrdersCalls,
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
+			stopSound = stopSoundCalls,
 			processSoundQueue = processSoundQueueCalls,
 			activateStage = activateStageCalls,
 			changeStage = changeStageCalls,
@@ -554,6 +560,7 @@ function MB:Build(installed)
 				spawnFeatureCalls,
 				playSoundCalls,
 				enqueueSoundCalls,
+				stopSoundCalls,
 				processSoundQueueCalls,
 				activateStageCalls,
 				changeStageCalls,

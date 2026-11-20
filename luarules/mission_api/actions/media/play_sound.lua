@@ -13,7 +13,7 @@ return {
 	{
 		type = 'PlaySound',
 		parameters = {
-			{ name = 'soundfile', required = true, type = ParameterTypes.SoundFile },
+			{ name = 'soundFile', required = true, type = ParameterTypes.SoundFile },
 			{ name = 'volume', required = false, type = ParameterTypes.Number },
 			{ name = 'position', required = false, type = ParameterTypes.Position },
 			{ name = 'enqueue', required = false, type = ParameterTypes.Boolean },
