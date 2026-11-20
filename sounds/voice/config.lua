@@ -1,7 +1,8 @@
 --[[
 EventName = {
 	Regular stuff:
-		delay = integrer - Minimum seconds that have to pass to play this notification again.
+		delay = integer - Minimum seconds that have to pass to play this notification again.
+		priority = integer =  Notitifactions with higher priority are queued in front of the lower ones. If none is present, defaults to 3 (considered Normal)
 		stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
 								Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
 		resetOtherEventDelay = table of strings - Names of other events that will get it's delay reset. 
@@ -16,6 +17,8 @@ EventName = {
 		rulesDisable = table of strings - List of rules this notif will disable
 		rulesPlayOnlyIfEnabled = table of strings - List of rules that are required to be enabled for this notification to work
 		rulesPlayOnlyIfDisabled = table of strings - List of rules that are required to be disabled for this notification to work
+		playOnlyForAFK = bool - Play this notification only if player is AFK
+		muteForAFK = bool - Mute this notification for AFK players
 }
 ]]
 
@@ -91,34 +94,41 @@ return {
 	-- Commanders
 	EnemyCommanderDied = {
 		delay = 1,
+		priority = 1,
 		soundEffect = "EnemyComDead",
 		resetOtherEventDelay = { "NeutralCommanderDied" },
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
+		priority = 1,
 		soundEffect = "FriendlyComDead",
 		resetOtherEventDelay = { "NeutralCommanderDied" },
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
+		priority = 1,
 		soundEffect = "FriendlyComDead",
 		resetOtherEventDelay = { "NeutralCommanderSelfD" },
 	},
 	NeutralCommanderDied = {
 		delay = 1,
+		priority = 1,
 		soundEffect = "NeutralComDead",
 	},
 	NeutralCommanderSelfD = {
 		delay = 1,
+		priority = 1,
 		soundEffect = "NeutralComDead",
 	},
 
 	TeamDownLastCommander = {
 		delay = 30,
+		priority = 1,
 		soundEffect = "YourTeamHasTheLastCommander",
 	},
 	YouHaveLastCommander = {
 		delay = 30,
+		priority = 1,
 		soundEffect = "YouHaveTheLastCommander",
 	},
 
@@ -137,29 +147,40 @@ return {
 
 	-- Game Status
 	ChooseStartLoc = {
-		delay = 90,
+		delay = 30,
+		priority = 4,
 		notext = true,
 	},
 	GameStarted = {
 		delay = 1,
+		priority = 4,
+		playOnlyForAFK = true,
 	},
 	GameUnpaused = {
-		delay = 1,
+		delay = -1,
+		priority = 4,
+		playOnlyForAFK = true,
 	},
 	BattleEnded = {
 		delay = 1,
+		priority = 4,
 		soundEffect = "GameEnd",
+		playOnlyForAFK = true,
 	},
 	BattleVictory = {
 		delay = 1,
+		priority = 4,
 		soundEffect = "GameEnd",
 	},
 	BattleDefeat = {
 		delay = 1,
+		priority = 4,
 		soundEffect = "GameEnd",
 	},
 	GamePaused = {
-		delay = 1,
+		delay = -1,
+		priority = 4,
+		playOnlyForAFK = true,
 	},
 	["Dominion/EnemyTeamEliminated"] = {
 		delay = 2,
@@ -179,78 +200,98 @@ return {
 
 	TeammateCaughtUp = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerCaughtUp" },
 	},
 	TeammateDisconnected = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerDisconnected" },
 	},
 	TeammateLagging = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerLagging" },
 	},
 	TeammateReconnected = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerReconnected" },
 	},
 	TeammateResigned = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerResigned" },
 	},
 	TeammateTimedout = {
 		delay = 5,
+		priority = 2,
 		resetOtherEventDelay = { "NeutralPlayerTimedout" },
 	},
 
 	EnemyPlayerCaughtUp = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerCaughtUp" },
 	},
 	EnemyPlayerDisconnected = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerDisconnected" },
 	},
 	EnemyPlayerLagging = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerLagging" },
 	},
 	EnemyPlayerReconnected = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerReconnected" },
 	},
 	EnemyPlayerResigned = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerResigned" },
 	},
 	EnemyPlayerTimedout = {
 		delay = 5,
+		priority = 4,
 		resetOtherEventDelay = { "NeutralPlayerTimedout" },
 	},
 
 	NeutralPlayerCaughtUp = {
+		priority = 4,
 		delay = 5,
 	},
 	NeutralPlayerDisconnected = {
+		priority = 4,
 		delay = 5,
 	},
 	NeutralPlayerLagging = {
+		priority = 4,
 		delay = 5,
 	},
 	NeutralPlayerReconnected = {
+		priority = 4,
 		delay = 5,
 	},
 	NeutralPlayerResigned = {
+		priority = 4,
 		delay = 5,
 	},
 	NeutralPlayerTimedout = {
+		priority = 4,
 		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
+		priority = 4,
 		delay = 15,
 	},
 
 	-- Awareness
 	MaxUnitsReached = {
+		priority = 4,
 		delay = 10,
 		stackedDelay = true,
 	},
@@ -263,12 +304,14 @@ return {
 
 	UnitsUnderAttack = {
 		delay = 60,
+		priority = 2,
 		stackedDelay = true,
 		resetOtherEventDelay = { "DefenseUnderAttack" },
 		soundEffect = "UnitUnderAttack",
 	},
 	DefenseUnderAttack = {
 		delay = 60,
+		priority = 2,
 		stackedDelay = true,
 		resetOtherEventDelay = { "UnitsUnderAttack" },
 		soundEffect = "UnitUnderAttack",
@@ -277,24 +320,28 @@ return {
 	EconomyUnderAttack = {
 		delay = 30,
 		stackedDelay = true,
+		priority = 2,
 		resetOtherEventDelay = { "UnitsUnderAttack", "DefenseUnderAttack" },
 		soundEffect = "UnitUnderAttack",
 	},
 	FactoryUnderAttack = {
 		delay = 30,
 		stackedDelay = true,
+		priority = 2,
 		resetOtherEventDelay = { "UnitsUnderAttack", "DefenseUnderAttack" },
 		soundEffect = "UnitUnderAttack",
 	},
 	CommanderUnderAttack = {
 		delay = 10,
 		stackedDelay = true,
+		priority = 2,
 		resetOtherEventDelay = { "UnitsUnderAttack", "DefenseUnderAttack" },
 		soundEffect = "CommanderUnderAttack",
 	},
 	ComHeavyDamage = {
 		delay = 10,
 		stackedDelay = true,
+		priority = 1,
 		resetOtherEventDelay = { "UnitsUnderAttack", "DefenseUnderAttack", "CommanderUnderAttack" },
 		soundEffect = "CommanderHeavilyDamaged",
 	},
@@ -307,12 +354,14 @@ return {
 
 	RadarLost = {
 		delay = 30,
+		priority = 4,
 		stackedDelay = true,
 		resetOtherEventDelay = { "UnitLost", "RadarLost" },
 		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
 		delay = 30,
+		priority = 4,
 		stackedDelay = true,
 		resetOtherEventDelay = { "UnitLost", "AdvancedRadarLost" },
 		soundEffect = "UnitUnderAttack",
@@ -320,6 +369,7 @@ return {
 
 	MetalExtractorLost = {
 		delay = 30,
+		priority = 4,
 		stackedDelay = true,
 		resetOtherEventDelay = { "UnitLost" },
 		soundEffect = "UnitUnderAttack",
@@ -332,10 +382,12 @@ return {
 	},
 	WholeTeamWastingMetal = {
 		delay = 60,
+		priority = 4,
 		stackedDelay = true,
 	},
 	WholeTeamWastingEnergy = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	YouAreWastingMetal = {
@@ -348,6 +400,7 @@ return {
 	},
 	LowPower = {
 		delay = 15,
+		priority = 2,
 		stackedDelay = true,
 	},
 	LowMetal = {
@@ -366,12 +419,14 @@ return {
 	},
 	IdleConstructors = {
 		delay = 45,
+		priority = 4,
 		stackedDelay = true,
 	},
 
 	-- Alerts
 	NukeLaunched = {
 		delay = 5,
+		priority = 1,
 		soundEffect = "NukeAlert",
 		resetOtherEventDelay = { "AlliedNukeLaunched" },
 		stackedDelay = true,
@@ -382,63 +437,77 @@ return {
 		stackedDelay = true,
 	},
 	LrpcTargetUnits = {
-		delay = 30,
+		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 
 	-- Unit Ready
 	["UnitReady/RagnarokIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/CalamityIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/StarfallIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/AstraeusIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/SolinvictusIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/TitanIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/ThorIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/JuggernautIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/BehemothIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/FlagshipIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/FusionIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 		rulesPlayOnlyIfDisabled = { "AdvancedFusionIsReady" },
 	},
 	["UnitReady/AdvancedFusionIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 		rulesEnable = { "AdvancedFusionIsReady" },
 	},
 	["UnitReady/NuclearSiloIsReady"] = {
 		delay = 120,
+		priority = 4,
 		stackedDelay = true,
 	},
 	["UnitReady/Tech2UnitReady"] = {
@@ -455,25 +524,31 @@ return {
 	},
 	Tech2TeamReached = {
 		delay = 9999999,
+		priority = 4,
 	},
 	Tech3TeamReached = {
 		delay = 9999999,
+		priority = 4,
 	},
 	Tech4TeamReached = {
 		delay = 9999999,
+		priority = 4,
 	},
 
 	-- Units Detected
 	["UnitDetected/Tech2UnitDetected"] = {
 		delay = 9999999,
+		priority = 2,
 		rulesEnable = { "Tech2UnitDetected" },
 	},
 	["UnitDetected/Tech3UnitDetected"] = {
 		delay = 9999999,
+		priority = 2,
 		rulesEnable = { "Tech2UnitDetected", "Tech3UnitDetected" },
 	},
 	["UnitDetected/Tech4UnitDetected"] = {
 		delay = 9999999,
+		priority = 2,
 		rulesEnable = { "Tech2UnitDetected", "Tech3UnitDetected", "Tech4UnitDetected" },
 	},
 	--FatboyDetected = {
@@ -827,19 +902,23 @@ return {
 	-- Lava
 	LavaRising = {
 		delay = 25,
+		priority = 1,
 		soundEffect = "LavaAlert",
 	},
 	LavaDropping = {
 		delay = 25,
+		priority = 1,
 		soundEffect = "LavaAlert",
 	},
 
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
+		priority = 1,
 	},
 	WelcomeShort = {
 		delay = 0,
+		priority = 1,
 		notext = true,
 	},
 	-- Raptors/Scavs ----------------------------------------------------------------------

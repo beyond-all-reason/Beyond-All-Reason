@@ -37,10 +37,10 @@ local useDefaultVoiceFallback = Spring.GetConfigInt("NotificationsSubstitute", 0
 local playWelcome = Spring.GetConfigInt("WelcomeMessagePlayed", 0) == 0
 local playedWelcome = false
 
-local silentTime = 0.7 -- silent time between queued notifications
+local silentTime = 0.2 -- silent time between queued notifications
 local globalVolume = 0.7
 local muteWhenIdle = true
---local idleTime = 10        -- after this much sec: mark user as idle
+local idleTime = 10 -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30 -- (in gameframes)
@@ -97,6 +97,16 @@ local function wavFileExists(folder, path)
 	return files[path:lower()] == true
 end
 
+local soundQueue = {}
+local function getSoundQueueLength()
+	local soundQueueLength = 0
+	for priority, content in ipairs(soundQueue) do
+		soundQueueLength = soundQueueLength + #content
+	end
+	return soundQueueLength
+end
+
+local nextSoundQueued = 0
 local function processNotificationDefs()
 	notification = {}
 	notificationList = {}
@@ -149,6 +159,7 @@ local function processNotificationDefs()
 
 		notification[notifID] = {
 			delay = notifDef.delay or 2,
+			priority = notifDef.priority or 3,
 			stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
 			textID = notifTexts[1],
 			notext = notifDef.notext,
@@ -162,7 +173,15 @@ local function processNotificationDefs()
 			rulesDisable = notifDef.rulesDisable,
 			rulesPlayOnlyIfEnabled = notifDef.rulesPlayOnlyIfEnabled,
 			rulesPlayOnlyIfDisabled = notifDef.rulesPlayOnlyIfDisabled,
+			playOnlyForAFK = notifDef.playOnlyForAFK,
+			muteForAFK = notifDef.muteForAFK,
 		}
+
+		for i = 1, notification[notifID].priority do
+			if not soundQueue[notification[notifID].priority] then
+				soundQueue[notification[notifID].priority] = {}
+			end
+		end
 
 		notificationList[notifID] = true
 		if not notifDef.tutorial then
@@ -266,8 +285,6 @@ LastPlay.YouAreWastingEnergy = spGetGameFrame()
 LastPlay.WholeTeamWastingMetal = spGetGameFrame()
 LastPlay.WholeTeamWastingEnergy = spGetGameFrame()
 
-local soundQueue = {}
-local nextSoundQueued = 0
 local hasBuildMex = false
 local hasBuildEnergy = false
 local taggedUnitsOfInterest = {}
@@ -277,6 +294,7 @@ local commandersDamages = {}
 local passedTime = 0
 local sec = 0
 local suspendUntilSec = 0
+local clearUntilSec = 0
 
 local windNotGood = windFunctions.isWindBad()
 
@@ -286,6 +304,7 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitHealth = Spring.GetUnitHealth
 
 local isIdle = false
+local isCatchingUp = false
 local lastMouseX, lastMouseY = spGetMouseState()
 
 local isSpec = spGetSpectatingState()
@@ -426,8 +445,10 @@ end
 
 local function isInQueue(event)
 	for i, v in pairs(soundQueue) do
-		if v == event then
-			return true
+		for i2, v2 in pairs(soundQueue[i]) do
+			if v2 == event then
+				return true
+			end
 		end
 	end
 	return false
@@ -449,6 +470,14 @@ local function checkNotificationRules(notifDef)
 				return false
 			end
 		end
+	end
+
+	if notifDef.playOnlyForAFK and not isIdle then
+		return false
+	end
+
+	if notifDef.muteForAFK and isIdle then
+		return false
 	end
 
 	return true
@@ -479,7 +508,8 @@ local function queueNotification(event, forceplay)
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
 						if checkNotificationRules(notification[event]) then
-							soundQueue[#soundQueue + 1] = event
+							soundQueue[notification[event].priority][#soundQueue[notification[event].priority] + 1] =
+								event
 							applyNotificationRules(notification[event])
 						else
 							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2) * 30)
@@ -505,6 +535,10 @@ function widget:RecvLuaMsg(message)
 end
 
 function widget:PlayerChanged(playerID)
+	if myPlayerID == playerID then
+		clearUntilSec = sec + 1
+	end
+
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myPlayerID = Spring.GetLocalPlayerID()
@@ -921,9 +955,24 @@ local function getSoundDuration(soundFile)
 end
 
 local function playNextSound()
-	if #soundQueue > 0 then
-		local event = soundQueue[1]
-		if not muteWhenIdle or not isIdle or notification[event].tutorial then
+	if getSoundQueueLength() > 0 then
+		local event
+		--Spring.Echo("soundQueue", soundQueue)
+		for i = 1, #soundQueue do
+			if #soundQueue[i] > 0 then
+				event = soundQueue[i][1] .. ""
+				table.remove(soundQueue[i], 1)
+				break
+			end
+		end
+		if not event then
+			Spring.Echo(
+				"Error: [NOTIFICATIONS] All queues are empty but it's still attempting to play a notification. FIX ME!"
+			)
+			return
+		end
+
+		if not muteWhenIdle or not isCatchingUp or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
 				if Spring.GetGameFrame() < 30 then
 					math.randomseed(tonumber(math.ceil(os.clock() * 10))) -- brute force this because early game random seems not very random.
@@ -935,6 +984,7 @@ local function playNextSound()
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
 					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFilesRare[mRare]) + silentTime
+
 				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, "ui")
 					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFiles[m]) + silentTime
@@ -966,17 +1016,6 @@ local function playNextSound()
 			tutorialPlayed[event] = tutorialPlayed[event] and tutorialPlayed[event] + 1 or 1
 			tutorialPlayedThisGame[event] = true
 		end
-
-		-- drop current played notification from the table
-		local newQueue = {}
-		local newQueuecount = 0
-		for i, v in pairs(soundQueue) do
-			if i ~= 1 then
-				newQueuecount = newQueuecount + 1
-				newQueue[newQueuecount] = v
-			end
-		end
-		soundQueue = newQueue
 	end
 end
 
@@ -993,6 +1032,12 @@ function widget:Update(dt)
 			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
+		if sec <= clearUntilSec then
+			for i = 1, #soundQueue do
+				soundQueue[i] = {}
+			end
+		end
+
 		-- process sound queue
 		if sec >= nextSoundQueued and sec >= suspendUntilSec then
 			playNextSound()
@@ -1004,14 +1049,15 @@ function widget:Update(dt)
 			lastUserInputTime = os.clock()
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
-		-- set user idle when no mouse movement or no commands have been given
-		--if lastUserInputTime < os.clock() - idleTime then
-		--	isIdle = true
-		--else
 		isIdle = false
-		--end
+		isCatchingUp = false
+		-- set user idle when no mouse movement or no commands have been given
+		if lastUserInputTime and lastUserInputTime < os.clock() - idleTime then
+			isIdle = true
+		end
 		if WG.rejoin and WG.rejoin.showingRejoining() then
 			isIdle = true
+			isCatchingUp = true
 		end
 
 		if playWelcome then
