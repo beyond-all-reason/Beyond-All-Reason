@@ -412,6 +412,8 @@ do
 	end
 end
 
+local engineCallIns = Script.GetCallInList()
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -2629,7 +2631,13 @@ end
 --
 
 function widgetHandler:RegisterGlobal(owner, name, value)
-	if name == nil or _G[name] or self.globals[name] or CallInsMap[name] then
+	if
+		name == nil
+		or _G[name]
+		or self.globals[name]
+		or CallInsMap[name]
+		or (userWidgets[owner] ~= nil and engineCallIns[name])
+	then
 		return false
 	end
 	_G[name] = value
