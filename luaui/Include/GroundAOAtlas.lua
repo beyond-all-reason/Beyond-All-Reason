@@ -236,7 +236,9 @@ function GroundAOAtlas.Create(manifest, directory, definitions, kind)
 				if entry then
 					x, z = sizes(entry, cp, true)
 					if not x or not z then
-						warn("missing physical sizes for " .. reference .. " referenced by " .. kind .. "Def " .. defName)
+						warn(
+							"missing physical sizes for " .. reference .. " referenced by " .. kind .. "Def " .. defName
+						)
 					end
 				else
 					warn("cannot resolve " .. reference .. " referenced by " .. kind .. "Def " .. defName)
