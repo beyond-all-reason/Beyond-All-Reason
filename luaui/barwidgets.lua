@@ -414,6 +414,8 @@ do
 	end
 end
 
+local engineCallIns = Script.GetCallInList()
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1375,6 +1377,9 @@ local function moveUserCustomCommands(source, target)
 		end
 	end
 end
+
+-- Cannot be global. A user widget could register the name before the first locals-access load.
+local localsAccess
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
@@ -2662,7 +2667,13 @@ end
 --
 
 function widgetHandler:RegisterGlobal(owner, name, value)
-	if name == nil or _G[name] or self.globals[name] or CallInsMap[name] then
+	if
+		name == nil
+		or _G[name]
+		or self.globals[name]
+		or CallInsMap[name]
+		or (userWidgets[owner] ~= nil and engineCallIns[name])
+	then
 		return false
 	end
 	_G[name] = value
