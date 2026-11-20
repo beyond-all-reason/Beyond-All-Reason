@@ -868,6 +868,8 @@ local function CreateSandboxedSystem()
 	sandboxedVfs.SubDirs = function(path, pattern, mode)
 		return vfsSubDirs(path, pattern, getUserReadMode(path, mode))
 	end
+	-- Mounts any archive while it runs a function.
+	sandboxedVfs.UseArchive = nil
 	-- This is the nilling trick again. A widget that sets its VFS nil can reach this function.
 	sandboxedVfs.Include = function(path, env, mode)
 		if type(env) ~= "table" then
@@ -965,6 +967,8 @@ local function CreateSandboxedSystem()
 
 	local sandboxedSpring = copyTable(Spring)
 	local spSetConfigString = Spring.SetConfigString
+	local spSetConfigInt = Spring.SetConfigInt
+	local spSetConfigFloat = Spring.SetConfigFloat
 	local spCreateDir = Spring.CreateDir
 	local spExtractModArchiveFile = Spring.ExtractModArchiveFile
 	function sandboxedSpring.CreateDir(path)
@@ -991,12 +995,28 @@ local function CreateSandboxedSystem()
 			spSendCommands(allowed)
 		end
 	end
-	function sandboxedSpring.SetConfigString(key, value, useOverlay)
-		if type(key) == "string" and stringLower(key) == "keybindingfile" then
-			warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": SetConfigString " .. key)
-			return
+	local sandboxConfigKeys = { keybindingfile = true, userwidgetmemorylimits = true }
+	local function refuseSandboxConfig(setterName, key)
+		if type(key) == "string" and sandboxConfigKeys[stringLower(key)] then
+			warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. setterName .. " " .. key)
+			return true
 		end
-		return spSetConfigString(key, value, useOverlay)
+		return false
+	end
+	function sandboxedSpring.SetConfigString(key, value, useOverlay)
+		if not refuseSandboxConfig("SetConfigString", key) then
+			return spSetConfigString(key, value, useOverlay)
+		end
+	end
+	function sandboxedSpring.SetConfigInt(key, value, useOverlay)
+		if not refuseSandboxConfig("SetConfigInt", key) then
+			return spSetConfigInt(key, value, useOverlay)
+		end
+	end
+	function sandboxedSpring.SetConfigFloat(key, value, useOverlay)
+		if not refuseSandboxConfig("SetConfigFloat", key) then
+			return spSetConfigFloat(key, value, useOverlay)
+		end
 	end
 	-- Would replace the archive on the next launch.
 	function sandboxedSpring.ExtractModArchiveFile(path)
