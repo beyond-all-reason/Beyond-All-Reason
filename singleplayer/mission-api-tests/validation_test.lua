@@ -16,6 +16,8 @@ local stages = {
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
 			'objectiveWithDifficultiesTrigger',
+			'objectiveWithUnknownField',
+			'objectiveWithTriggerHavingThreshold',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -77,6 +79,20 @@ local objectives = {
 		textKey = "trigger_field_must_not_have_difficulties",
 		trigger = {
 			difficulties = { Easy = { type = conditionTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
+		},
+	},
+
+	objectiveWithUnknownField = {
+		textKey = "unknown_field",
+		amountt = 3,             -- error: unknown field (typo for amount)
+	},
+
+	objectiveWithTriggerHavingThreshold = {
+		textKey = "trigger_must_not_have_threshold",
+		trigger = {
+			type = conditionTypes.TimeElapsed,
+			parameters = { seconds = 100000000 },
+			count = 3,           -- error: the objective's amount is its threshold
 		},
 	},
 }
@@ -207,9 +223,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 10,
+			resource = 'metal',
 			sources = 'notATable',
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 
@@ -217,9 +234,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 10,
+			resource = 'metal',
 			sources = { 'invalidSource1', false, 123 },
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 
@@ -240,6 +258,20 @@ local triggers = {
 			unitDefName = 'armcom',
 			progress = 'notANumber',
 		},
+		actions = { 'actionMissingType' },
+	},
+	triggerWithInvertedBounds = {
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		atLeast = 5,
+		atMost = 2,   -- error: atLeast must not exceed atMost
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithUnknownKey = {
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		amount = 3,   -- error: unknown field
 		actions = { 'actionMissingType' },
 	},
 }

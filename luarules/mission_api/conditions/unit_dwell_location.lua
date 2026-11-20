@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'UnitDwellLocation',
+	kind = ConditionKinds.Event,
 	parameters = {
 		-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
 		-- Circle: { x = 0, z = 0, radius = 123 }
@@ -10,7 +12,7 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		requiresOneOf = { 'unitName', 'unitDefName', 'teamName' },
 	},
 	callins = {
 		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.

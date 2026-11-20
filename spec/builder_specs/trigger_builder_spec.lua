@@ -14,17 +14,19 @@ describe("TriggerBuilder", function()
 		}, trigger.settings)
 		assert.is_false(trigger.triggered)
 		assert.are.equal(0, trigger.repeatCount)
+		assert.are.equal(0, trigger.occurrences)
+		assert.is_false(trigger.metricSatisfied)
 	end)
 
 	it("collects parameters and settings", function()
 		local builder = TriggerBuilder.new():WithParameters({ unitDefName = "armpw" })
-		builder:WithParameters({ teamID = 0 }):WithSettings({ repeating = true, maxRepeats = 2 })
+		builder:WithParameters({ teamID = 0 }):WithSettings({ repeating = true, coop = true })
 
 		local trigger = builder:Build()
 
 		assert.are.same({ unitDefName = "armpw", teamID = 0 }, trigger.parameters)
 		assert.is_true(trigger.settings.repeating)
-		assert.are.equal(2, trigger.settings.maxRepeats)
+		assert.is_true(trigger.settings.coop)
 	end)
 
 	it("ignores a nil parameter table, for specs that build a bare trigger", function()

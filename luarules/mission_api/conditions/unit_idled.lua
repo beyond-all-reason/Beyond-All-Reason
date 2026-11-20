@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Fires when a matching unit runs out of work: Its order queue empties or all that's
 -- left in the queue are "idle tasks" - non-ordered but nevertheless active commands.
@@ -8,6 +9,7 @@ local ACTIVATION = true
 
 return {
 	type = 'UnitIdled',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
