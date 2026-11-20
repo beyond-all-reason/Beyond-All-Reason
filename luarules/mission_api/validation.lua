@@ -79,6 +79,7 @@ local function createValidationContext(mission, report)
 		-- Condition definitions:
 		ConditionTypes = conditionDefinitions.Types,
 		ConditionParameters = conditionDefinitions.Parameters,
+		ConditionKinds = conditionDefinitions.Kinds,
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,

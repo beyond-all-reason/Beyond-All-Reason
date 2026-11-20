@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local DAMAGETYPE_CRUSHED       = Game.envDamageTypes.Crushed
 local DAMAGETYPE_KILLED_BY_LUA = Game.envDamageTypes.KilledByLua -- The lowest engine-defined damage type.
@@ -11,6 +12,7 @@ end
 
 return {
 	type = 'UnitAttacked',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },

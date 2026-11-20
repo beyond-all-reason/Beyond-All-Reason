@@ -21,25 +21,29 @@ local objectives = {
 	-- Stage gate: quick and slow share a nextStage
 	quick = {
 		textKey = 'gate_quick',
-		trigger = { type = conditionTypes.TimeElapsed, parameters = { seconds = 2 } },
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 2 },
 		nextStage = 'observer',
 		onActivated = 'quickActivated',
 	},
 	slow = {
 		textKey = 'gate_slow',
-		trigger = { type = conditionTypes.TimeElapsed, parameters = { seconds = 5 } },
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 5 },
 		nextStage = 'observer',
 	},
 	bonus = {
 		textKey = 'gate_bonus',
-		trigger = { type = conditionTypes.TimeElapsed, parameters = { seconds = 3 } },
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 3 },
 	},
 
 	-- Stage observer: route's nextStage is the decoy, but its onCompleted trigger
 	-- changes to failure first, so the gate stands down.
 	route = {
 		textKey = 'observer_route',
-		trigger = { type = conditionTypes.TimeElapsed, parameters = { seconds = 7 } },
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 7 },
 		nextStage = 'decoy',
 		onCompleted = 'routeCompleted',
 	},
@@ -60,7 +64,8 @@ local objectives = {
 	},
 	partner = {
 		textKey = 'cancel_partner',
-		trigger = { type = conditionTypes.TimeElapsed, parameters = { seconds = 12 } },
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 12 },
 		nextStage = 'activation',
 	},
 
@@ -74,9 +79,10 @@ local objectives = {
 	-- evaluates only once activated. Its onCompleted trigger moves on.
 	count = {
 		textKey = 'activation_count',
-		amount = 3,
 		hidden = true,
-		trigger = { type = conditionTypes.UnitsOwned, parameters = { unitName = 'probe', teamName = 'player' } },
+		type = conditionTypes.UnitsOwned,
+		parameters = { unitName = 'probe', teamName = 'player' },
+		atLeast = 3,
 		onActivated = 'countActivated',
 		onProgress = 'countProgressed',
 		onCompleted = 'countCompleted',

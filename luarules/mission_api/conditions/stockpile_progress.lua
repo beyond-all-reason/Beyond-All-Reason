@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 local ensureTable = table.ensureTable
 
 local POLL_FRAMES = 0.5 * Game.gameSpeed
@@ -28,6 +29,7 @@ end
 
 return {
 	type = 'StockpileProgress',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

@@ -38,8 +38,6 @@ describe("mission_api object schemas", function()
 	it("describes an objective's fields", function()
 		assert.are.same({
 			textKey = Types.String,
-			trigger = Types.Table,
-			amount = Types.Quantity,
 			nextStage = Types.StageID,
 			coop = Types.Boolean,
 			hidden = Types.Boolean,
@@ -63,7 +61,6 @@ describe("mission_api object schemas", function()
 		assert.are.same({
 			prerequisites = Types.TriggerIDs,
 			repeating = Types.Boolean,
-			maxRepeats = Types.Quantity,
 			difficulties = Types.Difficulties,
 			coop = Types.Boolean,
 			active = Types.Boolean,

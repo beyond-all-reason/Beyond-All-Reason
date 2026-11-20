@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'StockpileCount',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'count',       required = true,  type = ParameterTypes.PositiveInteger },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Return value indices as on https://recoilengine.org/docs/lua-api/#Spring.GetTeamResources
 local RESOURCE_INCOME_INDEX   = 4
@@ -42,14 +43,13 @@ end
 
 return {
 	type = 'ResourceIncome',
+	kind = ConditionKinds.Metric,
 	parameters = {
-		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
-		{ name = 'metal',  required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
-		-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'ally' (shared), 'production' (everything else)
+		{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
+		{ name = 'resource', required = true, type = ParameterTypes.Resource },
+		-- Filter income by sources: 'extractor' (metal only), 'reclaim' (features + units), 'transfer' (shared), 'production' (everything else)
 		-- Example: sources = { 'extractor', 'production' }
 		{ name = 'sources', required = false, type = ParameterTypes.ResourceIncomeSources },
-		requiresOneOf = { 'metal', 'energy' },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -58,28 +58,18 @@ return {
 				return
 			end
 
+			local resource = trigger.parameters.resource
 			local sources = trigger.parameters.sources
+			local income
 
 			if sources == nil then
 				-- Unfiltered: use the engine's total income (index 4).
-				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "metal")) < trigger.parameters.metal then
-					return
-				end
-				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, "energy")) < trigger.parameters.energy then
-					return
-				end
-				context.ActivateTrigger(trigger)
-				return
+				income = select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(trigger.parameters.teamName, resource)) or 0
+			else
+				income = getTeamResourceIncomeForSources(trigger.parameters.teamName, resource, sources, context)
 			end
 
-			-- Source-filtered income check.
-			if trigger.parameters.metal and getTeamResourceIncomeForSources(trigger.parameters.teamName, "metal", sources, context) < trigger.parameters.metal then
-				return
-			end
-			if trigger.parameters.energy and getTeamResourceIncomeForSources(trigger.parameters.teamName, "energy", sources, context) < trigger.parameters.energy then
-				return
-			end
-			context.ActivateTrigger(trigger)
+			context.EvaluateMetric(trigger, income)
 		end,
 	},
 }

@@ -149,6 +149,7 @@ function MissionSpecEnv.registerModules(env)
 		return SpecEnv.include(env, path)
 	end
 	modules.ParameterTypes = modules.ParameterTypes or includeModule("luarules/mission_api/parameter_types.lua")
+	modules.ConditionKinds = modules.ConditionKinds or includeModule("luarules/mission_api/condition_kinds.lua")
 	modules.Difficulty = modules.Difficulty or includeModule("luarules/mission_api/difficulty.lua")
 	modules.Variables = modules.Variables or includeModule("luarules/mission_api/variables.lua")
 	modules.UnitQuery = modules.UnitQuery or includeModule("luarules/mission_api/unit_query.lua")
