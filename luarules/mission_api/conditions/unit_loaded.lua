@@ -1,10 +1,12 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Docking drones, hats, and attached turrets raise :UnitLoaded as well, but only transports count.
 -- If a unit is force-attached to the transport, then we have no way of knowing, so this activates.
 
 return {
 	type = 'UnitLoaded',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'passengerName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'passengerDefName', required = false, type = ParameterTypes.UnitDefName },

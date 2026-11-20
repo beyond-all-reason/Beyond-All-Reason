@@ -51,13 +51,13 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].effectNames = {}
-	GG["MissionAPI"].ManagedObjectives = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
@@ -88,9 +88,6 @@ local function setUpMissionAPI(gameSetup)
 
 	conditionsController = VFS.Include("luarules/mission_api/conditions_loader.lua")
 	GG["MissionAPI"].ConditionDefinitions = conditionsController.LoadConditionDefinitions()
-	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
-	-- stays for a release or two to keep those missions loading.
-	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
@@ -161,7 +158,6 @@ local function loadMission(gameSetup)
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
-	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
 	if GG["MissionAPI"].UnitLoadout then
 		parameterProcessing.ProcessValue(
 			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,

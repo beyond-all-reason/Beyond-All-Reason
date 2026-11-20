@@ -9,6 +9,7 @@
 
 ---@class ConditionContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
+---@field EvaluateMetric fun(trigger: table, value: number)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
@@ -25,10 +26,12 @@
 ---@field GetReclaimIncomeSnapshot fun(teamID: number): table?
 ---@field calls ConditionContextMockCalls
 ---@field timesFired fun(): number
+---@field sampledValues fun(): number[]
 
 --- Recorded calls, keyed by the context function that produced them.
 ---@class ConditionContextMockCalls
 ---@field activateTrigger table
+---@field evaluateMetric table
 
 ---@class ConditionContextBuilder
 local TCB = {}
@@ -67,6 +70,7 @@ function TCB:Build()
 	local instance = self
 
 	local activateCalls = {}
+	local evaluateCalls = {}
 	-- A copy of `constructionStarts` and its claim and check functions in api_missions_triggers.lua:
 	-- one claim per buildee and trigger. The gadget keeps them local, so we cannot grab the real ones;
 	-- keep both of them in step.
@@ -77,6 +81,11 @@ function TCB:Build()
 		ActivateTrigger = function(trigger)
 			activateCalls[#activateCalls + 1] = { trigger = trigger }
 			return true
+		end,
+		-- Metric conditions only report what they sampled; the gadget compares it
+		-- with the trigger's bounds, so the mock records the value and nothing more.
+		EvaluateMetric = function(trigger, value)
+			evaluateCalls[#evaluateCalls + 1] = { trigger = trigger, value = value }
 		end,
 		DoesUnitHaveName = asFunction(true),
 		DoesUnitMatch = asFunction(true),
@@ -108,12 +117,22 @@ function TCB:Build()
 		--- Recorded context calls, keyed by the function they came from.
 		calls = {
 			activateTrigger = activateCalls,
+			evaluateMetric = evaluateCalls,
 		},
 	}
 
 	---How many times a handler asked this context to activate its trigger.
 	context.timesFired = function()
 		return #activateCalls
+	end
+
+	---The values a metric handler sampled, in the order it reported them.
+	context.sampledValues = function()
+		local values = {}
+		for index, call in ipairs(evaluateCalls) do
+			values[index] = call.value
+		end
+		return values
 	end
 
 	return context

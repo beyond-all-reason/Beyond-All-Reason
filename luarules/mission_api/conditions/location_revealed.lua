@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Fires when a position comes into the vision of an alliance, such as a wreck or a cache.
 -- The engine has no call-in for a position entering line of sight, so the position is polled.
@@ -9,6 +10,7 @@ local CHECK_INTERVAL_FRAMES = math.floor(0.5 * Game.gameSpeed)
 
 return {
 	type = 'LocationRevealed',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'position',           required = true, type = ParameterTypes.Position },
 		{ name = 'sensorAllianceName', required = true, type = ParameterTypes.AllianceName },

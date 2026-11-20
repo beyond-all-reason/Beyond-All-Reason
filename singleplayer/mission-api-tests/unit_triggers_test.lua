@@ -15,7 +15,6 @@ local triggers = {
 		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			unitName = 'bots',
@@ -31,7 +30,6 @@ local triggers = {
 		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {
