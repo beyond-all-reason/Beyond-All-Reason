@@ -5,11 +5,14 @@ local CMD = { MOVE = 10, PATROL = 15, FIGHT = 16, ATTACK = 20 }
 
 local env = MissionSpecEnv.new({
 	CMD = CMD,
-	Game = { mapSizeX = MAP_SIZE, mapSizeZ = MAP_SIZE, squareSize = 8 },
-	UnitDefs = { [1] = { speed = 60 }, [2] = { speed = 0 } },
+	Game = { mapSizeX = MAP_SIZE, mapSizeZ = MAP_SIZE, squareSize = 8, gameSpeed = 30 },
+	UnitDefs = { [1] = { speed = 60 }, [2] = { speed = 0 }, [3] = { speed = 40 } },
 	math = {
 		clamp = function(value, low, high)
 			return math.max(low, math.min(high, value))
+		end,
+		round = function(value)
+			return math.floor(value + 0.5)
 		end,
 	},
 	BAR = { Utilities = VFS.Include("common/springUtilities/facingFunctions.lua") },
@@ -22,7 +25,7 @@ describe("mission_api.marching", function()
 	---@type table<integer, table>
 	local given
 
-	-- units: unitID -> { x, z, heading (radians), def, beingBuilt, transporter }
+	-- units: unitID -> { x, z, heading (radians), def, beingBuilt, transporter, dead, queue }
 	local function march(newUnits, orders, direction)
 		units, given = newUnits, {}
 		local unitMap = {}
@@ -59,6 +62,16 @@ describe("mission_api.marching", function()
 			end,
 			GetGroundHeight = function()
 				return 0
+			end,
+			GetUnitIsDead = function(unitID)
+				return units[unitID].dead == true
+			end,
+			GetUnitCommandCount = function(unitID)
+				return #(units[unitID].queue or {})
+			end,
+			GetUnitCurrentCommand = function(unitID, index)
+				local order = units[unitID].queue[index]
+				return order[1], 0, 0, order[2][1], order[2][2], order[2][3]
 			end,
 		}
 	end)
@@ -162,6 +175,104 @@ describe("mission_api.marching", function()
 			march(opposite, { moveTo(3000, 1000) }, { angle = 90 })
 			local x1, z1 = spot(1)
 			assert.is_true(near(2950, x1) and near(1000, z1))
+		end)
+	end)
+
+	describe("matchSpeed", function()
+		---@type table<integer, number|false>
+		local speeds
+		---@type table<integer, number>
+		local effective
+
+		-- A slow unit 3 beside two of the faster def, each holding the orders it was given.
+		local function marchMatched(orders)
+			march(
+				{ [1] = { x = 1000, z = 1000 }, [2] = { x = 1100, z = 1000 }, [3] = { x = 1200, z = 1000, def = 3 } },
+				orders
+			)
+			for unitID, unitOrders in pairs(given) do
+				units[unitID].queue = unitOrders
+			end
+			Marching.MatchSpeed(given)
+		end
+
+		before_each(function()
+			speeds, effective = {}, {}
+			env.GG.UnitAttributes = {
+				SetUnitModifier = function(unitID, attribute, value, source)
+					assert.are.same({ "speed", "marching" }, { attribute, source })
+					speeds[unitID] = value or false
+				end,
+				GetUnitAttributeValue = function(unitID)
+					return effective[unitID] or env.UnitDefs[units[unitID].def or 1].speed
+				end,
+			}
+		end)
+
+		after_each(function()
+			for _, unit in pairs(units) do
+				unit.queue = {}
+			end
+			Marching.UpdateSpeeds(0)
+		end)
+
+		it("holds every marcher to the slowest one's speed", function()
+			marchMatched({ moveTo(3000, 1000) })
+			assert.are.same({ 40 / 60, 40 / 60, false }, speeds)
+		end)
+
+		it("paces to the speed a unit has now, not its def's", function()
+			effective[1] = 30
+			marchMatched({ moveTo(3000, 1000) })
+			assert.are.same({ false, 30 / 60, 30 / 40 }, speeds)
+		end)
+
+		it("keeps a unit's own speed when it is marched again while paced", function()
+			marchMatched({ moveTo(3000, 1000) })
+			effective[1], effective[2] = 40, 40
+			for unitID, unitOrders in pairs(given) do
+				units[unitID].queue = unitOrders
+			end
+			Marching.MatchSpeed(given)
+			assert.are.same({ 40 / 60, 40 / 60, false }, speeds)
+		end)
+
+		it("leaves a lone marcher and units that do not march alone", function()
+			march({ [1] = { x = 0, z = 0 }, [2] = { x = 50, z = 0, def = 2 } }, { moveTo(3000, 1000) })
+			Marching.MatchSpeed(given)
+			assert.are.same({}, speeds)
+		end)
+
+		it("keeps the pace while the last march order is queued, checked every half second", function()
+			marchMatched({ moveTo(3000, 1000), moveTo(3000, 2000, { "shift" }) })
+			table.remove(units[1].queue, 1)
+			Marching.UpdateSpeeds(15)
+			assert.are.same({ 40 / 60, 40 / 60, false }, speeds)
+			units[1].queue = {}
+			Marching.UpdateSpeeds(16)
+			assert.are.equal(40 / 60, speeds[1])
+			speeds = {}
+			Marching.UpdateSpeeds(30)
+			assert.are.same({ false }, speeds)
+		end)
+
+		it("gives a unit with other orders or in a transport its speed back", function()
+			marchMatched({ moveTo(3000, 1000) })
+			units[1].queue = { moveTo(500, 500) }
+			units[2].transporter = 9
+			speeds = {}
+			Marching.UpdateSpeeds(15)
+			assert.are.same({ false, false }, speeds)
+		end)
+
+		it("forgets a dead unit without touching it", function()
+			marchMatched({ moveTo(3000, 1000) })
+			units[3].dead = true
+			speeds = {}
+			Marching.UpdateSpeeds(15)
+			units[3].dead, units[3].queue = false, {}
+			Marching.UpdateSpeeds(30)
+			assert.is_nil(speeds[3])
 		end)
 	end)
 end)

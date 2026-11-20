@@ -34,6 +34,7 @@ describe("mission_api.actions.issue_orders", function()
 			orders = "Orders!",
 			marching = "Boolean",
 			direction = "Direction",
+			matchSpeed = "Boolean",
 		}, summarizeSchema(action))
 	end)
 
@@ -71,6 +72,33 @@ describe("mission_api.actions.issue_orders", function()
 			assert.are.same(missionApi.trackedUnitIDs["bots"], asked.unitMap)
 			assert.are.equal(direction, asked.direction)
 			assert.are.equal(unitOrders, mission.calls.giveOrders[1].unitOrders)
+		end)
+
+		it("matches the speed of the orders it gave, only when asked", function()
+			local matched = {}
+			local unitOrders = { [101] = { { 10, { 5, 0, 5 }, {} } } }
+			local function install()
+				return MissionApiBuilder.new()
+					:WithTrackedUnit("bots", 101)
+					:WithModule("Marching", {
+						GetMarchingOrders = function()
+							return unitOrders
+						end,
+						MatchSpeed = function(given)
+							matched[#matched + 1] = given
+						end,
+					})
+					:Install()
+			end
+
+			install()
+			action.actionFunction("bots", { { 10, { 0, 0, 0 }, {} } }, true, nil, false)
+			assert.are.same({}, matched)
+
+			local mission = install()
+			action.actionFunction("bots", { { 10, { 0, 0, 0 }, {} } }, true, nil, true)
+			assert.are.same({ unitOrders }, matched)
+			assert.are.equal(1, #mission.calls.giveOrders)
 		end)
 	end)
 
