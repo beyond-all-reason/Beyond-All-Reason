@@ -25,6 +25,9 @@ jobs:
       issues: write
     env:
       LUX_VERSION: '0.54.0'
+      # Specs run on a standalone engine-lua build, updated with some flags for compat with ci.
+      RECOIL_LUA_REPOSITORY: https://github.com/efrec/spring.git
+      RECOIL_LUA_BRANCH: lua/coilua-standalone-ci
 
     steps:
     - uses: actions/checkout@v5
@@ -43,10 +46,80 @@ jobs:
           echo "::notice title=Mission specs skipped::No changed file is a mission spec input. Pushes to master and the nightly run cover them."
         fi
 
-    - name: Install Lua 5.1
+    - name: Resolve recoil-lua
+      id: recoil-lua
+      run: |
+        config=$(curl -fsSL --retry 5 --retry-delay 10 https://launcher-config.beyondallreason.dev/config.json)
+        engine=$(jq -r '
+          .setups[]
+          | select(.package.id == "manual-linux")
+          | .downloads.resources[]
+          | select(.destination | contains("engine"))
+          | .destination
+        ' <<< "$config")
+        tag=${engine#engine/recoil_}
+        head=$(git ls-remote "$RECOIL_LUA_REPOSITORY" "refs/heads/$RECOIL_LUA_BRANCH" | cut -f1)
+        if [ -z "$tag" ] || [ -z "$head" ]; then
+          echo "::error::Could not resolve the player engine ($engine) or $RECOIL_LUA_BRANCH ($head)"
+          exit 1
+        fi
+        echo "Player engine $tag, $RECOIL_LUA_BRANCH at $head"
+        echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        echo "head=$head" >> "$GITHUB_OUTPUT"
+
+    - name: Cache recoil-lua
+      id: recoil-lua-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/recoil-lua
+        key: recoil-lua-${{ steps.recoil-lua.outputs.tag }}-${{ steps.recoil-lua.outputs.head }}-${{ runner.os }}-${{ runner.arch }}
+
+    - name: Build recoil-lua
+      if: steps.recoil-lua-cache.outputs.cache-hit != 'true'
+      env:
+        TAG: ${{ steps.recoil-lua.outputs.tag }}
+        HEAD_SHA: ${{ steps.recoil-lua.outputs.head }}
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends lua5.1 liblua5.1-0-dev
+        sudo apt-get install -y --no-install-recommends cmake ninja-build \
+          libsdl2-dev libdevil-dev libcurl4-openssl-dev libopenal-dev libogg-dev libvorbis-dev \
+          libunwind-dev libfreetype-dev libglew-dev libminizip-dev libfontconfig-dev
+        src="$RUNNER_TEMP/recoil"
+        git clone --quiet --filter=tree:0 --no-checkout https://github.com/beyond-all-reason/RecoilEngine.git "$src"
+        git -C "$src" fetch --quiet --filter=tree:0 "$RECOIL_LUA_REPOSITORY" "$HEAD_SHA"
+        base=$(git -C "$src" merge-base origin/master "$HEAD_SHA")
+        git -C "$src" checkout --quiet "$TAG"
+        git -C "$src" submodule update --init --recursive --quiet
+        git -C "$src" -c user.name=ci -c user.email=ci@localhost cherry-pick "$base..$HEAD_SHA"
+        cmake -S "$src" -B "$RUNNER_TEMP/recoil-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_RECOIL_LUA=ON -DAI_TYPES=NONE
+        cmake --build "$RUNNER_TEMP/recoil-build" --target recoil-lua
+
+        # A Lua installation for Lux to find through pkg-config. It has no library.
+        # lua5.1 runs recoil-lua with -a, since busted needs addresses in tostring.
+        prefix=~/.cache/recoil-lua
+        mkdir -p "$prefix/bin" "$prefix/include" "$prefix/lib/pkgconfig"
+        install -m 755 "$RUNNER_TEMP/recoil-build/rts/lib/lua/recoil-lua" "$prefix/bin/recoil-lua"
+        cp "$src"/rts/lib/lua/include/*.h "$prefix/include/"
+        printf '#!/bin/sh\nexec %s/bin/recoil-lua -a "$@"\n' "$prefix" > "$prefix/bin/lua5.1"
+        chmod 755 "$prefix/bin/lua5.1"
+        cat > "$prefix/lib/pkgconfig/lua5.1.pc" <<EOF
+        prefix=$prefix
+        includedir=\${prefix}/include
+        libdir=\${prefix}/lib
+
+        Name: Lua
+        Description: Recoil's float32 Lua 5.1
+        Version: 5.1.4
+        Cflags: -I\${includedir}
+        Libs: -L\${libdir}
+        EOF
+
+    - name: Install recoil-lua
+      run: |
+        echo ~/.cache/recoil-lua/bin >> "$GITHUB_PATH"
+        echo "PKG_CONFIG_PATH=$HOME/.cache/recoil-lua/lib/pkgconfig" >> "$GITHUB_ENV"
+        # A run that fell back to 64-bit Lua would test the wrong thing.
+        ~/.cache/recoil-lua/bin/lua5.1 -e 'assert(2^24 + 1 == 2^24, "recoil-lua has 64-bit numbers")'
 
     - name: Cache the lux binary
       uses: actions/cache@v4
@@ -73,9 +146,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        key: lux-${{ env.LUX_VERSION }}-recoil-lua-${{ steps.recoil-lua.outputs.tag }}-${{ steps.recoil-lua.outputs.head }}-${{ runner.os }}-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-
+          lux-${{ env.LUX_VERSION }}-recoil-lua-${{ steps.recoil-lua.outputs.tag }}-${{ steps.recoil-lua.outputs.head }}-${{ runner.os }}-
 
     - name: Run busted
       run: lx --lua-version 5.1 test
