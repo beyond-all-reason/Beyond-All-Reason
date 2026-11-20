@@ -155,6 +155,29 @@ local function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
+-- Bounding circle of the valid placement strips, independent of unit footprint and obstacles.
+-- Cache per spot: the metal geometry does not change when buildings are placed or removed.
+local function GetMexPlacementRadiusSquared(spot)
+	if spot.placementRadiusSquared then
+		return spot.placementRadiusSquared
+	end
+	if not spot.validLeft then
+		GetValidStrips(spot)
+	end
+	---@type number
+	local radiusSquared = 0
+	for z, left in pairs(spot.validLeft) do
+		local right = spot.validRight[z]
+		if left <= right then
+			local dx = max(math.abs(left - spot.x), math.abs(right - spot.x))
+			local dz = z - spot.z
+			radiusSquared = max(radiusSquared, dx * dx + dz * dz)
+		end
+	end
+	spot.placementRadiusSquared = radiusSquared
+	return radiusSquared
+end
+
 local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
 	if facing == 0 or facing == 2 then
@@ -398,6 +421,7 @@ function upget:Initialize()
 	globalScope.resource_spot_finder.GetClosestMexSpot = getClosestMex
 	globalScope.resource_spot_finder.GetClosestGeoSpot = getClosestGeo
 	globalScope.resource_spot_finder.GetBuildingPositions = GetBuildingPositions
+	globalScope.resource_spot_finder.GetMexPlacementRadiusSquared = GetMexPlacementRadiusSquared
 	globalScope.resource_spot_finder.IsMexPositionValid = IsBuildingPositionValid
 
 	-- The map editor's metal brush changes the metal map mid-game: Refresh rebuilds the metal spots
