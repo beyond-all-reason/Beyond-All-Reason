@@ -1011,6 +1011,7 @@ local function CreateSandboxedSystem()
 	sandboxedSpring.Start = refuseEngineRestart
 	sandboxedSpring.Restart = refuseEngineRestart
 	sandboxedSpring.Reload = refuseEngineRestart
+	sandboxedSpring.GetModOptions = BAR.GetModOptionsCopy
 	local sandboxedGame
 	if not allowunitcontrolwidgets then
 		local function disabledOrder()
