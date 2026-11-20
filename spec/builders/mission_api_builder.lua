@@ -23,6 +23,7 @@ end, math.huge)
 ---@field trackedUnitNames table<number, table<string, boolean>>
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
 ---@field trackedFeatureNames table<number, table<string, boolean>>
+---@field derivedNamesByUnitName table<string, table>
 ---@field markerNames table
 ---@field lineNames table<string, table[]>
 ---@field soundFiles table<string, number>
@@ -306,17 +307,20 @@ function MB:Build(installed)
 	local trackedUnitNames = refill(installed.trackedUnitNames, {})
 	local trackedFeatureIDs = refill(installed.trackedFeatureIDs, {})
 	local trackedFeatureNames = refill(installed.trackedFeatureNames, {})
+	local derivedNamesByUnitName = refill(installed.derivedNamesByUnitName, {})
 
-	-- tracking.lua binds these four tables when it loads, so each build loads its own onto them.
+	-- tracking.lua binds these tables when it loads, so each build loads a fresh tracking.lua onto them.
+	-- It reads the unit being spawned when called, which specs set on the installed table.
 	local tracking = SpecEnv.include(
 		SpecEnv.new({
 			GG = {
-				MissionAPI = {
+				MissionAPI = setmetatable({
 					trackedUnitIDs = trackedUnitIDs,
 					trackedUnitNames = trackedUnitNames,
 					trackedFeatureIDs = trackedFeatureIDs,
 					trackedFeatureNames = trackedFeatureNames,
-				},
+					derivedNamesByUnitName = derivedNamesByUnitName,
+				}, { __index = installed }),
 			},
 		}),
 		TRACKING_PATH
@@ -479,6 +483,7 @@ function MB:Build(installed)
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,
 		trackedFeatureNames = trackedFeatureNames,
+		derivedNamesByUnitName = derivedNamesByUnitName,
 		markerNames = self.markerNames,
 		lineNames = self.lineNames,
 		soundFiles = self.soundFiles,

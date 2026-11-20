@@ -1,4 +1,4 @@
--- tracking.lua captures the four table references as upvalues at load time,
+-- tracking.lua captures these table references as upvalues at load time,
 -- so they must exist in GG['MissionAPI'] *before* VFS.Include is called.
 -- We keep the same table objects alive for the whole test run and wipe their
 -- contents in before_each so every test starts from a clean slate.
@@ -11,11 +11,14 @@ local featureIDs = {}
 GG["MissionAPI"].trackedFeatureIDs = featureIDs
 local featureNames = {}
 GG["MissionAPI"].trackedFeatureNames = featureNames
+local derivedNamesByUnitName = {}
+GG["MissionAPI"].derivedNamesByUnitName = derivedNamesByUnitName
 
 local tracking = VFS.Include("luarules/mission_api/tracking.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 local function clearTracked()
-	for _, table in ipairs({ unitIDs, unitNames, featureIDs, featureNames }) do
+	for _, table in ipairs({ unitIDs, unitNames, featureIDs, featureNames, derivedNamesByUnitName }) do
 		for key in pairs(table) do
 			table[key] = nil
 		end
@@ -151,6 +154,19 @@ describe("mission_api.tracking", function()
 			local result = tracking.DoesUnitHaveName(unitID, otherName)
 			assert.is_false(result)
 		end)
+
+		-- Derived names and triggers ask it for every unit they update or filter.
+		it("allocates nothing for a name no unit has", function()
+			collectgarbage("stop")
+			local kilobytesBefore = collectgarbage("count")
+			for unitID = 1, 1000 do
+				tracking.DoesUnitHaveName(unitID, "nobody")
+			end
+			local kilobytesAllocated = collectgarbage("count") - kilobytesBefore
+			collectgarbage("restart")
+
+			assert.is_true(kilobytesAllocated < 1.0, kilobytesAllocated .. " KB allocated")
+		end)
 	end)
 
 	describe("UntrackUnitID", function()
@@ -229,6 +245,98 @@ describe("mission_api.tracking", function()
 			local untrackedName = "ghost"
 			tracking.UntrackUnitName(untrackedName) -- must not error
 			assert.is_nil(unitIDs[untrackedName])
+		end)
+	end)
+
+	describe("UntrackUnitUnderDerivedName", function()
+		it("unnames the unit and keeps its other names", function()
+			seedUnit("alpha", 1)
+			seedUnit("beta", 1)
+			tracking.UntrackUnitUnderDerivedName("alpha", 1)
+			assert.is_nil(unitIDs["alpha"])
+			assert.are.same({ beta = true }, unitNames[1])
+		end)
+
+		it("keeps the name on other units", function()
+			seedUnit("squad", 1)
+			seedUnit("squad", 2)
+			tracking.UntrackUnitUnderDerivedName("squad", 1)
+			assert.is_nil(unitNames[1])
+			assert.are.same({ [2] = true }, unitIDs["squad"])
+		end)
+
+		it("is a no-op for a unit without the name", function()
+			seedUnit("squad", 2)
+			tracking.UntrackUnitUnderDerivedName("squad", 1)
+			assert.are.same({ [2] = true }, unitIDs["squad"])
+		end)
+	end)
+
+	describe("a derived name", function()
+		before_each(function()
+			derivedNamesByUnitName["army"] = {}
+		end)
+
+		it("is ignored by TrackUnit", function()
+			tracking.TrackUnit("army", 1)
+			assert.is_nil(unitIDs["army"])
+		end)
+
+		it("is ignored by UntrackUnitName", function()
+			seedUnit("army", 1)
+			tracking.UntrackUnitName("army")
+			assert.are.same({ [1] = true }, unitIDs["army"])
+		end)
+
+		it("names units through TrackUnitUnderDerivedName", function()
+			tracking.TrackUnitUnderDerivedName("army", 1)
+			assert.are.same({ [1] = true }, unitIDs["army"])
+		end)
+	end)
+
+	describe("ReportUnitNameChanges", function()
+		local changes
+
+		before_each(function()
+			changes = {}
+			tracking.ReportUnitNameChanges(function(unitID, name)
+				changes[#changes + 1] =
+					{ unitID = unitID, name = name, hasName = unitIDs[name] ~= nil and unitIDs[name][unitID] == true }
+			end)
+		end)
+
+		after_each(function()
+			tracking.ReportUnitNameChanges(nil)
+		end)
+
+		it("reports a unit named, after the unit has the name", function()
+			tracking.TrackUnit("alpha", 1)
+			assert.are.same({ { unitID = 1, name = "alpha", hasName = true } }, changes)
+		end)
+
+		it("reports every unit unnamed, once per unit", function()
+			seedUnit("squad", 1)
+			seedUnit("squad", 2)
+			tracking.UntrackUnitName("squad")
+			table.sort(changes, function(a, b)
+				return a.unitID < b.unitID
+			end)
+			assert.are.same({
+				{ unitID = 1, name = "squad", hasName = false },
+				{ unitID = 2, name = "squad", hasName = false },
+			}, changes)
+		end)
+
+		it("does not report a derived name", function()
+			tracking.TrackUnitUnderDerivedName("army", 1)
+			tracking.UntrackUnitUnderDerivedName("army", 1)
+			assert.are.same({}, changes)
+		end)
+
+		it("does not report the names of a destroyed unit", function()
+			seedUnit("alpha", 1)
+			tracking.UntrackUnitID(1)
+			assert.are.same({}, changes)
 		end)
 	end)
 

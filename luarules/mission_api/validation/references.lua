@@ -1,6 +1,6 @@
 ---
---- Checks references: objective events, actions, unit, feature, marker and line names,
---- countdown IDs, cutscene IDs and variables.
+--- Checks references: objective events, actions, unit, feature, marker, and line names, derived unit names,
+--- countdown IDs, cutscene IDs, and variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -10,6 +10,7 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -30,6 +31,32 @@ end
 local function describeSources(sources)
 	table.sort(sources)
 	return table.concat(sources, ", ")
+end
+
+--- Every unit filter an action's parameters contain, each labeled by where it is, e.g. "except[2]".
+--- @param filterParameterNames table<integer, string[]> names of the UnitFilter parameters, per action type
+--- @param filterListParameterNames table<integer, string[]> names of the UnitFilters parameters, per action type
+local function unitFiltersOf(context, filterParameterNames, filterListParameterNames, action, parameters)
+	local unitFilters, parameterPaths = {}, {}
+	for _, parameterName in ipairs(filterParameterNames[action.type] or {}) do
+		for _, unitFilter in ipairs(context.PossibleValues(parameters[parameterName])) do
+			if type(unitFilter) == "table" then
+				unitFilters[#unitFilters + 1] = unitFilter
+				parameterPaths[#parameterPaths + 1] = parameterName
+			end
+		end
+	end
+	for _, parameterName in ipairs(filterListParameterNames[action.type] or {}) do
+		for _, list in ipairs(context.PossibleValues(parameters[parameterName])) do
+			for index, unitFilter in ipairs(type(list) == "table" and list or {}) do
+				if type(unitFilter) == "table" then
+					unitFilters[#unitFilters + 1] = unitFilter
+					parameterPaths[#parameterPaths + 1] = parameterName .. "[" .. index .. "]"
+				end
+			end
+		end
+	end
+	return unitFilters, parameterPaths
 end
 
 --- A name nothing creates can never match, so unlike the unreferenced case below it is
@@ -267,6 +294,29 @@ local function collectKeyframeNames(context, nameFields, parameterNames, actionI
 	end
 end
 
+--- The unit filter fields with a name of this type.
+local function unitFilterFieldsOfType(nameType)
+	local fields = {}
+	for _, field in ipairs(unitFilterFields) do
+		if field.type == nameType then
+			fields[#fields + 1] = field.name
+		end
+	end
+	return fields
+end
+
+--- A unit filter refers to the names it asks a unit about.
+local function collectUnitFilterNames(nameFields, unitFilters, parameterPaths, actionID, referencedNames)
+	for index, unitFilter in ipairs(unitFilters) do
+		for _, field in ipairs(nameFields) do
+			local name = unitFilter[field]
+			if type(name) == "string" then
+				recordSource(referencedNames, name, "action " .. actionID .. " (" .. parameterPaths[index] .. ")")
+			end
+		end
+	end
+end
+
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
 local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
@@ -290,6 +340,9 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 	end
 	local keyframeParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.CameraKeyframes)
 	local keyframeNameFields = keyframeFieldsOfType(nameKind.nameType)
+	local filterParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.UnitFilter)
+	local filterListParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.UnitFilters)
+	local unitFilterNameFields = unitFilterFieldsOfType(nameKind.nameType)
 
 	for actionID, action in pairs(context.Actions) do
 		local parameters = parametersOf(action)
@@ -310,6 +363,9 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 					referencedNames
 				)
 			end
+			local unitFilters, parameterPaths =
+				unitFiltersOf(context, filterParameterNames, filterListParameterNames, action, parameters)
+			collectUnitFilterNames(unitFilterNameFields, unitFilters, parameterPaths, actionID, referencedNames)
 
 			if nameKind.creatingActionTypes[action.type] then
 				for _, name in ipairs(context.PossibleValues(parameters[nameKind.nameKey])) do
@@ -380,6 +436,86 @@ local function validateNameReferences(context, report, nameKind)
 
 	reportUncreatedNames(report, nameKind.label, createdNames, referencedNames)
 	reportUnreferencedNames(report, nameKind.label, createdNames, referencedNames)
+end
+
+--------------------------------------------------------------------------------
+-- Derived unit names
+--------------------------------------------------------------------------------
+
+--- Only its rule names or unnames units with a derived name. A rule may not refer to a derived name, since a name
+--- derived from another derived name could feed on itself.
+local function validateDerivedUnitNames(context, report)
+	local actionTypes = context.ActionTypes
+	local derivedUnitNames = {}
+	for _, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters and action.type == actionTypes.AddDerivedUnitName then
+			for _, name in ipairs(context.PossibleValues(parameters.unitName)) do
+				if type(name) == "string" then
+					derivedUnitNames[name] = true
+				end
+			end
+		end
+	end
+	if next(derivedUnitNames) == nil then
+		return
+	end
+
+	local function reportNamingWithDerivedName(name, source)
+		if derivedUnitNames[name] then
+			report.Error(
+				SECTION,
+				"Unit name",
+				name,
+				"Unit name is derived, so no action or loadout may name or unname units with it",
+				"In: " .. source
+			)
+		end
+	end
+
+	for index, entry in ipairs(context.UnitLoadout) do
+		if type(entry) == "table" then
+			reportNamingWithDerivedName(entry.unitName, "UnitLoadout[" .. index .. "]")
+		end
+	end
+
+	local filterParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.UnitFilter)
+	local filterListParameterNames = getParameterNamesWithType(context.ActionParameters, context.Types.UnitFilters)
+	for actionID, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters then
+			if action.type == actionTypes.NameUnits or action.type == actionTypes.UnnameUnits then
+				for _, name in ipairs(context.PossibleValues(parameters.unitName)) do
+					reportNamingWithDerivedName(name, "action " .. actionID)
+				end
+			elseif action.type == actionTypes.SpawnUnits then
+				for _, entries in ipairs(context.PossibleValues(parameters.unitLoadout)) do
+					for index, entry in ipairs(type(entries) == "table" and entries or {}) do
+						if type(entry) == "table" then
+							reportNamingWithDerivedName(
+								entry.unitName,
+								"action " .. actionID .. " (unitLoadout[" .. index .. "])"
+							)
+						end
+					end
+				end
+			end
+
+			local unitFilters, parameterPaths =
+				unitFiltersOf(context, filterParameterNames, filterListParameterNames, action, parameters)
+			for index, unitFilter in ipairs(unitFilters) do
+				if derivedUnitNames[unitFilter.unitName] then
+					report.Error(
+						SECTION,
+						"Unit name",
+						unitFilter.unitName,
+						"A unit filter cannot refer to a derived unit name",
+						"In: action " .. actionID .. " (" .. parameterPaths[index] .. ")"
+					)
+				end
+			end
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -579,8 +715,13 @@ local function validate(context, report)
 		loadoutLabel = "UnitLoadout",
 		loadoutParameter = "unitLoadout",
 		loadoutActionType = actionTypes.SpawnUnits,
-		creatingActionTypes = { [actionTypes.SpawnUnits] = true, [actionTypes.NameUnits] = true },
+		creatingActionTypes = {
+			[actionTypes.SpawnUnits] = true,
+			[actionTypes.NameUnits] = true,
+			[actionTypes.AddDerivedUnitName] = true,
+		},
 	})
+	validateDerivedUnitNames(context, report)
 
 	validateNameReferences(context, report, {
 		label = "Feature name",

@@ -29,6 +29,7 @@ local actionsDispatcher
 local batch
 local startBatch, endBatch
 local statistics
+local derivedNames
 local countdowns
 local detectionLevels
 local seismicContacts
@@ -403,7 +404,9 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 
 	startBatch()
+	derivedNames.OnMetaUnitAdded(unitID, unitDefID, unitTeam)
 	dispatchConditionCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
+	derivedNames.OnMetaUnitAddedCounted(unitID)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
@@ -418,6 +421,7 @@ end
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	startBatch()
 	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
+	derivedNames.OnMetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
@@ -484,6 +488,7 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	startBatch()
+	derivedNames.OnUnitFinished(unitID, unitDefID)
 	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
@@ -495,6 +500,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local unitDefName = UnitDefs[unitDefID].name
 		statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 	end
+	endBatch()
+end
+
+function gadget:UnitReverseBuilt(unitID, unitDefID, unitTeam)
+	startBatch()
+	derivedNames.OnUnitReverseBuilt(unitID, unitDefID)
 	endBatch()
 end
 
@@ -529,6 +540,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
 	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
+	derivedNames.OnUnitDestroyed(unitID)
 	endBatch()
 end
 
@@ -694,6 +706,8 @@ function gadget:Initialize()
 		conditionKinds = GG["MissionAPI"].ConditionDefinitions.Kinds,
 		batch = batch,
 	})
+	derivedNames = GG["MissionAPI"].Modules.DerivedNames
+	derivedNames.Init({ statistics = statistics })
 	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
 	GG["MissionAPI"].ActivateTrigger = deferActivation
 	GG["MissionAPI"].EvaluateMetric = deferEvaluation

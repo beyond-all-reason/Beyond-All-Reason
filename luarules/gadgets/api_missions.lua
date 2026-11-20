@@ -45,6 +45,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
+	GG["MissionAPI"].derivedNamesByUnitName = {}
 	GG["MissionAPI"].markerNames = {}
 	GG["MissionAPI"].lineNames = {}
 	GG["MissionAPI"].unitMarkers = {}
@@ -81,7 +82,6 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
 	GG["MissionAPI"].Modules.Effects = VFS.Include("luarules/mission_api/effects.lua")
-	GG["MissionAPI"].Modules.Batch = VFS.Include("luarules/mission_api/batch.lua")
 
 	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
 	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")

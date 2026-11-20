@@ -161,6 +161,7 @@ local function setVariable(key, value)
 			resolved = processParameterValue(reference.type, resolved)
 		end
 		reference.parameters[reference.name] = resolved
+		GG["MissionAPI"].parameterVersion = (GG["MissionAPI"].parameterVersion or 0) + 1
 	end
 end
 

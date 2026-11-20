@@ -15,6 +15,7 @@ describe("mission_api.statistics", function()
 	local activated -- ordered list of activated triggers
 	---@type table[]
 	local measured -- ordered list of { trigger, value } handed to EvaluateMetric
+	local batch ---@type table
 
 	-- Fakes injected in place of the gadget's trigger core:
 	local function processTriggersOfType(conditionType, func)
@@ -46,12 +47,13 @@ describe("mission_api.statistics", function()
 		activated = {}
 		measured = {}
 		GG["MissionAPI"] = {}
+		batch = VFS.Include("luarules/mission_api/batch.lua")
 		statistics.Init({
 			processTriggersOfType = processTriggersOfType,
 			activateTrigger = activateTrigger,
 			evaluateMetric = evaluateMetric,
 			conditionKinds = conditionKinds,
-			batch = VFS.Include("luarules/mission_api/batch.lua"),
+			batch = batch,
 		})
 	end)
 
@@ -164,4 +166,60 @@ describe("mission_api.statistics", function()
 		end)
 	end)
 
+	describe("metric changes within a batch", function()
+		it("compares a metric once, against its net value", function()
+			triggers.metricNetValue = makeTrigger(METRIC_TYPE, { teamName = 0 })
+
+			batch.Start()
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
+			statistics.Decrement(METRIC_TYPE, 0, "armwar", {})
+			assert.are.equal(0, #measured)
+			batch.End()
+
+			assert.are.equal(1, #measured)
+			assert.are.equal(1, measured[1].value)
+		end)
+	end)
+
+	describe("CountUnitNameChange", function()
+		it("counts a unit under the name for a trigger filtering on it", function()
+			triggers.nameCounted = makeTrigger(METRIC_TYPE, { teamName = 0, unitName = "army" })
+
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+
+			assert.are.equal(2, #measured)
+			assert.are.equal(2, measured[2].value)
+		end)
+
+		it("follows a variable that changes the name a trigger counts", function()
+			triggers.nameChanging = makeTrigger(METRIC_TYPE, { teamName = 0, unitName = "boss" })
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+			assert.are.equal(0, #measured)
+
+			triggers.nameChanging.parameters.unitName = "army"
+			GG["MissionAPI"].parameterVersion = 1
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+
+			assert.are.equal(1, #measured)
+		end)
+
+		it("leaves triggers without that name alone", function()
+			triggers.typeOnly = makeTrigger(METRIC_TYPE, { teamName = 0 })
+			triggers.otherName = makeTrigger(METRIC_TYPE, { teamName = 0, unitName = "boss" })
+
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+			assert.are.equal(0, #measured)
+		end)
+
+		it("filters by teamName and unitDefName", function()
+			triggers.nameOtherTeam = makeTrigger(METRIC_TYPE, { teamName = 5, unitName = "army" })
+			triggers.nameOtherDef =
+				makeTrigger(METRIC_TYPE, { teamName = 0, unitName = "army", unitDefName = "armcom" })
+
+			statistics.CountUnitNameChange(METRIC_TYPE, 0, "armwar", "army", 1)
+			assert.are.equal(0, #measured)
+		end)
+	end)
 end)
