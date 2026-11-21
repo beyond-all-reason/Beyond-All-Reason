@@ -12,6 +12,7 @@ local spGetTeamInfo = Spring.GetTeamInfo
 
 local allyTeamSpawnOrder = {} -- [allyTeam] = [teamID,teamID,...] - used for random/skill draft - placement order
 local allyTeamSpawnOrderPlaced = {} -- [allyTeam] = 1,..,#TeamsinAllyTeam - whose order to place right now
+local randomSkillOrder = {} -- shared random permutation of skill ranks
 local teamPlayerData = {} -- [teamID] = {id, name, skill} of that team's player
 local allyTeamIsInGame = {} -- [allyTeam] = true/false - fully joined ally teams
 local votedToForceSkipTurn = {} -- [allyTeam][teamID] - if more than 50% vote for it, the current player turn is force-skipped
@@ -226,10 +227,17 @@ end
 -- now we can force it to generate before everyone connects too! (late-joiners get last spots)
 local function PreInitDraftOrderData()
 	local tteams = Spring.GetTeamList()
+	local allyTeamSizes = {}
 	for _, teamID in ipairs(tteams) do
 		local _, _, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 		if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 			teamPlayerData[teamID] = nil
+			if draftMode == "random" then
+				allyTeamSizes[allyTeamID] = (allyTeamSizes[allyTeamID] or 0) + 1
+				if allyTeamSizes[allyTeamID] > #randomSkillOrder then
+					randomSkillOrder[#randomSkillOrder + 1] = allyTeamSizes[allyTeamID]
+				end
+			end
 			if allyTeamIsInGame[allyTeamID] == nil then
 				allyTeamSpawnOrder[allyTeamID] = {} -- won't be used in fair mode
 				allyTeamIsInGame[allyTeamID] = false
@@ -239,6 +247,9 @@ local function PreInitDraftOrderData()
 			votedToForceStartDraft[allyTeamID] = {}
 		end
 		votedToForceStartDraft[allyTeamID][teamID] = false
+	end
+	if draftMode == "random" then
+		shuffleArray(randomSkillOrder)
 	end
 	if draftMode == "random" or draftMode == "skill" or draftMode == "captain" then
 		for _, teamID in ipairs(tteams) do
@@ -302,7 +313,26 @@ local function InitDraftOrderData(allyTeamID_ready)
 				table.insert(allyTeamSpawnOrder[allyTeamID], teamID)
 			end
 		end
-		shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
+		if draftMode == "random" then
+			local skillSortedTeams = allyTeamSpawnOrder[allyTeamID_ready]
+			table.sort(skillSortedTeams, function(teamA, teamB)
+				local skillA, skillB = GetSkillByTeam(teamA), GetSkillByTeam(teamB)
+				if skillA == skillB then
+					return teamA < teamB -- Break ties deterministically, including missing skill data.
+				end
+				return skillA > skillB
+			end)
+			local teamOrder = {}
+			for _, rank in ipairs(randomSkillOrder) do
+				-- Smaller ally teams use the same relative ordering of the ranks they have.
+				if rank <= #skillSortedTeams then
+					teamOrder[#teamOrder + 1] = skillSortedTeams[rank]
+				end
+			end
+			allyTeamSpawnOrder[allyTeamID_ready] = teamOrder
+		else
+			shuffleArray(allyTeamSpawnOrder[allyTeamID_ready])
+		end
 		-- Try to put 'captain' first
 		if draftMode == "captain" and (#allyTeamSpawnOrder[allyTeamID_ready] > 1) then
 			local highestSkill = 0
