@@ -5,6 +5,9 @@
 			"saved": "Saved",
 			"loaded": "Loaded"
 		},
+		"screenSelectCommands": {
+			"rangeReduced": "reduced"
+		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
 		},
@@ -2153,7 +2156,11 @@
 				"doubleclicktime": "Double-click time",
 				"doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a double-click",
 				"screen_select_double_click_enabled": "Double-click Mass Orders",
-				"screen_select_double_click_enabled_descr": "Double click to mass-order visible targets. Disable to exempt orders from double-clicking.",
+				"screen_select_double_click_enabled_descr": "Double-click an active command to mass-order visible targets inside the circle. Disable to exempt those orders from double-clicking.",
+				"screen_select_double_right_click_default_command": "Double Right-Click Default Commands",
+				"screen_select_double_right_click_default_command_descr": "When no command is selected, double right-click mass-orders every matching target inside the circle. Off until enabled.",
+				"screen_select_double_click_radius": "Double-click Mass Order Radius",
+				"screen_select_double_click_radius_descr": "Radius of the circle around the click, as a fraction of the longer side of the screen. At 1 the whole screen is used instead of a circle. Drag the slider to see the circle.",
 				"dragthreshold": "Drag threshold",
 				"dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
 				"crossalpha": "Cursor 'cross' alpha",

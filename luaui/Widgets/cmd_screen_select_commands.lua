@@ -3,7 +3,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Screen Select Commands",
-		desc = "Mass-issue unit-target commands to all visible on-screen matches. Click again while pending, or use the keybind + click for mass orders.",
+		desc = "Mass-issue unit-target commands to visible matches inside a circle around the click. Click again while pending, or use the keybind + click for mass orders.",
 		author = "SethDGamre, advised by Chronographer",
 		date = "July 11, 2026",
 		license = "GNU GPL, v2 or later",
@@ -14,7 +14,8 @@ end
 
 --[[------------------------------------------------------------------------------
 How To Use:
-  First click issues a normal order. Another click while pending mass-orders all on-screen matches.
+  First click issues a normal order. Another click while pending mass-orders matches inside the circle around that click.
+  Double right-click mass-orders a default command only when that option is enabled.
   Optionally, bind and hold screen_select_hold to mass-order on the first click instead.
 
 Click modifiers:
@@ -23,7 +24,7 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> partition targets among selected units (see Order assignment below)
-  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping those closest to the click (stored click world position, falling back to the clicked target).
+  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping those closest to the click on screen, the circle flash shrinks to the radius that was kept, and "reduced" fades out above the cursor for four times as long as the circle.
   Shift / Shift + Space / double-click mass-order -> after the click-nearest target set is chosen, unit-relative distance math (travel routes, Alt partition) uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
 
   Order assignment:
@@ -47,10 +48,15 @@ Click modifiers:
 local tableInsert = table.insert
 local tableSort = table.sort
 local mathFloor = math.floor
+local mathCeil = math.ceil
 local mathMax = math.max
 local mathMin = math.min
 local mathAtan2 = math.atan2
 local mathDistance2dSquared = math.distance2dSquared
+local mathCos = math.cos
+local mathSin = math.sin
+local mathSqrt = math.sqrt
+local mathPi = math.pi
 local osClock = os.clock
 
 local spring = Spring
@@ -97,12 +103,45 @@ local COMMANDS_REQUIRING_CAPABILITY = {
 	[CMD.REPAIR] = true,
 	[CMD.CAPTURE] = true,
 }
+local COMMAND_CIRCLE_COLORS = {
+	[CMD.ATTACK] = { 1, 0.5, 0.35 },
+	[CMD.CAPTURE] = { 1, 0.85, 0.22 },
+	[CMD.REPAIR] = { 1, 0.95, 0.7 },
+	[CMD.RECLAIM] = { 0.43, 0.5, 0.43 },
+	[CMD.RESURRECT] = { 1, 0.75, 1 },
+	[CMD.GUARD] = { 0.33, 0.92, 1 },
+	[GameCMD.UNIT_SET_TARGET] = { 1, 0.66, 0.35 },
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = { 1, 0.66, 0.35 },
+}
+local CIRCLE_PREVIEW_COLOR = { 1, 1, 1 }
+local DOUBLE_CLICK_RADIUS_FRACTION_DEFAULT = 0.25
+local DOUBLE_CLICK_RADIUS_FRACTION_MIN = 0.125
+local DOUBLE_CLICK_RADIUS_FRACTION_MAX = 1
+local DOUBLE_CLICK_RADIUS_FRACTION_MAX_TOLERANCE = 0.001
+local CIRCLE_FLASH_SECONDS = 0.45
+local CIRCLE_PEAK_ALPHA = 0.1
+local CIRCLE_SOLID_RADIUS_FRACTION = 0.85
+local CIRCLE_PREVIEW_HOLD_SECONDS = 0.2
+local CIRCLE_FAN_SEGMENT_COUNT = 48
+local CIRCLE_FAN_RING_COUNT = 8
+local RANGE_REDUCED_TEXT_SECONDS = CIRCLE_FLASH_SECONDS * 4
+local RANGE_REDUCED_TEXT_PEAK_ALPHA = 1
+local RANGE_REDUCED_TEXT_HOLD_FRACTION = 0.5
+local RANGE_REDUCED_TEXT_SIZE_DIVISOR = 3
+local RANGE_REDUCED_TEXT_SIZE_MULTIPLIER = 2
+local RANGE_REDUCED_OUTLINE_SIZE = 0.03
+local RANGE_REDUCED_OUTLINE_STRENGTH = 0.7
+local RANGE_REDUCED_OUTLINE_ALPHA = 0.55
+local RANGE_REDUCED_CURSOR_GAP_FRACTION = 16 / 1080
+local RANGE_REDUCED_TEXT_PADDING_SCALE = 0.2
 
 local MAX_QUEUE_COMMANDS = 100
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 32 / 1080
 
 local doubleClickEnabled = true
+local doubleRightClickDefaultCommandEnabled = false
+local doubleClickRadiusFraction = DOUBLE_CLICK_RADIUS_FRACTION_DEFAULT
 local COMMAND_LIMIT = 4000
 
 local myAllyTeamID
@@ -110,9 +149,24 @@ local myTeamID
 local unitDefMetadataByID = {}
 local commanderCorpseFeatureDefIDs = {}
 local pendingDoubleClick = {}
+local pendingArmedFromCommandNotify = false
+local lastRightClickScreenX
+local lastRightClickScreenY
 local heldCommandDescriptionIndex
 local deferClearActiveCommand = false
 local screenSelectKeyHeld = false
+local circleFlash
+local circlePreview
+local circleShader
+local circleShaderCenterLocation
+local circleShaderRadiusLocation
+local circleShaderColorLocation
+local circleShaderAlphaLocation
+local rangeReducedNotice
+local rangeReducedTextTexture
+local rangeReducedTextWidth = 0
+local rangeReducedTextHeight = 0
+local rangeReducedTextBakeFailed = false
 local vsy = select(2, spring.GetViewGeometry())
 local doubleClickSnapRadius = vsy * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
 local doubleClickSnapRadiusSq = doubleClickSnapRadius * doubleClickSnapRadius
@@ -130,8 +184,8 @@ local function clearDoubleClickPending()
 		commandID = nil,
 		right = false,
 		queueEndByUnitID = nil,
-		clickWorldPosition = nil,
 	}
+	pendingArmedFromCommandNotify = false
 end
 
 local function fillCommandOptionModifiers(options)
@@ -251,6 +305,10 @@ local function clearActiveCommandUnlessShift(options)
 end
 
 local function finishMassOrderCommandState(issueCommandID, options)
+	if options.right then
+		heldCommandDescriptionIndex = nil
+		return
+	end
 	local savedCommandDescriptionIndex = captureHeldCommandDescriptionIndex(issueCommandID)
 	if options.shift then
 		heldCommandDescriptionIndex = savedCommandDescriptionIndex
@@ -327,24 +385,84 @@ local function getTargetPosition(targetID, positionCache)
 	return position
 end
 
-local function resolveClickWorldPosition(mouseX, mouseY, fallbackTargetID, positionCache)
-	if mouseX and mouseY then
-		local _, tracedPosition = spring.TraceScreenRay(mouseX, mouseY, true)
-		if tracedPosition then
-			return toPositionTable(tracedPosition[1], tracedPosition[2], tracedPosition[3])
-		end
+local function getTargetScreenPosition(targetID, isFeature)
+	local worldX, worldY, worldZ
+	if isFeature then
+		worldX, worldY, worldZ = spGetFeaturePosition(getRawFeatureID(targetID))
+	else
+		worldX, worldY, worldZ = spGetUnitViewPosition(targetID, true)
 	end
-	if fallbackTargetID then
-		return getTargetPosition(fallbackTargetID, positionCache or {})
+	if not worldX then
+		return nil
 	end
-	return nil
+	return spWorldToScreenCoords(worldX, worldY, worldZ)
 end
 
-local function captureClickWorldPosition(fallbackTargetID, mouseX, mouseY)
-	if not mouseX or not mouseY then
-		mouseX, mouseY = spring.GetMouseState()
+local function clampDoubleClickRadiusFraction(value)
+	local numericValue = tonumber(value)
+	if not numericValue then
+		return DOUBLE_CLICK_RADIUS_FRACTION_DEFAULT
 	end
-	return resolveClickWorldPosition(mouseX, mouseY, fallbackTargetID)
+	if numericValue < DOUBLE_CLICK_RADIUS_FRACTION_MIN then
+		return DOUBLE_CLICK_RADIUS_FRACTION_MIN
+	end
+	if numericValue > DOUBLE_CLICK_RADIUS_FRACTION_MAX - DOUBLE_CLICK_RADIUS_FRACTION_MAX_TOLERANCE then
+		return DOUBLE_CLICK_RADIUS_FRACTION_MAX
+	end
+	return numericValue
+end
+
+local function getDoubleClickRadius()
+	local viewWidth, viewHeight = spring.GetViewGeometry()
+	local longestViewDimension = viewWidth
+	if viewHeight > viewWidth then
+		longestViewDimension = viewHeight
+	end
+	return doubleClickRadiusFraction * longestViewDimension
+end
+
+local function getMassOrderCircleRadius()
+	if doubleClickRadiusFraction >= DOUBLE_CLICK_RADIUS_FRACTION_MAX then
+		return nil
+	end
+	return getDoubleClickRadius()
+end
+
+local function resolveClickScreenPosition(clickScreenX, clickScreenY)
+	if clickScreenX ~= nil and clickScreenY ~= nil then
+		return clickScreenX, clickScreenY
+	end
+	return spring.GetMouseState()
+end
+
+local function showCommandCircleFlash(centerX, centerY, radius, commandID)
+	local color = COMMAND_CIRCLE_COLORS[commandID] or CIRCLE_PREVIEW_COLOR
+	circleFlash = {
+		centerX = centerX,
+		centerY = centerY,
+		radius = radius,
+		red = color[1],
+		green = color[2],
+		blue = color[3],
+		startTime = osClock(),
+	}
+end
+
+local function showRangeReducedNotice(commandID)
+	local color = COMMAND_CIRCLE_COLORS[commandID] or CIRCLE_PREVIEW_COLOR
+	rangeReducedTextBakeFailed = false
+	rangeReducedNotice = {
+		startTime = osClock(),
+		red = color[1],
+		green = color[2],
+		blue = color[3],
+	}
+end
+
+local function refreshCirclePreview()
+	circlePreview = {
+		lastSetTime = osClock(),
+	}
 end
 
 local function canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
@@ -445,10 +563,9 @@ local function compareNullablePrimary(primaryA, primaryB, indexA, indexB, primar
 	return primaryLess(primaryA, primaryB)
 end
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache, referencePosition)
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache)
 	positionCache = positionCache or {}
-	referencePosition = referencePosition
-		or (referenceUnitID and getTargetPosition(referenceUnitID, positionCache))
+	local referencePosition = (referenceUnitID and getTargetPosition(referenceUnitID, positionCache))
 		or (selectedUnits and getTargetCentroid(selectedUnits, positionCache))
 	if not referencePosition then
 		return nil
@@ -583,95 +700,29 @@ local function copyArray(source, maxCount)
 	return result
 end
 
-local function limitTargetsToClosest(filteredTargets, referenceTargetID, maximumTargetCount, positionCache, clickWorldPosition)
+local function limitTargetsToClosestOnScreen(filteredTargets, maximumTargetCount, screenDistancesSquared)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
 	if #filteredTargets <= maximumTargetCount then
 		return filteredTargets
 	end
-	local referencePosition = clickWorldPosition or getTargetPosition(referenceTargetID, positionCache)
-	if referencePosition then
-		sortTargetsByDistance(nil, filteredTargets, true, nil, positionCache, referencePosition)
-	end
-	return copyArray(filteredTargets, maximumTargetCount)
-end
-
-local function limitTargetsByClusterGap(filteredTargets, referenceTargetID, positionCache)
-	if #filteredTargets <= 1 then
-		return filteredTargets
-	end
-	local referencePosition = getTargetPosition(referenceTargetID, positionCache)
-	if not referencePosition then
-		return filteredTargets
-	end
-	local targetPositions = {}
-	local remainingTargets = {}
-	local remainingCount = 0
-	local seedInList = false
+	local originalIndices = {}
 	for targetIndex = 1, #filteredTargets do
-		local targetID = filteredTargets[targetIndex]
-		local targetPosition = getTargetPosition(targetID, positionCache)
-		if targetPosition then
-			targetPositions[targetID] = targetPosition
-			if targetID == referenceTargetID then
-				seedInList = true
-			else
-				remainingCount = remainingCount + 1
-				remainingTargets[remainingCount] = targetID
-			end
-		end
+		originalIndices[filteredTargets[targetIndex]] = targetIndex
 	end
-	local cluster = {}
-	local frontier = {}
-	local frontierCount = 0
-	if seedInList then
-		cluster[1] = referenceTargetID
-		frontierCount = 1
-		frontier[1] = referenceTargetID
-	else
-		local nextRemaining = {}
-		local nextRemainingCount = 0
-		for remainingIndex = 1, remainingCount do
-			local targetID = remainingTargets[remainingIndex]
-			local targetPosition = targetPositions[targetID]
-			local targetDistanceSq = mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z)
-			if targetDistanceSq <= MAX_DISTANCE_SQ then
-				cluster[#cluster + 1] = targetID
-				frontierCount = frontierCount + 1
-				frontier[frontierCount] = targetID
-			else
-				nextRemainingCount = nextRemainingCount + 1
-				nextRemaining[nextRemainingCount] = targetID
-			end
+	tableSort(filteredTargets, function(targetIDA, targetIDB)
+		local distanceSquaredA = screenDistancesSquared[targetIDA]
+		local distanceSquaredB = screenDistancesSquared[targetIDB]
+		if distanceSquaredA == distanceSquaredB then
+			return originalIndices[targetIDA] < originalIndices[targetIDB]
 		end
-		remainingTargets = nextRemaining
-		remainingCount = nextRemainingCount
-	end
-	local frontierIndex = 1
-	while frontierIndex <= frontierCount do
-		local frontierID = frontier[frontierIndex]
-		local frontierPosition = targetPositions[frontierID]
-		local nextRemaining = {}
-		local nextRemainingCount = 0
-		for remainingIndex = 1, remainingCount do
-			local targetID = remainingTargets[remainingIndex]
-			local targetPosition = targetPositions[targetID]
-			local targetDistanceSq = mathDistance2dSquared(frontierPosition.x, frontierPosition.z, targetPosition.x, targetPosition.z)
-			if targetDistanceSq <= MAX_DISTANCE_SQ then
-				cluster[#cluster + 1] = targetID
-				frontierCount = frontierCount + 1
-				frontier[frontierCount] = targetID
-			else
-				nextRemainingCount = nextRemainingCount + 1
-				nextRemaining[nextRemainingCount] = targetID
-			end
-		end
-		remainingTargets = nextRemaining
-		remainingCount = nextRemainingCount
-		frontierIndex = frontierIndex + 1
-	end
-	return cluster
+		return distanceSquaredA < distanceSquaredB
+	end)
+	local farthestKeptDistance = mathSqrt(screenDistancesSquared[filteredTargets[maximumTargetCount]])
+	local nearestDroppedDistance = mathSqrt(screenDistancesSquared[filteredTargets[maximumTargetCount + 1]])
+	local reducedRadius = (farthestKeptDistance + nearestDroppedDistance) * 0.5
+	return copyArray(filteredTargets, maximumTargetCount), reducedRadius
 end
 
 local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
@@ -1280,11 +1331,11 @@ local function isValidMassOrderTarget(commandID, targetID, isFeature)
 	return true
 end
 
-local function considerNearestCandidate(candidateID, isFeature, commandID, mouseX, mouseY, getScreenXY, nearestState)
+local function considerNearestCandidate(candidateID, isFeature, commandID, mouseX, mouseY, nearestState)
 	if not isValidMassOrderTarget(commandID, candidateID, isFeature) then
 		return
 	end
-	local screenX, screenY = getScreenXY(candidateID)
+	local screenX, screenY = getTargetScreenPosition(candidateID, isFeature)
 	if not screenX then
 		return
 	end
@@ -1310,25 +1361,11 @@ local function resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
 		return nil
 	end
 	local nearestState = {}
-	local getUnitScreenXY = function(unitID)
-		local unitX, unitY, unitZ = spGetUnitViewPosition(unitID, true)
-		if not unitX then
-			return nil
-		end
-		return spWorldToScreenCoords(unitX, unitY, unitZ)
-	end
-	local getFeatureScreenXY = function(featureTargetID)
-		local featureX, featureY, featureZ = spGetFeaturePosition(getRawFeatureID(featureTargetID))
-		if not featureX then
-			return nil
-		end
-		return spWorldToScreenCoords(featureX, featureY, featureZ)
-	end
 	if allowsUnits then
 		local candidateUnits = spring.GetVisibleUnits()
 		if candidateUnits then
 			for unitIndex = 1, #candidateUnits do
-				considerNearestCandidate(candidateUnits[unitIndex], false, commandID, mouseX, mouseY, getUnitScreenXY, nearestState)
+				considerNearestCandidate(candidateUnits[unitIndex], false, commandID, mouseX, mouseY, nearestState)
 			end
 		end
 	end
@@ -1336,11 +1373,29 @@ local function resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
 		local candidateFeatures = spring.GetVisibleFeatures(-1)
 		if candidateFeatures then
 			for featureIndex = 1, #candidateFeatures do
-				considerNearestCandidate(normalizeFeatureTargetID(candidateFeatures[featureIndex]), true, commandID, mouseX, mouseY, getFeatureScreenXY, nearestState)
+				considerNearestCandidate(normalizeFeatureTargetID(candidateFeatures[featureIndex]), true, commandID, mouseX, mouseY, nearestState)
 			end
 		end
 	end
 	return nearestState.targetID, nearestState.isFeature
+end
+
+local function filterTargetsInsideScreenCircle(targets, centerX, centerY, radius)
+	local radiusSquared = radius and radius * radius
+	local filteredTargets = {}
+	local screenDistancesSquared = {}
+	for targetIndex = 1, #targets do
+		local targetID = targets[targetIndex]
+		local screenX, screenY = getTargetScreenPosition(targetID, isFeatureTargetID(targetID))
+		if screenX then
+			local screenDistanceSquared = mathDistance2dSquared(screenX, screenY, centerX, centerY)
+			if not radiusSquared or screenDistanceSquared <= radiusSquared then
+				tableInsert(filteredTargets, targetID)
+				screenDistancesSquared[targetID] = screenDistanceSquared
+			end
+		end
+	end
+	return filteredTargets, screenDistancesSquared
 end
 
 local function filterTargetsBySelectionMembership(targets, selectionSet, targetInSelection)
@@ -1415,7 +1470,7 @@ local function collectMassOrderTargets(commandID, targetID, isFeature, options)
 	return collectScopedUnitTargets(commandID, targetID, fallbackAllegiance, nil, options, true)
 end
 
-local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickWorldPosition)
+local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickScreenX, clickScreenY)
 	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandID)
 	if #selectedUnits == 0 then
 		return false
@@ -1440,6 +1495,11 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetID] == true
 	local filteredTargets = collectMassOrderTargets(issueCommandID, referenceTargetID, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
+	local centerX, centerY = resolveClickScreenPosition(clickScreenX, clickScreenY)
+	local circleRadius = getMassOrderCircleRadius()
+	local screenDistancesSquared
+	local reducedRadius
+	filteredTargets, screenDistancesSquared = filterTargetsInsideScreenCircle(filteredTargets, centerX, centerY, circleRadius)
 	local positionCache = {}
 	local reachabilityCache = {}
 	local useQueueEndReference = options.shift == true or queueEndByUnitID ~= nil
@@ -1450,10 +1510,14 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
 	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	if not clickWorldPosition then
-		clickWorldPosition = captureClickWorldPosition(referenceTargetID)
+	filteredTargets, reducedRadius = limitTargetsToClosestOnScreen(filteredTargets, maxTargetsToCollect, screenDistancesSquared)
+	local flashRadius = reducedRadius or circleRadius
+	if flashRadius then
+		showCommandCircleFlash(centerX, centerY, flashRadius, issueCommandID)
 	end
-	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, maxTargetsToCollect, positionCache, clickWorldPosition)
+	if reducedRadius then
+		showRangeReducedNotice(issueCommandID)
+	end
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
 			finishMassOrderCommandState(issueCommandID, options)
@@ -1473,7 +1537,7 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	return true
 end
 
-local function issuePendingDoubleClickMassOrders(options)
+local function issuePendingDoubleClickMassOrders(options, clickScreenX, clickScreenY)
 	local issueCommandID = pendingDoubleClick.commandID
 	local referenceTargetID = pendingDoubleClick.targetID
 	if not referenceTargetID then
@@ -1481,7 +1545,6 @@ local function issuePendingDoubleClickMassOrders(options)
 	end
 	local referenceTargetIsFeature = isFeatureTargetID(referenceTargetID)
 	local queueEndByUnitID = pendingDoubleClick.queueEndByUnitID
-	local clickWorldPosition = pendingDoubleClick.clickWorldPosition
 	clearDoubleClickPending()
 	local selectedUnits = spring.GetSelectedUnits()
 	local massIssued = false
@@ -1494,7 +1557,7 @@ local function issuePendingDoubleClickMassOrders(options)
 		end
 	end
 	if not skipMassReissue and #selectedUnits > 0 then
-		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickWorldPosition)
+		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID, clickScreenX, clickScreenY)
 	end
 	if not massIssued then
 		clearActiveCommandUnlessShift(options)
@@ -1513,8 +1576,15 @@ local function resolveScreenSelectCommandID(commandID)
 	return nil
 end
 
-local function consumePendingDoubleClickClick(options, effectiveCommandID)
-	if not doubleClickEnabled or not isPendingDoubleClickActive() then
+local function allowsDefaultCommandDoubleRightClick(options)
+	if not options.right then
+		return true
+	end
+	return doubleRightClickDefaultCommandEnabled
+end
+
+local function consumePendingDoubleClickClick(options, effectiveCommandID, clickScreenX, clickScreenY)
+	if not doubleClickEnabled or not allowsDefaultCommandDoubleRightClick(options) or not isPendingDoubleClickActive() then
 		return false
 	end
 	if pendingDoubleClick.right ~= options.right then
@@ -1527,19 +1597,25 @@ local function consumePendingDoubleClickClick(options, effectiveCommandID)
 		clearDoubleClickPending()
 		return true
 	end
-	return issuePendingDoubleClickMassOrders(options)
+	return issuePendingDoubleClickMassOrders(options, clickScreenX, clickScreenY)
 end
 
-local function armPendingDoubleClick(commandID, targetID, options, mouseX, mouseY)
+local function armPendingDoubleClick(commandID, targetID, options, armedFromCommandNotify)
+	local refreshQueueEnd = not isPendingDoubleClickActive()
+	if refreshQueueEnd then
+		clearDoubleClickPending()
+	end
 	pendingDoubleClick.targetID = targetID
 	pendingDoubleClick.expireTime = osClock() + DOUBLE_CLICK_TIME
 	pendingDoubleClick.commandID = commandID
 	pendingDoubleClick.right = options.right
-	pendingDoubleClick.clickWorldPosition = captureClickWorldPosition(targetID, mouseX, mouseY)
-	if not pendingDoubleClick.queueEndByUnitID then
+	pendingArmedFromCommandNotify = armedFromCommandNotify == true
+	if refreshQueueEnd then
 		pendingDoubleClick.queueEndByUnitID = collectQueueEndPositions(spring.GetSelectedUnits())
 	end
-	if options.shift then
+	if options.right then
+		heldCommandDescriptionIndex = nil
+	elseif options.shift then
 		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(commandID)
 	end
 end
@@ -1557,17 +1633,25 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 		return false
 	end
 	if screenSelectKeyHeld then
-		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options, nil, captureClickWorldPosition(targetID))
+		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options, nil, nil, nil)
 	end
 
 	if doubleClickEnabled then
+		if not allowsDefaultCommandDoubleRightClick(options) then
+			if isPendingDoubleClickActive() then
+				clearDoubleClickPending()
+			end
+			return false
+		end
 		if not isPendingDoubleClickActive() then
-			armPendingDoubleClick(effectiveCommandID, targetID, options)
+			armPendingDoubleClick(effectiveCommandID, targetID, options, true)
+		elseif options.right and pendingDoubleClick.right and pendingArmedFromCommandNotify then
+			if pendingDoubleClick.commandID == effectiveCommandID and pendingDoubleClick.targetID then
+				return issuePendingDoubleClickMassOrders(options, lastRightClickScreenX, lastRightClickScreenY)
+			end
+			armPendingDoubleClick(effectiveCommandID, targetID, options, true)
 		elseif not pendingDoubleClick.targetID then
 			pendingDoubleClick.targetID = targetID
-			if not pendingDoubleClick.clickWorldPosition then
-				pendingDoubleClick.clickWorldPosition = captureClickWorldPosition(targetID)
-			end
 		end
 		return false
 	end
@@ -1577,7 +1661,9 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 		return false
 	end
 	giveOrders(effectiveCommandID, selectedUnits, { targetID }, options)
-	if options.shift then
+	if options.right then
+		heldCommandDescriptionIndex = nil
+	elseif options.shift then
 		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(effectiveCommandID)
 	else
 		clearActiveCommandUnlessShift(options)
@@ -1589,11 +1675,16 @@ local function isSetTargetCommand(commandID)
 	return commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
 end
 
--- Double-click is armed/consumed here, not via order callins: the engine can delay order
--- execution, so a second click may arrive before CommandNotify and get missed.
+-- Left-click double-clicks arm here. Right-click default commands arm from CommandNotify:
+-- the engine queues that order until a later update, and selecting the command makes the
+-- next right-click cancel it instead of queueing another one.
 function widget:MousePress(mouseX, mouseY, button)
 	if button ~= LEFT_MOUSE_BUTTON and button ~= RIGHT_MOUSE_BUTTON then
 		return false
+	end
+	if button == RIGHT_MOUSE_BUTTON then
+		lastRightClickScreenX = mouseX
+		lastRightClickScreenY = mouseY
 	end
 	local options = fillCommandOptionModifiers({ right = (button == RIGHT_MOUSE_BUTTON) })
 	local effectiveCommandID = resolveScreenSelectCommandID(nil)
@@ -1610,6 +1701,12 @@ function widget:MousePress(mouseX, mouseY, button)
 		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
+		if not allowsDefaultCommandDoubleRightClick(options) then
+			return false
+		end
+		if options.right and not screenSelectKeyHeld then
+			return false
+		end
 		--snap to closest because tiny units are hard to click, and a double click reasonably means you're trying to click a unit
 		local targetID, targetIsFeature = resolveNearestValidTargetNearCursor(effectiveCommandID, mouseX, mouseY)
 		if screenSelectKeyHeld then
@@ -1620,12 +1717,16 @@ function widget:MousePress(mouseX, mouseY, button)
 			if #selectedUnits == 0 then
 				return false
 			end
-			return issueMassOrdersFromTarget(effectiveCommandID, targetID, targetIsFeature, selectedUnits, options, nil, captureClickWorldPosition(targetID, mouseX, mouseY))
+			return issueMassOrdersFromTarget(effectiveCommandID, targetID, targetIsFeature, selectedUnits, options, nil, mouseX, mouseY)
 		end
-		armPendingDoubleClick(effectiveCommandID, targetID, options, mouseX, mouseY)
+		armPendingDoubleClick(effectiveCommandID, targetID, options, false)
 		return false
 	end
-	local consumed = consumePendingDoubleClickClick(options, effectiveCommandID)
+	if not allowsDefaultCommandDoubleRightClick(options) then
+		clearDoubleClickPending()
+		return false
+	end
+	local consumed = consumePendingDoubleClickClick(options, effectiveCommandID, mouseX, mouseY)
 	if consumed then
 		return true
 	end
@@ -1659,12 +1760,34 @@ local function setDoubleClickEnabled(value)
 	end
 end
 
+local function setDoubleRightClickDefaultCommandEnabled(value)
+	doubleRightClickDefaultCommandEnabled = value == true
+	if not doubleRightClickDefaultCommandEnabled and pendingDoubleClick.right then
+		clearDoubleClickPending()
+	end
+end
+
+local function setDoubleClickRadiusFraction(value, showPreview)
+	doubleClickRadiusFraction = clampDoubleClickRadiusFraction(value)
+	if showPreview ~= false then
+		refreshCirclePreview()
+	end
+end
+
 local function registerScreenSelectCommandsApi()
 	WG["screenSelectCommands"] = {
 		getDoubleClickEnabled = function()
 			return doubleClickEnabled
 		end,
 		setDoubleClickEnabled = setDoubleClickEnabled,
+		getDoubleRightClickDefaultCommandEnabled = function()
+			return doubleRightClickDefaultCommandEnabled
+		end,
+		setDoubleRightClickDefaultCommandEnabled = setDoubleRightClickDefaultCommandEnabled,
+		getDoubleClickRadiusFraction = function()
+			return doubleClickRadiusFraction
+		end,
+		setDoubleClickRadiusFraction = setDoubleClickRadiusFraction,
 	}
 end
 
@@ -1684,8 +1807,309 @@ function widget:PlayerChanged()
 	initialize()
 end
 
+local CIRCLE_SHADER_VERTEX = [[
+varying vec2 screenPosition;
+void main() {
+	screenPosition = gl_Vertex.xy;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}
+]]
+
+local CIRCLE_SHADER_FRAGMENT = [[
+varying vec2 screenPosition;
+uniform vec2 center;
+uniform float radius;
+uniform vec3 circleColor;
+uniform float circleAlpha;
+void main() {
+	float distanceFromCenter = length(screenPosition - center);
+	float featherStart = radius * ]] .. CIRCLE_SOLID_RADIUS_FRACTION .. [[;
+	float falloff = smoothstep(radius, featherStart, distanceFromCenter);
+	if (falloff <= 0.0) {
+		discard;
+	}
+	gl_FragColor = vec4(circleColor, falloff * circleAlpha);
+}
+]]
+
+local function createCircleShader()
+	if circleShader or not gl.CreateShader then
+		return
+	end
+	circleShader = gl.CreateShader({
+		vertex = CIRCLE_SHADER_VERTEX,
+		fragment = CIRCLE_SHADER_FRAGMENT,
+	})
+	if not circleShader then
+		spring.Echo("Screen Select Commands: circle shader failed to compile: " .. tostring(gl.GetShaderLog()))
+		return
+	end
+	circleShaderCenterLocation = gl.GetUniformLocation(circleShader, "center")
+	circleShaderRadiusLocation = gl.GetUniformLocation(circleShader, "radius")
+	circleShaderColorLocation = gl.GetUniformLocation(circleShader, "circleColor")
+	circleShaderAlphaLocation = gl.GetUniformLocation(circleShader, "circleAlpha")
+end
+
+local function deleteCircleShader()
+	if circleShader then
+		gl.DeleteShader(circleShader)
+		circleShader = nil
+	end
+end
+
+local function quadraticFadeAlpha(elapsedSeconds, durationSeconds, peakAlpha)
+	if elapsedSeconds < 0 then
+		return peakAlpha
+	end
+	if elapsedSeconds >= durationSeconds then
+		return 0
+	end
+	local remainingFraction = 1 - (elapsedSeconds / durationSeconds)
+	return remainingFraction * remainingFraction * peakAlpha
+end
+
+local function circleFadeAlpha(elapsedSeconds)
+	return quadraticFadeAlpha(elapsedSeconds, CIRCLE_FLASH_SECONDS, CIRCLE_PEAK_ALPHA)
+end
+
+local function rangeReducedTextAlpha(elapsedSeconds)
+	if elapsedSeconds <= 0 then
+		return RANGE_REDUCED_TEXT_PEAK_ALPHA
+	end
+	if elapsedSeconds >= RANGE_REDUCED_TEXT_SECONDS then
+		return 0
+	end
+	local holdSeconds = RANGE_REDUCED_TEXT_SECONDS * RANGE_REDUCED_TEXT_HOLD_FRACTION
+	if elapsedSeconds <= holdSeconds then
+		return RANGE_REDUCED_TEXT_PEAK_ALPHA
+	end
+	local fadeProgress = (elapsedSeconds - holdSeconds) / (RANGE_REDUCED_TEXT_SECONDS - holdSeconds)
+	local fade = fadeProgress * fadeProgress * (3 - (2 * fadeProgress))
+	return (1 - fade) * RANGE_REDUCED_TEXT_PEAK_ALPHA
+end
+
+local function smoothstepFalloff(distanceFromCenter, radius)
+	local featherStart = radius * CIRCLE_SOLID_RADIUS_FRACTION
+	if distanceFromCenter >= radius then
+		return 0
+	end
+	if distanceFromCenter <= featherStart then
+		return 1
+	end
+	local blend = 1 - ((distanceFromCenter - featherStart) / (radius - featherStart))
+	return blend * blend * (3 - (2 * blend))
+end
+
+local function drawCircleFallback(centerX, centerY, radius, red, green, blue, alpha)
+	local fullTurn = mathPi * 2
+	for ringIndex = 0, CIRCLE_FAN_RING_COUNT - 1 do
+		local innerDistance = radius * ringIndex / CIRCLE_FAN_RING_COUNT
+		local outerDistance = radius * (ringIndex + 1) / CIRCLE_FAN_RING_COUNT
+		local innerFalloff = smoothstepFalloff(innerDistance, radius)
+		local outerFalloff = smoothstepFalloff(outerDistance, radius)
+		gl.BeginEnd(GL.TRIANGLE_STRIP, function()
+			for segmentIndex = 0, CIRCLE_FAN_SEGMENT_COUNT do
+				local angle = (segmentIndex / CIRCLE_FAN_SEGMENT_COUNT) * fullTurn
+				local cosine = mathCos(angle)
+				local sine = mathSin(angle)
+				gl.Color(red, green, blue, innerFalloff * alpha)
+				gl.Vertex(centerX + (cosine * innerDistance), centerY + (sine * innerDistance))
+				gl.Color(red, green, blue, outerFalloff * alpha)
+				gl.Vertex(centerX + (cosine * outerDistance), centerY + (sine * outerDistance))
+			end
+		end)
+	end
+	gl.Color(1, 1, 1, 1)
+end
+
+local function drawCircle(centerX, centerY, radius, red, green, blue, alpha)
+	if alpha <= 0 or radius <= 0 then
+		return
+	end
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthTest(false)
+	if circleShader then
+		gl.UseShader(circleShader)
+		gl.Uniform(circleShaderCenterLocation, centerX, centerY)
+		gl.Uniform(circleShaderRadiusLocation, radius)
+		gl.Uniform(circleShaderColorLocation, red, green, blue)
+		gl.Uniform(circleShaderAlphaLocation, alpha)
+		gl.BeginEnd(GL.QUADS, function()
+			gl.Vertex(centerX - radius, centerY - radius)
+			gl.Vertex(centerX + radius, centerY - radius)
+			gl.Vertex(centerX + radius, centerY + radius)
+			gl.Vertex(centerX - radius, centerY + radius)
+		end)
+		gl.UseShader(0)
+	else
+		drawCircleFallback(centerX, centerY, radius, red, green, blue, alpha)
+	end
+	gl.DepthTest(true)
+end
+
+local function drawCircleInViewPixels(centerX, centerY, radius, red, green, blue, alpha)
+	local viewWidth, viewHeight = spring.GetViewGeometry()
+	gl.DepthMask(false)
+	gl.Culling(false)
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PushMatrix()
+	gl.LoadIdentity()
+	gl.Ortho(0, viewWidth, 0, viewHeight, -1, 1)
+	gl.MatrixMode(GL.MODELVIEW)
+	gl.PushMatrix()
+	gl.LoadIdentity()
+	drawCircle(centerX, centerY, radius, red, green, blue, alpha)
+	gl.PopMatrix()
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PopMatrix()
+	gl.MatrixMode(GL.MODELVIEW)
+	gl.Culling(true)
+	gl.DepthMask(true)
+end
+
+local function drawCommandCircleFlash()
+	if not circleFlash then
+		return
+	end
+	local alpha = circleFadeAlpha(osClock() - circleFlash.startTime)
+	if alpha <= 0 then
+		circleFlash = nil
+		return
+	end
+	drawCircleInViewPixels(circleFlash.centerX, circleFlash.centerY, circleFlash.radius, circleFlash.red, circleFlash.green, circleFlash.blue, alpha)
+end
+
+local function drawCirclePreview()
+	if not circlePreview then
+		return
+	end
+	local alpha = circleFadeAlpha(osClock() - circlePreview.lastSetTime - CIRCLE_PREVIEW_HOLD_SECONDS)
+	if alpha <= 0 then
+		circlePreview = nil
+		return
+	end
+	local viewWidth, viewHeight = spring.GetViewGeometry()
+	local radius = getDoubleClickRadius()
+	drawCircle(viewWidth * 0.5, viewHeight * 0.5, radius, CIRCLE_PREVIEW_COLOR[1], CIRCLE_PREVIEW_COLOR[2], CIRCLE_PREVIEW_COLOR[3], alpha)
+end
+
+local function deleteRangeReducedTextTexture()
+	if rangeReducedTextTexture then
+		gl.DeleteTexture(rangeReducedTextTexture)
+		rangeReducedTextTexture = nil
+	end
+end
+
+local function drawRangeReducedTextIntoTexture(font, text, fontSize, padding, textureWidth, textureHeight)
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / textureWidth, 2 / textureHeight, 0)
+	font:Begin()
+	font:SetAutoOutlineColor(false)
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, RANGE_REDUCED_OUTLINE_ALPHA)
+	font:Print(text, padding, textureHeight * 0.5, fontSize, "vo")
+	font:End()
+end
+
+local function bakeRangeReducedText()
+	deleteRangeReducedTextTexture()
+	rangeReducedTextBakeFailed = true
+	if not WG.fonts or not gl.CreateTexture or not gl.RenderToTexture then
+		return false
+	end
+	local _, fullFontSize = WG.fonts.getFont(2)
+	if not fullFontSize or fullFontSize <= 0 then
+		return false
+	end
+	local fontSize = mathFloor(fullFontSize / RANGE_REDUCED_TEXT_SIZE_DIVISOR) * RANGE_REDUCED_TEXT_SIZE_MULTIPLIER
+	if fontSize < 1 then
+		fontSize = 1
+	end
+	local font = WG.fonts.getFont(2, fontSize / fullFontSize, RANGE_REDUCED_OUTLINE_SIZE, RANGE_REDUCED_OUTLINE_STRENGTH)
+	if not font then
+		return false
+	end
+	local text = BAR.I18N("ui.screenSelectCommands.rangeReduced")
+	local textWidth = mathCeil(font:GetTextWidth(text) * fontSize)
+	local textHeight, textDescender = font:GetTextHeight(text)
+	local padding = mathCeil(fontSize * RANGE_REDUCED_TEXT_PADDING_SCALE)
+	local textureWidth = textWidth + (padding * 2)
+	local textureHeight = mathCeil((math.abs(textHeight) + math.abs(textDescender or 0)) * fontSize) + (padding * 2)
+	if textureWidth <= 0 or textureHeight <= 0 then
+		return false
+	end
+	local texture = gl.CreateTexture(textureWidth, textureHeight, {
+		target = GL.TEXTURE_2D,
+		format = GL.RGBA8,
+		fbo = true,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+	if not texture then
+		return false
+	end
+	local function drawText()
+		drawRangeReducedTextIntoTexture(font, text, fontSize, padding, textureWidth, textureHeight)
+	end
+	if gl.R2tHelper then
+		gl.R2tHelper.RenderToTexture(texture, drawText, false)
+	else
+		gl.RenderToTexture(texture, function()
+			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+			drawText()
+		end)
+	end
+	rangeReducedTextTexture = texture
+	rangeReducedTextWidth = textureWidth
+	rangeReducedTextHeight = textureHeight
+	rangeReducedTextBakeFailed = false
+	return true
+end
+
+local function drawRangeReducedNotice()
+	if not rangeReducedNotice then
+		return
+	end
+	local alpha = rangeReducedTextAlpha(osClock() - rangeReducedNotice.startTime)
+	if alpha <= 0 then
+		rangeReducedNotice = nil
+		return
+	end
+	if not rangeReducedTextTexture and not rangeReducedTextBakeFailed then
+		bakeRangeReducedText()
+	end
+	if not rangeReducedTextTexture then
+		return
+	end
+	local mouseX, mouseY = spring.GetMouseState()
+	local left = mouseX - (rangeReducedTextWidth * 0.5)
+	local bottom = mouseY + (vsy * RANGE_REDUCED_CURSOR_GAP_FRACTION)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Texture(rangeReducedTextTexture)
+	gl.Color(rangeReducedNotice.red, rangeReducedNotice.green, rangeReducedNotice.blue, alpha)
+	gl.TexRect(left, bottom, left + rangeReducedTextWidth, bottom + rangeReducedTextHeight, false, true)
+	gl.Texture(false)
+	gl.Color(1, 1, 1, 1)
+	gl.DepthMask(true)
+	gl.DepthTest(true)
+end
+
+function widget:DrawWorldPreUnit()
+	drawCommandCircleFlash()
+end
+
+function widget:DrawScreenPost()
+	drawCirclePreview()
+	drawRangeReducedNotice()
+end
+
 function widget:ViewResize()
 	updateDoubleClickSnapRadius()
+	bakeRangeReducedText()
 end
 
 function widget:Initialize()
@@ -1697,6 +2121,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("screen_select_hold", function() screenSelectKeyHeld = true end, nil, "p")
 	widgetHandler:AddAction("screen_select_hold", function() screenSelectKeyHeld = false end, nil, "r")
 	registerScreenSelectCommandsApi()
+	createCircleShader()
 end
 
 function widget:Shutdown()
@@ -1704,6 +2129,12 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("screen_select_hold", "r")
 	WG["screenSelectCommands"] = nil
 	screenSelectKeyHeld = false
+	deleteCircleShader()
+	deleteRangeReducedTextTexture()
+end
+
+function widget:LanguageChanged()
+	bakeRangeReducedText()
 end
 
 function widget:Update()
@@ -1733,11 +2164,19 @@ end
 function widget:GetConfigData()
 	return {
 		doubleClickEnabled = doubleClickEnabled,
+		doubleRightClickDefaultCommandEnabled = doubleRightClickDefaultCommandEnabled,
+		doubleClickRadiusFraction = doubleClickRadiusFraction,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.doubleClickEnabled ~= nil then
 		setDoubleClickEnabled(data.doubleClickEnabled)
+	end
+	if data.doubleRightClickDefaultCommandEnabled ~= nil then
+		setDoubleRightClickDefaultCommandEnabled(data.doubleRightClickDefaultCommandEnabled)
+	end
+	if data.doubleClickRadiusFraction ~= nil then
+		setDoubleClickRadiusFraction(data.doubleClickRadiusFraction, false)
 	end
 end

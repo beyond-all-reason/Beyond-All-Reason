@@ -260,6 +260,43 @@ return function(model)
 		},
 
 		{
+			id = "screen_select_double_right_click_default_command",
+			group = "control",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.screen_select_double_right_click_default_command"),
+			type = "bool",
+			value = false,
+			description = BAR.I18N("ui.settings.option.screen_select_double_right_click_default_command_descr"),
+			widgetConfig = {
+				"Screen Select Commands",
+				"doubleRightClickDefaultCommandEnabled",
+				api = "screenSelectCommands",
+				get = "getDoubleRightClickDefaultCommandEnabled",
+				set = "setDoubleRightClickDefaultCommandEnabled",
+			},
+		},
+
+		{
+			id = "screen_select_double_click_radius",
+			group = "control",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.screen_select_double_click_radius"),
+			type = "slider",
+			min = 0.125,
+			max = 1,
+			step = 0.025,
+			value = 0.25,
+			description = BAR.I18N("ui.settings.option.screen_select_double_click_radius_descr"),
+			widgetConfig = {
+				"Screen Select Commands",
+				"doubleClickRadiusFraction",
+				api = "screenSelectCommands",
+				get = "getDoubleClickRadiusFraction",
+				set = "setDoubleClickRadiusFraction",
+			},
+		},
+
+		{
 			id = "dragthreshold",
 			group = "control",
 			category = types.advanced,
