@@ -450,32 +450,12 @@ AimWeapon1(heading, pitch)
 
 	if(pitch < <-20>) pitch = <-20>; // angle clamp
 	
-	// DeploySleeve animation
-
-	if (DEPLOYING)
-	{
-	
-		turn sleeve to x-axis <160> speed <225.0>;
-
-			if (!aimReady)
-			{
-				
-				wait-for-turn sleeve around x-axis;
-				aimReady = 1;
-
-			}
-	}
-	else
-	{
-		return(1);
-	}
-
-	// if(aimReady)
-
 	turretHeading = heading - torsoRotation;
 	sleevePitch = <270.0> - pitch;
 	worldHeading = (heading + (get HEADING)) % 65536;
 	targetID = get TARGET_ID(1);
+
+	// headingDelta
 
 	headingDelta = (get ABS(turretHeading - lastHeading)) % 65536;
 	if (headingDelta > 32768)
@@ -483,11 +463,15 @@ AimWeapon1(heading, pitch)
 		headingDelta = 65536 - headingDelta;
 	}
 
+	// pitchDelta
+
 	pitchDelta = (get ABS(sleevePitch - lastPitch)) % 65536;
 	if (pitchDelta > 32768)
 	{
 		pitchDelta = 65536 - pitchDelta;
 	}
+
+	// worldHeadingDelta
 
 	worldHeadingDelta = (get ABS(worldHeading - lastWorldHeading)) % 65536;
 	if (worldHeadingDelta > 32768)
@@ -495,11 +479,14 @@ AimWeapon1(heading, pitch)
 		worldHeadingDelta = 65536 - worldHeadingDelta;
 	}
 
+	// targetChanger
+
 	targetChanged = FALSE;
 	if (targetID != lastTargetID)
 	{
 		targetChanged = TRUE;
 	}
+
 	// Ground and projectile targets use negative sentinel IDs. For those,
 	// compare world-space aim so body rotation is not mistaken for retargeting.
 	else if ((targetID < 0) AND ((worldHeadingDelta > 3000) OR (pitchDelta > 3000)))
@@ -507,9 +494,7 @@ AimWeapon1(heading, pitch)
 		targetChanged = TRUE;
 	}
 
-	// These turns are refreshed on every reaim call, including while walking.
-	turn turret to y-axis turretHeading speed <300.0>;
-	turn sleeve to x-axis sleevePitch speed <225.0>;
+	// Declares DEPLOY_STATE
 
 	if( deploy_state == NOT_DEPLOYED )
 	{
@@ -518,6 +503,33 @@ AimWeapon1(heading, pitch)
 		targetChanged = TRUE;
 		move turret to y-axis [5.5] speed [20.0];
 	}
+
+	// DeploySleeve animation
+
+	if (DEPLOYING)
+	{
+		turn sleeve to x-axis <160> speed <225.0>;
+
+			if (!aimReady)
+			{
+				wait-for-turn sleeve around x-axis;
+				aimReady = 1;
+			}
+	}
+	else
+	{
+		return(1);
+	}
+
+	// These turns are refreshed on every reaim call, including while walking.
+	
+	if(DEPLOYING)
+	{
+		turn turret to y-axis turretHeading speed <300.0>;
+		turn sleeve to x-axis sleevePitch speed <225.0>;
+		wait-for-turn sleeve around x-axis;
+	}
+
 
 	if (targetChanged)
 	{
