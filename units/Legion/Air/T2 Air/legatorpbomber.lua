@@ -40,6 +40,7 @@ return {
 			istorpedobomber = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			restrictions_inclusion = "_nosea_",
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			unitgroup = "sub",
