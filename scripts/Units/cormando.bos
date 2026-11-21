@@ -299,7 +299,7 @@ UnitSpeed(){
 		animSpeed = (maxSpeed * 5) / animSpeed; 
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
-		sleep 164;
+		sleep 50;
 	}
 }
 StartMoving(reversing){
@@ -363,11 +363,12 @@ StartBuilding(heading, pitch)
 	show lnano;
 	show rnano;
 
+	wait-for-turn luparm around x-axis;
+	wait-for-turn ruparm around x-axis;
 	turn luparm to x-axis <-45> speed <375.0>;
 	turn larm to x-axis <-45> speed <375.0>;
 	turn ruparm to x-axis <-45> speed <375.0>;
 	turn rarm to x-axis <-45> speed <375.0>;
-	wait-for-turn luparm around x-axis;
 
 	torsoRotation = heading;
 	turn aimy1 to y-axis heading speed <480.0>;
@@ -383,7 +384,7 @@ StopBuilding()
 	hide lnano;
 	hide rnano;
 
-	sleep 3000;
+	sleep restore_delay;
 	set INBUILDSTANCE to 0;
 
 	torsoRotation = 0;
@@ -417,6 +418,16 @@ RestoreAfterDelay()
 	lastWorldHeading = -1000000;
 	lastTargetID = -4;
 
+	if (DEPLOYED)
+	{
+		sleep 500;
+		turn sleeve to x-axis <-200> speed <225.0>;
+		wait-for-turn sleeve around x-axis;
+		
+		aimReady = 1;
+	}
+
+	turn barrel to y-axis <0.0> speed <100.0>;
 	turn turret to y-axis <0.0> speed <300.0>;
 	turn sleeve to x-axis <0.0> speed <225.0>;
 	move turret to y-axis [0.0] speed [20.0];
@@ -436,11 +447,16 @@ AimWeapon1(heading, pitch)
 	// customparams.reaimtime = 2 requires this call-in to return immediately.
 	// Cancel the old restore timer, but do not block on any piece animation.
 	signal SIGNAL_AIM1;
+	start-script BarrelSpin();
 
+	if(pitch < <-20>) pitch = <-20>; // angle clamp
+	
 	turretHeading = heading - torsoRotation;
 	sleevePitch = <270.0> - pitch;
 	worldHeading = (heading + (get HEADING)) % 65536;
 	targetID = get TARGET_ID(1);
+
+	// headingDelta
 
 	headingDelta = (get ABS(turretHeading - lastHeading)) % 65536;
 	if (headingDelta > 32768)
@@ -448,11 +464,15 @@ AimWeapon1(heading, pitch)
 		headingDelta = 65536 - headingDelta;
 	}
 
+	// pitchDelta
+
 	pitchDelta = (get ABS(sleevePitch - lastPitch)) % 65536;
 	if (pitchDelta > 32768)
 	{
 		pitchDelta = 65536 - pitchDelta;
 	}
+
+	// worldHeadingDelta
 
 	worldHeadingDelta = (get ABS(worldHeading - lastWorldHeading)) % 65536;
 	if (worldHeadingDelta > 32768)
@@ -460,11 +480,14 @@ AimWeapon1(heading, pitch)
 		worldHeadingDelta = 65536 - worldHeadingDelta;
 	}
 
+	// targetChanger
+
 	targetChanged = FALSE;
 	if (targetID != lastTargetID)
 	{
 		targetChanged = TRUE;
 	}
+
 	// Ground and projectile targets use negative sentinel IDs. For those,
 	// compare world-space aim so body rotation is not mistaken for retargeting.
 	else if ((targetID < 0) AND ((worldHeadingDelta > 3000) OR (pitchDelta > 3000)))
@@ -472,9 +495,7 @@ AimWeapon1(heading, pitch)
 		targetChanged = TRUE;
 	}
 
-	// These turns are refreshed on every reaim call, including while walking.
-	turn turret to y-axis turretHeading speed <300.0>;
-	turn sleeve to x-axis sleevePitch speed <225.0>;
+	// Declares DEPLOY_STATE
 
 	if( deploy_state == NOT_DEPLOYED )
 	{
@@ -484,9 +505,36 @@ AimWeapon1(heading, pitch)
 		move turret to y-axis [5.5] speed [20.0];
 	}
 
+	// DeploySleeve animation
+
+	if (DEPLOYING)
+	{
+		turn sleeve to x-axis <160> speed <225.0>;
+
+			if (!aimReady)
+			{
+				wait-for-turn sleeve around x-axis;
+				aimReady = 1;
+			}
+	}
+	else
+	{
+		return(1);
+	}
+
+	// These turns are refreshed on every reaim call, including while walking.
+	
+	if(DEPLOYING)
+	{
+		turn turret to y-axis turretHeading speed <300.0>;
+		turn sleeve to x-axis sleevePitch speed <225.0>;
+		wait-for-turn sleeve around x-axis;
+	}
+
+
 	if (targetChanged)
 	{
-		aimReady = FALSE;
+		// aimReady = FALSE;
 
 		signal SIGNAL_AIM_TRACKER;
 		start-script AimReadyAfterDelay();
@@ -503,12 +551,23 @@ AimWeapon1(heading, pitch)
 	return (aimReady);
 }
 
+BarrelSpin()
+{
+	while (deploy_state == DEPLOYED)
+	{
+		spin barrel around y-axis speed <400.0>;
+		sleep 50;
+	}
+
+	stop-spin barrel around y-axis;
+}
+
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-    move barrel to y-axis [-0.5] speed [3.750000];
+    // move barrel to y-axis [-0.5] speed [3.750000];
 	sleep 50;
-	move barrel to y-axis [0] now;
+	// move barrel to y-axis [0] now;
 }
 
 QueryNanoPiece(pieceIndex)
