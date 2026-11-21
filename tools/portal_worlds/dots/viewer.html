@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portal worlds · Dots playback</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font:
+        14px system-ui,
+        sans-serif;
+      background: #111820;
+      color: #e6edf3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    header {
+      padding: 16px 20px;
+      background: #1a2430;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    h1 {
+      font-size: 19px;
+      margin: 0;
+      font-weight: 600;
+    }
+    button,
+    select,
+    .file {
+      font: inherit;
+      color: inherit;
+      background: #263545;
+      border: 1px solid #52677b;
+      border-radius: 5px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+    button:hover,
+    .file:hover {
+      background: #35495e;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    header .file {
+      margin-left: auto;
+    }
+    #status {
+      padding: 9px 20px;
+      color: #b9c9d7;
+      overflow-wrap: anywhere;
+    }
+    #scenario {
+      margin: 0 14px 12px;
+      padding: 10px 14px;
+      background: #243546;
+      border-left: 3px solid #8fbedf;
+      line-height: 1.6;
+    }
+    #scenario[hidden] { display: none; }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 12px;
+      padding: 0 14px 14px;
+    }
+    .stage {
+      min-width: 0;
+    }
+    .toolbar,
+    .timeline {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .toolbar label {
+      white-space: nowrap;
+    }
+    .timeline input {
+      flex: 1;
+      min-width: 100px;
+    }
+    #clock {
+      font-variant-numeric: tabular-nums;
+      min-width: 100px;
+    }
+    .viewport {
+      height: min(74vh, 960px);
+      min-height: 420px;
+      position: relative;
+      background: #0c1219;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .hint {
+      color: #b9c9d7;
+      font-size: 12px;
+      margin: 6px 0;
+    }
+    aside {
+      background: #1a2430;
+      padding: 14px;
+      border-radius: 6px;
+      max-height: 84vh;
+      overflow: auto;
+    }
+    h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 14px 0 8px;
+    }
+    h2:first-child {
+      margin-top: 0;
+    }
+    #inspect {
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      white-space: pre-line;
+    }
+    .team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .swatch {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      flex: none;
+    }
+    .team span:last-child {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+    }
+    .events {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .events button {
+      text-align: left;
+      font-size: 12px;
+    }
+    .note {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #b9c9d7;
+    }
+    .error {
+      color: #ffaaa4 !important;
+    }
+    .viewport:fullscreen {
+      height: 100vh;
+      width: 100vw;
+      border-radius: 0;
+    }
+    .empty {
+      color: #b9c9d7;
+    }
+    @media (max-width: 850px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        max-height: none;
+      }
+      .viewport {
+        height: 65vh;
+      }
+      header {
+        padding: 12px;
+      }
+      #status {
+        padding: 9px 12px;
+      }
+    }
+  </style>
+  <header>
+    <h1 id="title">Portal worlds · Dots playback</h1>
+    <label class="file"
+      >Open recording<input
+        id="file"
+        type="file"
+        accept=".jsonl,.gz"
+        hidden /></label
+    ><button id="download" disabled>Download recording</button>
+  </header>
+  <div id="status" role="status">
+    Open a portal-dots .jsonl or .jsonl.gz recording.
+  </div>
+  <div id="scenario" hidden></div>
+  <main>
+    <section class="stage">
+      <div class="toolbar">
+        <select id="world" aria-label="World to show">
+          <option value="all">All worlds</option></select
+        ><select id="filter" aria-label="Units to show">
+          <option value="all">All units</option>
+          <option value="combat">Mobile combat</option>
+          <option value="economy">Builders and factories</option></select
+        ><label><input id="trails" type="checkbox" checked />Paths</label
+        ><label><input id="orders" type="checkbox" />Orders</label
+        ><label><input id="shots" type="checkbox" checked />Shots / hits</label
+        ><button id="fit">Fit</button
+        ><button id="fullscreen">Fullscreen</button>
+      </div>
+      <div class="viewport" id="viewport">
+        <canvas
+          id="canvas"
+          aria-label="Recorded battles in all worlds. Click a unit to inspect; scroll to zoom; drag to pan."
+        ></canvas>
+      </div>
+      <div class="timeline">
+        <button id="play" disabled>Play</button
+        ><button id="back" title="Back 10 seconds">−10s</button
+        ><input
+          id="seek"
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          value="0"
+          aria-label="Simulation time"
+        /><button id="forward" title="Forward 10 seconds">+10s</button
+        ><select id="speed" aria-label="Playback speed">
+          <option>1</option>
+          <option>4</option>
+          <option>8</option>
+          <option selected>16</option>
+          <option>32</option>
+          <option>64</option></select
+        ><output id="clock">0:00 / 0:00</output>
+      </div>
+      <p class="hint">
+        Click a unit to inspect · scroll to zoom · drag to pan · Space
+        play/pause · arrows ±10s · portals are paired rings
+      </p>
+    </section>
+    <aside>
+      <h2>Teams</h2>
+      <div id="teams"></div>
+      <h2>Selected unit</h2>
+      <div id="inspect" class="empty">
+        Click a dot. Squares are buildings; outlined dots are commanders.
+      </div>
+      <h2>Jump to event</h2>
+      <div id="events" class="events"></div>
+      <p class="note">
+        Actual engine recordings, all-team observer view. Paths interpolate
+        within a unit’s lifetime and world only. Hits are damage-event markers;
+        particles, terrain occlusion and fog of war are not reconstructed.
+        Playback issues no game commands.
+      </p>
+      <details class="note">
+        <summary>Map credits</summary>
+        <pre style="white-space: pre-wrap; font: inherit">
+__PORTAL_MAP_CREDITS__</pre
+        >
+      </details>
+    </aside>
+  </main>
+  <script id="recording-data" type="application/octet-stream">
+    __PORTAL_DOTS_DATA__
+  </script>
+  <script id="map-image" type="application/octet-stream">
+    __PORTAL_MAP_IMAGE__
+  </script>
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id),
+      canvas = $("canvas"),
+      ctx = canvas.getContext("2d");
+    let header = null,
+      samples = [],
+      events = [],
+      end = null,
+      time = 0,
+      playing = false,
+      lastTick = 0,
+      selected = null,
+      raw = null,
+      filename = "recording.jsonl.gz",
+      W = 1,
+      H = 1,
+      pan = null,
+      views = new Map(),
+      hits = [],
+      currentIndex = 0;
+    const terrain = new Image();
+    terrain.onload = () => draw();
+    const clock = (t) =>
+      `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+    const commandName = (id) =>
+      ({
+        0: "Idle",
+        5: "Wait",
+        10: "Move",
+        15: "Patrol",
+        16: "Fight",
+        20: "Attack",
+        25: "Guard",
+        40: "Repair",
+        90: "Reclaim",
+        34591: "Portal travel",
+        31109: "Raw move",
+        31110: "Raw move",
+      })[id] || (id < 0 ? "Build" : "Command " + id);
+    const upper = (list, frame) => {
+      let l = 0,
+        r = list.length;
+      while (l < r) {
+        const m = (l + r) >> 1;
+        if (list[m].frame <= frame) l = m + 1;
+        else r = m;
+      }
+      return l;
+    };
+    const teamColor = (id) => {
+      const c = header.teams.find((t) => t.id === id)?.color || [0.7, 0.7, 0.7];
+      return `rgb(${c.map((v) => Math.round(v * 255)).join(",")})`;
+    };
+    const unitKey = (u) => `${u[0]}:${u[15]}`;
+    const physical = (x, z) =>
+      header.regions.findIndex(
+        (r) => x >= r.x0 && x < r.x1 && z >= r.z0 && z < r.z1,
+      ) + 1;
+    function visible(u) {
+      const d = header.unit_defs[u[1]],
+        f = $("filter").value;
+      return (
+        f === "all" ||
+        (f === "economy"
+          ? d.builder || d.factory
+          : d.armed && !d.immobile && !d.builder)
+      );
+    }
+    function status(text, error = false) {
+      $("status").textContent = text;
+      $("status").classList.toggle("error", error);
+    }
+    function setTime(t) {
+      if (!end) return;
+      time = Math.max(0, Math.min(t, end.frame / header.fps));
+      $("seek").value = time;
+      draw();
+    }
+    function regionsToShow() {
+      const value = $("world").value;
+      return header.regions
+        .map((r, i) => ({ ...r, id: i + 1 }))
+        .filter((r) => value === "all" || String(r.id) === value);
+    }
+    function panels() {
+      const rs = regionsToShow(),
+        cols = rs.length > 1 ? Math.ceil(Math.sqrt(rs.length)) : 1,
+        rows = Math.ceil(rs.length / cols),
+        gap = 12;
+      return rs.map((r, i) => {
+        const x = gap + ((i % cols) * (W - gap)) / cols,
+          y = gap + (Math.floor(i / cols) * (H - gap)) / rows,
+          w = (W - gap) / cols - gap,
+          h = (H - gap) / rows - gap;
+        const v = views.get(r.id) || {
+          x: (r.x0 + r.x1) / 2,
+          z: (r.z0 + r.z1) / 2,
+          zoom: 1,
+        };
+        return {
+          ...r,
+          x,
+          y,
+          w,
+          h,
+          v,
+          scale:
+            Math.min((w - 28) / (r.x1 - r.x0), (h - 50) / (r.z1 - r.z0)) *
+            v.zoom,
+        };
+      });
+    }
+    const point = (p, x, z) => [
+      p.x + p.w / 2 + (x - p.v.x) * p.scale,
+      p.y + 27 + (p.h - 27) / 2 + (z - p.v.z) * p.scale,
+    ];
+    function line(p, x, z, tx, tz, color, width = 1) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(...point(p, x, z));
+      ctx.lineTo(...point(p, tx, tz));
+      ctx.stroke();
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      hits = [];
+      if (!header || !samples.length) return;
+      const frame = time * header.fps,
+        index = Math.max(0, upper(samples, frame) - 1);
+      currentIndex = index;
+      const a = samples[index],
+        b = samples[Math.min(samples.length - 1, index + 1)],
+        mix = b.frame > a.frame ? (frame - a.frame) / (b.frame - a.frame) : 0;
+      const following = new Map(b.units.map((u) => [unitKey(u), u])),
+        live = new Map(a.units.map((u) => [unitKey(u), u]));
+      const ps = panels(),
+        byRegion = new Map(ps.map((p) => [p.id, p]));
+      for (const p of ps) {
+        ctx.fillStyle = "#18232b";
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(p.x, p.y + 27, p.w, p.h - 27);
+        ctx.clip();
+        const lo = point(p, p.x0, p.z0),
+          hi = point(p, p.x1, p.z1);
+        ctx.fillStyle = "#253638";
+        ctx.fillRect(lo[0], lo[1], hi[0] - lo[0], hi[1] - lo[1]);
+        if (terrain.complete && terrain.naturalWidth) {
+          ctx.globalAlpha = 0.6;
+          ctx.drawImage(
+            terrain,
+            (p.x0 / header.width) * terrain.width,
+            (p.z0 / header.height) * terrain.height,
+            ((p.x1 - p.x0) / header.width) * terrain.width,
+            ((p.z1 - p.z0) / header.height) * terrain.height,
+            lo[0],
+            lo[1],
+            hi[0] - lo[0],
+            hi[1] - lo[1],
+          );
+          ctx.globalAlpha = 1;
+        }
+        ctx.strokeStyle = "#627a7d";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(lo[0], lo[1], hi[0] - lo[0], hi[1] - lo[1]);
+        if ($("trails").checked) {
+          const start = Math.max(
+              0,
+              upper(samples, frame - 20 * header.fps) - 1,
+            ),
+            last = new Map();
+          ctx.globalAlpha = 0.42;
+          for (let j = start; j <= index; j++)
+            for (const u of samples[j].units) {
+              if (
+                u[14] !== p.id ||
+                !visible(u) ||
+                header.unit_defs[u[1]].immobile
+              )
+                continue;
+              const k = unitKey(u),
+                old = last.get(k);
+              if (
+                old &&
+                (old[3] !== u[3] || old[5] !== u[5]) &&
+                old[14] === u[14] &&
+                (old[3] - u[3]) ** 2 + (old[5] - u[5]) ** 2 < 600 ** 2
+              )
+                line(
+                  p,
+                  old[3],
+                  old[5],
+                  u[3],
+                  u[5],
+                  teamColor(u[2]),
+                  selected === k ? 2 : 1,
+                );
+              last.set(k, u);
+            }
+          ctx.globalAlpha = 1;
+        }
+        for (const mouth of a.portals) {
+          if (mouth.region !== p.id) continue;
+          const [x, y] = point(p, mouth.x, mouth.z);
+          ctx.strokeStyle = "#e7dfb3";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = "#f1e9c3";
+          ctx.font = "11px system-ui";
+          ctx.fillText("P" + mouth.edge, x + 10, y + 4);
+        }
+        for (const u of a.units) {
+          if (u[14] !== p.id || !visible(u)) continue;
+          const key = unitKey(u),
+            next = following.get(key),
+            d = header.unit_defs[u[1]];
+          let x = u[3],
+            z = u[5];
+          // Never draw a trajectory across a teleport or reused engine object ID.
+          if (
+            next &&
+            next[14] === u[14] &&
+            (next[3] - x) ** 2 + (next[5] - z) ** 2 < 600 ** 2
+          ) {
+            x += (next[3] - x) * mix;
+            z += (next[5] - z) * mix;
+          }
+          const [sx, sy] = point(p, x, z),
+            radius = d.factory ? 5 : d.immobile ? 3 : d.commander ? 5 : 3;
+          if ($("orders").checked || selected === key) {
+            const tx = u[11],
+              tz = u[13];
+            if (
+              tx !== false &&
+              tz !== false &&
+              u[12] !== false &&
+              [10, 16, 20, 31109, 31110].includes(u[9])
+            ) {
+              const target = physical(tx, tz);
+              if (target === p.id) {
+                ctx.globalAlpha = 0.45;
+                line(p, x, z, tx, tz, teamColor(u[2]));
+                ctx.globalAlpha = 1;
+              } else if (selected === key) {
+                ctx.fillStyle = "#f4d488";
+                ctx.font = "11px system-ui";
+                ctx.fillText(
+                  "→ world " + (target || "barrier"),
+                  sx + 10,
+                  sy - 10,
+                );
+              }
+            }
+          }
+          ctx.globalAlpha = u[8] < 0.99 ? 0.45 : 1;
+          ctx.fillStyle = teamColor(u[2]);
+          ctx.beginPath();
+          if (d.immobile)
+            ctx.rect(sx - radius, sy - radius, radius * 2, radius * 2);
+          else ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          if (d.commander || selected === key) {
+            ctx.strokeStyle = selected === key ? "#ffffff" : "#f0d87c";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+          if (selected === key || d.commander) {
+            ctx.fillStyle = "#35404c";
+            ctx.fillRect(sx - 7, sy + 8, 14, 2);
+            ctx.fillStyle = teamColor(u[2]);
+            ctx.fillRect(
+              sx - 7,
+              sy + 8,
+              14 * Math.max(0, u[6] / Math.max(1, u[7])),
+              2,
+            );
+          }
+          hits.push({ x: sx, y: sy, key, u });
+        }
+        if ($("shots").checked) {
+          ctx.fillStyle = "#fff1b8";
+          for (const s of a.projectiles) {
+            if (s[8] !== p.id) continue;
+            const [x, y] = point(p, s[4], s[6]);
+            ctx.fillRect(x - 1, y - 1, 2, 2);
+          }
+          const begin = upper(events, frame - header.fps * 0.4),
+            finish = upper(events, frame);
+          for (let j = begin; j < finish; j++) {
+            const e = events[j],
+              d = e.data;
+            if (e.kind !== "damage" || d.region !== p.id) continue;
+            const [x, y] = point(p, d.x, d.z);
+            ctx.globalAlpha = Math.max(
+              0.15,
+              1 - (frame - e.frame) / (header.fps * 0.4),
+            );
+            ctx.strokeStyle = "#ffd18a";
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.stroke();
+            if (d.ax !== false && physical(d.ax, d.az) === p.id)
+              line(p, d.ax, d.az, d.x, d.z, "#f6b386");
+            ctx.globalAlpha = 1;
+          }
+        }
+        ctx.restore();
+        ctx.fillStyle = "#18232b";
+        ctx.fillRect(p.x, p.y, p.w, 27);
+        ctx.fillStyle = "#e6edf3";
+        ctx.font = "12px system-ui";
+        ctx.fillText(
+          `${p.id} · ${p.name}    ${a.units.filter((u) => u[14] === p.id).length} units`,
+          p.x + 10,
+          p.y + 18,
+        );
+      }
+      $("clock").textContent =
+        `${clock(time)} / ${clock(end.frame / header.fps)}`;
+      const counts = new Map();
+      for (const u of a.units) counts.set(u[2], (counts.get(u[2]) || 0) + 1);
+      for (const t of header.teams) {
+        const label = $("team-count-" + t.id);
+        if (label) label.textContent = (counts.get(t.id) || 0) + " units";
+      }
+      if (selected) {
+        const u = live.get(selected);
+        if (u) {
+          const d = header.unit_defs[u[1]],
+            r = header.regions[u[14] - 1],
+            goal =
+              u[11] !== false && u[13] !== false && u[12] !== false
+                ? `\nGoal: ${Math.round(u[11])}, ${Math.round(u[13])} (world ${physical(u[11], u[13]) || "barrier"})`
+                : "";
+          $("inspect").textContent =
+            `${d.title} · #${u[0]} · team ${u[2]}\n${r?.name || "Outside worlds"}\nHP ${Math.ceil(u[6])} / ${Math.ceil(u[7])}\nBuild ${Math.round(u[8] * 100)}%\n${d.factory ? "Produced-unit default: " : ""}${commandName(u[9])} · tag ${u[10] || "—"}${goal}\nPosition ${Math.round(u[3])}, ${Math.round(u[5])}`;
+        } else
+          $("inspect").textContent = "Selected unit is absent at this time.";
+      }
+    }
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = rect.width;
+      H = rect.height;
+      const d = devicePixelRatio || 1;
+      canvas.width = Math.round(W * d);
+      canvas.height = Math.round(H * d);
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+      draw();
+    }
+    function bookmark(label, frame) {
+      const b = document.createElement("button");
+      b.textContent = `${clock(frame / header.fps)} · ${label}`;
+      b.onclick = () => setTime(frame / header.fps);
+      $("events").append(b);
+    }
+    async function load(bytes, name) {
+      try {
+        playing = false;
+        $("play").textContent = "Play";
+        status("Reading recording…");
+        const compressed = bytes[0] === 31 && bytes[1] === 139;
+        const text = await new Response(
+          compressed
+            ? new Blob([bytes])
+                .stream()
+                .pipeThrough(new DecompressionStream("gzip"))
+            : bytes,
+        ).text();
+        const rows = text.trim().split("\n").map(JSON.parse),
+          h = rows.shift(),
+          tail = rows.pop();
+        if (
+          h?.format !== "portal-dots" ||
+          h.version !== 1 ||
+          tail?.type !== "end"
+        )
+          throw Error("Expected a complete portal-dots v1 recording");
+        const ss = rows.filter((r) => r.type === "sample"),
+          ee = rows.filter((r) => r.type === "event");
+        const encoding = h.presentation?.unit_encoding;
+        if (encoding && encoding !== "previous-sample-refs")
+          throw Error("Unknown display unit encoding");
+        if (encoding) {
+          let previous = new Map();
+          for (const sample of ss) {
+            sample.units = sample.units.map((unit) => {
+              if (typeof unit !== "number") return unit;
+              const value = previous.get(unit);
+              if (!value) throw Error("Missing previous-sample unit reference");
+              return value;
+            });
+            previous = new Map(sample.units.map((unit) => [unit[0], unit]));
+          }
+        }
+        if (
+          !ss.length ||
+          ss.length !== tail.samples ||
+          ee.length !== tail.events
+        )
+          throw Error("Recording counts do not reconcile");
+        header = h;
+        $("download").textContent = h.presentation
+          ? "Download display data"
+          : "Download recording";
+        samples = ss;
+        events = ee.sort((a, b) => a.frame - b.frame);
+        end = tail;
+        raw = bytes;
+        filename = name;
+        selected = null;
+        views.clear();
+        $("world").replaceChildren(
+          new Option("All worlds", "all"),
+          ...h.regions.map((r, i) => new Option(r.name, i + 1)),
+        );
+        const advantaged = h.teams.filter((t) => (t.income_multiplier || 1) > 1);
+        $("scenario").hidden = !advantaged.length;
+        $("scenario").textContent = advantaged.length
+          ? "AI income advantage: " + advantaged.map((t) =>
+              "Team " + t.id + " (" + t.income_multiplier + "× income)").join(", ") +
+            ". Other teams have normal income. These teams are separate opponents, not allies."
+          : "";
+        $("teams").replaceChildren();
+        for (const t of h.teams) {
+          const row = document.createElement("div");
+          row.className = "team";
+          const swatch = document.createElement("span");
+          swatch.className = "swatch";
+          swatch.style.background = teamColor(t.id);
+          const value = document.createElement("span");
+          value.id = "team-count-" + t.id;
+          row.append(
+            swatch,
+            document.createTextNode(
+              "Team " +
+                t.id +
+                ((t.income_multiplier || 1) > 1
+                  ? " · advantaged · " + t.income_multiplier + "×"
+                  : " · normal income"),
+            ),
+            value,
+          );
+          $("teams").append(row);
+        }
+        $("events").replaceChildren();
+        const seen = new Set();
+        for (const e of events) {
+          if (e.kind === "portal_open")
+            bookmark("Portal " + e.data.edge + " opens", e.frame);
+          if (e.kind === "transit" && !seen.has(e.data.to)) {
+            seen.add(e.data.to);
+            bookmark("First arrival in world " + e.data.to, e.frame);
+          }
+          if (e.kind === "death" && h.unit_defs[e.data.def]?.commander)
+            bookmark("Commander lost · team " + e.data.team, e.frame);
+        }
+        bookmark(
+          tail.reason +
+            (tail.winners.length
+              ? " · winning ally team " + tail.winners.join(", ")
+              : ""),
+          tail.frame,
+        );
+        $("seek").max = tail.frame / h.fps;
+        $("play").disabled = false;
+        $("download").disabled = false;
+        $("title").textContent =
+          (h.game || "Portal worlds") + " · Dots playback";
+        status(
+          `${h.scenario && h.scenario !== "none" ? "Scenario: " + h.scenario + " · " : ""}${h.map} · ${h.regions.length} worlds · ${clock(tail.frame / h.fps)} · all-team recording · ${h.sample_frames / h.fps}s samples`,
+        );
+        setTime(0);
+        resize();
+      } catch (error) {
+        status(error.message, true);
+        throw error;
+      }
+    }
+    $("file").onchange = async (e) => {
+      const f = e.target.files[0];
+      if (f) await load(new Uint8Array(await f.arrayBuffer()), f.name);
+    };
+    $("download").onclick = () => {
+      if (!raw) return;
+      const url = URL.createObjectURL(new Blob([raw])),
+        a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    function toggle() {
+      if (!end) return;
+      if (!playing && time >= end.frame / header.fps) setTime(0);
+      playing = !playing;
+      $("play").textContent = playing ? "Pause" : "Play";
+      lastTick = performance.now();
+    }
+    $("play").onclick = toggle;
+    $("seek").oninput = (e) => setTime(Number(e.target.value));
+    $("back").onclick = () => setTime(time - 10);
+    $("forward").onclick = () => setTime(time + 10);
+    $("fit").onclick = () => {
+      views.clear();
+      draw();
+    };
+    $("fullscreen").onclick = () =>
+      document.fullscreenElement
+        ? document.exitFullscreen()
+        : $("viewport").requestFullscreen();
+    for (const id of ["world", "filter", "trails", "orders", "shots"])
+      $(id).onchange = draw;
+    canvas.onpointerdown = (e) => {
+      const r = canvas.getBoundingClientRect(),
+        x = e.clientX - r.left,
+        y = e.clientY - r.top,
+        p =
+          header &&
+          panels().find(
+            (p) => x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h,
+          );
+      if (p) {
+        pan = { x, y, p, moved: false };
+        canvas.setPointerCapture(e.pointerId);
+      }
+    };
+    canvas.onpointermove = (e) => {
+      if (!pan) return;
+      const r = canvas.getBoundingClientRect(),
+        x = e.clientX - r.left,
+        y = e.clientY - r.top;
+      if (Math.hypot(x - pan.x, y - pan.y) > 3) pan.moved = true;
+      const p = pan.p;
+      views.set(p.id, {
+        ...p.v,
+        x: p.v.x - (x - pan.x) / p.scale,
+        z: p.v.z - (y - pan.y) / p.scale,
+      });
+      draw();
+    };
+    canvas.onpointerup = (e) => {
+      if (pan && !pan.moved) {
+        const r = canvas.getBoundingClientRect(),
+          x = e.clientX - r.left,
+          y = e.clientY - r.top;
+        const found = hits.reduce(
+          (best, h) =>
+            Math.hypot(x - h.x, y - h.y) < (best?.distance ?? 12)
+              ? { ...h, distance: Math.hypot(x - h.x, y - h.y) }
+              : best,
+          null,
+        );
+        selected = found?.key || null;
+        draw();
+      }
+      pan = null;
+    };
+    canvas.addEventListener(
+      "wheel",
+      (e) => {
+        if (!header) return;
+        e.preventDefault();
+        const r = canvas.getBoundingClientRect(),
+          x = e.clientX - r.left,
+          y = e.clientY - r.top,
+          p = panels().find(
+            (p) => x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h,
+          );
+        if (p) {
+          views.set(p.id, {
+            ...p.v,
+            zoom: Math.max(
+              0.7,
+              Math.min(14, p.v.zoom * Math.exp(-e.deltaY * 0.001)),
+            ),
+          });
+          draw();
+        }
+      },
+      { passive: false },
+    );
+    document.addEventListener("keydown", (e) => {
+      if (
+        ["INPUT", "SELECT", "BUTTON"].includes(document.activeElement?.tagName)
+      )
+        return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        toggle();
+      } else if (e.code === "ArrowRight") setTime(time + 10);
+      else if (e.code === "ArrowLeft") setTime(time - 10);
+    });
+    function tick(now) {
+      if (playing && end) {
+        setTime(
+          time +
+            Math.min(0.2, (now - lastTick) / 1000) * Number($("speed").value),
+        );
+        if (time >= end.frame / header.fps) {
+          playing = false;
+          $("play").textContent = "Play";
+        }
+      }
+      lastTick = now;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    new ResizeObserver(resize).observe($("viewport"));
+    const embedded = $("recording-data").textContent.trim();
+    if (embedded && !embedded.startsWith("__PORTAL_")) {
+      const bytes = Uint8Array.from(atob(embedded), (c) => c.charCodeAt(0));
+      load(bytes, "portal-worlds.jsonl.gz");
+    }
+    const mapImage = $("map-image").textContent.trim();
+    if (mapImage.startsWith("data:image/")) terrain.src = mapImage;
+    // Small test/export interface; it manipulates playback only.
+    window.portalDots = {
+      load,
+      seek: setTime,
+      get state() {
+        return {
+          time,
+          playing,
+          frames: samples.length,
+          worlds: header?.regions.length || 0,
+          end,
+          selected,
+          currentIndex,
+        };
+      },
+    };
+  </script>
+</html>
