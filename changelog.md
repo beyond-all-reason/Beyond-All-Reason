@@ -32,6 +32,7 @@
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
+  - Spies stun scavenger anti-nukes for the full 20 seconds, the same as normal anti-nukes.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
   - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
