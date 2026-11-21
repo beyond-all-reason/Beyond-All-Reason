@@ -88,7 +88,6 @@ local depthModCrawlingBombs = {
 	linearcoeff = 0,
 }
 
--- TODO: Random capitalization. Pick one and use it.
 ---@class MoveDefData
 ---@field footprint integer equal to both `footprintx` and `footprintz`
 ---@field crushstrength integer mass equivalent for crushing and collisions, in `[0, 1e6)`
