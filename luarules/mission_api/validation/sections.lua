@@ -273,10 +273,48 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 		return
 	end
 
-	for _, unitDefName in ipairs(context.PossibleValues(trigger.parameters.unitDefName)) do
+	for _, filter in ipairs(context.PossibleValues(trigger.parameters.filter)) do
+		local unitDefName = type(filter) == "table" and filter.unitDefName or nil
 		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
 		if unitDef and not hasStockpileWeapon(unitDef) then
-			reporter.Error(id, "Unit '" .. unitDefName .. "' has no stockpiling weapon", "Parameter: unitDefName")
+			reporter.Error(
+				id,
+				"Unit '" .. unitDefName .. "' has no stockpiling weapon",
+				"Parameter: filter.unitDefName"
+			)
+		end
+	end
+end
+
+-- An exclusion that gives only facts the filter also gives removes every unit the filter matches.
+local function validateUnitFilterExclusions(context, reporter, id, trigger)
+	local parameters = trigger.parameters
+	if type(parameters) ~= "table" then
+		return
+	end
+
+	for _, filter in ipairs(context.PossibleValues(parameters.filter)) do
+		for _, exclude in ipairs(context.PossibleValues(parameters.exclude)) do
+			if type(filter) == "table" and type(exclude) == "table" then
+				for index, excluded in ipairs(exclude) do
+					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
+					if removesAll then
+						for field, value in pairs(excluded) do
+							if filter[field] ~= value then
+								removesAll = false
+								break
+							end
+						end
+					end
+					if removesAll then
+						reporter.Error(
+							id,
+							"exclude[" .. index .. "] removes every unit the filter matches",
+							"Parameter: exclude"
+						)
+					end
+				end
+			end
 		end
 	end
 end
@@ -325,6 +363,7 @@ local function validateObjectiveInlineTrigger(
 		parameters
 	)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateUnitFilterExclusions(context, objectiveReport, objectiveID, trigger)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -433,6 +472,7 @@ local function validateTriggersSection(
 				trigger.parameters
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
+			validateUnitFilterExclusions(context, triggerReport, triggerID, trigger)
 		end
 	end
 end

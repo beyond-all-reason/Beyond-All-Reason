@@ -28,11 +28,9 @@ return {
 	type = 'RallyOrdered',
 	parameters = {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
-		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',             required = false, type = ParameterTypes.TeamName },
+		{ name = 'filter',               required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',              required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
-		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		UnitCommand = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, cmdID, cmdParams)
@@ -58,13 +56,7 @@ return {
 				return
 			end
 
-			if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
-				return
-			end
-			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if trigger.parameters.teamName and trigger.parameters.teamName ~= unitTeam then
+			if not context.DoesUnitMatchCondition(unitID, trigger.parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

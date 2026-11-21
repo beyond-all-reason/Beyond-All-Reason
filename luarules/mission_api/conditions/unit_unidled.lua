@@ -9,10 +9,8 @@ local ACTIVATION = false
 return {
 	type = 'UnitUnidled',
 	parameters = {
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Synthetic callin raised once post-frame, per unit whose idle state changed.
@@ -27,13 +25,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-				return
-			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if parameters.teamName and parameters.teamName ~= Spring.GetUnitTeam(unitID) then
+			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID) then
 				return
 			end
 			context.ActivateTrigger(trigger)

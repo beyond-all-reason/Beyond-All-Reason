@@ -34,7 +34,7 @@ describe("mission_api.conditions.unit_resurrected", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -51,15 +51,15 @@ describe("mission_api.conditions.unit_resurrected", function()
 		for _, parameter in ipairs(unitResurrected.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
+		assert.is_true(names.filter)
+		assert.is_true(names.exclude)
 		assert.is_true(names.featureName)
-		assert.are.same({ "featureName", "unitDefName" }, unitResurrected.parameters.requiresOneOf)
+		assert.are.same({ "featureName", "filter" }, unitResurrected.parameters.requiresOneOf)
 	end)
 
 	it("does not fire for a unit created with no builder", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw" }), context, 1, 0, nil)
+		created(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, nil)
 		assert.are.equal(0, fired())
 	end)
 
@@ -68,19 +68,19 @@ describe("mission_api.conditions.unit_resurrected", function()
 			return CMD.RECLAIM, 500
 		end
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw" }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "corfast" }), context, 1, 0, 10) -- unitDefID 1 = armpw
+		created(trigger({ filter = { unitDefName = "corfast" } }), context, 1, 0, 10) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw", teamName = 5 }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armpw", teamName = 5 } }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -95,7 +95,7 @@ describe("mission_api.conditions.unit_resurrected", function()
 
 	it("fires for a matching resurrection", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

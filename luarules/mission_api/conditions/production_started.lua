@@ -5,8 +5,8 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'ProductionStarted',
 	parameters = {
-		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
+		{ name = 'filter',         required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',        required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'factoryName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'factoryDefName', required = false, type = ParameterTypes.UnitDefName },
 	},
@@ -23,10 +23,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if parameters.teamName and parameters.teamName ~= unitTeam then
+			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			if parameters.factoryName and not context.DoesUnitHaveName(builderID, parameters.factoryName) then

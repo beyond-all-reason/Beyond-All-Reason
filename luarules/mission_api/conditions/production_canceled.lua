@@ -5,13 +5,7 @@ local DAMAGETYPE_FACTORY_KILLED = Game.envDamageTypes.FactoryKilled -- Kills cur
 
 local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	local parameters = trigger.parameters
-	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-		return false
-	end
-	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-		return false
-	end
-	if parameters.teamName and parameters.teamName ~= unitTeam then
+	if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
 		return false
 	end
 	if not context.IsBuildFrameOwner(unitID, parameters.factoryName, parameters.factoryDefName) then
@@ -23,12 +17,10 @@ end
 return {
 	type = 'ProductionCanceled',
 	parameters = {
-		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
+		{ name = 'filter',         required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',        required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'factoryName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'factoryDefName', required = false, type = ParameterTypes.UnitDefName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,

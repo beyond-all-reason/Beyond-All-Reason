@@ -10,7 +10,7 @@
 ---@class ConditionContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
----@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
+---@field DoesUnitMatchCondition fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
@@ -61,6 +61,15 @@ function TCB:WithInFactory(value)
 	return self
 end
 
+---Where DoesUnitMatchCondition looks up a unit's def and team: the spec's UnitDefs and Spring.
+---@param self ConditionContextBuilder
+---@param env table
+---@return ConditionContextBuilder
+function TCB:WithEnv(env)
+	self.env = env
+	return self
+end
+
 ---@param self ConditionContextBuilder
 ---@return ConditionContextMock
 function TCB:Build()
@@ -79,7 +88,6 @@ function TCB:Build()
 			return true
 		end,
 		DoesUnitHaveName = asFunction(true),
-		DoesUnitMatch = asFunction(true),
 		DoesFeatureHaveName = asFunction(true),
 		IsBuildFrameOwner = asFunction(true),
 		InFactory = asFunction(instance.inFactory),
@@ -110,6 +118,34 @@ function TCB:Build()
 			activateTrigger = activateCalls,
 		},
 	}
+
+	-- A copy of doesUnitMatchFilter and doesUnitMatchCondition in unit_query.lua, over this context's
+	-- DoesUnitHaveName and the spec's UnitDefs and Spring; keep them in step.
+	local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
+		local env = instance.env
+		if unitFilter.teamName ~= nil and (teamID or env.Spring.GetUnitTeam(unitID)) ~= unitFilter.teamName then
+			return false
+		end
+		if unitFilter.unitDefName ~= nil then
+			local unitDef = env.UnitDefs[unitDefID or env.Spring.GetUnitDefID(unitID)]
+			if unitDef == nil or unitDef.name ~= unitFilter.unitDefName then
+				return false
+			end
+		end
+		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName)
+	end
+
+	context.DoesUnitMatchCondition = function(unitID, parameters, unitDefID, teamID)
+		if parameters.filter ~= nil and not doesUnitMatchFilter(unitID, parameters.filter, unitDefID, teamID) then
+			return false
+		end
+		for _, unitFilter in ipairs(parameters.exclude or {}) do
+			if doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID) then
+				return false
+			end
+		end
+		return true
+	end
 
 	---How many times a handler asked this context to activate its trigger.
 	context.timesFired = function()

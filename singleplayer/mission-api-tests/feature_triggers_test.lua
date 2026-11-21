@@ -62,7 +62,7 @@ local triggers = {
 		type = conditionTypes.UnitResurrected,
 		parameters = {
 			featureName  = 'wreck-to-resurrect',
-			teamName = 'player',
+			filter = { teamName = 'player' },
 		},
 		actions = { 'messageWreckResurrected' },
 	},

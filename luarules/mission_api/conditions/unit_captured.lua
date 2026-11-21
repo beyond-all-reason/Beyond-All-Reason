@@ -8,12 +8,11 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'UnitCaptured',
 	parameters = {
-		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'filter',               required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',              required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'oldTeamName',          required = false, type = ParameterTypes.TeamName },
 		{ name = 'newTeamName',          required = false, type = ParameterTypes.TeamName },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
-		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		-- This additional `captured` argument is synthesized via the dispatch:
@@ -31,10 +30,7 @@ return {
 			if not isCapture then
 				return
 			end
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-				return
-			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID) then
 				return
 			end
 			if parameters.oldTeamName and parameters.oldTeamName ~= oldTeam then

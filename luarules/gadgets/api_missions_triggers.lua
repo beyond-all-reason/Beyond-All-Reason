@@ -35,6 +35,7 @@ local seismicIntervalFrames ---@type integer
 local trackedUnitNames
 local doesUnitHaveName
 local doesUnitMatch ---@type function
+local doesUnitMatchCondition ---@type function
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
@@ -568,11 +569,12 @@ function gadget:Initialize()
 	untrackFeatureID = tracking.UntrackFeatureID
 
 	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
+	doesUnitMatchCondition = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatchCondition
 
 	conditionContext = {
 		ActivateTrigger = activateTrigger,
 		DoesUnitHaveName = doesUnitHaveName,
-		DoesUnitMatch = doesUnitMatch,
+		DoesUnitMatchCondition = doesUnitMatchCondition,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,
 		InFactory = inFactory,
@@ -598,7 +600,7 @@ function gadget:Initialize()
 			local parameters = trigger.parameters
 			areaTracking.TrackUnitsInArea(
 				parameters.area,
-				parameters.teamName,
+				parameters.filter.teamName,
 				triggerID,
 				onUnitsEnteredArea,
 				onUnitsLeftArea

@@ -107,8 +107,56 @@ local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
 	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName)
 end
 
+---Returns whether the unit matches a condition's `filter` and none of its `exclude` filters.
+---@param unitID UnitID
+---@param parameters table the condition's parameters
+---@param unitDefID UnitDefID? the unit's def, when the caller has it
+---@param teamID TeamID? the unit's team, when the caller has it
+---@return boolean
+local function doesUnitMatchCondition(unitID, parameters, unitDefID, teamID)
+	local filter = parameters.filter
+	if filter ~= nil and not doesUnitMatchFilter(unitID, filter, unitDefID, teamID) then
+		return false
+	end
+	local exclude = parameters.exclude
+	if exclude ~= nil then
+		for i = 1, #exclude do
+			if doesUnitMatchFilter(unitID, exclude[i], unitDefID, teamID) then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+---The units a condition's `filter` matches, less those its `exclude` filters match.
+---@param parameters table the condition's parameters, with a `filter`
+---@return UnitID[]
+local function unitsMatchingCondition(parameters)
+	local filter = parameters.filter
+	local units
+	if filter.unitName == nil and filter.unitDefName == nil then
+		units = Spring.GetTeamUnits(filter.teamName)
+	else
+		units = matchingUnits(filter.unitName, filter.unitDefName, filter.teamName)
+	end
+	if parameters.exclude == nil then
+		return units
+	end
+
+	local matched = {}
+	for _, unitID in ipairs(units) do
+		if doesUnitMatchCondition(unitID, parameters) then
+			matched[#matched + 1] = unitID
+		end
+	end
+	return matched
+end
+
 return {
 	MatchingUnits = matchingUnits,
+	UnitsMatchingCondition = unitsMatchingCondition,
 	DoesUnitMatch = doesUnitMatch,
 	DoesUnitMatchFilter = doesUnitMatchFilter,
+	DoesUnitMatchCondition = doesUnitMatchCondition,
 }

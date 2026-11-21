@@ -40,7 +40,7 @@ describe("mission_api.conditions.construction_started", function()
 	-- The gadget's build claims live across the mission; each built context carries its own,
 	-- and its ActivateTrigger reports the success that claiming depends on.
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -63,8 +63,8 @@ describe("mission_api.conditions.construction_started", function()
 		for _, parameter in ipairs(constructionStarted.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
+		assert.is_true(names.filter)
+		assert.is_true(names.exclude)
 		assert.is_true(names.builderName)
 		assert.is_true(names.builderDefName)
 	end)
@@ -76,21 +76,21 @@ describe("mission_api.conditions.construction_started", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar" }), context, 2, 0, 10) -- unitDefID 2 = armwin
+		created(trigger({ filter = { unitDefName = "armsolar" } }), context, 2, 0, 10) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9, 10)
+		created(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by builderDefName", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", builderDefName = "corck" }), context, 1, 0, 10) -- builder 10 = armck
+		created(trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "corck" }), context, 1, 0, 10) -- builder 10 = armck
 		assert.are.equal(0, fired())
-		created(trigger({ unitDefName = "armsolar", builderDefName = "armck" }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "armck" }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
@@ -99,7 +99,7 @@ describe("mission_api.conditions.construction_started", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		created(trigger({ unitDefName = "armsolar", builderName = "engineer" }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armsolar" }, builderName = "engineer" }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -108,39 +108,39 @@ describe("mission_api.conditions.construction_started", function()
 			return false
 		end
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar" }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching construction", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
+		created(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire a builder-filtered trigger when there is no builder", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = "armsolar", builderDefName = "armck" }), context, 1, 0, nil)
+		created(trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "armck" }), context, 1, 0, nil)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching build-assist", function()
 		local context, fired = newContext()
-		assisted(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 10)
+		assisted(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters a build-assist by its assisting builder", function()
 		local context, fired = newContext()
-		assisted(trigger({ unitDefName = "armsolar", builderDefName = "corck" }), context, 1, 0, 10) -- builder 10 = armck
+		assisted(trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "corck" }), context, 1, 0, 10) -- builder 10 = armck
 		assert.are.equal(0, fired())
-		assisted(trigger({ unitDefName = "armsolar", builderDefName = "armck" }), context, 1, 0, 10)
+		assisted(trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "armck" }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires for an assist when the build frame itself did not match", function()
 		local context, fired = newContext()
-		local watchTheCorck = trigger({ unitDefName = "armsolar", builderDefName = "corck" })
+		local watchTheCorck = trigger({ filter = { unitDefName = "armsolar" }, builderDefName = "corck" })
 		created(watchTheCorck, context, 1, 0, 10) -- placed by armck, so no match and no claim
 		assert.are.equal(0, fired())
 		assisted(watchTheCorck, context, 1, 0, 11) -- joined by corck
@@ -149,7 +149,7 @@ describe("mission_api.conditions.construction_started", function()
 
 	it("does not fire again for a buildee it already started on", function()
 		local context, fired = newContext()
-		local watchTheSolar = trigger({ unitDefName = "armsolar" })
+		local watchTheSolar = trigger({ filter = { unitDefName = "armsolar" } })
 		created(watchTheSolar, context, 1, 0, 10)
 		assisted(watchTheSolar, context, 1, 0, 11)
 		assert.are.equal(1, fired())
@@ -157,7 +157,7 @@ describe("mission_api.conditions.construction_started", function()
 
 	it("fires once for a buildee no matter how many builders join it", function()
 		local context, fired = newContext()
-		local watchTheSolar = trigger({ unitDefName = "armsolar" })
+		local watchTheSolar = trigger({ filter = { unitDefName = "armsolar" } })
 		assisted(watchTheSolar, context, 1, 0, 10)
 		assisted(watchTheSolar, context, 1, 0, 11)
 		assert.are.equal(1, fired())
@@ -165,7 +165,7 @@ describe("mission_api.conditions.construction_started", function()
 
 	it("does not claim a buildee when the activation is refused", function()
 		local context, fired = newContext()
-		local watchTheSolar = trigger({ unitDefName = "armsolar" })
+		local watchTheSolar = trigger({ filter = { unitDefName = "armsolar" } })
 		local activateTrigger = context.ActivateTrigger
 
 		context.ActivateTrigger = function()

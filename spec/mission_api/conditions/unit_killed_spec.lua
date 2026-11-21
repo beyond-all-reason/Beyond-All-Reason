@@ -24,7 +24,7 @@ describe("mission_api.conditions.unit_killed", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -36,10 +36,9 @@ describe("mission_api.conditions.unit_killed", function()
 		for _, parameter in ipairs(unitKilled.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitKilled.parameters.requiresOneOf)
+		assert.is_true(names.filter)
+		assert.is_true(names.exclude)
+		assert.is_nil(unitKilled.parameters.requiresOneOf)
 	end)
 
 	it("filters by unitName", function()
@@ -47,25 +46,25 @@ describe("mission_api.conditions.unit_killed", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		onUnitDestroyed(trigger({ unitName = "engineers" }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(trigger({ filter = { unitName = "engineers" } }), triggerID, context, 100, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ unitDefName = "corfast" }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onUnitDestroyed(trigger({ filter = { unitDefName = "corfast" } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ unitDefName = "armpw", teamName = 5 }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(trigger({ filter = { unitDefName = "armpw", teamName = 5 } }), triggerID, context, 100, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching kill", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ unitDefName = "armpw", teamName = 0 }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), triggerID, context, 100, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 end)

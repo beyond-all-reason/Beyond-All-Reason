@@ -14,10 +14,8 @@ return {
 	type = 'ConstructionProgress',
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Unit build steps include build, repair, and reclaim, so this sees finished units.
@@ -28,10 +26,11 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.teamName and parameters.teamName ~= Spring.GetUnitTeam(unitID) then
+			local filter = parameters.filter
+			if filter.teamName and filter.teamName ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then
+			if filter.unitDefName and filter.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then
 				return
 			end
 
@@ -50,7 +49,7 @@ return {
 			end
 			unitStates[unitID] = 'done'
 
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+			if not context.DoesUnitMatchCondition(unitID, parameters) then
 				return
 			end
 
