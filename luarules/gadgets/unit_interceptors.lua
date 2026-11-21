@@ -38,7 +38,7 @@ local sweepFramesToTarget = {} ---@type table<ProjectileID, number?>
 local sweepFrame = -1
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
-	--interceptorWeaponID is actually weaponNum, e.g.: gadget:AllowWeaponInterceptTarget( 24871, 1, 6540)
+	--interceptorWeaponID is actually weaponNum, e.g.: gadget:AllowWeaponInterceptTarget(24871, 1, 6540)
 	--old method using the below method hammered cache hard:
 	--local coverageRange = WeaponDefs[UnitDefs[Spring.GetUnitDefID(interceptorUnitID)].weapons[interceptorWeaponID].weaponDef].coverageRange
 	local hash = 100000 * interceptorWeaponID + spGetUnitDefID(interceptorUnitID)
@@ -57,13 +57,10 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 	end
 
 	local targetType, targetID = spGetProjectileTarget(targetProjectileID)
-	if not targetType then
+	if targetType == nil then
 		return false
 	end
 
-	local covSquared = interceptorUnitDefWeapCovSqr[hash]
-
-	local ox, _, oz = spGetUnitPosition(interceptorUnitID)
 	local tx, ty, tz
 	if targetType == unitTargetType then -- unit
 		tx, ty, tz = spGetUnitPosition(targetID)
@@ -74,11 +71,13 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 	elseif targetType == groundTargetType then -- ground
 		tx, tz = targetID[1], targetID[3]
 	end
+	---@cast tx number
+	---@cast ty number
+	---@cast tz number
 
 	if launchFrames then
 		local px, _, pz = spGetProjectilePosition(targetProjectileID)
 		local _, _, _, speed = spGetProjectileVelocity(targetProjectileID)
-		---@diagnostic disable-next-line: need-check-nil
 		local framesToTarget = math_sqrt((px - tx) * (px - tx) + (pz - tz) * (pz - tz)) / speed
 		sweepFramesToTarget[targetProjectileID] = framesToTarget
 		if framesToTarget > launchFrames then
@@ -86,8 +85,8 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 		end
 	end
 
-	---@diagnostic disable-next-line: need-check-nil
-	return (ox - tx) * (ox - tx) + (oz - tz) * (oz - tz) < covSquared
+	local ox, _, oz = spGetUnitPosition(interceptorUnitID) ---@as number, number, number
+	return (ox - tx) * (ox - tx) + (oz - tz) * (oz - tz) < interceptorUnitDefWeapCovSqr[hash]
 end
 
 function gadget:Initialize()
@@ -99,9 +98,8 @@ function gadget:Initialize()
 			if WeaponDef.coverageRange and WeaponDef.coverageRange > 0 then
 				interceptorUnitDefWeapCovSqr[100000 * weaponNum + unitDefID] = WeaponDef.coverageRange
 					* WeaponDef.coverageRange
-				---@diagnostic disable-next-line: need-check-nil, undefined-field
 				local launchTime = tonumber(WeaponDef.customParams.terminal_intercept_time)
-				if launchTime then
+				if launchTime ~= nil and launchTime > 0 then
 					interceptorUnitDefWeapFrames[100000 * weaponNum + unitDefID] = launchTime * Game.gameSpeed
 				end
 			end
