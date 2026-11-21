@@ -363,11 +363,12 @@ StartBuilding(heading, pitch)
 	show lnano;
 	show rnano;
 
+	wait-for-turn luparm around x-axis;
+	wait-for-turn ruparm around x-axis;
 	turn luparm to x-axis <-45> speed <375.0>;
 	turn larm to x-axis <-45> speed <375.0>;
 	turn ruparm to x-axis <-45> speed <375.0>;
 	turn rarm to x-axis <-45> speed <375.0>;
-	wait-for-turn luparm around x-axis;
 
 	torsoRotation = heading;
 	turn aimy1 to y-axis heading speed <480.0>;
