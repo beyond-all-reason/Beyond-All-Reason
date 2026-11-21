@@ -11,6 +11,7 @@
   - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. Debris still waits twice that unit's time.
 - [Controls]
   - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
+  - Starting to drag an area command now exits a current selection drag. Before, either could cancel the other.
 - [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
