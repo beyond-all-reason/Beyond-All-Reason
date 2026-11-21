@@ -41,7 +41,7 @@
 ---@field GetScavTeamID fun(): integer?
 ---@field GetRaptorAllyTeamID fun(): integer?
 ---@field GetTeamRealResources fun(teamID: TeamID, resource: "metal"|"energy"): current: number, number, number, number, number, number, number, number, number
-        -- Same pattern as Spring.GetTeamResources: current, storage, pull, income, expense, share, sent, received, excess
+-- Same pattern as Spring.GetTeamResources: current, storage, pull, income, expense, share, sent, received, excess
 ---@field CanTeamReceiveUnits fun(teamID: integer, unitCount: integer): boolean
 ---@field IsDevMode fun(): boolean
 ---@field ShowDevUI fun(): boolean
