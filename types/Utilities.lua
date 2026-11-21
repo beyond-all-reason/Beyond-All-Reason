@@ -40,6 +40,7 @@
 ---@field GetRaptorTeamID fun(): integer?
 ---@field GetScavTeamID fun(): integer?
 ---@field GetRaptorAllyTeamID fun(): integer?
+---@field GetTeamRealResources fun(teamID: TeamID, resource: "metal"|"energy"): number?, number?, number?, number?, number?, number?, number?, number?, number?
 ---@field CanTeamReceiveUnits fun(teamID: integer, unitCount: integer): boolean
 ---@field IsDevMode fun(): boolean
 ---@field ShowDevUI fun(): boolean
