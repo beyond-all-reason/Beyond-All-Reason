@@ -265,8 +265,8 @@ end
 
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
-	local triggerTypes = context.TriggerTypes
-	if trigger.type ~= triggerTypes.StockpileCount and trigger.type ~= triggerTypes.StockpileProgress then
+	local conditionTypes = context.ConditionTypes
+	if trigger.type ~= conditionTypes.StockpileCount and trigger.type ~= conditionTypes.StockpileProgress then
 		return
 	end
 	if type(trigger.parameters) ~= "table" then
@@ -289,7 +289,7 @@ local function validateObjectiveInlineTrigger(
 	context,
 	objectiveReport,
 	validateSchema,
-	statisticsTriggerTypes,
+	statisticsConditionTypes,
 	objective,
 	objectiveID
 )
@@ -308,7 +308,7 @@ local function validateObjectiveInlineTrigger(
 	-- Statistics triggers require a quantity, but an objective tracks its progress with its
 	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
 	local parameters = trigger.parameters
-	if statisticsTriggerTypes[trigger.type] and type(parameters) == "table" then
+	if statisticsConditionTypes[trigger.type] and type(parameters) == "table" then
 		if parameters.quantity ~= nil then
 			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
 		end
@@ -320,7 +320,7 @@ local function validateObjectiveInlineTrigger(
 		objectiveReport,
 		objectiveID,
 		"Objective trigger",
-		context.TriggerParameters,
+		context.ConditionParameters,
 		trigger.type,
 		parameters
 	)
@@ -329,7 +329,7 @@ end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
+	local statisticsConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.Quantity)
 
 	-- The inline trigger is registered before the difficulty and variables are resolved,
 	-- so it can't vary. Its parameters can, as any trigger's.
@@ -356,7 +356,7 @@ local function validateObjectivesSection(context, report, validateFieldValue, va
 				context,
 				objectiveReport,
 				validateSchema,
-				statisticsTriggerTypes,
+				statisticsConditionTypes,
 				objective,
 				objectiveID
 			)
@@ -388,7 +388,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 	end
 end
 
---- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
+--- Settings are optional in raw missions; conditions_loader.lua applies the defaults later.
 local function validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
@@ -428,7 +428,7 @@ local function validateTriggersSection(
 				triggerReport,
 				triggerID,
 				"Trigger",
-				context.TriggerParameters,
+				context.ConditionParameters,
 				trigger.type,
 				trigger.parameters
 			)
@@ -529,9 +529,22 @@ local function createAttributeActionValidator(context, parameterValidators)
 end
 
 -- Recoil cannot move an AI to another team, so ChangeTeam moves only the players of oldTeamName.
+-- Gaia's team has no players, and no player may join it.
 local function validateChangeTeamAction(context, actionReport, actionID, action)
 	if action.type ~= context.ActionTypes.ChangeTeam or type(action.parameters) ~= "table" then
 		return
+	end
+
+	for _, parameterName in ipairs({ "oldTeamName", "newTeamName" }) do
+		for _, teamName in ipairs(context.PossibleValues(action.parameters[parameterName])) do
+			if teamName == "gaia" then
+				actionReport.Error(
+					actionID,
+					"ChangeTeam cannot move players to or from Gaia's team",
+					"Parameter: " .. parameterName
+				)
+			end
+		end
 	end
 
 	for _, oldTeamName in ipairs(context.PossibleValues(action.parameters.oldTeamName)) do
@@ -549,6 +562,63 @@ local function validateChangeTeamAction(context, actionReport, actionID, action)
 	end
 end
 
+-- direction turns a marching group only, elsewhere it is ignored
+local function validateIssueOrdersAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.IssueOrders or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.direction ~= nil and parameters.marching ~= true then
+		actionReport.Warn(actionID, "Parameter 'direction' is ignored without marching", "Parameter: direction")
+	end
+end
+
+-- a menu slot needs a builder type
+local function validateAddBuildOptionAction(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.AddBuildOption or type(parameters) ~= "table" then
+		return
+	end
+
+	if parameters.buildMenuPosition ~= nil and parameters.builderDefName == nil then
+		actionReport.Error(
+			actionID,
+			"Parameter 'buildMenuPosition' needs builderDefName",
+			"Parameter: buildMenuPosition"
+		)
+	end
+end
+
+local followEndingParameters =
+	{ "ending", "restoreSlot", "restoreDuration", "restoreEasing", "releaseDuration", "releaseEasing" }
+
+-- A FollowCamera without a duration runs until the next camera action replaces it, so it never ends.
+local function validateFollowCameraEnding(context, actionReport, actionID, action)
+	local parameters = action.parameters
+	if action.type ~= context.ActionTypes.FollowCamera or type(parameters) ~= "table" then
+		return
+	end
+
+	local endingParameters = {}
+	for _, name in ipairs(followEndingParameters) do
+		if parameters[name] ~= nil then
+			endingParameters[#endingParameters + 1] = name
+		end
+	end
+	if #endingParameters == 0 then
+		return
+	end
+
+	if parameters.duration == nil then
+		actionReport.Warn(
+			actionID,
+			"FollowCamera without a duration runs until the next camera action, so its ending never runs: "
+				.. table.concat(endingParameters, ", ")
+		)
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -558,6 +628,9 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 			validateChangeTeamAction(context, actionReport, actionID, action)
+			validateIssueOrdersAction(context, actionReport, actionID, action)
+			validateAddBuildOptionAction(context, actionReport, actionID, action)
+			validateFollowCameraEnding(context, actionReport, actionID, action)
 		end
 	end
 end
@@ -603,7 +676,8 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 
 	for _, loadout in ipairs(loadouts) do
 		for _, result in ipairs(parameterValidators[loadout.type](loadout.value) or {}) do
-			loadoutReport.Error(loadout.name .. (result.parameterNameSuffix or ""), result.message)
+			local reportResult = result.isWarning and loadoutReport.Warn or loadoutReport.Error
+			reportResult(loadout.name .. (result.parameterNameSuffix or ""), result.message)
 		end
 	end
 end

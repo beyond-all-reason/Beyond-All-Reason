@@ -8,7 +8,6 @@ static-var  gun_3, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, is
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_MOVE 1
 #define SIGNAL_AIM3 1024
 
 
@@ -167,7 +166,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aimy1 to y-axis <0.0> speed <90.0>;
-	turn aimx1 to x-axis <0.000000> speed <90.000000>;
+	turn aimx1 to x-axis <0.0> speed <90.0>;
 	wpn2_lasthead = 0xbadface;
 }
 SetStunned(State)
@@ -188,7 +187,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	turn aimy1 to y-axis heading speed <225.0>;
-	turn aimx1 to x-axis  <0.000000> - pitch speed <225.000000>;
+	turn aimx1 to x-axis <0.0> - pitch speed <225.0>;
 	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
 	{
 		wpn2_lasthead = 0xbadface;

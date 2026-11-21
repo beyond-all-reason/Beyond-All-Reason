@@ -1,3 +1,43 @@
+# November
+- [Zombies]
+  - Zombies that can cloak will now cloak and uncloak from intermittently.
+  - Spidergeddon is removed for being too spooky.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or debris is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place debris. That debris will only ever spawn 1 unit.
+  - Wraiths are immune to EMP.
+  - Debris in all zombie modes now becomes a corpse after 2x the zombie resurrection time. Debris -> corpse -> zombie takes 3x the normal resurrection time in total.
+  - Resurrection time, pack size, and veterancy now follow the clock and the wreck's power. Cheap wrecks rise sooner and roll more copies. Expensive wrecks rise later and roll fewer. Player tech no longer holds that back.
+  - Hydra mode packs now start at 2-6 and escalate over the course of the game.
+  - Veterancy is 0 before minute 25 and reaches 0.8 at minute 45 for every unit.
+  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. Debris still waits twice that unit's time.
+- [Controls]
+  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
+- [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
+- [Legion]
+  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
+  - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
+  - Amphibious Complex buildpower 150 -> 300, Experimental Aircraft Plant buildpower 600 -> 1800
+  - Aegis health 3650 -> 3300, Lupara range 1125 -> 1200, Legion Vehicle Plant energy cost 1650 -> 1550
+  - Decoy commander and Stronghold now fully EMP immune, Cetus EMP resist reduced 87.5% -> 80%
+  - Constructor LoS raised: T1 bot 299 -> 380, T1 vehicle and Otter 260 -> 330, T1 aircraft 351 -> 430, T2 bot 318 -> 380, T2 vehicle 295 -> 330, T2 aircraft 383 -> 430
+  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380
+  - Glaucus damage to aircraft 60 -> 12, Ketea autoheal removed
+  - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
+  - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
+  - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
+  - Faster reaim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
+  - T2 ships now use heavy ship armor, and Scylla counts as a ship
+  - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
+- [Fixed]
+  - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
+  - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
+  - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
+  - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
+  - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
+  - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
+  - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
+
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]

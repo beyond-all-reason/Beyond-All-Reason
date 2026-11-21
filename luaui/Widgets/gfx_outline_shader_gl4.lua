@@ -47,7 +47,12 @@ local RADIUS_MARGIN = 1.1 -- room for animated pieces outside the model's bind p
 local DEFAULT_COLOR = { 0, 0, 0, 1 }
 local DEFAULT_WIDTH = 1
 local REFERENCE_HEIGHT = 1080 -- screen height that widths are given for
+local INITIAL_INSTANCES = 512 -- growing a full buffer is a frame spike
+-- changes per frame uploaded one by one (two uploads each), the rest waits for one full upload before drawing
+local MIN_SINGLE_UPLOADS = 8
+local SINGLE_UPLOAD_SHARE = 0.25 -- or this share of the buffer, when that is more
 
+local spGetCameraPosition = Spring.GetCameraPosition
 local spGetCameraState = Spring.GetCameraState
 local spGetDrawSeconds = Spring.GetDrawSeconds
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -94,6 +99,8 @@ local unitOutlineKeys = {} ---@type table<number, table<string, true>?> unitID -
 local fadingOut = {} ---@type table<string, number?> instance key -> draw seconds when its fade out ends
 local unitBounds = {} ---@type table<number, number[]?> unitDefID -> instance data: model space bounding sphere, instData
 local instanceData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+local changesThisFrame = 0
+local cameraX, cameraY, cameraZ, cachedZoomScale = 0.0, -1.0, 0.0, 1.0 -- zoom scale at the last camera position
 
 local function Clamp01(x)
 	if x < 0 then
@@ -138,7 +145,7 @@ local function GetCameraHeight()
 	return mathMax(1, cs.py - groundHeight)
 end
 
-local function GetZoomScale()
+local function ComputeZoomScale()
 	if not config.zoomScale then
 		return 1
 	end
@@ -154,6 +161,16 @@ local function GetZoomScale()
 		return (math.cos(math.pi * t) + 1) * 0.5 * (1 - minScale) + minScale
 	end
 	return mathMin(mathMax(minScale, 250 / height), 1)
+end
+
+-- GetCameraState builds a table with all its fields, so only ask for it after the camera moved
+local function GetZoomScale()
+	local x, y, z = spGetCameraPosition()
+	if x ~= cameraX or y ~= cameraY or z ~= cameraZ then
+		cameraX, cameraY, cameraZ = x, y, z
+		cachedZoomScale = ComputeZoomScale()
+	end
+	return cachedZoomScale
 end
 
 local vsSrc = [[
@@ -446,7 +463,7 @@ local function CreateShader(perUnit)
 end
 
 local function CreateInstanceTable(layout, name, corners)
-	local instances = InstanceVBOTable.makeInstanceVBOTable(layout, 64, name, #layout)
+	local instances = InstanceVBOTable.makeInstanceVBOTable(layout, INITIAL_INSTANCES, name, #layout)
 	if instances then
 		instances:makeVAOandAttach(corners, instances.instanceVBO)
 		instances.VAO = InstanceVBOTable.fillVAOSlots(instances.VAO, false, true)
@@ -485,10 +502,26 @@ local function InitGL()
 	return true
 end
 
+-- whether this frame has had enough single uploads, which leaves this change to FlushUploads
+local function DeferUpload(instances)
+	changesThisFrame = changesThisFrame + 1
+	return changesThisFrame > mathMax(MIN_SINGLE_UPLOADS, instances.usedElements * SINGLE_UPLOAD_SHARE)
+end
+
+local function FlushUploads()
+	changesThisFrame = 0
+	if unitVBO.dirty then
+		InstanceVBOTable.uploadAllElements(unitVBO)
+	end
+	if allUnitsVBO.dirty then
+		InstanceVBOTable.uploadAllElements(allUnitsVBO)
+	end
+end
+
 local function PopInstance(instances, key)
 	local index = instances.instanceIDtoIndex[key] ---@type integer?
 	if index then
-		popElementInstance(instances, key)
+		popElementInstance(instances, key, DeferUpload(instances))
 	end
 end
 
@@ -511,7 +544,7 @@ local function PushOutline(key, entry, unitDefID, noUpload)
 	for i = 1, 12 do
 		instanceData[4 + i] = values[i]
 	end
-	pushElementInstance(unitVBO, instanceData, key, true, noUpload, entry.unitID)
+	pushElementInstance(unitVBO, instanceData, key, true, noUpload or DeferUpload(unitVBO), entry.unitID)
 end
 
 local function DropOutline(key)
@@ -603,7 +636,7 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID)
 	if config.allUnits then
-		pushElementInstance(allUnitsVBO, GetUnitBounds(unitDefID), unitID, true, nil, unitID)
+		pushElementInstance(allUnitsVBO, GetUnitBounds(unitDefID), unitID, true, DeferUpload(allUnitsVBO), unitID)
 	end
 	local keys = unitOutlineKeys[unitID]
 	if keys then
@@ -670,6 +703,7 @@ function widget:DrawWorld()
 			end
 		end
 	end
+	FlushUploads()
 	local allUnitsVAO, unitVAO = allUnitsVBO.VAO, unitVBO.VAO
 	local allUnitsCount = config.allUnits and allUnitsVBO.usedElements or 0
 	local unitCount = unitVBO.usedElements

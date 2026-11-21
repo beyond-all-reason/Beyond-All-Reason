@@ -90,6 +90,8 @@ local STRINGS = {
 	startHelperHint = "The game cannot start Team Sync itself. This writes a starter file into your data folder; double-click it at the start of a session.",
 	helperReady = "Starter written to your BAR data folder, under 'Terraform Brush'. Double-click it and leave its window open.",
 	helperReadyPath = "Starter written. Double-click it and leave its window open.",
+	helperReadyTerminal = "Starter written. The command that starts it is on your clipboard: paste it into a terminal and leave that open. It also marks the file executable, so later you can run it directly.",
+	helperReadyShell = "Starter written to your BAR data folder, under 'Terraform Brush'. Start it from a terminal there with: sh start-map-library-helper.sh",
 	helperStale = "Team Sync files were updated from this install. Restart Team Sync: close its window and run the starter again.",
 	helperMissing = "The Team Sync files are not in this install.",
 	helperWriteFailed = "Could not write to the data folder. Check permissions on 'Terraform Brush'.",
@@ -245,6 +247,7 @@ local STRINGS = {
 	dismiss = "Dismiss",
 	sign_in = "Git is not signed in to GitHub, and Team Sync cannot open the sign-in window. Sign in once as the CampaignMaps README explains, then Refresh.",
 	no_access = "You don't have access to the team repository. Ask the campaign lead for access, then Refresh.",
+	ssh_key = "GitHub did not accept your SSH key. Load it with ssh-add (Team Sync cannot ask for a passphrase) and check it belongs to your GitHub account, or sign in with gh auth login instead, then restart Team Sync.",
 	no_network = "No connection to GitHub. Check your network, then Refresh.",
 	already_running = "Another Team Sync is already running for this data folder. Close it first.",
 	shaderOffline = "Shader updates need Team Sync",
@@ -260,6 +263,18 @@ local STRINGS = {
 	renameFailed = "Could not rename '%{name}'. See the console for the reason.",
 	stripUploadFailed = "Upload failed. See Projects.",
 	helper_error = "Helper encountered a filesystem or data error. Local originals were preserved; inspect helper storage before retrying.",
+	-- FILE > EXPORT MAP (tf_export.lua)
+	exportNoWidget = "Map export needs the Map Project widget.",
+	exportNoProject = "Save the map as a project first (FILE > Save As). The export reads the saved project.",
+	exportProject = "Project: %{name}",
+	exportUnsaved = "This project has unsaved changes: EXPORT saves it first.",
+	exportSaving = "Saving… the export runs once the save is written.",
+	exportSaveFailed = "The save failed, so nothing was exported. See the console.",
+	exportBusy = "A save or load is already running; try again in a moment.",
+	exportFailed = "Export failed: %{reason}",
+	exportDone = "Exported %{files} archive files to %{path}. Finish the map outside the game with tools/map_export/compile_map.py on that folder: it writes the .smf and .smt and packs the .sd7.",
+	exportDoneMissing = "Exported to %{path}, but %{missing} file(s) the map needs are missing. The list is in export_report.txt there.",
+	exportDoneErrors = "Export failed with %{errors} error(s). The list is in export_report.txt in %{path}.",
 }
 
 local function text(key, values)

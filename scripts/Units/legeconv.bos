@@ -1,7 +1,6 @@
 
 #include "../recoil_common_includes.h"
 
-//piece  base, cover1, cover2, light;
 piece base, coverl, coverr, flare;
 
 static-var  Active;
@@ -14,13 +13,12 @@ MMStatus(State)
 	if (State) {
 		move coverr to z-axis [-15] speed [3];
 		move coverl to z-axis [15] speed [3];
-	    show flare;
+		show flare;
 	}else{
 		move coverr to z-axis [-20] speed [3];
 		move coverl to z-axis [20] speed [3];
-	    hide flare;
+		hide flare;
 	}
-	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()

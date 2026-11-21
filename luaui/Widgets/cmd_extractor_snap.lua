@@ -16,7 +16,8 @@ end
 -- Localized functions for performance
 local mathAbs = math.abs
 
-include("keysym.h.lua")
+local KEY_LSHIFT = Spring.GetKeyCode("shift")
+local KEY_RSHIFT = Spring.GetKeyCode("rshift")
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
@@ -334,7 +335,7 @@ end
 
 -- I really hate that I have to do this, but something is hardcoding shift behavior with mouse clicks, and I need to override it
 function widget:KeyRelease(code)
-	if endShift and (code == KEYSYMS.LSHIFT or code == KEYSYMS.RSHIFT) then
+	if endShift and (code == KEY_LSHIFT or code == KEY_RSHIFT) then
 		Spring.SetActiveCommand(0)
 		endShift = false
 	end

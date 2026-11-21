@@ -1,9 +1,9 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	spawnUnits = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	setRange = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	doubleDamage = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	boostDeathExplosion = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 18,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	clearDamage = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 24,
 		},
@@ -48,7 +48,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2300, z = 1900, teamName = 'player', unitName = 'tank' },
+				{ unitDefName = 'armstump', position = { x = 2300, z = 1900 }, teamName = 'player', unitName = 'tank' },
 			},
 		},
 	},
@@ -57,7 +57,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'player', quantity = 3, unitName = 'bots' },
+				{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, teamName = 'player', quantity = 3, unitName = 'bots' },
 			},
 		},
 	},

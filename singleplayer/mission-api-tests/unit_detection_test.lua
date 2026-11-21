@@ -1,7 +1,8 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
---- Covers UnitDetected and UnitUndetected across every sensor level and filter.
+--- Covers UnitDetected and UnitUndetected across every sensor level and filter, and
+--- LocationRevealed for a point that comes into sight and one that never does.
 ---
 --- Detection levels escalate: unseen -> seismic -> radar -> vision, and a unit sits at
 --- exactly one of them per alliance. A trigger without sensorTypes watches all of them,
@@ -32,14 +33,14 @@ local triggers = {
 	--- Setup ------------------------------------------------------
 
 	placeSensors = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 1 },
 		actions = { 'spawnSensors', 'spawnEnergy' },
 	},
 
 	-- Targets start outside every sensor, so each one produces a real unseen -> detected edge.
 	placeTargets = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 3 },
 		actions = { 'spawnTargets' },
 	},
@@ -47,7 +48,7 @@ local triggers = {
 	-- Each target drives in and straight back out on one queued pair of moves, so the
 	-- detect and undetect edges come from travel rather than from a second timer.
 	sendTargets = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 6 },
 		actions = { 'moveSpy', 'moveRadarTarget', 'moveVisionTarget' },
 	},
@@ -55,7 +56,7 @@ local triggers = {
 	-- Late enough that deathTarget has certainly been detected, early enough that it dies
 	-- while still held on radar rather than after drifting off sensors.
 	killDeathTarget = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 25 },
 		actions = { 'destroyDeathTarget' },
 	},
@@ -65,7 +66,7 @@ local triggers = {
 
 	-- Watches every level but unseen, so this is first contact and total loss.
 	anyDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			sensorAllianceName = 'players',
@@ -74,7 +75,7 @@ local triggers = {
 	},
 
 	anyUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
 			sensorAllianceName = 'players',
@@ -86,7 +87,7 @@ local triggers = {
 	--- Radar ------------------------------------------------------
 
 	radarDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			sensorAllianceName = 'players',
@@ -98,7 +99,7 @@ local triggers = {
 	-- The target never enters armrad's sight, so this is a genuine loss of contact and
 	-- should land in the same frame as anyUndetected.
 	radarUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
 			sensorAllianceName = 'players',
@@ -111,7 +112,7 @@ local triggers = {
 	--- Vision -----------------------------------------------------
 
 	visionDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -123,7 +124,7 @@ local triggers = {
 	-- Fires as the target leaves armrad's sight, while it is still on radar. "Undetected by
 	-- vision" means "no longer at the vision level", not "gone".
 	visionUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -139,7 +140,7 @@ local triggers = {
 	-- Falloff is scored over half-second intervals, so the undetect lands a few seconds
 	-- after the spy leaves the ring.
 	seismicDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'spy',
 			sensorAllianceName = 'players',
@@ -149,7 +150,7 @@ local triggers = {
 	},
 
 	seismicUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'spy',
 			sensorAllianceName = 'players',
@@ -165,7 +166,7 @@ local triggers = {
 	-- mask, so the improvement is not a boundary: this fires once going in and once going
 	-- out, unlike the vision-only pair above.
 	radarOrVisionDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -175,7 +176,7 @@ local triggers = {
 	},
 
 	radarOrVisionUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -189,7 +190,7 @@ local triggers = {
 	-- ever treated as a range rather than a set, these would behave like the omitted pair
 	-- below; instead they must match the vision-only pair, ignoring both radar crossings.
 	seismicOrVisionDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -199,7 +200,7 @@ local triggers = {
 	},
 
 	seismicOrVisionUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -217,7 +218,7 @@ local triggers = {
 	-- pair must fire exactly twice for the whole run: once on first contact and once when
 	-- the target leaves every sensor. A drop to a lower level is not an undetection.
 	anyLevelDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -226,7 +227,7 @@ local triggers = {
 	},
 
 	anyLevelUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'visionTarget',
 			sensorAllianceName = 'players',
@@ -239,7 +240,7 @@ local triggers = {
 
 	-- Spawned already inside radar and never moved, so it is detected on the first sweep.
 	deathDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'deathTarget',
 			sensorAllianceName = 'players',
@@ -252,7 +253,7 @@ local triggers = {
 	-- messageDeathDetected proves the unit really was detected, so this silence means
 	-- something.
 	deathUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'deathTarget',
 			sensorAllianceName = 'players',
@@ -267,7 +268,7 @@ local triggers = {
 	-- skipped, because an alliance always has vision of its own units. For an enemy target
 	-- that leaves the player's sensors, so these should agree with the anyDetected pair.
 	unscopedDetected = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 		},
@@ -275,7 +276,7 @@ local triggers = {
 	},
 
 	unscopedUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
 		},
@@ -283,7 +284,7 @@ local triggers = {
 	},
 
 	owningTeamMatches = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'enemy',
@@ -294,7 +295,7 @@ local triggers = {
 
 	-- The filters apply to UnitUndetected exactly as they do to UnitDetected.
 	owningTeamUndetected = {
-		type = triggerTypes.UnitUndetected,
+		type = conditionTypes.UnitUndetected,
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'enemy',
@@ -305,7 +306,7 @@ local triggers = {
 
 	-- Canary: the target belongs to team 1, so filtering on team 0 must never fire.
 	owningTeamExcludes = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			owningTeamName = 'player',
@@ -316,7 +317,7 @@ local triggers = {
 
 	-- Both name filters at once: they must agree on the same unit.
 	bothNameFilters = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			unitDefName = 'corfast',
@@ -328,7 +329,7 @@ local triggers = {
 	-- requiresOneOf is satisfied by unitDefName alone. Both corfast targets match, so this
 	-- reports whichever of them is detected first.
 	unitDefNameOnly = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitDefName = 'corfast',
 			sensorAllianceName = 'players',
@@ -338,7 +339,7 @@ local triggers = {
 
 	-- Canary: no armpw is ever spawned, so a unitDefName filter on one must never match.
 	unitDefNameExcludes = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitDefName = 'armpw',
 			sensorAllianceName = 'players',
@@ -350,13 +351,36 @@ local triggers = {
 	-- holds radar the whole time it is on any sensor at all. A sensorTypes set must reject
 	-- the levels it does not name, so watching seismic alone must never see this unit.
 	wrongSensorExcludes = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			unitName = 'radarTarget',
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageWrongSensorExcludes' },
+	},
+
+	----------------------------------------------------------------
+	--- Locations --------------------------------------------------
+
+	-- 400 south of armrad, inside its sight of 680 once it spawns.
+	radarSiteRevealed = {
+		type = conditionTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4700, z = 2400 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarSiteRevealed' },
+	},
+
+	-- Canary: where the radar target spawns, outside every sensor of the players' alliance for the whole run.
+	radarTargetSpawnRevealed = {
+		type = conditionTypes.LocationRevealed,
+		parameters = {
+			position = { x = 4500, z = 4900 },
+			sensorAllianceName = 'players',
+		},
+		actions = { 'messageRadarTargetSpawnRevealed' },
 	},
 }
 
@@ -369,8 +393,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsd', x = 1800, z = 1800, teamName = 'player' },
-				{ unitDefName = 'armrad', x = 4700, z = 2000, teamName = 'player' },
+				{ unitDefName = 'armsd', position = { x = 1800, z = 1800 }, teamName = 'player' },
+				{ unitDefName = 'armrad', position = { x = 4700, z = 2000 }, teamName = 'player' },
 			},
 		},
 	},
@@ -379,8 +403,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1600, teamName = 'player' },
-				{ unitDefName = 'armfus', x = 3900, z = 6000, teamName = 'enemy' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'armfus', position = { x = 3900, z = 6000 }, teamName = 'enemy' },
 			},
 		},
 	},
@@ -389,12 +413,12 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armspy', x = 1800, z = 4600, teamName = 'enemy', unitName = 'spy' },
-				{ unitDefName = 'corfast', x = 4500, z = 4900, teamName = 'enemy', unitName = 'radarTarget' },
-				{ unitDefName = 'corfast', x = 4900, z = 4900, teamName = 'enemy', unitName = 'visionTarget' },
+				{ unitDefName = 'armspy', position = { x = 1800, z = 4600 }, teamName = 'enemy', unitName = 'spy' },
+				{ unitDefName = 'corfast', position = { x = 4500, z = 4900 }, teamName = 'enemy', unitName = 'radarTarget' },
+				{ unitDefName = 'corfast', position = { x = 4900, z = 4900 }, teamName = 'enemy', unitName = 'visionTarget' },
 				-- 1600 from armrad: inside radar 2100, outside sight 680, and 3400 from
 				-- armsd so it is out of seismic. Detected where it stands, then destroyed.
-				{ unitDefName = 'corak', x = 4700, z = 3600, teamName = 'enemy', unitName = 'deathTarget' },
+				{ unitDefName = 'corak', position = { x = 4700, z = 3600 }, teamName = 'enemy', unitName = 'deathTarget' },
 			},
 		},
 	},
@@ -573,6 +597,16 @@ local actions = {
 	messageWrongSensorExcludes = {
 		type = actionTypes.SendMessage,
 		parameters = { messageKey = "BUG: a seismic-only trigger reported a unit held on radar." },
+	},
+
+	messageRadarSiteRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "Location revealed: the point south of the radar tower came into sight." },
+	},
+
+	messageRadarTargetSpawnRevealed = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = "BUG: a point outside every sensor was reported as revealed." },
 	},
 }
 

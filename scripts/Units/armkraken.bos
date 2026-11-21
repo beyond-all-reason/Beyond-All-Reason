@@ -84,6 +84,7 @@ FireWeapon1()
 		gun_1 = 0;
 		return (0);
 	}
+	return (0);
 }
 
 QueryWeapon1(pieceIndex)

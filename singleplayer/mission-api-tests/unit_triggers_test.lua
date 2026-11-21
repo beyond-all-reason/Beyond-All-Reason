@@ -1,10 +1,10 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnTurretAndBots = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -12,7 +12,7 @@ local triggers = {
 	},
 
 	botDwells = {
-		type = triggerTypes.UnitDwellLocation,
+		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -28,7 +28,7 @@ local triggers = {
 	},
 
 	botDwellsAfterRes = {
-		type = triggerTypes.UnitDwellLocation,
+		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
@@ -45,7 +45,7 @@ local triggers = {
 	},
 
 	botExists = {
-		type = triggerTypes.UnitExists,
+		type = conditionTypes.UnitExists,
 		parameters = {
 			unitDefName = 'armpw',
 		},
@@ -53,7 +53,7 @@ local triggers = {
 	},
 
 	botNotExists = {
-		type = triggerTypes.UnitNotExists,
+		type = conditionTypes.UnitNotExists,
 		parameters = {
 			unitName = 'bots',
 		},
@@ -61,7 +61,7 @@ local triggers = {
 	},
 
 	botDied = {
-		type = triggerTypes.UnitKilled,
+		type = conditionTypes.UnitKilled,
 		parameters = {
 			unitName = 'bots',
 		},
@@ -69,7 +69,7 @@ local triggers = {
 	},
 
 	botEnteredLocation = {
-		type = triggerTypes.UnitEnteredLocation,
+		type = conditionTypes.UnitEnteredLocation,
 		parameters = {
 			unitName = 'bots',
 			teamName = 'player',
@@ -79,8 +79,27 @@ local triggers = {
 		actions = { 'messageBotEnteredLocation', 'spawnCapturable', 'spawnDecoy' },
 	},
 
+	squadSetOff = {
+		type = conditionTypes.TimeElapsed,
+		parameters = {
+			seconds = 3,
+		},
+		actions = { 'spawnSquad', 'moveSquad' },
+	},
+
+	-- Fires once, when the straggler gets there, not for each pawn.
+	squadGathered = {
+		type = conditionTypes.UnitsGatheredInLocation,
+		parameters = {
+			unitName = 'squad',
+			teamName = 'player',
+			area = { x = 1200, z = 2000, radius = 200 },
+		},
+		actions = { 'messageSquadEnteredLocation' },
+	},
+
 	botLeftLocation = {
-		type = triggerTypes.UnitLeftLocation,
+		type = conditionTypes.UnitLeftLocation,
 		parameters = {
 			unitName = 'bots',
 			teamName = 'player',
@@ -92,7 +111,7 @@ local triggers = {
 	},
 
 	unitCaptured = {
-		type = triggerTypes.UnitCaptured,
+		type = conditionTypes.UnitCaptured,
 		parameters = {
 			unitDefName = 'armwin',
 		},
@@ -100,7 +119,7 @@ local triggers = {
 	},
 
 	constructionStartedSolar = {
-		type = triggerTypes.ConstructionStarted,
+		type = conditionTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -109,7 +128,7 @@ local triggers = {
 	},
 
 	constructionHalfwaySolar = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -119,7 +138,7 @@ local triggers = {
 	},
 
 	constructionFinishedSolar = {
-		type = triggerTypes.ConstructionFinished,
+		type = conditionTypes.ConstructionFinished,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -128,7 +147,7 @@ local triggers = {
 	},
 
 	constructionStartedByDecoy = {
-		type = triggerTypes.ConstructionStarted,
+		type = conditionTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -139,7 +158,7 @@ local triggers = {
 
 	-- We don't actually get any finishee attribution.
 	constructionFinishedByDecoy = {
-		type = triggerTypes.ConstructionFinished,
+		type = conditionTypes.ConstructionFinished,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -148,7 +167,7 @@ local triggers = {
 	},
 
 	spawnCancelDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10, -- The build is underway before the reclaim.
 		},
@@ -156,7 +175,7 @@ local triggers = {
 	},
 
 	reclaimCancelDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 21, -- Reclaim mid-build: ~11s into a ~32s solar.
 		},
@@ -164,7 +183,7 @@ local triggers = {
 	},
 
 	constructionCanceledSolar = {
-		type = triggerTypes.ConstructionCanceled,
+		type = conditionTypes.ConstructionCanceled,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -173,7 +192,7 @@ local triggers = {
 	},
 
 	spawnAssistDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -181,7 +200,7 @@ local triggers = {
 	},
 
 	joinAssistDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36, -- The build is in progress, so an identical build-order becomes a build-assist.
 		},
@@ -189,7 +208,7 @@ local triggers = {
 	},
 
 	constructionStartedByAssister = {
-		type = triggerTypes.ConstructionStarted,
+		type = conditionTypes.ConstructionStarted,
 		parameters = {
 			unitDefName = 'armsolar',
 			teamName = 'player',
@@ -199,7 +218,7 @@ local triggers = {
 	},
 
 	spawnReclaimDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 50,
 		},
@@ -208,7 +227,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	orderReclaimDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 52,
 		},
@@ -216,7 +235,7 @@ local triggers = {
 	},
 
 	unitReclaimedRadar = {
-		type = triggerTypes.UnitReclaimed,
+		type = conditionTypes.UnitReclaimed,
 		parameters = {
 			unitDefName = 'armrad',
 			teamName = 'player',
@@ -225,7 +244,7 @@ local triggers = {
 	},
 
 	unitReclaimedByName = {
-		type = triggerTypes.UnitReclaimed,
+		type = conditionTypes.UnitReclaimed,
 		parameters = {
 			unitName = 'doomedRadar',
 		},
@@ -233,7 +252,7 @@ local triggers = {
 	},
 
 	unitReclaimedByMission = {
-		type = triggerTypes.UnitReclaimed,
+		type = conditionTypes.UnitReclaimed,
 		parameters = {
 			unitName = 'doomedSolar',
 			ignoreMissionActions = false,
@@ -242,7 +261,7 @@ local triggers = {
 	},
 
 	spawnProductionDemo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 45,
 		},
@@ -251,7 +270,7 @@ local triggers = {
 
 	-- Fires once per buildee, so twice over the bot lab's two pawns.
 	productionStartedPawn = {
-		type = triggerTypes.ProductionStarted,
+		type = conditionTypes.ProductionStarted,
 		settings = {
 			repeating = true,
 		},
@@ -263,7 +282,7 @@ local triggers = {
 	},
 
 	productionStartedByBotLab = {
-		type = triggerTypes.ProductionStarted,
+		type = conditionTypes.ProductionStarted,
 		parameters = {
 			unitDefName = 'armck',
 			teamName = 'player',
@@ -273,7 +292,7 @@ local triggers = {
 	},
 
 	productionStartedByVehiclePlant = {
-		type = triggerTypes.ProductionStarted,
+		type = conditionTypes.ProductionStarted,
 		parameters = {
 			unitDefName = 'armfav',
 			teamName = 'player',
@@ -283,7 +302,7 @@ local triggers = {
 	},
 
 	unitRessed = {
-		type = triggerTypes.UnitResurrected,
+		type = conditionTypes.UnitResurrected,
 		parameters = {
 			unitDefName = 'armllt',
 			teamName = 'player',
@@ -299,7 +318,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'enemy', unitName = 'bots' },
+				{ unitDefName = 'armllt', position = { x = 1800, z = 2200 }, teamName = 'enemy', unitName = 'bots' },
 			},
 		},
 	},
@@ -308,7 +327,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'player', unitName = 'bots', quantity = 4 },
+				{ unitDefName = 'armpw', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'bots', quantity = 4 },
 			},
 		},
 	},
@@ -366,6 +385,33 @@ local actions = {
 		},
 	},
 
+	spawnSquad = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', position = { x = 1200, z = 1600 }, teamName = 'player', unitName = 'squad', quantity = 3 },
+				{ unitDefName = 'armpw', position = { x = 1200, z = 1000 }, teamName = 'player', unitName = 'squad' },
+			},
+		},
+	},
+
+	moveSquad = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'squad',
+			orders = {
+				{ CMD.MOVE, { 1200, 0, 2000 } },
+			},
+		},
+	},
+
+	messageSquadEnteredLocation = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "The whole squad entered location!",
+		},
+	},
+
 	messageBotLeftLocation = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -377,7 +423,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1900, z = 2600, teamName = 'player', unitName = 'decoys' },
+				{ unitDefName = 'armdecom', position = { x = 1900, z = 2600 }, teamName = 'player', unitName = 'decoys' },
 			},
 		},
 	},
@@ -386,7 +432,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwin', x = 1600, z = 2800, teamName = 'enemy' },
+				{ unitDefName = 'armwin', position = { x = 1600, z = 2800 }, teamName = 'enemy' },
 			},
 		},
 	},
@@ -463,7 +509,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2400, z = 2400, teamName = 'player', unitName = 'canceler' },
+				{ unitDefName = 'armck', position = { x = 2400, z = 2400 }, teamName = 'player', unitName = 'canceler' },
 			},
 		},
 	},
@@ -499,7 +545,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2520, z = 2480, teamName = 'player', unitName = 'placer' },
+				{ unitDefName = 'armck', position = { x = 2520, z = 2480 }, teamName = 'player', unitName = 'placer' },
 			},
 		},
 	},
@@ -519,7 +565,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2680, z = 2480, teamName = 'player', unitName = 'assister' },
+				{ unitDefName = 'armck', position = { x = 2680, z = 2480 }, teamName = 'player', unitName = 'assister' },
 			},
 		},
 	},
@@ -559,7 +605,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrad', x = 2400, z = 3000, teamName = 'player', unitName = 'doomedRadar' },
+				{ unitDefName = 'armrad', position = { x = 2400, z = 3000 }, teamName = 'player', unitName = 'doomedRadar' },
 			},
 		},
 	},
@@ -568,7 +614,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 2560, z = 3000, teamName = 'player', unitName = 'reclaimer' },
+				{ unitDefName = 'armck', position = { x = 2560, z = 3000 }, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -609,8 +655,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armlab', x = 2400, z = 3000, teamName = 'player', unitName = 'botlab' },
-				{ unitDefName = 'armvp', x = 2750, z = 3000, teamName = 'player', unitName = 'vehicleplant' },
+				{ unitDefName = 'armlab', position = { x = 2400, z = 3000 }, teamName = 'player', unitName = 'botlab' },
+				{ unitDefName = 'armvp', position = { x = 2750, z = 3000 }, teamName = 'player', unitName = 'vehicleplant' },
 			},
 		},
 	},
@@ -642,7 +688,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1900, z = 2600, teamName = 'player', unitName = 'res', quantity = 4 },
+				{ unitDefName = 'armrectr', position = { x = 1900, z = 2600 }, teamName = 'player', unitName = 'res', quantity = 4 },
 			},
 		},
 	},

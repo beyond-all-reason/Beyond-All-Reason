@@ -8,7 +8,7 @@ function widget:GetInfo()
 		version = "v1.1",
 		date = "Jul 18, 2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 999997, -- after the panels, so they claim their own presses first
 		enabled = false,
 	}
 end
@@ -90,6 +90,7 @@ local spIsGodModeEnabled = Spring.IsGodModeEnabled
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitPos = Spring.GetUnitPosition
 local spTraceScreenRay = Spring.TraceScreenRay
+local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGetSelUnits = Spring.GetSelectedUnits
 local spSelUnitArray = Spring.SelectUnitArray
 
@@ -354,6 +355,13 @@ function widget:MousePress(mx, my, mButton)
 
 	-- Only handle if active
 	if not active then
+		return false
+	end
+
+	-- The panels have had their turn, but the engine minimap only sees presses no widget claims
+	---@cast mx integer
+	---@cast my integer
+	if spIsAboveMiniMap(mx, my) then
 		return false
 	end
 

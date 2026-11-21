@@ -23,7 +23,7 @@ describe("mission_api.actions.spawn_units", function()
 
 	describe("actionFunction", function()
 		it("calls Loadout.SpawnUnitLoadout with the given loadout", function()
-			local loadout = { { unitDefName = "armcom", x = 0, z = 0, teamName = "alpha" } }
+			local loadout = { { unitDefName = "armcom", position = { x = 0, z = 0 }, teamName = "alpha" } }
 			action.actionFunction(loadout)
 			assert.are.equal(1, #missionApi.calls.spawnUnitLoadout)
 			assert.are.same(loadout, missionApi.calls.spawnUnitLoadout[1].loadout)

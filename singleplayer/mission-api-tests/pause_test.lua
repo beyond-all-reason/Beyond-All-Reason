@@ -6,13 +6,13 @@
 --- Ordering the scout ends each scripted pause (orders still arrive while paused).
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnScout = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -20,7 +20,7 @@ local triggers = {
 	},
 
 	firstPause = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -29,7 +29,7 @@ local triggers = {
 
 	-- Fires while paused: commands are relayed and processed between frames.
 	scoutOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 10,
@@ -42,7 +42,7 @@ local triggers = {
 	},
 
 	secondPause = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -56,7 +56,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armflea', x = 1800, z = 1600, teamName = 'player', unitName = 'scout' },
+				{ unitDefName = 'armflea', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'scout' },
 			},
 		},
 	},

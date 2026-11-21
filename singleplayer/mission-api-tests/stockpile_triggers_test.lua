@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local SILO = { 1400, 0, 2600 }
@@ -23,7 +23,7 @@ end
 
 local triggers = {
 	spawnSilo = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -31,7 +31,7 @@ local triggers = {
 	},
 
 	firstNukeHalfBuilt = {
-		type = triggerTypes.StockpileProgress,
+		type = conditionTypes.StockpileProgress,
 		parameters = {
 			unitName = 'silo',
 			progress = 0.5,
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	firstNukeStocked = {
-		type = triggerTypes.StockpileCount,
+		type = conditionTypes.StockpileCount,
 		parameters = {
 			unitName = 'silo',
 			count = 1,
@@ -49,7 +49,7 @@ local triggers = {
 	},
 
 	launchFirstNuke = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'launchFirstNuke',
 		},
@@ -57,7 +57,7 @@ local triggers = {
 	},
 
 	spawnCitadel = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'firstNukeLanded',
 		},
@@ -65,7 +65,7 @@ local triggers = {
 	},
 
 	fiveNukesStocked = {
-		type = triggerTypes.StockpileCount,
+		type = conditionTypes.StockpileCount,
 		parameters = {
 			unitName = 'silo',
 			count = 5,
@@ -74,7 +74,7 @@ local triggers = {
 	},
 
 	launchFiveNukes = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'launchFiveNukes',
 		},
@@ -82,7 +82,7 @@ local triggers = {
 	},
 
 	fiveNukesIntercepted = {
-		type = triggerTypes.CountdownFinished,
+		type = conditionTypes.CountdownFinished,
 		parameters = {
 			countdownID = 'fiveNukesIntercepted',
 		},
@@ -104,7 +104,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsilo', x = SILO[1], z = SILO[3], teamName = 'player', unitName = 'silo' },
+				{ unitDefName = 'armsilo', position = { x = SILO[1], z = SILO[3] }, teamName = 'player', unitName = 'silo' },
 			},
 		},
 	},
@@ -169,7 +169,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armamd', x = CITADEL[1], z = CITADEL[3], teamName = 'enemy', unitName = 'citadel' },
+				{ unitDefName = 'armamd', position = { x = CITADEL[1], z = CITADEL[3] }, teamName = 'enemy', unitName = 'citadel' },
 			},
 		},
 	},
