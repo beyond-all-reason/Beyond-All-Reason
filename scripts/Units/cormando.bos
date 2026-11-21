@@ -384,7 +384,7 @@ StopBuilding()
 	hide lnano;
 	hide rnano;
 
-	sleep 1000;
+	sleep restore_delay;
 	set INBUILDSTANCE to 0;
 
 	torsoRotation = 0;
