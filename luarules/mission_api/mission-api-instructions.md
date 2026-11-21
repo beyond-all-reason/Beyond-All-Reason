@@ -2,7 +2,7 @@
 
 Read this before touching `luarules/mission_api/`, `luarules/gadgets/api_mission*.lua`,
 `singleplayer/`, or `spec/mission_api/`. It covers only what is specific to this subsystem; the
-general rules live in `.github/agents.md`.
+general rules live in the root `AGENTS.md`.
 
 ## The system
 
