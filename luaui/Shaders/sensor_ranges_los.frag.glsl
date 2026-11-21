@@ -10,6 +10,10 @@
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+#ifdef MAP_REGIONS
+	uniform vec4 regionBounds; // x0, z0, x1, z1 of the viewed region; zero width disables clipping
+	bool outsideRegion(vec2 p) { return regionBounds.z > regionBounds.x && (any(lessThan(p, regionBounds.xy)) || any(greaterThanEqual(p, regionBounds.zw))); }
+#endif
 
 #if !defined(STENCILPASS) && !defined(EXACT_CIRCLES)
 	uniform sampler2D losStencilTexture;
@@ -53,6 +57,9 @@
 
 in DataVS {
 	vec4 v_radius_circum_height;
+	#ifdef MAP_REGIONS
+		vec2 v_worldXZ;
+	#endif
 	#ifndef STENCILPASS
 		flat vec4 v_blendedcolor;
 		#if defined(STIPPLE_RATE) || defined(LINE_THIN_END)
@@ -87,6 +94,9 @@ out vec4 fragColor;
 		for (int i = 0; i < circleCount; i++) {
 			vec4 radius_params = circles[i].radius_params;
 			vec4 drawPos = uni[circles[i].instData.y].drawPos;
+			#ifdef MAP_REGIONS
+				if (outsideRegion(drawPos.xz)) continue;
+			#endif
 			// cheap reject: well outside even at full size and the largest mid offset
 			float reach = radius_params.x + length(radius_params.zw) + pixelSize + 8.0;
 			vec2 toUnit = pos - drawPos.xz;
@@ -109,6 +119,9 @@ out vec4 fragColor;
 #endif
 
 void main() {
+	#ifdef MAP_REGIONS
+		if (outsideRegion(v_worldXZ)) discard;
+	#endif
 	// sample the stencil texture to determine if this pixel is visible
 	#ifdef STENCILPASS
 		// if we are in stencil pass, we just output the blended color

@@ -75,11 +75,15 @@ local losStencilTexture
 local resolution = 4
 local vsx, vsy = spGetViewGeometry()
 
+-- Region clipping is compiled in only on multi-region maps.
+local hasMapRegions = VFS.Include("common/map_regions.lua") ~= nil
+
 local circleShaderSourceCache = {
 	shaderName = "LOS Ranges Circles GL4",
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
+		MAP_REGIONS = hasMapRegions and 1 or nil,
 		VSX = vsx,
 		VSY = vsy,
 		RESOLUTION = resolution,
@@ -195,6 +199,16 @@ local function DrawLOSStencil() -- about 0.025 ms
 
 		gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 		losStencilShader:Activate()
+		if hasMapRegions then
+			local r = WG.MapRegionView and WG.MapRegionView.rect
+			losStencilShader:SetUniform(
+				"regionBounds",
+				r and r.x0 or 0,
+				r and r.z0 or 0,
+				r and r.x1 or 0,
+				r and r.z1 or 0
+			)
+		end
 		circleInstanceVBO.VAO:DrawArrays(
 			GL.TRIANGLE_FAN,
 			circleInstanceVBO.numVertices,
@@ -393,6 +407,10 @@ function widget:DrawWorld()
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
 
 	losCircleShader:Activate()
+	if hasMapRegions then
+		local r = WG.MapRegionView and WG.MapRegionView.rect
+		losCircleShader:SetUniform("regionBounds", r and r.x0 or 0, r and r.z0 or 0, r and r.x1 or 0, r and r.z1 or 0)
+	end
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 	gl.Texture(1, losStencilTexture) -- Bind the heightmap texture
 
