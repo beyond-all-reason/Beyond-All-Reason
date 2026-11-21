@@ -114,6 +114,7 @@ local sp = {
 	ShareResources = Spring.ShareResources,
 	GetTeamUnitCount = Spring.GetTeamUnitCount,
 	GetTeamResources = Spring.GetTeamResources,
+	GetTeamRealResources = BAR.Utilities.GetTeamRealResources,
 	SendCommands = Spring.SendCommands,
 	GetMouseState = spGetMouseState,
 	GetAIInfo = Spring.GetAIInfo,
@@ -4767,7 +4768,7 @@ function CheckPlayersChange()
 end
 
 function GetNeed(resType, teamID)
-	local current, _, pull, income = BAR.Utilities.GetTeamRealResources(teamID, resType)
+	local current, _, pull, income = sp.GetTeamRealResources(teamID, resType)
 	if current == nil then
 		return false
 	end
