@@ -12,7 +12,6 @@
 
 ----------------------------------------------------------------------------------
 -- REFERENCE VALUES
--- These are for readability more than correctness, really.
 
 local SPEED_CLASS = Game.speedModClasses
 
