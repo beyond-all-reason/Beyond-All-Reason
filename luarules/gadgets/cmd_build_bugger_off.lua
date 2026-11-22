@@ -46,6 +46,14 @@ local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
 local insertMoveParams = { 0, CMD.MOVE, CMD.OPT_INTERNAL, 0, 0, 0 }
 
+local isStateCommand = {}
+for commandName in pairs(VFS.Include("common/stateCommands.lua")) do
+	local commandID = CMD[commandName] or GameCMD[commandName]
+	if commandID then
+		isStateCommand[commandID] = true
+	end
+end
+
 local cachedUnitDefs = {}
 local unitSpeedMax = 0
 
@@ -469,6 +477,9 @@ function gadget:UnitCommand(
 	fromSynced,
 	fromLua
 )
+	if isStateCommand[cmdID] then
+		return
+	end
 	if cachedUnitDefs[unitDefID].isBuilder then
 		-- Throttle area command processing to avoid performance spikes with many builders
 		if cmdID < 0 then -- Build command
