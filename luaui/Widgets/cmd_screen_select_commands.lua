@@ -23,13 +23,14 @@ Click modifiers:
   Space -> prepend to the queue
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
-  Alt -> partition targets among selected units (see Order assignment below)
-  If units × targets would exceed COMMAND_LIMIT, each unit's share is COMMAND_LIMIT / targets. That share is rounded down and every unit receives that many orders first. Later passes keep assigning until the selection has issued COMMAND_LIMIT orders. A single unit never receives more than 500 orders. A centroid is taken from a random sample of up to 10 selected units. Each selected unit is snapped to a 45-degree ray from that centroid. Targets are scored per ray from 0 to 2: closeness to the centroid plus alignment with the ray. Units walk their ray's ranking in radial order. Each sweep starts at a random unit, skips targets that already have this take and targets that unit already took, and the next take does not start until every remaining target has already been taken. The circle flash keeps the full radius. "reduced" fades out above the cursor when orders were cut.
-  Shift / Shift + Space / double-click mass-order -> after the click-nearest target set is chosen, unit-relative distance math (travel routes, Alt partition) uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
+  Alt -> split the targets evenly across every selected unit
+  Shift / Shift + Space / double-click mass-order -> after the click-nearest target set is chosen, travel uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
 
   Order assignment:
-  Normal mass-order -> under the command cap, every selected unit gets the same targets unless that list is longer than 500. Over the cap, units take from the ranked targets on their 45-degree ray. Everyone receives the rounded-down share first, then later passes continue until COMMAND_LIMIT orders have been issued or every unit has 500. Each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route). Routes are cached by first-hop target so units that share a nearest target reuse the same route.
-  Alt -> when targets >= units, units and targets are sorted by angle around the selection centroid and targets are split into contiguous wedges so each unit works a nearby cluster (then nearest-neighbor route within its share). When targets < units, units are divided evenly across targets, assigning the closest free units to each. Over COMMAND_LIMIT, each unit's wedge is trimmed so the selection fills the cap, and the kept orders stay spread across that wedge.
+  Targets and units are sorted by angle around the selection and cut into equal sweeps. Each sweep is ordered by distance from the units on it.
+  Normal mass-order -> every selected unit gets every target while units × targets stays under 4000. Past that, the units are divided into the fewest sweeps that keep the issued orders under 4000.
+  Alt -> one sweep per unit. When there are more units than targets, the extra units share sweeps.
+  "reduced" fades out above the cursor when targets were dropped to stay under 4000 orders.
 
   Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
@@ -49,7 +50,7 @@ local tableInsert = table.insert
 local tableSort = table.sort
 local mathFloor = math.floor
 local mathCeil = math.ceil
-local mathMin = math.min
+local mathHuge = math.huge
 local mathAtan2 = math.atan2
 local mathDistance2dSquared = math.distance2dSquared
 local mathCos = math.cos
@@ -60,6 +61,7 @@ local osClock = os.clock
 local spring = Spring
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -141,7 +143,7 @@ local doubleClickEnabled = true
 local doubleRightClickDefaultCommandEnabled = false
 local doubleClickRadiusFraction = DOUBLE_CLICK_RADIUS_FRACTION_DEFAULT
 local COMMAND_LIMIT = 4000
-local MAX_ORDERS_PER_UNIT = 500
+local ORDER_BUDGET = COMMAND_LIMIT - 1
 
 local myAllyTeamID
 local myTeamID
@@ -547,158 +549,6 @@ local function getTargetCentroid(targets, positionCache)
 	return toPositionTable(totalX / positionCount, totalY / positionCount, totalZ / positionCount)
 end
 
-local function compareNullablePrimary(primaryA, primaryB, indexA, indexB, primaryLess)
-	local missingA = primaryA == nil or primaryA == false
-	local missingB = primaryB == nil or primaryB == false
-	if missingA or missingB then
-		if missingA == missingB then
-			return indexA < indexB
-		end
-		return not missingA
-	end
-	if primaryA == primaryB then
-		return indexA < indexB
-	end
-	return primaryLess(primaryA, primaryB)
-end
-
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache)
-	positionCache = positionCache or {}
-	local referencePosition = (referenceUnitID and getTargetPosition(referenceUnitID, positionCache))
-		or (selectedUnits and getTargetCentroid(selectedUnits, positionCache))
-	if not referencePosition then
-		return nil
-	end
-	local targetDistances = {}
-	local originalIndices = {}
-	for targetIndex = 1, #filteredTargets do
-		local targetID = filteredTargets[targetIndex]
-		local targetPosition = getTargetPosition(targetID, positionCache)
-		targetDistances[targetID] = targetPosition and mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z) or false
-		originalIndices[targetID] = targetIndex
-	end
-	local primaryLess = closestFirst and function(distanceA, distanceB)
-		return distanceA < distanceB
-	end or function(distanceA, distanceB)
-		return distanceA > distanceB
-	end
-	tableSort(filteredTargets, function(targetIDA, targetIDB)
-		return compareNullablePrimary(targetDistances[targetIDA], targetDistances[targetIDB], originalIndices[targetIDA], originalIndices[targetIDB], primaryLess)
-	end)
-	return targetDistances
-end
-
-local function findNearestTargetID(referencePosition, targets, positionCache)
-	local nearestTargetID
-	local nearestDistance
-	for targetIndex = 1, #targets do
-		local targetID = targets[targetIndex]
-		local targetPosition = getTargetPosition(targetID, positionCache)
-		if targetPosition then
-			local targetDistance = mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z)
-			if nearestDistance == nil or targetDistance < nearestDistance then
-				nearestTargetID = targetID
-				nearestDistance = targetDistance
-			end
-		end
-	end
-	return nearestTargetID
-end
-
-local function buildNearestNeighborRoute(referencePosition, targets, positionCache)
-	local targetPositions = {}
-	local remainingTargets = {}
-	local route = {}
-	local hasTargetPosition = false
-	for targetIndex = 1, #targets do
-		local targetID = targets[targetIndex]
-		local targetPosition = getTargetPosition(targetID, positionCache)
-		targetPositions[targetID] = targetPosition or false
-		remainingTargets[targetIndex] = targetID
-		if targetPosition then
-			hasTargetPosition = true
-		end
-	end
-	if not hasTargetPosition then
-		return route, false
-	end
-	local currentPosition = referencePosition
-	local routeCount = 0
-	while #remainingTargets > 0 do
-		local nearestIndex
-		local nearestDistance
-		for targetIndex = 1, #remainingTargets do
-			local targetID = remainingTargets[targetIndex]
-			local targetPosition = targetPositions[targetID]
-			if targetPosition then
-				local targetDistance = mathDistance2dSquared(currentPosition.x, currentPosition.z, targetPosition.x, targetPosition.z)
-				if nearestDistance == nil or targetDistance < nearestDistance then
-					nearestIndex = targetIndex
-					nearestDistance = targetDistance
-				end
-			end
-		end
-		if not nearestIndex then
-			for targetIndex = 1, #remainingTargets do
-				routeCount = routeCount + 1
-				route[routeCount] = remainingTargets[targetIndex]
-			end
-			break
-		end
-		local nearestTargetID = remainingTargets[nearestIndex]
-		routeCount = routeCount + 1
-		route[routeCount] = nearestTargetID
-		currentPosition = targetPositions[nearestTargetID]
-		remainingTargets[nearestIndex] = remainingTargets[#remainingTargets]
-		remainingTargets[#remainingTargets] = nil
-	end
-	return route, hasTargetPosition
-end
-
-local function resolveTravelRouteIntoTargets(unitID, targets, reverseRoute, positionCache, routeCache)
-	local unitPosition = getTargetPosition(unitID, positionCache)
-	if not unitPosition then
-		return
-	end
-	local targetCount = #targets
-	local startTargetID = findNearestTargetID(unitPosition, targets, positionCache)
-	if not startTargetID then
-		return
-	end
-	local route = routeCache and routeCache[startTargetID]
-	if not route or #route ~= targetCount then
-		local hasTargetPosition
-		route, hasTargetPosition = buildNearestNeighborRoute(unitPosition, targets, positionCache)
-		if not hasTargetPosition then
-			return
-		end
-		if routeCache then
-			routeCache[startTargetID] = route
-		end
-	end
-	if reverseRoute then
-		for targetIndex = 1, targetCount do
-			targets[targetIndex] = route[targetCount - targetIndex + 1]
-		end
-	else
-		for targetIndex = 1, targetCount do
-			targets[targetIndex] = route[targetIndex]
-		end
-	end
-end
-
-local function copyArray(source, maxCount)
-	local result = {}
-	local count = maxCount or #source
-	if count > #source then
-		count = #source
-	end
-	for index = 1, count do
-		result[index] = source[index]
-	end
-	return result
-end
-
 local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
 	local segmentX = segmentEnd.x - segmentStart.x
 	local segmentZ = segmentEnd.z - segmentStart.z
@@ -898,259 +748,8 @@ local function giveOrders(commandID, selectedUnits, filteredTargets, options)
 	end
 end
 
-local function pickClosestUnitsForTarget(targetID, selectedUnits, unassignedUnits, requestedCount, positionCache, reachabilityCache)
-	local available = {}
-	local targetPosition = reachabilityCache and getTargetPosition(targetID, positionCache)
-	for unitIndex = 1, #selectedUnits do
-		local unitID = selectedUnits[unitIndex]
-		if unassignedUnits[unitID] then
-			local canReach = true
-			if reachabilityCache then
-				if not targetPosition then
-					canReach = false
-				else
-					local unitDefID = spGetUnitDefID(unitID)
-					canReach = unitDefID
-						and canUnitDefReachPosition(unitDefID, targetID, targetPosition, reachabilityCache)
-				end
-			end
-			if canReach then
-				tableInsert(available, unitID)
-			end
-		end
-	end
-	sortTargetsByDistance({ targetID }, available, true, targetID, positionCache)
-	local picked = {}
-	local pickCount = mathMin(requestedCount, #available)
-	for pickedIndex = 1, pickCount do
-		local unitID = available[pickedIndex]
-		picked[pickedIndex] = unitID
-		unassignedUnits[unitID] = nil
-	end
-	return picked
-end
-
-local function sortIDsByAngle(ids, center, positionCache)
-	local angles = {}
-	local originalIndices = {}
-	for idIndex = 1, #ids do
-		local id = ids[idIndex]
-		local position = getTargetPosition(id, positionCache)
-		if position then
-			angles[id] = mathAtan2(position.z - center.z, position.x - center.x)
-		end
-		originalIndices[id] = idIndex
-	end
-	local primaryLess = function(angleA, angleB)
-		return angleA < angleB
-	end
-	tableSort(ids, function(idA, idB)
-		return compareNullablePrimary(angles[idA], angles[idB], originalIndices[idA], originalIndices[idB], primaryLess)
-	end)
-end
-
-local function buildContiguousChunks(sortedIDs, chunkCount)
-	local chunks = {}
-	local minimumCount = mathFloor(#sortedIDs / chunkCount)
-	local remainderCount = #sortedIDs % chunkCount
-	local nextIndex = 1
-	for chunkIndex = 1, chunkCount do
-		local count = minimumCount
-		if chunkIndex <= remainderCount then
-			count = count + 1
-		end
-		local chunk = {}
-		for itemIndex = 1, count do
-			chunk[itemIndex] = sortedIDs[nextIndex]
-			nextIndex = nextIndex + 1
-		end
-		chunks[chunkIndex] = chunk
-	end
-	return chunks
-end
-
-local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetID, positionCache)
-	local center = getTargetCentroid(selectedUnits, positionCache)
-	if center then
-		return center
-	end
-	center = getTargetPosition(referenceTargetID, positionCache)
-	if center then
-		return center
-	end
-	return getTargetCentroid(filteredTargets, positionCache)
-end
-
-local function unitReceivesExtraOrder(unitIndex, unitCount, extraUnitCount)
-	if extraUnitCount <= 0 or unitCount < 1 then
-		return false
-	end
-	local previousSlot = mathFloor((unitIndex - 1) * extraUnitCount / unitCount)
-	local currentSlot = mathFloor(unitIndex * extraUnitCount / unitCount)
-	return currentSlot > previousSlot
-end
-
-local function buildEvenOrderQuotas(availableCounts)
-	local unitCount = #availableCounts
-	local quotas = {}
-	local totalAvailable = 0
-	for unitIndex = 1, unitCount do
-		local availableCount = availableCounts[unitIndex]
-		totalAvailable = totalAvailable + availableCount
-		quotas[unitIndex] = 0
-	end
-	if unitCount < 1 or totalAvailable < 1 then
-		return quotas, false
-	end
-	local commandBudget = COMMAND_LIMIT
-	if unitCount > commandBudget then
-		commandBudget = unitCount
-	end
-	if totalAvailable <= commandBudget then
-		for unitIndex = 1, unitCount do
-			quotas[unitIndex] = availableCounts[unitIndex]
-		end
-		return quotas, false
-	end
-	local baseOrders = mathFloor(commandBudget / unitCount)
-	local extraUnitCount = commandBudget - (baseOrders * unitCount)
-	local issuedOrders = 0
-	for unitIndex = 1, unitCount do
-		local quota = baseOrders
-		if unitReceivesExtraOrder(unitIndex, unitCount, extraUnitCount) then
-			quota = quota + 1
-		end
-		local availableCount = availableCounts[unitIndex]
-		if quota > availableCount then
-			quota = availableCount
-		end
-		quotas[unitIndex] = quota
-		issuedOrders = issuedOrders + quota
-	end
-	local leftoverOrders = commandBudget - issuedOrders
-	while leftoverOrders > 0 do
-		local lowestQuota
-		local lowestUnitIndex
-		for unitIndex = 1, unitCount do
-			if quotas[unitIndex] < availableCounts[unitIndex] then
-				if lowestQuota == nil or quotas[unitIndex] < lowestQuota then
-					lowestQuota = quotas[unitIndex]
-					lowestUnitIndex = unitIndex
-				end
-			end
-		end
-		if lowestUnitIndex == nil then
-			break
-		end
-		quotas[lowestUnitIndex] = quotas[lowestUnitIndex] + 1
-		leftoverOrders = leftoverOrders - 1
-	end
-	return quotas, true
-end
-
-local function sliceTargetsToCount(targets, keepCount, requiredTargetID)
-	local targetCount = #targets
-	if keepCount >= targetCount or keepCount < 1 then
-		return targets
-	end
-	local slicedTargets = {}
-	if keepCount == 1 then
-		local keptTargetID = targets[1]
-		if requiredTargetID then
-			for targetIndex = 1, targetCount do
-				if targets[targetIndex] == requiredTargetID then
-					keptTargetID = requiredTargetID
-					break
-				end
-			end
-		end
-		slicedTargets[1] = keptTargetID
-		return slicedTargets
-	end
-	local sourceSpan = targetCount - 1
-	local keepSpan = keepCount - 1
-	local keptRequiredTarget = false
-	for keepIndex = 1, keepCount do
-		local sourceIndex = mathFloor((keepIndex - 1) * sourceSpan / keepSpan) + 1
-		local targetID = targets[sourceIndex]
-		slicedTargets[keepIndex] = targetID
-		if targetID == requiredTargetID then
-			keptRequiredTarget = true
-		end
-	end
-	if requiredTargetID and not keptRequiredTarget then
-		for targetIndex = 1, targetCount do
-			if targets[targetIndex] == requiredTargetID then
-				slicedTargets[1] = requiredTargetID
-				break
-			end
-		end
-	end
-	return slicedTargets
-end
-
-local function giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, options, positionCache, reachabilityCache, targets, singleUnitArray, routeCache)
-	local unitTargets = sourceTargets
-	if reachabilityCache then
-		local unitDefID = spGetUnitDefID(unitID)
-		unitTargets = filterTargetsReachableByUnitDef(unitDefID, sourceTargets, positionCache, reachabilityCache)
-	end
-	if #unitTargets == 0 then
-		return
-	end
-	for targetIndex = 1, #unitTargets do
-		targets[targetIndex] = unitTargets[targetIndex]
-	end
-	for targetIndex = #unitTargets + 1, #targets do
-		targets[targetIndex] = nil
-	end
-	resolveTravelRouteIntoTargets(unitID, targets, options.meta and not options.shift, positionCache, routeCache)
-	singleUnitArray[1] = unitID
-	giveOrders(commandID, singleUnitArray, targets, options)
-end
-
-local function giveOrdersPerUnitByTravelRoute(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache)
-	local BUCKET_COUNT = 8
-	local CENTROID_SAMPLE_UNIT_COUNT = 10
+local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, distributeEvenly)
 	local FULL_TURN = mathPi * 2
-	local BUCKET_ARC = FULL_TURN / BUCKET_COUNT
-	local singleUnitArray = {}
-	local targets = {}
-	local sharedRouteCaches = {}
-	local routeCachesByUnitDefID = {}
-	local needsReachability = COMMANDS_REQUIRING_CAPABILITY[commandID] and reachabilityCache
-	local filteredTargetCount = #filteredTargets
-	local selectedUnitCount = #selectedUnits
-	local uncappedOrderCount = selectedUnitCount * filteredTargetCount
-	local totalOrderBudget = uncappedOrderCount
-	local baseOrdersPerUnit = filteredTargetCount
-	local maxOrdersPerUnit = filteredTargetCount
-	if maxOrdersPerUnit > MAX_ORDERS_PER_UNIT then
-		maxOrdersPerUnit = MAX_ORDERS_PER_UNIT
-	end
-	if selectedUnitCount > 0 and filteredTargetCount > 0 and uncappedOrderCount > COMMAND_LIMIT then
-		baseOrdersPerUnit = mathFloor(COMMAND_LIMIT / filteredTargetCount)
-		totalOrderBudget = COMMAND_LIMIT
-		if selectedUnitCount > COMMAND_LIMIT and totalOrderBudget < selectedUnitCount then
-			totalOrderBudget = selectedUnitCount
-		end
-		if totalOrderBudget > uncappedOrderCount then
-			totalOrderBudget = uncappedOrderCount
-		end
-		if totalOrderBudget < 1 then
-			totalOrderBudget = 1
-		end
-	end
-	local ordersAtUnitCap = selectedUnitCount * maxOrdersPerUnit
-	if ordersAtUnitCap < totalOrderBudget then
-		totalOrderBudget = ordersAtUnitCap
-	end
-	if baseOrdersPerUnit > maxOrdersPerUnit then
-		baseOrdersPerUnit = maxOrdersPerUnit
-	end
-	if selectedUnitCount > 0 and filteredTargetCount > 0 then
-		spring.Echo("Screen Select Commands", "share", COMMAND_LIMIT / filteredTargetCount, "base", baseOrdersPerUnit, "orders", totalOrderBudget / selectedUnitCount, "units", selectedUnitCount, "uncapped", uncappedOrderCount, "totalTarget", filteredTargetCount, "totalOrders", totalOrderBudget)
-	end
 
 	local function wrapAngle(angle)
 		local wrappedAngle = angle % FULL_TURN
@@ -1160,299 +759,382 @@ local function giveOrdersPerUnitByTravelRoute(commandID, selectedUnits, filtered
 		return wrappedAngle
 	end
 
-	local function bucketIndexForAngle(angle)
-		local snappedAngle = wrapAngle(angle + (BUCKET_ARC * 0.5))
-		return (mathFloor(snappedAngle / BUCKET_ARC) % BUCKET_COUNT) + 1
+	local function rotationRank(angle, startAngle)
+		local delta = angle - startAngle
+		if delta < 0 then
+			delta = delta + FULL_TURN
+		end
+		return delta
 	end
 
-	local function buildRayBucketTargetLists()
-		local pool = copyArray(selectedUnits)
-		local sampleUnits = {}
-		local sampleCount = mathMin(CENTROID_SAMPLE_UNIT_COUNT, #pool)
-		for sampleIndex = 1, sampleCount do
-			local pickIndex = math.random(#pool)
-			sampleUnits[sampleIndex] = pool[pickIndex]
-			pool[pickIndex] = pool[#pool]
-			pool[#pool] = nil
-		end
-		local centroid = getTargetCentroid(sampleUnits, positionCache)
-		if not centroid then
-			centroid = getTargetCentroid(selectedUnits, positionCache)
-		end
-		if not centroid then
-			local baseOrderCount = mathFloor(totalOrderBudget / selectedUnitCount)
-			local extraOrderCount = totalOrderBudget - (baseOrderCount * selectedUnitCount)
-			local targetsByUnitID = {}
-			for unitIndex = 1, selectedUnitCount do
-				local orderCount = baseOrderCount
-				if unitIndex <= extraOrderCount then
-					orderCount = orderCount + 1
-				end
-				if orderCount > maxOrdersPerUnit then
-					orderCount = maxOrdersPerUnit
-				end
-				local unitTargets = {}
-				for targetIndex = 1, orderCount do
-					unitTargets[targetIndex] = filteredTargets[targetIndex]
-				end
-				targetsByUnitID[selectedUnits[unitIndex]] = unitTargets
-			end
-			return targetsByUnitID
-		end
-		local radialUnits = {}
-		for unitIndex = 1, selectedUnitCount do
-			local unitID = selectedUnits[unitIndex]
-			local unitPosition = getTargetPosition(unitID, positionCache)
-			local unitAngle = 0
-			if unitPosition then
-				unitAngle = mathAtan2(unitPosition.z - centroid.z, unitPosition.x - centroid.x)
-			end
-			radialUnits[unitIndex] = {
-				unitID = unitID,
-				angle = unitAngle,
-				bucketIndex = bucketIndexForAngle(unitAngle),
-				originalIndex = unitIndex,
-			}
-		end
-		tableSort(radialUnits, function(unitA, unitB)
-			if unitA.angle == unitB.angle then
-				return unitA.originalIndex < unitB.originalIndex
-			end
-			return unitA.angle < unitB.angle
-		end)
-		local targetOffsets = {}
-		local minimumDistance
-		local maximumDistance
-		for targetIndex = 1, filteredTargetCount do
-			local targetID = filteredTargets[targetIndex]
-			local targetPosition = getTargetPosition(targetID, positionCache)
-			local offsetX = 0
-			local offsetZ = 0
-			local distance = 0
-			local hasPosition = targetPosition ~= nil
-			if hasPosition then
-				offsetX = targetPosition.x - centroid.x
-				offsetZ = targetPosition.z - centroid.z
-				distance = math.sqrt((offsetX * offsetX) + (offsetZ * offsetZ))
-			end
-			targetOffsets[targetIndex] = {
-				targetID = targetID,
-				offsetX = offsetX,
-				offsetZ = offsetZ,
-				distance = distance,
-				hasPosition = hasPosition,
-				originalIndex = targetIndex,
-			}
-			if hasPosition then
-				if minimumDistance == nil or distance < minimumDistance then
-					minimumDistance = distance
-				end
-				if maximumDistance == nil or distance > maximumDistance then
-					maximumDistance = distance
-				end
-			end
-		end
-		if minimumDistance == nil then
-			minimumDistance = 0
-			maximumDistance = 0
-		end
-		for targetIndex = 1, filteredTargetCount do
-			if not targetOffsets[targetIndex].hasPosition then
-				targetOffsets[targetIndex].distance = maximumDistance
-			end
-		end
-		local distanceSpan = maximumDistance - minimumDistance
-		local rankedTargetsByBucket = {}
-		for bucketIndex = 1, BUCKET_COUNT do
-			local rayAngle = (bucketIndex - 1) * BUCKET_ARC
-			local rayX = mathCos(rayAngle)
-			local rayZ = mathSin(rayAngle)
-			local rankedTargets = {}
-			for targetIndex = 1, filteredTargetCount do
-				local targetOffset = targetOffsets[targetIndex]
-				local closenessScore = 1
-				if distanceSpan > 0 then
-					closenessScore = 1 - ((targetOffset.distance - minimumDistance) / distanceSpan)
-				end
-				local directionScore = 1
-				if targetOffset.distance > 0 then
-					local directionX = targetOffset.offsetX / targetOffset.distance
-					local directionZ = targetOffset.offsetZ / targetOffset.distance
-					local alignment = (directionX * rayX) + (directionZ * rayZ)
-					directionScore = (alignment + 1) * 0.5
-				end
-				rankedTargets[targetIndex] = {
-					targetID = targetOffset.targetID,
-					score = closenessScore + directionScore,
-					originalIndex = targetOffset.originalIndex,
+	local function collectAngledEntries(ids, center, positionCache)
+		local entries = {}
+		local unpositionedIDs = {}
+		for index = 1, #ids do
+			local id = ids[index]
+			local position = getTargetPosition(id, positionCache)
+			if position and center then
+				entries[#entries + 1] = {
+					id = id,
+					angle = wrapAngle(mathAtan2(position.z - center.z, position.x - center.x)),
 				}
+			else
+				unpositionedIDs[#unpositionedIDs + 1] = id
 			end
-			tableSort(rankedTargets, function(rankA, rankB)
-				if rankA.score == rankB.score then
-					return rankA.originalIndex < rankB.originalIndex
-				end
-				return rankA.score > rankB.score
-			end)
-			local rankedTargetIDs = {}
-			for rankIndex = 1, #rankedTargets do
-				rankedTargetIDs[rankIndex] = rankedTargets[rankIndex].targetID
-			end
-			rankedTargetsByBucket[bucketIndex] = rankedTargetIDs
 		end
-		local radialCount = #radialUnits
-		local ordersByRadialIndex = {}
-		local takenByRadialIndex = {}
-		for radialIndex = 1, radialCount do
-			ordersByRadialIndex[radialIndex] = {}
-			takenByRadialIndex[radialIndex] = {}
+		return entries, unpositionedIDs
+	end
+
+	local function findSweepStartAngle(entryLists)
+		local angles = {}
+		for listIndex = 1, #entryLists do
+			local entries = entryLists[listIndex]
+			for index = 1, #entries do
+				angles[#angles + 1] = entries[index].angle
+			end
 		end
-		local takesByTargetID = {}
-		local currentTake = 1
-		local issuedOrderCount = 0
-		local stalledAfterTakeAdvance = false
-		while issuedOrderCount < totalOrderBudget do
-			local lowestOrderCount
-			for radialIndex = 1, radialCount do
-				local orderCount = #ordersByRadialIndex[radialIndex]
-				if orderCount < maxOrdersPerUnit and (lowestOrderCount == nil or orderCount < lowestOrderCount) then
-					lowestOrderCount = orderCount
+		local angleCount = #angles
+		if angleCount < 1 then
+			return 0
+		end
+		tableSort(angles)
+		if angleCount < 2 then
+			return angles[1]
+		end
+		local largestGap = -1
+		local seamAngle = angles[1]
+		for index = 1, angleCount do
+			local angle = angles[index]
+			local nextAngle
+			if index == angleCount then
+				nextAngle = angles[1] + FULL_TURN
+			else
+				nextAngle = angles[index + 1]
+			end
+			local gap = nextAngle - angle
+			if gap > largestGap then
+				largestGap = gap
+				seamAngle = wrapAngle(angle + (gap * 0.5))
+			end
+		end
+		return seamAngle
+	end
+
+	local function sortEntriesByRotation(entries, startAngle)
+		tableSort(entries, function(entryA, entryB)
+			local rankA = rotationRank(entryA.angle, startAngle)
+			local rankB = rotationRank(entryB.angle, startAngle)
+			if rankA == rankB then
+				return entryA.id < entryB.id
+			end
+			return rankA < rankB
+		end)
+	end
+
+	local function idsFromEntries(entries)
+		local ids = {}
+		for index = 1, #entries do
+			ids[index] = entries[index].id
+		end
+		return ids
+	end
+
+	local function buildEvenSlices(ids, sliceCount)
+		local idCount = #ids
+		if sliceCount > idCount then
+			sliceCount = idCount
+		end
+		if sliceCount < 1 then
+			sliceCount = 1
+		end
+		local baseCount = mathFloor(idCount / sliceCount)
+		local extraCount = idCount % sliceCount
+		local slices = {}
+		local nextIndex = 1
+		for sliceIndex = 1, sliceCount do
+			local sliceSize = baseCount
+			if sliceIndex <= extraCount then
+				sliceSize = sliceSize + 1
+			end
+			local slice = {}
+			for offset = 1, sliceSize do
+				slice[offset] = ids[nextIndex]
+				nextIndex = nextIndex + 1
+			end
+			slices[sliceIndex] = slice
+		end
+		return slices
+	end
+
+	local function appendToSmallestSlice(slices, id)
+		local smallestIndex = 1
+		for sliceIndex = 2, #slices do
+			if #slices[sliceIndex] < #slices[smallestIndex] then
+				smallestIndex = sliceIndex
+			end
+		end
+		local slice = slices[smallestIndex]
+		slice[#slice + 1] = id
+	end
+
+	local function sortIDsByDistance(ids, origin, positionCache)
+		if not origin or #ids < 2 then
+			return
+		end
+		local distances = {}
+		for index = 1, #ids do
+			local id = ids[index]
+			local position = getTargetPosition(id, positionCache)
+			if position then
+				distances[id] = mathDistance2dSquared(origin.x, origin.z, position.x, position.z)
+			else
+				distances[id] = mathHuge
+			end
+		end
+		tableSort(ids, function(idA, idB)
+			local distanceA = distances[idA]
+			local distanceB = distances[idB]
+			if distanceA == distanceB then
+				return idA < idB
+			end
+			return distanceA < distanceB
+		end)
+	end
+
+	local function copyTargetIDs(sourceIDs)
+		local copiedIDs = {}
+		for index = 1, #sourceIDs do
+			copiedIDs[index] = sourceIDs[index]
+		end
+		return copiedIDs
+	end
+
+	local function worstCaseGroupedOrderCount(unitCount, targetCount, groupCount)
+		local unitBase = mathFloor(unitCount / groupCount)
+		local unitRemainder = unitCount % groupCount
+		local targetBase = mathFloor(targetCount / groupCount)
+		local targetRemainder = targetCount % groupCount
+		local orders = 0
+		local largeUnitGroupsRemaining = unitRemainder
+		local largeTargetGroupsRemaining = targetRemainder
+		for groupIndex = 1, groupCount do
+			local unitsInGroup = unitBase
+			if largeUnitGroupsRemaining > 0 then
+				unitsInGroup = unitsInGroup + 1
+				largeUnitGroupsRemaining = largeUnitGroupsRemaining - 1
+			end
+			local targetsInGroup = targetBase
+			if largeTargetGroupsRemaining > 0 then
+				targetsInGroup = targetsInGroup + 1
+				largeTargetGroupsRemaining = largeTargetGroupsRemaining - 1
+			end
+			orders = orders + (unitsInGroup * targetsInGroup)
+		end
+		return orders
+	end
+
+	local function findFewestDriverGroupCount(unitCount, targetCount)
+		if unitCount < 2 or targetCount < 2 then
+			return 1
+		end
+		if (unitCount * targetCount) < COMMAND_LIMIT then
+			return 1
+		end
+		local maximumGroupCount = unitCount
+		if targetCount < maximumGroupCount then
+			maximumGroupCount = targetCount
+		end
+		for groupCount = 2, maximumGroupCount do
+			if worstCaseGroupedOrderCount(unitCount, targetCount, groupCount) < COMMAND_LIMIT then
+				return groupCount
+			end
+		end
+		return maximumGroupCount
+	end
+
+	local function trimUnitTargetsToBudget(targetsByUnit, unitIDs, orderBudget)
+		local totalOrders = 0
+		local orderCounts = {}
+		for unitIndex = 1, #unitIDs do
+			local orderCount = #(targetsByUnit[unitIDs[unitIndex]] or {})
+			orderCounts[unitIndex] = orderCount
+			totalOrders = totalOrders + orderCount
+		end
+		if totalOrders <= orderBudget then
+			return false
+		end
+		local excessOrders = totalOrders - orderBudget
+		while excessOrders > 0 do
+			local longestUnitIndex = 1
+			for unitIndex = 2, #unitIDs do
+				if orderCounts[unitIndex] > orderCounts[longestUnitIndex] then
+					longestUnitIndex = unitIndex
 				end
 			end
-			if lowestOrderCount == nil then
+			if orderCounts[longestUnitIndex] < 1 then
 				break
 			end
-			local sweepMadeProgress = false
-			local startRadialIndex = math.random(radialCount)
-			for stepIndex = 0, radialCount - 1 do
-				if issuedOrderCount >= totalOrderBudget then
-					break
-				end
-				local radialIndex = ((startRadialIndex - 1 + stepIndex) % radialCount) + 1
-				local unitOrders = ordersByRadialIndex[radialIndex]
-				if #unitOrders == lowestOrderCount then
-					local rankedTargetIDs = rankedTargetsByBucket[radialUnits[radialIndex].bucketIndex]
-					local takenTargets = takenByRadialIndex[radialIndex]
-					for rankIndex = 1, #rankedTargetIDs do
-						local targetID = rankedTargetIDs[rankIndex]
-						local takes = takesByTargetID[targetID] or 0
-						if takes < currentTake and not takenTargets[targetID] then
-							unitOrders[#unitOrders + 1] = targetID
-							takenTargets[targetID] = true
-							takesByTargetID[targetID] = takes + 1
-							issuedOrderCount = issuedOrderCount + 1
-							sweepMadeProgress = true
-							break
-						end
-					end
+			orderCounts[longestUnitIndex] = orderCounts[longestUnitIndex] - 1
+			excessOrders = excessOrders - 1
+		end
+		for unitIndex = 1, #unitIDs do
+			local targetIDs = targetsByUnit[unitIDs[unitIndex]]
+			if targetIDs then
+				local keepCount = orderCounts[unitIndex]
+				for targetIndex = keepCount + 1, #targetIDs do
+					targetIDs[targetIndex] = nil
 				end
 			end
-			if sweepMadeProgress then
-				stalledAfterTakeAdvance = false
+		end
+		return true
+	end
+
+	local function issueUnitTargetOrders(commandID, unitID, orderedTargetIDs, options, positionCache)
+		local targetCount = #orderedTargetIDs
+		if targetCount < 1 then
+			return
+		end
+		local orders = {}
+		local setTargetCommand = commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
+		if setTargetCommand or not options.meta then
+			local shiftedOptionBits = getCommandOptionBits(options, true)
+			local baseOptionBits = getCommandOptionBits(options, false)
+			for targetIndex = 1, targetCount do
+				local optionBits = baseOptionBits
+				if targetIndex > 1 or options.shift then
+					optionBits = shiftedOptionBits
+				end
+				orders[targetIndex] = {
+					commandID,
+					{ toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+					optionBits,
+				}
+			end
+		else
+			local innerOptionBits = getCommandOptionBits(options, false)
+			local insertionPosition = 0
+			local reverseOrder = true
+			if options.shift then
+				local targetCentroid = getTargetCentroid(orderedTargetIDs, positionCache)
+				local queuedInsertionPosition = findQueueInsertionPosition(unitID, targetCentroid, positionCache)
+				if queuedInsertionPosition == nil then
+					insertionPosition = -1
+					reverseOrder = false
+				else
+					insertionPosition = queuedInsertionPosition
+				end
+			end
+			if reverseOrder then
+				local orderCount = 0
+				for targetIndex = targetCount, 1, -1 do
+					orderCount = orderCount + 1
+					orders[orderCount] = {
+						CMD.INSERT,
+						{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+						CMD.OPT_ALT,
+					}
+				end
 			else
-				if stalledAfterTakeAdvance then
-					break
+				for targetIndex = 1, targetCount do
+					orders[targetIndex] = {
+						CMD.INSERT,
+						{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+						CMD.OPT_ALT,
+					}
 				end
-				currentTake = currentTake + 1
-				stalledAfterTakeAdvance = true
 			end
 		end
-		local targetsByUnitID = {}
-		for radialIndex = 1, radialCount do
-			targetsByUnitID[radialUnits[radialIndex].unitID] = ordersByRadialIndex[radialIndex]
-		end
-		return targetsByUnitID
+		spGiveOrderArrayToUnit(unitID, orders)
 	end
 
-	local targetsByUnitID
-	if totalOrderBudget < uncappedOrderCount then
-		targetsByUnitID = buildRayBucketTargetLists()
-	end
-	for unitIndex = 1, selectedUnitCount do
-		local unitID = selectedUnits[unitIndex]
-		local sourceTargets = filteredTargets
-		local routeCacheGroup = sharedRouteCaches
-		if targetsByUnitID then
-			sourceTargets = targetsByUnitID[unitID]
-			routeCacheGroup = nil
-		end
-		if sourceTargets and #sourceTargets > 0 then
-			local unitReachabilityCache = needsReachability and reachabilityCache or nil
-			local routeCache
-			if routeCacheGroup then
-				if unitReachabilityCache then
-					local unitDefID = spGetUnitDefID(unitID)
-					if unitDefID then
-						routeCacheGroup = routeCachesByUnitDefID[unitDefID]
-						if not routeCacheGroup then
-							routeCacheGroup = {}
-							routeCachesByUnitDefID[unitDefID] = routeCacheGroup
-						end
-					end
-				end
-				local orderCount = #sourceTargets
-				routeCache = routeCacheGroup[orderCount]
-				if not routeCache then
-					routeCache = {}
-					routeCacheGroup[orderCount] = routeCache
-				end
+	local function assignSliceTargets(targetsByUnit, unitIDs, sharedTargets, needsReachability)
+		for unitIndex = 1, #unitIDs do
+			local unitID = unitIDs[unitIndex]
+			local unitTargets = copyTargetIDs(sharedTargets)
+			if needsReachability then
+				local unitDefID = spGetUnitDefID(unitID)
+				unitTargets = filterTargetsReachableByUnitDef(unitDefID, unitTargets, positionCache, reachabilityCache)
 			end
-			giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, options, positionCache, unitReachabilityCache, targets, singleUnitArray, routeCache)
+			targetsByUnit[unitID] = unitTargets
 		end
 	end
-end
 
-local function givePartitionedOrders(commandID, selectedUnits, filteredTargets, options, referenceTargetID, positionCache, reachabilityCache)
-	local needsReachability = COMMANDS_REQUIRING_CAPABILITY[commandID]
-	if #filteredTargets >= #selectedUnits then
-		local center = resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetID, positionCache)
-		local sortedTargets = copyArray(filteredTargets)
-		local sortedUnits = copyArray(selectedUnits)
-		if center then
-			sortIDsByAngle(sortedTargets, center, positionCache)
-			sortIDsByAngle(sortedUnits, center, positionCache)
-		end
-		local chunks = buildContiguousChunks(sortedTargets, #sortedUnits)
-		local availableCounts = {}
-		for unitIndex = 1, #sortedUnits do
-			availableCounts[unitIndex] = #chunks[unitIndex]
-		end
-		local orderQuotas = buildEvenOrderQuotas(availableCounts)
-		local singleUnitArray = {}
-		local targets = {}
-		for unitIndex = 1, #sortedUnits do
-			local orderCount = orderQuotas[unitIndex]
-			if orderCount > MAX_ORDERS_PER_UNIT then
-				orderCount = MAX_ORDERS_PER_UNIT
-			end
-			if orderCount > 0 then
-				local unitTargets = chunks[unitIndex]
-				if orderCount < #unitTargets then
-					unitTargets = sliceTargetsToCount(unitTargets, orderCount, referenceTargetID)
-				end
-				giveUnitTravelRouteOrders(commandID, sortedUnits[unitIndex], unitTargets, options, positionCache, needsReachability and reachabilityCache or nil, targets, singleUnitArray, nil)
-			end
+	local unitCount = #selectedUnits
+	local targetCount = #filteredTargets
+	if unitCount < 1 or targetCount < 1 then
+		return false
+	end
+	local groupCount = 1
+	if distributeEvenly then
+		groupCount = unitCount
+		if targetCount < groupCount then
+			groupCount = targetCount
 		end
 	else
-		local minimumCount = mathFloor(#selectedUnits / #filteredTargets)
-		local remainderCount = #selectedUnits % #filteredTargets
-		local unassignedUnits = {}
-		for unitIndex = 1, #selectedUnits do
-			unassignedUnits[selectedUnits[unitIndex]] = true
-		end
-		local sortedTargets = copyArray(filteredTargets)
-		sortTargetsByDistance(selectedUnits, sortedTargets, true, referenceTargetID, positionCache)
-		for targetIndex = 1, #sortedTargets do
-			local targetID = sortedTargets[targetIndex]
-			local count = minimumCount
-			if targetIndex <= remainderCount then
-				count = count + 1
+		groupCount = findFewestDriverGroupCount(unitCount, targetCount)
+	end
+	local needsReachability = reachabilityCache and COMMANDS_REQUIRING_CAPABILITY[commandID]
+	local targetsByUnit = {}
+	if groupCount < 2 then
+		local sharedTargets = copyTargetIDs(filteredTargets)
+		local origin = getTargetCentroid(selectedUnits, positionCache) or getTargetCentroid(filteredTargets, positionCache)
+		sortIDsByDistance(sharedTargets, origin, positionCache)
+		assignSliceTargets(targetsByUnit, selectedUnits, sharedTargets, needsReachability)
+	else
+		local center = getTargetCentroid(selectedUnits, positionCache) or getTargetCentroid(filteredTargets, positionCache)
+		local targetEntries, unpositionedTargetIDs = collectAngledEntries(filteredTargets, center, positionCache)
+		local unitEntries, unpositionedUnitIDs = collectAngledEntries(selectedUnits, center, positionCache)
+		local targetSlices
+		local unitSlices
+		if not center or #targetEntries < 1 or #unitEntries < 1 then
+			targetSlices = buildEvenSlices(filteredTargets, groupCount)
+			unitSlices = buildEvenSlices(selectedUnits, groupCount)
+		else
+			if #targetEntries < groupCount then
+				groupCount = #targetEntries
 			end
-			local assignedUnits = pickClosestUnitsForTarget(targetID, selectedUnits, unassignedUnits, count, positionCache, needsReachability and reachabilityCache or nil)
-			if #assignedUnits > 0 then
-				giveOrders(commandID, assignedUnits, { targetID }, options)
+			if #unitEntries < groupCount then
+				groupCount = #unitEntries
+			end
+			local startAngle = findSweepStartAngle({ targetEntries, unitEntries })
+			sortEntriesByRotation(targetEntries, startAngle)
+			sortEntriesByRotation(unitEntries, startAngle)
+			targetSlices = buildEvenSlices(idsFromEntries(targetEntries), groupCount)
+			unitSlices = buildEvenSlices(idsFromEntries(unitEntries), groupCount)
+			for unpositionedIndex = 1, #unpositionedTargetIDs do
+				appendToSmallestSlice(targetSlices, unpositionedTargetIDs[unpositionedIndex])
+			end
+			for unpositionedIndex = 1, #unpositionedUnitIDs do
+				appendToSmallestSlice(unitSlices, unpositionedUnitIDs[unpositionedIndex])
+			end
+			for sliceIndex = 1, #targetSlices do
+				local origin = getTargetCentroid(unitSlices[sliceIndex], positionCache) or center
+				sortIDsByDistance(targetSlices[sliceIndex], origin, positionCache)
+			end
+		end
+		local sliceCount = #unitSlices
+		if #targetSlices < sliceCount then
+			sliceCount = #targetSlices
+		end
+		for sliceIndex = 1, sliceCount do
+			assignSliceTargets(targetsByUnit, unitSlices[sliceIndex], targetSlices[sliceIndex], needsReachability)
+		end
+		for unitIndex = 1, unitCount do
+			local unitID = selectedUnits[unitIndex]
+			if not targetsByUnit[unitID] then
+				targetsByUnit[unitID] = {}
 			end
 		end
 	end
+	local ordersWereTrimmed = trimUnitTargetsToBudget(targetsByUnit, selectedUnits, ORDER_BUDGET)
+	for unitIndex = 1, unitCount do
+		local unitID = selectedUnits[unitIndex]
+		local unitTargets = targetsByUnit[unitID]
+		if unitTargets and #unitTargets > 0 then
+			issueUnitTargetOrders(commandID, unitID, unitTargets, options, positionCache)
+		end
+	end
+	return ordersWereTrimmed
 end
 
 local function commandRule(targetTypes, targetAllegiance)
@@ -1855,19 +1537,9 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
-	local ordersWereSliced = false
-	local selectedUnitCount = #selectedUnits
 	local filteredTargetCount = #filteredTargets
-	if not options.alt and selectedUnitCount > 0 and filteredTargetCount > 0 then
-		ordersWereSliced = selectedUnitCount * filteredTargetCount > COMMAND_LIMIT or filteredTargetCount > MAX_ORDERS_PER_UNIT
-	elseif options.alt and filteredTargetCount > selectedUnitCount then
-		ordersWereSliced = filteredTargetCount > COMMAND_LIMIT or filteredTargetCount > selectedUnitCount * MAX_ORDERS_PER_UNIT
-	end
 	if circleRadius then
 		showCommandCircleFlash(centerX, centerY, circleRadius, issueCommandID)
-	end
-	if ordersWereSliced then
-		showRangeReducedNotice(issueCommandID)
 	end
 	if filteredTargetCount == 0 then
 		if #builderUnits > 0 then
@@ -1879,10 +1551,9 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	if queueEndByUnitID and options.shift then
 		removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
 	end
-	if options.alt then
-		givePartitionedOrders(issueCommandID, selectedUnits, filteredTargets, options, referenceTargetID, positionCache, reachabilityCache)
-	else
-		giveOrdersPerUnitByTravelRoute(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache)
+	local ordersWereTrimmed = giveDistributedOrders(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, options.alt == true)
+	if ordersWereTrimmed then
+		showRangeReducedNotice(issueCommandID)
 	end
 	finishMassOrderCommandState(issueCommandID, options)
 	return true
