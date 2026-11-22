@@ -240,8 +240,8 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param heightOffset number? (default: `0`)
 ---@param includeGhosts boolean? (default: `false`)
 ---@return ("unit"|"feature"|"ground"|"sky"|"ghost")? description of traced object or position
----@return UnitID|FeatureID|xyz|nil result Unit or feature ID, world coordinates, or the frozen ghost aimpoint
----@return xyz? ghostAimPos Last observed aimpoint for a remembered model with radar contact
+---@return UnitID|FeatureID|xyz|nil result Unit or feature ID, world coordinates, or the ghost sighting ID
+---@return xyz? ghostAimPos Last observed aimpoint for a remembered model
 local function traceScreenRay(
 	screenX,
 	screenY,

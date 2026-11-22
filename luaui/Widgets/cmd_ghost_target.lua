@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local keepHeight = CMD.OPT_KEEP_HEIGHT
+local getGhostPosition = Spring.GetGhostPosition
 local press
 local setGhostHighlight = Spring.SetGhostHighlight
 local commands = {
@@ -22,7 +22,7 @@ local commands = {
 }
 
 function widget:Initialize()
-	if not keepHeight then
+	if not getGhostPosition then
 		widgetHandler:RemoveWidget(self)
 	end
 end
@@ -61,10 +61,8 @@ function widget:Update()
 			and not Spring.IsAboveMiniMap(x, y)
 			and widgetHandler:ModalAllows(self)
 		then
-			local kind, position, ghostAimPos = traceTarget(x, y)
-			if kind == "ghost" then
-				aim = position
-			elseif kind == "unit" then
+			local kind, _, ghostAimPos = traceTarget(x, y)
+			if kind == "ghost" or kind == "unit" then
 				aim = ghostAimPos
 			end
 		end
@@ -85,7 +83,7 @@ function widget:Update()
 end
 
 function widget:CommandNotify(command, params, options)
-	if not keepHeight or not press or press.command ~= command then
+	if not getGhostPosition or not press or press.command ~= command then
 		return false
 	end
 	local click = press
@@ -101,12 +99,11 @@ function widget:CommandNotify(command, params, options)
 	local kind, target, ghostAimPos = traceTarget(x, y)
 	---@type CreateCommandParams
 	local replacementParams
-	local replacementOptions = table.copy(options)
-	if kind == "ghost" then
-		---@cast target xyz
-		replacementParams = { target[1], target[2], target[3] }
-		replacementOptions.keepheight = true
-		replacementOptions.coded = math.bit_or(options.coded or 0, keepHeight)
+	if kind == "ghost" and target and target ~= 0 then
+		command = command == CMD.ATTACK and GameCMD.GHOST_ATTACK or GameCMD.GHOST_SET_TARGET
+		replacementParams = {
+			target --[[@as integer]],
+		}
 	elseif kind == "unit" and ghostAimPos then
 		replacementParams = {
 			target --[[@as UnitID]],
@@ -115,8 +112,8 @@ function widget:CommandNotify(command, params, options)
 		return false
 	end
 	-- Let queue insertion and other command widgets process the resolved point, too.
-	if not widgetHandler:CommandNotify(command, replacementParams, replacementOptions) then
-		Spring.GiveOrder(command, replacementParams, replacementOptions.coded)
+	if not widgetHandler:CommandNotify(command, replacementParams, options) then
+		Spring.GiveOrder(command, replacementParams, options.coded)
 	end
 	return true
 end

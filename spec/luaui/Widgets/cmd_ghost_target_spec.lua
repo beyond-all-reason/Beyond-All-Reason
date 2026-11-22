@@ -26,8 +26,14 @@ describe("Ghost Target single clicks", function()
 				end,
 			}, { __index = math }),
 			CMD = { ATTACK = 20, OPT_KEEP_HEIGHT = 1 },
-			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
+			GameCMD = {
+				UNIT_SET_TARGET = 34923,
+				UNIT_SET_TARGET_NO_GROUND = 34924,
+				GHOST_ATTACK = 34926,
+				GHOST_SET_TARGET = 34927,
+			},
 			Spring = {
+				GetGhostPosition = function() end,
 				SetGhostHighlight = function(...)
 					highlights[#highlights + 1] = { ... }
 				end,
@@ -51,7 +57,10 @@ describe("Ghost Target single clicks", function()
 					if radarContact then
 						return "unit", 321, { 110, 80, 105 }
 					end
-					return kind, { 110, 80, 105 }
+					if kind == "ghost" then
+						return kind, 57, { 110, 80, 105 }
+					end
+					return kind, 123
 				end,
 				GiveOrder = function(id, params, opts)
 					orders[#orders + 1] = { id, params, opts }
@@ -80,11 +89,11 @@ describe("Ghost Target single clicks", function()
 		widget:MousePress(100, 100, 1)
 		return widget:CommandNotify(command, params or { 100, 0, 100 }, options or { coded = 32, shift = true })
 	end
-	it("uses the entire aimpoint for both commands and retains queue options", function()
+	it("sends only the sighting ID for both commands and retains queue options", function()
 		for _, id in ipairs({ 20, 34923, 34924 }) do
 			command = id
 			assert.is_true(click())
-			assert.same({ id, { 110, 80, 105 }, 33 }, orders[#orders])
+			assert.same({ id == 20 and 34926 or 34927, { 57 }, 32 }, orders[#orders])
 		end
 	end)
 	it("retains ghost picking through the Ignore Self ray wrapper", function()
@@ -101,7 +110,7 @@ describe("Ghost Target single clicks", function()
 		env.widget = widget
 
 		assert.is_true(click())
-		assert.same({ 20, { 110, 80, 105 }, 33 }, orders[1])
+		assert.same({ 34926, { 57 }, 32 }, orders[1])
 		radarContact = true
 		assert.is_true(click())
 		assert.same({ 20, { 321 }, 32 }, orders[2])

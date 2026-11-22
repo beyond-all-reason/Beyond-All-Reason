@@ -2434,33 +2434,33 @@ function gadgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	for _, g in ipairs(self.UnitEnteredRadarList) do
-		g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	return
 end
 
-function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	tracyZoneBeginN("G:UnitEnteredLos")
 	for _, g in ipairs(self.UnitEnteredLosList) do
-		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	tracyZoneEnd()
 	return
 end
 
-function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	for _, g in ipairs(self.UnitLeftRadarList) do
-		g:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	return
 end
 
-function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	tracyZoneBeginN("G:UnitLeftLos")
 	for _, g in ipairs(self.UnitLeftLosList) do
-		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	tracyZoneEnd()
 	return

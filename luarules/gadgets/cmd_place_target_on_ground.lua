@@ -53,6 +53,8 @@ elseif not success then
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(GameCMD.GHOST_ATTACK)
+	gadgetHandler:RegisterAllowCommand(GameCMD.GHOST_SET_TARGET)
 	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
 	-- note to future devs, if you are registering UNIT_SET_TARGET, then the gadget layer must be below unit_target_on_the_move.lua
 	gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
@@ -103,16 +105,37 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	unitTeam,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	-- Final fallback if an attack or set-target command with a untiID parameter is otherwise given unexpectedly
 	-- usually from user side DefaultCommand widget function
 	if place_target_on_ground[unitDefID] then
-		-- These weapons intentionally target terrain, including a resolved ghost click.
-		if cmdOptions.keepheight and #cmdParams == 3 then
-			local x, z = cmdParams[1], cmdParams[3]
-			local options = table.copy(cmdOptions)
-			options.keepheight = false
-			spGiveOrderToUnit(unitID, cmdID, { x, spGetGroundHeight(x, z), z }, options)
+		if cmdID == GameCMD.GHOST_ATTACK or cmdID == GameCMD.GHOST_SET_TARGET then
+			if #cmdParams == 1 and Spring.GetGhostPosition then
+				local x, _, z = Spring.GetGhostPosition(cmdParams[1], Spring.GetUnitAllyTeam(unitID))
+				if x then
+					local command = cmdID == GameCMD.GHOST_ATTACK and CMD_ATTACK or CMD_UNIT_SET_TARGET
+					Game.Commands.ReissueOrder(
+						unitID,
+						command,
+						{ x, spGetGroundHeight(x, z), z },
+						cmdOptions,
+						cmdTag,
+						fromInsert
+					)
+				end
+			end
 			return false
 		end
 		-- no need to check cmdID due to RegisterAllowCommand above

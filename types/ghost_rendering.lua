@@ -2,6 +2,7 @@
 
 -- Temporary declarations for the proposed RecoilEngine DrawGhost API.
 ---@class GhostDrawInfo
+---@field ghostID integer Observer-specific sighting ID.
 ---@field unitID integer Historical unit ID, not a live-unit lookup handle.
 ---@field transform number[] Column-major model-to-world matrix, 16 values.
 ---@field aimPos number[] Frozen XYZ aimpoint.

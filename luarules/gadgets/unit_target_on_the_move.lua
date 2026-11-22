@@ -454,6 +454,12 @@ if gadgetHandler:IsSyncedCode() then
 		addToQueue(unitID)
 	end
 
+	-- A sighting can occupy the same coordinates as another. Negative keys
+	-- keep its identity separate from engine unit IDs in the membership index.
+	local function targetKey(entry)
+		return entry.ghostID and -entry.ghostID or entry.target
+	end
+
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
 		if not spValidUnitID(unitID) then
 			return
@@ -484,12 +490,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local targetData = targetList[i]
 			local target = targetData.target
-			if not currentTargets[target] and checkTarget(teamID, target) then
+			local key = targetKey(targetData)
+			if not currentTargets[key] and checkTarget(teamID, target) then
 				limitCount = limitCount - 1
 				targetCount = targetCount + 1
 				targets[targetCount] = targetData
-				if type(target) == "number" then
-					currentTargets[target] = true
+				if type(key) == "number" then
+					currentTargets[key] = true
 				end
 				targetData.sent = false
 			end
@@ -536,7 +543,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeTarget(unitID, unitData, index)
 		local removed = tremove(unitData.targets, index)
 		if removed then
-			unitData.currentTargets[removed.target] = nil
+			unitData.currentTargets[targetKey(removed)] = nil
 			if index == unitData.currentIndex then
 				setTargetPassive(unitID, unitData)
 			elseif index < unitData.currentIndex then
@@ -578,7 +585,7 @@ if gadgetHandler:IsSyncedCode() then
 					targetList[moveToIndex] = targetList[i]
 				end
 			else
-				currentTargets[targetList[i].target] = nil
+				currentTargets[targetKey(targetList[i])] = nil
 				if not minIndex then
 					minIndex = i
 				end
@@ -604,6 +611,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	---A single entry in a unit's target queue, as tracked on the synced side.
 	---@class UnitTargetEntry
+	---@field ghostID integer? Sighting backing a positional target.
 	---@field target UnitOrPosition
 	---@field alwaysSeen boolean? Target does not need to stay in sensor range to be kept.
 	---@field ignoreStop boolean? Target survives a Stop command.
@@ -636,6 +644,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterUnitCommand(CMD_STOP)
+		if Spring.GetGhostPosition then
+			gadgetHandler:RegisterCMDID(GameCMD.GHOST_SET_TARGET)
+			gadgetHandler:RegisterAllowCommand(GameCMD.GHOST_SET_TARGET)
+		end
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
@@ -726,8 +738,25 @@ if gadgetHandler:IsSyncedCode() then
 			cmdID == CMD_UNIT_SET_TARGET_NO_GROUND
 			or cmdID == CMD_UNIT_SET_TARGET
 			or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE
+			or cmdID == GameCMD.GHOST_SET_TARGET
 		then
 			local addTargetList
+			local ghostID
+			if cmdID == GameCMD.GHOST_SET_TARGET then
+				if nParams ~= 1 or not Spring.GetGhostPosition then
+					return false
+				end
+				local x, y, z, contact = Spring.GetGhostPosition(cmdParams[1], spGetUnitAllyTeam(unitID))
+				if not x then
+					return false
+				end
+				if contact then
+					cmdParams = { contact }
+				else
+					ghostID = cmdParams[1]
+					cmdParams, nParams = { x, y, z }, 3
+				end
+			end
 
 			local weaponList = unitWeapons[unitDefID]
 			local append = cmdOptions.shift or false
@@ -800,7 +829,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			elseif nParams == 3 then
-				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND and not cmdOptions.keepheight then
+				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
 					SendToUnsynced("failCommand", unitTeam)
 					--tracy.ZoneEnd()
 					return false
@@ -808,7 +837,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				local target = cmdParams
 				local elevation = spGetGroundHeight(target[1], target[3])
-				if not cmdOptions.keepheight and target[2] > elevation then
+				if not ghostID and target[2] > elevation then
 					target[2] = elevation
 				end
 				if not unitHasWaterWeapon[unitDefID] then
@@ -818,6 +847,7 @@ if gadgetHandler:IsSyncedCode() then
 					addTargetList = {
 						{
 							alwaysSeen = true,
+							ghostID = ghostID,
 							ignoreStop = ignoreStop,
 							userTarget = userTarget,
 							target = target,
@@ -928,12 +958,53 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Target update
 
+	-- The event identifies the original sighting even if another ghost occupies the same point.
+	local function updateGhostContact(_, targetID, _, allyTeam, _, ghostID)
+		if not ghostID or not next(setTargetData) then
+			return
+		end
+		local x, y, z, contact = Spring.GetGhostPosition(ghostID, allyTeam)
+		if not x then
+			return
+		end
+		for unitID, data in pairsNext, setTargetData do
+			if data.allyTeam == allyTeam and data.currentTargets[contact and -ghostID or targetID] then
+				for i, entry in ipairs(data.targets) do
+					if (contact and entry.ghostID == ghostID) or (not contact and entry.target == targetID) then
+						data.currentTargets[targetKey(entry)] = nil
+						data.currentTargets[contact or -ghostID] = true
+						entry.target = contact or { x, y, z }
+						entry.ghostID = not contact and ghostID or nil
+						entry.alwaysSeen = not contact or unitAlwaysSeen[spGetUnitDefID(targetID)]
+						entry.unseen = unseenGracePasses
+						if data.activeTarget and data.currentIndex == i then
+							if testTarget(unitID, data.teamID, data.weapons, entry.target) then
+								setTargetActive(unitID, data, i)
+							else
+								setTargetPassive(unitID, data)
+							end
+						end
+						refreshSendData(unitID, data, i)
+					end
+				end
+			end
+		end
+	end
+
+	gadget.UnitEnteredLos = updateGhostContact
+	gadget.UnitEnteredRadar = updateGhostContact
+	gadget.UnitLeftLos = updateGhostContact
+	gadget.UnitLeftRadar = updateGhostContact
+
 	local function processSlowListUpdates()
 		for unitID, unitData in pairsNext, setTargetData do
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
 				local targetData = targets[index]
 				local targetState = getTargetTrackingState(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
+				if targetData.ghostID and not Spring.GetGhostPosition(targetData.ghostID, unitData.allyTeam) then
+					targetState = TARGET_GONE
+				end
 				if targetState == TARGET_AVAILABLE then
 					targetData.unseen = unseenGracePasses
 				elseif targetState == TARGET_GONE or targetData.unseen == 0 then
@@ -985,7 +1056,7 @@ if gadgetHandler:IsSyncedCode() then
 					targets[updateIndex] = targetData
 				end
 			else
-				currentTargets[targetData.target] = nil
+				currentTargets[targetKey(targetData)] = nil
 				SendToUnsynced("targetDrop", unitID, updateIndex + 1)
 			end
 		end
@@ -1255,7 +1326,6 @@ else -- UNSYNCED
 		end
 	end
 
-	-- TODO: Need to handle unit ghosts. None of it works well currently.
 	local function isValidTargetData(targetData)
 		return type(targetData.target) == "table" or spValidUnitID(targetData.target)
 	end
