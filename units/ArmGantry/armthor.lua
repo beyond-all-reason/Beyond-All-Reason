@@ -6,7 +6,7 @@ return {
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "58 34 58",
+		collisionvolumescales = "88 35 68",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 240000,

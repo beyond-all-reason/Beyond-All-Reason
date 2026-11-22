@@ -20,13 +20,29 @@ in DataGS {
 };
 
 uniform sampler2D DrawPrimitiveAtUnitTexture;
+#if (USE_SECONDARY_TEXTURE == 1)
+	uniform sampler2D DrawPrimitiveAtUnitTexture2;
+	flat in uint g_atlasIndex;
+#endif
 out vec4 fragColor;
 
 void main(void)
 {
 	vec4 texcolor = vec4(1.0);
 	#if (USETEXTURE == 1)
-		texcolor = texture(DrawPrimitiveAtUnitTexture, g_uv.xy);
+		#if (USE_SECONDARY_TEXTURE == 1)
+			// Compute gradients before the branch: adjacent primitives can use
+			// different atlases, making implicit derivatives inside it undefined.
+			vec2 uvDx = dFdx(g_uv.xy);
+			vec2 uvDy = dFdy(g_uv.xy);
+			if (g_atlasIndex == 1u) {
+				texcolor = textureGrad(DrawPrimitiveAtUnitTexture2, g_uv.xy, uvDx, uvDy);
+			} else {
+				texcolor = textureGrad(DrawPrimitiveAtUnitTexture, g_uv.xy, uvDx, uvDy);
+			}
+		#else
+			texcolor = texture(DrawPrimitiveAtUnitTexture, g_uv.xy);
+		#endif
 	#endif
 	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * transparency + addRadius);
 	POST_SHADING

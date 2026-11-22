@@ -2,7 +2,7 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -11,8 +11,8 @@ local stages = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
 			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidConditionType',
+			'objectiveWithMissingConditionType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
 			'objectiveWithDifficultiesTrigger',
@@ -40,22 +40,22 @@ local objectives = {
 		textKey = "trigger_must_not_have_settings",
 		trigger = {
 			settings = { repeating = true },  -- error: trigger must not have a settings field
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = { seconds = 100000000 },
 		},
 	},
 
-	objectiveWithInvalidTriggerType = {
+	objectiveWithInvalidConditionType = {
 		textKey = "trigger_with_invalid_type",
 		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
+			type = 'invalidType',  -- error: invalid condition type
 		},
 	},
 
-	objectiveWithMissingTriggerType = {
+	objectiveWithMissingConditionType = {
 		textKey = "trigger_with_missing_type",
 		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
+			parameters = { seconds = 100000000 },  -- error: missing condition type
 		},
 	},
 
@@ -67,7 +67,7 @@ local objectives = {
 	objectiveWithTriggerHavingActions = {
 		textKey = "trigger_must_not_have_actions",
 		trigger = {
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = { seconds = 100000000 },
 			actions = { 'someAction' },  -- error: objective trigger must not have actions
 		},
@@ -76,7 +76,7 @@ local objectives = {
 	objectiveWithDifficultiesTrigger = {
 		textKey = "trigger_field_must_not_have_difficulties",
 		trigger = {
-			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
+			difficulties = { Easy = { type = conditionTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
 		},
 	},
 }
@@ -93,7 +93,7 @@ local triggers = {
 
 	-- Valid: settings are optional in raw missions, the loader applies the defaults.
 	triggerWithoutSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -102,7 +102,7 @@ local triggers = {
 
 	-- error: settings must be a table
 	triggerWithNonTableSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = 'notATable',
 		parameters = {
 			seconds = 100000000,
@@ -112,7 +112,7 @@ local triggers = {
 
 	-- error: maxRepeats without repeating
 	triggerWithMaxRepeatsButNotRepeating = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			maxRepeats = 3,
 		},
@@ -123,7 +123,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -131,7 +131,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidTypesInSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
@@ -148,7 +148,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultiesValues = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = {
@@ -161,7 +161,7 @@ local triggers = {
 	},
 
 	triggerWithExtraKeyBesideDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
 		},
@@ -169,7 +169,7 @@ local triggers = {
 	},
 
 	triggerWithEmptyDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = {} },  -- error: difficulties table is empty
 		},
@@ -177,7 +177,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultyInGate = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
@@ -188,7 +188,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllianceName = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			sensorAllianceName = 777,
 		},
@@ -196,7 +196,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAreaType = {
-		type = triggerTypes.FeatureCreated,
+		type = conditionTypes.FeatureCreated,
 		parameters = {
 			area = 'notATable',
 		},
@@ -204,7 +204,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSourcesType = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			metal = 10,
@@ -214,7 +214,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSources = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
 			metal = 10,
@@ -224,7 +224,7 @@ local triggers = {
 	},
 
 	triggerWithFractionOutOfRange = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armcom',
@@ -234,7 +234,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidFractionType = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armcom',
@@ -272,15 +272,15 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnitDefName', x = 1800, z = 1600, teamName = 6, facing = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', facing = 4 },                           -- invalid facing type (number > 3)
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', facing = true },                        -- invalid facing type (boolean)
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', quantity = 'notANumber' },              -- invalid quantity type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', spacing = 'notANumber' },               -- invalid spacing type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', construction = 'notABoolean' },         -- invalid construction type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', neutral = 'notABoolean' },              -- invalid neutral type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', orders = 'notATable' },                 -- invalid orders type
-				{ unitDefName = 'armcom', x = 1800, z = 1600, teamName = 'player', unitName = 'unusedUnitName' },          -- unitName that is never referenced – should produce an "unreferenced" warning
+				{ unitDefName = 'invalidUnitDefName', position = { x = 1800, z = 1600 }, teamName = 6, orientation = 'invalidFacing' }, -- invalid unitDefName, invalid team, invalid facing
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', orientation = 4 },                           -- invalid facing type (number > 3)
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', orientation = true },                        -- invalid facing type (boolean)
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', quantity = 'notANumber' },              -- invalid quantity type
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', spacing = 'notANumber' },               -- invalid spacing type
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', construction = 'notABoolean' },         -- invalid construction type
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', neutral = 'notABoolean' },              -- invalid neutral type
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', orders = 'notATable' },                 -- invalid orders type
+				{ unitDefName = 'armcom', position = { x = 1800, z = 1600 }, teamName = 'player', unitName = 'unusedUnitName' },          -- unitName that is never referenced – should produce an "unreferenced" warning
 			},
 		},
 	},
@@ -419,7 +419,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'invalidFeatureDefName', x = 1800, z = 1600, facing = 'invalidFacing', featureName = 'unusedFeatureName' }, -- invalid name, invalid facing
+				{ featureDefName = 'invalidFeatureDefName', position = { x = 1800, z = 1600 }, orientation = 'invalidFacing', featureName = 'unusedFeatureName' }, -- invalid name, invalid facing
 			},
 		},
 	},
@@ -490,7 +490,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armcom', x = 2000, z = 2000, facing = 'n', teamName = 'player', unitName = 'spawnedCom' },
+				{ unitDefName = 'armcom', position = { x = 2000, z = 2000 }, orientation = 'n', teamName = 'player', unitName = 'spawnedCom' },
 			},
 		},
 	},
@@ -500,7 +500,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corak_dead', x = 2100, z = 2000, facing = 's', featureName = 'spawnedWreck' },
+				{ featureDefName = 'corak_dead', position = { x = 2100, z = 2000 }, orientation = 's', featureName = 'spawnedWreck' },
 			},
 		},
 	},
@@ -523,9 +523,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'invalidUnit', x = 100, z = 100, facing = 'n', teamName = 'player' },
-				{ unitDefName = 'armcom',      x = 100, z = 100, facing = 'n' }, -- missing 'team'
-				{ unitDefName = 'armcom', x = 100, z = 100, facing = 'n', teamName = 'player',
+				{ unitDefName = 'invalidUnit', position = { x = 100, z = 100 }, orientation = 'n', teamName = 'player' },
+				{ unitDefName = 'armcom',      position = { x = 100, z = 100 }, orientation = 'n' }, -- missing 'team'
+				{ unitDefName = 'armcom', position = { x = 100, z = 100 }, orientation = 'n', teamName = 'player',
 				  orders = {}, -- empty orders table
 				},
 			},
@@ -536,7 +536,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corcom_dead', x = 100, z = 100, facing = 'invalidFacing' },
+				{ featureDefName = 'corcom_dead', position = { x = 100, z = 100 }, orientation = 'invalidFacing' },
 			},
 		},
 	},
@@ -592,28 +592,28 @@ local actions = {
 
 local unitLoadout = {
 	-- #1: valid entry (unitName is referenced by 'actionReferencingLoadoutUnitName')
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'e', teamName = 'player', unitName = 'loadoutCom' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'e', teamName = 'player', unitName = 'loadoutCom' },
 
 	-- #2: invalid unitDefName
-	{ unitDefName = 'invalidUnit', x = 1200, z = 800, facing = 'n', teamName = 'player' },
+	{ unitDefName = 'invalidUnit', position = { x = 1200, z = 800 }, orientation = 'n', teamName = 'player' },
 
 	-- #3: missing required field 'z'
-	{ unitDefName = 'armcom', x = 1200, facing = 'n', teamName = 'player' },
+	{ unitDefName = 'armcom', position = { x = 1200 }, orientation = 'n', teamName = 'player' },
 
 	-- #4: missing required field 'team'
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'n' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'n' },
 
 	-- #5: invalid facing value
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 'q', teamName = 'player' },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 'q', teamName = 'player' },
 
 	-- #6: invalid type for 'neutral'
-	{ unitDefName = 'armcom', x = 1200, z = 800, facing = 's', teamName = 'player', neutral = 1 },
+	{ unitDefName = 'armcom', position = { x = 1200, z = 800 }, orientation = 's', teamName = 'player', neutral = 1 },
 
 	-- #7: unitName that is never referenced – should produce an "unreferenced" warning
-	{ unitDefName = 'armcom', x = 1300, z = 900, facing = 's', teamName = 'player', unitName = 'unusedLoadoutUnitName' },
+	{ unitDefName = 'armcom', position = { x = 1300, z = 900 }, orientation = 's', teamName = 'player', unitName = 'unusedLoadoutUnitName' },
 
 	-- #8: valid entry with orders (move, then queued patrol)
-	{ unitDefName = 'armcom', x = 1400, z = 900, facing = 'n', teamName = 'player',
+	{ unitDefName = 'armcom', position = { x = 1400, z = 900 }, orientation = 'n', teamName = 'player',
 	  orders = {
 	    { CMD.MOVE,   { 1500, 0, 900 },  {}         },  -- valid move
 	    { CMD.PATROL, { 1400, 0, 900 },  { 'shift' } }, -- valid queued patrol
@@ -621,29 +621,29 @@ local unitLoadout = {
 	},
 
 	-- #9: orders table is empty – should produce an "Orders table is empty" error
-	{ unitDefName = 'armcom', x = 1500, z = 900, facing = 'n', teamName = 'player',
+	{ unitDefName = 'armcom', position = { x = 1500, z = 900 }, orientation = 'n', teamName = 'player',
 	  orders = {},
 	},
 }
 
 local featureLoadout = {
 	-- #1: valid entry (featureName is referenced by 'actionReferencingLoadoutFeatureName')
-	{ featureDefName = 'corcom_dead', x = 2000, z = 1500, facing = 's', featureName = 'loadoutWreck' },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 's', featureName = 'loadoutWreck' },
 
 	-- #2: invalid featureDefName
-	{ featureDefName = 'invalidFeature', x = 2000, z = 1500, facing = 's' },
+	{ featureDefName = 'invalidFeature', position = { x = 2000, z = 1500 }, orientation = 's' },
 
 	-- #3: missing required field 'x'
-	{ featureDefName = 'corcom_dead', z = 1500, facing = 's' },
+	{ featureDefName = 'corcom_dead', position = { z = 1500 }, orientation = 's' },
 
 	-- #4: invalid facing value
-	{ featureDefName = 'corcom_dead', x = 2000, z = 1500, facing = 'invalidFacing' },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 'invalidFacing' },
 
 	-- #5: invalid type for 'featureName'
-	{ featureDefName = 'corcom_dead', x = 2000, z = 1500, facing = 's', featureName = 42 },
+	{ featureDefName = 'corcom_dead', position = { x = 2000, z = 1500 }, orientation = 's', featureName = 42 },
 
 	-- #6: featureName that is never referenced – should produce an "unreferenced" warning
-	{ featureDefName = 'corcom_dead', x = 2200, z = 1500, facing = 's', featureName = 'unusedLoadoutFeatureName' },
+	{ featureDefName = 'corcom_dead', position = { x = 2200, z = 1500 }, orientation = 's', featureName = 'unusedLoadoutFeatureName' },
 }
 
 return {

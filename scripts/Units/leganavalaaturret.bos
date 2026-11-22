@@ -3,11 +3,10 @@
 
 piece  base, lflare, rflare, turret, sleeve, lbarrel, rbarrel, radar, floats, greebles;
 
-static-var  wpn1_lasthead, restore_delay, gun_switch;
+static-var  restore_delay, gun_switch;
 
 // Signal definitions
-#define SIGNAL_AIM1				1
-#define SIGNAL_FIRE1			2
+#define SIGNAL_AIM1				256
 
 #define WATER_ROCK_UNITSIZE 12
 #include "../floatmotion.h"
@@ -20,21 +19,16 @@ static-var  wpn1_lasthead, restore_delay, gun_switch;
 #define RECOIL_POWER 20000
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-
-#define SMOKEPIECE base
-// #include "smokeunit_thread_nohit.h"
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-    turn sleeve to x-axis <-30> speed <25.00000>;
+    turn sleeve to x-axis <-30> speed <25.0>;
     spin turret around y-axis speed <25.0>;
 	
 	sleep restore_delay;
-	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
 
@@ -84,8 +78,6 @@ AimWeapon1(heading, pitch)
 	turn turret to y-axis heading speed <240.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <120.0>;
 	
-	
-	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -96,19 +88,17 @@ FireWeapon1()
 	spin rbarrel around z-axis speed <2000.0>;
 	stop-spin lbarrel around z-axis decelerate <12>;
 	stop-spin rbarrel around z-axis decelerate <12>;
-	return (0);
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = lflare + gun_switch;
-	return (0);
+	pieceIndex = lflare + gun_switch;
 }
 
-Shot1(zero) //Barrel switcher so each minigun fires at the same time
+Shot1() //Barrel switcher so each minigun fires at the same time
 {
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	
 	
 	if(gun_switch == 0)
@@ -121,15 +111,7 @@ Shot1(zero) //Barrel switcher so each minigun fires at the same time
 	}
 	
 	gun_switch = !gun_switch;
-	return(1);
 }
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
-
 
 Killed(severity, corpsetype)
 {

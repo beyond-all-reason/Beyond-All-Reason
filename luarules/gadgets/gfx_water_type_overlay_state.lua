@@ -27,8 +27,11 @@ end
 ------------------------------------------------------------------------
 local active = false
 local activeType = nil -- "lava" or "acid"
+---@type number
 local targetLevel = 0
+---@type number
 local currentLevel = 0
+---@type number
 local baseWaterLevel = 0 -- engine water plane at activation time
 local LERP_SPEED = 4.0 -- matches widget visual interpolation
 
@@ -145,6 +148,7 @@ end
 ------------------------------------------------------------------------
 -- Core damage loop (mirrors map_lava.lua logic)
 ------------------------------------------------------------------------
+---@type number
 local minGroundHeight = 0
 local GROUND_EXTREMES_RATE = 300
 
@@ -312,6 +316,7 @@ do
 	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
 end
 
+---@return boolean?
 function gadget:RecvLuaMsg(msg, playerID)
 	if type(msg) ~= "string" then
 		return

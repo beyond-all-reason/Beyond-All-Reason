@@ -211,7 +211,8 @@ local function getUnitBulk(unitDef)
 		fromMetal = max(fromMetal, sqrt(unitDef.moveDef.crushStrength))
 	end
 
-	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
+	local fromHealthAndMetal = fromHealth + fromMetal + sqrt(fromHealth * fromMetal)
+	local bulkiness = fromHealthAndMetal + min(fromVolume, fromHealthAndMetal * 3)
 	bulkiness = clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
 	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 

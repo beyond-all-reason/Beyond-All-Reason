@@ -1,23 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base;
 
+#include "../damagedsmoke.h"
 
 Create()
 {
-	return (0);
-}
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 }
 
 Killed(severity, corpsetype)

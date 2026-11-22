@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- An enemy attacks a named tank, which fires the trigger on the first hit and again on each hit
@@ -9,7 +9,7 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 local triggers = {
 
 	spawnScene = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
 	allySelfDestructs = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	enemyAttacks = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 
 	-- Never fires before the enemy attacks: the self-destruct is allied, environmental damage.
 	targetAttacked = {
-		type = triggerTypes.UnitAttacked,
+		type = conditionTypes.UnitAttacked,
 		parameters = {
 			unitName = 'target',
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	tankAttackedRepeatedly = {
-		type = triggerTypes.UnitAttacked,
+		type = conditionTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
 			teamName = 'player',
@@ -57,7 +57,7 @@ local triggers = {
 
 	-- Never fires: the tank belongs to team 0.
 	wrongTeamAttacked = {
-		type = triggerTypes.UnitAttacked,
+		type = conditionTypes.UnitAttacked,
 		parameters = {
 			unitDefName = 'armstump',
 			teamName = 'enemy',
@@ -73,7 +73,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2400, z = 2400, teamName = 'player', unitName = 'target' },
+				{ unitDefName = 'armstump', position = { x = 2400, z = 2400 }, teamName = 'player', unitName = 'target' },
 			},
 		},
 	},
@@ -82,7 +82,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 2440, z = 2400, teamName = 'player', unitName = 'ally' },
+				{ unitDefName = 'armpw', position = { x = 2440, z = 2400 }, teamName = 'player', unitName = 'ally' },
 			},
 		},
 	},
@@ -91,7 +91,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 3300, z = 2400, teamName = 'enemy', unitName = 'enemy' },
+				{ unitDefName = 'corak', position = { x = 3300, z = 2400 }, teamName = 'enemy', unitName = 'enemy' },
 			},
 		},
 	},

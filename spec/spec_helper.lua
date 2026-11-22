@@ -107,6 +107,8 @@ local sources = {}
 
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
+_G.VFS.RAW = _G.VFS.RAW or "r"
+_G.VFS.ZIP = _G.VFS.ZIP or "Mmb"
 
 _G.VFS.FileExists = function(path)
 	-- First try the exact path provided

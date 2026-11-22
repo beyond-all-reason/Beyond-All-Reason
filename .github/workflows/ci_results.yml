@@ -86,7 +86,8 @@ jobs:
           # A row per job rather than per workflow, so every link lands on the
           # log that failed instead of a run page the reader has to click
           # through. It also means a workflow that grows a second job shows up
-          # as two rows without this needing to know about it.
+          # as two rows without this needing to know about it. A skipped job has
+          # nothing to report, like the push lookup on every pull request.
           : > jobs.json
           while IFS=$(printf '\t') read -r wf id url; do
             [ -n "$id" ] || continue
@@ -94,8 +95,9 @@ jobs:
             # second jq rather than inside the query.
             if gh api "repos/$REPO/actions/runs/$id/jobs" --paginate --jq '.jobs[]' > raw.json 2> jobs.err; then
               jq -c --arg wf "$wf" --arg run "$url" \
-                '{ workflow: $wf, run: $run, name, status, conclusion,
-                   url: .html_url, started: .started_at, completed: .completed_at }' \
+                'select(.conclusion != "skipped")
+                 | { workflow: $wf, run: $run, name, status, conclusion,
+                     url: .html_url, started: .started_at, completed: .completed_at }' \
                 raw.json >> jobs.json
             else
               # A run whose jobs cannot be listed still deserves a row, so it
