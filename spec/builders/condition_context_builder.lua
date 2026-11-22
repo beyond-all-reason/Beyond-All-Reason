@@ -120,17 +120,16 @@ function TCB:Build()
 	}
 
 	-- A copy of doesUnitMatchFilter and doesUnitMatchCondition in unit_query.lua, over this context's
-	-- DoesUnitHaveName and the spec's UnitDefs and Spring; keep them in step.
+	-- DoesUnitHaveName and the spec's Spring; keep them in step.
 	local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
 		local env = instance.env
 		if unitFilter.teamName ~= nil and (teamID or env.Spring.GetUnitTeam(unitID)) ~= unitFilter.teamName then
 			return false
 		end
-		if unitFilter.unitDefName ~= nil then
-			local unitDef = env.UnitDefs[unitDefID or env.Spring.GetUnitDefID(unitID)]
-			if unitDef == nil or unitDef.name ~= unitFilter.unitDefName then
-				return false
-			end
+		if
+			unitFilter.unitDefName ~= nil and not unitFilter.unitDefName[unitDefID or env.Spring.GetUnitDefID(unitID)]
+		then
+			return false
 		end
 		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName)
 	end

@@ -108,7 +108,8 @@ return {
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
 - A condition about one unit takes `filter`, a unit filter of `unitName`, `unitDefName`, and
   `teamName`, and `exclude`, a list of unit filters, and checks both with
-  `context.DoesUnitMatchCondition`. Any other unit in the event keeps its own parameters, such as
+  `context.DoesUnitMatchCondition`. A filter's `unitDefName` is one name or a list of them, and
+  arrives processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
   `builderName` or `transportDefName`.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the

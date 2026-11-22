@@ -44,14 +44,19 @@ describe("mission_api.conditions.unit_entered_location", function()
 
 	it("fires for a unit that entered the area", function()
 		local context, fired = newContext()
-		onUnitsEnteredArea(trigger({ area = area, filter = { unitDefName = "armpw" } }), triggerID, context, { 100 })
+		onUnitsEnteredArea(
+			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per unit entering together", function()
 		local context, fired = newContext()
 		onUnitsEnteredArea(
-			trigger({ area = area, filter = { unitDefName = "armpw" } }),
+			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
 			triggerID,
 			context,
 			{ 100, 101 }

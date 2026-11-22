@@ -31,7 +31,7 @@ describe("mission_api.unit_query", function()
 
 	describe("DoesUnitMatchFilter", function()
 		it("matches a unit with every fact given", function()
-			local unitFilter = { unitName = "commander", unitDefName = "armcom", teamName = 0 }
+			local unitFilter = { unitName = "commander", unitDefName = { [2] = true }, teamName = 0 }
 			assert.is_true(unitQuery.DoesUnitMatchFilter(100, unitFilter))
 		end)
 
@@ -45,7 +45,9 @@ describe("mission_api.unit_query", function()
 		end)
 
 		it("rejects a unit of another unit def", function()
-			assert.is_false(unitQuery.DoesUnitMatchFilter(100, { unitName = "commander", unitDefName = "armpw" }))
+			assert.is_false(
+				unitQuery.DoesUnitMatchFilter(100, { unitName = "commander", unitDefName = { [1] = true } })
+			)
 		end)
 
 		it("rejects a unit on another team, though the other facts are true", function()

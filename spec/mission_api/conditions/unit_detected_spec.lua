@@ -146,7 +146,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ filter = { unitDefName = "corfast" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [2] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -157,7 +157,12 @@ describe("mission_api.conditions.unit_detected", function()
 			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ filter = { unitDefName = "armpw", teamName = 3 } }), freshTriggerID(), context, { unitID })
+			update(
+				trigger({ filter = { unitDefName = { [1] = true }, teamName = 3 } }),
+				freshTriggerID(),
+				context,
+				{ unitID }
+			)
 			assert.are.equal(0, fired())
 		end)
 
@@ -165,7 +170,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ filter = { unitDefName = "armpw" }, sensorAllianceName = SENSOR_ALLY })
+			local t = trigger({ filter = { unitDefName = { [1] = true } }, sensorAllianceName = SENSOR_ALLY })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -174,7 +179,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			radarUnit(unitID)
-			local t = trigger({ filter = { unitDefName = "armpw" }, sensorTypes = { vision = true } })
+			local t = trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = { vision = true } })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -188,7 +193,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
@@ -196,7 +201,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
@@ -209,7 +214,7 @@ describe("mission_api.conditions.unit_detected", function()
 				return OTHER_ALLY
 			end
 			seeUnit(unitID, OTHER_ALLY)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -221,7 +226,7 @@ describe("mission_api.conditions.unit_detected", function()
 			end
 			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
 			update(
-				trigger({ filter = { unitDefName = "armpw" }, sensorTypes = { radar = true } }),
+				trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = { radar = true } }),
 				freshTriggerID(),
 				context,
 				{ unitID }
@@ -234,7 +239,7 @@ describe("mission_api.conditions.unit_detected", function()
 		it("ignores a unit that is never detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			update(t, triggerID, context, { unitID })
 			update(t, triggerID, context, { unitID })
 			assert.are.equal(0, fired())
@@ -247,7 +252,7 @@ describe("mission_api.conditions.unit_detected", function()
 			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -255,7 +260,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, GAIA_ALLY)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 	end)
@@ -263,7 +268,7 @@ describe("mission_api.conditions.unit_detected", function()
 	describe("rising and falling", function()
 		it("activates on the rise", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			update(t, triggerID, context, { unitID })
@@ -277,7 +282,7 @@ describe("mission_api.conditions.unit_detected", function()
 		-- The fall belongs to UnitUndetected. This trigger must stay silent through it.
 		it("does not activate on the fall", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -295,7 +300,7 @@ describe("mission_api.conditions.unit_detected", function()
 	describe("activation counts", function()
 		it("adds nothing for updates that change no level", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
 
@@ -311,7 +316,7 @@ describe("mission_api.conditions.unit_detected", function()
 			local first, second = freshUnitID(), freshUnitID()
 			seeUnit(first)
 			seeUnit(second)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { first, second })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { first, second })
 			assert.are.equal(2, fired())
 		end)
 
@@ -325,7 +330,12 @@ describe("mission_api.conditions.unit_detected", function()
 			end
 			seeUnit(matching)
 			seeUnit(other)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { matching, other })
+			update(
+				trigger({ filter = { unitDefName = { [1] = true } } }),
+				freshTriggerID(),
+				context,
+				{ matching, other }
+			)
 			assert.are.equal(1, fired())
 		end)
 	end)
@@ -349,7 +359,7 @@ describe("mission_api.conditions.unit_detected", function()
 				local context, fired = newContext()
 				local unitID = freshUnitID()
 				level.reach(unitID)
-				local t = trigger({ filter = { unitDefName = "armpw" }, sensorTypes = sensorTypes })
+				local t = trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = sensorTypes })
 				update(t, freshTriggerID(), context, { unitID })
 				if fired() > 0 then
 					activating[#activating + 1] = level.name
@@ -405,13 +415,13 @@ describe("mission_api.conditions.unit_detected", function()
 			local unitID = freshUnitID()
 			radarUnit(unitID)
 			seeUnit(unitID) -- radar and vision reporting in the same frame
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
 		it("activates once for a unit that stays detected across updates", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
 
@@ -423,7 +433,7 @@ describe("mission_api.conditions.unit_detected", function()
 
 		it("activates once for a unit climbing from radar into vision", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			radarUnit(unitID)
@@ -441,7 +451,7 @@ describe("mission_api.conditions.unit_detected", function()
 	describe("a repeating trigger", function()
 		it("activates again for each new rise", function()
 			local context, fired = newContext()
-			local t = trigger({ filter = { unitDefName = "armpw" } }, { repeating = true })
+			local t = trigger({ filter = { unitDefName = { [1] = true } } }, { repeating = true })
 			local triggerID = freshTriggerID()
 			local unitID = freshUnitID()
 
@@ -459,7 +469,7 @@ describe("mission_api.conditions.unit_detected", function()
 	describe("a destroyed unit", function()
 		it("drops its latch without activating, and can be detected again", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)

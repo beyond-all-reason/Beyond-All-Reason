@@ -65,21 +65,21 @@ describe("mission_api.conditions.production_started", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw" } }), context, 2, 0, 10) -- unitDefID 2 = armck
+		produced(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2, 0, 10) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), context, 1, 9, 10)
+		produced(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by factoryDefName", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw" }, factoryDefName = "armvp" }), context, 1, 0, 10) -- factory 10 = armlab
+		produced(trigger({ filter = { unitDefName = { [1] = true } }, factoryDefName = "armvp" }), context, 1, 0, 10) -- factory 10 = armlab
 		assert.are.equal(0, fired())
-		produced(trigger({ filter = { unitDefName = "armpw" }, factoryDefName = "armlab" }), context, 1, 0, 10)
+		produced(trigger({ filter = { unitDefName = { [1] = true } }, factoryDefName = "armlab" }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
@@ -88,19 +88,19 @@ describe("mission_api.conditions.production_started", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		produced(trigger({ filter = { unitDefName = "armpw" }, factoryName = "botlab" }), context, 1, 0, 10)
+		produced(trigger({ filter = { unitDefName = { [1] = true } }, factoryName = "botlab" }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching production", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), context, 1, 0, 10)
+		produced(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per buildee, so a queue of them fires once each", function()
 		local context, fired = newContext()
-		local watchThePawns = trigger({ filter = { unitDefName = "armpw" } })
+		local watchThePawns = trigger({ filter = { unitDefName = { [1] = true } } })
 		produced(watchThePawns, context, 1, 0, 10)
 		produced(watchThePawns, context, 1, 0, 10)
 		assert.are.equal(2, fired())
@@ -108,13 +108,13 @@ describe("mission_api.conditions.production_started", function()
 
 	it("does not fire for a build frame placed by a constructor", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, 20) -- builder 20 = armck
+		produced(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- builder 20 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a unit that has no builder", function()
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, nil)
+		produced(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0, nil)
 		assert.are.equal(0, fired())
 	end)
 
@@ -123,7 +123,7 @@ describe("mission_api.conditions.production_started", function()
 			return false
 		end
 		local context, fired = newContext()
-		produced(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, 10)
+		produced(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 end)

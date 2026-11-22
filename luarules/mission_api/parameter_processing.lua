@@ -83,6 +83,17 @@ local function processAllianceNames(allianceNames)
 	return allyTeamIDs
 end
 
+local function processUnitDefNames(unitDefNames)
+	if type(unitDefNames) == "string" then
+		unitDefNames = { unitDefNames }
+	end
+	local unitDefIDs = {}
+	for _, unitDefName in ipairs(unitDefNames) do
+		unitDefIDs[UnitDefNames[unitDefName].id] = true
+	end
+	return unitDefIDs
+end
+
 local processParameter ---@type function
 
 local function processUnitLoadout(unitLoadout)
@@ -147,6 +158,7 @@ local processors = {
 	[ParameterTypes.TeamName] = processTeamName,
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
+	[ParameterTypes.UnitDefNames] = processUnitDefNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 	[ParameterTypes.Color] = processColor,
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,

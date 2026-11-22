@@ -81,7 +81,7 @@ describe("mission_api.conditions.stockpile_count", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		local t = trigger({ count = 1, filter = { unitDefName = "armsilo" } })
+		local t = trigger({ count = 1, filter = { unitDefName = { [1] = true } } })
 		changed(t, context, 100, 2, 0, 1)
 		assert.are.equal(0, fired())
 		changed(t, context, 101, 1, 0, 1)

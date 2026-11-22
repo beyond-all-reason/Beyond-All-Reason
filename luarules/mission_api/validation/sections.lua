@@ -263,6 +263,14 @@ local function hasStockpileWeapon(unitDef)
 	return false
 end
 
+-- A unit filter's unitDefName is one name or a list of them.
+local function unitDefNamesOf(unitDefName)
+	if type(unitDefName) == "table" then
+		return unitDefName
+	end
+	return { unitDefName }
+end
+
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
 	local conditionTypes = context.ConditionTypes
@@ -274,19 +282,41 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 	end
 
 	for _, filter in ipairs(context.PossibleValues(trigger.parameters.filter)) do
-		local unitDefName = type(filter) == "table" and filter.unitDefName or nil
-		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
-		if unitDef and not hasStockpileWeapon(unitDef) then
-			reporter.Error(
-				id,
-				"Unit '" .. unitDefName .. "' has no stockpiling weapon",
-				"Parameter: filter.unitDefName"
-			)
+		local unitDefNames = type(filter) == "table" and unitDefNamesOf(filter.unitDefName) or {}
+		for _, unitDefName in ipairs(unitDefNames) do
+			local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+			if unitDef and not hasStockpileWeapon(unitDef) then
+				reporter.Error(
+					id,
+					"Unit '" .. unitDefName .. "' has no stockpiling weapon",
+					"Parameter: filter.unitDefName"
+				)
+			end
 		end
 	end
 end
 
--- An exclusion that gives only facts the filter also gives removes every unit the filter matches.
+-- Whether every unit the filter matches has the fact an exclusion gives for this field.
+local function doesFilterImplyFact(filter, field, value)
+	if field ~= "unitDefName" then
+		return filter[field] == value
+	end
+	if filter.unitDefName == nil then
+		return false
+	end
+	local isExcludedDef = {}
+	for _, unitDefName in ipairs(unitDefNamesOf(value)) do
+		isExcludedDef[unitDefName] = true
+	end
+	for _, unitDefName in ipairs(unitDefNamesOf(filter.unitDefName)) do
+		if not isExcludedDef[unitDefName] then
+			return false
+		end
+	end
+	return true
+end
+
+-- An exclusion whose every fact is true of every unit the filter matches removes them all.
 local function validateUnitFilterExclusions(context, reporter, id, trigger)
 	local parameters = trigger.parameters
 	if type(parameters) ~= "table" then
@@ -300,7 +330,7 @@ local function validateUnitFilterExclusions(context, reporter, id, trigger)
 					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
 					if removesAll then
 						for field, value in pairs(excluded) do
-							if filter[field] ~= value then
+							if not doesFilterImplyFact(filter, field, value) then
 								removesAll = false
 								break
 							end

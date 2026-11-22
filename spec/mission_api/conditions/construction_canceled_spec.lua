@@ -60,19 +60,19 @@ describe("mission_api.conditions.construction_canceled", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ filter = { unitDefName = "armsolar" } }), context, 2, 0) -- unitDefID 2 = armwin
+		destroyed(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 9)
+		destroyed(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when an in-progress unit is destroyed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 0)
+		destroyed(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -81,7 +81,7 @@ describe("mission_api.conditions.construction_canceled", function()
 			return false
 		end
 		local context, fired = newContext()
-		destroyed(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0)
+		destroyed(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -90,13 +90,13 @@ describe("mission_api.conditions.construction_canceled", function()
 		context.InFactory = function()
 			return true
 		end
-		destroyed(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0)
+		destroyed(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a nanoframe taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 0)
+		taken(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -105,7 +105,7 @@ describe("mission_api.conditions.construction_canceled", function()
 			return false
 		end
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0)
+		taken(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -114,7 +114,7 @@ describe("mission_api.conditions.construction_canceled", function()
 		context.InFactory = function()
 			return true
 		end
-		taken(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0)
+		taken(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 end)

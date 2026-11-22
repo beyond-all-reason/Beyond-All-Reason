@@ -50,13 +50,23 @@ describe("mission_api.conditions.unit_left_location", function()
 
 	it("fires for a unit that left the area", function()
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, filter = { unitDefName = "armpw" } }), triggerID, context, { 100 })
+		onUnitsLeftArea(
+			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per unit leaving together", function()
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, filter = { unitDefName = "armpw" } }), triggerID, context, { 100, 101 })
+		onUnitsLeftArea(
+			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100, 101 }
+		)
 		assert.are.equal(2, fired())
 	end)
 
@@ -65,7 +75,12 @@ describe("mission_api.conditions.unit_left_location", function()
 			return nil
 		end
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, filter = { unitDefName = "armpw" } }), triggerID, context, { 100 })
+		onUnitsLeftArea(
+			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(0, fired())
 	end)
 

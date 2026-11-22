@@ -66,7 +66,12 @@ describe("mission_api.conditions.unit_ordered", function()
 
 	it("filters by command", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } }), context, CMD.RECLAIM, { 1, 2, 3, 4 })
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.RECLAIM,
+			{ 1, 2, 3, 4 }
+		)
 		assert.are.equal(0, fired())
 	end)
 
@@ -81,14 +86,19 @@ describe("mission_api.conditions.unit_ordered", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "corfast" } }), context, CMD.MOVE, { 0, 0, 0 }) -- unitDefID 1 = armpw
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [2] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw", teamName = 9 } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true }, teamName = 9 } }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 }
@@ -98,7 +108,12 @@ describe("mission_api.conditions.unit_ordered", function()
 
 	it("fires when a matching unit receives the command", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } }), context, CMD.MOVE, { 0, 0, 0 })
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
@@ -106,7 +121,7 @@ describe("mission_api.conditions.unit_ordered", function()
 		-- Packed insert params: { insertIndex, innerCmdID, innerCodedOptions, ...innerParams }
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.INSERT,
 			{ 0, CMD.MOVE, 0, 0, 0, 0 }
@@ -117,7 +132,7 @@ describe("mission_api.conditions.unit_ordered", function()
 	it("filters by command through a queue insertion", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.INSERT,
 			{ 0, CMD.RECLAIM, 0, 1, 2, 3, 4 }
@@ -128,32 +143,42 @@ describe("mission_api.conditions.unit_ordered", function()
 	it("matches a build order by its command id", function()
 		-- A build order for corfast (unitDefID 2) is command -2 after processing.
 		local context, fired = newContext()
-		order(trigger({ command = -2, filter = { unitDefName = "armpw" } }), context, -2, { 100, 0, 200 })
+		order(trigger({ command = -2, filter = { unitDefName = { [1] = true } } }), context, -2, { 100, 0, 200 })
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires on any command when command is CMD.ANY", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.ANY, filter = { unitDefName = "armpw" } }), context, CMD.RECLAIM, { 1, 2, 3, 4 })
+		order(
+			trigger({ command = CMD.ANY, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.RECLAIM,
+			{ 1, 2, 3, 4 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires on any build order when command is CMD.BUILD", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.BUILD, filter = { unitDefName = "armpw" } }), context, -2, { 100, 0, 200 })
+		order(trigger({ command = CMD.BUILD, filter = { unitDefName = { [1] = true } } }), context, -2, { 100, 0, 200 })
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters non-build commands when command is CMD.BUILD", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.BUILD, filter = { unitDefName = "armpw" } }), context, CMD.MOVE, { 0, 0, 0 })
+		order(
+			trigger({ command = CMD.BUILD, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires on a build order inserted into the queue when command is CMD.BUILD", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.BUILD, filter = { unitDefName = "armpw" } }),
+			trigger({ command = CMD.BUILD, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.INSERT,
 			{ 0, -2, 0, 100, 0, 200 }
@@ -164,7 +189,7 @@ describe("mission_api.conditions.unit_ordered", function()
 	it("filters mission-issued orders by default", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 },
@@ -176,7 +201,7 @@ describe("mission_api.conditions.unit_ordered", function()
 	it("fires on mission-issued orders when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" }, ignoreMissionActions = false }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 },
@@ -187,7 +212,7 @@ describe("mission_api.conditions.unit_ordered", function()
 
 	it("re-fires on every order, with no deduplication", function()
 		local context, fired = newContext()
-		local t = trigger({ command = CMD.MOVE, filter = { unitDefName = "armpw" } })
+		local t = trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } })
 		order(t, context, CMD.MOVE, { 0, 0, 0 })
 		order(t, context, CMD.MOVE, { 0, 0, 0 })
 		order(t, context, CMD.MOVE, { 0, 0, 0 })

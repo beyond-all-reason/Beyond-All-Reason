@@ -143,7 +143,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5, filter = { unitDefName = "armsilo" } })
+		local t = trigger({ progress = 0.5, filter = { unitDefName = { [1] = true } } })
 		added(t, context, 100, 2)
 		poll(t, context, 100, 0.6)
 		assert.are.equal(0, fired())

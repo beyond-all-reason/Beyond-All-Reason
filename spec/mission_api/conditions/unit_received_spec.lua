@@ -60,13 +60,13 @@ describe("mission_api.conditions.unit_received", function()
 
 	it("fires when a unit is shared to a team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" }, oldTeamName = 1, newTeamName = 0 }), context, 1)
+		given(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 1, newTeamName = 0 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" } }), context, 2) -- unitDefID 2 = armsolar
+		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2) -- unitDefID 2 = armsolar
 		assert.are.equal(0, fired())
 	end)
 
@@ -81,32 +81,32 @@ describe("mission_api.conditions.unit_received", function()
 
 	it("filters by oldTeamName, which is the giving team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" }, oldTeamName = 9 }), context, 1)
+		given(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName, which is the receiving team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" }, newTeamName = 9 }), context, 1)
+		given(trigger({ filter = { unitDefName = { [1] = true } }, newTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a capture", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" } }), context, 1, { captured = true })
+		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { captured = true })
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters mission transfers by default", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = "armwin" } }), context, 1, { transferringUnits = true })
+		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { transferringUnits = true })
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires on a mission transfer when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = "armwin" }, ignoreMissionActions = false }),
+			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true }
@@ -117,7 +117,7 @@ describe("mission_api.conditions.unit_received", function()
 	it("fires on a mission gift when ignoreMissionActions is false, whatever the engine flag says", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = "armwin" }, ignoreMissionActions = false }),
+			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, captured = true }
@@ -128,7 +128,7 @@ describe("mission_api.conditions.unit_received", function()
 	it("does not fire on a mission capture, even when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = "armwin" }, ignoreMissionActions = false }),
+			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true }

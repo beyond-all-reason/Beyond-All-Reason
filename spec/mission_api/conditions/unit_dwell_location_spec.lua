@@ -53,7 +53,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("does not fire before the unit has dwelt for the full duration", function()
-		local t = trigger({ area = area, duration = 3, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 3, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -62,7 +62,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("fires once the unit has dwelt for the full duration", function()
-		local t = trigger({ area = area, duration = 2, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 2, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -71,7 +71,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("does not fire again for the same dwell once activated", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 1, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		onGameFrame(t, triggerID, context, 11) -- fires here
@@ -81,7 +81,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("restarts the dwell for a unit that leaves and re-enters", function()
-		local t = trigger({ area = area, duration = 2, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 2, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -119,7 +119,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("tracks multiple units independently", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 1, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100, 101 })
 		onGameFrame(t, triggerID, context, 11)
@@ -127,7 +127,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("fires a duration of 0 on the frame after entering", function()
-		local t = trigger({ area = area, duration = 0, filter = { unitDefName = "armpw" } })
+		local t = trigger({ area = area, duration = 0, filter = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		onGameFrame(t, triggerID, context, 10)

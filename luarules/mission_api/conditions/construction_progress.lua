@@ -30,7 +30,7 @@ return {
 			if filter.teamName and filter.teamName ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
-			if filter.unitDefName and filter.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then
+			if filter.unitDefName and not filter.unitDefName[Spring.GetUnitDefID(unitID)] then
 				return
 			end
 

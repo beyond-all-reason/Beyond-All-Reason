@@ -155,13 +155,13 @@ describe("mission_api.parameter_processing", function()
 	end)
 
 	describe("UnitFilter", function()
-		it("turns the team name into its team ID", function()
+		it("turns the team name into its team ID and the unit def name into a set of its ID", function()
 			local unitFilter = parameterProcessing.ProcessValue(
 				parameterTypes.Types.UnitFilter,
 				{ unitName = "commander", unitDefName = "armwar", teamName = "player" }
 			)
 
-			assert.are.same({ unitName = "commander", unitDefName = "armwar", teamName = 0 }, unitFilter)
+			assert.are.same({ unitName = "commander", unitDefName = { [7] = true }, teamName = 0 }, unitFilter)
 		end)
 	end)
 

@@ -149,7 +149,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("filters on unitDefName", function()
 			local context, fired = newContext()
-			loseUnit(trigger({ filter = { unitDefName = "corfast" } }), freshTriggerID(), context, freshUnitID())
+			loseUnit(trigger({ filter = { unitDefName = { [2] = true } } }), freshTriggerID(), context, freshUnitID())
 			assert.are.equal(0, fired())
 		end)
 
@@ -158,7 +158,7 @@ describe("mission_api.conditions.unit_undetected", function()
 			env.Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
-			local t = trigger({ filter = { unitDefName = "armpw", teamName = 3 } })
+			local t = trigger({ filter = { unitDefName = { [1] = true }, teamName = 3 } })
 			loseUnit(t, freshTriggerID(), context, freshUnitID())
 			assert.are.equal(0, fired())
 		end)
@@ -166,7 +166,8 @@ describe("mission_api.conditions.unit_undetected", function()
 		it("filters on sensorAllianceName", function()
 			local context, fired = newContext()
 			local t, triggerID =
-				trigger({ filter = { unitDefName = "armpw" }, sensorAllianceName = SENSOR_ALLY }), freshTriggerID()
+				trigger({ filter = { unitDefName = { [1] = true } }, sensorAllianceName = SENSOR_ALLY }),
+				freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Seen and then lost by an allyTeam this trigger does not watch.
@@ -181,7 +182,8 @@ describe("mission_api.conditions.unit_undetected", function()
 		it("filters on sensorTypes", function()
 			local context, fired = newContext()
 			local t, triggerID =
-				trigger({ filter = { unitDefName = "armpw" }, sensorTypes = { vision = true } }), freshTriggerID()
+				trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = { vision = true } }),
+				freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Held and then lost by radar, which this trigger does not watch.
@@ -200,7 +202,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("what it fires on", function()
 		it("activates for a unit that stops being detected", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -213,7 +215,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("activates when the last allyTeam holding it loses it", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID, OTHER_ALLY)
@@ -228,7 +230,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("what it always ignores", function()
 		it("ignores a unit that was never detected", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			update(t, triggerID, context, { unitID })
@@ -239,7 +241,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("ignores a unit that was dead when its level changed", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -257,7 +259,7 @@ describe("mission_api.conditions.unit_undetected", function()
 		-- We can specify the gaiaAllyTeam, still, in case that becomes a useful trigger.
 		it("ignores a unit that only Gaia was holding", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID, GAIA_ALLY)
@@ -272,7 +274,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("rising and falling actions", function()
 		it("activates on the fall", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -288,7 +290,7 @@ describe("mission_api.conditions.unit_undetected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID(), context, { unitID })
+			update(trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 	end)
@@ -299,7 +301,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("activation counts", function()
 		it("adds nothing for updates that change no level", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -314,7 +316,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("adds one for each unit that falls in the same update", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local first, second = freshUnitID(), freshUnitID()
 
 			seeUnit(first)
@@ -330,7 +332,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("adds one only for the unit that actually fell", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local falling, holding = freshUnitID(), freshUnitID()
 
 			seeUnit(falling)
@@ -359,7 +361,7 @@ describe("mission_api.conditions.unit_undetected", function()
 			for _, level in ipairs(LEVELS) do
 				local context, fired = newContext()
 				local t, triggerID =
-					trigger({ filter = { unitDefName = "armpw" }, sensorTypes = sensorTypes }), freshTriggerID()
+					trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = sensorTypes }), freshTriggerID()
 				local unitID = freshUnitID()
 
 				level.reach(unitID)
@@ -396,7 +398,8 @@ describe("mission_api.conditions.unit_undetected", function()
 
 			local context, fired = newContext()
 			local t, triggerID =
-				trigger({ filter = { unitDefName = "armpw" }, sensorTypes = { vision = true } }), freshTriggerID()
+				trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = { vision = true } }),
+				freshTriggerID()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
 			update(t, triggerID, context, { unitID })
@@ -406,7 +409,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 			context, fired = newContext()
 			t, triggerID =
-				trigger({ filter = { unitDefName = "armpw" }, sensorTypes = { radar = true, vision = true } }),
+				trigger({ filter = { unitDefName = { [1] = true } }, sensorTypes = { radar = true, vision = true } }),
 				freshTriggerID()
 			unitID = freshUnitID()
 			seeUnit(unitID)
@@ -428,7 +431,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("deduplication", function()
 		it("activates once for a unit that stays undetected across updates", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -444,7 +447,7 @@ describe("mission_api.conditions.unit_undetected", function()
 		-- Descending within a watched set is not a loss of detection.
 		it("activates once for a unit falling from vision through radar to unseen", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -464,7 +467,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("a repeating trigger", function()
 		it("activates again for each new fall", function()
 			local context, fired = newContext()
-			local t = trigger({ filter = { unitDefName = "armpw" } }, { repeating = true })
+			local t = trigger({ filter = { unitDefName = { [1] = true } } }, { repeating = true })
 			local triggerID = freshTriggerID()
 			local unitID = freshUnitID()
 
@@ -485,7 +488,7 @@ describe("mission_api.conditions.unit_undetected", function()
 	describe("a destroyed unit", function()
 		it("reports nothing when it is destroyed while detected", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -497,7 +500,7 @@ describe("mission_api.conditions.unit_undetected", function()
 
 		it("reports nothing on the sweep that follows its death", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ filter = { unitDefName = "armpw" } }), freshTriggerID()
+			local t, triggerID = trigger({ filter = { unitDefName = { [1] = true } } }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)

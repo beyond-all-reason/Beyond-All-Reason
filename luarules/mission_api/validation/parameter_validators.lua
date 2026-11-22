@@ -213,6 +213,25 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
+	-- One unit def name, or a list of them. Processing reads the list with ipairs.
+	local validateUnitDefNameList =
+		getListValidator(parameterValidators[Types.UnitDefName], "unitDefName list is empty")
+	parameterValidators[Types.UnitDefNames] = function(unitDefNames)
+		if type(unitDefNames) == "string" then
+			return parameterValidators[Types.UnitDefName](unitDefNames)
+		end
+		if type(unitDefNames) ~= "table" then
+			return { { message = "Unexpected parameter type, expected string or table, got " .. type(unitDefNames) } }
+		end
+		local count = #unitDefNames
+		for key in pairs(unitDefNames) do
+			if not (type(key) == "number" and key >= 1 and key <= count and key % 1 == 0) then
+				return { { message = "Expected a list of unit def names, got key: " .. tostring(key) } }
+			end
+		end
+		return validateUnitDefNameList(unitDefNames)
+	end
+
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)

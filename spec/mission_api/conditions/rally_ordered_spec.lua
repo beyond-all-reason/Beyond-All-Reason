@@ -77,16 +77,22 @@ describe("mission_api.conditions.rally_ordered", function()
 
 	it("does not fire for a non-factory unit", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "corfast" } }), context, CMD.MOVE, { 0, 0, 0 }, {
-			unitDefID = 2,
-		})
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [2] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 },
+			{
+				unitDefID = 2,
+			}
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by command", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.RECLAIM,
 			{ 1, 2, 3, 4 }
@@ -102,20 +108,30 @@ describe("mission_api.conditions.rally_ordered", function()
 		env.Spring.GetUnitCmdDescs = function()
 			return { { queueing = false } }
 		end
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" } }), context, CMD.MOVE, { 0, 0, 0 })
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when the factory relays the command as a rally order", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" } }), context, CMD.MOVE, { 0, 0, 0 })
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires on a rally order inserted into the queue", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.INSERT,
 			{ 0, CMD.MOVE, 0, 0, 0, 0 }
@@ -135,14 +151,19 @@ describe("mission_api.conditions.rally_ordered", function()
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
 		-- unitDefID 1 = armlab
-		order(trigger({ command = CMD.MOVE, filter = { unitDefName = "corfast" } }), context, CMD.MOVE, { 0, 0, 0 })
+		order(
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [2] = true } } }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab", teamName = 9 } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true }, teamName = 9 } }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 }
@@ -152,14 +173,19 @@ describe("mission_api.conditions.rally_ordered", function()
 
 	it("fires on any relayed command when command is CMD.ANY", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.ANY, filter = { unitDefName = "armlab" } }), context, CMD.RECLAIM, { 1, 2, 3, 4 })
+		order(
+			trigger({ command = CMD.ANY, filter = { unitDefName = { [1] = true } } }),
+			context,
+			CMD.RECLAIM,
+			{ 1, 2, 3, 4 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters mission-issued orders by default", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" } }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } } }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 },
@@ -171,7 +197,7 @@ describe("mission_api.conditions.rally_ordered", function()
 	it("fires on mission-issued orders when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, filter = { unitDefName = "armlab" }, ignoreMissionActions = false }),
+			trigger({ command = CMD.MOVE, filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 },

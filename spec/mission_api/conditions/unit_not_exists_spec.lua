@@ -52,19 +52,33 @@ describe("mission_api.conditions.unit_not_exists", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ filter = { unitDefName = "corfast" } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onMetaUnitRemoved(trigger({ filter = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ filter = { unitDefName = "armpw", teamName = 5 } }), triggerID, context, 100, 1, 0)
+		onMetaUnitRemoved(
+			trigger({ filter = { unitDefName = { [1] = true }, teamName = 5 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when the last matching unit is gone", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), triggerID, context, 100, 1, 0)
+		onMetaUnitRemoved(
+			trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(1, fired())
 	end)
 end)

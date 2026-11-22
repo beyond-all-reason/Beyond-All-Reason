@@ -79,7 +79,7 @@ return {
 			end
 
 			local filter = trigger.parameters.filter
-			if filter.unitDefName and filter.unitDefName ~= UnitDefs[unitDefID].name then
+			if filter.unitDefName and not filter.unitDefName[unitDefID] then
 				return
 			end
 

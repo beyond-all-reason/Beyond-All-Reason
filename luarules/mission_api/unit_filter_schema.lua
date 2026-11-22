@@ -6,7 +6,7 @@ local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
 
 local unitFilterFields = {
 	{ name = "unitName", type = Types.UnitName },
-	{ name = "unitDefName", type = Types.UnitDefName },
+	{ name = "unitDefName", type = Types.UnitDefNames },
 	{ name = "teamName", type = Types.TeamName },
 }
 

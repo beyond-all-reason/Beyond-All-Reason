@@ -50,19 +50,19 @@ describe("mission_api.conditions.unit_unloaded", function()
 
 	it("fires when a unit is unloaded from a transport", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), context, 1, 0)
+		unloaded(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = "armpw" } }), context, 2, 0) -- unitDefID 2 = armck
+		unloaded(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName, which is the passenger's team", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = "armpw", teamName = 9 } }), context, 1, 0)
+		unloaded(trigger({ filter = { unitDefName = { [1] = true }, teamName = 9 } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -86,18 +86,30 @@ describe("mission_api.conditions.unit_unloaded", function()
 
 	it("filters by transportDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = "armpw" }, transportDefName = "corvalk" }), context, 1, 0, 10) -- 10 = armatlas
+		unloaded(
+			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			context,
+			1,
+			0,
+			10
+		) -- 10 = armatlas
 		assert.are.equal(0, fired())
-		unloaded(trigger({ filter = { unitDefName = "armpw" }, transportDefName = "corvalk" }), context, 1, 0, 11)
+		unloaded(
+			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			context,
+			1,
+			0,
+			11
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	-- Spring.UnitDetach raises UnitUnloaded for undocking drones and detached turrets.
 	it("does not fire when the unloader is not a transport, even when named", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = "armpw" } }), context, 1, 0, 20) -- 20 = a drone carrier
+		unloaded(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- 20 = a drone carrier
 		unloaded(
-			trigger({ filter = { unitDefName = "armpw" }, transportDefName = "armdronecarryland" }),
+			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "armdronecarryland" }),
 			context,
 			1,
 			0,

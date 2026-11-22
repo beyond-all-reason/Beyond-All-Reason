@@ -96,12 +96,9 @@ local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
 	if filterTeamID ~= nil and (teamID or spGetUnitTeam(unitID)) ~= filterTeamID then
 		return false
 	end
-	local unitDefName = unitFilter.unitDefName
-	if unitDefName ~= nil then
-		local unitDef = UnitDefNames[unitDefName]
-		if unitDef == nil or (unitDefID or spGetUnitDefID(unitID)) ~= unitDef.id then
-			return false
-		end
+	local unitDefIDs = unitFilter.unitDefName
+	if unitDefIDs ~= nil and not unitDefIDs[unitDefID or spGetUnitDefID(unitID)] then
+		return false
 	end
 	local unitName = unitFilter.unitName
 	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName)
@@ -129,16 +126,48 @@ local function doesUnitMatchCondition(unitID, parameters, unitDefID, teamID)
 	return true
 end
 
+---The units of a unit filter's team, or of every team, of its unit defs if it gives them.
+---@param unitFilter table
+---@return UnitID[]
+local function unitsOfFilterTeams(unitFilter)
+	local teamIDs
+	if unitFilter.teamName ~= nil then
+		teamIDs = { unitFilter.teamName }
+	else
+		teamIDs = Spring.GetTeamList()
+	end
+
+	local unitDefIDs
+	if unitFilter.unitDefName ~= nil then
+		unitDefIDs = table.keys(unitFilter.unitDefName)
+	end
+
+	local units = {}
+	for _, teamID in ipairs(teamIDs) do
+		if unitDefIDs then
+			table.append(units, Spring.GetTeamUnitsByDefs(teamID, unitDefIDs))
+		else
+			table.append(units, Spring.GetTeamUnits(teamID))
+		end
+	end
+	return units
+end
+
 ---The units a condition's `filter` matches, less those its `exclude` filters match.
 ---@param parameters table the condition's parameters, with a `filter`
 ---@return UnitID[]
 local function unitsMatchingCondition(parameters)
 	local filter = parameters.filter
 	local units
-	if filter.unitName == nil and filter.unitDefName == nil then
-		units = Spring.GetTeamUnits(filter.teamName)
+	if filter.unitName ~= nil then
+		units = {}
+		for _, unitID in ipairs(unitsWithName(filter.unitName)) do
+			if doesUnitMatchFilter(unitID, filter) then
+				units[#units + 1] = unitID
+			end
+		end
 	else
-		units = matchingUnits(filter.unitName, filter.unitDefName, filter.teamName)
+		units = unitsOfFilterTeams(filter)
 	end
 	if parameters.exclude == nil then
 		return units

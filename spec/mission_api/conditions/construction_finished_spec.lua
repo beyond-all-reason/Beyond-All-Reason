@@ -57,38 +57,38 @@ describe("mission_api.conditions.construction_finished", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		finished(trigger({ filter = { unitDefName = "armsolar" } }), context, 2, 0) -- unitDefID 2 = armwin
+		finished(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 9)
+		finished(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
-		finished(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 0)
+		finished(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire for a unit that was never under construction (spawned, etc)", function()
 		local context, fired = newContext()
 		context.WasUnderConstruction = {} -- gives nil
-		finished(trigger({ filter = { unitDefName = "armsolar" } }), context, 1, 0)
+		finished(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team allied with teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 2) -- team 2 allied with 0
+		finished(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team hostile to teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ filter = { unitDefName = "armsolar", teamName = 0 } }), context, 1, 3)
+		finished(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 3)
 		assert.are.equal(0, fired())
 	end)
 end)

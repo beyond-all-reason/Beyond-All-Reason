@@ -52,19 +52,33 @@ describe("mission_api.conditions.unit_killed", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ filter = { unitDefName = "corfast" } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onUnitDestroyed(trigger({ filter = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ filter = { unitDefName = "armpw", teamName = 5 } }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(
+			trigger({ filter = { unitDefName = { [1] = true }, teamName = 5 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching kill", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(
+			trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(1, fired())
 	end)
 end)

@@ -81,7 +81,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("fires when an enemy weapon hits a matching unit", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw", teamName = 0 } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -94,7 +94,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	it("fires once per hit", function()
 		local context, fired = newContext()
 		for _ = 1, 3 do
-			damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+			damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 				unitDefID = 1,
 				unitTeam = 0,
 				damage = 50,
@@ -122,7 +122,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "corak" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [2] = true } } }), context, {
 			unitDefID = 1, -- armpw
 			unitTeam = 0,
 			damage = 50,
@@ -134,7 +134,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("filters by teamName, which is the attacked unit's team", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw", teamName = 1 } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true }, teamName = 1 } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -146,7 +146,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("counts paralyze damage as an attack", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -159,7 +159,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("includes hits that deal no damage", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 0,
@@ -171,7 +171,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("ignores damage from the unit's own team", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -183,7 +183,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("ignores damage from an allied team", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -195,7 +195,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("fires for a dead attacker's projectile once its team is recovered", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -209,7 +209,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	-- Death and self-destruct explosions use real weapons but arrive with no attacker and no projectile.
 	it("ignores weapon damage with no team to blame", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -234,7 +234,7 @@ describe("mission_api.conditions.unit_attacked", function()
 			Game.envDamageTypes.KilledByLua,
 		}
 		for _, weaponDefID in ipairs(environmental) do
-			damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+			damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 				unitDefID = 1,
 				unitTeam = 0,
 				damage = 50,
@@ -247,7 +247,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("counts being crushed as an attack", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -260,7 +260,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	-- The game registers scripted damage types (timed areas, ...) below the engine's lowest index.
 	it("counts the game's scripted damage types as attacks", function()
 		local context, fired = newContext()
-		damaged(trigger({ filter = { unitDefName = "armpw" } }), context, {
+		damaged(trigger({ filter = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,

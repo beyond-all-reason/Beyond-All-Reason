@@ -76,38 +76,38 @@ describe("mission_api.conditions.unit_captured", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "corfast" } }), context, 1) -- unitDefID 1 = armpw
+		taken(trigger({ filter = { unitDefName = { [2] = true } } }), context, 1) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by oldTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armpw" }, oldTeamName = 5 }), context, 1)
+		taken(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armpw" }, newTeamName = 5 }), context, 1)
+		taken(trigger({ filter = { unitDefName = { [1] = true } }, newTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching capture", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armpw" }, oldTeamName = 0, newTeamName = 1 }), context, 1)
+		taken(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 0, newTeamName = 1 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire for a gift", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = "armpw" } }), context, 1, { captured = false })
+		taken(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { captured = false })
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters mission captures by default", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = "armpw" } }),
+			trigger({ filter = { unitDefName = { [1] = true } } }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true }
@@ -118,7 +118,7 @@ describe("mission_api.conditions.unit_captured", function()
 	it("fires on a mission capture when ignoreMissionActions is false, whatever the engine flag says", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = "armpw" }, ignoreMissionActions = false }),
+			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true, captured = false }
@@ -129,7 +129,7 @@ describe("mission_api.conditions.unit_captured", function()
 	it("does not fire on a mission gift, even when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = "armpw" }, ignoreMissionActions = false }),
+			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, captured = true }
