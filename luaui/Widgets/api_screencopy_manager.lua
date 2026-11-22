@@ -69,8 +69,9 @@ local function CreateCopyTexture(format, filter, name)
 		format = format,
 		min_filter = filter,
 		mag_filter = filter,
-		wrap_s = GL.CLAMP,
-		wrap_t = GL.CLAMP,
+		-- (to the edge texel: GL.CLAMP blends the transparent border into samples past the screen's edge)
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
 	})
 	if not texture then
 		spEcho("ScreenCopy Manager failed to create a " .. name)

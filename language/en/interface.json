@@ -191,11 +191,15 @@
 			"windAdvice": "Solar Collectors are better when the average\nwind speed is below 5 (Armada) or 6 (Cortex)"
 		},
 		"tooltip": {
+			"veryLow": "Very low",
 			"low": "Low",
 			"medium": "Medium",
 			"high": "High",
+			"veryHigh": "Very high",
+			"verySlow": "Very slow",
 			"slow": "Slow",
-			"fast": "Fast"
+			"fast": "Fast",
+			"veryFast": "Very fast"
 		},
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
@@ -297,7 +301,28 @@
 			"ctrlclick": "CTRL + Click:   subtract from selection",
 			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
-			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
+			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup",
+			"shortcuts": {
+				"select": "Select the group",
+				"add": "Add it to the selection",
+				"subtract": "Take it out of the selection",
+				"view": "Select it and move the camera there",
+				"set": "Put the selected units in a group",
+				"remove": "Take the selected units out of their group",
+				"autoSet": "Autogroup the selected unit types",
+				"autoRemove": "Stop autogrouping the selected unit types",
+				"autoNote": "New units of an autogrouped type join its group.\nSettings: Interface / AutoGroup"
+			},
+			"keys": {
+				"click": "Click",
+				"shiftClick": "Shift + Click",
+				"ctrlClick": "Ctrl + Click",
+				"rightClick": "Right-click",
+				"ctrlNumber": "Ctrl + 0-9",
+				"ctrlTilde": "Ctrl + ~",
+				"altNumber": "Alt + 0-9",
+				"altTilde": "Alt + ~"
+			}
 		},
 		"changelog": {
 			"title": "Changelog"
@@ -551,6 +576,11 @@
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
 			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)",
+			"noConnection": {
+				"mode": "no connection",
+				"prefix": "Not delivered:",
+				"message": "The connection to the game server is closed, so nobody will receive this message."
+			},
 			"moderation": {
 				"prefix": "Moderation:",
 				"blocked": "Words such as \"%{badWord}\" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter."
@@ -864,6 +894,8 @@
 			"shortAggression": "Aggr.",
 			"shortActionsPerMinute": "APM",
 			"resourceIncome": "Income",
+			"resourceReclaimIncome": "Reclaim income",
+			"shortReclaimIncome": "Reclaim",
 			"resourceExpense": "Expense",
 			"resourceLevel": "Level",
 			"industry": "Industry",
@@ -950,7 +982,8 @@
 				"buildPowerUse": "How much of the team's build power was at work, over the game.",
 				"conversion": "How much of the team's energy conversion was running, over the game.",
 				"energyExpense": "Energy going out per second, over the game.",
-				"energyIncome": "Energy coming in per second, over the game.",
+				"energyIncome": "Energy coming in per second, over the game, reclaim left out.",
+				"energyReclaimIncome": "Energy reclaimed per second, over the game.",
 				"energyLevel": "How full the energy storage was, over the game.",
 				"energyStored": "Energy in storage, over the game.",
 				"frontLine": "How far out the side's army stood, over the game: 0% at its own start, 100% at the nearest enemy start.",
@@ -958,7 +991,8 @@
 				"idleLabs": "Factories with nothing queued, over the game.",
 				"jammerCoverage": "How much of the map the side's radar jammers covered, over the game.",
 				"metalExpense": "Metal going out per second, over the game.",
-				"metalIncome": "Metal coming in per second, over the game.",
+				"metalIncome": "Metal coming in per second, over the game, reclaim left out.",
+				"metalReclaimIncome": "Metal reclaimed per second, over the game.",
 				"metalLevel": "How full the metal storage was, over the game.",
 				"metalStored": "Metal in storage, over the game.",
 				"radarCoverage": "How much of the map the side's radar covered, over the game.",
@@ -1004,10 +1038,12 @@
 				"energyStored": "Energy in storage right now.",
 				"aggressionLevel": "Damage dealt for the resources gathered, on a scale where higher is more aggressive.",
 				"actionsPerMinute": "Commands given per minute of game time.",
-				"metalIncome": "Metal coming in per second right now.",
+				"metalIncome": "Metal coming in per second right now from extractors, converters and units. Reclaim is counted apart.",
+				"metalReclaimIncome": "Metal reclaimed per second right now from wrecks, rocks and other features. Not part of income.",
 				"metalExpense": "Metal going out per second right now.",
 				"metalLevel": "How full the metal storage is right now.",
-				"energyIncome": "Energy coming in per second right now.",
+				"energyIncome": "Energy coming in per second right now from generators and units. Reclaim is counted apart.",
+				"energyReclaimIncome": "Energy reclaimed per second right now from trees and other features. Not part of income.",
 				"energyExpense": "Energy going out per second right now.",
 				"energyLevel": "How full the energy storage is right now.",
 				"conversion": "How much of the team's energy conversion is running right now.",
@@ -1571,6 +1607,10 @@
 			"resist": "Resist",
 			"immune": "Immune",
 			"exp": "Exp",
+			"bonusTitle": "Experience bonus",
+			"xpHealthTip": "+%{percent}% maximum health from its %{xp} experience.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"xpDamageTip": "+%{percent}% damage per second from its %{xp} experience: its weapons reload faster.\nUnits gain experience by damaging and destroying enemies (more for those worth more than them); this bonus grows with it, up to +%{max}%.",
+			"bonusOtherTip": "+%{percent}% over its unit type's, from effects on this unit (not experience)",
 			"open": "Open",
 			"closed": "Closed",
 			"maxhp": "max HP",
@@ -1635,6 +1675,7 @@
 			"shieldCost": "Shield energy use per second",
 			"amphibious": "Amphibious",
 			"allTerrain": "All-terrain",
+			"builder": "Builder",
 			"empResistance": "EMP resistance",
 			"empImmune": "full",
 			"cloakMoving": "Cloak moving",
@@ -1653,6 +1694,8 @@
 			"rangeLabel": "Range",
 			"areaOfEffect": "Area of effect",
 			"edgeEffectiveness": "Edge effectiveness",
+			"alphaDamage": "Alpha damage",
+			"damageFalloff": "Damage fall-off",
 			"paralyzeTime": "Paralyze time",
 			"stockpileTime": "Stockpile time",
 			"interceptRange": "Interception range",
@@ -1810,10 +1853,12 @@
 			"shieldrange": "Shield range",
 			"shieldrechargerate": "Recharge rate",
 			"shieldrechargecost": "Recharge cost",
-			"cellHowto": "Click to select, right click to remove, middle click to view them (with Ctrl: all of this type)",
+			"cellHowto": "Click: select, right click: remove\nMiddle click: view them (Ctrl: all of this type)",
 			"flows": {
 				"metal": "Metal per second",
 				"energy": "Energy per second",
+				"metalCost": "Metal cost",
+				"energyCost": "Energy cost",
 				"unit": "What it makes, less what it uses right now",
 				"selection": "What the selected units make, less what they use right now",
 				"def": "What it makes, less its upkeep",
@@ -1843,6 +1888,9 @@
 				"cloak": "Cloaking costs energy per second",
 				"cloakMoving": "Cloaking costs energy per second, standing still / moving",
 				"progress": "Under construction",
+				"conversion": "Converts energy into metal per second (energy : metal)",
+				"xpHealth": "Health gained from experience",
+				"xpDamage": "Damage per second gained from experience (its weapons reload faster)",
 				"stealth": "Stealthy: radar does not show it",
 				"amphib": "Amphibious",
 				"allTerrain": "All-terrain",
@@ -2278,8 +2326,6 @@
 				"pip_history_descr": "Record unit positions and events so PIP windows can be rewound with the timeline at their bottom edge",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
-				"pip_engine_fallback_threshold": "engine fallback unit threshold",
-				"pip_engine_fallback_threshold_descr": "Unit count threshold before the engine minimap fallback activates. Lower values switch to the engine minimap sooner for better performance.",
 				"pip": "picture-in-picture",
 				"pip_descr": "Displays a floating camera minimap style window",
 				"pip2": "picture-in-picture 2",
@@ -2646,6 +2692,10 @@
 				"profiler_sort_by_load_descr": "Applies to both Widget Profiler and Gadget Profiler",
 				"profiler_averagetime": "time averaging",
 				"profiler_averagetime_descr": "The duration of averaging the time taken by each widget/gadget",
+				"flowui2guide": "FlowUI2 guide",
+				"flowui2guide_descr": "How FlowUI2 works and how a widget uses it, and every element with its name and call",
+				"flowui2livestate": "FlowUI2 live state",
+				"flowui2livestate_descr": "What FlowUI2 holds right now, over the running game: the HUD registry outlined on the screen, its caches, windows and lists",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
@@ -3589,7 +3639,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[basic|wraith|hydra|akumu|spidergeddon] Set zombie mode"
+			"zombiemode": "[basic|wraith|hydra|akumu] Set zombie mode"
 		}
 	},
 	"modoptions": {
@@ -4363,10 +4413,6 @@
 				"akumu": {
 					"name": "Akumu",
 					"desc": "Basic, Wraith, and Hydra combined."
-				},
-				"spidergeddon": {
-					"name": "Spidergeddon (LIMITED TIME)",
-					"desc": "A modified Akumu mode, but zombies resurrect as Spiders."
 				}
 			}
 		},

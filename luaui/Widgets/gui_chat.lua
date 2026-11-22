@@ -179,6 +179,9 @@ local state = {
 	prevGameID = nil,
 	prevOrgLines = nil,
 	gameOver = false,
+	serverGone = false --[[@as boolean]], -- after game over: chat reaches nobody anymore
+	serverTraffic = -1,
+	serverSilence = 0,
 	textInputDlist = nil,
 	updateTextInputDlist = true,
 	textCursorRect = nil,
@@ -599,6 +602,7 @@ function widget:LanguageChanged()
 		label = BAR.I18N("ui.chat.label"),
 		spectators = BAR.I18N("ui.chat.spectators"),
 		cmd = BAR.I18N("ui.chat.cmd"),
+		noConnection = BAR.I18N("ui.chat.noConnection.mode"),
 		shortcut = BAR.I18N("ui.chat.shortcut"),
 		nohistory = BAR.I18N("ui.chat.nohistory"),
 		scroll = BAR.I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
@@ -960,7 +964,7 @@ state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitFor
 	state.mapmarkTriggerKey = triggerKey
 	state.mapmarkTriggerScanCode = triggerScanCode
 	state.mapmarkPressedKeys = waitForTriggerRelease and Spring.GetPressedKeys() or nil
-	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans and Spring.GetPressedScans() or nil
+	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans() or nil
 	state.mapmarkTriggerIdentityCaptured = triggerKey ~= nil
 		or triggerScanCode ~= nil
 		or (state.mapmarkPressedKeys and next(state.mapmarkPressedKeys) ~= nil)
@@ -994,7 +998,7 @@ state.areMapmarkTriggerKeysPressed = function()
 		end
 	end
 
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	local pressedScans = Spring.GetPressedScans()
 	if state.mapmarkTriggerScanCode and pressedScans[state.mapmarkTriggerScanCode] then
 		return true
 	end
@@ -1153,6 +1157,13 @@ state.stopMapDraw = function()
 	state.mapDrawScanCode = nil
 	state.mapDrawLastX = nil
 	state.mapDrawLastZ = nil
+end
+
+state.isMapDrawKeyPressed = function()
+	if state.mapDrawKey and Spring.GetKeyState(state.mapDrawKey) then
+		return true
+	end
+	return state.mapDrawScanCode ~= nil and Spring.GetPressedScans()[state.mapDrawScanCode] and true or false
 end
 
 local function ensureInputHistoryDraft()
@@ -2088,7 +2099,32 @@ function widget:GameFrame(gameFrame)
 	addLastUnitShareMessage(gameFrame)
 end
 
+-- After game over the engine stops watching the connection, and chat sent over a closed one just vanishes.
+-- The server sends each player's info every 2 seconds, also while paused: silence means it is gone.
+function state.watchServerLink(dt)
+	local traffic = Spring.GetPlayerTraffic(Spring.GetMyPlayerID())
+	if traffic ~= state.serverTraffic then
+		state.serverTraffic, state.serverSilence = traffic, 0
+	else
+		state.serverSilence = state.serverSilence + dt
+	end
+	local gone = traffic > 0 and state.serverSilence > 6
+	if gone ~= state.serverGone then
+		state.serverGone = gone
+		updateTextInputDlist = true
+	end
+end
+
 function widget:Update(dt)
+	if gameOver and not Spring.IsReplay() then
+		state.watchServerLink(dt)
+	end
+
+	-- The key's release can go to a text owner or RmlUi instead of reaching this widget.
+	if state.mapDrawActive and not state.isMapDrawKeyPressed() then
+		state.stopMapDraw()
+	end
+
 	if inputMode == "label" and state.mapmarkTriggerDown then
 		if state.areMapmarkTriggerKeysPressed() == false then
 			state.finishMapmarkTriggerWait()
@@ -2326,11 +2362,14 @@ drawChatInput = function()
 		local usedFont = isCmd and font3 or font
 		local inputBottom = activationArea[2] + chatlogHeightDiff - distance - inputHeight
 		local inputTop = activationArea[2] + chatlogHeightDiff - distance
+		local noConnection = state.serverGone and not isLabel and not isCmd
 		local modeText = i18nStrings.everyone
 		if isLabel then
 			modeText = i18nStrings.label
 		elseif isCmd then
 			modeText = i18nStrings.cmd
+		elseif noConnection then
+			modeText = i18nStrings.noConnection
 		elseif inputMode == "a:" then
 			modeText = i18nStrings.allies
 		elseif inputMode == "s:" then
@@ -2391,6 +2430,8 @@ drawChatInput = function()
 			}
 			if isCmd then
 				r, g, b = 0, 0, 0
+			elseif noConnection then
+				r, g, b = 0.16, 0, 0
 			elseif inputMode == "a:" then
 				r, g, b = 0, 0.1, 0
 			elseif inputMode == "s:" then
@@ -2427,6 +2468,8 @@ drawChatInput = function()
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
+			elseif noConnection then
+				r, g, b = 0.9, 0.4, 0.4
 			elseif inputMode == "a:" then
 				r, g, b = 0.55, 0.72, 0.55
 			elseif inputMode == "s:" then
@@ -2445,7 +2488,9 @@ drawChatInput = function()
 
 			-- colon
 			if not isCmd then
-				if inputMode == "a:" then
+				if noConnection then
+					r, g, b = 0.8, 0.36, 0.36
+				elseif inputMode == "a:" then
 					r, g, b = 0.53, 0.66, 0.53
 				elseif inputMode == "s:" then
 					r, g, b = 0.66, 0.66, 0.5
@@ -2495,6 +2540,8 @@ drawChatInput = function()
 			-- text message
 			if isCmd then
 				r, g, b = 0.85, 0.85, 0.85
+			elseif noConnection then
+				r, g, b = 0.6, 0.6, 0.6
 			elseif inputMode == "a:" then
 				r, g, b = 0.2, 1, 0.2
 			elseif inputMode == "s:" then
@@ -3796,7 +3843,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 						local command = ssub(inputText, 2)
 						if command == "lr" then
 							command = "luaui reload"
-						elseif command:lower():find("^take%f[%W]") and not BAR.Utilities.Gametype.IsSinglePlayer() then
+						elseif command:lower():find("^take%f[%W]") then
 							command = "luarules take2" .. ssub(command, 5)
 						elseif
 							command:lower():find("^giveback%f[%W]") and not BAR.Utilities.Gametype.IsSinglePlayer()
@@ -3833,6 +3880,15 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 								Spring.SendSpectatorChat(inputText)
 							else
 								Spring.SendPublicChat(inputText)
+							end
+							if state.serverGone then
+								addChatLine(
+									Spring.GetGameFrame(),
+									LineTypes.System,
+									"Connection",
+									"\255\255\000\000" .. BAR.I18N("ui.chat.noConnection.prefix"),
+									BAR.I18N("ui.chat.noConnection.message")
+								)
 							end
 						end
 						lastMessage = inputText
@@ -4602,6 +4658,7 @@ local function preventhistorymodeCmd(_, _, params)
 end
 
 function widget:Initialize()
+	gameOver = Spring.IsGameOver()
 	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	-- Ensure ColorString and ColorIsDark are initialized

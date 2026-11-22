@@ -42,7 +42,8 @@ describe("MissionApiBuilder", function()
 			assert.is_function(api.Modules.Tracking.TrackUnit)
 			assert.is_function(api.Modules.Loadout.SpawnUnitLoadout)
 			assert.is_function(api.Modules.Sounds.PlaySound)
-			assert.is_function(api.Modules.Objectives.ChangeStage)
+			assert.is_function(api.Modules.Stages.ChangeStage)
+			assert.is_function(api.Modules.Objectives.UpdateObjective)
 		end)
 
 		it("gives each built mock its own state", function()
@@ -92,14 +93,14 @@ describe("MissionApiBuilder", function()
 			assert.are.equal(2, api.Difficulty)
 		end)
 
-		it("seeds action and trigger definitions", function()
+		it("seeds action and condition definitions", function()
 			local api = MissionApiBuilder.new()
 				:WithActionDefinitions({ Victory = {} })
-				:WithTriggerDefinitions({ TimeElapsed = {} })
+				:WithConditionDefinitions({ TimeElapsed = {} })
 				:Build()
 
 			assert.is_table(api.ActionDefinitions.Victory)
-			assert.is_table(api.TriggerDefinitions.TimeElapsed)
+			assert.is_table(api.ConditionDefinitions.TimeElapsed)
 		end)
 	end)
 
@@ -172,16 +173,12 @@ describe("MissionApiBuilder", function()
 	end)
 
 	describe("module call tracking", function()
-		it("records Loadout calls and passes orders through unchanged", function()
+		it("records Loadout calls", function()
 			local api = MissionApiBuilder.new():Build()
-			local orders = { { 10, {}, {} } }
 
-			local result = api.Modules.Loadout.ConvertOrdersTargetingNames(orders)
 			api.Modules.Loadout.SpawnUnitLoadout({ "a" })
 			api.Modules.Loadout.SpawnFeatureLoadout({ "b" })
 
-			assert.are.same(orders, result)
-			assert.are.equal(1, #api.calls.convertOrdersTargetingNames)
 			assert.are.equal(1, #api.calls.spawnUnitLoadout)
 			assert.are.same({ "a" }, api.calls.spawnUnitLoadout[1].loadout)
 			assert.are.equal(1, #api.calls.spawnFeatureLoadout)
@@ -206,11 +203,11 @@ describe("MissionApiBuilder", function()
 			assert.are.equal(30, api.calls.processSoundQueue[1].frame)
 		end)
 
-		it("records Objectives calls", function()
+		it("records Stages and Objectives calls", function()
 			local api = MissionApiBuilder.new():Build()
 			local objective = { textKey = "kill" }
 
-			api.Modules.Objectives.ChangeStage("stage2")
+			api.Modules.Stages.ChangeStage("stage2")
 			api.Modules.Objectives.TryAdvanceStage(objective)
 			api.Modules.Objectives.UpdateObjectiveProgress("obj1", 0, "armcom", { "bots" }, 1, { kind = "kills" })
 			api.Modules.Objectives.EchoObjectiveUpdate("obj1", objective)
@@ -232,20 +229,18 @@ describe("MissionApiBuilder", function()
 		it("clears every tracked call list via clearCalls", function()
 			local api = MissionApiBuilder.new():Build()
 
-			api.Modules.Loadout.ConvertOrdersTargetingNames({})
 			api.Modules.Loadout.SpawnUnitLoadout({})
 			api.Modules.Loadout.SpawnFeatureLoadout({})
 			api.Modules.Sounds.PlaySound("a.wav")
 			api.Modules.Sounds.EnqueueSound("b.wav")
 			api.Modules.Sounds.ProcessSoundQueue(1)
-			api.Modules.Objectives.ChangeStage("s")
+			api.Modules.Stages.ChangeStage("s")
 			api.Modules.Objectives.TryAdvanceStage({})
 			api.Modules.Objectives.UpdateObjectiveProgress("o")
 			api.Modules.Objectives.EchoObjectiveUpdate("o", {})
 
 			api.clearCalls()
 
-			assert.are.equal(0, #api.calls.convertOrdersTargetingNames)
 			assert.are.equal(0, #api.calls.spawnUnitLoadout)
 			assert.are.equal(0, #api.calls.spawnFeatureLoadout)
 			assert.are.equal(0, #api.calls.playSound)
@@ -262,13 +257,13 @@ describe("MissionApiBuilder", function()
 		it("overrides individual module functions", function()
 			local api = MissionApiBuilder.new()
 				:WithModule("Loadout", {
-					ConvertOrdersTargetingNames = function()
-						return { "converted" }
+					SpawnFeatureLoadout = function()
+						return { "overridden" }
 					end,
 				})
 				:Build()
 
-			assert.are.same({ "converted" }, api.Modules.Loadout.ConvertOrdersTargetingNames({}))
+			assert.are.same({ "overridden" }, api.Modules.Loadout.SpawnFeatureLoadout({}))
 			-- untouched functions remain available
 			assert.is_function(api.Modules.Loadout.SpawnUnitLoadout)
 		end)
@@ -314,7 +309,7 @@ describe("MissionApiBuilder", function()
 
 		it("resets recorded calls on reinstall", function()
 			local api = MissionApiBuilder.new():Install()
-			api.Modules.Objectives.ChangeStage("s1")
+			api.Modules.Stages.ChangeStage("s1")
 			assert.are.equal(1, #api.calls.changeStage)
 
 			MissionApiBuilder.new():Install()

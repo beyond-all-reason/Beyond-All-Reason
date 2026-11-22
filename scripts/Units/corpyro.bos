@@ -3,7 +3,7 @@
 
 piece  torso, ruparm, luparm, flare, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, lknee, rknee, lloarm, head, backpack, aimy1, aimx1;
 
-static-var  isMoving, isAiming, restore_delay, wpn1_lasthead, currentSpeed, animSpeed, movespeed;
+static-var  isMoving, isAiming, restore_delay, animSpeed;
 
 static-var  maxSpeed, animFramesPerKeyframe;
 // Signal definitions
@@ -19,7 +19,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corpyro_anim_walk.blend 
-	//set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:3
 			turn head to y-axis <-1.600000> speed <47.999996> / animSpeed; //delta=-1.60 
 			turn lfoot to x-axis <-48.749789> speed <1641.513271> / animSpeed; //delta=54.72 
@@ -421,7 +420,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -454,8 +452,6 @@ Create()
 	hide flare;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	currentSpeed = 200;
-	moveSpeed = get MAX_SPEED;
 	animSpeed = 3;
 	restore_delay = 1000;
 	start-script PilotLight();
@@ -526,7 +522,6 @@ AimWeapon1(heading, pitch)
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <275.0>;
 	turn aimx1 to x-axis <0.0> - pitch speed <110.0>;
-	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }

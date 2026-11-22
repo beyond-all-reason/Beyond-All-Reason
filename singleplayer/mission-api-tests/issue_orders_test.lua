@@ -1,9 +1,9 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	spawnAttackers = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	targets1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	targets2 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 13,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	spawnEnergyGrid1 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	reclaimEnergyGrid = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 27,
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	stop = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	reclaimWrecks = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -59,11 +59,19 @@ local triggers = {
 	},
 
 	artilleryAreaAttack = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
+	},
+
+	gatherThenMoveOn = {
+		type = conditionTypes.TimeElapsed,
+		parameters = {
+			seconds = 60,
+		},
+		actions = { 'spawnGatherers', 'gatherThenMoveOn', 'messageGatherThenMoveOn' },
 	},
 }
 
@@ -322,6 +330,35 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Stop all that.",
+		},
+	},
+
+	spawnGatherers = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armpw', position = { x = 2000, z = 1100 }, teamName = 'player', unitName = 'gatherers' },
+				{ unitDefName = 'armpw', position = { x = 1700, z = 1100 }, teamName = 'player', unitName = 'gatherers' },
+			},
+		},
+	},
+
+	gatherThenMoveOn = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'gatherers',
+			orders = {
+				{ CMD.MOVE, { 2050, 0, 1100 } },
+				{ CMD.GATHERWAIT, {}, { 'shift' } },
+				{ CMD.MOVE, { 2050, 0, 900 }, { 'shift' } },
+			},
+		},
+	},
+
+	messageGatherThenMoveOn = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Two Pawns meet at one spot, and the nearer waits for the other before they both head north.",
 		},
 	},
 }

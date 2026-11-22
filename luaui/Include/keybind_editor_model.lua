@@ -25,7 +25,9 @@ local keybindModel = require("luaui/Include/keybind_model")
 local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
 local Dropdown = require("luaui/Include/keybind_dropdown")
 local Editbox = require("luaui/Include/keybind_editbox")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_ESCAPE = Spring.GetKeyCode("esc")
+local KEY_RETURN = Spring.GetKeyCode("return")
+local KEY_Z = Spring.GetKeyCode("z")
 local Search = require("luaui/Include/search")
 local profiles = require("luaui/Include/keybind_profiles")
 local text = require("luaui/Include/keybind_text")
@@ -2657,9 +2659,9 @@ end
 -- Keys, offered to the modal, the capture, the dropdown and the search box in that order.
 function model.keyPress(key, scanCode)
 	if model.dialog then
-		if key == KEYSYMS.ESCAPE then
+		if key == KEY_ESCAPE then
 			model.cancelDialog()
-		elseif key == KEYSYMS.RETURN then
+		elseif key == KEY_RETURN then
 			model.acceptDialog()
 		elseif not model.dialog.message and not model.dialog.nameless then
 			-- Focus is dropped by the editbox on Escape/Return, which are handled above.
@@ -2709,7 +2711,7 @@ function model.keyPress(key, scanCode)
 
 	-- Ctrl+Z takes the last edit back. Below the capture and the dropdown, which take every
 	-- key while they are up; above the search field, which has no use for it.
-	if key == KEYSYMS.Z then
+	if key == KEY_Z then
 		local _, ctrl = Spring.GetModKeyState()
 		if ctrl then
 			model.undoEdit()
@@ -2720,7 +2722,7 @@ function model.keyPress(key, scanCode)
 
 	-- The list being read is the one the search made, and the first Escape asks for that back.
 	-- With nothing to clear it goes unclaimed and the widget above closes the panel.
-	if key == KEYSYMS.ESCAPE then
+	if key == KEY_ESCAPE then
 		if model.searchBox and model.searchBox:getText() ~= "" then
 			-- Focus stays, so the next thing typed starts a new search.
 			model.searchBox:setText("")

@@ -28,6 +28,7 @@ utilities = {
 	GetRaptorTeamID = team.GetRaptorTeamID,
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
+	GetTeamRealResources = team.GetTeamRealResources,
 	CanTeamReceiveUnits = team.CanTeamReceiveUnits,
 
 	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
@@ -60,6 +61,8 @@ utilities = {
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
+	CompassAngleToHeading = facingFunctions.CompassAngleToHeading,
+	DirectionToHeading = facingFunctions.DirectionToHeading,
 	FacingToHeading = facingFunctions.FacingToHeading,
 	FacingToNumber = facingFunctions.FacingToNumber,
 	HeadingToFacing = facingFunctions.HeadingToFacing,

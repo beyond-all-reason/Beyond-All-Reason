@@ -24,6 +24,7 @@ local spGetFPS = Spring.GetFPS
 local spGetConfigFloat = Spring.GetConfigFloat
 local mathExp = math.exp
 local mathMin = math.min
+local mathMax = math.max
 local stringFind = string.find
 local stringSub = string.sub
 local type = type
@@ -87,7 +88,8 @@ M.gen = 0
 
 -- Per-callin detail, which only the widget being drilled into pays for.
 local callinAverages = {}
-local detailName
+local detailOf = {} -- [owner] = the widget whose callins it asked for
+local detailNames = {} -- those widgets
 
 local oldUpdateWidgetCallIn
 local oldInsertWidget
@@ -163,7 +165,7 @@ local function hook(w, name)
 		stats = {}
 		callinStats[widgetName] = stats
 	end
-	stats[name] = stats[name] or { 0, 0, 0, 0 }
+	stats[name] = stats[name] or { 0, 0, 0, 0, 0 } -- (time and allocation: this tick, in all; calls this tick)
 	local c = stats[name]
 
 	local t
@@ -176,6 +178,7 @@ local function hook(w, name)
 		c[2] = c[2] + dt
 		c[3] = c[3] + ds
 		c[4] = c[4] + ds
+		c[5] = c[5] + 1
 		inHook = false
 
 		return ...
@@ -367,12 +370,23 @@ function M.getTick()
 	return tick
 end
 
--- Which widget's per-callin breakdown to keep. Only one at a time: the smoothing behind it
--- costs a table per callin, and nothing reads more than one at once.
-function M.setDetail(name)
-	if detailName ~= name then
-		detailName = name
-		callinAverages = {}
+-- Which widget's per-callin breakdown to keep: one per `owner` (any value; nil: the one the readers without
+-- one share), so a panel asking for none does not take away what another reads. The smoothing behind it costs
+-- a table per callin; a widget asked for anew starts afresh.
+function M.setDetail(name, owner)
+	owner = owner or M
+	if detailOf[owner] == name then
+		return
+	end
+	detailOf[owner] = name
+	detailNames = {}
+	for _, wanted in pairs(detailOf) do
+		detailNames[wanted] = true
+	end
+	for kept in pairs(callinAverages) do
+		if not detailNames[kept] then
+			callinAverages[kept] = nil
+		end
 	end
 end
 
@@ -397,8 +411,8 @@ function M.sample()
 
 	local averageTime = spGetConfigFloat("profiler_averagetime", 2)
 	-- The long-window average is in frames, and a frame is however long the tick or the
-	-- frame rate makes it.
-	local frames = mathMin(1 / tick, spGetFPS()) * retainSortTime
+	-- frame rate makes it. GetFPS is 0 after a second without a drawn frame.
+	local frames = mathMin(1 / tick, mathMax(1, spGetFPS())) * retainSortTime
 	local framesMinusOne = frames - 1
 
 	local totalLoad, totalSpace = 0, 0
@@ -409,7 +423,7 @@ function M.sample()
 		local peakS, peakSName = 0, "-"
 
 		local detail
-		if name == detailName then
+		if detailNames[name] then
 			detail = callinAverages[name]
 			if not detail then
 				detail = {}
@@ -430,16 +444,20 @@ function M.sample()
 				peakS, peakSName = c4, cname
 			end
 			c[3] = 0
+			local calls = c[5] or 0
+			c[5] = 0
 
 			if detail then
 				local relT = 100 * c1 / deltaTime
 				local relS = c3 / deltaTime
+				local relC = calls / deltaTime -- calls a second
 				local prev = detail[cname]
 				if prev then
 					prev[1] = calcLoad(prev[1], relT, averageTime)
 					prev[2] = calcLoad(prev[2], relS, averageTime)
+					prev[3] = calcLoad(prev[3] or relC, relC, averageTime)
 				else
-					detail[cname] = { relT, relS }
+					detail[cname] = { relT, relS, relC }
 				end
 			end
 		end

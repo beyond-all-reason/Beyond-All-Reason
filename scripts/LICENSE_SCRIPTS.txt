@@ -1,0 +1,45 @@
+scripts/ — Licensing Notice
+============================
+
+SPDX-License-Identifier: GPL-2.0-or-later
+
+Classification:
+  All files in scripts/ and its subdirectories are treated as CODE under the
+  BAR project licensing policy, consistent with CONTRIBUTING.md and LICENSE.md.
+
+Default license:
+  GNU General Public License, version 2 or later (GPL-2.0-or-later), unless
+  a file or subdirectory states otherwise.
+
+This covers BOS, COB, Lua, header (.h), Python, AutoHotkey, and other
+script-support files used for unit behavior, animation control, factory logic,
+turret handling, damage/smoke effects, and related gameplay mechanics.
+
+Per-file and per-directory overrides:
+  Some files carry explicit per-file license and author notices. Those notices
+  take precedence over this directory-level default. Existing examples include:
+
+  - scripts/Raptors/License.txt  (SPDX: GPL-2.0-only, Beherith)
+  - scripts/include/walk.lua     (SPDX: LicenseRef-Public-Domain, Nemo & Smoth)
+  - Various .h headers by Beherith with inline GPL v2 notices (SPDX: GPL-2.0-only)
+
+  These explicit notices are preserved and should not be removed or overridden.
+
+SPDX convention:
+  New files and updated files should include an SPDX-License-Identifier header
+  as the first comment line. Files covered by this directory default use:
+    SPDX-License-Identifier: GPL-2.0-or-later
+  Per-file overrides use the appropriate SPDX identifier for their license.
+
+Authorship:
+  Where per-file authorship is stated, it is preserved.
+  Where authorship is not stated at the file level, the file is maintained as
+  part of the BAR project. Contributors can be identified through repository
+  history (git log / git blame).
+
+Compiled .cob files:
+  COB files are compiled BOS scripts. They inherit the license of their
+  corresponding BOS source file and of any headers they include.
+
+Tool reference:
+  BOS files are compiled using bos2cob (GPL): https://github.com/ashdnazg/bos2cob/

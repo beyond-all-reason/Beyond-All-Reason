@@ -21,6 +21,9 @@ code or functionality, please explain it so reviewers can understand.
 Describe any setup requirements to test this work (Specific settings, widgets, etc))
 -->
 
+<!-- Art or audio in this PR? The CLA bot adds a license choice to this description; tick one box
+and comment /confirm-license. Purchased or stock assets do not belong in this repository. -->
+
 #### Test steps
 - [ ] Write the steps needed to test out the changes. Include the expected result.
 

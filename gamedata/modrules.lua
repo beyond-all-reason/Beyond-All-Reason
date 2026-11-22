@@ -90,7 +90,7 @@ local modrules = {
 	},
 
 	system = {
-		allowTake = true, -- Enables and disables the /take UI command.
+		allowTake = false, -- Enables and disables the /take UI command; /take runs take2 instead.
 		useStartPositionSelecter = false,
 		LuaAllocLimit = 1536, -- default: 1536.  Global Lua alloc limit (in megabytes)
 		enableSmoothMesh = true,

@@ -1,7 +1,3 @@
-if BAR.Utilities.Gametype.IsSinglePlayer() then
-	return
-end
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -64,6 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 	local resourceList = { "metal", "energy" }
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
+	local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 	local validation = string.randomString(2)
 	_G.validationIdle = validation
@@ -183,7 +180,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function takeTeam(cmd, line, words, playerID)
-		if not CheckPlayerState(playerID) then
+		if not isSinglePlayer and not CheckPlayerState(playerID) then
 			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
 			return -- exclude taking rights from lagged players, etc
 		end
@@ -200,15 +197,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local numTaken = 0
 		for _, teamID in ipairs(teamList) do
-			local luaAI = GetTeamLuaAI(teamID)
-			local isAiTeam = select(4, GetTeamInfo(teamID, false))
-			if
-				teamID ~= takerID
-				and not isAiTeam
-				and (not luaAI or luaAI == "")
-				and GetTeamRulesParam(teamID, "numActivePlayers") == 0
-			then
-				-- transfer all units
+			if teamID ~= takerID and (isSinglePlayer or GetTeamRulesParam(teamID, "numActivePlayers") == 0) then
 				local teamUnits = GetTeamUnits(teamID)
 				local origins = {}
 				for i = 1, #teamUnits do
@@ -249,6 +238,10 @@ if gadgetHandler:IsSyncedCode() then
 				if unitsTaken > 0 or capTaken or taken.metal > 0 or taken.energy > 0 then
 					numTaken = numTaken + 1
 					SendToUnsynced("TeamTaken", playerID, teamID, unitsTaken, taken.energy, taken.metal)
+					local isEliminableAI = isSinglePlayer and select(4, GetTeamInfo(teamID, false))
+					if isEliminableAI and #GetTeamUnits(teamID) == 0 then
+						Spring.KillTeam(teamID) -- game_end won't eliminate an empty AI team
+					end
 				end
 			end
 		end
@@ -363,6 +356,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
+		if isSinglePlayer then
+			gadgetHandler:RemoveCallIn("GameFrame")
+			gadgetHandler:RemoveCallIn("RecvLuaMsg")
+			gadgetHandler:RemoveCallIn("AllowResourceTransfer")
+			gadgetHandler:RemoveCallIn("AllowUnitTransfer")
+			return
+		end
 		gadgetHandler:AddChatAction(
 			giveBackCommand,
 			giveBackTeam,
@@ -569,8 +569,15 @@ else -- UNSYNCED
 	-- same "<name> Allies: > key:params" line as game_message, so gui_chat translates it for each reader
 	local function teamTaken(_, playerID, teamID, units, energy, metal)
 		local takerName, _, _, _, takerAllyTeamID = Spring.GetPlayerInfo(playerID, false)
-		local leaderID = select(2, Spring.GetTeamInfo(teamID, false))
-		local takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+		local takenName = Spring.GetGameRulesParam("ainame_" .. teamID)
+		if not takenName then
+			local _, leaderID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+			if isAiTeam then
+				takenName = select(2, Spring.GetAIInfo(teamID)) -- use the player name hosting the AI
+			else
+				takenName = leaderID and leaderID >= 0 and Spring.GetPlayerInfo(leaderID, false)
+			end
+		end
 		if not takerName or not takenName then
 			return
 		end
@@ -606,6 +613,15 @@ else -- UNSYNCED
 	end
 
 	function gadget:Initialize()
+		if BAR.Utilities.Gametype.IsSinglePlayer() then
+			gadgetHandler:AddSyncAction("NotifyError", notifyError)
+			gadgetHandler:AddSyncAction("TeamTaken", teamTaken)
+			gadgetHandler:RemoveCallIn("Update")
+			gadgetHandler:RemoveCallIn("MousePress")
+			gadgetHandler:RemoveCallIn("MouseWheel")
+			gadgetHandler:RemoveCallIn("KeyPress")
+			return
+		end
 		gadgetHandler:AddSyncAction("OnGameStart", onGameStart)
 		gadgetHandler:AddSyncAction("NotifyError", notifyError)
 		gadgetHandler:AddSyncAction("TeamGivenBack", teamGivenBack)

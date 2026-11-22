@@ -3,7 +3,7 @@
 
 piece  base, factorydeco, lthruster, rthruster, lwing, rwing, lpivot, rpivot, lthrusttrail, rthrusttrail, flare, mine1, mine2, mine3, mine4, mine5, mine6;
 
-static-var  isMoving, mineCounter;
+static-var  mineCounter;
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -11,7 +11,7 @@ static-var  isMoving, mineCounter;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -27,7 +27,6 @@ Create()
 	turn lpivot to y-axis <5> now;
 	
 	mineCounter = 0;
-	isMoving = FALSE;
 }
 
 Activate()
@@ -58,25 +57,14 @@ Deactivate()
 	turn rwing to z-axis <120> speed <60>;
 }
 
-StartMoving()
-{
-	isMoving = TRUE;
-}
-
-StopMoving()
-{
-	isMoving = FALSE;
-}
-
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = base;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare;
 }
 
 Shot1(zero) // Animate mines dropping one by one
@@ -126,7 +114,6 @@ FireWeapon1()
 {
 	move flare to z-axis [20] speed [15];
 	start-script RebuildMines();
-	return (0);
 }
 
 RebuildMines()
@@ -159,11 +146,6 @@ RebuildMines()
 	move mine6 to z-axis [0] speed [9.5];
 	show mine6;
 	
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
 }
 
 Killed(severity, corpsetype)

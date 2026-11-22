@@ -20,7 +20,9 @@ end
 -- filling in its own half of the API, so either can run without the other.
 
 local Editbox = require("luaui/Include/keybind_editbox")
-local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local KEY_ESCAPE = Spring.GetKeyCode("esc")
+local KEY_RETURN = Spring.GetKeyCode("return")
+local KEY_KP_ENTER = Spring.GetKeyCode("numpad_enter")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -51,6 +53,7 @@ local cfg = {
 	allowSavegame = true,
 	useSkew = true,
 	smallElementHeightFraction = 0.85, -- buttons height as fraction of the top bar
+	revealHeight = 8, -- px (scaled) at the screen's top that bring the auto-hidden strip back
 }
 
 local SAVE_PAUSE = "topbarSaveDialog" -- what the handler holds the game paused under, while the save dialog is up
@@ -122,6 +125,8 @@ local quitscreenResignArea
 local quitscreenTeamResignArea
 ---@type any
 local showQuitscreen
+-- Set while the quit screen answers the window's close button or Alt+F4: when it was asked.
+local closeRequest
 ---@type any
 local hideQuitWindow
 ---@type boolean
@@ -407,8 +412,10 @@ local function drawQuitScreen()
 			local fontSize = h / 6
 			local text = BAR.I18N("ui.topbar.quit.reallyQuit")
 			teamResign = false
+			-- a close request leaves the game for good, so the lobby's variant does not apply
+			local lobby = chobbyLoaded and not closeRequest
 
-			if not spec then
+			if not spec and not closeRequest then
 				text = BAR.I18N("ui.topbar.quit.reallyQuitResign")
 				if not gameIsOver and chobbyLoaded then
 					if numPlayers < 3 then
@@ -508,7 +515,7 @@ local function drawQuitScreen()
 			fontSize = fontSize * 0.92
 
 			-- stay button
-			if gameIsOver or not chobbyLoaded then
+			if gameIsOver or not lobby then
 				if
 					mathIsInRect(
 						mx,
@@ -656,7 +663,7 @@ local function drawQuitScreen()
 			end
 
 			-- quit button
-			if gameIsOver or not chobbyLoaded then
+			if gameIsOver or not lobby then
 				if
 					mathIsInRect(
 						mx,
@@ -964,7 +971,7 @@ end
 -- therefore see the click first) can tell a click on the top bar apart from a click that
 -- dismisses them: closing themselves there would eat the click meant to open another window.
 local function buttonAt(x, y)
-	if not buttonsArea.buttons then
+	if not showButtons or not buttonsArea.buttons then
 		return nil
 	end
 	for name, pos in pairs(buttonsArea.buttons) do
@@ -1001,6 +1008,7 @@ local function applyButtonAction(button)
 					end
 				end
 			else
+				closeRequest = nil
 				showQuitscreen = now
 			end
 		end
@@ -1036,16 +1044,6 @@ function widget:DrawScreen()
 		refreshButtons = false
 		updateButtons()
 		rebuildBackground()
-	end
-
-	if autoHideButtons then
-		if buttonsArea[1] and hoveringButtons then
-			if not showButtons then
-				showButtons = true
-			end
-		elseif showButtons then
-			showButtons = false
-		end
 	end
 
 	applyGuishader()
@@ -1199,7 +1197,7 @@ function widget:MousePress(x, y, button)
 					end
 				end
 				if
-					(gameIsOver or not chobbyLoaded)
+					(gameIsOver or not chobbyLoaded or closeRequest)
 					and mathIsInRect(
 						x,
 						y,
@@ -1213,7 +1211,7 @@ function widget:MousePress(x, y, button)
 						Spring.PlaySoundFile(leftclick, 0.75, "ui")
 					end
 
-					if not chobbyLoaded then
+					if closeRequest or not chobbyLoaded then
 						Spring.SendCommands("QuitForce") -- Exit the game completely
 					else
 						Spring.SendCommands("ReloadForce") -- Exit to the lobby
@@ -1291,6 +1289,26 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+-- The window's close button and Alt+F4 (engine 2026.09+): a player in a running game is asked first.
+-- Asking again once the dialog has been up for a moment quits; SDL can report one click twice.
+function widget:AllowQuit()
+	if spec or gameIsOver or not gameStarted or hideQuitWindow then
+		return true
+	end
+	-- nothing to ask with: the lobby covers the game, or the interface is hidden
+	if widgetHandler.chobbyInterface or Spring.IsGUIHidden() then
+		return true
+	end
+	if showQuitscreen and closeRequest then
+		return Spring.DiffTimers(Spring.GetTimer(), closeRequest) > 0.5
+	end
+
+	hideWindows()
+	closeRequest = Spring.GetTimer()
+	showQuitscreen = now
+	return false
+end
+
 function widget:MouseWheel(up, value) -- up = true/false , value = -1/1
 	if saveDialog or (showQuitscreen and quitscreenArea) then
 		return true
@@ -1299,9 +1317,9 @@ end
 
 function widget:KeyPress(key)
 	if saveDialog then
-		if key == KEYSYMS.ESCAPE then
+		if key == KEY_ESCAPE then
 			closeSaveDialog()
-		elseif key == KEYSYMS.RETURN or key == KEYSYMS.KP_ENTER then
+		elseif key == KEY_RETURN or key == KEY_KP_ENTER then
 			saveAsTyped()
 		else
 			saveDialog.box:keyPress(key)
@@ -1425,19 +1443,34 @@ local function currentButtonSignature()
 	}, ",")
 end
 
+-- Hidden, only a thin band along the screen's top brings the strip back: the panels that moved up
+-- into its place can be hovered. Once it shows, all of it keeps it open.
+local function overStrip(x, y)
+	if not buttonsArea[1] then
+		return false
+	end
+	local bottom = showButtons and buttonsArea[2] or (buttonsArea[4] - mathFloor(cfg.revealHeight * widgetScale))
+	return mathIsInRect(x, y, buttonsArea[1], bottom, buttonsArea[3], buttonsArea[4])
+end
+
 function widget:Update(dt)
 	now = osClock()
 
 	provideTopBarFallbacks()
 
+	-- Here, not in DrawScreen: this Update runs before those of the widgets hanging under the strip,
+	-- which move with it in the same frame.
+	if autoHideButtons then
+		mx, my = Spring.GetMouseState()
+		hoveringButtons = overStrip(mx, my)
+		showButtons = hoveringButtons
+	end
+
 	if now > nextStateCheck then
 		nextStateCheck = now + 0.0333
 
 		mx, my = Spring.GetMouseState()
-		-- deliberately not gated on showButtons: with auto-hide on, hovering the empty
-		-- strip is what brings the buttons back
-		hoveringButtons = buttonsArea[1] ~= nil
-			and mathIsInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4])
+		hoveringButtons = overStrip(mx, my)
 
 		local _, _, isPaused = Spring.GetGameSpeed()
 		if not isPaused then

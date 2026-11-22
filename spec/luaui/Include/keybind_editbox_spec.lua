@@ -9,9 +9,28 @@ local clips = {}
 local ctrl = false
 local clipboard = ""
 
+-- see Spring.GetKeyCode
+local keyCodes = {
+	a = 97,
+	c = 99,
+	x = 120,
+	v = 118,
+	esc = 27,
+	["return"] = 13,
+	backspace = 8,
+	delete = 127,
+	left = 276,
+	right = 275,
+	home = 278,
+	["end"] = 279,
+}
+
 -- gl and FlowUI are unavailable to specs.
 local env = SpecEnv.new({
 	Spring = {
+		GetKeyCode = function(name)
+			return keyCodes[name]
+		end,
 		GetTimer = function() end,
 		DiffTimers = function()
 			return 0
@@ -103,8 +122,6 @@ describe("a text field narrower than its text", function()
 end)
 
 describe("a text field and the clipboard", function()
-	local KEYSYMS = require("luaui/Include/keybind_keysyms")
-
 	local function field(text)
 		local box = Editbox.new({ maxChars = 255 })
 		box:setText(text)
@@ -125,11 +142,11 @@ describe("a text field and the clipboard", function()
 		box:setCaret(0)
 		box:setCaret(6, true)
 
-		chord(box, KEYSYMS.C)
+		chord(box, keyCodes.c)
 		assert.are.equal("armcom", clipboard)
 		assert.are.equal("armcom,corcom", box:getText())
 
-		chord(box, KEYSYMS.X)
+		chord(box, keyCodes.x)
 		assert.are.equal("armcom", clipboard)
 		assert.are.equal(",corcom", box:getText())
 	end)
@@ -139,7 +156,7 @@ describe("a text field and the clipboard", function()
 		local box = field("armcom,corcom")
 		box:setCaret(7)
 		box:setCaret(13, true)
-		chord(box, KEYSYMS.V)
+		chord(box, keyCodes.v)
 
 		assert.are.equal("armcom,legcom", box:getText())
 		assert.are.equal(13, box.caret)
@@ -148,7 +165,7 @@ describe("a text field and the clipboard", function()
 	it("pastes a list copied a line at a time onto one line", function()
 		clipboard = "armcom\r\ncorcom\n"
 		local box = field("")
-		chord(box, KEYSYMS.V)
+		chord(box, keyCodes.v)
 
 		assert.are.equal("armcom corcom ", box:getText())
 	end)
@@ -158,7 +175,7 @@ describe("a text field and the clipboard", function()
 		local box = field("armcom")
 		box:setCaret(0)
 		box:setCaret(6, true)
-		chord(box, KEYSYMS.V)
+		chord(box, keyCodes.v)
 
 		assert.are.equal("armcom", box:getText())
 		assert.is_true(box:hasSelection())
