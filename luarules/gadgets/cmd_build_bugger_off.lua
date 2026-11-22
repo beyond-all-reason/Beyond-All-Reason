@@ -80,8 +80,6 @@ local needsUpdate = false
 local areaCommandCooldown = {}
 
 local FAST_UPDATE_RADIUS = 400
--- builders take about this much to enter build stance; determined empirically
-local BUILDER_DELAY_SECONDS = 3.3
 local BUILDER_BUILD_RADIUS = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
 -- Assume the units are super-fast and medium-sized.
 local SEARCH_RADIUS_OFFSET = unitSpeedMax + 2 * footprint
