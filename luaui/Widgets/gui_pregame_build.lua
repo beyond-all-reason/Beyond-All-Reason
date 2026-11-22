@@ -37,6 +37,7 @@ local spawnWarpInFrame = Game.spawnWarpInFrame
 
 local buildQueue = {}
 local selBuildQueueDefID
+---@type fun(mx: integer, my: integer): table?
 local getQuickMexBuild
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
 
@@ -967,44 +968,48 @@ end
 
 getQuickMexBuild = function(mx, my)
 	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
-		return
+		return nil
 	end
 	if WG.topbar and WG.topbar.showingQuit() then
-		return
+		return nil
 	end
 	local finder, builder = WG.resource_spot_finder, WG.resource_spot_builder
 	if not finder or finder.isMetalMap or not builder then
-		return
+		return nil
 	end
 	local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
-	if not pos then
-		return
+	if type(pos) ~= "table" then
+		return nil
 	end
-	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
+	local px, pz = pos[1], pos[3]
+	if not px or not pz then
+		return nil
+	end
+	local spot = finder.GetClosestMexSpot(px, pz)
 	if not spot then
-		return
+		return nil
 	end
 	local radius = math.sqrt(finder.GetMexPlacementRadiusSquared(spot)) + 16
 	local radiusSquared = math.max(builder.QuickMexRadiusSquared, radius * radius)
-	if (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 > radiusSquared then
-		return
+	if (spot.x - px) ^ 2 + (spot.z - pz) ^ 2 > radiusSquared then
+		return nil
 	end
 	if builder.SpotHasExtractorQueued(spot) then
-		return
+		return nil
 	end
 
 	-- Read the current start unit so a faction change takes effect immediately.
 	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	local startDef = startID and UnitDefs[startID]
 	if not startDef then
-		return
+		return nil
 	end
 	local buildData
 	local bestExtraction = 0
 	for _, defID in ipairs(startDef.buildOptions) do
 		local def = UnitDefs[defID]
 		if def.extractsMetal and def.extractsMetal > bestExtraction then
-			local candidate = builder.PreviewExtractorCommand(pos, defID, spot)
+			local candidate = builder.PreviewExtractorCommand(pos, defID, spot, false)
 			if candidate and spTestBuildOrder(defID, candidate[2], candidate[3], candidate[4], candidate[5]) ~= 0 then
 				buildData = candidate
 				bestExtraction = def.extractsMetal
@@ -1012,18 +1017,18 @@ getQuickMexBuild = function(mx, my)
 		end
 	end
 	if not buildData then
-		return
+		return nil
 	end
 	local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
 	if cx and cx >= 0 then
 		local bx, by, bz = Spring.Pos2BuildPos(startID, cx, cy, cz)
 		if DoBuildingsClash(buildData, { startID, bx, by, bz, 1 }) then
-			return
+			return nil
 		end
 	end
 	for _, queued in ipairs(buildQueue) do
 		if queued[1] > 0 and DoBuildingsClash(buildData, queued) then
-			return
+			return nil
 		end
 	end
 	return buildData

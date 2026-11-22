@@ -78,9 +78,14 @@ local function fixture()
 		},
 	}, { __index = _G })
 	local chunk = assert(loadfile("luaui/Widgets/gui_pregame_build.lua"))
-	setfenv(chunk, env)()
+	setfenv(chunk, env)
+	chunk()
 	f.widget = env.widget
 	f.widget:Initialize()
+	local mousePress = assert(f.widget.MousePress)
+	function f:press(button)
+		return mousePress(self.widget, 0, 0, button)
+	end
 	f.api = env.WG["pregame-build"]
 	f.api.setPreGamestartDefID(2)
 	f.api.setBuildQueue({ { 2, 100, 0, 0, 0 }, { 2, 300, 0, 0, 0 } })
@@ -96,7 +101,7 @@ local function fixture()
 			self.api.setPreGamestartDefID(3)
 		end
 		self.left = true
-		self.widget:MousePress(0, 0, 1)
+		self:press(1)
 		self.widget:Update(1)
 		self.left = false
 		self.widget:Update(1)
@@ -125,7 +130,7 @@ local function fixture()
 			end,
 			PreviewExtractorCommand = function(params, def, spot)
 				if self.noPlacement or self.unbuildable == def then
-					return
+					return nil
 				end
 				return { def, params[1], params[2], params[3], 0 }
 			end,
@@ -149,7 +154,7 @@ describe("pregame command insertion", function()
 		local f = fixture()
 		f:modifier()
 		f.left = true
-		f.widget:MousePress(0, 0, 1)
+		f:press(1)
 		f.position = { 232, 0, 0 }
 		f.widget:Update(1)
 		f.left = false
@@ -192,7 +197,7 @@ describe("pregame command insertion", function()
 		local f = fixture()
 		f:modifier()
 		f.api.setPreGamestartDefID(nil)
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 200, 300 })
 	end)
 
@@ -241,7 +246,7 @@ describe("pregame right-click mex", function()
 		local f = fixture()
 		f:quickMex()
 		f.shift = false
-		assert(f.widget:MousePress(0, 0, 3))
+		assert(f:press(3))
 		f:expect({ 200 })
 		assert(f.api.getBuildQueue()[1][1] == 3)
 		assert(f.api.getPreGameDefID() == nil)
@@ -249,12 +254,12 @@ describe("pregame right-click mex", function()
 	it("appends with Shift and supports command insertion", function()
 		local f = fixture()
 		f:quickMex()
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300, 200 })
 		assert(f.api.getBuildQueue()[3][1] == 3)
 		f.api.setBuildQueue({ { 2, 100, 0, 0, 0 }, { 2, 300, 0, 0, 0 } })
 		f:modifier()
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 200, 300 })
 		assert(f.api.getBuildQueue()[2][1] == 3)
 	end)
@@ -262,14 +267,14 @@ describe("pregame right-click mex", function()
 		local f = fixture()
 		f:quickMex()
 		f.startDef = 4
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		assert(f.api.getBuildQueue()[3][1] == 5)
 	end)
 	it("cancels an active blueprint instead of building a mex", function()
 		local f = fixture()
 		f:quickMex()
 		f.api.setPreGamestartDefID(2)
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300 })
 		assert(f.api.getPreGameDefID() == nil)
 	end)
@@ -277,7 +282,7 @@ describe("pregame right-click mex", function()
 		local f = fixture()
 		f:quickMex()
 		f.position = { 500, 0, 0 }
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300, 500 })
 		assert(f.api.getBuildQueue()[3][1] == -10)
 	end)
@@ -294,7 +299,7 @@ describe("pregame right-click mex", function()
 			if reason == "spawn" then
 				f.start = { 200, 0, 0 }
 			end
-			f.widget:MousePress(0, 0, 3)
+			f:press(3)
 			f:expect({ 100, 300 })
 		end
 	end)
@@ -303,11 +308,11 @@ describe("pregame right-click mex", function()
 		f:quickMex()
 		f.shift = false
 		f.env.WG.resource_spot_finder.isMetalMap = true
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300 })
 		f.env.WG.resource_spot_finder.isMetalMap = false
 		f.env.UnitDefs[1].buildOptions = { 2 }
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300 })
 	end)
 	it("chooses a buildable water mex when the land mex cannot be placed", function()
@@ -315,7 +320,7 @@ describe("pregame right-click mex", function()
 		f:quickMex()
 		f.env.UnitDefs[1].buildOptions = { 3, 5 }
 		f.unbuildable = 3
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		assert(f.api.getBuildQueue()[3][1] == 5)
 	end)
 	it("previews and queues the same cursor-positioned mex", function()
@@ -324,7 +329,7 @@ describe("pregame right-click mex", function()
 		f.position = { 216, 0, 0 }
 		local preview = f.api.getQuickMexBuild()
 		assert(preview and preview[2] == 216)
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		assert(f.api.getBuildQueue()[3][2] == preview[2])
 	end)
 	it("reaches large placement areas and includes their activation boundary", function()
@@ -342,11 +347,11 @@ describe("pregame right-click mex", function()
 		f:quickMex()
 		f.shift = false
 		f.frame = 1
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300 })
 		f.frame = 0
 		f.startDef = 999
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 100, 300 })
 	end)
 	it("prepends a right-click mex with the insert modifier without Shift", function()
@@ -354,7 +359,7 @@ describe("pregame right-click mex", function()
 		f:quickMex()
 		f.shift = false
 		f:modifier()
-		f.widget:MousePress(0, 0, 3)
+		f:press(3)
 		f:expect({ 200, 100, 300 })
 		assert(f.api.getBuildQueue()[1][1] == 3)
 	end)
