@@ -15,7 +15,6 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local gravityMult = 1.7
 	local crashTimeoutFrames = 15 * Game.gameSpeed
-	local fullExplosionCrashFrames = Game.gameSpeed
 	local aircraftCrashed = Game.envDamageTypes.AircraftCrashed
 
 	local SetUnitWeaponState = Spring.SetUnitWeaponState
@@ -50,12 +49,26 @@ if gadgetHandler:IsSyncedCode() then
 	-- Consumers can acquire this table before the controller loads.
 	local crashing = table.ensureTable(GG, "Crashing") ---@type table<UnitID, integer?>
 
+	local shotWhileLanded = {}
+	local crashDamageCurves = {}
 	local isAircon = {}
 	local crashable = {}
 	local unitWeaponCount = {}
 	for udid, UnitDef in pairs(UnitDefs) do
 		if UnitDef.canFly == true and (not UnitDef.customParams.crashable or UnitDef.customParams.crashable ~= "0") then
 			crashable[UnitDef.id] = true
+			-- crash_damage_speed_max opts airborne impacts into scaling (downward elmos/frame).
+			-- Between the min and max speeds, the normalized speed raised to the exponent
+			-- blends the normal explosion profile into the full crash profile.
+			local params = UnitDef.customParams
+			local maxSpeed = tonumber(params.crash_damage_speed_max)
+			if maxSpeed then
+				local minSpeed = tonumber(params.crash_damage_speed_min or 0)
+				local exponent = tonumber(params.crash_damage_exponent or 1)
+				if minSpeed and minSpeed >= 0 and maxSpeed > minSpeed and exponent and exponent > 0 then
+					crashDamageCurves[udid] = { minSpeed = minSpeed, maxSpeed = maxSpeed, exponent = exponent }
+				end
+			end
 			if UnitDef.buildSpeed > 1 then
 				isAircon[udid] = true
 			end
@@ -95,7 +108,16 @@ if gadgetHandler:IsSyncedCode() then
 		if crashable[unitDefID] and (damage > GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 			-- increase gravity so it crashes faster
 			local moveTypeData = GetUnitMoveTypeData(unitID)
-			if moveTypeData.myGravity then
+			if moveTypeData and moveTypeData.aircraftState == "landed" then
+				-- Recoil can also report "landed" for an aircraft spawned above its landing surface.
+				local x, y, z = Spring.GetUnitPosition(unitID)
+				if x then
+					local ground = Spring.GetGroundHeight(x, z)
+					local surface = UnitDefs[unitDefID].canSubmerge and ground or math.max(0, ground)
+					shotWhileLanded[unitID] = y <= surface + 0.01
+				end
+			end
+			if moveTypeData and moveTypeData.myGravity then
 				SetAirMoveTypeData(unitID, "myGravity", moveTypeData.myGravity * gravityMult)
 			end
 			-- make it crash
@@ -172,25 +194,45 @@ if gadgetHandler:IsSyncedCode() then
 		"explosionSpeed",
 	}
 
-	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
-		local deadline = crashing[unitID]
-		crashing[unitID] = nil
-		if
-			weaponDefID == aircraftCrashed
-			and deadline
-			and GetGameFrame() < deadline - crashTimeoutFrames + fullExplosionCrashFrames
-		then
-			-- The engine reads self-destruct damage after UnitDestroyed on aircraft impact.
-			local damages = {}
-			for armorType = 0, #Game.armorTypes do
-				damages[armorType] = GetUnitWeaponDamages(unitID, "explode", armorType)
-			end
-			for i = 1, #explosionDamageFields do
-				local field = explosionDamageFields[i]
-				damages[field] = GetUnitWeaponDamages(unitID, "explode", field)
-			end
-			SetUnitWeaponDamages(unitID, "selfDestruct", damages --[[@as WeaponDamages]])
+	local function explosionValue(unitID, field, fraction)
+		local normal = GetUnitWeaponDamages(unitID, "explode", field)
+		if fraction == 0 then
+			return normal
 		end
+		local full = GetUnitWeaponDamages(unitID, "selfDestruct", field)
+		return normal + (full - normal) * fraction
+	end
+
+	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+		local tracked, landed = crashing[unitID], shotWhileLanded[unitID]
+		crashing[unitID], shotWhileLanded[unitID] = nil, nil
+		if not tracked or weaponDefID ~= aircraftCrashed then
+			return
+		end
+
+		local fraction = 0 ---@type number
+		if not landed then
+			local curve = crashDamageCurves[unitDefID]
+			if not curve then
+				return
+			end
+			local _, vy = Spring.GetUnitVelocity(unitID)
+			local speed = -vy
+			if speed >= curve.maxSpeed then
+				return
+			end
+			fraction = (math.max(0, speed - curve.minSpeed) / (curve.maxSpeed - curve.minSpeed)) ^ curve.exponent
+		end
+
+		-- The engine reads self-destruct damage after UnitDestroyed on aircraft impact.
+		local damages = {}
+		for armorType = 0, #Game.armorTypes do
+			damages[armorType] = explosionValue(unitID, armorType, fraction)
+		end
+		for _, field in ipairs(explosionDamageFields) do
+			damages[field] = explosionValue(unitID, field, fraction)
+		end
+		SetUnitWeaponDamages(unitID, "selfDestruct", damages --[[@as WeaponDamages]])
 	end
 else -- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState
