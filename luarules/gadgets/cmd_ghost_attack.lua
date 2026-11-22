@@ -15,6 +15,7 @@ if not gadgetHandler:IsSyncedCode() or not CMD.OPT_KEEP_HEIGHT then
 	return false
 end
 
+local ghostRules = VFS.Include("luarules/configs/ghost_targeting.lua")
 local attack, insert, remove = CMD.ATTACK, CMD.INSERT, CMD.REMOVE
 local height = CMD.OPT_KEEP_HEIGHT --[[@as integer]]
 local clearHeight = (255 - height) --[[@as integer]]
@@ -73,8 +74,12 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(GameCMD.GHOST_ATTACK)
 	gadgetHandler:RegisterAllowCommand(attack)
 	gadgetHandler:RegisterAllowCommand(CMD.MANUALFIRE)
-	gadgetHandler:RegisterUnitCommand(attack)
-	gadgetHandler:RegisterUnitCommand(insert)
+	if ghostRules.switchUnitTargetToGhost then
+		gadgetHandler:RegisterUnitCommand(attack)
+		gadgetHandler:RegisterUnitCommand(insert)
+	else
+		gadgetHandler:RegisterUnitCommand(Game.noneID)
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, params, opts, tag, playerID, fromSynced, fromLua, outer)
@@ -82,7 +87,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, params, opts, tag
 		if getGhost and #params == 1 then
 			local ghostID = params[1]
 			local x, y, z, contact = getGhost(ghostID, Spring.GetUnitAllyTeam(unitID))
-			if contact then
+			if contact and ghostRules.switchGhostTargetToUnit then
 				issue(unitID, attack, { contact }, math.bit_and(opts.coded, clearHeight), tag, outer)
 			elseif x then
 				issueGhost(unitID, ghostID, x, y, z, opts.coded, tag, outer)
@@ -145,17 +150,30 @@ local function finishSighting(ghostID, contact)
 	if not sighting then
 		return
 	end
-	sightings[ghostID] = nil
 	for unitID, tags in pairs(sighting.orders) do
-		for _, cmd in ipairs(getQueue(unitID, -1)) do
+		local pending = {}
+		for index, cmd in ipairs(getQueue(unitID, -1)) do
 			if tags[cmd.tag] and cmd.id == attack and cmd.options.keepheight then
+				local replaced = true
 				if contact and Spring.GetUnitAllyTeam(unitID) == sighting.allyTeam then
 					local bits = math.bit_and(cmd.options.coded, clearHeight)
 					giveOrder(unitID, insert, { cmd.tag, attack, bits, contact }, 0)
+					-- GiveOrderToUnit can succeed even if another gadget vetoed the insert.
+					local id, _, _, target, extra = Spring.GetUnitCurrentCommand(unitID, index)
+					local _, _, oldTag = Spring.GetUnitCurrentCommand(unitID, index + 1)
+					replaced = oldTag == cmd.tag and id == attack and target == contact and extra == nil
 				end
-				giveOrder(unitID, remove, { cmd.tag }, 0)
+				if replaced then
+					giveOrder(unitID, remove, { cmd.tag }, 0)
+				else
+					pending[cmd.tag] = true
+				end
 			end
 		end
+		sighting.orders[unitID] = next(pending) and pending or nil
+	end
+	if not next(sighting.orders) then
+		sightings[ghostID] = nil
 	end
 end
 
@@ -168,7 +186,9 @@ local function updateContact(_, target, _, allyTeam, _, ghostID)
 		return
 	end
 	if contact then
-		finishSighting(ghostID, contact)
+		if ghostRules.switchGhostTargetToUnit then
+			finishSighting(ghostID, contact)
+		end
 	elseif attackers[target] then
 		for unitID in pairs(attackers[target]) do
 			if Spring.GetUnitAllyTeam(unitID) == allyTeam then
@@ -204,7 +224,11 @@ function gadget:GameFrame(frame)
 	end
 	for ghostID, sighting in pairs(sightings) do
 		if not getGhost(ghostID, sighting.allyTeam) then
-			finishSighting(ghostID)
+			if ghostRules.dropTargetWhenGhostExpires then
+				finishSighting(ghostID)
+			else
+				sightings[ghostID] = nil
+			end
 		elseif frame % 160 == 0 then
 			-- Shift cancellations and queue replacements may discard an order silently.
 			for unitID, tags in pairs(sighting.orders) do

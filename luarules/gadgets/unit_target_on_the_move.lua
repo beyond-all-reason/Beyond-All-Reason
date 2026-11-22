@@ -18,6 +18,7 @@ local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
 if gadgetHandler:IsSyncedCode() then
+	local ghostRules = VFS.Include("luarules/configs/ghost_targeting.lua")
 	local deleteMaxDistance = 30
 	local targetListLengthMax = 128
 	local unseenGraceTime = 1.5
@@ -611,6 +612,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	---A single entry in a unit's target queue, as tracked on the synced side.
 	---@class UnitTargetEntry
+	---@field followGhost boolean? Direct, non-internal single-target order eligible to continue after contact loss.
 	---@field ghostID integer? Sighting backing a positional target.
 	---@field target UnitOrPosition
 	---@field alwaysSeen boolean? Target does not need to stay in sensor range to be kept.
@@ -669,8 +671,9 @@ if gadgetHandler:IsSyncedCode() then
 			spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
-			if setTargetData[builderID] and validUnits[unitDefID] then
-				addUnitTargets(unitID, unitDefID, setTargetData[builderID].targets, false)
+			local builderData = setTargetData[builderID]
+			if builderData and builderData.allyTeam == spGetUnitAllyTeam(unitID) then
+				addUnitTargets(unitID, unitDefID, table.copy(builderData.targets), false)
 			end
 		end
 	end
@@ -750,7 +753,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not x then
 					return false
 				end
-				if contact then
+				if contact and ghostRules.switchGhostTargetToUnit then
 					cmdParams = { contact }
 				else
 					ghostID = cmdParams[1]
@@ -848,6 +851,7 @@ if gadgetHandler:IsSyncedCode() then
 						{
 							alwaysSeen = true,
 							ghostID = ghostID,
+							followGhost = ghostID ~= nil and userTarget,
 							ignoreStop = ignoreStop,
 							userTarget = userTarget,
 							target = target,
@@ -865,6 +869,7 @@ if gadgetHandler:IsSyncedCode() then
 								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
+								followGhost = userTarget,
 								target = target,
 								unseen = unseenGracePasses,
 								sent = false,
@@ -958,21 +963,46 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Target update
 
+	-- A player can queue the same target once by sighting and once by unit ID.
+	-- When the two become identical, retain the earlier priority slot.
+	local function retainFirstTarget(unitID, data, index, key)
+		if data.currentTargets[key] then
+			for other, entry in ipairs(data.targets) do
+				if targetKey(entry) == key then
+					removeTarget(unitID, data, math.max(index, other))
+					return index < other
+				end
+			end
+		end
+		return true
+	end
+
 	-- The event identifies the original sighting even if another ghost occupies the same point.
 	local function updateGhostContact(_, targetID, _, allyTeam, _, ghostID)
 		if not ghostID or not next(setTargetData) then
 			return
 		end
 		local x, y, z, contact = Spring.GetGhostPosition(ghostID, allyTeam)
-		if not x then
+		if
+			not x
+			or (contact and not ghostRules.switchGhostTargetToUnit)
+			or (not contact and not ghostRules.switchUnitTargetToGhost)
+		then
 			return
 		end
 		for unitID, data in pairsNext, setTargetData do
 			if data.allyTeam == allyTeam and data.currentTargets[contact and -ghostID or targetID] then
 				for i, entry in ipairs(data.targets) do
-					if (contact and entry.ghostID == ghostID) or (not contact and entry.target == targetID) then
+					if
+						(contact and entry.ghostID == ghostID)
+						or (not contact and entry.followGhost and entry.target == targetID)
+					then
+						local key = contact or -ghostID
+						if not retainFirstTarget(unitID, data, i, key) then
+							break
+						end
 						data.currentTargets[targetKey(entry)] = nil
-						data.currentTargets[contact or -ghostID] = true
+						data.currentTargets[key] = true
 						entry.target = contact or { x, y, z }
 						entry.ghostID = not contact and ghostID or nil
 						entry.alwaysSeen = not contact or unitAlwaysSeen[spGetUnitDefID(targetID)]
@@ -985,6 +1015,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 						refreshSendData(unitID, data, i)
+						break
 					end
 				end
 			end
@@ -1003,7 +1034,12 @@ if gadgetHandler:IsSyncedCode() then
 				local targetData = targets[index]
 				local targetState = getTargetTrackingState(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
 				if targetData.ghostID and not Spring.GetGhostPosition(targetData.ghostID, unitData.allyTeam) then
-					targetState = TARGET_GONE
+					if ghostRules.dropTargetWhenGhostExpires then
+						targetState = TARGET_GONE
+					else
+						unitData.currentTargets[-targetData.ghostID] = nil
+						targetData.ghostID = nil
+					end
 				end
 				if targetState == TARGET_AVAILABLE then
 					targetData.unseen = unseenGracePasses
