@@ -297,7 +297,11 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 end
 
 -- Whether every unit the filter matches has the fact an exclusion gives for this field.
-local function doesFilterImplyFact(filter, field, value)
+local function doesFilterImplyFact(context, filter, field, value)
+	if field == "allianceName" and filter.allianceName == nil and type(filter.teamName) == "string" then
+		local teamID = context.Teams[filter.teamName]
+		return teamID ~= nil and Spring.GetTeamAllyTeamID(teamID) == context.Alliances[value]
+	end
 	if field ~= "unitDefName" then
 		return filter[field] == value
 	end
@@ -330,7 +334,7 @@ local function validateUnitFilterExclusions(context, reporter, id, trigger)
 					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
 					if removesAll then
 						for field, value in pairs(excluded) do
-							if not doesFilterImplyFact(filter, field, value) then
+							if not doesFilterImplyFact(context, filter, field, value) then
 								removesAll = false
 								break
 							end

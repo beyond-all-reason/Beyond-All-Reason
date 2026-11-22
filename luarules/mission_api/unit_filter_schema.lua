@@ -8,6 +8,7 @@ local unitFilterFields = {
 	{ name = "unitName", type = Types.UnitName },
 	{ name = "unitDefName", type = Types.UnitDefNames },
 	{ name = "teamName", type = Types.TeamName },
+	{ name = "allianceName", type = Types.AllianceName },
 }
 
 return {

@@ -106,8 +106,8 @@ return {
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
-- A condition about one unit takes `filter`, a unit filter of `unitName`, `unitDefName`, and
-  `teamName`, and `exclude`, a list of unit filters, and checks both with
+- A condition about one unit takes `filter`, a unit filter of `unitName`, `unitDefName`,
+  `teamName`, and `allianceName`, and `exclude`, a list of unit filters, and checks both with
   `context.DoesUnitMatchCondition`. A filter's `unitDefName` is one name or a list of them, and
   arrives processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
   `builderName` or `transportDefName`.
@@ -168,7 +168,8 @@ return {
 - Action functions receive processed values: a `TeamName` parameter arrives as a team ID, so name
   the argument `teamID` and never look it up again (`GG['MissionAPI'].Teams` maps both ways, so
   `Teams[teamID]` returns the name instead of raising). Trigger handlers read the same value from
-  `trigger.parameters.teamName`, and from a unit filter's `teamName`.
+  `trigger.parameters.teamName`, and from a unit filter's `teamName`. A unit filter's
+  `allianceName` arrives as an allyteam ID.
 - An action uses no randomness, because the mission author relies on the outcome.
 - An action does the obvious, safe thing by default; anything that can strand a unit or surprise the
   author needs an explicit parameter.

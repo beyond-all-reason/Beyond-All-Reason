@@ -7,6 +7,8 @@ local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 
 ---@param unitName string
 ---@return UnitID[]
@@ -96,6 +98,18 @@ local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
 	if filterTeamID ~= nil and (teamID or spGetUnitTeam(unitID)) ~= filterTeamID then
 		return false
 	end
+	local filterAllyTeamID = unitFilter.allianceName
+	if filterAllyTeamID ~= nil then
+		local allyTeamID
+		if teamID ~= nil then
+			allyTeamID = spGetTeamAllyTeamID(teamID)
+		else
+			allyTeamID = spGetUnitAllyTeam(unitID)
+		end
+		if allyTeamID ~= filterAllyTeamID then
+			return false
+		end
+	end
 	local unitDefIDs = unitFilter.unitDefName
 	if unitDefIDs ~= nil and not unitDefIDs[unitDefID or spGetUnitDefID(unitID)] then
 		return false
@@ -126,13 +140,15 @@ local function doesUnitMatchCondition(unitID, parameters, unitDefID, teamID)
 	return true
 end
 
----The units of a unit filter's team, or of every team, of its unit defs if it gives them.
+---The units of a unit filter's team, its alliance, or every team, of its unit defs if it gives them.
 ---@param unitFilter table
 ---@return UnitID[]
 local function unitsOfFilterTeams(unitFilter)
 	local teamIDs
 	if unitFilter.teamName ~= nil then
 		teamIDs = { unitFilter.teamName }
+	elseif unitFilter.allianceName ~= nil then
+		teamIDs = Spring.GetTeamList(unitFilter.allianceName)
 	else
 		teamIDs = Spring.GetTeamList()
 	end

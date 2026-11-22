@@ -126,6 +126,17 @@ function TCB:Build()
 		if unitFilter.teamName ~= nil and (teamID or env.Spring.GetUnitTeam(unitID)) ~= unitFilter.teamName then
 			return false
 		end
+		if unitFilter.allianceName ~= nil then
+			local allyTeamID
+			if teamID ~= nil then
+				allyTeamID = env.Spring.GetTeamAllyTeamID(teamID)
+			else
+				allyTeamID = env.Spring.GetUnitAllyTeam(unitID)
+			end
+			if allyTeamID ~= unitFilter.allianceName then
+				return false
+			end
+		end
 		if
 			unitFilter.unitDefName ~= nil and not unitFilter.unitDefName[unitDefID or env.Spring.GetUnitDefID(unitID)]
 		then

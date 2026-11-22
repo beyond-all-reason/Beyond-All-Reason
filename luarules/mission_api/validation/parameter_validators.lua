@@ -1209,6 +1209,20 @@ local function registerUnitFilterValidators(parameterValidators, context)
 		if fieldCount == 0 and #results == 0 then
 			addResult(results, "Unit filter is empty, give at least one of: " .. quotedList(fieldNames))
 		end
+
+		local teamName, allianceName = unitFilter.teamName, unitFilter.allianceName
+		if #results == 0 and teamName ~= nil and allianceName ~= nil then
+			if Spring.GetTeamAllyTeamID(context.Teams[teamName]) ~= context.Alliances[allianceName] then
+				addResult(
+					results,
+					"Team '"
+						.. teamName
+						.. "' is not in alliance '"
+						.. allianceName
+						.. "', so the filter matches no unit"
+				)
+			end
+		end
 		return results
 	end
 
