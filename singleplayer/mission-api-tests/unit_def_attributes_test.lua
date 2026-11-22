@@ -1,9 +1,9 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	spawnFirstPair = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	setLosRadius = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	spawnThird = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 14,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	clearLosRadius = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
 	halveLosRadius = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 26,
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	clearHalving = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 32,
 		},
@@ -56,8 +56,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1600, z = 2200, teamName = 'player' },
-				{ unitDefName = 'armpw', x = 1800, z = 2200, teamName = 'player' },
+				{ unitDefName = 'armpw', position = { x = 1600, z = 2200 }, teamName = 'player' },
+				{ unitDefName = 'armpw', position = { x = 1800, z = 2200 }, teamName = 'player' },
 			},
 		},
 	},
@@ -89,7 +89,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 2000, z = 2200, teamName = 'player' },
+				{ unitDefName = 'armpw', position = { x = 2000, z = 2200 }, teamName = 'player' },
 			},
 		},
 	},

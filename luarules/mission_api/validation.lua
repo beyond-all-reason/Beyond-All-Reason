@@ -34,7 +34,7 @@ local function createValidationContext(mission, report)
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local difficulty = missionAPI.Modules.Difficulty
 	local variables = missionAPI.Modules.Variables
-	local triggerDefinitions = missionAPI.TriggerDefinitions
+	local conditionDefinitions = missionAPI.ConditionDefinitions
 	local actionDefinitions = missionAPI.ActionDefinitions
 
 	return {
@@ -52,6 +52,7 @@ local function createValidationContext(mission, report)
 		Teams = missionAPI.Teams or {},
 		Alliances = missionAPI.Alliances or {},
 		Variables = missionAPI.Variables or {},
+		GameSetupErrors = missionAPI.GameSetupErrors or {},
 
 		-- Parameter types:
 		Types = parameterTypes.Types,
@@ -75,9 +76,9 @@ local function createValidationContext(mission, report)
 		HasUnsetVariable = variables.HasUnsetVariable,
 		ResolveValue = variables.ResolveValue,
 
-		-- Trigger definitions:
-		TriggerTypes = triggerDefinitions.Types,
-		TriggerParameters = triggerDefinitions.Parameters,
+		-- Condition definitions:
+		ConditionTypes = conditionDefinitions.Types,
+		ConditionParameters = conditionDefinitions.Parameters,
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,
@@ -89,6 +90,9 @@ local function runValidation(mission, report)
 	local context = createValidationContext(mission, report)
 	local parameterValidators = createParameterValidators(context)
 
+	for _, message in ipairs(context.GameSetupErrors) do
+		report.Error(sections.GameSetup, nil, nil, message)
+	end
 	sectionsValidation.Validate(context, report, parameterValidators)
 	referencesValidation.Validate(context, report)
 end

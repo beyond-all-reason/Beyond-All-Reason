@@ -48,6 +48,7 @@ local function mockCommands()
 		"LOAD_UNITS",
 		"UNLOAD_UNITS",
 		"INTERNAL",
+		"GATHERWAIT",
 	}) do
 		V.env.CMD[name] = index
 		V.env.CMD[index] = name
@@ -57,6 +58,18 @@ local function mockCommands()
 	V.env.CMD.a = "ANY"
 	V.env.CMD.BUILD = "b"
 	V.env.CMD.b = "BUILD"
+	-- The state values mission files name.
+	for name, value in pairs({
+		MOVESTATE_HOLDPOS = 0,
+		MOVESTATE_MANEUVER = 1,
+		MOVESTATE_ROAM = 2,
+		FIRESTATE_HOLDFIRE = 0,
+		FIRESTATE_RETURNFIRE = 1,
+		FIRESTATE_FIREATWILL = 2,
+		FIRESTATE_FIREATNEUTRAL = 3,
+	}) do
+		V.env.CMD[name] = value
+	end
 	V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
 end
 
@@ -99,7 +112,7 @@ local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
 	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
-		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
+		:WithConditionDefinitions(V.definitions.ConditionDefinitions)
 		:Install()
 	-- As for a mission started with no options in its startscript.
 	GG["MissionAPI"].Options = {}
@@ -117,8 +130,9 @@ describe("mission_api mission files", function()
 		V.env.Spring.GetAllyTeamList = function()
 			return { 0, 1 }
 		end
-		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI.
-		V.missionAPI().Teams = { player = 0, enemy = 1, [0] = "player", [1] = "enemy" }
+		-- The named teams of tools/StartScripts/startscript_mission_api_test_quicksilver.txt, neither run by an AI,
+		-- and Gaia's team after them.
+		V.missionAPI().Teams = { player = 0, enemy = 1, gaia = 4, [0] = "player", [1] = "enemy", [4] = "gaia" }
 		V.missionAPI().Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" }
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false

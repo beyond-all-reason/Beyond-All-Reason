@@ -2,13 +2,13 @@
 --- Feature triggers test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnFeatures = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	orderReclaimerReclaimAndRes = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -25,7 +25,7 @@ local triggers = {
 	},
 
 	destroyRocks = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -33,7 +33,7 @@ local triggers = {
 	},
 
 	rockCreated = {
-		type = triggerTypes.FeatureCreated,
+		type = conditionTypes.FeatureCreated,
 		parameters = {
 			featureDefName = 'rocks30_def_01',
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
@@ -42,7 +42,7 @@ local triggers = {
 	},
 
 	rockReclaimed = {
-		type = triggerTypes.FeatureReclaimed,
+		type = conditionTypes.FeatureReclaimed,
 		parameters = {
 			featureName = 'theRocks',
 			teamName = 'player',
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	rockDestroyed = {
-		type = triggerTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'theRocks',
 		},
@@ -59,7 +59,7 @@ local triggers = {
 	},
 
 	unitRessed = {
-		type = triggerTypes.UnitResurrected,
+		type = conditionTypes.UnitResurrected,
 		parameters = {
 			featureName  = 'wreck-to-resurrect',
 			teamName = 'player',
@@ -68,7 +68,7 @@ local triggers = {
 	},
 
 	wreckDestroyed = {
-		type = triggerTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureName = 'wreck-to-destroy',
 		},
@@ -76,7 +76,7 @@ local triggers = {
 	},
 
 	wreckDestroyedInZone = {
-		type = triggerTypes.FeatureDestroyed,
+		type = conditionTypes.FeatureDestroyed,
 		parameters = {
 			featureDefName = 'armllt_dead',
 			area = { x = 2000, z = 2100, radius = 200 },
@@ -91,7 +91,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1800, z = 1800, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1800, z = 1800 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -100,7 +100,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1900, z = 1900, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = 'rocks30_def_01', position = { x = 1900, z = 1900 }, orientation = 's', featureName = 'theRocks' },
 			},
 		},
 	},
@@ -109,7 +109,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2000, z = 2100, facing = 'w', featureName = 'wreck-to-destroy' },
+				{ featureDefName = 'armllt_dead', position = { x = 2000, z = 2100 }, orientation = 'w', featureName = 'wreck-to-destroy' },
 			},
 		},
 	},
@@ -118,7 +118,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armpw_dead', x = 1900, z = 2000, facing = 'w', featureName = 'wreck-to-resurrect' },
+				{ featureDefName = 'armpw_dead', position = { x = 1900, z = 2000 }, orientation = 'w', featureName = 'wreck-to-resurrect' },
 			},
 		},
 	},
@@ -127,7 +127,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'player', unitName = 'reclaimer' },
+				{ unitDefName = 'armrectr', position = { x = 1800, z = 1900 }, teamName = 'player', unitName = 'reclaimer' },
 			},
 		},
 	},
@@ -136,7 +136,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'player', unitName = 'attacker' },
+				{ unitDefName = 'armham', position = { x = 1800, z = 2100 }, teamName = 'player', unitName = 'attacker' },
 			},
 		},
 	},

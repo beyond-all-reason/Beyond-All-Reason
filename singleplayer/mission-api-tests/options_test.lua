@@ -2,13 +2,13 @@
 --- Test mission demonstrating Options, which a mission reads while it loads.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 local options      = GG['MissionAPI'].Options
 
 local triggers = {
 	intro = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	victory = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -42,13 +42,13 @@ local actions = {
 }
 
 local unitLoadout = {
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'player' },
+	{ unitDefName = 'armck', position = { x = 1780, z = 1850 }, orientation = 'e', teamName = 'player' },
 }
 
 if options.reinforcements then
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1800, facing = 'e', teamName = 'player' })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1850, facing = 'e', teamName = 'player' })
-	table.insert(unitLoadout, { unitDefName = 'armpw', x = 1850, z = 1900, facing = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1800 }, orientation = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1850 }, orientation = 'e', teamName = 'player' })
+	table.insert(unitLoadout, { unitDefName = 'armpw', position = { x = 1850, z = 1900 }, orientation = 'e', teamName = 'player' })
 end
 
 return {

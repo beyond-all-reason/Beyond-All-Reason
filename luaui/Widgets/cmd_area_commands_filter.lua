@@ -3,7 +3,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
 -- - If Ctrl is pressed and hovering over a unit, targets all units in the area.
---   For wrecks, it targets all wrecks with the same tech level.
+--   For wrecks, it targets all wrecks with the same tech level unless splitting with Shift+Meta.
 --   Ctrl has special-case interactions with area commands:
 --   - Attack + Ctrl removes matching queued attacks instead of adding any.
 --   - Attack + Ctrl + Meta filters as usual (queue front; split targets with Shift).
@@ -487,6 +487,8 @@ end
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
 	local alt = options.alt
 	local ctrl = options.ctrl
+	-- Ctrl selects the area for splitting, rather than restricting wrecks by tech level.
+	local split = ctrl and options.shift and options.meta
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -499,14 +501,16 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	end
 
 	local targetTechLevel
-	if ctrl then
+	if ctrl and not split then
 		targetTechLevel = getTechLevel(targetUnitDefName)
 	end
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
 		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
-		if ctrl then
+		if split and not alt then
+			shouldInsert = true
+		elseif ctrl and not split then
 			local unitDefName = spGetFeatureResurrect(featureId)
 			local unitTechLevel = getTechLevel(unitDefName)
 			if unitTechLevel == targetTechLevel then

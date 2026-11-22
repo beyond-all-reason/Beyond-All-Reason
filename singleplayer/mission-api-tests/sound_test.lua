@@ -1,10 +1,10 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnEye = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -12,43 +12,40 @@ local triggers = {
 	},
 
 	soundPosition = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
 		parameters = {
 			seconds = 1,
-			interval = 7,
 		},
 		actions = { 'playSoundPosition', 'messageSoundPosition' },
 	},
 
 	soundsQueued = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
 		parameters = {
 			seconds = 3,
-			interval = 7,
 		},
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
 
 	soundNotification = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
 		parameters = {
 			seconds = 3,
-			interval = 7,
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
 	},
 
 	playMusic = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -62,7 +59,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1800, z = 1600, teamName = 'player' },
+				{ unitDefName = 'armeyes', position = { x = 1800, z = 1600 }, teamName = 'player' },
 			},
 		},
 	},
@@ -118,7 +115,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsilo', x = 1900, z = 1800, teamName = 'enemy' },
+				{ unitDefName = 'armsilo', position = { x = 1900, z = 1800 }, teamName = 'enemy' },
 			},
 		},
 	},

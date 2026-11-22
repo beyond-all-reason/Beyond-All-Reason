@@ -21,7 +21,7 @@ end
 ]]
 if gadgetHandler:IsSyncedCode() then
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
-	local fixedallies = Spring.GetModOptions().fixedallies
+	local fixedallies = Spring.GetModOptions().fixedallies ---@as boolean
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
@@ -83,6 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
 	local isFFA = BAR.Utilities.Gametype.IsFFA()
+	local isGamePaused = false
+	local inResignedPlayerCheck = false
 
 	local gameoverFrame
 	local gameoverWinners
@@ -284,7 +286,7 @@ if gadgetHandler:IsSyncedCode() then
 						teamInfo.players[teamPlayers[p]] = false
 					end
 					-- engine AI
-					teamInfo.isAI = select(4, GetTeamInfo(teamID, false))
+					teamInfo.isAI = select(4, GetTeamInfo(teamID, false)) ---@as boolean
 					if teamInfo.isAI then
 						-- store who hosts that engine AI
 						local AIHostPlayerID = select(3, GetAIInfo(teamID))
@@ -380,6 +382,45 @@ if gadgetHandler:IsSyncedCode() then
 		return winnersCorrectFormatCount
 	end
 
+	local function getWinners()
+		if fixedallies then
+			return CheckSingleAllyVictoryEnd()
+		end
+		return sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
+	end
+
+	local function declareWinners(winners, gf)
+		gadgetHandler:RemoveCallIn("TeamChanged")
+
+		if Spring.GetModOptions().scenariooptions then
+			Spring.Echo("winners", winners[1])
+			SendToUnsynced("scenariogameend", winners[1])
+		end
+
+		-- delay gameover to let everything blow up gradually first
+		local delay = GG.maxDeathFrame or 250
+		gameoverFrame = gf + delay + 70
+		gameoverWinners = winners
+
+		-- make all winner commanders dance!
+		gameoverAnimFrame = gf + 55 -- delay a bit because walking commanders need to stop walking + a delay look nice
+		gameoverAnimUnits = {}
+		if type(winners) == "table" then
+			local winnerSet = {}
+			for u = 1, #winners do
+				winnerSet[winners[u]] = true
+			end
+			local units = Spring.GetAllUnits()
+			for i = 1, #units do
+				local unitID = units[i]
+				if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
+					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
+					gameoverAnimUnits[unitID] = true
+				end
+			end
+		end
+	end
+
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
 			if not globalLosGranted then
@@ -409,47 +450,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			local winners
 			if fixedallies then
 				if gf < 30 or gf % 30 == 1 then
 					CheckAllPlayers(gf)
 				end
-				winners = CheckSingleAllyVictoryEnd()
 			else
 				if gf < 30 or gf % 15 == 1 then
 					CheckAllPlayers(gf)
 				end
-				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
 
+			local winners = getWinners()
 			if winners then
-				if Spring.GetModOptions().scenariooptions then
-					Spring.Echo("winners", winners[1])
-					SendToUnsynced("scenariogameend", winners[1])
-				end
-
-				-- delay gameover to let everything blow up gradually first
-				local delay = GG.maxDeathFrame or 250
-				gameoverFrame = gf + delay + 70
-				gameoverWinners = winners
-
-				-- make all winner commanders dance!
-				gameoverAnimFrame = gf + 55 -- delay a bit because walking commanders need to stop walking + a delay look nice
-				gameoverAnimUnits = {}
-				if type(winners) == "table" then
-					local winnerSet = {}
-					for u = 1, #winners do
-						winnerSet[winners[u]] = true
-					end
-					local units = Spring.GetAllUnits()
-					for i = 1, #units do
-						local unitID = units[i]
-						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
-							gameoverAnimUnits[unitID] = true
-						end
-					end
-				end
+				declareWinners(winners, gf)
 			end
 		end
 	end
@@ -464,6 +477,31 @@ if gadgetHandler:IsSyncedCode() then
 		allyTeamInfos[allyTeamID].teams[teamID].dead = true
 		UpdateAllyTeamIsDead(allyTeamID, gf)
 		CheckAllPlayers(gf)
+	end
+
+	function gadget:PlayerChanged(playerID)
+		-- KillTeam makes its players spectators, which calls back in here.
+		if not isGamePaused or gameoverFrame or inResignedPlayerCheck then
+			return
+		end
+		inResignedPlayerCheck = true
+		local gf = GetGameFrame()
+		teamEvalFrame = {}
+		allyTeamEvalFrame = {}
+		CheckAllPlayers(gf)
+		inResignedPlayerCheck = false
+		local winners = getWinners()
+		if winners then
+			declareWinners(winners, gf)
+			GameOver(winners) -- Make sure games can end while paused.
+		end
+	end
+
+	function gadget:GamePaused(playerID, isPaused)
+		isGamePaused = isPaused
+		if isPaused and gameoverFrame then
+			GameOver(gameoverWinners) -- Make sure games can end while paused.
+		end
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)

@@ -462,29 +462,6 @@ return function(model)
 		-- 	  end
 		--   end,
 		-- },
-		{
-			id = "pip_engine_fallback_threshold",
-			parent = "minimappip",
-			group = "ui",
-			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.pip_engine_fallback_threshold"),
-			type = "slider",
-			min = 1500,
-			max = 5000,
-			step = 100,
-			value = 4000,
-			description = BAR.I18N("ui.settings.option.pip_engine_fallback_threshold_descr"),
-			onload = function(option)
-				if WG.minimap and WG.minimap.getEngineMinimapFallbackThreshold then
-					option.value = WG.minimap.getEngineMinimapFallbackThreshold()
-				end
-			end,
-			onchange = function(option, value)
-				if WG.minimap and WG.minimap.setEngineMinimapFallbackThreshold then
-					WG.minimap.setEngineMinimapFallbackThreshold(value)
-				end
-			end,
-		},
 
 		{
 			id = "pip",
@@ -948,19 +925,29 @@ return function(model)
 			},
 		},
 		{
-			id = "unittotals",
+			id = "mascot",
 			parent = "advplayerlist_country",
 			group = "ui",
 			category = types.advanced,
-			widget = "AdvPlayersList Unit Totals",
-			name = BAR.I18N("ui.settings.option.unittotals"),
+			widget = "AdvPlayersList Mascot",
+			name = BAR.I18N("ui.settings.option.mascot"),
 			type = "bool",
-			value = GetWidgetToggleValue("AdvPlayersList Unit Totals"),
-			description = BAR.I18N("ui.settings.option.unittotals_descr"),
+			value = GetWidgetToggleValue("AdvPlayersList Mascot"),
+			description = BAR.I18N("ui.settings.option.mascot_descr"),
+		},
+
+		{
+			id = "gameinfo",
+			group = "ui",
+			category = types.advanced,
+			widget = "AdvPlayersList Game Info",
+			name = BAR.I18N("ui.settings.option.gameinfo"),
+			type = "bool",
+			value = GetWidgetToggleValue("AdvPlayersList Game Info"),
+			description = BAR.I18N("ui.settings.option.gameinfo_descr"),
 		},
 		{
 			id = "musicplayer",
-			parent = "advplayerlist_country",
 			group = "ui",
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.musicplayer"),
@@ -976,15 +963,14 @@ return function(model)
 			},
 		},
 		{
-			id = "mascot",
-			parent = "advplayerlist_country",
+			id = "unittotals",
 			group = "ui",
 			category = types.advanced,
-			widget = "AdvPlayersList Mascot",
-			name = BAR.I18N("ui.settings.option.mascot"),
+			widget = "AdvPlayersList Unit Totals",
+			name = BAR.I18N("ui.settings.option.unittotals"),
 			type = "bool",
-			value = GetWidgetToggleValue("AdvPlayersList Mascot"),
-			description = BAR.I18N("ui.settings.option.mascot_descr"),
+			value = GetWidgetToggleValue("AdvPlayersList Unit Totals"),
+			description = BAR.I18N("ui.settings.option.unittotals_descr"),
 		},
 
 		{

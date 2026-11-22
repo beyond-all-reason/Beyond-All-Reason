@@ -4,7 +4,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
-static-var  isMoving, isAiming, gun_1, moveSpeed, currentSpeed, curHead1, curPitch1, weaponReady;
+static-var  isMoving, gun_1, curHead1, curPitch1;
 
 
 //#define DEBUG
@@ -402,7 +402,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 	    if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 198;
@@ -426,7 +425,6 @@ Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animati
 	bAnimate = TRUE;
 	if (RAND(1,100) > 10) return; // reduce probs to only 10%
 	sleep 10000 + 100*RAND(1,200); // 10-30 secs
-	//sleep 5000;//1000* RAND(10, 256);
 		if (bAnimate) { //Frame:2
 			turn lfoot to x-axis <3.534240> speed <4.158589> ; //delta=-0.28 
 			turn lknee to x-axis <-3.894629> speed <3.847424> ; //delta=0.26 
@@ -964,14 +962,8 @@ Create()
 	hide lfire;
 	hide aimx1;
 	hide aimy1;
-	hide rfire;
-	hide lfire;
 	isMoving = FALSE;
-	isAiming = FALSE;
 	gun_1 = 0;
-	currentSpeed = 100;
-	moveSpeed = get MAX_SPEED;
-	weaponReady = FALSE;
 	curPitch1 = 0;
 	curHead1 = 0;
 	animSpeed = 2;
@@ -1002,8 +994,6 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
-	weaponReady = FALSE;
-
 	// walk believed angles back in sync with the pieces (instant reset desyncs mid-restore aim)
 	set-signal-mask SIGNAL_AIM1;
 	var done;
@@ -1030,7 +1020,6 @@ ExecuteRestoreAfterDelay()
 			sleep 1;
 		}
 	}
-    isAiming = 0;
 }
 SetStunned(State)
 {
@@ -1087,8 +1076,6 @@ AimWeapon1(heading, pitch)
 
 		turn aimy1 to y-axis nextHead speed Weapon1TurretY;
 		turn aimx1 to x-axis <0> - nextPitch speed Weapon1TurretX;
-
-		//get PRINT(get GAME_FRAME, curHead1, heading);
 
 		// turn > sleep > commit: a preempting re-aim kills the thread at its sleep,
 		// cancelling the uncommitted step, so belief cannot outrun the pieces
