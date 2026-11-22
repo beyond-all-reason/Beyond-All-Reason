@@ -144,9 +144,7 @@ function gadget:GameFrame(f)
 	if f == 360 then
 		for _, c in ipairs(cases) do
 			local mode = Spring.GetModOptions().experimental_reclaim_resurrection
-			local rezWins = mode == "resurrect"
-				or (mode == "first" and c.rezFirst and not c.abandon)
-				or (mode == "last" and not c.rezFirst)
+			local rezWins = mode == "first" and c.rezFirst and not c.abandon
 			order(rezWins and c.rez or c.builder, CMD.STOP)
 			if rezWins and c.extra then
 				order(c.extra, CMD.STOP)
@@ -167,9 +165,8 @@ function gadget:GameFrame(f)
 			log("SIMULTANEOUS", c.name, c.simultaneous)
 			if c.enemy then
 				assert(c.counts[1] > 0 and c.counts[2] > 0, "enemy behavior changed")
-			elseif mode ~= "off" then
-				local rezWins = not c.abandon
-					and (mode == "resurrect" or (mode == "first" and c.rezFirst) or (mode == "last" and not c.rezFirst))
+			elseif mode == "first" then
+				local rezWins = c.rezFirst and not c.abandon
 				assert(c.counts[rezWins and 2 or 1] > 0, c.name .. ": winner did not work")
 				assert(c.counts[rezWins and 1 or 2] == 0, c.name .. ": loser still worked")
 				assert(c.simultaneous == 0, c.name .. ": concurrent allied work")

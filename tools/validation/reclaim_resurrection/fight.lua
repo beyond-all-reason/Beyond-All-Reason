@@ -130,16 +130,12 @@ function gadget:GameFrame(f)
 		end
 	end
 	if f == 600 then
-		local mode = Spring.GetModOptions().experimental_reclaim_resurrection
+		assert(Spring.GetModOptions().experimental_reclaim_resurrection == "first")
 		for _, c in ipairs(cases) do
 			log("RESULT", c.name, c.steps, c.after, c.repair)
-			if mode == "first" or mode == "reclaim" then
-				assert(c.after > 0, c.name .. ": first reclaimer stopped")
-				if not c.enemy and not c.norez then
-					assert(c.repair == 0, c.name .. ": losing rez worked")
-				end
-			elseif (mode == "resurrect" or mode == "last") and not c.enemy and not c.norez then
-				assert(c.after == 0 and c.repair > 0, c.name .. ": rez priority failed")
+			assert(c.after > 0, c.name .. ": first reclaimer stopped")
+			if not c.enemy and not c.norez then
+				assert(c.repair == 0, c.name .. ": losing rez worked")
 			end
 		end
 		log("DIAG_DONE")

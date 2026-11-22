@@ -6,8 +6,8 @@ Example (from the BAR checkout):
     --engine /path/to/spring-headless --base /path/to/engine/base \
     --assets /path/to/dev/data --output /path/to/results
 
-Requires Quicksilver Remake 1.24 in assets/maps. Runs all five modoption values,
-plus Fight/Patrol cases for each enabled policy. Each run uses an isolated
+Requires Quicksilver Remake 1.24 in assets/maps. Runs with the option off and on,
+including Fight/Patrol cases for first arrival. Each run uses an isolated
 write directory, removes its asset overlay, and preserves logs and inputs.
 """
 
@@ -111,11 +111,11 @@ def main():
     parser.add_argument("--assets", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--game", type=Path, default=root.parents[2])
-    parser.add_argument("--mode", choices=("off", "first", "reclaim", "resurrect", "last"))
+    parser.add_argument("--mode", choices=("off", "first"))
     args = parser.parse_args()
     for name in ("engine", "base", "assets", "output", "game"):
         setattr(args, name, getattr(args, name).resolve())
-    for mode in ([args.mode] if args.mode else ("off", "first", "reclaim", "resurrect", "last")):
+    for mode in ([args.mode] if args.mode else ("off", "first")):
         run(args, mode, root / "scenario.lua")
         if mode != "off":
             run(args, mode, root / "fight.lua")

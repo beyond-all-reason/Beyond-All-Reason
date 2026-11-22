@@ -15,8 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local mode = Spring.GetModOptions().experimental_reclaim_resurrection or "off"
-if mode ~= "first" and mode ~= "reclaim" and mode ~= "resurrect" and mode ~= "last" then
+if Spring.GetModOptions().experimental_reclaim_resurrection ~= "first" then
 	return false
 end
 
@@ -27,7 +26,6 @@ local waiting = {}
 local builders = {}
 local stepsThisFrame = {}
 local stepsFrame = -1
-local preferred = mode == "reclaim" and -1 or (mode == "resurrect" and 1 or nil)
 
 local function activeWorker(unitID, featureID, direction)
 	local command, target = Spring.GetUnitWorkerTask(unitID)
@@ -91,18 +89,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	local direction = part > 0 and 1 or -1
 	local claim = getClaim(featureID, allyTeam, frame)
 	if claim and claim.direction ~= direction then
-		if mode ~= "last" and direction ~= preferred then
-			pauseWorker(builderID, featureID, allyTeam, direction)
-			return false
-		end
-		-- In last-arrival mode, only a new work attempt can take over. Paused
-		-- workers retain WAIT until this claim ends, so they cannot take it back.
-		-- A priority takeover must not allow both directions to spend on this frame.
-		for unitID in pairs(claim.workers) do
-			pauseWorker(unitID, featureID, allyTeam, claim.direction)
-		end
-		claims[featureID][allyTeam] = { direction = direction, workers = { [builderID] = frame } }
-		-- Retry next frame, after the previous activity has stopped.
+		pauseWorker(builderID, featureID, allyTeam, direction)
 		return false
 	end
 	if not claim then
@@ -129,17 +116,11 @@ function gadget:GameFrame(frame)
 	-- The engine checks targeted resurrection orders before they produce a build
 	-- step. Pause losing orders first, otherwise they can cancel a winning automatic
 	-- reclaim even though AllowFeatureBuildStep would reject their work.
-	if mode ~= "last" and next(claims) then
+	if next(claims) then
 		for unitID in pairs(builders) do
 			local command, _, _, target, p2, _, _, p5 = Spring.GetUnitCurrentCommand(unitID)
 			local direction = command == CMD.RESURRECT and 1 or (command == CMD.RECLAIM and -1 or nil)
-			if
-				direction
-				and direction ~= preferred
-				and target
-				and target >= Game.maxUnits
-				and (p2 == nil or p5 ~= nil)
-			then
+			if direction and target and target >= Game.maxUnits and (p2 == nil or p5 ~= nil) then
 				local featureID = target - Game.maxUnits
 				local allyTeam = Spring.GetUnitAllyTeam(unitID)
 				local claim = getClaim(featureID, allyTeam, frame)
