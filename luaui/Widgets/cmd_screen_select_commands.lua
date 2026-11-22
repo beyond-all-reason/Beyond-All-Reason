@@ -458,7 +458,7 @@ local function showRangeReducedNotice()
 	rangeReducedNotice = {
 		startTime = osClock(),
 	}
-	spring.Log(widget.GetInfo().name, LOG.WARNING, "Orders reduced to " .. commandLimit .. ". Zoom in or increase the limit in the settings menu")
+	spring.Log(widget.GetInfo().name, LOG.WARNING, "Mass orders reduced to " .. commandLimit .. ". Zoom in or adjust limits in the settings menu")
 end
 
 local function refreshCirclePreview()
