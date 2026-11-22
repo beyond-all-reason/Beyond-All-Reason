@@ -63,8 +63,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			and unitDef.customParams.subfolder ~= "other/hats",
 		isBuilder = unitDef.isBuilder,
 		radius = unitDef.radius,
-		xsize = unitDef.xsize,
-		zsize = unitDef.zsize,
+		xsizeBuild = unitDef.xsize,
+		zsizeBuild = unitDef.zsize,
+		xsizeMobile = unitDef.moveDef.xsize or unitDef.xsize,
+		zsizeMobile = unitDef.moveDef.zsize or unitDef.zsize,
 	}
 end
 
@@ -302,7 +304,7 @@ function gadget:GameFrame(frame)
 				local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
 				local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-				local buildXsize, buildZsize = buildUnitDefData.xsize, buildUnitDefData.zsize
+				local buildXsize, buildZsize = buildUnitDefData.xsizeBuild, buildUnitDefData.zsizeBuild
 				if targetFacing and targetFacing % 2 == 1 then
 					buildXsize, buildZsize = buildZsize, buildXsize
 				end
@@ -337,8 +339,8 @@ function gadget:GameFrame(frame)
 										unitZ,
 										speedX,
 										speedZ,
-										unitDefData.xsize,
-										unitDefData.zsize,
+										unitDefData.xsizeMobile,
+										unitDefData.zsizeMobile,
 										buildX1,
 										buildZ1,
 										buildX2,
