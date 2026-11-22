@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local math_abs = math.abs
+local math_floor = math.floor
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
@@ -39,6 +40,7 @@ local spTestMoveOrder = Spring.TestMoveOrder
 
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
+local squareSize = Game.squareSize
 
 local CMD_GUARD = CMD.GUARD
 local CMD_INSERT = CMD.INSERT
@@ -60,8 +62,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			and unitDef.customParams.subfolder ~= "other/hats",
 		isBuilder = unitDef.isBuilder,
 		radius = unitDef.radius,
-		semiAxisX = unitDef.xsize * Game.squareSize * 0.5,
-		semiAxisZ = unitDef.zsize * Game.squareSize * 0.5,
+		xsize = unitDef.xsize,
+		zsize = unitDef.zsize,
 	}
 end
 
@@ -98,16 +100,18 @@ local PATH_CLEAR_SEARCH_EXTRA = 3 * footprint
 local PATH_CLEAR_FORWARD_EXTRA = 2 * footprint
 local PATH_CLEAR_LATERAL_EXTRA = footprint
 
-local function isInRectangle(x, z, tx, tz, semiAxisX, semiAxisZ)
-	return math_abs(x - tx) <= semiAxisX and math_abs(z - tz) <= semiAxisZ
+local function doesFootprintOverlap(x, z, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
+	local x1 = math_floor(x / squareSize) - math_floor(xsize / 2)
+	local z1 = math_floor(z / squareSize) - math_floor(zsize / 2)
+	return x1 < buildX2 and buildX1 < x1 + xsize and z1 < buildZ2 and buildZ1 < z1 + zsize
 end
 
-local function willBeNearTarget(ux, uz, vx, vz, tx, tz, semiAxisX, semiAxisZ)
-	if isInRectangle(ux, uz, tx, tz, semiAxisX, semiAxisZ) then
+local function willBeNearTarget(ux, uz, vx, vz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
+	if doesFootprintOverlap(ux, uz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2) then
 		return true
 	end
 	local frames = 2.25 * BUGGEROFF_LOOKAHEAD
-	return isInRectangle(ux + vx * frames, uz + vz * frames, tx, tz, semiAxisX, semiAxisZ)
+	return doesFootprintOverlap(ux + vx * frames, uz + vz * frames, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
 end
 
 local function isInTargetArea(unitID, x, z, radius)
@@ -297,11 +301,15 @@ function gadget:GameFrame(frame)
 				local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
 				local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-				local buggerOffSemiAxisX = buildUnitDefData.semiAxisX + builderRadiusOffsets[builderID]
-				local buggerOffSemiAxisZ = buildUnitDefData.semiAxisZ + builderRadiusOffsets[builderID]
+				local buildXsize, buildZsize = buildUnitDefData.xsize, buildUnitDefData.zsize
 				if targetFacing and targetFacing % 2 == 1 then
-					buggerOffSemiAxisX, buggerOffSemiAxisZ = buggerOffSemiAxisZ, buggerOffSemiAxisX
+					buildXsize, buildZsize = buildZsize, buildXsize
 				end
+				local buggerOffSquares = math_floor(builderRadiusOffsets[builderID] / squareSize)
+				local buildX1 = math_floor(targetX / squareSize) - math_floor(buildXsize / 2) - buggerOffSquares
+				local buildZ1 = math_floor(targetZ / squareSize) - math_floor(buildZsize / 2) - buggerOffSquares
+				local buildX2 = buildX1 + buildXsize + 2 * buggerOffSquares
+				local buildZ2 = buildZ1 + buildZsize + 2 * buggerOffSquares
 
 				-- Make sure at least one builder per player is never told to move
 				if visitedTeams[builderTeam] == nil then
@@ -321,19 +329,18 @@ function gadget:GameFrame(frame)
 							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
 							if speedX then
 								local unitRadius = unitDefData.radius
-								local areaSemiAxisX = buggerOffSemiAxisX + unitDefData.semiAxisX
-								local areaSemiAxisZ = buggerOffSemiAxisZ + unitDefData.semiAxisZ
-
 								if
 									willBeNearTarget(
 										unitX,
 										unitZ,
 										speedX,
 										speedZ,
-										targetX,
-										targetZ,
-										areaSemiAxisX,
-										areaSemiAxisZ
+										unitDefData.xsize,
+										unitDefData.zsize,
+										buildX1,
+										buildZ1,
+										buildX2,
+										buildZ2
 									)
 								then
 									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
