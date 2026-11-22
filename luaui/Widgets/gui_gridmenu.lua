@@ -1447,7 +1447,7 @@ function widget:Initialize()
 	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
 	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
 	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
-	getSelectedUnitsByDefID = WG.unit_selection and WG.unit_selection.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
+	getSelectedUnitsByDefID = WG.UnitSelection and WG.UnitSelection.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
 
 	loadUnitDefs()
 	units.loadBlocked()
