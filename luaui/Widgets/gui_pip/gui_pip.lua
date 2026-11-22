@@ -18311,7 +18311,7 @@ local function DrawBuildCursorWithRotation()
 			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
-					frameSel = getSelectedUnits
+					frameSel = getSelectedUnits()
 				end
 				local selectedUnits = frameSel
 				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
@@ -19403,7 +19403,7 @@ end
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
 	if not frameSel then
-		frameSel = getSelectedUnits
+		frameSel = getSelectedUnits()
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -19498,7 +19498,7 @@ end
 local function RenderPipContents()
 	-- Use frame-cached selected units to avoid redundant API call
 	if not frameSel then
-		frameSel = getSelectedUnits
+		frameSel = getSelectedUnits()
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -21314,7 +21314,7 @@ local function HandleHoverAndCursor(mx, my)
 			if not defaultCmd or defaultCmd == 0 then
 				if frameSelCount > 0 then
 					if not frameSel then
-						frameSel = getSelectedUnits
+						frameSel = getSelectedUnits()
 					end
 					local selectedUnits = frameSel
 					-- Check if hovering over an enemy unit with units that can attack
@@ -21364,7 +21364,7 @@ local function HandleHoverAndCursor(mx, my)
 			elseif defaultCmd == CMD.ATTACK and lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
 				-- Hovering over enemy unit with units that can attack
 				if not frameSel then
-					frameSel = getSelectedUnits
+					frameSel = getSelectedUnits()
 				end
 				if CanSelectedUnitsAttackTarget(frameSel, lastHoveredUnitID) then
 					Spring.SetMouseCursor("Attack")
@@ -23017,7 +23017,7 @@ function widget:Update(dt)
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
 			if not frameSel then
-				frameSel = getSelectedUnits
+				frameSel = getSelectedUnits()
 			end
 			local selectedUnits = frameSel
 			local shouldHighlight = false
