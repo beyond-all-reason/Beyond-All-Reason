@@ -33,6 +33,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local spPos2BuildPos = Spring.Pos2BuildPos
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spDestroyUnit = Spring.DestroyUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -305,9 +306,10 @@ function gadget:GameFrame(frame)
 				if targetFacing and targetFacing % 2 == 1 then
 					buildXsize, buildZsize = buildZsize, buildXsize
 				end
+				local buildX, _, buildZ = spPos2BuildPos(-cmdID, targetX, targetY, targetZ, targetFacing)
 				local buggerOffSquares = math_floor(builderRadiusOffsets[builderID] / squareSize)
-				local buildX1 = math_floor(targetX / squareSize) - math_floor(buildXsize / 2) - buggerOffSquares
-				local buildZ1 = math_floor(targetZ / squareSize) - math_floor(buildZsize / 2) - buggerOffSquares
+				local buildX1 = math_floor(buildX / squareSize) - math_floor(buildXsize / 2) - buggerOffSquares
+				local buildZ1 = math_floor(buildZ / squareSize) - math_floor(buildZsize / 2) - buggerOffSquares
 				local buildX2 = buildX1 + buildXsize + 2 * buggerOffSquares
 				local buildZ2 = buildZ1 + buildZsize + 2 * buggerOffSquares
 
