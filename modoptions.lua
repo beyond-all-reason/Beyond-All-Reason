@@ -1866,23 +1866,6 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "experimental_reclaim_resurrection",
-		name = "Allied reclaim / resurrection",
-		desc = "Prevent conflicting allied work on wrecks. Losing workers wait and resume when the wreck is free. Applies to explicit orders too; existing automatic target selection is unchanged.",
-		type = "list",
-		section = "options_experimental",
-		def = "off",
-		items = {
-			{ key = "off", name = "Off", desc = "Keep existing behavior." },
-			{
-				key = "first",
-				name = "First arrival has priority",
-				desc = "The first activity at the wreck takes priority until abandoned or completed.",
-			},
-		},
-	},
-
-	{
 		key = "experimentallegionfaction",
 		name = "Legion Faction",
 		desc = "3rd experimental faction",

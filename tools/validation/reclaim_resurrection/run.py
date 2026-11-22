@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Run the policy matrix with an installed headless engine and development assets.
+"""Test allied reclaim and resurrection with an installed headless engine and development assets.
 
 Example (from the BAR checkout):
   python3 tools/validation/reclaim_resurrection/run.py \
     --engine /path/to/spring-headless --base /path/to/engine/base \
     --assets /path/to/dev/data --output /path/to/results
 
-Requires Quicksilver Remake 1.24 in assets/maps. Runs with the option off and on,
-including Fight/Patrol cases for first arrival. Each run uses an isolated
+Requires Quicksilver Remake 1.24 in assets/maps. Exercises first-arrival priority,
+including Fight and Patrol orders. Each run uses an isolated
 write directory, removes its asset overlay, and preserves logs and inputs.
 """
 
@@ -21,8 +21,8 @@ import tempfile
 import time
 
 
-def run(args, mode, scenario):
-    out = args.output / f"{mode}-{scenario.stem}"
+def run(args, scenario):
+    out = args.output / scenario.stem
     out.mkdir(parents=True, exist_ok=False)
     shutil.copyfile(scenario, out / "scenario.lua")
     with tempfile.TemporaryDirectory(prefix="data-", dir=out) as temporary:
@@ -45,14 +45,14 @@ def run(args, mode, scenario):
  MapName=Quicksilver Remake 1.24; GameType=Reclaim Policy Validation 1;
  GameStartDelay=0; StartPosType=0; RecordDemo=0; MyPlayerName=Test;
  IsHost=1; HostIP=127.0.0.1; HostPort=0; FixedRNGSeed=1;
- [MODOPTIONS] { deathmode=neverend; experimental_reclaim_resurrection=POLICY; }
+ [MODOPTIONS] { deathmode=neverend; }
  [ALLYTEAM0] { NumAllies=0; } [ALLYTEAM1] { NumAllies=0; }
  [TEAM0] { AllyTeam=0; TeamLeader=0; }
  [TEAM1] { AllyTeam=0; TeamLeader=0; }
  [TEAM2] { AllyTeam=1; TeamLeader=0; }
  [PLAYER0] { Name=Test; Team=0; Spectator=1; }
 } """
-        (out / "input.txt").write_text(script.replace("POLICY", mode))
+        (out / "input.txt").write_text(script)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind(("127.0.0.1", 0))
             sock.settimeout(0.2)
@@ -100,7 +100,7 @@ def run(args, mode, scenario):
             (out / "events.txt").write_text("\n".join(events) + "\n")
             if "REZ_TEST|DIAG_DONE" not in content or "LUA_ERRRUN" in content:
                 raise RuntimeError(f"Validation failed: {logfile}")
-            print(f"PASS {mode}/{scenario.stem}", flush=True)
+            print(f"PASS {scenario.stem}", flush=True)
 
 
 def main():
@@ -111,14 +111,11 @@ def main():
     parser.add_argument("--assets", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--game", type=Path, default=root.parents[2])
-    parser.add_argument("--mode", choices=("off", "first"))
     args = parser.parse_args()
     for name in ("engine", "base", "assets", "output", "game"):
         setattr(args, name, getattr(args, name).resolve())
-    for mode in ([args.mode] if args.mode else ("off", "first")):
-        run(args, mode, root / "scenario.lua")
-        if mode != "off":
-            run(args, mode, root / "fight.lua")
+    run(args, root / "scenario.lua")
+    run(args, root / "fight.lua")
 
 
 if __name__ == "__main__":

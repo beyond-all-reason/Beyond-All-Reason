@@ -130,7 +130,6 @@ function gadget:GameFrame(f)
 		end
 	end
 	if f == 600 then
-		assert(Spring.GetModOptions().experimental_reclaim_resurrection == "first")
 		for _, c in ipairs(cases) do
 			log("RESULT", c.name, c.steps, c.after, c.repair)
 			assert(c.after > 0, c.name .. ": first reclaimer stopped")

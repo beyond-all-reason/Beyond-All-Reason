@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Allied reclaim and resurrection policy",
-		desc = "Optional arbitration of conflicting work on allied wrecks",
+		desc = "Gives priority to the first allied reclaim or resurrection work at a wreck",
 		author = "Eunice3x",
 		license = "GNU GPL, v2 or later",
 		layer = -100, -- Before reclaim-fix and resource-sharing tax side effects.
@@ -13,10 +13,6 @@ end
 
 if not gadgetHandler:IsSyncedCode() then
 	return
-end
-
-if Spring.GetModOptions().experimental_reclaim_resurrection ~= "first" then
-	return false
 end
 
 -- A claim requires actual work attempts, not a queued order or leftover progress.
