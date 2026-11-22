@@ -78,15 +78,6 @@ Activate()
 	FACTORY_OPEN_BUILD;
 }
 
-Activate()
-{
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
-	FACTORY_OPEN_BUILD;
-	
-	
-}
-
 Deactivate()
 {
 	signal SIGNAL_TURNON;

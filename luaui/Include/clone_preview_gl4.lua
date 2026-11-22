@@ -20,9 +20,8 @@ local LuaShader = gl.LuaShader
 
 local GL_R32F = 0x822E
 local SQUARE = Game.squareSize or 8
--- Strip cells per axis; larger boxes skip source vertices. A 4096-elmo box at 512
--- cells is 0.53M vertices per pass, and at the zoom that shows all of it a 16-elmo
--- cell is still only a few pixels.
+-- Strip cells per axis; larger boxes skip source vertices. A 4096-elmo box then
+-- uses 16-elmo cells, still only a few pixels at the zoom that shows all of it.
 local MAX_CELLS = 256
 local XRAY_CELLS = 128 -- the faint buried pass gets a coarser mesh
 local MAX_COLOR = 2048 -- colour snapshot texels per axis

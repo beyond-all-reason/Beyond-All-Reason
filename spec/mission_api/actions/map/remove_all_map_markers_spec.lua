@@ -1,0 +1,61 @@
+local SpringSyncedBuilder = VFS.Include("spec/builders/spring_synced_builder.lua")
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+MissionApiBuilder.new():Install()
+
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/map/remove_all_map_markers.lua")
+local action = actions[1]
+local summarizeSchema = require("mission_api.schema_spec_helper")
+
+describe("mission_api.actions.remove_all_map_markers", function()
+
+	---@type table, table, table
+	local missionApi, eraseCalls, sendCommandsCalls
+
+	before_each(function()
+		missionApi = MissionApiBuilder.new()
+			:WithMarker("a", { x = 1, y = 0, z = 1 })
+			:WithMarker("b", { x = 2, y = 0, z = 2 })
+			:Install()
+		env.Spring = SpringSyncedBuilder.new():Build()
+		eraseCalls = env.Spring.calls.markerErasePosition
+		sendCommandsCalls = env.Spring.calls.sendCommands
+	end)
+
+	it("declares its type and parameters", function()
+		assert.are.same({ type = "RemoveAllMapMarkers" }, summarizeSchema(action))
+	end)
+
+	describe("actionFunction", function()
+		it("resets markerNames to an empty table", function()
+			action.actionFunction()
+			assert.are.same({}, missionApi.markerNames)
+		end)
+
+		it("erases every marker it holds, at its stored position", function()
+			action.actionFunction()
+			assert.are.equal(2, #eraseCalls)
+			local erased = {}
+			for _, call in ipairs(eraseCalls) do
+				erased[call.x .. "," .. call.z] = true
+			end
+			assert.are.same({ ["1,1"] = true, ["2,2"] = true }, erased)
+		end)
+
+		it("erases nothing when it holds no markers", function()
+			missionApi = MissionApiBuilder.new():Install()
+			action.actionFunction()
+			assert.are.equal(0, #eraseCalls)
+		end)
+
+		it("leaves marks it did not place, sending no clearmapmarks", function()
+			action.actionFunction()
+			assert.are.equal(0, #sendCommandsCalls)
+		end)
+	end)
+
+end)

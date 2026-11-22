@@ -1,4 +1,3 @@
-include("keysym.h.lua")
 local versionNumber = "1.6"
 
 local widget = widget ---@type Widget
@@ -31,8 +30,8 @@ local sens = 40 -- rotate mouse sensitivity - length of mouse movement vector
 local drawForAll = false -- draw facing direction also for other buildings than labs
 
 -- Arrow style (matches the buildsquare footprint look: soft fill, pale outline, rounded corners)
-local ARROW_FILL_COLOR = { 0.05, 1.0, 0.35, 0.42 }
-local ARROW_OUTLINE_COLOR = { 0.72, 1.0, 0.72, 0.62 }
+local ARROW_FILL_COLOR = { 0.0, 0.85, 0.3, 0.37 }
+local ARROW_OUTLINE_COLOR = { 0.66, 1.0, 0.66, 0.45 }
 local ARROW_CORNER_RADIUS = 2.6 -- elmos
 local ARROW_OUTLINE_WIDTH = 1.0 -- elmos
 local ARROW_CHEVRON_DEPTH = 0.45 -- inner chevron position, 0 = at the tip edges, 1 = at the base centre

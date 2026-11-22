@@ -204,20 +204,10 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 7/2) / animSpeed; // Zecrus please stop changing the unit speed or it will start skating again :/
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>7) animSpeed = 7;
 		sleep 98;
 	}
-}
-
-StartMoving(reversing)
-{
-	isMoving = TRUE;
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	start-script UnitSpeed();
-	start-script Walk();
 }
 
 // Call this from StopMoving()!
@@ -303,7 +293,7 @@ StopMoving(){
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -383,11 +373,6 @@ StopBuilding()
 QueryNanoPiece(pieceIndex)
 {
 	pieceIndex = nano;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = nanogun;
 }
 
 Killed(severity, corpsetype)

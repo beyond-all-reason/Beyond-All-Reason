@@ -3,7 +3,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
 -- - If Ctrl is pressed and hovering over a unit, targets all units in the area.
---   For wrecks, it targets all wrecks with the same tech level.
+--   For wrecks, it targets all wrecks with the same tech level unless splitting with Shift+Meta.
 --   Ctrl has special-case interactions with area commands:
 --   - Attack + Ctrl removes matching queued attacks instead of adding any.
 --   - Attack + Ctrl + Meta filters as usual (queue front; split targets with Shift).
@@ -158,23 +158,25 @@ local function distributeTargetsToTransports(transports, targets)
 
 		for _, targetId in ipairs(targets) do
 			local passengerDefId = spGetUnitDefID(targetId)
-			local isValid = false
-			local position = toPositionTable(spGetUnitPosition(targetId))
-			passengerPositions[targetId] = position
-			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
+			if passengerDefId then
+				local isValid = false
+				local position = toPositionTable(spGetUnitPosition(targetId))
+				passengerPositions[targetId] = position
+				validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
 
-			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
-				isValid = true
-			elseif not cantBeTransported[passengerDefId] then
-				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
-				if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+				if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
 					isValid = true
-					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+				elseif not cantBeTransported[passengerDefId] then
+					local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
+					if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+						isValid = true
+						validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+					end
 				end
-			end
-			if isValid then
-				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				tableInsert(transportTypeData.allValidPassengers, targetId)
+				if isValid then
+					passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
+					tableInsert(transportTypeData.allValidPassengers, targetId)
+				end
 			end
 		end
 		if #transportTypeData.allValidPassengers == 0 then
@@ -441,7 +443,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegian
 	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local unitDefId = spGetUnitDefID(targetId)
-	if not unitDefId then
+	if not (ctrl or unitDefId) then
 		return nil
 	end
 
@@ -485,6 +487,8 @@ end
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
 	local alt = options.alt
 	local ctrl = options.ctrl
+	-- Ctrl selects the area for splitting, rather than restricting wrecks by tech level.
+	local split = ctrl and options.shift and options.meta
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -497,14 +501,16 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	end
 
 	local targetTechLevel
-	if ctrl then
+	if ctrl and not split then
 		targetTechLevel = getTechLevel(targetUnitDefName)
 	end
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
 		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
-		if ctrl then
+		if split and not alt then
+			shouldInsert = true
+		elseif ctrl and not split then
 			local unitDefName = spGetFeatureResurrect(featureId)
 			local unitTechLevel = getTechLevel(unitDefName)
 			if unitTechLevel == targetTechLevel then
@@ -525,7 +531,39 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 	return filteredTargets
 end
 
+-- Keep the object under the cursor when the drag starts. Reconstructing it
+-- from the ground-space area center can pick a different object for aircraft.
+local areaStart
+
+function widget:MousePress(x, y, button)
+	areaStart = nil
+	if button ~= 1 and button ~= 3 then
+		return false
+	end
+	local _, commandID = Spring.GetActiveCommand()
+	local command = allowedCommands[commandID]
+	if command and command.allowedTargetTypes[UNIT] then
+		local targetType, targetID = spTraceScreenRay(x, y)
+		areaStart = { commandID = commandID, button = button, targetType = targetType, targetID = targetID }
+	end
+	return false
+end
+
+function widget:Update()
+	if not areaStart then
+		return
+	end
+	-- This widget does not own the mouse, so it receives no MouseRelease.
+	-- CommandNotify runs before Update when the engine handles the release.
+	local _, _, leftPressed, _, rightPressed = Spring.GetMouseState()
+	if not ((areaStart.button == 1 and leftPressed) or (areaStart.button == 3 and rightPressed)) then
+		areaStart = nil
+	end
+end
+
 function widget:CommandNotify(cmdId, params, options)
+	local start = areaStart
+	areaStart = nil
 	if not (options.alt or options.ctrl) then
 		return false
 	end
@@ -548,8 +586,13 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	local targetType, targetId
+	if start and start.commandID == cmdId and start.button == (options.right and 3 or 1) then
+		targetType, targetId = start.targetType, start.targetID
+	else
+		local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
+		targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	end
 
 	if not currentCommand.allowedTargetTypes[targetType] then
 		return false

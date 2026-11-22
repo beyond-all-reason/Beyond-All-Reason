@@ -43,7 +43,9 @@ local GetScriptFunc = function(unitID, functionName)
 	if env and env[functionName] then
 		return function(uid, functionName, returnArgs, isStunned)
 			local scriptEnv = spGetScriptEnv(uid)
-			spCallAsUnit(uid, scriptEnv[functionName], isStunned) -- we don't need it to be passed to the LUS function itself though
+			if scriptEnv then
+				spCallAsUnit(uid, scriptEnv[functionName], isStunned) -- we don't need it to be passed to the LUS function itself though
+			end
 		end
 	end
 	return false

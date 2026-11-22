@@ -26,7 +26,7 @@ return {
 		objectname = "Units/legbunk.s3o",
 		script = "Units/legbunk.cob",
 		selfdestructas = "explosiont3xl",
-		sightdistance = 375,
+		sightdistance = 380,
 		strafetoattack = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,

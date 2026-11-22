@@ -18,7 +18,6 @@ MMStatus(State)
 		turn cover2 to z-axis <0> speed <60>;
 	    hide light;
 	}
-	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()

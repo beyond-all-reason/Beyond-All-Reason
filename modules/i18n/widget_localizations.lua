@@ -65,7 +65,7 @@ function WidgetLocalizations.Read(widgets, vfsMode)
 		end
 
 		local file = widget.dir .. LOCALIZATIONS_FILE
-		local localizations, problem = WidgetManifests.ReadJson(file, vfsMode)
+		local localizations, problem = WidgetManifests.ReadJson(file, widget.vfsMode or vfsMode)
 		if problem then
 			warnings[#warnings + 1] = string.format("%s %s; skipped", file, problem)
 		elseif localizations then

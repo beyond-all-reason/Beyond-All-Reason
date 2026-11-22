@@ -1,0 +1,77 @@
+name: Unit Script Check
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      # So that a change to the check runs the check.
+      - "tools/unit_scripts/**"
+      - ".github/workflows/unit_script_check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compiled-scripts:
+    # Many scripts include headers in a different case than the files on disk.
+    # These are easiest to resolve on a case-insensitive filesystem.
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/
+            /tools/unit_scripts/
+
+      # Multiple versions of the compiler are acceptable in CI.
+      - name: Check out BARScriptCompiler before the folding rewrite
+        uses: actions/checkout@v4
+        with:
+          repository: beyond-all-reason/BARScriptCompiler
+          ref: dd01436f5a8b3b239ccc63a80e49bf07a48d4d16
+          path: compilers/barscriptcompiler-dd01436
+
+      - name: Check out BARScriptCompiler 1.5
+        uses: actions/checkout@v4
+        with:
+          repository: beyond-all-reason/BARScriptCompiler
+          ref: b6f5315cc86e903830f85d7b64a29e8cfbc3ded2
+          path: compilers/barscriptcompiler-b6f5315
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install compiler dependencies
+        run: python -m pip install pcpp==1.30 ply==3.11
+
+      - name: Check compiled scripts against their sources
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # GitHub rebuilds refs/pull/N/merge against master as it stands now,
+          # so parent 1 of the merge commit is the base it was really built on.
+          parents=$(git cat-file commit HEAD | awk '/^parent /{print $2}')
+          if [ "$(printf '%s\n' "$parents" | grep -c .)" -eq 2 ]; then
+            BASE_SHA=$(printf '%s\n' "$parents" | head -1)
+          fi
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+
+          # Deletions are listed, and a rename counts as one, so that a .bos and
+          # .cob that come apart are seen from both ends.
+          git diff --name-only -z --no-renames "$BASE_SHA" HEAD -- scripts > changed.txt
+
+          # A change to the check can change the result for any script.
+          if ! git diff --quiet "$BASE_SHA" HEAD -- tools/unit_scripts .github/workflows/unit_script_check.yml; then
+            git ls-files -z -- scripts >> changed.txt
+          fi
+
+          python tools/unit_scripts/check_compiled_scripts.py \
+            --compiler-dir compilers/barscriptcompiler-dd01436 \
+            --compiler-dir compilers/barscriptcompiler-b6f5315 \
+            --changed changed.txt
