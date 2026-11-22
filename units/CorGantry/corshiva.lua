@@ -162,6 +162,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					launchrail_length = 24,
 					overrange_distance = 920,
 					soundstart_volume_multiplier = 0.7,
 				},

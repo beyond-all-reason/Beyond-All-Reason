@@ -178,10 +178,16 @@ local spGetUnitRotation = Spring.GetUnitRotation
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraFOV = Spring.GetCameraFOV
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetGameFrame = Spring.GetGameFrame
 
 local floor = math.floor
 local ceil = math.ceil
 local huge = math.huge
+local tan = math.tan
+local rad = math.rad
+local pi = math.pi
 
 local tracyZoneBeginN = (tracy and tracy.ZoneBeginN) or function() end
 local tracyZoneEnd = (tracy and tracy.ZoneEnd) or function() end
@@ -193,6 +199,7 @@ local IterableMap = require("luarules/gadgets/include/IterableMap")
 -----------------------------------------------------------------
 
 local MAX_POINTS = 24 -- max impact points per shield
+local MAX_POINTS_UNDER_LOAD = 8 -- the strongest hits; used while the stack detail tier is active
 local LOS_UPDATE_PERIOD = 10
 local HIT_UPDATE_PERIOD = 2
 local STUNNED_CHECK_PERIOD = 40 -- draw frames between stunned polls
@@ -230,9 +237,38 @@ local INSTANCE_CAPACITY_INITIAL = 256 -- instances per geometry size, grows on d
 local IMPACT_SSBO_BINDING = 6
 local IMPACT_ELEMENT_FLOATS = 16 -- one SSBO element = 4 x vec4 (engine quirk, see CreateImpactBuffer)
 local IMPACT_CAPACITY_INITIAL = 512 -- elements (4 impact points each), grows on demand
-local GEOMETRY_SUBDIVISIONS = { small = 4, large = 5 }
 
-local VIS_STRIDE = 6 -- visible-shield scratch layout: unitID, unitData, x, y, z, radius
+-- Mesh detail by the shield's radius on screen, largest first
+local GEOMETRY_LODS = {
+	{ subdivisions = 5, minPixelRadius = 250 },
+	{ subdivisions = 4, minPixelRadius = 60 },
+	{ subdivisions = 3, minPixelRadius = 0 },
+}
+
+-- Surface noise shared by all shields, baked once per game frame
+local IDLE_FIELD_SIZE = 512
+local IDLE_FIELD_TEXTURE_UNIT = 2
+
+-- Under load (screens' worth of shield pixels), shields with this many
+-- overlapping shields in front keep only their silhouette and impacts.
+local STACK_LOAD_ON = 1.5
+local STACK_LOAD_OFF = 1.2
+local STACK_DEEP_LAYERS = 5
+local DETAIL_SNAP = 0.02
+
+-- Hundreds of visible shields: bounds on the per-frame Lua work
+local OVERLAP_SCAN_LIMIT = 24 -- overlapping neighbours inspected per shield
+local OVERLAP_SHIELDS_PER_STEP = 300 -- every this many shields lengthen the overlap refresh cycle
+local SLOW_STATE_SHIELDS = 200 -- above this, charge and yaw are refreshed on a rotating slice
+local SLOW_STATE_PERIOD = 8
+
+-- Rim-only shields draw this camera-facing band (see the vertex shader), so
+-- their interior and far side are never rasterised.
+local BAND_SEGMENTS = 64
+local BAND_ROWS = { 0.0, 0.35, 0.6, 0.8, 0.92, 1.0 } -- across the band, denser towards the silhouette
+local BAND_MIN_DISTANCE = 1.2 -- in shield radii from the camera; closer shields keep the sphere
+
+local VIS_STRIDE = 8 -- visible-shield scratch layout: unitID, unitData, x, y, z, radius, on-screen radius, distance
 
 -----------------------------------------------------------------
 -- Shield rendering state
@@ -246,7 +282,11 @@ local shieldUnits = IterableMap.New()
 
 -- Rendering state
 local shieldShader
-local geometry = {} -- size name -> { vertexVBO, vertexCount, instanceVBO, vao, capacity, data, count }
+-- LOD index -> { vertexVBO, indexVBO, indexCount, instanceVBO, vao, capacity, data, count }
+local geometry = {} ---@type table<integer, table>
+-- Baked surface noise: shader, tex, vbo, vao, frame (game frame of the last bake)
+---@type table
+local idleField = { frame = -1 }
 local impactSSBO
 local impactCapacity = 0 -- in SSBO elements
 local impactData = {} -- flat float scratch, reused every frame
@@ -258,6 +298,9 @@ local checkStunnedTime = 0
 local visScratch = {}
 local visCount = 0
 local overlapPhase = 0
+local slowStatePhase = 0
+local cameraX, cameraY, cameraZ = 0.0, 0.0, 0.0
+local stackDetailActive = false
 
 local function NewOverlapGrid(sizeName)
 	return {
@@ -387,6 +430,8 @@ local function AddUnit(unitID, unitDefID)
 	shieldInfo.fadeAlpha = 0.0
 	shieldInfo.overlapScale = 1.0
 	shieldInfo.overlapTarget = 1.0
+	shieldInfo.detail = 1.0
+	shieldInfo.detailTarget = 1.0
 
 	local unitData = {
 		unitDefID = unitDefID,
@@ -558,9 +603,9 @@ end
 -- Geometry generation functions
 -----------------------------------------------------------------
 
--- Builds a subdivided icosahedron as a flat triangle list (x, y, z per vertex)
--- on the unit sphere. Returns the float table and the vertex count.
-local function BuildIcosahedronVertices(subd)
+-- Builds a subdivided icosahedron on the unit sphere. Returns the shared
+-- vertices (x, y, z per vertex), the 0-based triangle indices and the vertex count.
+local function BuildIcosahedronMesh(subd)
 	local sqrt = math.sqrt
 
 	local function normalize(vertex)
@@ -653,7 +698,9 @@ local function BuildIcosahedronVertices(subd)
 	end
 
 	local verts = {}
-	local n = 0
+	local indices = {}
+	local indexOfVertex = {}
+	local vertexCount = 0
 	for i = 1, #faces do
 		local face = faces[i]
 		-- The base icosahedron is wound clockwise seen from outside; emit each
@@ -661,14 +708,51 @@ local function BuildIcosahedronVertices(subd)
 		-- fragment shader relies on to tell the near hemisphere from the far one.
 		for k = 3, 1, -1 do
 			local v = face[k]
-			verts[n + 1] = v[1]
-			verts[n + 2] = v[2]
-			verts[n + 3] = v[3]
-			n = n + 3
+			local key = floor(v[1] * 1e5 + 0.5) .. ":" .. floor(v[2] * 1e5 + 0.5) .. ":" .. floor(v[3] * 1e5 + 0.5)
+			local index = indexOfVertex[key]
+			if not index then
+				index = vertexCount
+				indexOfVertex[key] = index
+				verts[index * 3 + 1] = v[1]
+				verts[index * 3 + 2] = v[2]
+				verts[index * 3 + 3] = v[3]
+				vertexCount = vertexCount + 1
+			end
+			indices[#indices + 1] = index
 		end
 	end
 
-	return verts, #faces * 3
+	return verts, indices, vertexCount
+end
+
+-- Band mesh: each vertex holds (cos, sin) around the view axis and its position across the band.
+local function BuildBandMesh()
+	local verts = {}
+	local indices = {}
+	local rowCount = #BAND_ROWS
+	for row = 1, rowCount do
+		for segment = 0, BAND_SEGMENTS - 1 do
+			local angle = 2 * pi * segment / BAND_SEGMENTS
+			verts[#verts + 1] = math.cos(angle)
+			verts[#verts + 1] = math.sin(angle)
+			verts[#verts + 1] = BAND_ROWS[row]
+		end
+	end
+	for row = 0, rowCount - 2 do
+		for segment = 0, BAND_SEGMENTS - 1 do
+			local nextSegment = (segment + 1) % BAND_SEGMENTS
+			local inner, innerNext = row * BAND_SEGMENTS + segment, row * BAND_SEGMENTS + nextSegment
+			local outer, outerNext = inner + BAND_SEGMENTS, innerNext + BAND_SEGMENTS
+			-- CCW seen from the camera: the band is always a front face
+			indices[#indices + 1] = inner
+			indices[#indices + 1] = outer
+			indices[#indices + 1] = outerNext
+			indices[#indices + 1] = inner
+			indices[#indices + 1] = outerNext
+			indices[#indices + 1] = innerNext
+		end
+	end
+	return verts, indices, rowCount * BAND_SEGMENTS
 end
 
 -----------------------------------------------------------------
@@ -832,8 +916,9 @@ local function CreateInstanceBuffers(geo, capacity)
 		return false
 	end
 	vao:AttachVertexBuffer(geo.vertexVBO)
+	vao:AttachIndexBuffer(geo.indexVBO)
 	vao:AttachInstanceBuffer(instanceVBO)
-	gl.InstanceVBOTable.fillVAOSlots(vao, false, true)
+	gl.InstanceVBOTable.fillVAOSlots(vao, true, true)
 
 	geo.instanceVBO = instanceVBO
 	geo.vao = vao
@@ -863,6 +948,23 @@ local function FinalizeRendering()
 		shieldShader = nil
 	end
 
+	if idleField.shader then
+		idleField.shader:Finalize()
+		idleField.shader = nil
+	end
+	if idleField.vao then
+		idleField.vao:Delete()
+		idleField.vao = nil
+	end
+	if idleField.vbo then
+		idleField.vbo:Delete()
+		idleField.vbo = nil
+	end
+	if idleField.tex then
+		gl.DeleteTexture(idleField.tex)
+		idleField.tex = nil
+	end
+
 	for _, geo in pairs(geometry) do
 		if geo.vao then
 			geo.vao:Delete()
@@ -873,6 +975,9 @@ local function FinalizeRendering()
 		if geo.vertexVBO then
 			geo.vertexVBO:Delete()
 		end
+		if geo.indexVBO then
+			geo.indexVBO:Delete()
+		end
 	end
 	geometry = {}
 
@@ -881,6 +986,73 @@ local function FinalizeRendering()
 		impactSSBO = nil
 	end
 	impactCapacity = 0
+end
+
+local function CreateGeometry(verts, indices, vertexCount, minPixelRadius)
+	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if not vertexVBO or not indexVBO then
+		return false
+	end
+	vertexVBO:Define(vertexCount, { { id = 0, name = "vertexPos", size = 3 } })
+	vertexVBO:Upload(verts)
+	indexVBO:Define(#indices)
+	indexVBO:Upload(indices)
+
+	local geo = {
+		vertexVBO = vertexVBO,
+		indexVBO = indexVBO,
+		indexCount = #indices,
+		minPixelRadius = minPixelRadius,
+		data = {},
+		count = 0,
+	}
+	geometry[#geometry + 1] = geo
+	return CreateInstanceBuffers(geo, INSTANCE_CAPACITY_INITIAL)
+end
+
+local IDLE_FIELD_VS = [[
+#version 430 core
+layout (location = 0) in vec2 pos;
+void main() { gl_Position = vec4(pos, 0.0, 1.0); }
+]]
+
+local function InitializeIdleField(LuaShader)
+	local fsSrc = VFS.LoadFile("shaders/ShieldSphereIdleField.frag.glsl")
+	if not fsSrc then
+		Spring.Echo("Shield shader error: ShieldSphereIdleField.frag.glsl not found!")
+		return false
+	end
+
+	local shader = LuaShader({
+		vertex = IDLE_FIELD_VS,
+		fragment = fsSrc,
+		uniformFloat = { bakeParams = { 0, IDLE_FIELD_SIZE } },
+	}, "ShieldSphereIdleField")
+	if not shader:Initialize() then
+		Spring.Echo("Shield idle field shader failed to compile!")
+		return false
+	end
+	idleField.shader = shader
+
+	idleField.tex = gl.CreateTexture(IDLE_FIELD_SIZE, IDLE_FIELD_SIZE, {
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+	})
+	idleField.vbo = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	idleField.vao = gl.GetVAO()
+	if not idleField.tex or not idleField.vbo or not idleField.vao then
+		return false
+	end
+	idleField.vbo:Define(4, { { id = 0, name = "pos", size = 2 } })
+	idleField.vbo:Upload({ -1, -1, 1, -1, -1, 1, 1, 1 })
+	idleField.vao:AttachVertexBuffer(idleField.vbo)
+	gl.InstanceVBOTable.fillVAOSlots(idleField.vao)
+	return true
 end
 
 local function InitializeRendering()
@@ -912,6 +1084,7 @@ local function InitializeRendering()
 		uniformInt = {
 			mapDepthTex = 0,
 			modelsDepthTex = 1,
+			idleFieldTex = IDLE_FIELD_TEXTURE_UNIT,
 		},
 	}, "ShieldSphereColorGL4")
 
@@ -921,27 +1094,23 @@ local function InitializeRendering()
 		return false
 	end
 
-	for sizeName, subd in pairs(GEOMETRY_SUBDIVISIONS) do
-		local verts, vertexCount = BuildIcosahedronVertices(subd)
-		local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		if not vertexVBO then
-			FinalizeRendering()
-			return false
-		end
-		vertexVBO:Define(vertexCount, { { id = 0, name = "vertexPos", size = 3 } })
-		vertexVBO:Upload(verts)
+	if not InitializeIdleField(LuaShader) then
+		FinalizeRendering()
+		return false
+	end
 
-		local geo = {
-			vertexVBO = vertexVBO,
-			vertexCount = vertexCount,
-			data = {},
-			count = 0,
-		}
-		geometry[sizeName] = geo
-		if not CreateInstanceBuffers(geo, INSTANCE_CAPACITY_INITIAL) then
+	for lod = 1, #GEOMETRY_LODS do
+		local verts, indices, vertexCount = BuildIcosahedronMesh(GEOMETRY_LODS[lod].subdivisions)
+		if not CreateGeometry(verts, indices, vertexCount, GEOMETRY_LODS[lod].minPixelRadius) then
 			FinalizeRendering()
 			return false
 		end
+	end
+
+	local bandVerts, bandIndices, bandVertexCount = BuildBandMesh()
+	if not CreateGeometry(bandVerts, bandIndices, bandVertexCount, 0) then
+		FinalizeRendering()
+		return false
 	end
 
 	if not CreateImpactBuffer(IMPACT_CAPACITY_INITIAL) then
@@ -967,6 +1136,16 @@ local function CollectVisibleShields()
 	end
 
 	visCount = 0
+
+	local camx, camy, camz = spGetCameraPosition()
+	camx, camy, camz = camx or 0, camy or 0, camz or 0
+	cameraX, cameraY, cameraZ = camx, camy, camz
+
+	local vsx, vsy = spGetViewGeometry()
+	local vFov = spGetCameraFOV()
+	local pixelsAtUnitDistance = vsy * 0.5 / tan(rad(vFov) * 0.5)
+	local screenArea = vsx * vsy
+	local coveredArea = 0.0
 
 	-- Size the grids from the previous frame's radii (cell size is only a
 	-- performance heuristic, correctness never depends on it)
@@ -1023,6 +1202,15 @@ local function CollectVisibleShields()
 					visScratch[vi + 4] = posy
 					visScratch[vi + 5] = posz
 					visScratch[vi + 6] = radius
+
+					local dx, dy, dz = posx - camx, posy - camy, posz - camz
+					local dist = sqrt(dx * dx + dy * dy + dz * dz)
+					local pixelRadius = radius * pixelsAtUnitDistance / (dist > radius and dist or radius)
+					visScratch[vi + 7] = pixelRadius
+					visScratch[vi + 8] = dist
+					local area = pi * pixelRadius * pixelRadius
+					coveredArea = coveredArea + (area < screenArea and area or screenArea)
+
 					visCount = visCount + 1
 
 					-- Register in the overlap spatial hash of this size class
@@ -1050,17 +1238,25 @@ local function CollectVisibleShields()
 			end
 		end
 	end
+
+	stackDetailActive = coveredArea / screenArea > (stackDetailActive and STACK_LOAD_OFF or STACK_LOAD_ON)
 end
 
 -- Counts overlapping neighbours of visible shield i, distinguishing those in
 -- front (camera-side) from those behind, and returns the target opacity
--- scalar. Only nearby spatial-hash cells are visited and the search stops as
--- soon as the floor is reached, so dense clusters stay cheap.
+-- scalar and whether the shield is deep in a stack. Only nearby spatial-hash
+-- cells are visited and the search stops as soon as the outcome is settled,
+-- so dense clusters stay cheap.
 local function ComputeOverlapTarget(i, ax, ay, az, ar, camx, camy, camz)
 	local dxA, dyA, dzA = ax - camx, ay - camy, az - camz
 	local camDistA = dxA * dxA + dyA * dyA + dzA * dzA
 
 	local target = 1.0
+	local inFront = 0
+	local visited = 0
+	-- Camera-side cells first: the scan limit must not see only shields behind this one
+	local stepX = camx > ax and -1 or 1
+	local stepZ = camz > az and -1 or 1
 	for g = 1, #overlapGridList do
 		local grid = overlapGridList[g]
 		if grid.usedCount > 0 then
@@ -1070,9 +1266,9 @@ local function ComputeOverlapTarget(i, ax, ay, az, ar, camx, camy, camz)
 			local cxi = floor(ax * cellInv)
 			local czi = floor(az * cellInv)
 
-			for gx = cxi - range, cxi + range do
+			for gx = cxi - range * stepX, cxi + range * stepX, stepX do
 				local keyBase = gx * OVERLAP_KEY_MUL
-				for gz = czi - range, czi + range do
+				for gz = czi - range * stepZ, czi + range * stepZ, stepZ do
 					local cell = cells[keyBase + gz]
 					if cell then
 						for k = 1, cell[0] do
@@ -1088,11 +1284,16 @@ local function ComputeOverlapTarget(i, ax, ay, az, ar, camx, camy, camz)
 									if camDistA > dxB * dxB + dyB * dyB + dzB * dzB then
 										-- A is behind B: dim more aggressively
 										target = target * OVERLAP_FALLOFF_BEHIND
+										inFront = inFront + 1
 									else
 										target = target * OVERLAP_FALLOFF
 									end
-									if target <= OVERLAP_MIN_SCALE then
-										return OVERLAP_MIN_SCALE
+									visited = visited + 1
+									local settled = target <= OVERLAP_MIN_SCALE
+										and (inFront >= STACK_DEEP_LAYERS or not stackDetailActive)
+									if settled or visited >= OVERLAP_SCAN_LIMIT then
+										return (target > OVERLAP_MIN_SCALE and target or OVERLAP_MIN_SCALE),
+											inFront >= STACK_DEEP_LAYERS
 									end
 								end
 							end
@@ -1102,25 +1303,23 @@ local function ComputeOverlapTarget(i, ax, ay, az, ar, camx, camy, camz)
 			end
 		end
 	end
-	return target
+	return (target > OVERLAP_MIN_SCALE and target or OVERLAP_MIN_SCALE), inFront >= STACK_DEEP_LAYERS
 end
 
 -- Pass 2: refresh the overlap target of a slice of the visible shields, then
 -- smoothly lerp every shield's stored opacity scalar toward its target so
 -- dimming doesn't pop as units enter/leave clusters.
 local function UpdateOverlapScales()
-	local camx, camy, camz = spGetCameraPosition()
-	camx = camx or 0
-	camy = camy or 0
-	camz = camz or 0
+	local camx, camy, camz = cameraX, cameraY, cameraZ
 
-	overlapPhase = (overlapPhase + 1) % OVERLAP_UPDATE_DIVISOR
+	local divisor = OVERLAP_UPDATE_DIVISOR * (1 + floor(visCount / OVERLAP_SHIELDS_PER_STEP))
+	overlapPhase = (overlapPhase + 1) % divisor
 
 	for i = 1, visCount do
 		local vi = (i - 1) * VIS_STRIDE
 		local info = visScratch[vi + 2].shieldInfo
-		if (i % OVERLAP_UPDATE_DIVISOR) == overlapPhase then
-			info.overlapTarget = ComputeOverlapTarget(
+		if (i % divisor) == overlapPhase then
+			local target, deepInStack = ComputeOverlapTarget(
 				i,
 				visScratch[vi + 3],
 				visScratch[vi + 4],
@@ -1130,9 +1329,21 @@ local function UpdateOverlapScales()
 				camy,
 				camz
 			)
+			info.overlapTarget = target
+			info.detailTarget = (stackDetailActive and deepInStack) and 0.0 or 1.0
 		end
 		local cur = info.overlapScale
 		info.overlapScale = cur + (info.overlapTarget - cur) * OVERLAP_LERP_RATE
+
+		local detail, detailTarget = info.detail, info.detailTarget
+		if detail ~= detailTarget then
+			detail = detail + (detailTarget - detail) * OVERLAP_LERP_RATE
+			local remaining = detail - detailTarget
+			if remaining < DETAIL_SNAP and remaining > -DETAIL_SNAP then
+				detail = detailTarget
+			end
+			info.detail = detail
+		end
 	end
 
 	-- Reset the spatial hashes for the next frame (cell tables are kept)
@@ -1150,15 +1361,20 @@ end
 -- Pass 3: write per-shield instance attributes and the packed impact list.
 -- Returns whether any drawn shield wants the terrain / unit depth outline.
 local function BuildInstanceData()
-	local geoSmall = geometry.small
-	local geoLarge = geometry.large
-	geoSmall.count = 0
-	geoLarge.count = 0
+	for g = 1, #geometry do
+		geometry[g].count = 0
+	end
+	local lodCount = #GEOMETRY_LODS
+	local bandGeometry = geometry[lodCount + 1]
 	impactFloatCount = 0
 	local impactVec4Count = 0
 
 	local haveTerrainOutline = false
 	local haveUnitsOutline = false
+
+	slowStatePhase = (slowStatePhase + 1) % SLOW_STATE_PERIOD
+	local refreshAll = visCount <= SLOW_STATE_SHIELDS
+	local maxPoints = stackDetailActive and MAX_POINTS_UNDER_LOAD or MAX_POINTS
 
 	for i = 1, visCount do
 		local vi = (i - 1) * VIS_STRIDE
@@ -1170,9 +1386,11 @@ local function BuildInstanceData()
 		local posy = visScratch[vi + 4] + pos[2]
 		local posz = visScratch[vi + 5] + pos[3]
 
+		local refresh = refreshAll or (i % SLOW_STATE_PERIOD) == slowStatePhase
+
 		-- Only yaw is used by the shader; immobile units keep their first value
 		local yaw = unitData.yaw
-		if not yaw or not unitData.immobile then
+		if not yaw or (refresh and not unitData.immobile) then
 			local _, y = spGetUnitRotation(unitID)
 			yaw = y or 0
 			unitData.yaw = yaw
@@ -1181,17 +1399,21 @@ local function BuildInstanceData()
 		local fadeAlpha = info.fadeAlpha
 
 		-- Charge fraction drives the colour lerp
-		local _, charge = spGetUnitShieldState(unitID)
-		local frac = 1.0
-		if charge then
-			frac = charge / info.shieldCapacity
-			if frac ~= frac then -- NaN
-				frac = 0
-			elseif frac > 1 then
-				frac = 1
-			elseif frac < 0 then
-				frac = 0
+		local frac = info.chargeFraction
+		if refresh or not frac then
+			local _, charge = spGetUnitShieldState(unitID)
+			frac = 1.0
+			if charge then
+				frac = charge / info.shieldCapacity
+				if frac ~= frac then -- NaN
+					frac = 0
+				elseif frac > 1 then
+					frac = 1
+				elseif frac < 0 then
+					frac = 0
+				end
 			end
+			info.chargeFraction = frac
 		end
 		local fracinv = 1.0 - frac
 		local c1full, c1empty = info.colormap1[1], info.colormap1[2]
@@ -1213,8 +1435,8 @@ local function BuildInstanceData()
 			local hitData = unitData.hitData
 			local n = hitData and #hitData or 0
 			if n > 0 then
-				if n > MAX_POINTS then
-					n = MAX_POINTS
+				if n > maxPoints then
+					n = maxPoints
 				end
 				impactBase = impactVec4Count
 				impactCount = n
@@ -1236,7 +1458,18 @@ local function BuildInstanceData()
 			end
 		end
 
-		local geo = (info.shieldSize == "large") and geoLarge or geoSmall
+		local useBand = info.detail == 0 and impactCount == 0 and visScratch[vi + 8] > info.radius * BAND_MIN_DISTANCE
+		local geo = bandGeometry
+		if not useBand then
+			local pixelRadius = visScratch[vi + 7]
+			geo = geometry[lodCount]
+			for lod = 1, lodCount - 1 do
+				if pixelRadius > geometry[lod].minPixelRadius then
+					geo = geometry[lod]
+					break
+				end
+			end
+		end
 		local data = geo.data
 		local o = geo.count * INSTANCE_STRIDE
 		geo.count = geo.count + 1
@@ -1264,7 +1497,8 @@ local function BuildInstanceData()
 		data[o + 17] = effects
 		data[o + 18] = impactBase
 		data[o + 19] = impactCount
-		data[o + 20] = info.scavenger and 1 or 0 -- flags: 1 = scavenger palette
+		-- flags (1 = scavenger palette, 2 = band mesh), lost detail in the fraction
+		data[o + 20] = (info.scavenger and 1 or 0) + (useBand and 2 or 0) + (1.0 - info.detail) * 0.5
 	end
 
 	return haveTerrainOutline, haveUnitsOutline
@@ -1323,15 +1557,18 @@ local function DrawShields(haveTerrainOutline, haveUnitsOutline)
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 
+	gl.Texture(IDLE_FIELD_TEXTURE_UNIT, idleField.tex)
+
 	local haveImpacts = impactFloatCount > 0
 	if haveImpacts then
 		impactSSBO:BindBufferRange(IMPACT_SSBO_BINDING)
 	end
 
 	shieldShader:Activate()
-	for _, geo in pairs(geometry) do
+	for lod = 1, #geometry do
+		local geo = geometry[lod]
 		if geo.count > 0 then
-			geo.vao:DrawArrays(GL.TRIANGLES, geo.vertexCount, 0, geo.count)
+			geo.vao:DrawElements(GL.TRIANGLES, geo.indexCount, 0, geo.count)
 		end
 	end
 	shieldShader:Deactivate()
@@ -1339,6 +1576,8 @@ local function DrawShields(haveTerrainOutline, haveUnitsOutline)
 	if haveImpacts then
 		impactSSBO:UnbindBufferRange(IMPACT_SSBO_BINDING)
 	end
+
+	gl.Texture(IDLE_FIELD_TEXTURE_UNIT, false)
 
 	if haveTerrainOutline then
 		gl.Texture(0, false)
@@ -1350,6 +1589,32 @@ local function DrawShields(haveTerrainOutline, haveUnitsOutline)
 
 	gl.DepthTest(false)
 	gl.DepthMask(false)
+end
+
+local function DrawIdleFieldQuad()
+	idleField.vao:DrawArrays(GL.TRIANGLE_STRIP, 4)
+end
+
+function gadget:DrawGenesis()
+	local shader = idleField.shader
+	if not shader then
+		return
+	end
+	local frame = spGetGameFrame()
+	if frame == idleField.frame or (visCount == 0 and idleField.frame >= 0) then
+		return
+	end
+	idleField.frame = frame
+
+	tracyZoneBeginN("Shield:Bake")
+	gl.Blending(false)
+	gl.DepthTest(false)
+	shader:Activate()
+	shader:SetUniform("bakeParams", frame, IDLE_FIELD_SIZE)
+	gl.RenderToTexture(idleField.tex, DrawIdleFieldQuad)
+	shader:Deactivate()
+	gl.Blending(true)
+	tracyZoneEnd()
 end
 
 function gadget:DrawWorld()

@@ -6,9 +6,9 @@
 //1.  Needs the following, with the defaults shown below. Redefine them if you want to change defaults
 /*
 #define TB_BASE base 
-#define TB_TURNRATE <30.0> 
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.03> // Do not define this if you dont want banking
+#define TB_TURNRATE <30.0> // Turn rate for tilting and banking
+#define TB_TILT_X <0.1>  // Forward-backward tilt effect strength based on acceleration
+#define TB_BANK_Z <0.03> // Banking effect strength based on turning, Do not define this if you dont want banking
 #define TB_FRAMES 3 // how frequently you want updates
 #include "../tilt_bank_mobileunit.h"
 

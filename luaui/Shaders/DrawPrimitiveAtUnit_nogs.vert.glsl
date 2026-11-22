@@ -61,6 +61,10 @@ out DataGS {
 	vec4 g_uv;
 };
 
+#if (USE_SECONDARY_TEXTURE == 1)
+	flat out uint g_atlasIndex;
+#endif
+
 #if USEQUATERNIONS == 0
 	layout(std140, binding=0) readonly buffer MatrixBuffer {
 		mat4 UnitPieces[];
@@ -175,6 +179,9 @@ void main()
 	// drawFlag check (==1 when unit is visible and drawn as a full model, not an icon)
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) culled = true;
 	POST_VERTEX
+	#if (USE_SECONDARY_TEXTURE == 1)
+		g_atlasIndex = uint(v_parameters.y);
+	#endif
 
 	if (v_numvertices == 0u) culled = true;
 

@@ -240,8 +240,10 @@ local function refreshUnitInfo()
 		if
 			unitDef.name == "armdl"
 			or unitDef.name == "cordl"
+			or unitDef.name == "legctl"
 			or unitDef.name == "armlance"
 			or unitDef.name == "cortitan"
+			or unitDef.name == "legatorpbomber"
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories.ship)
 		then
 			if
@@ -3308,8 +3310,12 @@ end
 function widget:SelectionChanged(sel)
 	tracy.ZoneBeginN("W:Info:SelectionChanged")
 	local newSelectedUnitsCount = #sel
-	if selectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
+	if (selectedUnitsCount == 0) ~= (newSelectedUnitsCount == 0) then
+		-- units picked from none, or all let go: this frame, not at the next check
+		sec = 1
 		doUpdate = true
+	end
+	if selectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		selectedUnitsCount = 0
 		clearSelectionUnitpicWarmQueue()
 	end

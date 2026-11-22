@@ -1,9 +1,6 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-//piece  base, turret, barrel, flare;
 piece base, turret, sleeve,
 barrelSleeve, barrelSleeveMid, barrel,
 cellSleeveLeft, exhaustCellLeft,
@@ -13,24 +10,25 @@ railBottom, railMagBottom,
 railTop, railMagTop,
 flare;
 
-#define SIG_AIM 2 
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
 static-var  Stunned, shotcount;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
 }
 
-
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 
 	move railMagTop to y-axis [0] speed [1];
 	move railMagBottom to y-axis [0] speed [2];
@@ -47,15 +45,14 @@ ExecuteRestoreAfterDelay()
 	move exhaustCellRight to x-axis [0] speed [3];
 	move exhaustCellLeft to x-axis [0] speed [3];
 
-    turn sleeve to x-axis <-13> speed <25.00000>;
-    spin turret around y-axis speed <20.0>;
-	
+	turn sleeve to x-axis <-13> speed <25.0>;
+	spin turret around y-axis speed <20.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -78,10 +75,7 @@ Create()
 	move railBottom to y-axis [-4.1] now;
 	move railBottom to z-axis [-1.8] now;
 
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 
 	move railTop to y-axis [0] speed [8];
 	move railTop to z-axis [0] speed [6];
@@ -94,37 +88,16 @@ Create()
 	move barrel to z-axis [-8] speed [8];
 
 	start-script ExecuteRestoreAfterDelay();
-
-
 }
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
-#define MAX_AIMY1_VELOCITY <6.00>
-#define AIMY1_ACCELERATION <0.5>
-#define AIMY1_JERK <1.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 
 AimWeapon1(heading, pitch)
 {
-
-	/**
-	move railTop to y-axis [4] speed [20];
-	move railTop to z-axis [-3] speed [15];
-	move railBottom to y-axis [-2.05] speed [10.25];
-	move railBottom to z-axis [-0.9] speed [4.5];
-	**/
 	stop-spin turret around y-axis;
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
-	turn turret to y-axis heading speed <100.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <125.000000>;
+	turn turret to y-axis heading speed <100.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <125.0>;
 
 	move railTop to y-axis [4] speed [3.3335];
 	move railTop to z-axis [-3] speed [2.5];
@@ -138,81 +111,22 @@ AimWeapon1(heading, pitch)
 	move railMagTop to y-axis [-1] speed [1];
 	move railMagBottom to y-axis [2] speed [2];
 	wait-for-move railMagBottom along y-axis;
-	//wait-for-turn turret around y-axis;
 
-	//stop-spin turret around y-axis;
-	
-	//We can do this any time
-
-	//turn sleeve to y-axis heading speed <100.000000>;
-	//turn turret to x-axis <0.000000> - pitch speed <125.000000>;
-	
-	/**
-	aimy1target = heading;
-	aimy1delta = aimy1target - aimy1position;
-	
-	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
-		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame = get(GAME_FRAME);
-	
-			//Clamp aimy1position and aimy1delta between <-180>;<180>
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
-			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
-			}
-			
-			aimy1position = aimy1position + aimy1velocity; 
-			turn turret to y-axis aimy1position now;
-			aimy1delta = aimy1target - aimy1position ; 	
-		}
-		sleep 30;		
-	}
-	aimy1velocity = 0;
-	**/
-	
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	shotcount = shotcount + 1;
 
-	shotcount =  shotcount + 1;
-
-	
-	//wait-for-move railBottom along z-axis;
 	spin coils around x-axis speed <1500>;
 	stop-spin coils around x-axis decelerate <30>;
 	move railTop to y-axis [8] now;
 	move railTop to z-axis [-6] now;
 	move railBottom to y-axis [-4.1] now;
 	move railBottom to z-axis [-1.8] now;
-	
+
 	move barrel to z-axis [-4] now;
 	move barrelSleeveMid to z-axis [-4] now;
 
@@ -235,27 +149,16 @@ FirePrimary()
 	move railTop to z-axis [-3] speed [2.5];
 	move railBottom to y-axis [-2.05] speed [1.708335];
 	move railBottom to z-axis [-0.9] speed [0.75];
-	//wait-for-move railBottom along z-axis;
-
-	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
+	pieceIndex = flare;
 }
 
 Killed(severity, corpsetype)

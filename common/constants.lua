@@ -25,6 +25,9 @@ end
 ---@type boolean Whether the `targetBorder` property is doubled for BeamLaser and LightningCannon.
 Engine.FeatureSupport.targetBorderBug = isEngineMinVersion(2025, 6, 4) and not isEngineMinVersion(2025, 6, 14)
 
+---@type boolean Whether the spring camera's smooth height tracking (mode 2) follows the smooth mesh (RecoilEngine #3012).
+Engine.FeatureSupport.smoothCameraHeightTracking = isEngineMinVersion(2026, 9)
+
 --------------------------------------------------------------------------------
 -- Extended LuaConst -----------------------------------------------------------
 

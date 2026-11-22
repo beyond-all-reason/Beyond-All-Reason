@@ -841,12 +841,12 @@ function Markdown.defaultContext(scale)
 		width = 600,
 		fonts = nil,
 		fs = {
-			body = px(15),
-			code = px(14),
-			h = { px(18), px(16), px(15), px(15), px(14), px(14) },
+			body = px(13),
+			code = px(12),
+			h = { px(16), px(14), px(13), px(13), px(12), px(12) },
 		},
-		-- Row height as a multiple of the font size; 15 px text sits on a 19 px grid.
-		lineMul = 1.27,
+		-- Row height as a multiple of the font size; 13 px text sits on an 18 px grid.
+		lineMul = 1.4,
 		listIndent = px(24),
 		markerGap = px(14),
 		numberGap = px(6),

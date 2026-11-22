@@ -28,7 +28,7 @@ return {
 		script = "Units/legstronghold.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 430,
+		sightdistance = 520,
 		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
@@ -39,7 +39,7 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			crashable = 0,

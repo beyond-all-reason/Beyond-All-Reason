@@ -251,7 +251,8 @@ local function elasticOut(t)
 	return math.pow(2, -10 * t) * math.sin((t - p / 4) * (2 * math.pi) / p) + 1
 end
 
-include("keysym.h.lua") -- so we can do hacky keypress
+local KEY_LEFTBRACKET = Spring.GetKeyCode("[")
+local KEY_RIGHTBRACKET = Spring.GetKeyCode("]")
 local grassInstanceData = {}
 ---------------------------VAO VBO stuff:---------------------------------------
 
@@ -679,10 +680,10 @@ function widget:KeyPress(key, modifier, isRepeat)
 	if externalBrushActive then
 		return false
 	end
-	if key == KEYSYMS.LEFTBRACKET then
+	if key == KEY_LEFTBRACKET then
 		cursorradius = mathMax(8, cursorradius * 0.8)
 	end
-	if key == KEYSYMS.RIGHTBRACKET then
+	if key == KEY_RIGHTBRACKET then
 		cursorradius = mathMin(512, cursorradius * 1.2)
 	end
 	return false
@@ -974,6 +975,38 @@ local function setGrassVisualConfig(cfg)
 		shaderRebuildPending = true
 	end
 	return changed
+end
+
+-- A map project's grass_config.lua (exportGrassConfig's grassConfig table): the shader
+-- params and the look. patchResolution and grassDistTGA stay, the project carries its own
+-- grass_dist.tga for this session's grid; COMPACTVBO stays, the vertex layout is built at
+-- init. Apply before LoadGrassTGA: grassMinSize/grassMaxSize turn its bytes into sizes.
+local function applyGrassProjectConfig(cfg)
+	if type(cfg) ~= "table" then
+		return false
+	end
+	for _, k in ipairs({
+		"grassMinSize",
+		"grassMaxSize",
+		"grassWindMult",
+		"maxWindSpeed",
+		"grassBladeColorTex",
+		"mapGrassColorModTex",
+		"grassWindPerturbTex",
+	}) do
+		if type(cfg[k]) == type(grassConfig[k]) then
+			grassConfig[k] = cfg[k]
+		end
+	end
+	if type(cfg.grassShaderParams) == "table" then
+		for k, v in pairs(cfg.grassShaderParams) do
+			if type(v) == "number" and k ~= "COMPACTVBO" then
+				grassConfig.grassShaderParams[k] = v
+			end
+		end
+	end
+	shaderRebuildPending = true
+	return true
 end
 
 function widget:Update(dt)
@@ -1643,6 +1676,9 @@ function widget:Initialize()
 	end
 	WG.grassgl4.setVisualConfig = function(cfg)
 		return setGrassVisualConfig(cfg)
+	end
+	WG.grassgl4.applyProjectConfig = function(cfg)
+		return applyGrassProjectConfig(cfg)
 	end
 	WG.grassgl4.loadGrass = function(filename)
 		if not filename or #filename < 2 then
