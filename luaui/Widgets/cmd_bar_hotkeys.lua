@@ -20,11 +20,18 @@ local profiles = require("luaui/Include/keybind_profiles")
 
 local manifestsVersion, defaultsSignature
 
-local function reloadWidgetsBindings()
+-- Our own keyreload comes back through KeyBindingsChanged a frame later.
+local ownReload = false
+
+local function editorHasStagedEdits()
+	return WG.keybinds and WG.keybinds.hasStagedEdits and WG.keybinds.hasStagedEdits()
+end
+
+local function reloadWidgetsBindings(keepStagedEdits)
 	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }
 
 	for _, w in pairs(reloadableWidgets) do
-		if WG[w] and WG[w].reloadBindings then
+		if WG[w] and WG[w].reloadBindings and not (keepStagedEdits and w == "keybinds" and editorHasStagedEdits()) then
 			WG[w].reloadBindings()
 		end
 	end
@@ -55,6 +62,7 @@ local function reloadBindings()
 	end
 
 	if file then
+		ownReload = true
 		Spring.SendCommands("keyreload " .. file)
 		-- A KeybindingFile the player pointed elsewhere is named on its own rather than credited to
 		-- whatever the store has selected.
@@ -95,13 +103,25 @@ local function widgetDefaultsSignature()
 	return table.concat(parts, ";")
 end
 
+-- Binds made outside this widget (a typed /bind or /keyreload, another widget).
+function widget:KeyBindingsChanged()
+	if ownReload then
+		ownReload = false
+		return
+	end
+	reloadWidgetsBindings(true)
+end
+
 -- Held while the editor has edits staged: a reload would reseed it over them, and saving applies the defaults.
 function widget:Update()
+	-- KeyBindingsChanged runs before this, so a reload that changed nothing does not swallow the next one.
+	ownReload = false
+
 	local _, version = WidgetActions.manifests()
 	if version == manifestsVersion then
 		return
 	end
-	if WG.keybinds and WG.keybinds.hasStagedEdits and WG.keybinds.hasStagedEdits() then
+	if editorHasStagedEdits() then
 		return
 	end
 	manifestsVersion = version
