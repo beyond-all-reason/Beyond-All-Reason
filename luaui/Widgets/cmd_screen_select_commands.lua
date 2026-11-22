@@ -30,7 +30,7 @@ Click modifiers:
   Normal mass-order -> every selected unit gets every reachable target while units × targets stays under the order limit (Settings → Control, default 1500). Each unit's queue starts at the closest target and then takes the closest remaining one.
   Past that, every target is ordered at least once, then nearest orders keep being added until the order limit is spent. Shares stay as even as that limit allows. Mixed movement classes are assigned separately, and each class only receives targets it can reach. Targets only one class can reach are ordered first. The order limit applies to the combined orders.
   Alt -> each target is claimed once, including when units × targets is under the order limit. Round-robin shares targets when there are more units than targets.
-  "reduced" fades out above the cursor only when the budget runs out before every target has an order.
+  "reduced" fades out in white above the cursor, and a warning is logged, only when the budget runs out before every target has an order.
 
   Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
@@ -453,15 +453,12 @@ local function showCommandCircleFlash(centerX, centerY, radius, commandID)
 	}
 end
 
-local function showRangeReducedNotice(commandID)
-	local color = COMMAND_CIRCLE_COLORS[commandID] or CIRCLE_PREVIEW_COLOR
+local function showRangeReducedNotice()
 	rangeReducedTextBakeFailed = false
 	rangeReducedNotice = {
 		startTime = osClock(),
-		red = color[1],
-		green = color[2],
-		blue = color[3],
 	}
+	spring.Log(widget.GetInfo().name, LOG.WARNING, "Orders reduced to " .. commandLimit .. ". Zoom in or increase the limit in the settings menu")
 end
 
 local function refreshCirclePreview()
@@ -502,24 +499,6 @@ local function rememberLandMoveTestPolicy(selectedUnits, reachabilityCache)
 		end
 	end
 	reachabilityCache.skipLandMoveTests = skipLandMoveTests
-	reachabilityCache.waterRejectCount = 0
-	reachabilityCache.moveTestCount = 0
-	reachabilityCache.landSkipCount = 0
-	local seenDefIDs = {}
-	local defSummaryParts = {}
-	for unitIndex = 1, #selectedUnits do
-		local unitDefID = spGetUnitDefID(selectedUnits[unitIndex])
-		if unitDefID and not seenDefIDs[unitDefID] then
-			seenDefIDs[unitDefID] = true
-			local metadata = unitDefMetadataByID[unitDefID]
-			local unitDef = UnitDefs[unitDefID]
-			local unitName = unitDef and unitDef.name or "unknown"
-			local moveWaterDepth = metadata and metadata.moveWaterDepth or -1
-			local canWalkLand = metadata and metadata.canWalkLand and 1 or 0
-			defSummaryParts[#defSummaryParts + 1] = unitName .. ":" .. moveWaterDepth .. ":" .. canWalkLand
-		end
-	end
-	reachabilityCache.defSummary = table.concat(defSummaryParts, " ")
 end
 
 local function canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
@@ -541,16 +520,13 @@ local function canUnitDefReachPosition(unitDefID, targetID, position, reachabili
 	end
 	local waterDepth = targetWaterDepth(position)
 	if metadata and not canReachWaterDepth(metadata, waterDepth) then
-		reachabilityCache.waterRejectCount = (reachabilityCache.waterRejectCount or 0) + 1
 		unitDefCache[targetID] = false
 		return false
 	end
 	if waterDepth <= 0 and reachabilityCache.skipLandMoveTests and metadata and metadata.canWalkLand then
-		reachabilityCache.landSkipCount = (reachabilityCache.landSkipCount or 0) + 1
 		unitDefCache[targetID] = true
 		return true
 	end
-	reachabilityCache.moveTestCount = (reachabilityCache.moveTestCount or 0) + 1
 	local canReach = spTestMoveOrder(unitDefID, position.x, position.y, position.z, nil, nil, nil, true, false)
 	unitDefCache[targetID] = canReach
 	return canReach
@@ -1052,9 +1028,6 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			return packetSize
 		end
 		local chunkStart = 1
-		local chunkCount = 0
-		local maxPacketSize = 0
-		local packetSizes = {}
 		local orderCount = #orders
 		while chunkStart <= orderCount do
 			local chunkEnd = chunkStart
@@ -1074,26 +1047,8 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 				end
 				chunk[#chunk + 1] = { order[1], order[2], optionBits }
 			end
-			local packetSize = estimatePacketSize(chunk, 1, #chunk)
-			chunkCount = chunkCount + 1
-			packetSizes[chunkCount] = packetSize
-			if packetSize > maxPacketSize then
-				maxPacketSize = packetSize
-			end
 			spGiveOrderArrayToUnit(unitID, chunk)
 			chunkStart = chunkEnd + 1
-		end
-		if chunkCount > 1 or orderCount > 400 then
-			-- #region agent log
-			pcall(function()
-				local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
-				if logFile then
-					logFile:write(string.format('{"sessionId":"6d7cbf","runId":"packet-chunks","hypothesisId":"packet-limit","location":"cmd_screen_select_commands.lua:issueUnitTargetOrders","message":"order packets","timestamp":%d,"data":{"unitId":%d,"orderCount":%d,"chunkCount":%d,"maxPacketSize":%d,"packetSizes":"%s"}}\n', os.time() * 1000, unitID, orderCount, chunkCount, maxPacketSize, table.concat(packetSizes, " ")))
-					logFile:close()
-				end
-			end)
-			spring.Echo("screen select packets", chunkCount, "max bytes", maxPacketSize, "orders", orderCount)
-			-- #endregion
 		end
 	end
 
@@ -1106,7 +1061,7 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 	local targetsByUnit = {}
 	local ordersWereTrimmed = false
 	local assignedByMoveDef = false
-	local moveDefSummary = nil
+	local wantedOrders = unitCount * targetCount
 	local function assignUnitGroup(unitIDs, targetIDs, useReachabilityClaim, orderBudget, keepExistingOrders)
 		local unitCount = #unitIDs
 		local targetCount = #targetIDs
@@ -1277,6 +1232,7 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 		if needsReachability then
 			reachableTargetsByDefID = {}
 		end
+		wantedOrders = 0
 		for unitIndex = 1, unitCount do
 			local unitID = selectedUnits[unitIndex]
 			local sourceTargets = filteredTargets
@@ -1290,6 +1246,7 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			end
 			local unitTargets = {}
 			local sourceCount = #sourceTargets
+			wantedOrders = wantedOrders + sourceCount
 			for targetIndex = 1, sourceCount do
 				unitTargets[targetIndex] = sourceTargets[targetIndex]
 			end
@@ -1305,9 +1262,11 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			assignedByMoveDef = true
 			local reachableTargetsByGroup = {}
 			local targetOwnerCount = {}
+			wantedOrders = 0
 			for groupIndex = 1, #moveDefGroups do
 				local groupTargets = filterTargetsForMoveDefGroup(moveDefGroups[groupIndex], filteredTargets, positionCache, reachabilityCache)
 				reachableTargetsByGroup[groupIndex] = groupTargets
+				wantedOrders = wantedOrders + #moveDefGroups[groupIndex].unitIDs * #groupTargets
 				for targetIndex = 1, #groupTargets do
 					local targetID = groupTargets[targetIndex]
 					targetOwnerCount[targetID] = (targetOwnerCount[targetID] or 0) + 1
@@ -1315,7 +1274,6 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			end
 			local remainingBudget = commandLimit
 			local sharedGroupIndexes = {}
-			local groupSummaryParts = {}
 			for groupIndex = 1, #moveDefGroups do
 				local group = moveDefGroups[groupIndex]
 				local groupTargets = reachableTargetsByGroup[groupIndex]
@@ -1332,9 +1290,6 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 				group.sharedTargets = sharedTargets
 				local _, exclusiveOrders = assignUnitGroup(group.unitIDs, exclusiveTargets, false, remainingBudget, true)
 				remainingBudget = remainingBudget - exclusiveOrders
-				group.exclusiveOrders = exclusiveOrders
-				group.reachableCount = #groupTargets
-				group.exclusiveCount = #exclusiveTargets
 				if #sharedTargets > 0 then
 					sharedGroupIndexes[#sharedGroupIndexes + 1] = groupIndex
 				end
@@ -1352,11 +1307,6 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 				local _, sharedOrders = assignUnitGroup(group.unitIDs, group.sharedTargets, false, groupBudget, true)
 				remainingBudget = remainingBudget - sharedOrders
 				unitsLeft = unitsLeft - #group.unitIDs
-				group.sharedOrders = sharedOrders
-			end
-			for groupIndex = 1, #moveDefGroups do
-				local group = moveDefGroups[groupIndex]
-				groupSummaryParts[#groupSummaryParts + 1] = group.moveDefName .. ":" .. #group.unitIDs .. ":" .. (group.reachableCount or 0) .. ":" .. (group.exclusiveCount or 0) .. ":" .. (group.exclusiveOrders or 0) .. ":" .. (group.sharedOrders or 0)
 			end
 			for unitIndex = 1, #selectedUnits do
 				local unitTargets = targetsByUnit[selectedUnits[unitIndex]]
@@ -1364,7 +1314,6 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 					sortUnitTargets(selectedUnits[unitIndex], unitTargets)
 				end
 			end
-			moveDefSummary = table.concat(groupSummaryParts, " ")
 		else
 			local groupTrimmed = assignUnitGroup(selectedUnits, filteredTargets, needsReachability == true)
 			ordersWereTrimmed = groupTrimmed
@@ -1386,18 +1335,8 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 	end
 	if assignedByMoveDef then
 		ordersWereTrimmed = totalAssignedOrders >= commandLimit and targetsLackOrders(targetsByUnit, selectedUnits, filteredTargets)
-		-- #region agent log
-		pcall(function()
-			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
-			if logFile then
-				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"move-def-split","hypothesisId":"move-def-categories","location":"cmd_screen_select_commands.lua:giveDistributedOrders","message":"move def groups","timestamp":%d,"data":{"summary":"%s","totalOrders":%d,"trimmed":%s,"moveTestCount":%d,"waterRejectCount":%d,"landSkipCount":%d}}\n', os.time() * 1000, moveDefSummary or "", totalAssignedOrders, ordersWereTrimmed and "true" or "false", reachabilityCache.moveTestCount or 0, reachabilityCache.waterRejectCount or 0, reachabilityCache.landSkipCount or 0))
-				logFile:close()
-			end
-		end)
-		spring.Echo("screen select movedefs", moveDefSummary, "total", totalAssignedOrders)
-		-- #endregion
 	end
-	spring.Echo("screen select units", unitCount, "full orders", unitCount * targetCount, "orders per unit", table.concat(assignedCounts, " "), "total orders", totalAssignedOrders)
+	spring.Echo("screen select units", unitCount, "targets", targetCount, "wanted orders", wantedOrders, "issued orders", totalAssignedOrders, "orders per unit", table.concat(assignedCounts, " "))
 	for unitIndex = 1, unitCount do
 		local unitID = selectedUnits[unitIndex]
 		local unitTargets = targetsByUnit[unitID]
@@ -1832,15 +1771,6 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	end
 	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
-		-- #region agent log
-		pcall(function()
-			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
-			if logFile then
-				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"water-gate","hypothesisId":"water-before-pathtest","location":"cmd_screen_select_commands.lua:issueMassOrdersFromTarget","message":"reachability prefilter","timestamp":%d,"data":{"waterRejectCount":%d,"moveTestCount":%d,"landSkipCount":%d,"skipLandMoveTests":%s,"remainingTargets":%d,"defSummary":"%s"}}\n', os.time() * 1000, reachabilityCache.waterRejectCount or 0, reachabilityCache.moveTestCount or 0, reachabilityCache.landSkipCount or 0, reachabilityCache.skipLandMoveTests and "true" or "false", #filteredTargets, reachabilityCache.defSummary or ""))
-				logFile:close()
-			end
-		end)
-		-- #endregion
 	end
 	local filteredTargetCount = #filteredTargets
 	if circleRadius then
@@ -1857,19 +1787,8 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 		removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
 	end
 	local ordersWereTrimmed = giveDistributedOrders(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, options.alt == true)
-	-- #region agent log
-	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
-		pcall(function()
-			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
-			if logFile then
-				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"water-gate","hypothesisId":"assignment-split","location":"cmd_screen_select_commands.lua:issueMassOrdersFromTarget","message":"reachability assigned","timestamp":%d,"data":{"waterRejectCount":%d,"moveTestCount":%d,"landSkipCount":%d,"skipLandMoveTests":%s,"defSummary":"%s"}}\n', os.time() * 1000, reachabilityCache.waterRejectCount or 0, reachabilityCache.moveTestCount or 0, reachabilityCache.landSkipCount or 0, reachabilityCache.skipLandMoveTests and "true" or "false", reachabilityCache.defSummary or ""))
-				logFile:close()
-			end
-		end)
-	end
-	-- #endregion
 	if ordersWereTrimmed then
-		showRangeReducedNotice(issueCommandID)
+		showRangeReducedNotice()
 	end
 	finishMassOrderCommandState(issueCommandID, options)
 	return true
@@ -2444,7 +2363,7 @@ function circleRender.drawRangeReducedNotice()
 	gl.DepthMask(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.Texture(rangeReducedTextTexture)
-	gl.Color(rangeReducedNotice.red, rangeReducedNotice.green, rangeReducedNotice.blue, alpha)
+	gl.Color(1, 1, 1, alpha)
 	gl.TexRect(left, bottom, left + rangeReducedTextWidth, bottom + rangeReducedTextHeight, false, true)
 	gl.Texture(false)
 	gl.Color(1, 1, 1, 1)
