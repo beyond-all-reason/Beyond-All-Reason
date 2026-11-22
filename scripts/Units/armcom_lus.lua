@@ -80,6 +80,7 @@ local SIG_AIM = 2
 local SIG_WALK = 4
 
 -- for the AimPrimary script, to skip wait-for-turn if needed
+---@type number
 local last_primary_heading = -1000000
 
 local function BelowWater(piecename)
@@ -95,6 +96,11 @@ local function BelowWater(piecename)
 end
 
 local rad = math.rad
+local pi = math.pi
+
+local function shortDelta(angle1, angle2)
+	return (angle2 - angle1 + pi) % (2 * pi) - pi
+end
 
 local function turn(piece, axis, goal, speed)
 	if speed then
@@ -973,9 +979,9 @@ function SprayNano(heading, pitch)
 	SetSignalMask(SIG_AIM)
 	Sleep(1000)
 	while true do
-		Turn(torso, 2, rad(10) + buildHeading, rad(10))
+		Turn(torso, 2, rad(10), rad(10))
 		Sleep(2000)
-		Turn(torso, 2, rad(-10) + buildHeading, rad(10))
+		Turn(torso, 2, rad(-10), rad(10))
 		Sleep(2000)
 	end
 end
@@ -1072,10 +1078,24 @@ end
 
 function ResumeBuilding()
 	Show(nano)
-	Sleep(800)
 	if isBuilding and not isAiming then
+		Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 		Turn(aimy1, 2, buildHeading, rad(150.000000))
 		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
+		if math.abs(shortDelta(last_primary_heading, buildHeading)) > rad(5.0000) then
+			WaitForTurn(aimy1, 2)
+		end
+		-- theoretically, we might hit this after isBuilding and isAiming changed values (during the wait-for-turn)
+		-- if they did, then a new Turn() might have been called, with a different goal than buildHeading,,
+		-- by re-checking for the current building and aiming state, we ensure that we only waited for that particular turn to complete
+		-- And therefor are sure that the last_primary_heading we record is as accurate as can be
+		-- I'm unsure whether that theoretical case actually occurs during gameplay.
+		-- (that would be settarget + build command, with > 800ms between two AimWeapon calls i guess)
+		-- and am leaving this in case it does
+		---@diagnostic disable-next-line: unnecessary-if
+		if isBuilding and not isAiming then
+			last_primary_heading = buildHeading
+		end
 	end
 	return 0
 end
@@ -1161,20 +1181,18 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+			isAiming = true
+			StartThread(Restore)
+			Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+			Turn(aimy1, 2, heading, rad(300.0000))
+			Turn(rloarm, 1, rad(-55), rad(390.0000))
+			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
 			-- if the turret cannot turn to its new heading in one frame, wait for turn
-			if math.abs(last_primary_heading - heading) > rad(10.0000) then
+			if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
 				-- seems to take 1 frame for WaitForTurn to process
 				WaitForTurn(aimy1, 2)
 			end
 			last_primary_heading = heading
-			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
-			StartThread(Restore)
 			return true
 		end
 	elseif weapons[weapon] == "uwlaser" then
@@ -1186,27 +1204,33 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-
-			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-
-			WaitForTurn(aimy1, 2)
 			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
 			StartThread(Restore)
+			Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+			Turn(aimy1, 2, heading, rad(300.0000))
+			Turn(rloarm, 1, rad(-55), rad(390.0000))
+			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000))
+			if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
+				WaitForTurn(aimy1, 2)
+			end
+			last_primary_heading = heading
 			return true
 		end
 	elseif weapons[weapon] == "dgun" then
+		SetSignalMask(SIG_AIM)
+		Signal(SIG_AIM)
 		isAimingDgun = true
 		isAiming = true
+		StartThread(Restore)
 		leftArm = false
-		Turn(aimy1, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-		Turn(biggun, 1, rad(-105), rad(900.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-		Turn(luparm, 1, rad(15) - pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-		WaitForTurn(aimy1, 2)
+		Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
+		Turn(aimy1, 2, heading, rad(360.0000))
+		Turn(biggun, 1, rad(-105), rad(900.0000))
+		Turn(luparm, 1, rad(15) - pitch, rad(900.0000))
+		if math.abs(shortDelta(last_primary_heading, heading)) > rad(12.0000) then
+			WaitForTurn(aimy1, 2)
+		end
+		last_primary_heading = heading
 		return true
 	end
 end
@@ -1245,17 +1269,29 @@ function script.StartBuilding(heading, pitch)
 		StartThread(StopDance1)
 	end
 	Show(nano)
-	Signal(SIG_AIM)
+	if not isAiming then
+		Signal(SIG_AIM)
+	end
+	Turn(torso, 2, 0, rad(10)) -- a new aim has to undo SprayNano()
 	isBuilding = true
-	leftArm = false
-	Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-	Turn(rloarm, 1, rad(-40), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-	WaitForTurn(ruparm, 1)
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	buildHeading = heading
 	buildPitch = pitch
-	StartThread(SprayNano, heading, pitch)
+	leftArm = false
+	if not isAiming then
+		Turn(aimy1, 2, heading, rad(300.0000))
+		Turn(rloarm, 1, rad(-40), rad(390.0000))
+		Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000))
+
+		if math.abs(shortDelta(last_primary_heading, heading)) > rad(10.0000) then
+			WaitForTurn(aimy1, 2)
+		end
+		WaitForTurn(ruparm, 1)
+		if isBuilding and not isAiming then
+			last_primary_heading = heading
+			StartThread(SprayNano, heading, pitch) -- only spray if not aiming
+		end
+	end
+	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	Show(armhexl_emit)
 	Show(armhexl2_emit)
 	--Show (cagelight_emit);
@@ -1285,9 +1321,14 @@ end
 
 function Restore()
 	SetSignalMask(SIG_AIM)
+	Sleep(800)
 	isAiming = false
 	isAimingDgun = false
-	Sleep(3000)
+	if isBuilding then
+		ResumeBuilding()
+		return
+	end
+	Sleep(2200)
 	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)

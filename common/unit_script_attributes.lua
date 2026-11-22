@@ -33,6 +33,17 @@ local function customAngle(def, key)
 	end
 end
 
+local function customAcceleration(def, key)
+	local value = customNumber(def, key)
+	if not value then
+		return
+	elseif envType == "lus" then
+		return value
+	else
+		return math.round(value * COBSCALE, 0)
+	end
+end
+
 -- Attribute definitions -------------------------------------------------------
 
 ---@class UnitScriptAttributeDefinition
@@ -60,6 +71,18 @@ local weaponAttributeDefinitions = {
 		requires = "any",
 		process = function(self, def)
 			return { customTime(def, self.params[1]) or 0, customTime(def, self.params[2]) or 0 }
+		end,
+	},
+	{
+		method = "SetReleaseWindowWeapon",
+		params = { "release_gravity", "release_pitch_tolerance", "release_heading_tolerance", "release_tolerance" },
+		requires = "any",
+		process = function(self, def)
+			return {
+				customAcceleration(def, self.params[1]) or 0,
+				customAngle(def, self.params[2] or self.params[4]),
+				customAngle(def, self.params[3] or self.params[4]),
+			}
 		end,
 	},
 	{

@@ -107,7 +107,7 @@ return {
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
 				flighttime = 400,
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				metalpershot = 1500,
 				model = "legicbm.s3o",
 				name = "Intercontinental Thermonuclear Ballistic Missile",

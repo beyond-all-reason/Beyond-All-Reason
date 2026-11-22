@@ -51,6 +51,7 @@ return {
 			maxrange = 1300,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "Legion/Ships/T2",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

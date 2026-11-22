@@ -16,13 +16,16 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 
 local watchForTime = 3 --How long to monitor the energy level after the dgun command is given
+local waitLandingFrames = 150 --How long a wait order can take to reach the sim
 
 ----------------------------------------------------------------
 -- Globals
 ----------------------------------------------------------------
-local watchTime = 0
+local watchTime = 0.0
 local targetEnergy = 0
 local waitedUnits = nil -- nil / waitedUnits[1..n] = uID
+local waitedFactories ---@type integer[]? -- nil / waitedFactories[1..n] = uID
+local waitedFrame = 0
 local shouldWait = {}
 local isFactory = {}
 
@@ -46,6 +49,8 @@ local CMD_WAIT = CMD.WAIT
 local CMD_MOVE = CMD.MOVE
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REMOVE = CMD.REMOVE
+local CMD_OPT_ALT = CMD.OPT_ALT
 
 ----------------------------------------------------------------
 -- Callins
@@ -108,33 +113,35 @@ function widget:Update(dt)
 		watchTime = watchTime - dt
 
 		if waitedUnits and watchTime < 0 then
+			-- This is overkill e.g. it also clears waits on already-waited units.
+			spGiveOrderToUnitArray(waitedUnits, CMD_REMOVE, CMD_WAIT, CMD_OPT_ALT)
+			waitedUnits = nil
+		end
+
+		if waitedFactories and watchTime < 0 then
 			local toUnwait = {}
-			for i = 1, #waitedUnits do
-				local uID = waitedUnits[i]
-				local uDefID = spGetUnitDefID(uID)
-				if isFactory[uDefID] then
-					local uCmds = spGetFactoryCommands(uID, 1)
-					if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
-						toUnwait[#toUnwait + 1] = uID
-					end
-				else
-					local uCmd = spGetUnitCurrentCommand(uID, 1)
-					if uCmd and uCmd == CMD_WAIT then
-						toUnwait[#toUnwait + 1] = uID
-					end
+			for i = 1, #waitedFactories do
+				local uID = waitedFactories[i]
+				local uCmds = spGetFactoryCommands(uID, 1)
+				if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
+					toUnwait[#toUnwait + 1] = uID
 				end
 			end
-			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
-
-			waitedUnits = nil
+			-- CMD_REMOVE would destroy the factory's current build. We have to rely on WAIT.
+			local waitsLanded = #toUnwait > 0 or #waitedFactories == 0
+			if waitsLanded or spGetGameFrame() >= waitedFrame + waitLandingFrames then
+				spGiveOrderToUnitArray(toUnwait, CMD_WAIT)
+				waitedFactories = nil
+			end
 		end
 	end
 
-	if watchTime > 0 and not waitedUnits then
+	if watchTime > 0 and not waitedUnits and not waitedFactories then
 		local myTeamID = spGetMyTeamID()
 		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
 		if currentEnergy < targetEnergy and energyStorage >= targetEnergy then
 			waitedUnits = {}
+			waitedFactories = {}
 			local myUnits = spGetTeamUnits(myTeamID)
 			for i = 1, #myUnits do
 				local uID = myUnits[i]
@@ -143,7 +150,7 @@ function widget:Update(dt)
 					if isFactory[uDefID] then
 						local uCmds = spGetFactoryCommands(uID, 1)
 						if #uCmds == 0 or uCmds[1].id ~= CMD_WAIT then
-							waitedUnits[#waitedUnits + 1] = uID
+							waitedFactories[#waitedFactories + 1] = uID
 						end
 					else
 						local uCmd, _, _, cmdParams = spGetUnitCurrentCommand(uID, 1)
@@ -161,7 +168,9 @@ function widget:Update(dt)
 					end
 				end
 			end
-			spGiveOrderToUnitArray(waitedUnits, CMD_WAIT, {}, 0)
+			spGiveOrderToUnitArray(waitedUnits, CMD_WAIT)
+			spGiveOrderToUnitArray(waitedFactories, CMD_WAIT)
+			waitedFrame = spGetGameFrame() -- wait for commands to be received
 		end
 	end
 end

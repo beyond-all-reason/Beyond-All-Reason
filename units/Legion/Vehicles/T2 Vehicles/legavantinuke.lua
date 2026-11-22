@@ -41,6 +41,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 			unitgroup = "antinuke",

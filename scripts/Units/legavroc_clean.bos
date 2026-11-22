@@ -1,10 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-//piece  base, door, turret, flare;
-piece base, hingeA, hingeB, doorA, doorB, tracks, barrel, flare;//sleeveA, sleeveB, sleeveC, barrelA, barrelB, barrelC, flareA, flareB, flareC;
+piece base, hingeA, hingeB, doorA, doorB, tracks, barrel, flare;
 
-static-var  OpenedState, restore_delay, whichGun;
+static-var  OpenedState, restore_delay;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -23,17 +22,13 @@ static-var  OpenedState, restore_delay, whichGun;
 #define TB_BASE base 
 #define TB_TURNRATE <11.0> 
 #define TB_TILT_X <0.15>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#define TB_BANK_Z <0.09> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
 
 Create()
 {
-	// hide flareA;
-	// hide flareB;
-	// hide flareC;
 	hide flare;
-	whichGun = 0;
 	OpenedState = 0;
 	restore_delay = 3000;
 	set ARMORED to 0;
@@ -56,7 +51,6 @@ StopMoving()
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS;
-	return (0);
 }
 
 static-var  Stunned;
@@ -144,12 +138,6 @@ Killed(severity, corpsetype)
 		explode doorA type BITMAPONLY | NOHEATCLOUD;
 		explode doorB type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelA type BITMAPONLY | NOHEATCLOUD;
-		// explode flareA type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelB type BITMAPONLY | NOHEATCLOUD;
-		// explode flareC type BITMAPONLY | NOHEATCLOUD;
-		// explode barrelB type BITMAPONLY | NOHEATCLOUD;
-		// explode flareC type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -159,12 +147,6 @@ Killed(severity, corpsetype)
 		explode doorA type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorB type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelA type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareA type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -174,12 +156,6 @@ Killed(severity, corpsetype)
 		explode doorA type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode doorB type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelA type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareA type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -187,11 +163,5 @@ Killed(severity, corpsetype)
 		explode doorA type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode doorB type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode barrelB type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode flareC type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -355,6 +355,15 @@ local keyCodeWords = {
 	caret = "^",
 	backslash = "\\",
 }
+-- Keys the engine has no scancode name for print as a number ("sc_0x039"); these read as the keycode name of the same key.
+-- The ISO key between left Shift and Z/Y gets the legend most layouts print on it.
+local scanLabels = {
+	["0X039"] = "CAPSLOCK",
+	["0X047"] = "SCROLLOCK",
+	["0X053"] = "NUMLOCK",
+	["0X064"] = "ISO <>",
+	NONUSBACKSLASH = "ISO <>",
+}
 
 local function sanitizeKey(key, layout)
 	if type(key) ~= "string" then
@@ -384,7 +393,7 @@ local function sanitizeKey(key, layout)
 		end
 
 		-- Named keys sit in the same place on every layout, so the name is the label.
-		return token
+		return scanLabels[token] or token
 	end)
 	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
 	key = key:gsub("%f[%u]([ACMS])%+", function(m)

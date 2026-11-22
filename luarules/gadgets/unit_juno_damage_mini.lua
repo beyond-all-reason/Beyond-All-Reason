@@ -98,18 +98,18 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		Spring.SetGameRulesParam("juno_mini_area_denial_radius", radius)
 		if WeaponDefNames.legcib_juno_pulse_mini then
-			Script.SetWatchExplosion(WeaponDefNames.legcib_juno_pulse_mini.id, true)
+			gadgetHandler:RegisterExplosion(WeaponDefNames.legcib_juno_pulse_mini.id)
+		else
+			gadgetHandler:RemoveCallIn("Explosion")
 		end
 	end
 
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
-		if junoWeapons[weaponID] then
-			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
-			centers[counter] = junoExpl
-			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
-			counter = counter + 1
-		end
+		local curtime = SpGetGameSeconds()
+		local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
+		centers[counter] = junoExpl
+		--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
+		counter = counter + 1
 	end
 
 	local lastupdate = -1

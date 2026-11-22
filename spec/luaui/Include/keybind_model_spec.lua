@@ -65,6 +65,23 @@ describe("keybind collisions", function()
 		assert.are.same({ loose = false }, meets(binds, "bare", "shift"))
 	end)
 
+	it("puts a captured modifier scancode on the keycode modifier", function()
+		local binds = { bind("Any+shift", "code"), bind("sc_shift", "scan") }
+
+		assert.are.same(
+			{ code = true },
+			meets(binds, "scan", "sc_shift", function(scan)
+				return scan
+			end)
+		)
+	end)
+
+	it("knows a modifier by its keycode or scancode name", function()
+		assert.is_true(keybindModel.isBareModifier("sc_ctrl"))
+		assert.is_true(keybindModel.isBareModifier("Shift"))
+		assert.is_false(keybindModel.isBareModifier("sc_space"))
+	end)
+
 	it("tries every exact binding before an Any+ one, whatever order they were bound in", function()
 		local binds = { bind("Any+x", "loose"), bind("Ctrl+x", "ctrl") }
 

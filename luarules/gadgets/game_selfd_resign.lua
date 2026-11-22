@@ -78,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 		local units = spGetTeamUnits(teamID)
 		for i = 1, #units do
 			local unitID = units[i]
-			if spGetUnitSelfDTime(unitID) > 0 then
+			if (spGetUnitSelfDTime(unitID) or 0) > 0 then
 				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
 			end
 		end
@@ -128,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 					local skippedUnitCount = 0
 					for i = 1, unitCount do
 						local unitID = units[i]
-						if spGetUnitSelfDTime(unitID) > 0 then
+						if (spGetUnitSelfDTime(unitID) or 0) > 0 then
 							selfdUnitCount = selfdUnitCount + 1
 						else
 							skippedUnitCount = skippedUnitCount + 1

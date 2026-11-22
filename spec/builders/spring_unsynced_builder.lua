@@ -122,15 +122,16 @@ local function makeEnv(self)
 		springTable[k] = v
 	end
 
-	return SpecEnv.new({
+	local widgetHandler = {
+		RemoveWidget = function() end,
+		AddAction = function() end,
+	}
+	local env = SpecEnv.new({
 		Spring = springTable,
 		Game = { footprintScale = 2 },
 		---@diagnostic disable-next-line: missing-fields
 		widget = {},
-		widgetHandler = {
-			RemoveWidget = function() end,
-			AddAction = function() end,
-		},
+		widgetHandler = widgetHandler,
 		WG = {},
 		GL = {},
 		gl = {
@@ -146,6 +147,13 @@ local function makeEnv(self)
 		UnitDefNames = unitDefs:GetUnitDefNames(),
 		includes = self.vfsIncludeOverrides,
 	})
+	widgetHandler.RegisterGlobal = function(_, name, value)
+		env[name] = value
+	end
+	widgetHandler.DeregisterGlobal = function(_, name)
+		env[name] = nil
+	end
+	return env
 end
 
 ---Load the widget at widgetPath into a fresh sandboxed env and call its Initialize.

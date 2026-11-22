@@ -16,7 +16,7 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		health = 3650,
+		health = 3300,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		noautofire = true,

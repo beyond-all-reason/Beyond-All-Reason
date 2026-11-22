@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Shared licensing rules read by the CLA bot (licensing.js in beyond-all-reason/licensing) and its desktop auditor.",
+  "art_dirs": [
+    "anims",
+    "bitmaps",
+    "fonts",
+    "icons",
+    "modelmaterials",
+    "modelmaterials_gl4",
+    "music",
+    "objects3d",
+    "sidepics",
+    "sounds",
+    "unitpics",
+    "unittextures",
+    "luaui/images",
+    "luaui/sounds",
+    "luarules/images",
+    "singleplayer/scenarios"
+  ],
+  "art_extensions": [
+    "s3o",
+    "obj",
+    "fbx",
+    "dae",
+    "3ds",
+    "png",
+    "jpg",
+    "jpeg",
+    "tga",
+    "dds",
+    "bmp",
+    "gif",
+    "svg",
+    "psd",
+    "xcf",
+    "ogg",
+    "wav",
+    "mp3",
+    "flac",
+    "opus",
+    "bvh",
+    "blend",
+    "kra",
+    "spr",
+    "ttf",
+    "otf",
+    "ttc"
+  ],
+  "code_extensions": [
+    "glsl",
+    "frag",
+    "vert",
+    "glslf",
+    "glslv",
+    "bos",
+    "cob",
+    "lua",
+    "py"
+  ],
+  "doc_extensions": [
+    "md",
+    "ipynb"
+  ],
+  "notice_stem_pattern": "licen[cs]e|^ofl(?:$|[-_])",
+  "licenses": {
+    "LicenseRef-BAR-CLA-1.0": {
+      "name": "BAR Project License (CLA)",
+      "label": "license: BAR-CLA",
+      "blurb": "restricted to BAR; you keep copyright.", "consent_blurb": "BAR may use the work as part of the game, in trailers, streams and approved mods; it stays restricted to BAR; you keep your copyright.",
+      "doc": "legal/CLA_SUMMARY.md"
+    },
+    "CC-BY-SA-4.0": {
+      "name": "CC-BY-SA 4.0",
+      "label": "license: CC-BY-SA-4.0",
+      "blurb": "openly reusable by anyone with attribution. Cannot be revoked once recorded.", "consent_blurb": "anyone may reuse the work with attribution under the same license; you keep your copyright. Cannot be revoked once recorded.",
+      "doc": "legal/CC-BY-SA-OPT-IN.md"
+    },
+    "GPL-2.0-or-later": {
+      "name": "GPL-2.0-or-later",
+      "label": "license: GPL"
+    },
+    "MIT": {
+      "name": "MIT",
+      "label": "license: MIT"
+    },
+    "CC0-1.0": {
+      "name": "CC0 1.0 (public domain)",
+      "label": "license: CC0"
+    },
+    "OFL-1.1": {
+      "name": "SIL Open Font License 1.1",
+      "label": "license: OFL"
+    },
+    "CC-BY-SA-3.0": {
+      "name": "CC-BY-SA 3.0",
+      "label": "license: CC-BY-SA-3.0"
+    },
+    "CC-BY-4.0": {
+      "name": "CC-BY 4.0",
+      "label": "license: CC-BY-4.0"
+    },
+    "CC-BY-NC-ND-4.0": {
+      "name": "CC-BY-NC-ND 4.0 (legacy)",
+      "label": "license: CC-BY-NC-ND"
+    },
+    "LicenseRef-Envato-Elements": {
+      "name": "Envato Elements License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "envato-elements",
+      "flag": "envato"
+    },
+    "LicenseRef-Envato-Market-Regular": {
+      "name": "Envato Market Regular License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "envato-market"
+    },
+    "LicenseRef-Envato-Market-Extended": {
+      "name": "Envato Market Extended License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "envato-market"
+    },
+    "LicenseRef-Envato-Market-SFX-Single": {
+      "name": "Envato Market SFX Single Use License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "envato-market"
+    },
+    "LicenseRef-Sketchfab-Standard": {
+      "name": "Sketchfab Standard License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "sketchfab",
+      "flag": "sketchfab"
+    },
+    "LicenseRef-BlenderMarket-RoyaltyFree": {
+      "name": "Blender Market Royalty Free License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "blender-market",
+      "flag": "blendermarketplace"
+    },
+    "LicenseRef-GameTextures": {
+      "name": "GameTextures.com License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "gametextures",
+      "flag": "gametextures-com"
+    },
+    "LicenseRef-Unity-AssetStore": {
+      "name": "Unity Asset Store EULA",
+      "label": "license: store",
+      "release_only": true,
+      "store": "unity-asset-store",
+      "flag": "unity"
+    },
+    "LicenseRef-ZapSplat-Standard": {
+      "name": "ZapSplat Standard License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "zapsplat",
+      "flag": "zapsplat"
+    },
+    "LicenseRef-Pixabay": {
+      "name": "Pixabay Content License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "pixabay"
+    },
+    "LicenseRef-BAR-Proprietary-1.0": {
+      "name": "BAR Team B.V. Proprietary Asset Terms (draft, pending counsel)",
+      "label": "license: BAR-owned",
+      "requires_rights_holder": true,
+      "rights_holder_default": "BAR Team B.V.",
+      "draft": true
+    },
+    "WTFPL": {
+      "name": "Do What The F*ck You Want To Public License",
+      "label": "license: WTFPL"
+    },
+    "LicenseRef-ArtStation-Marketplace": {
+      "name": "ArtStation Marketplace Standard License",
+      "label": "license: store",
+      "release_only": true,
+      "store": "artstation"
+    },
+    "LicenseRef-ThirdParty-Mixed": {
+      "name": "Mixed third-party sources (strictest governs)",
+      "label": "license: store",
+      "release_only": true,
+      "store": "mixed",
+      "flag": "mixed-assets-multiple-asset-stores"
+    }
+  },
+  "pr_choices": [
+    "LicenseRef-BAR-CLA-1.0",
+    "CC-BY-SA-4.0"
+  ],
+  "distribution": "public",
+  "ledger": {
+    "signatures": ".github/cla-signatures.json",
+    "assignments": ".github/file-license-assignments.json",
+    "flags": "license_comments_flags.json",
+    "contributors": ".github/contributors.json"
+  },
+  "bot": {
+    "name": "BAR CLA Bot",
+    "email": "cla-bot@beyondallreason.info"
+  },
+  "status_context": "BAR CLA / License Check",
+  "legal_dir": "legal",
+  "overrides": {
+    "_doc": "Per-repository overrides keyed by owner/name, merged over the top-level keys when GITHUB_REPOSITORY matches. Lets a private mirror offer extra PR choices without diverging this file. `distribution` is \"public\" here and \"release-only\" in the private asset repository; licenses marked release_only may only be recorded there."
+  }
+}

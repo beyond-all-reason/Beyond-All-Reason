@@ -104,7 +104,7 @@ function gadget:Initialize()
 				end
 			end
 			if WeaponDef.interceptor > 0 and WeaponDef.coverageRange then
-				Script.SetWatchAllowTarget(WeaponDefID, true)
+				gadgetHandler:RegisterWeaponTarget(WeaponDefID)
 			end
 		end
 	end

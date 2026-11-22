@@ -47,7 +47,7 @@ return {
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Tharsis",
-			normaltex = "unittextures/LEG_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "Legion/Economy",
 			techlevel = 2,
