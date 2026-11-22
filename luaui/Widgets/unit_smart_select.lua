@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "Public Domain",
 		layer = -999999,
 		enabled = true,
+		handler = true,
 	}
 end
 
@@ -24,8 +25,13 @@ local selectApi = require("luaui/Include/select_api")
 local skipSel
 local inSelection = false
 local inMiniMapSel = false
+local issueOrderOnRelease = false
+local interruptedSelect ---@type integer[]?
 
 local referenceX, referenceY
+local pressX, pressY = 0, 0 ---@type number, number
+local pressPosition
+local pressIsSelect = false
 
 local selectBuildingsWithMobile = false -- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
@@ -61,9 +67,13 @@ local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
+local spGetUnitTeam = Spring.GetUnitTeam
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitTeam = Spring.GetUnitTeam
+local spSetActiveCommand = Spring.SetActiveCommand
+local spSetBoxSelectionByEngine = Spring.SetBoxSelectionByEngine
+local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local spTraceScreenRay = Spring.TraceScreenRay
 
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
@@ -75,6 +85,13 @@ local selectedUnits = spGetSelectedUnits()
 
 local spec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
+
+local areaCommandTypes = {
+	[CMDTYPE.ICON_AREA] = true,
+	[CMDTYPE.ICON_UNIT_OR_AREA] = true,
+	[CMDTYPE.ICON_UNIT_FEATURE_OR_AREA] = true,
+}
+local areaCommandThreshold = Spring.GetConfigInt("MouseDragCircleCommandThreshold", 4)
 
 local ignoreUnits = {}
 local combatFilter = {}
@@ -221,6 +238,9 @@ end
 function widget:MousePress(x, y, button)
 	if button == 1 then
 		referenceSelection = spGetSelectedUnits()
+		pressIsSelect = spGetActiveCommand() == 0
+		pressX, pressY = x, y
+		_, pressPosition = spTraceScreenRay(x, y, true, true, false, true) ---@diagnostic disable-line: param-type-mismatch -- integer/number
 	end
 	return false
 end
@@ -254,13 +274,57 @@ function widget:PlayerChanged()
 	myTeamID = spGetMyTeamID()
 end
 
+local function giveActiveAreaOrder()
+	local _, commandID, commandType = spGetActiveCommand()
+	local x, y = spGetMouseState()
+	if not areaCommandTypes[commandType] or math.diag(x - pressX, y - pressY) <= areaCommandThreshold then
+		return
+	end
+	---@cast commandID -nil
+
+	local _, releasePosition = spTraceScreenRay(x, y, true, true, false, true) ---@as any, table<integer, number>?
+	if not pressPosition or not releasePosition then
+		return
+	end
+	local radius = math.diag(releasePosition[1] - pressPosition[1], releasePosition[3] - pressPosition[3])
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	local commandParams = { pressPosition[1], pressPosition[2], pressPosition[3], radius }
+	local commandOptions = { alt = alt, ctrl = ctrl, meta = meta, shift = shift }
+	if not widgetHandler:CommandNotify(commandID, commandParams, commandOptions) then
+		spGiveOrderToUnitArray(spGetSelectedUnits(), commandID, commandParams, commandOptions)
+	end
+	spSetActiveCommand(0)
+end
+
 local sec = 0
 ---@type SelectionBoxRect
 local prevSelRect = {}
 function widget:Update(dt)
 	sec = sec + dt
 
-	if skipSel or spGetActiveCommand() ~= 0 then
+	if interruptedSelect and not select(3, spGetMouseState()) then -- left mouse button
+		-- The engine ends the drag as a click, which can select the unit under the cursor.
+		spSetBoxSelectionByEngine(true)
+		selectedUnits = interruptedSelect
+		interruptedSelect = nil
+		spSelectUnitArray(selectedUnits)
+		if issueOrderOnRelease then
+			giveActiveAreaOrder()
+		end
+	end
+
+	if skipSel or interruptedSelect then
+		return
+	end
+
+	local activeCommandIndex, _, activeCommandType = spGetActiveCommand()
+	if activeCommandIndex ~= 0 then
+		if pressIsSelect and areaCommandTypes[activeCommandType] and select(3, spGetMouseState()) then
+			issueOrderOnRelease = not spGetSelectionBox() and not inMiniMapSel
+			interruptedSelect = spGetSelectedUnits()
+			inSelection = false
+			spSetBoxSelectionByEngine(false)
+		end
 		return
 	end
 
@@ -378,10 +442,7 @@ function widget:Update(dt)
 				included[#included + 1] = uid
 			end
 		end
-
-		if #included ~= 0 then -- treat the filter as a preference
-			mouseSelection = included -- if no units match, just keep everything
-		end
+		mouseSelection = included
 	end
 
 	if mods.idle then
@@ -524,6 +585,7 @@ function widget:Shutdown()
 	WG.SmartSelect_SelectUnits = nil
 	WG.SmartSelect_SetReference = nil
 	WG.SmartSelect_ClearReference = nil
+	spSetBoxSelectionByEngine(true)
 end
 
 function widget:Initialize()
@@ -532,9 +594,14 @@ function widget:Initialize()
 	-- Function to set the reference selection for external box selections
 	WG.SmartSelect_SetReference = function()
 		externalSelectionReference = {}
+		referenceSelectionTypes = {}
 		local current = spGetSelectedUnits()
 		for i = 1, #current do
 			externalSelectionReference[current[i]] = true
+			local udid = spGetUnitDefID(current[i])
+			if udid then
+				referenceSelectionTypes[udid] = 1
+			end
 		end
 	end
 
@@ -544,10 +611,16 @@ function widget:Initialize()
 	end
 
 	-- Function to handle external unit selections (e.g., from PIP widget)
-	WG.SmartSelect_SelectUnits = function(units)
+	-- ignoredMods: optional set of modifier names the caller's own key holds down (the loop select key is also selectbox_idle)
+	WG.SmartSelect_SelectUnits = function(units, ignoredMods)
 		-- Apply smart select filtering to the provided units
 		local mouseSelection = units
 		local uid, udid
+		ignoredMods = ignoredMods or {}
+		local idle = mods.idle and not ignoredMods.idle
+		local same = mods.same and not ignoredMods.same
+		local mobile = mods.mobile and not ignoredMods.mobile
+		local anyType = (mods.any and not ignoredMods.any) or (mods.all and not ignoredMods.all)
 
 		local included = {}
 
@@ -610,13 +683,11 @@ function widget:Initialize()
 					included[#included + 1] = uid
 				end
 			end
-			if #included ~= 0 then
-				mouseSelection = included
-			end
+			mouseSelection = included
 		end
 
 		-- Apply idle filter if active
-		if mods.idle then
+		if idle then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -628,7 +699,7 @@ function widget:Initialize()
 		end
 
 		-- Apply same-type filter if active
-		if mods.same and next(referenceSelectionTypes) ~= nil then
+		if same and next(referenceSelectionTypes) ~= nil then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -640,7 +711,7 @@ function widget:Initialize()
 		end
 
 		-- Apply mobile filter if active
-		if mods.mobile then
+		if mobile then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
@@ -649,7 +720,7 @@ function widget:Initialize()
 				end
 			end
 			mouseSelection = included
-		elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) then
+		elseif selectBuildingsWithMobile == false and not anyType then
 			-- Filter out buildings if mobile units are present
 			local mobiles = false
 			for i = 1, #mouseSelection do
@@ -710,13 +781,14 @@ function widget:Initialize()
 		end
 	end
 
+	local actionHandler = widgetHandler.actionHandler
 	for modifierName, _ in pairs(mods) do
-		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, true }, "p")
-		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
+		actionHandler:AddAction(self, "selectbox_" .. modifierName, handleSetModifier, { modifierName, true }, "p")
+		actionHandler:AddAction(self, "selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
 	end
 
-	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
-	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
+	actionHandler:AddAction(self, "selectbox", handleSetCustomFilter, nil, "p")
+	actionHandler:AddAction(self, "selectbox", handleClearCustomFilter, nil, "r")
 
 	WG.smartselect = {}
 	WG.smartselect.getIncludeBuildings = function()

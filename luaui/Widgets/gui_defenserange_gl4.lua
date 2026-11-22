@@ -1,5 +1,3 @@
-include("keysym.h.lua")
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -320,6 +318,8 @@ local function initUnitList()
 		legrampart = { weapons = { "nuke", "ground" } }, --rampart
 		leglht = { weapons = { "ground" } }, --llt
 		legtl = { weapons = { "ground" } }, --torpedo launcher
+		legctl = { weapons = { "ground" } }, --coastal torpedo launcher
+		legjuno = { weapons = { "ground" } },
 		legcluster = { weapons = { "cannon" } }, --short range arty T1
 		legacluster = { weapons = { "cannon" } }, --T2 arty
 		legdtr = { weapons = { "ground" } }, --dragons jaw

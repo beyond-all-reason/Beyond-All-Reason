@@ -23,7 +23,6 @@ static-var whichGun;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_FIRE1 1
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -43,9 +42,9 @@ Create()
 	hide smallThurst1;
 	hide smallThurst2;
 	hide mainThrust;
-    turn smallThurst1 to x-axis <-90> now;
-    turn smallThurst2 to x-axis <-90> now;
-    whichGun = 0;
+	turn smallThurst1 to x-axis <-90> now;
+	turn smallThurst2 to x-axis <-90> now;
+	whichGun = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
@@ -67,61 +66,51 @@ Deactivate()
 MoveRate3()
 {
 	turn thruster1XPivot to x-axis <90> speed <45>;
-    turn thruster2XPivot to x-axis <90> speed <45>;
-
+	turn thruster2XPivot to x-axis <90> speed <45>;
 }
 
 MoveRate2()
 {
 	turn thruster1XPivot to x-axis <70> speed <60>;
-    turn thruster2XPivot to x-axis <70> speed <60>;
+	turn thruster2XPivot to x-axis <70> speed <60>;
 }
 
 MoveRate1()
 {
 	turn thruster1XPivot to x-axis <50> speed <90>;
-    turn thruster2XPivot to x-axis <50> speed <90>;
-
+	turn thruster2XPivot to x-axis <50> speed <90>;
 }
 
 MoveRate0()
 {
 	turn thruster1XPivot to x-axis <0> speed <150>;
-    turn thruster2XPivot to x-axis <0> speed <150>;
+	turn thruster2XPivot to x-axis <0> speed <150>;
 }
 
-AimWeapon1(heading,pitch)
+AimWeapon1(heading, pitch)
 {
-	return(1);
+	return (1);
 }
 
 FireWeapon1()
 {
-	return(0);
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_FIRE1;
-	set-signal-mask SIGNAL_FIRE1;
-    if (whichGun == 0){
-        emit-sfx 1024+0 from torpFlare2;
-    }
-    else if (whichGun == 1){
-        emit-sfx 1024+0 from torpFlare1;
-    }
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
+	if (whichGun == 0) {
+		emit-sfx 1024+0 from torpFlare2;
+	} else {
+		emit-sfx 1024+0 from torpFlare1;
+	}
 	whichGun = !whichGun;
-	return(0);
 }
 
 QueryWeapon1(pieceIndex)
 {
-    if (whichGun == 0){
-        pieceIndex = torpFlare1;
-    }
-    else if (whichGun == 1){
-        pieceIndex = torpFlare2;
-    }
+	pieceIndex = torpFlare1 + whichGun;
 }
 
 Killed(severity, corpsetype)
@@ -130,33 +119,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode rwing type BITMAPONLY | NOHEATCLOUD;
-		// explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode lwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode thrustm type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode lwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode rwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode thrustm type BITMAPONLY | NOHEATCLOUD;
+	explode base type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

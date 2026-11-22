@@ -1,11 +1,9 @@
--- tf_diffuse.lua: Diffuse Painter tool UI module for gui_terraform_brush
--- Phase A MVP: brush sliders (handled declaratively) + imperative layer list.
+-- tf_diffuse.lua: DIFFUSE painter controls of the terraform brush panel.
+-- Sliders are bound in the RML; the layer list is built here.
 local M = {}
 
--- Capture WG as a module-level upvalue. RmlUi-dispatched event closures may
--- execute outside the host widget's global env, so referring to the global
--- `WG` from inside an AddEventListener body throws "attempt to index global
--- 'WG' (a nil value)". The upvalue capture sidesteps that.
+-- RmlUi listener closures can run outside the widget env, where global WG is
+-- nil; capture it as an upvalue.
 local WG = WG
 
 local function _rgbCss(c)
@@ -22,8 +20,7 @@ function M.attach(doc, ctx)
 	widgetState.dfpLayerListEl = doc:GetElementById("dfp-layer-list")
 	widgetState.dfpLastLayerSig = nil
 
-	-- Slider drag tracking only; section collapse for dfp-* frames is wired
-	-- centrally in tf_environment.lua (envSectionToggle) like every other tool.
+	-- Drag tracking only; section collapse is wired in tf_environment.lua (envSectionToggle).
 	for _, entry in ipairs({
 		{ "dfp-slider-radius", "dfp-radius" },
 		{ "dfp-slider-strength", "dfp-strength" },
@@ -47,8 +44,7 @@ function M.attach(doc, ctx)
 	end
 end
 
--- Build a signature of the current layer stack so we can detect when the list
--- needs imperative rebuild (add/remove/enable/active/color change).
+-- Signature of the layer stack; the list is rebuilt only when it changes.
 local function buildSig(layers, activeId)
 	local parts = {}
 	for i = 1, #layers do
@@ -91,7 +87,6 @@ local function rebuildLayerList(doc, ctx, layers, activeId)
 			"display: flex; flex-direction: row; align-items: center; gap: 6dp; padding: 4dp 6dp;"
 		)
 
-		-- Color swatch
 		local swatch = doc:CreateElement("div")
 		swatch:SetAttribute(
 			"style",
@@ -99,7 +94,6 @@ local function rebuildLayerList(doc, ctx, layers, activeId)
 		)
 		row:AppendChild(swatch)
 
-		-- Enable toggle (checkbox icon)
 		local enableImg = doc:CreateElement("img")
 		enableImg:SetClass("tf-icon-sm", true)
 		enableImg:SetAttribute(
@@ -116,24 +110,21 @@ local function rebuildLayerList(doc, ctx, layers, activeId)
 		end, false)
 		row:AppendChild(enableImg)
 
-		-- Name
 		local nameEl = doc:CreateElement("div")
 		nameEl:SetClass("tf-overlay-chip-label", true)
 		nameEl:SetAttribute("style", "flex: 1;")
 		nameEl.inner_rml = tostring(layer.name or ("Layer " .. layer.id))
 		row:AppendChild(nameEl)
 
-		-- Opacity readout
 		local opacityEl = doc:CreateElement("div")
 		opacityEl:SetClass("text-sm", true)
 		opacityEl:SetAttribute("style", "min-width: 32dp; text-align: right;")
 		opacityEl.inner_rml = string.format("%d%%", math.floor((layer.opacity or 1) * 100 + 0.5))
 		row:AppendChild(opacityEl)
 
-		-- Whole row click = make active layer
+		-- A click anywhere on the row selects the layer, including a click on the
+		-- enable toggle (it bubbles up here too).
 		row:AddEventListener("mousedown", function(_event)
-			-- Skip if the enable-checkbox handled it (target hit there has its
-			-- own propagation; for safety we still always set active).
 			if not WG.DiffusePainter then
 				return
 			end
@@ -165,14 +156,12 @@ function M.sync(doc, ctx, dfpState, setSummary)
 	local layers = dfpState.layers or {}
 	local activeId = dfpState.activeLayerId
 
-	-- Rebuild layer list only when needed
 	local sig = buildSig(layers, activeId)
 	if sig ~= widgetState.dfpLastLayerSig then
 		widgetState.dfpLastLayerSig = sig
 		rebuildLayerList(doc, ctx, layers, activeId)
 	end
 
-	-- Resolve the active layer (used for DM labels and slider sync below)
 	local activeLayer = nil
 	for i = 1, #layers do
 		if layers[i].id == activeId then
@@ -181,7 +170,7 @@ function M.sync(doc, ctx, dfpState, setSummary)
 		end
 	end
 
-	-- DM labels for brush + active layer
+	-- Data model labels for the brush and the active layer.
 	local dm = widgetState.dmHandle
 	if dm then
 		local radiusStr = tostring(dfpState.radius or 128)
@@ -212,7 +201,7 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			if dm.dfpFractalStr ~= fracStr then
 				dm.dfpFractalStr = fracStr
 			end
-			-- Freq 0.0002..0.01 → slider 1..50 (linear)
+			-- Frequency 0.0002..0.01 maps linearly to slider 1..50.
 			local freqSlider = math.floor(1 + ((freq or 0.003) - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
 			freqSlider = math.max(1, math.min(50, freqSlider))
 			local freqStr = tostring(freqSlider)
@@ -221,13 +210,12 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			end
 		end
 
-		-- Blend mode for active layer
 		local blendStr = (activeLayer and activeLayer.blend) or "normal"
 		if dm.dfpBlend ~= blendStr then
 			dm.dfpBlend = blendStr
 		end
 
-		-- Hydro/thermo for active layer
+		-- Hydraulic and thermal erosion of the active layer.
 		local hydroEn = activeLayer and activeLayer.hydroEnabled and true or false
 		if dm.dfpHydroEnabled ~= hydroEn then
 			dm.dfpHydroEnabled = hydroEn
@@ -280,7 +268,6 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			dm.dfpGlowStr = glowStr
 		end
 
-		-- Grass attach
 		local gAttach = dfpState.grassAttach and true or false
 		if dm.dfpGrassAttach ~= gAttach then
 			dm.dfpGrassAttach = gAttach
@@ -290,8 +277,8 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			dm.dfpGrassStr = grassStr
 		end
 
-		-- Warn chips: effects when blend/hydro/thermo/channels engaged; layers
-		-- when more than the starter layer exists (visible only while collapsed).
+		-- Warn chips (shown while the section is collapsed): effects when blend,
+		-- erosion or a material channel is engaged; layers when there is more than one.
 		local effectsActive = hydroEn or thermoEn or (blendStr ~= "normal") or chN or chS or chE
 		if doc and ctx.syncWarnChip then
 			ctx.syncWarnChip(doc, "warn-chip-dfp-effects", "section-dfp-effects", effectsActive)
@@ -299,7 +286,6 @@ function M.sync(doc, ctx, dfpState, setSummary)
 		end
 	end
 
-	-- Sliders
 	if doc then
 		uiState.updatingFromCode = true
 		local getCachedEl = ctx.getCachedEl
@@ -326,7 +312,6 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			syncAndFlash(getCachedEl(doc, "dfp-slider-fractal-freq"), "dfp-fractal-freq", tostring(freqSlider))
 		end
 
-		-- Channel sliders
 		syncAndFlash(
 			getCachedEl(doc, "dfp-slider-specint"),
 			"dfp-specint",
@@ -345,7 +330,7 @@ function M.sync(doc, ctx, dfpState, setSummary)
 			)
 		end
 
-		-- History slider sync (same shape as tf_grass)
+		-- The history slider's max follows the undo depth.
 		do
 			local histIdx = dfpState.historyIndex or 0
 			local histMax = dfpState.historyMax or 0

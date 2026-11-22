@@ -154,7 +154,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	transportDrops[unitID] = nil
 	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
-	drowningUnitsWatch[unitID] = nil
+	-- Runs nested inside the drowning loop's AddUnitDamage: a write to an absent key, even nil, breaks its pairs.
+	if drowningUnitsWatch[unitID] then
+		drowningUnitsWatch[unitID] = nil
+	end
 end
 
 function gadget:GameFrame(frame)

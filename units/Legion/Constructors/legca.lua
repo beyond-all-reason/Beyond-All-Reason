@@ -28,7 +28,7 @@ return {
 		script = "Units/LEGCA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 351,
+		sightdistance = 430,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 240,

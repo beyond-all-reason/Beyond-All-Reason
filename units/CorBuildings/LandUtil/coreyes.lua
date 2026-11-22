@@ -39,6 +39,7 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandUtil",
 			unitgroup = "util",
+			usebuildinggrounddecal = false,
 		},
 		featuredefs = {
 			heap = {

@@ -21,7 +21,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 
 local function removeSelfDOrders(unitID)
 	-- cancel any current self-D orders
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
+	if (Spring.GetUnitSelfDTime(unitID) or 0) > 0 then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 

@@ -1,11 +1,6 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece chassis, launcher, launcher2, torpflare1, torpflare2, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing;
-
-//#define SIGNAL_TURNON 4
 
 #define BASEPIECE chassis
 #define HITSPEED <35.0>
@@ -13,82 +8,20 @@ piece chassis, launcher, launcher2, torpflare1, torpflare2, leftAJet, leftBJet, 
 #define UNITSIZE 3
 #define MAXTILT 100
 
-// #define BARRELROLL_PIECE chassis
-// #define BARRELROLLSPEEED <200>
-// #include "../air_barrelroll.h"
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn rightWing to y-axis <0> speed <45>;
-		turn leftWing to y-axis <0> speed <45>;
-
-	}
-	sleep 12;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn rightWing to y-axis <45> speed <45>;
-		turn leftWing to y-axis <-45> speed <45>;
-	}
-	sleep 33;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
-
 	hide torpflare1;
 	hide torpflare2;
 	hide leftAJet;
 	hide leftBJet;
 	hide rightAJet;
 	hide rightBjet;
-	call-script InitState();
 	turn rightWing to y-axis <45> now;
 	turn leftWing to y-axis <-45> now;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
-	call-script activatescr();
+	SLEEP_UNTIL_UNITFINISHED;
+	turn rightWing to y-axis <0> speed <45>;
+	turn leftWing to y-axis <0> speed <45>;
+	sleep 12;
 }
 
 Activate()
@@ -97,7 +30,9 @@ Activate()
 	show leftBJet;
 	show rightAJet;
 	show rightBjet;
-	start-script RequestState(0);
+	turn rightWing to y-axis <0> speed <45>;
+	turn leftWing to y-axis <0> speed <45>;
+	sleep 12;
 }
 
 Deactivate()
@@ -106,12 +41,9 @@ Deactivate()
 	hide leftBJet;
 	hide rightAJet;
 	hide rightBjet;
-	start-script RequestState(1);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = chassis;
+	turn rightWing to y-axis <45> speed <45>;
+	turn leftWing to y-axis <-45> speed <45>;
+	sleep 33;
 }
 
 FireWeapon1()

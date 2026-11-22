@@ -13,7 +13,15 @@ on:
       - 'master'
 
 jobs:
+  pull-request-for-push:
+    if: github.event_name == 'push'
+    permissions:
+      pull-requests: read
+    uses: ./.github/workflows/pull_request_for_push.yml
+
   run-tests:
+    needs: pull-request-for-push
+    if: ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true' }}
     name: docker compose up (headless)
     runs-on: ubuntu-latest
     steps:
