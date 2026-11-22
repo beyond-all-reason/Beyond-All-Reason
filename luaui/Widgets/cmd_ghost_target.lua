@@ -59,7 +59,7 @@ function widget:CommandNotify(command, params, options)
 	end
 	local click = press
 	press = nil
-	if options.internal or (#params ~= 3 and not (#params == 4 and params[4] == 0)) then
+	if options.internal or (#params ~= 1 and #params ~= 3 and not (#params == 4 and params[4] == 0)) then
 		return false
 	end
 	local x, y = Spring.GetMouseState()
@@ -67,21 +67,14 @@ function widget:CommandNotify(command, params, options)
 	if Spring.IsAboveMiniMap(x, y) or (x - click.x) ^ 2 + (y - click.y) ^ 2 > threshold ^ 2 then
 		return false
 	end
-	local kind, target, radarGhostID = traceTarget(x, y)
-	---@type CreateCommandParams
-	local replacementParams
-	if kind == "ghost" and target and target ~= 0 then
-		command = command == CMD.ATTACK and GameCMD.GHOST_ATTACK or GameCMD.GHOST_SET_TARGET
-		replacementParams = {
-			target --[[@as integer]],
-		}
-	elseif kind == "unit" and radarGhostID then
-		replacementParams = {
-			target --[[@as UnitID]],
-		}
-	else
+	local kind, targetID = traceTarget(x, y)
+	if kind ~= "ghost" or type(targetID) ~= "number" then
 		return false
 	end
+	if targetID >= Game.maxUnits then
+		command = command == CMD.ATTACK and GameCMD.GHOST_ATTACK or GameCMD.GHOST_SET_TARGET
+	end
+	local replacementParams = { targetID }
 	-- Let queue insertion and other command widgets process the resolved point, too.
 	if not widgetHandler:CommandNotify(command, replacementParams, options) then
 		Spring.GiveOrder(command, replacementParams, options.coded)

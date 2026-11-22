@@ -318,9 +318,12 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local includeGhosts = CMD.OPT_KEEP_HEIGHT ~= nil
 		and (command == CMD_ATTACK or command == CMD_UNIT_SET_TARGET or command == CMD_UNIT_SET_TARGET_NO_GROUND)
 	local targetType, target = spTraceScreenRay(mx, my, false, false, false, false, 0, includeGhosts)
-	-- Ghost clicks target a frozen aimpoint, not the terrain behind the remembered model.
+	-- A remembered model can still resolve to a targetable radar contact.
 	if targetType == "ghost" then
-		return nil
+		if type(target) ~= "number" or target >= Game.maxUnits then
+			return nil
+		end
+		targetType = "unit"
 	end
 
 	if not targetType or not target then

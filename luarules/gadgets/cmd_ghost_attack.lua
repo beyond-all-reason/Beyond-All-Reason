@@ -26,6 +26,8 @@ local clearHeight = (255 - height) --[[@as integer]]
 local getQueue = Spring.GetUnitCommands
 local giveOrder = Spring.GiveOrderToUnit
 local getGhost = Spring.GetGhostPosition
+-- Contacts lost by each observer, including targets that have never received an order.
+local lostContacts = {} ---@type table<AllyTeamID, table<UnitID, integer?>?>
 local attackers = {} -- target unit -> units that have received an attack on it
 local sightings = {} -- ghost ID -> observer and outstanding attack tags per unit
 ---@type number[]? Only this synchronous reissue may retain the height bit.
@@ -69,12 +71,34 @@ local function issueGhost(unitID, ghostID, x, y, z, bits, tag, outer)
 	end
 end
 
+-- A detached sighting can survive hidden destruction and reuse of the engine unit ID.
+local function getLostUnitGhost(targetID, allyTeam)
+	local contacts = lostContacts[allyTeam]
+	if not contacts then
+		return
+	end
+	local ghostID = contacts[targetID]
+	if ghostID then
+		local x, y, z = getGhost(ghostID, allyTeam)
+		local state = Spring.GetUnitLosState(targetID, allyTeam)
+		if x and not (state and (state.los or state.radar)) then
+			return ghostID, x, y, z
+		end
+		contacts[targetID] = nil
+	end
+end
+
+function gadget:Shutdown()
+	GG.GetLostUnitGhost = nil
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(GameCMD.GHOST_ATTACK)
 	gadgetHandler:RegisterAllowCommand(GameCMD.GHOST_ATTACK)
 	gadgetHandler:RegisterAllowCommand(attack)
 	gadgetHandler:RegisterAllowCommand(CMD.MANUALFIRE)
 	if ghostRules.switchUnitTargetToGhost then
+		GG.GetLostUnitGhost = getLostUnitGhost
 		gadgetHandler:RegisterUnitCommand(attack)
 		gadgetHandler:RegisterUnitCommand(insert)
 	else
@@ -94,6 +118,13 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, params, opts, tag
 			end
 		end
 		return false
+	end
+	if cmdID == attack and #params == 1 and not opts.internal then
+		local ghostID, x, y, z = getLostUnitGhost(params[1], Spring.GetUnitAllyTeam(unitID))
+		if ghostID then
+			issueGhost(unitID, ghostID, x, y, z, opts.coded, tag, outer)
+			return false
+		end
 	end
 	if
 		issuing
@@ -178,11 +209,20 @@ local function finishSighting(ghostID, contact)
 end
 
 local function updateContact(_, target, _, allyTeam, _, ghostID)
-	if not ghostID or not (sightings[ghostID] or attackers[target]) then
+	local contacts = lostContacts[allyTeam]
+	if contacts then
+		contacts[target] = nil
+	end
+	if not ghostID then
 		return
 	end
 	local x, y, z, contact = getGhost(ghostID, allyTeam)
-	if not x then
+	if x and not contact and ghostRules.switchUnitTargetToGhost then
+		contacts = contacts or {}
+		lostContacts[allyTeam] = contacts
+		contacts[target] = ghostID
+	end
+	if not x or not (sightings[ghostID] or attackers[target]) then
 		return
 	end
 	if contact then
@@ -246,6 +286,16 @@ function gadget:GameFrame(frame)
 		end
 	end
 end
+
+-- Own units start in LOS without a UnitEnteredLos event, including reused IDs.
+function gadget:UnitCreated(unitID, _, teamID)
+	local contacts = lostContacts[Spring.GetTeamAllyTeamID(teamID)]
+	if contacts then
+		contacts[unitID] = nil
+	end
+end
+
+gadget.UnitGiven = gadget.UnitCreated
 
 function gadget:UnitTaken(unitID, unitDefID, teamID, newTeam)
 	if Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam) then

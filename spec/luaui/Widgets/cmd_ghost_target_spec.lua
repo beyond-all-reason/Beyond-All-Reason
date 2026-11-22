@@ -9,12 +9,9 @@ describe("Ghost Target single clicks", function()
 	local command
 	---@type string
 	local kind
-	---@type boolean
-	local radarContact
-	local x, y, held, minimap, intercepted
+	local x, y, held, minimap, intercepted, modelID
 	before_each(function()
-		widget, orders = {}, {}
-		radarContact = false
+		widget, orders, modelID = {}, {}, 57
 		command, kind, x, y, held, minimap, intercepted = 20, "ghost", 100, 100, true, false, false
 		env = setmetatable({
 			widget = widget,
@@ -23,6 +20,7 @@ describe("Ghost Target single clicks", function()
 					return a + (a % 2 == 0 and b or 0)
 				end,
 			}, { __index = math }),
+			Game = { maxUnits = 50 },
 			CMD = { ATTACK = 20, OPT_KEEP_HEIGHT = 1 },
 			GameCMD = {
 				UNIT_SET_TARGET = 34923,
@@ -49,11 +47,8 @@ describe("Ghost Target single clicks", function()
 				end,
 				TraceScreenRay = function(...)
 					assert.is_true(select(8, ...) == true)
-					if radarContact then
-						return "unit", 321, 57
-					end
 					if kind == "ghost" then
-						return kind, 57
+						return kind, modelID
 					end
 					return kind, 123
 				end,
@@ -91,6 +86,14 @@ describe("Ghost Target single clicks", function()
 			assert.same({ id == 20 and 34926 or 34927, { 57 }, 32 }, orders[#orders])
 		end
 	end)
+	it("sends a radar model's unit ID through the ordinary Attack and Set Target commands", function()
+		modelID = 0
+		for _, id in ipairs({ 20, 34923, 34924 }) do
+			command = id
+			assert.is_true(click())
+			assert.same({ id, { 0 }, 32 }, orders[#orders])
+		end
+	end)
 	it("retains ghost picking through the Ignore Self ray wrapper", function()
 		---@type table<string, any>
 		local ignoreSelf = {}
@@ -106,11 +109,10 @@ describe("Ghost Target single clicks", function()
 
 		assert.is_true(click())
 		assert.same({ 34926, { 57 }, 32 }, orders[1])
-		radarContact = true
-		local _, _, ghostID = env.Spring.TraceScreenRay(x, y, false, false, false, false, 0, true)
-		assert.equals(57, ghostID)
-		assert.is_true(click())
-		assert.same({ 20, { 321 }, 32 }, orders[2])
+		assert.same({ "ghost", 57 }, { env.Spring.TraceScreenRay(x, y, false, false, false, false, 0, true) })
+		kind = "unit"
+		assert.same({ "unit", 123 }, { env.Spring.TraceScreenRay(x, y, false, false, false, false, 0, true) })
+		assert.is_false(click())
 	end)
 	it("leaves visible units, radar contacts, and terrain to existing command handling", function()
 		for _, targetKind in ipairs({ "unit", "ground", "feature" }) do
@@ -118,6 +120,13 @@ describe("Ghost Target single clicks", function()
 			assert.is_false(click())
 		end
 		assert.same({}, orders)
+	end)
+	it("picks the nearer ghost when the ordinary click would target a unit behind it", function()
+		assert.is_true(click({ 123 }))
+		assert.same({ 34926, { 57 }, 32 }, orders[1])
+		kind = "unit"
+		assert.is_false(click({ 123 }))
+		assert.same(1, #orders)
 	end)
 	it("does not redirect area or rectangle commands", function()
 		assert.is_false(click({ 100, 0, 100, 50 }))
@@ -147,7 +156,7 @@ describe("Ghost Target single clicks", function()
 		widget:Update()
 		assert.is_false(widget:CommandNotify(command, { 100, 0, 100 }, {}))
 	end)
-	it("draws only the hovered sighting for Attack and Set Target, including on radar", function()
+	it("draws only the hovered sighting for Attack and Set Target", function()
 		local hover = {}
 		local draws = 0
 		local registrations = {}
@@ -195,14 +204,20 @@ describe("Ghost Target single clicks", function()
 		local info = { ghostID = 57, teamColor = { 1, 1, 1, 1 } }
 		for _, id in ipairs({ 20, 34923, 34924 }) do
 			command = id
-			for _, radar in ipairs({ false, true }) do
-				radarContact = radar
-				hover:Update()
-				assert.is_true(hover:DrawGhost(info))
-				assert.is_false(hover:DrawGhost({ ghostID = 321 }))
+			hover:Update()
+			assert.is_true(hover:DrawGhost(info))
+			assert.is_false(hover:DrawGhost({ ghostID = 321 }))
+		end
+		modelID = 0
+		env.Spring.GetGhostPosition = function(ghostID)
+			if ghostID == info.ghostID then
+				return 100, 280, 100, 0
 			end
 		end
-		radarContact, kind = false, "unit"
+		hover:Update()
+		assert.is_true(hover:DrawGhost(info))
+		assert.is_false(hover:DrawGhost({ ghostID = 321 }))
+		kind = "unit"
 		hover:Update()
 		assert.is_false(hover:DrawGhost(info))
 		kind, minimap = "ghost", true
@@ -214,15 +229,7 @@ describe("Ghost Target single clicks", function()
 		command = 20
 		hover:Update()
 		assert.same({ "remove", "add" }, registrations)
-		assert.equals(6, draws)
+		assert.same(4, draws)
 	end)
 
-	it("uses the radar unit target for remembered-model clicks", function()
-		radarContact = true
-		for _, id in ipairs({ 20, 34923, 34924 }) do
-			command = id
-			assert.is_true(click())
-			assert.same({ id, { 321 }, 32 }, orders[#orders])
-		end
-	end)
 end)

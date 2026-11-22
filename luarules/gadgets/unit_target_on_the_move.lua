@@ -745,7 +745,18 @@ if gadgetHandler:IsSyncedCode() then
 		then
 			local addTargetList
 			local ghostID
-			if cmdID == GameCMD.GHOST_SET_TARGET then
+			if
+				(cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_NO_GROUND)
+				and nParams == 1
+				and not cmdOptions.internal
+				and GG.GetLostUnitGhost
+			then
+				local lostID, x, y, z = GG.GetLostUnitGhost(cmdParams[1], spGetUnitAllyTeam(unitID))
+				if lostID then
+					ghostID = lostID
+					cmdParams, nParams = { x, y, z }, 3
+				end
+			elseif cmdID == GameCMD.GHOST_SET_TARGET then
 				if nParams ~= 1 or not Spring.GetGhostPosition then
 					return false
 				end
@@ -832,7 +843,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			elseif nParams == 3 then
-				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+				if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND and not ghostID then
 					SendToUnsynced("failCommand", unitTeam)
 					--tracy.ZoneEnd()
 					return false

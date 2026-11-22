@@ -55,7 +55,7 @@ local hoverCommands = {
 }
 
 ---@type integer?
-local hoveredGhostID
+local hoveredTargetID
 
 local function getHoveredGhost()
 	local _, command = Spring.GetActiveCommand()
@@ -75,19 +75,17 @@ local function getHoveredGhost()
 		return
 	end
 	local trace = Spring.TraceScreenRay ---@type GhostTraceScreenRay
-	local kind, target, radarGhostID = trace(x, y, false, false, false, false, 0, true)
+	local kind, target = trace(x, y, false, false, false, false, 0, true)
 	if kind == "ghost" then
 		return target --[[@as integer]]
-	elseif kind == "unit" then
-		return radarGhostID
 	end
 end
 
 -- The handler registers DrawGhost when it inserts the widget.
 local drawActive = true
 function widget:Update()
-	hoveredGhostID = getHoveredGhost()
-	local active = hoveredGhostID ~= nil
+	hoveredTargetID = getHoveredGhost()
+	local active = hoveredTargetID ~= nil
 	if active == drawActive then
 		return
 	end
@@ -102,8 +100,13 @@ end
 ---@param info GhostDrawInfo
 ---@return boolean
 function widget:DrawGhost(info)
-	if not shader or info.ghostID ~= hoveredGhostID then
+	if not shader or not hoveredTargetID then
 		return false
+	end
+	if info.ghostID ~= hoveredTargetID then
+		if hoveredTargetID >= Game.maxUnits or select(4, Spring.GetGhostPosition(info.ghostID)) ~= hoveredTargetID then
+			return false
+		end
 	end
 	gl.UseShader(shader)
 	gl.UniformMatrix(uniforms.viewInverse, "viewinverse")

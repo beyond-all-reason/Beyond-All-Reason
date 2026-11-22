@@ -240,8 +240,7 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param heightOffset number? (default: `0`)
 ---@param includeGhosts boolean? (default: `false`)
 ---@return ("unit"|"feature"|"ground"|"sky"|"ghost")? description of traced object or position
----@return UnitID|FeatureID|xyz|nil result Unit or feature ID, world coordinates, or the ghost sighting ID
----@return integer? ghostID Sighting ID when a remembered model resolves to a radar unit
+---@return UnitID|FeatureID|integer|xyz|nil result Unit, feature or ghost sighting ID, or world coordinates
 local function traceScreenRay(
 	screenX,
 	screenY,
@@ -260,16 +259,13 @@ local function traceScreenRay(
 	end
 
 	local trace = sp_TraceScreenRay ---@type GhostTraceScreenRay
-	local description, result, ghostID =
+	local description, result =
 		trace(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset, includeGhosts)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)
 	end
 
-	if ghostID then
-		return description, result, ghostID
-	end
 	return description, result
 end
 
