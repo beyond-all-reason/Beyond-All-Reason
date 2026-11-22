@@ -320,24 +320,74 @@ describe("Giving back taken units", function()
 		assert.equal(1, t.rules[2].unitCapRestorePending)
 	end)
 
-	it("keeps rejected units available for retry and never duplicates capacity", function()
+	it("finishes a temporarily blocked return from one player-list click", function()
 		local t = setup()
 		t.command("take2", 2)
 		t.resume()
 		t.veto[10], t.veto[11] = true, true
-		t.command("giveback", 2)
-		assert.equal(8, t.caps[1])
-		assert.equal(0, t.caps[2])
-		assert.equal(2, t.rules[1].givebackUnits2)
-		assert.equal(1, t.rules[2].unitCapRestorePending)
-		assert.same({ "NotifyError", 1, "giveBackBlocked" }, t.notices[#t.notices])
+		local commands = {}
+		t.env.Spring.AreTeamsAllied = function(a, b)
+			return a == 1 and b == 2
+		end
+		t.env.Spring.SendCommands = function(command)
+			commands[#commands + 1] = command
+			local name, target = command:match("^luarules (%w+) (%d+)$")
+			t.command(name, target)
+		end
+		local action = SpecEnv.include(t.env, "luaui/Include/giveback_action.lua")
+		assert.is_true(action.run(1, 2, false))
+		t.idle:GameFrame(60)
 		t.dynamic:GameFrame(60)
 		assert.equal(0, t.caps[2])
-		t.veto[10], t.veto[11] = nil, nil
-		t.command("giveback", 2)
-		t.command("giveback", 2)
-		assert.equal(6, t.caps[1])
+		assert.equal(1, t.rules[2].unitCapRestorePending)
+		assert.equal(2, t.rules[1].givebackUnits2)
+
+		t.veto[10] = nil
+		t.idle:GameFrame(90)
+		assert.equal(2, t.units[10])
+		assert.equal(1, t.units[11])
+		assert.equal(1, t.caps[2])
+		assert.equal(0, t.rules[2].unitCapRestorePending)
+		t.veto[11] = nil
+		t.idle:GameFrame(120)
+		assert.equal(2, t.units[11])
+		assert.equal(0, t.rules[1].givebackUnits2)
 		assert.equal(2, t.caps[2])
+		t.dynamic:GameFrame(120)
+		t.idle:GameFrame(150)
+		assert.equal(4, t.caps[1])
+		assert.equal(4, t.caps[2])
+		assert.same({ "luarules giveback 2" }, commands)
+	end)
+
+	it("drops a pending return when the receiving team goes inactive", function()
+		local t = setup()
+		t.command("take2", 2)
+		t.resume()
+		t.veto[11] = true
+		t.command("giveback", 2)
+		assert.equal(2, t.units[10])
+		t.players[2].active = false
+		t.veto[11] = nil
+		t.idle:GameFrame(60)
+		t.resume()
+		t.idle:GameFrame(90)
+		assert.equal(1, t.units[11])
+	end)
+
+	it("skips a replacement unit that reuses a pending unit's ID", function()
+		local t = setup()
+		t.command("take2", 2)
+		t.resume()
+		t.veto[11] = true
+		t.command("giveback", 2)
+		t.destroy(11)
+		t.units[11] = 1
+		t.env.GG.SetTakenUnitOrigin(11, 2)
+		t.veto[11] = nil
+		t.idle:GameFrame(60)
+		assert.equal(1, t.units[11])
+		assert.equal(1, t.rules[1].givebackUnits2)
 	end)
 
 	it("does not unlock redistribution after all taken units were lost", function()
@@ -348,12 +398,13 @@ describe("Giving back taken units", function()
 		assert.equal(1, t.rules[1].givebackUnits2)
 		t.destroy(11)
 		assert.equal(0, t.rules[1].givebackUnits2)
+		local notices = #t.notices
 		t.command("giveback", 2)
 		t.dynamic:GameFrame(60)
 		assert.equal(8, t.caps[1])
 		assert.equal(0, t.caps[2])
 		assert.equal(1, t.rules[2].unitCapRestorePending)
-		assert.same({ "NotifyError", 1, "nothingToGiveBack" }, t.notices[#t.notices])
+		assert.equal(notices, #t.notices)
 		-- A newly built unit can still be shared manually to restart the player.
 		t.units[21] = 1
 		assert.is_true(t.env.Spring.TransferUnit(21, 2))

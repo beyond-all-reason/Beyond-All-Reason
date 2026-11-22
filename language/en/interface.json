@@ -90,7 +90,7 @@
 		},
 		"playersList": {
 			"giveBackLabel": "GIVE BACK",
-			"giveBackUnits": "Return this player's surviving taken units and resume unit capacity redistribution. Newly produced units and resources stay with you.",
+			"giveBackUnits": "Return this player's surviving units.",
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
 			"allies": "Allies",
@@ -1383,9 +1383,6 @@
 			"takeEnemies": "Cannot take enemy players",
 			"nothingToTake": "Nothing to take",
 			"giveBackUnavailable": "You must be an active player to give units back",
-			"giveBackUsage": "Usage: /giveback <team ID> — choose an active allied player",
-			"nothingToGiveBack": "No previously taken units to give back to this team",
-			"giveBackBlocked": "No units could be returned. Unit capacity redistribution has not been started by this command.",
 			"givenBack": "Returned %{units} previously taken units. Unit capacity redistribution has resumed.",
 			"lagging": "%{name} is lagging behind",
 			"resumed": "%{name} has finished resuming",

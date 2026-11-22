@@ -44,6 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 	local currentGameFrame = 0
 	local givingBackFrom, givingBackTo
 	local pendingCaptures = {}
+	local pendingGiveBacks = {}
 	local trackedUnits, availableUnits = {}, {}
 
 	local GetUnitTeam = Spring.GetUnitTeam
@@ -256,44 +257,43 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function giveBackTeam(cmd, line, words, playerID)
-		local targetTeam = tonumber(words[1])
-		local _, active, spectator, fromTeam, allyTeam = GetPlayerInfo(playerID, false)
-		if not active or spectator or not CheckPlayerState(playerID) then
-			SendToUnsynced("NotifyError", playerID, "giveBackUnavailable")
-			return
+	local function activeGiver(playerID)
+		local _, active, spectator, teamID, allyTeam = GetPlayerInfo(playerID, false)
+		if active and not spectator and CheckPlayerState(playerID) then
+			return teamID, allyTeam
 		end
-		local validTarget = false
-		for _, teamID in ipairs(GetTeamList(allyTeam)) do
-			if teamID == targetTeam and teamID ~= fromTeam and teamID ~= gaiaTeamID then
-				local _, _, dead, isAI = GetTeamInfo(teamID, false)
-				local luaAI = GetTeamLuaAI(teamID)
-				validTarget = not dead
+	end
+
+	local function canReceiveGiveBack(fromTeam, allyTeam, targetTeam)
+		for _, ally in ipairs(GetTeamList(allyTeam)) do
+			if ally == targetTeam and ally ~= fromTeam and ally ~= gaiaTeamID then
+				local _, _, dead, isAI = GetTeamInfo(ally, false)
+				local luaAI = GetTeamLuaAI(ally)
+				return not dead
 					and not isAI
 					and (not luaAI or luaAI == "")
-					and (GetTeamRulesParam(teamID, "numActivePlayers") or 0) > 0
+					and (GetTeamRulesParam(ally, "numActivePlayers") or 0) > 0
 			end
 		end
-		if not validTarget or words[2] then
-			SendToUnsynced("NotifyError", playerID, "giveBackUsage")
-			return
-		end
+		return false
+	end
+
+	local function tryGiveBack(request)
 		local units = {}
-		for _, unitID in ipairs(GetTeamUnits(fromTeam)) do
-			if Spring.GetUnitRulesParam(unitID, originRule) == targetTeam then
+		for unitID, original in pairs(request.units) do
+			-- Ownership changes and destruction invalidate the original take, even if an ID is reused.
+			if trackedUnits[unitID] == original then
 				units[#units + 1] = unitID
+			else
+				request.units[unitID] = nil
 			end
-		end
-		if #units == 0 then
-			SendToUnsynced("NotifyError", playerID, "nothingToGiveBack")
-			return
 		end
 		table.sort(units)
-		givingBackFrom, givingBackTo = fromTeam, targetTeam
+		givingBackFrom, givingBackTo = request.fromTeam, request.targetTeam
 		local ok, err = pcall(function()
 			for _, unitID in ipairs(units) do
-				if GetUnitTeam(unitID) == fromTeam then
-					GG.ForceUnitTransfer(unitID, targetTeam)
+				if trackedUnits[unitID] == request.units[unitID] then
+					GG.ForceUnitTransfer(unitID, request.targetTeam)
 				end
 			end
 		end)
@@ -303,14 +303,49 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local returned = 0
 		for _, unitID in ipairs(units) do
-			if GetUnitTeam(unitID) == targetTeam then
-				returned = returned + 1
+			if trackedUnits[unitID] ~= request.units[unitID] then
+				request.units[unitID] = nil
+				if GetUnitTeam(unitID) == request.targetTeam then
+					returned = returned + 1
+				end
 			end
 		end
 		if returned > 0 then
-			SendToUnsynced("TeamGivenBack", playerID, returned)
-		else
-			SendToUnsynced("NotifyError", playerID, "giveBackBlocked")
+			SendToUnsynced("TeamGivenBack", request.playerID, returned)
+		end
+		return next(request.units) ~= nil
+	end
+
+	local function giveBackTeam(cmd, line, words, playerID)
+		local targetTeam = tonumber(words[1])
+		local fromTeam, allyTeam = activeGiver(playerID)
+		if not fromTeam then
+			SendToUnsynced("NotifyError", playerID, "giveBackUnavailable")
+			return
+		end
+		if words[2] or not targetTeam or not canReceiveGiveBack(fromTeam, allyTeam, targetTeam) then
+			return
+		end
+		local units = {}
+		for _, unitID in ipairs(GetTeamUnits(fromTeam)) do
+			local original = trackedUnits[unitID]
+			if original and original.origin == targetTeam then
+				units[unitID] = original
+			end
+		end
+		if not next(units) then
+			return
+		end
+		-- A second click replaces the outstanding request for this pair of teams.
+		for i, request in ipairs(pendingGiveBacks) do
+			if request.fromTeam == fromTeam and request.targetTeam == targetTeam then
+				table.remove(pendingGiveBacks, i)
+				break
+			end
+		end
+		local request = { units = units, fromTeam = fromTeam, targetTeam = targetTeam, playerID = playerID }
+		if tryGiveBack(request) then
+			pendingGiveBacks[#pendingGiveBacks + 1] = request
 		end
 	end
 
@@ -351,6 +386,19 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		updatePlayersInfo()
+		if currentFrame % gameSpeed == 0 then
+			for i = #pendingGiveBacks, 1, -1 do
+				local request = pendingGiveBacks[i]
+				local fromTeam, allyTeam = activeGiver(request.playerID)
+				if
+					fromTeam ~= request.fromTeam
+					or not canReceiveGiveBack(fromTeam, allyTeam, request.targetTeam)
+					or not tryGiveBack(request)
+				then
+					table.remove(pendingGiveBacks, i)
+				end
+			end
+		end
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
