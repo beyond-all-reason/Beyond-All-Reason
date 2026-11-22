@@ -24,20 +24,20 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> split the targets evenly across every selected unit
-  Shift / Shift + Space / double-click mass-order -> after the click-nearest target set is chosen, travel uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
+  Shift / Shift + Space -> when the mass order is appended, travel starts from each unit's last positional queued order. Double-click snapshots that queue-end position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route. A mass order without Shift replaces the queue and starts from where the unit is, closest target first.
 
-  Order assignment:
-  Targets and units are sorted by angle around the selection and cut into equal sweeps. Each sweep is ordered by distance from the units on it.
-  Normal mass-order -> every selected unit gets every target while units × targets stays under 4000. Past that, the units are divided into the fewest sweeps that keep the issued orders under 4000.
-  Alt -> one sweep per unit. When there are more units than targets, the extra units share sweeps.
-  "reduced" fades out above the cursor when targets were dropped to stay under 4000 orders.
+  Order assignment is round-robin nearest unclaimed target (common/round_robin_nearest.lua). Units take turns claiming the closest free target.
+  Normal mass-order -> every selected unit gets every reachable target while units × targets stays under the order limit (Settings → Control, default 1500). Each unit's queue starts at the closest target and then takes the closest remaining one.
+  Past that, every target is ordered at least once, then nearest orders keep being added until the order limit is spent. Shares stay as even as that limit allows. Mixed movement classes are assigned separately, and each class only receives targets it can reach. Targets only one class can reach are ordered first. The order limit applies to the combined orders.
+  Alt -> each target is claimed once, including when units × targets is under the order limit. Round-robin shares targets when there are more units than targets.
+  "reduced" fades out above the cursor only when the budget runs out before every target has an order.
 
   Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
   Attack / Capture / Set Target -> neutrals are their own team category, separate from other enemies
   Capture -> only finished, capturable targets; only capturers issue; skips targets the unit cannot move onto
   Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team; skips targets the unit cannot move onto
-  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto; neutral targets follow the neutral team category above
+  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto; water deeper than a unit can enter is excluded before any path test and is only offered to units that can enter that depth; neutral targets follow the neutral team category above
   Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks; skips targets the unit cannot move onto
   Guard -> builders only guard the clicked target; non-builders use normal mass targeting
   Set Target -> Alt isn't used here, it's left for another widget that handles persistent target type setting as of 7/12/26
@@ -51,8 +51,8 @@ local tableSort = table.sort
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local mathHuge = math.huge
-local mathAtan2 = math.atan2
 local mathDistance2dSquared = math.distance2dSquared
+local TargetAssignment = VFS.Include("common/round_robin_nearest.lua")
 local mathCos = math.cos
 local mathSin = math.sin
 local mathPi = math.pi
@@ -78,6 +78,7 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitHealth = Spring.GetUnitHealth
 local spTestMoveOrder = Spring.TestMoveOrder
+local spGetGroundHeight = Spring.GetGroundHeight
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
@@ -119,7 +120,7 @@ local DOUBLE_CLICK_RADIUS_FRACTION_MIN = 0.125
 local DOUBLE_CLICK_RADIUS_FRACTION_MAX = 1
 local DOUBLE_CLICK_RADIUS_FRACTION_MAX_TOLERANCE = 0.001
 local CIRCLE_FLASH_SECONDS = 0.45
-local CIRCLE_PEAK_ALPHA = 0.1
+local CIRCLE_PEAK_ALPHA = 0.15
 local CIRCLE_SOLID_RADIUS_FRACTION = 0.85
 local CIRCLE_PREVIEW_HOLD_SECONDS = 0.2
 local CIRCLE_FAN_SEGMENT_COUNT = 48
@@ -142,8 +143,11 @@ local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 32 / 1080
 local doubleClickEnabled = true
 local doubleRightClickDefaultCommandEnabled = false
 local doubleClickRadiusFraction = DOUBLE_CLICK_RADIUS_FRACTION_DEFAULT
-local COMMAND_LIMIT = 4000
-local ORDER_BUDGET = COMMAND_LIMIT - 1
+local COMMAND_LIMIT_MIN = 200
+local COMMAND_LIMIT_MAX = 4000
+local COMMAND_LIMIT_DEFAULT = 1500
+local commandLimit = COMMAND_LIMIT_DEFAULT
+local REACHABILITY_TEST_BUDGET = 3000
 
 local myAllyTeamID
 local myTeamID
@@ -466,6 +470,58 @@ local function refreshCirclePreview()
 	}
 end
 
+local function targetWaterDepth(position)
+	local groundHeight = spGetGroundHeight(position.x, position.z)
+	if not groundHeight or groundHeight >= 0 then
+		return 0
+	end
+	return -groundHeight
+end
+
+local function canReachWaterDepth(metadata, waterDepth)
+	if not metadata then
+		return false
+	end
+	if metadata.canFly or metadata.isHover then
+		return true
+	end
+	if metadata.isShip then
+		return waterDepth > 0 and waterDepth >= metadata.minWaterDepth
+	end
+	return waterDepth <= metadata.moveWaterDepth
+end
+
+local function rememberLandMoveTestPolicy(selectedUnits, reachabilityCache)
+	local skipLandMoveTests = true
+	for unitIndex = 1, #selectedUnits do
+		local unitDefID = spGetUnitDefID(selectedUnits[unitIndex])
+		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+		if not metadata or not metadata.canWalkLand then
+			skipLandMoveTests = false
+			break
+		end
+	end
+	reachabilityCache.skipLandMoveTests = skipLandMoveTests
+	reachabilityCache.waterRejectCount = 0
+	reachabilityCache.moveTestCount = 0
+	reachabilityCache.landSkipCount = 0
+	local seenDefIDs = {}
+	local defSummaryParts = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitDefID = spGetUnitDefID(selectedUnits[unitIndex])
+		if unitDefID and not seenDefIDs[unitDefID] then
+			seenDefIDs[unitDefID] = true
+			local metadata = unitDefMetadataByID[unitDefID]
+			local unitDef = UnitDefs[unitDefID]
+			local unitName = unitDef and unitDef.name or "unknown"
+			local moveWaterDepth = metadata and metadata.moveWaterDepth or -1
+			local canWalkLand = metadata and metadata.canWalkLand and 1 or 0
+			defSummaryParts[#defSummaryParts + 1] = unitName .. ":" .. moveWaterDepth .. ":" .. canWalkLand
+		end
+	end
+	reachabilityCache.defSummary = table.concat(defSummaryParts, " ")
+end
+
 local function canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
 	if not unitDefID or not position then
 		return false
@@ -483,6 +539,18 @@ local function canUnitDefReachPosition(unitDefID, targetID, position, reachabili
 	if cachedResult ~= nil then
 		return cachedResult
 	end
+	local waterDepth = targetWaterDepth(position)
+	if metadata and not canReachWaterDepth(metadata, waterDepth) then
+		reachabilityCache.waterRejectCount = (reachabilityCache.waterRejectCount or 0) + 1
+		unitDefCache[targetID] = false
+		return false
+	end
+	if waterDepth <= 0 and reachabilityCache.skipLandMoveTests and metadata and metadata.canWalkLand then
+		reachabilityCache.landSkipCount = (reachabilityCache.landSkipCount or 0) + 1
+		unitDefCache[targetID] = true
+		return true
+	end
+	reachabilityCache.moveTestCount = (reachabilityCache.moveTestCount or 0) + 1
 	local canReach = spTestMoveOrder(unitDefID, position.x, position.y, position.z, nil, nil, nil, true, false)
 	unitDefCache[targetID] = canReach
 	return canReach
@@ -527,6 +595,56 @@ local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionC
 		end
 	end
 	return filteredTargets
+end
+
+local function collectMoveDefGroups(selectedUnits)
+	local groupsByName = {}
+	local groups = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitID = selectedUnits[unitIndex]
+		local unitDefID = spGetUnitDefID(unitID)
+		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+		local moveDefName = metadata and metadata.moveDefName or ("unit:" .. tostring(unitDefID or 0))
+		local group = groupsByName[moveDefName]
+		if not group then
+			group = {
+				moveDefName = moveDefName,
+				unitIDs = {},
+				representativeDefID = unitDefID,
+				canFly = metadata ~= nil and metadata.canFly == true,
+			}
+			groupsByName[moveDefName] = group
+			groups[#groups + 1] = group
+		end
+		local unitIDs = group.unitIDs
+		unitIDs[#unitIDs + 1] = unitID
+	end
+	return groups
+end
+
+local function filterTargetsForMoveDefGroup(group, targets, positionCache, reachabilityCache)
+	if group.canFly or not group.representativeDefID then
+		return targets
+	end
+	return filterTargetsReachableByUnitDef(group.representativeDefID, targets, positionCache, reachabilityCache)
+end
+
+local function targetsLackOrders(targetsByUnit, unitIDs, targetIDs)
+	local coveredTargetIDs = {}
+	for unitIndex = 1, #unitIDs do
+		local unitTargets = targetsByUnit[unitIDs[unitIndex]]
+		if unitTargets then
+			for targetIndex = 1, #unitTargets do
+				coveredTargetIDs[unitTargets[targetIndex]] = true
+			end
+		end
+	end
+	for targetIndex = 1, #targetIDs do
+		if not coveredTargetIDs[targetIDs[targetIndex]] then
+			return true
+		end
+	end
+	return false
 end
 
 local function getTargetCentroid(targets, positionCache)
@@ -749,207 +867,54 @@ local function giveOrders(commandID, selectedUnits, filteredTargets, options)
 end
 
 local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, distributeEvenly)
-	local FULL_TURN = mathPi * 2
-
-	local function wrapAngle(angle)
-		local wrappedAngle = angle % FULL_TURN
-		if wrappedAngle < 0 then
-			wrappedAngle = wrappedAngle + FULL_TURN
-		end
-		return wrappedAngle
-	end
-
-	local function rotationRank(angle, startAngle)
-		local delta = angle - startAngle
-		if delta < 0 then
-			delta = delta + FULL_TURN
-		end
-		return delta
-	end
-
-	local function collectAngledEntries(ids, center, positionCache)
-		local entries = {}
-		local unpositionedIDs = {}
-		for index = 1, #ids do
-			local id = ids[index]
-			local position = getTargetPosition(id, positionCache)
-			if position and center then
-				entries[#entries + 1] = {
-					id = id,
-					angle = wrapAngle(mathAtan2(position.z - center.z, position.x - center.x)),
-				}
-			else
-				unpositionedIDs[#unpositionedIDs + 1] = id
-			end
-		end
-		return entries, unpositionedIDs
-	end
-
-	local function findSweepStartAngle(entryLists)
-		local angles = {}
-		for listIndex = 1, #entryLists do
-			local entries = entryLists[listIndex]
-			for index = 1, #entries do
-				angles[#angles + 1] = entries[index].angle
-			end
-		end
-		local angleCount = #angles
-		if angleCount < 1 then
-			return 0
-		end
-		tableSort(angles)
-		if angleCount < 2 then
-			return angles[1]
-		end
-		local largestGap = -1
-		local seamAngle = angles[1]
-		for index = 1, angleCount do
-			local angle = angles[index]
-			local nextAngle
-			if index == angleCount then
-				nextAngle = angles[1] + FULL_TURN
-			else
-				nextAngle = angles[index + 1]
-			end
-			local gap = nextAngle - angle
-			if gap > largestGap then
-				largestGap = gap
-				seamAngle = wrapAngle(angle + (gap * 0.5))
-			end
-		end
-		return seamAngle
-	end
-
-	local function sortEntriesByRotation(entries, startAngle)
-		tableSort(entries, function(entryA, entryB)
-			local rankA = rotationRank(entryA.angle, startAngle)
-			local rankB = rotationRank(entryB.angle, startAngle)
-			if rankA == rankB then
-				return entryA.id < entryB.id
-			end
-			return rankA < rankB
-		end)
-	end
-
-	local function idsFromEntries(entries)
-		local ids = {}
-		for index = 1, #entries do
-			ids[index] = entries[index].id
-		end
-		return ids
-	end
-
-	local function buildEvenSlices(ids, sliceCount)
-		local idCount = #ids
-		if sliceCount > idCount then
-			sliceCount = idCount
-		end
-		if sliceCount < 1 then
-			sliceCount = 1
-		end
-		local baseCount = mathFloor(idCount / sliceCount)
-		local extraCount = idCount % sliceCount
-		local slices = {}
-		local nextIndex = 1
-		for sliceIndex = 1, sliceCount do
-			local sliceSize = baseCount
-			if sliceIndex <= extraCount then
-				sliceSize = sliceSize + 1
-			end
-			local slice = {}
-			for offset = 1, sliceSize do
-				slice[offset] = ids[nextIndex]
-				nextIndex = nextIndex + 1
-			end
-			slices[sliceIndex] = slice
-		end
-		return slices
-	end
-
-	local function appendToSmallestSlice(slices, id)
-		local smallestIndex = 1
-		for sliceIndex = 2, #slices do
-			if #slices[sliceIndex] < #slices[smallestIndex] then
-				smallestIndex = sliceIndex
-			end
-		end
-		local slice = slices[smallestIndex]
-		slice[#slice + 1] = id
-	end
-
-	local function sortIDsByDistance(ids, origin, positionCache)
-		if not origin or #ids < 2 then
+	local function sortUnitTargets(unitID, unitTargets)
+		local sortedTargetCount = #unitTargets
+		if sortedTargetCount < 2 then
 			return
 		end
-		local distances = {}
-		for index = 1, #ids do
-			local id = ids[index]
-			local position = getTargetPosition(id, positionCache)
-			if position then
-				distances[id] = mathDistance2dSquared(origin.x, origin.z, position.x, position.z)
-			else
-				distances[id] = mathHuge
+		local origin = getTargetPosition(unitID, positionCache)
+		local positions = {}
+		for targetIndex = 1, sortedTargetCount do
+			positions[targetIndex] = getTargetPosition(unitTargets[targetIndex], positionCache)
+		end
+		local used = {}
+		local orderedTargetIDs = {}
+		local cursorX = nil
+		local cursorZ = nil
+		if origin then
+			cursorX = origin.x
+			cursorZ = origin.z
+		end
+		for orderIndex = 1, sortedTargetCount do
+			local bestIndex = nil
+			local bestDistance = mathHuge
+			local bestTargetID = nil
+			for targetIndex = 1, sortedTargetCount do
+				if not used[targetIndex] then
+					local position = positions[targetIndex]
+					local targetID = unitTargets[targetIndex]
+					local distance = mathHuge
+					if position and cursorX then
+						distance = mathDistance2dSquared(cursorX, cursorZ, position.x, position.z)
+					end
+					if bestIndex == nil or distance < bestDistance or (distance == bestDistance and targetID < bestTargetID) then
+						bestDistance = distance
+						bestIndex = targetIndex
+						bestTargetID = targetID
+					end
+				end
+			end
+			used[bestIndex] = true
+			orderedTargetIDs[orderIndex] = bestTargetID
+			local bestPosition = positions[bestIndex]
+			if bestPosition then
+				cursorX = bestPosition.x
+				cursorZ = bestPosition.z
 			end
 		end
-		tableSort(ids, function(idA, idB)
-			local distanceA = distances[idA]
-			local distanceB = distances[idB]
-			if distanceA == distanceB then
-				return idA < idB
-			end
-			return distanceA < distanceB
-		end)
-	end
-
-	local function copyTargetIDs(sourceIDs)
-		local copiedIDs = {}
-		for index = 1, #sourceIDs do
-			copiedIDs[index] = sourceIDs[index]
+		for targetIndex = 1, sortedTargetCount do
+			unitTargets[targetIndex] = orderedTargetIDs[targetIndex]
 		end
-		return copiedIDs
-	end
-
-	local function worstCaseGroupedOrderCount(unitCount, targetCount, groupCount)
-		local unitBase = mathFloor(unitCount / groupCount)
-		local unitRemainder = unitCount % groupCount
-		local targetBase = mathFloor(targetCount / groupCount)
-		local targetRemainder = targetCount % groupCount
-		local orders = 0
-		local largeUnitGroupsRemaining = unitRemainder
-		local largeTargetGroupsRemaining = targetRemainder
-		for groupIndex = 1, groupCount do
-			local unitsInGroup = unitBase
-			if largeUnitGroupsRemaining > 0 then
-				unitsInGroup = unitsInGroup + 1
-				largeUnitGroupsRemaining = largeUnitGroupsRemaining - 1
-			end
-			local targetsInGroup = targetBase
-			if largeTargetGroupsRemaining > 0 then
-				targetsInGroup = targetsInGroup + 1
-				largeTargetGroupsRemaining = largeTargetGroupsRemaining - 1
-			end
-			orders = orders + (unitsInGroup * targetsInGroup)
-		end
-		return orders
-	end
-
-	local function findFewestDriverGroupCount(unitCount, targetCount)
-		if unitCount < 2 or targetCount < 2 then
-			return 1
-		end
-		if (unitCount * targetCount) < COMMAND_LIMIT then
-			return 1
-		end
-		local maximumGroupCount = unitCount
-		if targetCount < maximumGroupCount then
-			maximumGroupCount = targetCount
-		end
-		for groupCount = 2, maximumGroupCount do
-			if worstCaseGroupedOrderCount(unitCount, targetCount, groupCount) < COMMAND_LIMIT then
-				return groupCount
-			end
-		end
-		return maximumGroupCount
 	end
 
 	local function trimUnitTargetsToBudget(targetsByUnit, unitIDs, orderBudget)
@@ -1044,18 +1009,91 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 				end
 			end
 		end
-		spGiveOrderArrayToUnit(unitID, orders)
-	end
-
-	local function assignSliceTargets(targetsByUnit, unitIDs, sharedTargets, needsReachability)
-		for unitIndex = 1, #unitIDs do
-			local unitID = unitIDs[unitIndex]
-			local unitTargets = copyTargetIDs(sharedTargets)
-			if needsReachability then
-				local unitDefID = spGetUnitDefID(unitID)
-				unitTargets = filterTargetsReachableByUnitDef(unitDefID, unitTargets, positionCache, reachabilityCache)
+		local AI_COMMANDS_PACKET_LIMIT = 8000
+		local function shiftAlreadySet(optionBits)
+			local shiftBit = CMD.OPT_SHIFT
+			return optionBits % (shiftBit * 2) >= shiftBit
+		end
+		local function estimatePacketSize(orderList, orderStart, orderEnd)
+			local referenceOrder = orderList[orderStart]
+			local referenceCommandID = referenceOrder[1]
+			local referenceOptionBits = referenceOrder[3]
+			local referenceParameterCount = #referenceOrder[2]
+			local sameCommandID = true
+			local sameOptionBits = true
+			local sameParameterCount = true
+			local totalParameters = 0
+			for orderIndex = orderStart, orderEnd do
+				local order = orderList[orderIndex]
+				local parameterCount = #order[2]
+				totalParameters = totalParameters + parameterCount
+				if order[1] ~= referenceCommandID then
+					sameCommandID = false
+				end
+				if order[3] ~= referenceOptionBits then
+					sameOptionBits = false
+				end
+				if parameterCount ~= referenceParameterCount then
+					sameParameterCount = false
+				end
 			end
-			targetsByUnit[unitID] = unitTargets
+			local optionalBytesPerCommand = 0
+			if not sameCommandID then
+				optionalBytesPerCommand = optionalBytesPerCommand + 4
+			end
+			if not sameOptionBits then
+				optionalBytesPerCommand = optionalBytesPerCommand + 1
+			end
+			if not sameParameterCount then
+				optionalBytesPerCommand = optionalBytesPerCommand + 2
+			end
+			local commandCount = orderEnd - orderStart + 1
+			local packetSize = 19 + commandCount * optionalBytesPerCommand + totalParameters * 4
+			return packetSize
+		end
+		local chunkStart = 1
+		local chunkCount = 0
+		local maxPacketSize = 0
+		local packetSizes = {}
+		local orderCount = #orders
+		while chunkStart <= orderCount do
+			local chunkEnd = chunkStart
+			while chunkEnd < orderCount do
+				local nextPacketSize = estimatePacketSize(orders, chunkStart, chunkEnd + 1)
+				if nextPacketSize > AI_COMMANDS_PACKET_LIMIT then
+					break
+				end
+				chunkEnd = chunkEnd + 1
+			end
+			local chunk = {}
+			for orderIndex = chunkStart, chunkEnd do
+				local order = orders[orderIndex]
+				local optionBits = order[3]
+				if chunkStart > 1 and order[1] ~= CMD.INSERT and not shiftAlreadySet(optionBits) then
+					optionBits = optionBits + CMD.OPT_SHIFT
+				end
+				chunk[#chunk + 1] = { order[1], order[2], optionBits }
+			end
+			local packetSize = estimatePacketSize(chunk, 1, #chunk)
+			chunkCount = chunkCount + 1
+			packetSizes[chunkCount] = packetSize
+			if packetSize > maxPacketSize then
+				maxPacketSize = packetSize
+			end
+			spGiveOrderArrayToUnit(unitID, chunk)
+			chunkStart = chunkEnd + 1
+		end
+		if chunkCount > 1 or orderCount > 400 then
+			-- #region agent log
+			pcall(function()
+				local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
+				if logFile then
+					logFile:write(string.format('{"sessionId":"6d7cbf","runId":"packet-chunks","hypothesisId":"packet-limit","location":"cmd_screen_select_commands.lua:issueUnitTargetOrders","message":"order packets","timestamp":%d,"data":{"unitId":%d,"orderCount":%d,"chunkCount":%d,"maxPacketSize":%d,"packetSizes":"%s"}}\n', os.time() * 1000, unitID, orderCount, chunkCount, maxPacketSize, table.concat(packetSizes, " ")))
+					logFile:close()
+				end
+			end)
+			spring.Echo("screen select packets", chunkCount, "max bytes", maxPacketSize, "orders", orderCount)
+			-- #endregion
 		end
 	end
 
@@ -1064,69 +1102,302 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 	if unitCount < 1 or targetCount < 1 then
 		return false
 	end
-	local groupCount = 1
-	if distributeEvenly then
-		groupCount = unitCount
-		if targetCount < groupCount then
-			groupCount = targetCount
-		end
-	else
-		groupCount = findFewestDriverGroupCount(unitCount, targetCount)
-	end
 	local needsReachability = reachabilityCache and COMMANDS_REQUIRING_CAPABILITY[commandID]
 	local targetsByUnit = {}
-	if groupCount < 2 then
-		local sharedTargets = copyTargetIDs(filteredTargets)
-		local origin = getTargetCentroid(selectedUnits, positionCache) or getTargetCentroid(filteredTargets, positionCache)
-		sortIDsByDistance(sharedTargets, origin, positionCache)
-		assignSliceTargets(targetsByUnit, selectedUnits, sharedTargets, needsReachability)
-	else
-		local center = getTargetCentroid(selectedUnits, positionCache) or getTargetCentroid(filteredTargets, positionCache)
-		local targetEntries, unpositionedTargetIDs = collectAngledEntries(filteredTargets, center, positionCache)
-		local unitEntries, unpositionedUnitIDs = collectAngledEntries(selectedUnits, center, positionCache)
-		local targetSlices
-		local unitSlices
-		if not center or #targetEntries < 1 or #unitEntries < 1 then
-			targetSlices = buildEvenSlices(filteredTargets, groupCount)
-			unitSlices = buildEvenSlices(selectedUnits, groupCount)
-		else
-			if #targetEntries < groupCount then
-				groupCount = #targetEntries
-			end
-			if #unitEntries < groupCount then
-				groupCount = #unitEntries
-			end
-			local startAngle = findSweepStartAngle({ targetEntries, unitEntries })
-			sortEntriesByRotation(targetEntries, startAngle)
-			sortEntriesByRotation(unitEntries, startAngle)
-			targetSlices = buildEvenSlices(idsFromEntries(targetEntries), groupCount)
-			unitSlices = buildEvenSlices(idsFromEntries(unitEntries), groupCount)
-			for unpositionedIndex = 1, #unpositionedTargetIDs do
-				appendToSmallestSlice(targetSlices, unpositionedTargetIDs[unpositionedIndex])
-			end
-			for unpositionedIndex = 1, #unpositionedUnitIDs do
-				appendToSmallestSlice(unitSlices, unpositionedUnitIDs[unpositionedIndex])
-			end
-			for sliceIndex = 1, #targetSlices do
-				local origin = getTargetCentroid(unitSlices[sliceIndex], positionCache) or center
-				sortIDsByDistance(targetSlices[sliceIndex], origin, positionCache)
+	local ordersWereTrimmed = false
+	local assignedByMoveDef = false
+	local moveDefSummary = nil
+	local function assignUnitGroup(unitIDs, targetIDs, useReachabilityClaim, orderBudget, keepExistingOrders)
+		local unitCount = #unitIDs
+		local targetCount = #targetIDs
+		if orderBudget == nil then
+			orderBudget = commandLimit
+		end
+		if unitCount < 1 or targetCount < 1 or orderBudget < 1 then
+			return false, 0
+		end
+		local agentX = {}
+		local agentY = {}
+		local agentUnitDefIDs = {}
+		local agentCanFly = {}
+		local missingAgentIndexes = {}
+		local centroidX = 0
+		local centroidZ = 0
+		local centroidCount = 0
+		for unitIndex = 1, unitCount do
+			local unitID = unitIDs[unitIndex]
+			local unitDefID = spGetUnitDefID(unitID)
+			local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+			agentUnitDefIDs[unitIndex] = unitDefID
+			agentCanFly[unitIndex] = metadata ~= nil and metadata.canFly == true
+			local position = getTargetPosition(unitID, positionCache)
+			if position then
+				agentX[unitIndex] = position.x
+				agentY[unitIndex] = position.z
+				centroidX = centroidX + position.x
+				centroidZ = centroidZ + position.z
+				centroidCount = centroidCount + 1
+			else
+				missingAgentIndexes[#missingAgentIndexes + 1] = unitIndex
 			end
 		end
-		local sliceCount = #unitSlices
-		if #targetSlices < sliceCount then
-			sliceCount = #targetSlices
+		if centroidCount > 0 then
+			centroidX = centroidX / centroidCount
+			centroidZ = centroidZ / centroidCount
 		end
-		for sliceIndex = 1, sliceCount do
-			assignSliceTargets(targetsByUnit, unitSlices[sliceIndex], targetSlices[sliceIndex], needsReachability)
+		for missingIndex = 1, #missingAgentIndexes do
+			local unitIndex = missingAgentIndexes[missingIndex]
+			agentX[unitIndex] = centroidX
+			agentY[unitIndex] = centroidZ
+		end
+		local targetX = {}
+		local targetY = {}
+		local missingTargetIndexes = {}
+		local targetCentroidX = 0
+		local targetCentroidZ = 0
+		local targetCentroidCount = 0
+		for targetIndex = 1, targetCount do
+			local position = getTargetPosition(targetIDs[targetIndex], positionCache)
+			if position then
+				targetX[targetIndex] = position.x
+				targetY[targetIndex] = position.z
+				targetCentroidX = targetCentroidX + position.x
+				targetCentroidZ = targetCentroidZ + position.z
+				targetCentroidCount = targetCentroidCount + 1
+			else
+				missingTargetIndexes[#missingTargetIndexes + 1] = targetIndex
+			end
+		end
+		if targetCentroidCount > 0 then
+			targetCentroidX = targetCentroidX / targetCentroidCount
+			targetCentroidZ = targetCentroidZ / targetCentroidCount
+		end
+		for missingIndex = 1, #missingTargetIndexes do
+			local targetIndex = missingTargetIndexes[missingIndex]
+			targetX[targetIndex] = targetCentroidX
+			targetY[targetIndex] = targetCentroidZ
+		end
+		local assignmentTargetX = targetX
+		local assignmentTargetY = targetY
+		local assignmentTargetIDs = targetIDs
+		local assignmentTargetCount = targetCount
+		local canClaim = nil
+		if useReachabilityClaim then
+			local sharedDefID = agentUnitDefIDs[1]
+			local uniformDef = true
+			for agentIndex = 2, unitCount do
+				if agentUnitDefIDs[agentIndex] ~= sharedDefID then
+					uniformDef = false
+					break
+				end
+			end
+			if uniformDef and agentCanFly[1] then
+				canClaim = nil
+			elseif uniformDef and sharedDefID and assignmentTargetCount <= REACHABILITY_TEST_BUDGET then
+				local filteredIDs = {}
+				local filteredX = {}
+				local filteredY = {}
+				local filteredCount = 0
+				for targetIndex = 1, assignmentTargetCount do
+					local targetID = assignmentTargetIDs[targetIndex]
+					local position = getTargetPosition(targetID, positionCache)
+					if position and canUnitDefReachPosition(sharedDefID, targetID, position, reachabilityCache) then
+						filteredCount = filteredCount + 1
+						filteredIDs[filteredCount] = targetID
+						filteredX[filteredCount] = assignmentTargetX[targetIndex]
+						filteredY[filteredCount] = assignmentTargetY[targetIndex]
+					end
+				end
+				assignmentTargetIDs = filteredIDs
+				assignmentTargetX = filteredX
+				assignmentTargetY = filteredY
+				assignmentTargetCount = filteredCount
+			else
+				local reachabilityTests = 0
+				canClaim = function(agentIndex, targetIndex)
+					if agentCanFly[agentIndex] then
+						return true
+					end
+					local unitDefID = agentUnitDefIDs[agentIndex]
+					local targetID = assignmentTargetIDs[targetIndex]
+					if not unitDefID then
+						return false
+					end
+					local position = getTargetPosition(targetID, positionCache)
+					if not position then
+						return false
+					end
+					local unitDefCache = reachabilityCache[unitDefID]
+					if unitDefCache ~= nil and unitDefCache[targetID] ~= nil then
+						return unitDefCache[targetID]
+					end
+					if reachabilityTests >= REACHABILITY_TEST_BUDGET then
+						return false
+					end
+					reachabilityTests = reachabilityTests + 1
+					return canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
+				end
+			end
+		end
+		if assignmentTargetCount < 1 then
+			return false, 0
+		end
+		local result = TargetAssignment.assign({
+			agentX = agentX,
+			agentY = agentY,
+			agentCount = unitCount,
+			targetX = assignmentTargetX,
+			targetY = assignmentTargetY,
+			targetCount = assignmentTargetCount,
+			orderBudget = orderBudget,
+			exclusive = distributeEvenly == true,
+			canClaim = canClaim,
+		})
+		for agentIndex = 1, unitCount do
+			local sourceIndexes = result.assignments[agentIndex]
+			local unitTargets = {}
+			if keepExistingOrders then
+				unitTargets = targetsByUnit[unitIDs[agentIndex]] or unitTargets
+			end
+			local existingCount = #unitTargets
+			local sourceCount = sourceIndexes and #sourceIndexes or 0
+			for orderIndex = 1, sourceCount do
+				unitTargets[existingCount + orderIndex] = assignmentTargetIDs[sourceIndexes[orderIndex]]
+			end
+			if not keepExistingOrders then
+				sortUnitTargets(unitIDs[agentIndex], unitTargets)
+			end
+			targetsByUnit[unitIDs[agentIndex]] = unitTargets
+		end
+		return result.trimmed == true, result.totalOrders or 0
+	end
+	local fullCoverage = not distributeEvenly and (unitCount * targetCount) <= commandLimit
+	if fullCoverage then
+		local reachableTargetsByDefID = nil
+		if needsReachability then
+			reachableTargetsByDefID = {}
 		end
 		for unitIndex = 1, unitCount do
 			local unitID = selectedUnits[unitIndex]
-			if not targetsByUnit[unitID] then
-				targetsByUnit[unitID] = {}
+			local sourceTargets = filteredTargets
+			if needsReachability then
+				local unitDefID = spGetUnitDefID(unitID) or 0
+				sourceTargets = reachableTargetsByDefID[unitDefID]
+				if not sourceTargets then
+					sourceTargets = filterTargetsReachableByUnitDef(unitDefID, filteredTargets, positionCache, reachabilityCache)
+					reachableTargetsByDefID[unitDefID] = sourceTargets
+				end
 			end
+			local unitTargets = {}
+			local sourceCount = #sourceTargets
+			for targetIndex = 1, sourceCount do
+				unitTargets[targetIndex] = sourceTargets[targetIndex]
+			end
+			sortUnitTargets(unitID, unitTargets)
+			targetsByUnit[unitID] = unitTargets
+		end
+	else
+		local moveDefGroups = nil
+		if needsReachability then
+			moveDefGroups = collectMoveDefGroups(selectedUnits)
+		end
+		if moveDefGroups and #moveDefGroups > 1 then
+			assignedByMoveDef = true
+			local reachableTargetsByGroup = {}
+			local targetOwnerCount = {}
+			for groupIndex = 1, #moveDefGroups do
+				local groupTargets = filterTargetsForMoveDefGroup(moveDefGroups[groupIndex], filteredTargets, positionCache, reachabilityCache)
+				reachableTargetsByGroup[groupIndex] = groupTargets
+				for targetIndex = 1, #groupTargets do
+					local targetID = groupTargets[targetIndex]
+					targetOwnerCount[targetID] = (targetOwnerCount[targetID] or 0) + 1
+				end
+			end
+			local remainingBudget = commandLimit
+			local sharedGroupIndexes = {}
+			local groupSummaryParts = {}
+			for groupIndex = 1, #moveDefGroups do
+				local group = moveDefGroups[groupIndex]
+				local groupTargets = reachableTargetsByGroup[groupIndex]
+				local exclusiveTargets = {}
+				local sharedTargets = {}
+				for targetIndex = 1, #groupTargets do
+					local targetID = groupTargets[targetIndex]
+					if targetOwnerCount[targetID] == 1 then
+						exclusiveTargets[#exclusiveTargets + 1] = targetID
+					else
+						sharedTargets[#sharedTargets + 1] = targetID
+					end
+				end
+				group.sharedTargets = sharedTargets
+				local _, exclusiveOrders = assignUnitGroup(group.unitIDs, exclusiveTargets, false, remainingBudget, true)
+				remainingBudget = remainingBudget - exclusiveOrders
+				group.exclusiveOrders = exclusiveOrders
+				group.reachableCount = #groupTargets
+				group.exclusiveCount = #exclusiveTargets
+				if #sharedTargets > 0 then
+					sharedGroupIndexes[#sharedGroupIndexes + 1] = groupIndex
+				end
+			end
+			local unitsLeft = 0
+			for sharedIndex = 1, #sharedGroupIndexes do
+				unitsLeft = unitsLeft + #moveDefGroups[sharedGroupIndexes[sharedIndex]].unitIDs
+			end
+			for sharedIndex = 1, #sharedGroupIndexes do
+				local group = moveDefGroups[sharedGroupIndexes[sharedIndex]]
+				local groupBudget = remainingBudget
+				if sharedIndex < #sharedGroupIndexes and unitsLeft > 0 then
+					groupBudget = mathFloor(remainingBudget * #group.unitIDs / unitsLeft)
+				end
+				local _, sharedOrders = assignUnitGroup(group.unitIDs, group.sharedTargets, false, groupBudget, true)
+				remainingBudget = remainingBudget - sharedOrders
+				unitsLeft = unitsLeft - #group.unitIDs
+				group.sharedOrders = sharedOrders
+			end
+			for groupIndex = 1, #moveDefGroups do
+				local group = moveDefGroups[groupIndex]
+				groupSummaryParts[#groupSummaryParts + 1] = group.moveDefName .. ":" .. #group.unitIDs .. ":" .. (group.reachableCount or 0) .. ":" .. (group.exclusiveCount or 0) .. ":" .. (group.exclusiveOrders or 0) .. ":" .. (group.sharedOrders or 0)
+			end
+			for unitIndex = 1, #selectedUnits do
+				local unitTargets = targetsByUnit[selectedUnits[unitIndex]]
+				if unitTargets and #unitTargets > 1 then
+					sortUnitTargets(selectedUnits[unitIndex], unitTargets)
+				end
+			end
+			moveDefSummary = table.concat(groupSummaryParts, " ")
+		else
+			local groupTrimmed = assignUnitGroup(selectedUnits, filteredTargets, needsReachability == true)
+			ordersWereTrimmed = groupTrimmed
 		end
 	end
-	local ordersWereTrimmed = trimUnitTargetsToBudget(targetsByUnit, selectedUnits, ORDER_BUDGET)
+	if trimUnitTargetsToBudget(targetsByUnit, selectedUnits, commandLimit) and not assignedByMoveDef then
+		ordersWereTrimmed = true
+	end
+	local totalAssignedOrders = 0
+	local assignedCounts = {}
+	for unitIndex = 1, unitCount do
+		local unitTargets = targetsByUnit[selectedUnits[unitIndex]]
+		local assignedCount = 0
+		if unitTargets then
+			assignedCount = #unitTargets
+		end
+		assignedCounts[unitIndex] = assignedCount
+		totalAssignedOrders = totalAssignedOrders + assignedCount
+	end
+	if assignedByMoveDef then
+		ordersWereTrimmed = totalAssignedOrders >= commandLimit and targetsLackOrders(targetsByUnit, selectedUnits, filteredTargets)
+		-- #region agent log
+		pcall(function()
+			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
+			if logFile then
+				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"move-def-split","hypothesisId":"move-def-categories","location":"cmd_screen_select_commands.lua:giveDistributedOrders","message":"move def groups","timestamp":%d,"data":{"summary":"%s","totalOrders":%d,"trimmed":%s,"moveTestCount":%d,"waterRejectCount":%d,"landSkipCount":%d}}\n', os.time() * 1000, moveDefSummary or "", totalAssignedOrders, ordersWereTrimmed and "true" or "false", reachabilityCache.moveTestCount or 0, reachabilityCache.waterRejectCount or 0, reachabilityCache.landSkipCount or 0))
+				logFile:close()
+			end
+		end)
+		spring.Echo("screen select movedefs", moveDefSummary, "total", totalAssignedOrders)
+		-- #endregion
+	end
+	spring.Echo("screen select units", unitCount, "full orders", unitCount * targetCount, "orders per unit", table.concat(assignedCounts, " "), "total orders", totalAssignedOrders)
 	for unitIndex = 1, unitCount do
 		local unitID = selectedUnits[unitIndex]
 		local unitTargets = targetsByUnit[unitID]
@@ -1186,9 +1457,33 @@ local function buildUnitDefMetadata()
 		commandCapabilities[CMD.RESURRECT] = unitDef.canResurrect and unitDef.resurrectSpeed > 0 or nil
 		commandCapabilities[CMD.REPAIR] = unitDef.canRepair and unitDef.repairSpeed > 0 or nil
 		commandCapabilities[CMD.CAPTURE] = unitDef.canCapture and unitDef.captureSpeed > 0 or nil
+		local moveDef = unitDef.moveDef
+		local speedClass = moveDef and moveDef.smClass
+		local hoverSpeedClass = Game.speedModClasses and Game.speedModClasses.Hover
+		local shipSpeedClass = Game.speedModClasses and Game.speedModClasses.Ship
+		local boatSpeedClass = Game.speedModClasses and Game.speedModClasses.Boat
+		local canFly = unitDef.canFly == true
+		local isHover = hoverSpeedClass ~= nil and speedClass == hoverSpeedClass
+		local isShip = (shipSpeedClass ~= nil and speedClass == shipSpeedClass) or (boatSpeedClass ~= nil and speedClass == boatSpeedClass)
+		local minWaterDepth = unitDef.minWaterDepth or 0
+		local moveWaterDepth = (moveDef and moveDef.depth) or unitDef.maxWaterDepth or 0
+		local moveDefName = moveDef and (moveDef.name or (moveDef.id and ("id:" .. moveDef.id)))
+		if not moveDefName then
+			if canFly then
+				moveDefName = "fly"
+			else
+				moveDefName = "unit:" .. unitDefID
+			end
+		end
 		unitDefMetadataByID[unitDefID] = {
 			commandCapabilities = commandCapabilities,
-			canFly = unitDef.canFly == true,
+			canFly = canFly,
+			isHover = isHover,
+			isShip = isShip,
+			moveDefName = moveDefName,
+			moveWaterDepth = moveWaterDepth,
+			minWaterDepth = minWaterDepth,
+			canWalkLand = canFly or isHover or (not isShip and minWaterDepth <= 0),
 			capturable = unitDef.capturable == true,
 			isScreenSelectBuilder = unitDef.isBuilder and unitDef.canRepair and not unitDef.isFactory,
 		}
@@ -1530,12 +1825,22 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	filteredTargets = filterTargetsInsideScreenCircle(filteredTargets, centerX, centerY, circleRadius)
 	local positionCache = {}
 	local reachabilityCache = {}
-	local useQueueEndReference = options.shift == true or queueEndByUnitID ~= nil
+	rememberLandMoveTestPolicy(selectedUnits, reachabilityCache)
+	local useQueueEndReference = options.shift == true
 	if useQueueEndReference then
 		seedUnitQueueEndPositions(selectedUnits, positionCache, queueEndByUnitID)
 	end
 	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
+		-- #region agent log
+		pcall(function()
+			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
+			if logFile then
+				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"water-gate","hypothesisId":"water-before-pathtest","location":"cmd_screen_select_commands.lua:issueMassOrdersFromTarget","message":"reachability prefilter","timestamp":%d,"data":{"waterRejectCount":%d,"moveTestCount":%d,"landSkipCount":%d,"skipLandMoveTests":%s,"remainingTargets":%d,"defSummary":"%s"}}\n', os.time() * 1000, reachabilityCache.waterRejectCount or 0, reachabilityCache.moveTestCount or 0, reachabilityCache.landSkipCount or 0, reachabilityCache.skipLandMoveTests and "true" or "false", #filteredTargets, reachabilityCache.defSummary or ""))
+				logFile:close()
+			end
+		end)
+		-- #endregion
 	end
 	local filteredTargetCount = #filteredTargets
 	if circleRadius then
@@ -1552,6 +1857,17 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 		removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
 	end
 	local ordersWereTrimmed = giveDistributedOrders(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, options.alt == true)
+	-- #region agent log
+	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
+		pcall(function()
+			local logFile = io.open("/home/sethdgamre/.var/app/info.beyondallreason.bar/data/games/BAR.sdd/.cursor/debug-6d7cbf.log", "a")
+			if logFile then
+				logFile:write(string.format('{"sessionId":"6d7cbf","runId":"water-gate","hypothesisId":"assignment-split","location":"cmd_screen_select_commands.lua:issueMassOrdersFromTarget","message":"reachability assigned","timestamp":%d,"data":{"waterRejectCount":%d,"moveTestCount":%d,"landSkipCount":%d,"skipLandMoveTests":%s,"defSummary":"%s"}}\n', os.time() * 1000, reachabilityCache.waterRejectCount or 0, reachabilityCache.moveTestCount or 0, reachabilityCache.landSkipCount or 0, reachabilityCache.skipLandMoveTests and "true" or "false", reachabilityCache.defSummary or ""))
+				logFile:close()
+			end
+		end)
+	end
+	-- #endregion
 	if ordersWereTrimmed then
 		showRangeReducedNotice(issueCommandID)
 	end
@@ -1796,6 +2112,16 @@ local function setDoubleClickRadiusFraction(value, showPreview)
 	end
 end
 
+local function setCommandLimit(value)
+	local numericValue = mathFloor(tonumber(value) or COMMAND_LIMIT_DEFAULT)
+	if numericValue < COMMAND_LIMIT_MIN then
+		numericValue = COMMAND_LIMIT_MIN
+	elseif numericValue > COMMAND_LIMIT_MAX then
+		numericValue = COMMAND_LIMIT_MAX
+	end
+	commandLimit = numericValue
+end
+
 local function registerScreenSelectCommandsApi()
 	WG["screenSelectCommands"] = {
 		getDoubleClickEnabled = function()
@@ -1810,6 +2136,10 @@ local function registerScreenSelectCommandsApi()
 			return doubleClickRadiusFraction
 		end,
 		setDoubleClickRadiusFraction = setDoubleClickRadiusFraction,
+		getCommandLimit = function()
+			return commandLimit
+		end,
+		setCommandLimit = setCommandLimit,
 	}
 end
 
@@ -2190,6 +2520,7 @@ function widget:GetConfigData()
 		doubleClickEnabled = doubleClickEnabled,
 		doubleRightClickDefaultCommandEnabled = doubleRightClickDefaultCommandEnabled,
 		doubleClickRadiusFraction = doubleClickRadiusFraction,
+		commandLimit = commandLimit,
 	}
 end
 
@@ -2202,5 +2533,8 @@ function widget:SetConfigData(data)
 	end
 	if data.doubleClickRadiusFraction ~= nil then
 		setDoubleClickRadiusFraction(data.doubleClickRadiusFraction, false)
+	end
+	if data.commandLimit ~= nil then
+		setCommandLimit(data.commandLimit)
 	end
 end

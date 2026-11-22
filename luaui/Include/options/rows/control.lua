@@ -284,7 +284,7 @@ return function(model)
 			type = "slider",
 			min = 0.125,
 			max = 1,
-			step = 0.025,
+			step = 0.005,
 			value = 0.25,
 			description = BAR.I18N("ui.settings.option.screen_select_double_click_radius_descr"),
 			widgetConfig = {
@@ -293,6 +293,26 @@ return function(model)
 				api = "screenSelectCommands",
 				get = "getDoubleClickRadiusFraction",
 				set = "setDoubleClickRadiusFraction",
+			},
+		},
+
+		{
+			id = "screen_select_command_limit",
+			group = "control",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.screen_select_command_limit"),
+			type = "slider",
+			min = 200,
+			max = 4000,
+			step = 100,
+			value = 1500,
+			description = BAR.I18N("ui.settings.option.screen_select_command_limit_descr"),
+			widgetConfig = {
+				"Screen Select Commands",
+				"commandLimit",
+				api = "screenSelectCommands",
+				get = "getCommandLimit",
+				set = "setCommandLimit",
 			},
 		},
 

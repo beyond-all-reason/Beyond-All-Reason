@@ -2161,6 +2161,8 @@
 				"screen_select_double_right_click_default_command_descr": "When no command is selected, double right-click mass-orders every matching target inside the circle. Off until enabled.",
 				"screen_select_double_click_radius": "Double-click Mass Order Radius",
 				"screen_select_double_click_radius_descr": "Radius of the circle around the click, as a fraction of the longer side of the screen. At 1 the whole screen is used instead of a circle. Drag the slider to see the circle.",
+				"screen_select_command_limit": "Mass Order Limit",
+				"screen_select_command_limit_descr": "Maximum orders one mass order may issue. Default 1500. Minimum 200, maximum 4000.",
 				"dragthreshold": "Drag threshold",
 				"dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
 				"crossalpha": "Cursor 'cross' alpha",
