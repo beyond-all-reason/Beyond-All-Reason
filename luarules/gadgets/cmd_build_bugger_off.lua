@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local math_abs = math.abs
-local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
@@ -61,8 +60,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			and unitDef.customParams.subfolder ~= "other/hats",
 		isBuilder = unitDef.isBuilder,
 		radius = unitDef.radius,
-		semiAxisX = unitDef.xsize * footprint * 0.5,
-		semiAxisZ = unitDef.zsize * footprint * 0.5,
+		semiAxisX = unitDef.xsize * Game.squareSize * 0.5,
+		semiAxisZ = unitDef.zsize * Game.squareSize * 0.5,
 	}
 end
 
@@ -99,33 +98,16 @@ local PATH_CLEAR_SEARCH_EXTRA = 3 * footprint
 local PATH_CLEAR_FORWARD_EXTRA = 2 * footprint
 local PATH_CLEAR_LATERAL_EXTRA = footprint
 
-local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
-	local sx = ux - tx
-	local sz = uz - tz
+local function isInRectangle(x, z, tx, tz, semiAxisX, semiAxisZ)
+	return math_abs(x - tx) <= semiAxisX and math_abs(z - tz) <= semiAxisZ
+end
 
-	-- If unit starts in area, allow to leave quickly; else, check over a long period.
-	local seconds = math_diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
-	local dx = ux + vx * seconds - tx
-	local dz = uz + vz * seconds - tz
-
-	if math_diag(dx, dz) <= maxDistance then
-		-- Unit ends within the area after `seconds`.
+local function willBeNearTarget(ux, uz, vx, vz, tx, tz, semiAxisX, semiAxisZ)
+	if isInRectangle(ux, uz, tx, tz, semiAxisX, semiAxisZ) then
 		return true
 	end
-
-	local ix = tx - ux
-	local iz = tz - uz
-
-	if math_diag(ix, iz) > maxDistance then
-		-- The unit starts within the area but does not end in it.
-		return false
-	else
-		-- Check whether or not the unit passes through the area.
-		local a = vx * vx + vz * vz
-		local b = (ix * vx + iz * vz) * 2
-		local c = ix * ix + iz * iz - maxDistance * maxDistance
-		return b * b - 4 * a * c >= 0
-	end
+	local frames = 2.25 * BUGGEROFF_LOOKAHEAD
+	return isInRectangle(ux + vx * frames, uz + vz * frames, tx, tz, semiAxisX, semiAxisZ)
 end
 
 local function isInTargetArea(unitID, x, z, radius)
@@ -259,7 +241,7 @@ function gadget:GameFrame(frame)
 	local deferSlowCount = 0
 
 	for builderID, _ in pairs(watchedBuilders) do
-		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
+		local cmdID, _, _, targetX, targetY, targetZ, targetFacing = spGetUnitCurrentCommand(builderID, 1)
 		local isBuilding = spGetUnitIsBuilding(builderID) ~= nil
 		local x, y, z = spGetUnitPosition(builderID)
 		local builderTeam = spGetUnitTeam(builderID)
@@ -315,6 +297,12 @@ function gadget:GameFrame(frame)
 				local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
 				local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
+				local buggerOffSemiAxisX = buildUnitDefData.semiAxisX + builderRadiusOffsets[builderID]
+				local buggerOffSemiAxisZ = buildUnitDefData.semiAxisZ + builderRadiusOffsets[builderID]
+				if targetFacing and targetFacing % 2 == 1 then
+					buggerOffSemiAxisX, buggerOffSemiAxisZ = buggerOffSemiAxisZ, buggerOffSemiAxisX
+				end
+
 				-- Make sure at least one builder per player is never told to move
 				if visitedTeams[builderTeam] == nil then
 					visitedTeams[builderTeam] = true
@@ -333,9 +321,21 @@ function gadget:GameFrame(frame)
 							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
 							if speedX then
 								local unitRadius = unitDefData.radius
-								local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
+								local areaSemiAxisX = buggerOffSemiAxisX + unitDefData.semiAxisX
+								local areaSemiAxisZ = buggerOffSemiAxisZ + unitDefData.semiAxisZ
 
-								if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+								if
+									willBeNearTarget(
+										unitX,
+										unitZ,
+										speedX,
+										speedZ,
+										targetX,
+										targetZ,
+										areaSemiAxisX,
+										areaSemiAxisZ
+									)
+								then
 									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
 									local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
 									local sendX, sendZ =
