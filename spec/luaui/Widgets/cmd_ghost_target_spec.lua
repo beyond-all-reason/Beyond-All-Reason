@@ -5,8 +5,6 @@ describe("Ghost Target single clicks", function()
 	local env = {}
 	---@type table[]
 	local orders = {}
-	---@type number[][]
-	local highlights = {}
 	---@type integer?
 	local command
 	---@type string
@@ -15,7 +13,7 @@ describe("Ghost Target single clicks", function()
 	local radarContact
 	local x, y, held, minimap, intercepted
 	before_each(function()
-		widget, orders, highlights = {}, {}, {}
+		widget, orders = {}, {}
 		radarContact = false
 		command, kind, x, y, held, minimap, intercepted = 20, "ghost", 100, 100, true, false, false
 		env = setmetatable({
@@ -34,9 +32,6 @@ describe("Ghost Target single clicks", function()
 			},
 			Spring = {
 				GetGhostPosition = function() end,
-				SetGhostHighlight = function(...)
-					highlights[#highlights + 1] = { ... }
-				end,
 				IsGUIHidden = function()
 					return false
 				end,
@@ -55,10 +50,10 @@ describe("Ghost Target single clicks", function()
 				TraceScreenRay = function(...)
 					assert.is_true(select(8, ...) == true)
 					if radarContact then
-						return "unit", 321, { 110, 80, 105 }
+						return "unit", 321, 57
 					end
 					if kind == "ghost" then
-						return kind, 57, { 110, 80, 105 }
+						return kind, 57
 					end
 					return kind, 123
 				end,
@@ -112,6 +107,8 @@ describe("Ghost Target single clicks", function()
 		assert.is_true(click())
 		assert.same({ 34926, { 57 }, 32 }, orders[1])
 		radarContact = true
+		local _, _, ghostID = env.Spring.TraceScreenRay(x, y, false, false, false, false, 0, true)
+		assert.equals(57, ghostID)
 		assert.is_true(click())
 		assert.same({ 20, { 321 }, 32 }, orders[2])
 	end)
@@ -150,42 +147,82 @@ describe("Ghost Target single clicks", function()
 		widget:Update()
 		assert.is_false(widget:CommandNotify(command, { 100, 0, 100 }, {}))
 	end)
-	it("highlights the same frozen aimpoint for attack and set target before clicking", function()
+	it("draws only the hovered sighting for Attack and Set Target, including on radar", function()
+		local hover = {}
+		local draws = 0
+		local registrations = {}
+		env.widgetHandler.UpdateCallIn = function(_, name)
+			assert.equals("DrawGhost", name)
+			table.insert(registrations, "add")
+		end
+		env.widgetHandler.RemoveCallIn = function(_, name)
+			assert.equals("DrawGhost", name)
+			table.insert(registrations, "remove")
+		end
+		env.widget = hover
+		env.GL = {}
+		env.VFS = {
+			LoadFile = function()
+				return ""
+			end,
+		}
+		env.Spring.GetGameFrame = function()
+			return 1
+		end
+		env.Spring.GetFrameTimeOffset = function()
+			return 0
+		end
+		env.gl = setmetatable({
+			CreateShader = function()
+				return 1
+			end,
+			GetSun = function()
+				return 1, 1, 1
+			end,
+			GhostRaw = function()
+				draws = draws + 1
+			end,
+		}, {
+			__index = function()
+				return function() end
+			end,
+		})
+		local chunk = assert(loadfile("luaui/Widgets/gfx_ghost_hover.lua"))
+		setfenv(chunk, env)
+		chunk()
+		hover:Initialize()
 		held = false
+		local info = { ghostID = 57, teamColor = { 1, 1, 1, 1 } }
 		for _, id in ipairs({ 20, 34923, 34924 }) do
 			command = id
-			widget:Update()
-			assert.same({ 110, 80, 105 }, highlights[#highlights])
+			for _, radar in ipairs({ false, true }) do
+				radarContact = radar
+				hover:Update()
+				assert.is_true(hover:DrawGhost(info))
+				assert.is_false(hover:DrawGhost({ ghostID = 321 }))
+			end
 		end
-	end)
-	it("clears the highlight on non-ghosts, cancelled commands, minimap, and shutdown", function()
-		held = false
-		widget:Update()
-		kind = "unit"
-		widget:Update()
-		assert.same({}, highlights[#highlights])
-		kind = "ghost"
-		command = nil
-		widget:Update()
-		assert.same({}, highlights[#highlights])
+		radarContact, kind = false, "unit"
+		hover:Update()
+		assert.is_false(hover:DrawGhost(info))
+		kind, minimap = "ghost", true
+		hover:Update()
+		assert.is_false(hover:DrawGhost(info))
+		minimap, command = false, nil
+		hover:Update()
+		assert.is_false(hover:DrawGhost(info))
 		command = 20
-		minimap = true
-		widget:Update()
-		assert.same({}, highlights[#highlights])
-		widget:Shutdown()
-		assert.same({}, highlights[#highlights])
+		hover:Update()
+		assert.same({ "remove", "add" }, registrations)
+		assert.equals(6, draws)
 	end)
 
-	it("uses the radar unit target for remembered-model clicks and still highlights its snapshot", function()
+	it("uses the radar unit target for remembered-model clicks", function()
 		radarContact = true
 		for _, id in ipairs({ 20, 34923, 34924 }) do
 			command = id
 			assert.is_true(click())
 			assert.same({ id, { 321 }, 32 }, orders[#orders])
 		end
-		held = false
-		widget:Update()
-		assert.same({ 110, 80, 105 }, highlights[#highlights])
 	end)
-
 end)

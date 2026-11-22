@@ -14,7 +14,6 @@ end
 
 local getGhostPosition = Spring.GetGhostPosition
 local press
-local setGhostHighlight = Spring.SetGhostHighlight
 local commands = {
 	[CMD.ATTACK] = true,
 	[GameCMD.UNIT_SET_TARGET] = true,
@@ -43,35 +42,7 @@ local function traceTarget(x, y)
 	return traceScreenRay(x, y, false, false, false, false, 0, true)
 end
 
-function widget:Shutdown()
-	if setGhostHighlight then
-		setGhostHighlight()
-	end
-end
-
 function widget:Update()
-	if setGhostHighlight then
-		local x, y, left, middle, _, offscreen, panning = Spring.GetMouseState()
-		local _, command = Spring.GetActiveCommand()
-		local aim
-		if
-			commands[command]
-			and not (left or middle or offscreen or panning)
-			and not Spring.IsGUIHidden()
-			and not Spring.IsAboveMiniMap(x, y)
-			and widgetHandler:ModalAllows(self)
-		then
-			local kind, _, ghostAimPos = traceTarget(x, y)
-			if kind == "ghost" or kind == "unit" then
-				aim = ghostAimPos
-			end
-		end
-		if aim then
-			setGhostHighlight(aim[1], aim[2], aim[3])
-		else
-			setGhostHighlight()
-		end
-	end
 	if not press then
 		return
 	end
@@ -96,7 +67,7 @@ function widget:CommandNotify(command, params, options)
 	if Spring.IsAboveMiniMap(x, y) or (x - click.x) ^ 2 + (y - click.y) ^ 2 > threshold ^ 2 then
 		return false
 	end
-	local kind, target, ghostAimPos = traceTarget(x, y)
+	local kind, target, radarGhostID = traceTarget(x, y)
 	---@type CreateCommandParams
 	local replacementParams
 	if kind == "ghost" and target and target ~= 0 then
@@ -104,7 +75,7 @@ function widget:CommandNotify(command, params, options)
 		replacementParams = {
 			target --[[@as integer]],
 		}
-	elseif kind == "unit" and ghostAimPos then
+	elseif kind == "unit" and radarGhostID then
 		replacementParams = {
 			target --[[@as UnitID]],
 		}

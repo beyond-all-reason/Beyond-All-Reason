@@ -361,6 +361,7 @@ local callInLists = {
 	-- Unsynced CallIns
 	"Update",
 	"DefaultCommand",
+	"DrawGhost",
 	"DrawGenesis",
 	"DrawWorld",
 	"DrawWorldPreUnit",
@@ -414,6 +415,7 @@ local callInLists = {
 
 local headlessDisabledCallIns = {
 	DrawProjectile = true,
+	DrawGhost = true,
 	ViewResize = true,
 	DrawGenesis = true,
 	DrawWorld = true,
@@ -2777,6 +2779,16 @@ end
 function gadgetHandler:CommandNotify(id, params, options)
 	for _, g in ipairs(self.CommandNotifyList) do
 		if g:CommandNotify(id, params, options) then
+			return true
+		end
+	end
+	return false
+end
+
+function gadgetHandler:DrawGhost(info)
+	local list = self.DrawGhostList
+	for i = #list, 1, -1 do
+		if list[i]:DrawGhost(info) then
 			return true
 		end
 	end

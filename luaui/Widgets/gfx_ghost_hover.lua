@@ -7,6 +7,7 @@ function widget:GetInfo()
 		author = "BAR contributors",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
+		handler = true,
 		enabled = true,
 	}
 end
@@ -47,15 +48,66 @@ function widget:Initialize()
 	end
 end
 
+local hoverCommands = {
+	[CMD.ATTACK] = true,
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
+---@type integer?
+local hoveredGhostID
+
+local function getHoveredGhost()
+	local _, command = Spring.GetActiveCommand()
+	if not hoverCommands[command] then
+		return
+	end
+	local x, y, left, middle, _, offscreen, panning = Spring.GetMouseState()
+	if
+		left
+		or middle
+		or offscreen
+		or panning
+		or Spring.IsGUIHidden()
+		or Spring.IsAboveMiniMap(x, y)
+		or not widgetHandler:ModalAllows(widget)
+	then
+		return
+	end
+	local trace = Spring.TraceScreenRay ---@type GhostTraceScreenRay
+	local kind, target, radarGhostID = trace(x, y, false, false, false, false, 0, true)
+	if kind == "ghost" then
+		return target --[[@as integer]]
+	elseif kind == "unit" then
+		return radarGhostID
+	end
+end
+
+-- The handler registers DrawGhost when it inserts the widget.
+local drawActive = true
+function widget:Update()
+	hoveredGhostID = getHoveredGhost()
+	local active = hoveredGhostID ~= nil
+	if active == drawActive then
+		return
+	end
+	drawActive = active
+	if active then
+		widgetHandler:UpdateCallIn("DrawGhost")
+	else
+		widgetHandler:RemoveCallIn("DrawGhost")
+	end
+end
+
 ---@param info GhostDrawInfo
 ---@return boolean
 function widget:DrawGhost(info)
-	if not shader or (info.state ~= "ghostHighlight" and info.state ~= "radarGhostHighlight") then
+	if not shader or info.ghostID ~= hoveredGhostID then
 		return false
 	end
 	gl.UseShader(shader)
 	gl.UniformMatrix(uniforms.viewInverse, "viewinverse")
-	gl.Uniform(uniforms.ghostColor, info.color[1], info.color[2], info.color[3], info.color[4])
+	gl.Uniform(uniforms.ghostColor, 1.0, 0.85, 0.45, 0.55)
 	gl.Uniform(uniforms.teamColor, info.teamColor[1], info.teamColor[2], info.teamColor[3], info.teamColor[4])
 	local sunDirX, sunDirY, sunDirZ = gl.GetSun("pos", "unit")
 	gl.Uniform(uniforms.sunDir, assert(sunDirX), assert(sunDirY), assert(sunDirZ))
