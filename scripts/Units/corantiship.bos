@@ -107,7 +107,6 @@ Create()
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
-	start-script Activate();
 }
 
 Activate()
