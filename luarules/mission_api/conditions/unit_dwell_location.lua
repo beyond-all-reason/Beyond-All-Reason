@@ -13,6 +13,10 @@ return {
 	callins = {
 		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.
 		GameFrame = function(trigger, triggerID, context, frameNumber)
+			if trigger.triggered and not trigger.settings.repeating then
+				context.DwellingUnitsInAreas[triggerID] = nil
+				return
+			end
 			local dwellingUnits = context.DwellingUnitsInAreas[triggerID]
 			if not dwellingUnits then
 				return
@@ -29,6 +33,9 @@ return {
 			end
 		end,
 		UnitsEnteredArea = function(trigger, triggerID, context, unitIDs)
+			if trigger.triggered and not trigger.settings.repeating then
+				return
+			end
 			local parameters = trigger.parameters
 			local dwellingUnits = table.ensureTable(context.DwellingUnitsInAreas, triggerID)
 			local frameNumber = Spring.GetGameFrame()
