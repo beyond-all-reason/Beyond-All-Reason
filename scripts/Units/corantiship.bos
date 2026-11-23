@@ -59,10 +59,6 @@ OpenAnim()
 
 CloseAnim()
 {
-	if (Stunned) {
-		return (1);
-	}
-	set-signal-mask 0;
 	move dtl to x-axis [0] speed [5];
 	move dbl to x-axis [0] speed [5];
 	move dtr to x-axis [0] speed [5];
@@ -72,9 +68,9 @@ CloseAnim()
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	start-script RequestClose();
 }
 SetStunned(State)
