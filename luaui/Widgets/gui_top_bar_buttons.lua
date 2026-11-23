@@ -39,9 +39,10 @@ local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numPlayers = BAR.Utilities.GetPlayerCount()
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local _modOpts = Spring.GetModOptions()
-local canOptIntoFullView = Spring.CanOptIntoFullView or function()
-	return _modOpts.restrictedspectators == "optin" and not Spring.CanSpectateAllTeams()
-end
+local canOptIntoFullView = Spring.CanOptIntoFullView
+	or function()
+		return _modOpts.restrictedspectators == "optin" and not Spring.CanSpectateAllTeams()
+	end
 local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
 local gameStarted = (Spring.GetGameFrame() > 0)
