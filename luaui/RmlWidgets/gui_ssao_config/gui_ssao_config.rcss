@@ -1,0 +1,97 @@
+body {
+	pointer-events: none;
+}
+
+.ssao-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 55vw;
+	top: 8vh;
+	width: 470dp;
+	max-width: 90vw;
+	max-height: 86vh;
+	overflow-y: auto;
+	font-size: 1.15rem;
+}
+
+.ssao-handle {
+	cursor: move;
+	flex: 1;
+	padding: 6dp 0;
+	font-size: 1.5rem;
+}
+
+.ssao-button {
+	padding: 5dp 10dp;
+	border-width: 1dp;
+	font-size: 1.15rem;
+	cursor: pointer;
+}
+
+.ssao-button:hover, .ssao-button:focus {
+	border-width: 2dp;
+}
+
+.ssao-preset {
+	width: 110dp;
+	flex: 0 0 110dp;
+	padding: 5dp;
+	border-width: 1dp;
+}
+
+/* Native select/range parts cannot receive the palette utility classes. */
+.ssao-preset selectvalue, .ssao-preset selectbox {
+	background-color: #282828;
+	color: #e5e7eb;
+}
+
+.ssao-preset option:hover {
+	background-color: #4a4a4a;
+}
+
+.ssao-preset selectarrow {
+	border-color: #e5e7eb;
+}
+
+.ssao-rows {
+	max-height: 56vh;
+	overflow-y: auto;
+	padding-right: 8dp;
+}
+
+.ssao-tooltip {
+	font-size: 1rem;
+	margin: 3dp 0;
+}
+
+.ssao-slider {
+	width: 100%;
+	height: 18dp;
+	margin-top: 3dp;
+}
+
+.ssao-slider slidertrack {
+	height: 4dp;
+	margin-top: 7dp;
+	background-color: #060606;
+}
+
+.ssao-slider sliderbar {
+	width: 12dp;
+	height: 18dp;
+	background-color: #06b6d4;
+	border-radius: 3dp;
+}
+
+.ssao-slider sliderbar:hover, .ssao-slider:focus sliderbar {
+	background-color: #e5e7eb;
+}
+
+.ssao-limits {
+	font-size: 1rem;
+	margin-top: 3dp;
+}
+
+.ssao-feedback {
+	min-height: 18dp;
+}

@@ -1,0 +1,45 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="gui_ssao_config.rcss" />
+</head>
+<body data-model="ssao_config_model" class="text-light">
+	<div id="ssao-root" class="ssao-root widget-shadow rounded-md bg-darkest p-3">
+		<div class="flex flex-row items-center justify-between mb-2">
+			<div id="ssao-handle" class="ssao-handle text-xl font-bold">SSAO Configurator</div>
+			<button class="ssao-button bg-darker border-dark rounded-md" data-event-click="onClose()">Close</button>
+		</div>
+		<div data-if="!available" class="text-warning mb-2">SSAO is unavailable. Enable the SSAO widget first. Unsupported GPUs cannot run SSAO.</div>
+		<div data-if="available">
+			<div class="flex flex-row items-center gap-2 mb-2">
+				<div>Quality preset</div>
+				<select class="ssao-preset bg-darker border-dark rounded-md" data-event-mousedown="onPresetActivate()" data-event-keydown="onPresetActivate()" data-event-blur="onPresetBlur()" data-event-change="onPreset()">
+					<option data-for="preset : presets" data-attr-value="preset.id" data-attrif-selected="preset.selected">{{preset.label}}</option>
+				</select>
+				<button class="ssao-button bg-darker border-dark rounded-md" data-event-click="onReset()">Reset tuning</button>
+			</div>
+			<div class="text-medium mb-2">Changes apply live and are saved. Reset restores defaults plus the selected preset.</div>
+			<div class="ssao-rows">
+				<div data-for="row : rows" class="ssao-row bg-darker rounded-md p-2 mb-1">
+					<div class="flex flex-row justify-between gap-2">
+						<div class="font-bold">{{row.name}}</div>
+						<div class="text-info">{{row.formatted}}</div>
+					</div>
+					<div class="ssao-tooltip text-medium">{{row.tooltip}}</div>
+					<input type="range" class="ssao-slider bg-dark" data-attr-min="row.min" data-attr-max="row.max" data-attr-step="row.step" data-attr-value="row.sliderValue"
+						data-event-mousedown="onSliderPress(row.name)" data-event-keydown="onSliderKey(row.name)" data-event-blur="onSliderBlur()" data-event-change="onParameter(row.name)" />
+					<div class="ssao-limits flex flex-row justify-between text-medium">
+						<div>{{row.minimum}}</div>
+						<div>{{row.maximum}}</div>
+					</div>
+				</div>
+			</div>
+			<div class="ssao-feedback text-info mt-2">{{editing}}</div>
+		</div>
+		<div data-if="error != ''" class="text-danger mt-1">{{error}}</div>
+		<div class="text-medium mt-1">Close / Escape to hide. /ssaoconfig to reopen.</div>
+	</div>
+</body>
+</rml>

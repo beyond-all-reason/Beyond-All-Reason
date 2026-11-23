@@ -100,8 +100,8 @@ void main(void)
 
 
 			vec4 leftSample = textureLod( tex, uvP, 0.0 );
-			float zclosel = step(abs(myDistance - leftSample.z), ZTHRESHOLD);
-			float dotclosel = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(leftSample.xy)));
+			float zclosel = step(abs(myDistance - leftSample.z), float(ZTHRESHOLD));
+			float dotclosel = smoothstep(float(MINCOSANGLE), 1.0, dot(myNormal.xy, NORM2SNORM(leftSample.xy)));
 			dotclosel = max(dotclosel, imground);
 			float leftWeight = weightP * dotclosel * zclosel;
 			weightSum += leftWeight;
@@ -109,8 +109,8 @@ void main(void)
 			unWeighted += weightP * leftSample.a;
 
 			vec4 rightSample = textureLod( tex, uvN, 0.0 );
-			float zcloser = step(abs(myDistance - rightSample.z), ZTHRESHOLD);
-			float dotcloser = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(rightSample.xy)));
+			float zcloser = step(abs(myDistance - rightSample.z), float(ZTHRESHOLD));
+			float dotcloser = smoothstep(float(MINCOSANGLE), 1.0, dot(myNormal.xy, NORM2SNORM(rightSample.xy)));
 			dotcloser = max(dotcloser, imground);
 			float rightWeight = weightN * dotcloser * zcloser;
 			weightSum += rightWeight;
@@ -120,7 +120,7 @@ void main(void)
 
 		howLit = howLit / weightSum;		
 		if (weightSum < (weights[0] + MINSELFWEIGHT) ){
-			howLit = mix(howLit,unWeighted, OUTLIERCORRECTIONFACTOR);
+			howLit = mix(howLit,unWeighted, float(OUTLIERCORRECTIONFACTOR));
 
 		};
 		//if (imground > 0.5) {howLit = unWeighted;}
@@ -129,7 +129,7 @@ void main(void)
 		// FINAL MIXDOWN, vert pass last
 		if (dir.y > 0.5) { 
 			if (imground > 0.5) howLit = howLit * howLit;
-			howLit = pow(howLit, BLUR_POWER);
+			howLit = pow(howLit, float(BLUR_POWER));
 			howLit = sqrt(howLit * howLit + BLUR_CLAMP);
 			#if DEBUG_BLUR == 1 
 				fragColor.rgba = vec4(howLit);
@@ -138,7 +138,7 @@ void main(void)
 				#if (BRIGHTEN != 0) 
 					if (imground < 0.5) {  // is model fragment
 						float distRatio = SSAO_FADE_DIST_1/(1.0 * SSAO_FADE_DIST_0);
-						float distFactor = 1.0 - smoothstep(0, distRatio, myDistance - distRatio ); // 0 at far distance, 1 at near distance
+						float distFactor = 1.0 - smoothstep(0.0, distRatio, myDistance - distRatio ); // 0 at far distance, 1 at near distance
 
 						float brightenFactor = (BRIGHTEN/255.0) * howLit * distFactor;
 						fragColor.rgb = vec3(brightenFactor);

@@ -226,7 +226,7 @@ void main() {
 			float myraylen = 1;//1.3 - dot(viewSampleVector, viewSampleVector); // 1-0;
 
 			// smaller delta hits should occlude less
-			float occlDelta = smoothstep(0,1,delta);
+			float occlDelta = smoothstep(0.0,1.0,delta);
 
 			// hits further than the rays length shouldn't occlude either
 
@@ -247,7 +247,7 @@ void main() {
 
 		float fullylit = clamp(1.0 - occlusion, 0.0, 1.0);
 
-		fullylit = pow(fullylit, SSAO_OCCLUSION_POWER);
+		fullylit = pow(fullylit, float(SSAO_OCCLUSION_POWER));
 
 		// Jimenez multi-bounce AO approximation (Activision GDC 2016, "Practical Realtime Strategies for
 		// Accurate Indirect Occlusion"). Pre-baked for an average albedo of 0.95 since this widget outputs

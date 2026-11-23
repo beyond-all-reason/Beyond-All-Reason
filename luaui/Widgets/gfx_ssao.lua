@@ -145,7 +145,7 @@ local definesSlidersParamsList = {
 		name = "SSAO_FADE_DIST_1",
 		default = 1200,
 		min = 200,
-		max = 3000,
+		max = 4500,
 		digits = 1,
 		tooltip = "near distance for max SSAO",
 	},
@@ -153,7 +153,7 @@ local definesSlidersParamsList = {
 		name = "SSAO_FADE_DIST_0",
 		default = 2400,
 		min = 1000,
-		max = 4000,
+		max = 9000,
 		digits = 1,
 		tooltip = "far distance for min SSAO",
 	},
@@ -227,7 +227,14 @@ local definesSlidersParamsList = {
 		digits = 0,
 		tooltip = "USE_STENCIL set to zero if you don't wanna",
 	},
-	{ name = "DOWNSAMPLE", default = 1, min = 1, max = 2, digits = 0, tooltip = "Set to 2 for half-rez buffers" },
+	{
+		name = "DOWNSAMPLE",
+		default = 1,
+		min = 1,
+		max = 3,
+		digits = 0,
+		tooltip = "Buffer resolution divisor (1 = full, 2 = half, 3 = third)",
+	},
 	{ name = "ENABLE", default = 1, min = 0, max = 1, digits = 0, tooltip = "Disable the whole SSAO" },
 	{
 		name = "SLOWFUSE",
@@ -251,30 +258,32 @@ local function InitShaderDefines()
 end
 InitShaderDefines()
 
-local function shaderDefinesChangedCallback(name, value, index, oldvalue)
-	--spEcho("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
-	if value ~= oldvalue then
-		widget:ViewResize()
+local configOverrides = {}
+local configRevision = 0
+local configRebuildPending = false
+
+local function SetParameter(name, value)
+	for _, parameter in ipairs(definesSlidersParamsList) do
+		if parameter.name == name then
+			value = tonumber(value)
+			if not value or value ~= value or value == math.huge or value == -math.huge then
+				spEcho("[SSAO] Invalid value for " .. name)
+				return nil
+			end
+			local scale = 10 ^ parameter.digits
+			value = math.max(parameter.min, math.min(parameter.max, math.floor(value * scale + 0.5) / scale))
+			if shaderConfig[name] ~= value then
+				shaderConfig[name] = value
+				configOverrides[name] = value
+				configRevision = configRevision + 1
+				configRebuildPending = true
+			end
+			return value
+		end
 	end
+	spEcho("[SSAO] Unknown parameter: " .. tostring(name))
+	return nil
 end
-
-local vsx, _ = spGetViewGeometry()
-
-local shaderDefinedSliders = {
-	windowtitle = "SSAO Defines",
-	name = "SSAOParams",
-	left = vsx - 540,
-	bottom = 200,
-	right = vsx - 540 + 250,
-	sliderheight = 20,
-	valuetarget = shaderConfig,
-	sliderParamsList = definesSlidersParamsList,
-	callbackfunc = shaderDefinesChangedCallback,
-}
-shaderDefinedSliders.top = shaderDefinedSliders.bottom
-	+ shaderDefinedSliders.sliderheight * (#definesSlidersParamsList + 3)
-
-local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
 local cusMult = 1.4
 local strengthMult = 1
@@ -383,6 +392,7 @@ local gaussianBlurShader
 local ssaoShaderCache
 local gbuffFuseShaderCache
 local gaussianBlurShaderCache
+local shadersReady = false
 
 local texrectShader = nil
 local ssaoCompositeShader = nil -- final composite (depth-rejects grass/decals via gl_FragDepth + LEQUAL)
@@ -517,7 +527,7 @@ local function GetSamplingVectorArray(kernelSize)
 			local l = mathSqrt(x * x + y * y + z * z) --norm
 			x, y, z = x / l, y / l, z / l --normalize
 
-			local scale = i / (kernelSize - 1)
+			local scale = i / math.max(1, kernelSize - 1)
 			--scale = scale * scale -- shift most samples closer to the origin
 			scale = math.pow(scale, shaderConfig.SSAO_RANDOM_LENGTH)
 			scale = math.clamp(scale, 0.2, 1.0) --clamp
@@ -598,11 +608,21 @@ local function SetBlurUniforms(shader, weights, offsets, strength)
 	shader:SetUniformFloatAlways("strengthMult", strength)
 end
 
+local function CompileShader(cache)
+	local shader = LuaShader.CheckShaderUpdates(cache)
+	if not shader then
+		spEcho("[SSAO] Failed to compile " .. cache.shaderName .. "; disabling SSAO")
+		widgetHandler:RemoveWidget(widget)
+	end
+	return shader
+end
+
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
 
 local function InitGL()
+	shadersReady = false
 	local canContinue = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
 
 	if not canContinue then
@@ -734,7 +754,10 @@ local function InitGL()
 		shaderName = widgetName .. " G-buffer Fuse",
 	}
 
-	gbuffFuseShader = LuaShader.CheckShaderUpdates(gbuffFuseShaderCache)
+	gbuffFuseShader = CompileShader(gbuffFuseShaderCache)
+	if not gbuffFuseShader then
+		return
+	end
 
 	ssaoShaderCache = {
 		vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
@@ -757,7 +780,10 @@ local function InitGL()
 		shaderName = widgetName .. " SSAO",
 	}
 
-	ssaoShader = LuaShader.CheckShaderUpdates(ssaoShaderCache)
+	ssaoShader = CompileShader(ssaoShaderCache)
+	if not ssaoShader then
+		return
+	end
 
 	ssaoShader:ActivateWith(function()
 		local samplingKernel = GetSamplingVectorArray(shaderConfig.SSAO_KERNEL_SIZE)
@@ -785,7 +811,10 @@ local function InitGL()
 		shaderName = widgetName .. " gaussianBlur",
 	}
 
-	gaussianBlurShader = LuaShader.CheckShaderUpdates(gaussianBlurShaderCache)
+	gaussianBlurShader = CompileShader(gaussianBlurShaderCache)
+	if not gaussianBlurShader then
+		return
+	end
 
 	local gaussWeights, gaussOffsets =
 		GetGaussLinearWeightsOffsets(shaderConfig.BLUR_SIGMA, shaderConfig.BLUR_HALF_KERNEL_SIZE, 1.0)
@@ -818,12 +847,15 @@ local function InitGL()
 			shaderConfig = blurCompositeConfig,
 			shaderName = widgetName .. ": blur composite",
 		}
-		local shader = LuaShader.CheckShaderUpdates(blurCompositeShaderCache)
+		local shader = CompileShader(blurCompositeShaderCache)
+		if not shader then
+			return
+		end
 		shader:ActivateWith(SetBlurUniforms, shader, gaussWeights, gaussOffsets, strengthMultCached)
 		blurCompositeShader = shader
 	end
 
-	texrectShader = LuaShader.CheckShaderUpdates({
+	texrectShader = CompileShader({
 		vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
 		fssrcpath = shadersDir .. "texrect_screen.frag.glsl",
 		uniformInt = {
@@ -836,6 +868,9 @@ local function InitGL()
 		shaderConfig = {},
 		shaderName = widgetName .. ": texrect",
 	})
+	if not texrectShader then
+		return
+	end
 
 	-- SSAO final composite shader. Always used. Combines:
 	--   * (optional) joint-bilateral upsample for half-res SSAO
@@ -857,7 +892,10 @@ local function InitGL()
 		shaderConfig = compositeConfig,
 		shaderName = widgetName .. ": SSAO composite",
 	}
-	ssaoCompositeShader = LuaShader.CheckShaderUpdates(ssaoCompositeShaderCache)
+	ssaoCompositeShader = CompileShader(ssaoCompositeShaderCache)
+	if not ssaoCompositeShader then
+		return
+	end
 
 	tileVAO, numTiles = nil, 0
 	if tiles then
@@ -871,9 +909,11 @@ local function InitGL()
 		1.0 - shaderConfig.TEXPADDINGX / shaderConfig.VSX,
 		1.0 - shaderConfig.TEXPADDINGY / shaderConfig.VSY
 	)
+	shadersReady = true
 end
 
 local function CleanGL()
+	shadersReady = false
 	gl.DeleteTexture(ssaoTex)
 	if gbuffFuseViewPosTex then
 		gl.DeleteTexture(gbuffFuseViewPosTex)
@@ -886,10 +926,22 @@ local function CleanGL()
 	end
 	gl.DeleteFBO(ssaoBlurFBO)
 
-	ssaoShader:Finalize()
-	gbuffFuseShader:Finalize()
-	gaussianBlurShader:Finalize()
-	texrectShader:Finalize()
+	if ssaoShader then
+		ssaoShader:Finalize()
+		ssaoShader = nil
+	end
+	if gbuffFuseShader then
+		gbuffFuseShader:Finalize()
+		gbuffFuseShader = nil
+	end
+	if gaussianBlurShader then
+		gaussianBlurShader:Finalize()
+		gaussianBlurShader = nil
+	end
+	if texrectShader then
+		texrectShader:Finalize()
+		texrectShader = nil
+	end
 	if ssaoCompositeShader then
 		ssaoCompositeShader:Finalize()
 		ssaoCompositeShader = nil
@@ -916,31 +968,79 @@ end
 
 function widget:Initialize()
 	WG.ssao = {}
+	WG.ssao.getParameters = function()
+		local parameters = {}
+		for i, parameter in ipairs(definesSlidersParamsList) do
+			parameters[i] = {}
+			for key, value in pairs(parameter) do
+				parameters[i][key] = value
+			end
+		end
+		return parameters
+	end
+	WG.ssao.getConfiguration = function()
+		local configuration = {}
+		for _, parameter in ipairs(definesSlidersParamsList) do
+			configuration[parameter.name] = shaderConfig[parameter.name]
+		end
+		return configuration
+	end
+	WG.ssao.getConfigurationRevision = function()
+		return configRevision
+	end
+	WG.ssao.getPresets = function()
+		return { "Low", "Medium", "High" }
+	end
+	WG.ssao.setParameter = SetParameter
+	WG.ssao.resetConfiguration = function()
+		for _, parameter in ipairs(definesSlidersParamsList) do
+			shaderConfig[parameter.name] = parameter.default
+		end
+		ActivatePreset(preset)
+		configOverrides = {}
+		configRevision = configRevision + 1
+		configRebuildPending = true
+	end
 	WG.ssao.getPreset = function()
 		return preset
 	end
 	WG.ssao.setPreset = function(value)
+		value = tonumber(value)
+		if not value or not presets[value] then
+			spEcho("[SSAO] Invalid preset: " .. tostring(value))
+			return false
+		end
 		preset = value
 		InitShaderDefines()
 		ActivatePreset(preset)
+		for name in pairs(presets[preset]) do
+			configOverrides[name] = nil
+		end
+		configRevision = configRevision + 1
+		configRebuildPending = false
 		CleanGL()
 		InitGL()
+		return true
 	end
 	WG.ssao.getStrength = function()
 		return shaderConfig.SSAO_ALPHA_POW
 	end
 	WG.ssao.setStrength = function(value)
-		shaderConfig.SSAO_ALPHA_POW = value
-		CleanGL()
-		InitGL()
+		if SetParameter("SSAO_ALPHA_POW", value) then
+			configRebuildPending = false
+			CleanGL()
+			InitGL()
+		end
 	end
 	WG.ssao.getRadius = function()
 		return shaderConfig.SSAO_RADIUS
 	end
 	WG.ssao.setRadius = function(value)
-		shaderConfig.SSAO_RADIUS = value
-		CleanGL()
-		InitGL()
+		if SetParameter("SSAO_RADIUS", value) then
+			configRebuildPending = false
+			CleanGL()
+			InitGL()
+		end
 	end
 
 	InitGL()
@@ -948,6 +1048,11 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if configRebuildPending then
+		configRebuildPending = false
+		CleanGL()
+		InitGL()
+	end
 	sec = sec + dt
 	if sec > 1 then
 		sec = 0
@@ -972,11 +1077,7 @@ function widget:Shutdown()
 		Spring.SendCommands("luarules updatesun")
 	end
 
-	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then
-		shaderDefinedSlidersLayer:Destroy()
-	end
-	--if shaderDefinedSlidersWindow and shaderDefinedSlidersWindow.Destroy then shaderDefinedSlidersWindow:Destroy() end
-
+	WG.ssao = nil
 	CleanGL()
 end
 
@@ -1143,7 +1244,7 @@ local function DoDrawSSAO()
 end
 
 function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
-	if shaderConfig.ENABLE == 0 then
+	if not shadersReady or shaderConfig.ENABLE == 0 then
 		return
 	end
 	if drawAboveWater and not drawReflection and not drawRefraction then
@@ -1152,26 +1253,16 @@ function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflec
 end
 
 function widget:GetConfigData(data)
+	local parameters = {}
+	for name, value in pairs(configOverrides) do
+		parameters[name] = value
+	end
 	return {
 		strength = shaderConfig.SSAO_ALPHA_POW,
 		radius = shaderConfig.SSAO_RADIUS,
 		preset = preset,
+		parameters = parameters,
 	}
-end
-
-local lastfps = Spring.GetFPS()
-function widget:DrawScreen()
-	if shaderDefinedSlidersLayer then
-		local newfps = Spring.GetFPS()
-		if ssaoShaderCache.updateFlag then
-			ssaoShaderCache.updateFlag = nil
-			lastfps = newfps
-		end
-		local totaldrawus = (1000 / newfps)
-		local lastdelta = (1000 / lastfps - 1000 / newfps)
-
-		gl.Text(string.format("SSAO total %.3f ms delta %.3f ms", totaldrawus, lastdelta), vsx - 600, 20, 16, "do")
-	end
 end
 
 function widget:SetConfigData(data)
@@ -1182,13 +1273,27 @@ function widget:SetConfigData(data)
 		shaderConfig.SSAO_RADIUS = data.radius
 	end
 	if data.preset ~= nil then
-		preset = data.preset
-		if preset > 3 then
-			preset = 3
+		local savedPreset = tonumber(data.preset)
+		if savedPreset and savedPreset == math.floor(savedPreset) then
+			preset = math.max(1, math.min(#presets, savedPreset))
+		else
+			spEcho("[SSAO] Invalid saved preset: " .. tostring(data.preset))
 		end
 	end
 	spEcho("widget:SetConfigData SSAO preset=", preset)
 	InitShaderDefines()
 	ActivatePreset(preset)
-	--widget:ViewResize()
+	if type(data.parameters) == "table" then
+		for name, value in pairs(data.parameters) do
+			SetParameter(name, value)
+		end
+		-- Graphics settings also write these legacy keys while SSAO is disabled.
+		if data.strength ~= nil then
+			SetParameter("SSAO_ALPHA_POW", data.strength)
+		end
+		if data.radius ~= nil then
+			SetParameter("SSAO_RADIUS", data.radius)
+		end
+	end
+	configRebuildPending = false
 end
