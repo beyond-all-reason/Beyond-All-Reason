@@ -30,8 +30,6 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 
