@@ -37,6 +37,16 @@ Lights()
 	}
 }
 
+Go()
+{
+	spin radar around y-axis speed <-50.043956> accelerate <2>;
+}
+
+Stop()
+{
+	spin radar around y-axis speed <0.0>;
+}
+
 OpenAnim()
 {
 	turn door1 to x-axis <40> speed <70>;
@@ -62,9 +72,9 @@ SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Activate();
+	    call-script Stop();
 	} else {
-	    call-script Deactivate();
+	    call-script Go();
 	    start-script RestoreAfterDelay();
 	}
 }
@@ -92,12 +102,12 @@ Create()
 Activate()
 {
 	start-script Lights();
-	spin radar around y-axis speed <-50.043956> accelerate <2>;
+	start-script Go();
 }
 
 Deactivate()
 {
-	spin radar around y-axis speed <0.0>;
+	start-script Stop();
 }
 
 
