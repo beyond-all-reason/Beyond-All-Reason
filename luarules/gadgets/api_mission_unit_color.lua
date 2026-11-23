@@ -42,7 +42,7 @@ local function slotFor(packed)
 end
 
 ---@param packed number? 0 or nil for the team's color
-local function apply(unitID, packed)
+local function colorUnit(unitID, packed)
 	local slot = packed and packed ~= 0 and slotFor(packed) or nil
 	if not slot and not colored[unitID] then
 		return
@@ -56,7 +56,7 @@ local function apply(unitID, packed)
 end
 
 local function onUnitColor(_, unitID, packed)
-	apply(unitID, packed)
+	colorUnit(unitID, packed)
 	return true
 end
 
@@ -71,7 +71,7 @@ function gadget:Initialize()
 	end
 	gadgetHandler:AddSyncAction(SYNC_ACTION, onUnitColor)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		apply(unitID, tonumber(Spring.GetUnitRulesParam(unitID, PARAM)))
+		colorUnit(unitID, tonumber(Spring.GetUnitRulesParam(unitID, PARAM)))
 	end
 end
 
