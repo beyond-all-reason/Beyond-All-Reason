@@ -30,12 +30,12 @@ OpenAnim()
 	move armature3 to y-axis [0] speed [28];
 	turn armature3 to x-axis <0> speed <13>;
 
-	move piston1 to y-axis [2] speed [40];
+	move piston1 to y-axis [0] speed [40];
 	move rail1 to y-axis [0] speed [20];
 	move rail2 to y-axis [0] speed [20];
 	move rail3 to y-axis [0] speed [20];
 	wait-for-move piston1 along y-axis;
-	move piston2 to y-axis [2] speed [24];
+	move piston2 to y-axis [0] speed [24];
 	wait-for-move piston2 along y-axis;
 	move turret to y-axis [6] speed [32];
 	turn topArmsPivot to x-axis <0> speed <100>;
