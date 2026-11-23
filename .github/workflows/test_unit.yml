@@ -61,6 +61,26 @@ jobs:
         echo "engine=$engine" >> "$GITHUB_OUTPUT"
         echo "key=$engine-$RECIPE" >> "$GITHUB_OUTPUT"
 
+    - name: Compare with the player engine
+      if: github.event_name == 'schedule'
+      continue-on-error: true
+      env:
+        ENGINE: ${{ steps.recoil-lua.outputs.engine }}
+      run: |
+        config=$(curl -fsSL --retry 5 --retry-delay 10 https://launcher-config.beyondallreason.dev/config.json)
+        destination=$(jq -r '
+          .setups[]
+          | select(.package.id == "manual-linux")
+          | .downloads.resources[]
+          | select(.destination | contains("engine"))
+          | .destination
+        ' <<< "$config")
+        tag=${destination#engine/recoil_}
+        player=$(git ls-remote https://github.com/beyond-all-reason/RecoilEngine.git "refs/tags/$tag^{}" | cut -f1)
+        if [ "$player" != "$ENGINE" ]; then
+          echo "::warning title=Engine out of date::Players have engine $tag ($player), and .github/recoil-lua/ENGINE is $ENGINE."
+        fi
+
     - name: Cache recoil-lua
       id: recoil-lua-cache
       uses: actions/cache@v4
