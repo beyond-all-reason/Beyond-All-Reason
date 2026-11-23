@@ -119,38 +119,51 @@ function TCB:Build()
 		},
 	}
 
-	-- A copy of doesUnitMatchFilter and doesUnitMatchCondition in unit_query.lua, over this context's
+	-- A copy of matchUnitFilter and doesUnitMatchCondition in unit_query.lua, over this context's
 	-- DoesUnitHaveName and the spec's Spring; keep them in step.
-	local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
-		local env = instance.env
-		if unitFilter.teamName ~= nil and (teamID or env.Spring.GetUnitTeam(unitID)) ~= unitFilter.teamName then
-			return false
+	local function matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+		local Spring = instance.env.Spring
+		if unitFilter.teamName ~= nil then
+			teamID = teamID or Spring.GetUnitTeam(unitID)
+			if teamID ~= unitFilter.teamName then
+				return false, unitDefID, teamID, allyTeamID
+			end
 		end
 		if unitFilter.allianceName ~= nil then
-			local allyTeamID
-			if teamID ~= nil then
-				allyTeamID = env.Spring.GetTeamAllyTeamID(teamID)
-			else
-				allyTeamID = env.Spring.GetUnitAllyTeam(unitID)
+			if allyTeamID == nil then
+				if teamID ~= nil then
+					allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+				else
+					allyTeamID = Spring.GetUnitAllyTeam(unitID)
+				end
 			end
 			if allyTeamID ~= unitFilter.allianceName then
-				return false
+				return false, unitDefID, teamID, allyTeamID
 			end
 		end
-		if
-			unitFilter.unitDefName ~= nil and not unitFilter.unitDefName[unitDefID or env.Spring.GetUnitDefID(unitID)]
-		then
-			return false
+		if unitFilter.unitDefName ~= nil then
+			unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+			if not unitFilter.unitDefName[unitDefID] then
+				return false, unitDefID, teamID, allyTeamID
+			end
 		end
-		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName)
+		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName),
+			unitDefID,
+			teamID,
+			allyTeamID
 	end
 
 	context.DoesUnitMatchCondition = function(unitID, parameters, unitDefID, teamID)
-		if parameters.filter ~= nil and not doesUnitMatchFilter(unitID, parameters.filter, unitDefID, teamID) then
-			return false
+		local matches, allyTeamID
+		if parameters.filter ~= nil then
+			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, parameters.filter, unitDefID, teamID, nil)
+			if not matches then
+				return false
+			end
 		end
 		for _, unitFilter in ipairs(parameters.exclude or {}) do
-			if doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID) then
+			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+			if matches then
 				return false
 			end
 		end

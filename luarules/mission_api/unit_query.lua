@@ -87,52 +87,80 @@ local function doesUnitMatch(unitID, unitName, unitDefName)
 	return true
 end
 
----Returns whether every fact the unit filter gives is true of the unit.
+---Returns whether every fact the unit filter gives is true of the unit,
+---then the unit's def, team, and alliance for the next filter to reuse.
 ---@param unitID UnitID
 ---@param unitFilter table
----@param unitDefID UnitDefID? the unit's def, when the caller has it
----@param teamID TeamID? the unit's team, when the caller has it
----@return boolean
-local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
+---@param unitDefID UnitDefID?
+---@param teamID TeamID?
+---@param allyTeamID AllyTeamID?
+---@return boolean matches
+---@return UnitDefID? unitDefID
+---@return TeamID? teamID
+---@return AllyTeamID? allyTeamID
+local function matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
 	local filterTeamID = unitFilter.teamName
-	if filterTeamID ~= nil and (teamID or spGetUnitTeam(unitID)) ~= filterTeamID then
-		return false
+	if filterTeamID ~= nil then
+		teamID = teamID or spGetUnitTeam(unitID)
+		if teamID ~= filterTeamID then
+			return false, unitDefID, teamID, allyTeamID
+		end
 	end
 	local filterAllyTeamID = unitFilter.allianceName
 	if filterAllyTeamID ~= nil then
-		local allyTeamID
-		if teamID ~= nil then
-			allyTeamID = spGetTeamAllyTeamID(teamID)
-		else
-			allyTeamID = spGetUnitAllyTeam(unitID)
+		if allyTeamID == nil then
+			if teamID ~= nil then
+				allyTeamID = spGetTeamAllyTeamID(teamID)
+			else
+				allyTeamID = spGetUnitAllyTeam(unitID)
+			end
 		end
 		if allyTeamID ~= filterAllyTeamID then
-			return false
+			return false, unitDefID, teamID, allyTeamID
 		end
 	end
 	local unitDefIDs = unitFilter.unitDefName
-	if unitDefIDs ~= nil and not unitDefIDs[unitDefID or spGetUnitDefID(unitID)] then
-		return false
+	if unitDefIDs ~= nil then
+		unitDefID = unitDefID or spGetUnitDefID(unitID)
+		if not unitDefIDs[unitDefID] then
+			return false, unitDefID, teamID, allyTeamID
+		end
 	end
 	local unitName = unitFilter.unitName
-	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName)
+	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName), unitDefID, teamID, allyTeamID
+end
+
+---Returns whether every fact the unit filter gives is true of the unit.
+---@param unitID UnitID
+---@param unitFilter table
+---@param unitDefID UnitDefID? the unit's def, non-nil when the caller has it
+---@param teamID TeamID? the unit's team, non-nil when the caller has it
+---@return boolean
+local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
+	return (matchUnitFilter(unitID, unitFilter, unitDefID, teamID, nil))
 end
 
 ---Returns whether the unit matches a condition's `filter` and none of its `exclude` filters.
+---Each of the unit's facts is looked up at most once.
 ---@param unitID UnitID
 ---@param parameters table the condition's parameters
 ---@param unitDefID UnitDefID? the unit's def, when the caller has it
 ---@param teamID TeamID? the unit's team, when the caller has it
 ---@return boolean
 local function doesUnitMatchCondition(unitID, parameters, unitDefID, teamID)
+	local matches, allyTeamID
 	local filter = parameters.filter
-	if filter ~= nil and not doesUnitMatchFilter(unitID, filter, unitDefID, teamID) then
-		return false
+	if filter ~= nil then
+		matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, filter, unitDefID, teamID, nil)
+		if not matches then
+			return false
+		end
 	end
 	local exclude = parameters.exclude
 	if exclude ~= nil then
 		for i = 1, #exclude do
-			if doesUnitMatchFilter(unitID, exclude[i], unitDefID, teamID) then
+			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, exclude[i], unitDefID, teamID, allyTeamID)
+			if matches then
 				return false
 			end
 		end
@@ -178,7 +206,7 @@ local function unitsMatchingCondition(parameters)
 	if filter.unitName ~= nil then
 		units = {}
 		for _, unitID in ipairs(unitsWithName(filter.unitName)) do
-			if doesUnitMatchFilter(unitID, filter) then
+			if (matchUnitFilter(unitID, filter)) then
 				units[#units + 1] = unitID
 			end
 		end
