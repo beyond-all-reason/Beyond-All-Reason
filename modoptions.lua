@@ -79,9 +79,9 @@ local options = {
 		section = "options_main",
 		items = {
 			{
-				key = "full",
-				name = "Full View",
-				desc = "See all teams immediately.",
+				key = "allied",
+				name = "Locked Allied Vision (Tournament)",
+				desc = "Keep your side's view until the game ends. Opposing teams' chat and map marks stay hidden.",
 			},
 			{
 				key = "optin",
@@ -89,9 +89,9 @@ local options = {
 				desc = "Start with your side's view. Choose Full View to see all teams, including their chat and map marks.",
 			},
 			{
-				key = "allied",
-				name = "Locked Allied Vision (Tournament)",
-				desc = "Keep your side's view until the game ends. Opposing teams' chat and map marks stay hidden.",
+				key = "full",
+				name = "Full View",
+				desc = "See all teams immediately.",
 			},
 		},
 	},

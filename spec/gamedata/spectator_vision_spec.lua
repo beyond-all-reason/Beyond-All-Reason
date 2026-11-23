@@ -19,10 +19,22 @@ local function systemRules(mode, features)
 end
 
 describe("spectator vision after elimination", function()
-	it("defaults to full access on engines without spectator rules", function()
-		local rules = systemRules(nil)
-		assert.is_false(rules.restrictSpectatorsToAllyTeam)
+	it("offers the three lobby choices in order and defaults to full view", function()
+		local optionsByKey = {}
+		for _, option in ipairs(VFS.Include("modoptions.lua")) do
+			optionsByKey[option.key] = option
+		end
+		local option = assert(optionsByKey.restrictedspectators)
+		assert.equals("list", option.type)
+		local keys = {}
+		for _, item in ipairs(option.items) do
+			keys[#keys + 1] = item.key
+		end
+		assert.same({ "allied", "optin", "full" }, keys)
+		assert.equals("full", option.def)
+		local rules = systemRules(option.def)
 		assert.is_false(rules.spectatorFullViewOptIn)
+		assert.is_false(rules.restrictSpectatorsToAllyTeam)
 	end)
 
 	it("enables explicit opt-in only for the optional Full View mode", function()
