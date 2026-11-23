@@ -69,7 +69,7 @@ else
 	local ZlibDeCompress = Spring.ZlibDeCompress
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetSelectedUnits = Spring.GetSelectedUnits
-	local GetSpectatingState = Spring.GetSpectatingState
+	local CanSpectateAllTeams = Spring.CanSpectateAllTeams
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
@@ -198,9 +198,8 @@ else
 	end
 
 	function handleSelectionUpdateEvent(_, playerID, msg, compressed)
-		local spec = GetSpectatingState()
 		local _, _, targetSpec, targetTeamID, allyTeamID = GetPlayerInfo(playerID, false)
-		if not spec then
+		if not CanSpectateAllTeams() then
 			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end

@@ -1,3 +1,10 @@
+-- Older engines only have unrestricted spectators.
+if Spring.GetSpectatingState and not Spring.CanSpectateAllTeams then
+	function Spring.CanSpectateAllTeams()
+		return (Spring.GetSpectatingState())
+	end
+end
+
 if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions()
 	local modOptionsFile = require("modoptions")

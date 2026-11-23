@@ -45,7 +45,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attUnitID, attUnitDef
 	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if Script.LuaUI("UnitDestroyedByTeam") then
-		if spec then
+		if Spring.CanSpectateAllTeams() then
 			scriptUnitDestroyedByTeam(unitID, unitDefID, unitTeam, attTeamID)
 			if not specFullView and not isAllyUnit and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 1) then
 				scriptUnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, weaponDefID)

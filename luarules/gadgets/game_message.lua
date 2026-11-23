@@ -33,8 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 	local function sendMsg(_, playerID, msg)
 		local name, _, spec, _, playerAllyTeamID = Spring.GetPlayerInfo(playerID, false)
-		local mySpec = Spring.GetSpectatingState()
-		if not spec and (playerAllyTeamID == Spring.GetLocalAllyTeamID() or mySpec) then
+		if not spec and (playerAllyTeamID == Spring.GetLocalAllyTeamID() or Spring.CanSpectateAllTeams()) then
 			Spring.SendMessageToPlayer(Spring.GetLocalPlayerID(), "<" .. name .. "> Allies: > " .. msg)
 		end
 	end

@@ -132,9 +132,12 @@ end
 local function LockCamera(playerID)
 	RefreshLocalPlayerState()
 
-	local isSpec, teamID
+	local isSpec, teamID, allyTeamID
 	if playerID then
-		_, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
+		_, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+		if mySpecStatus and not Spring.CanSpectateAllTeams() and (isSpec or allyTeamID ~= Spring.GetMyAllyTeamID()) then
+			return lockPlayerID
+		end
 	end
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and teamID then
 		if lockcameraHideEnemies and not isSpec then

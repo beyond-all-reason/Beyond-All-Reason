@@ -18,6 +18,12 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function BroadcastEvent(_, event, player, forceplay)
+		if Spring.GetSpectatingState() and not Spring.CanSpectateAllTeams() then
+			local _, _, recipientSpec, _, allyTeam = Spring.GetPlayerInfo(tonumber(player), false)
+			if recipientSpec or allyTeam ~= Spring.GetMyAllyTeamID() then
+				return
+			end
+		end
 		if
 			Script.LuaUI("NotificationEvent")
 			and (

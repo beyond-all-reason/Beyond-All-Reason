@@ -196,7 +196,7 @@ else
 	end
 
 	function handleMousePosEvent(_, playerID, x1, z1, x2, z2, click)
-		if not spec then
+		if not Spring.CanSpectateAllTeams() then
 			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)
 			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
@@ -218,7 +218,7 @@ else
 		local clickByte, x1b1, x1b2, z1b1, z1b2 = strByte(payload, 1, MSG_PAYLOAD_BYTES)
 		local x1 = x1b1 + x1b2 * 256
 		local z1 = z1b1 + z1b2 * 256
-		if spec then
+		if Spring.CanSpectateAllTeams() then
 			LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
 		else
 			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)

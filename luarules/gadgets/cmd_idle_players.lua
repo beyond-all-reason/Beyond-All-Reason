@@ -364,7 +364,7 @@ else -- UNSYNCED
 		if not takerName or not takenName then
 			return
 		end
-		if takerAllyTeamID == Spring.GetLocalAllyTeamID() or Spring.GetSpectatingState() then
+		if takerAllyTeamID == Spring.GetLocalAllyTeamID() or Spring.CanSpectateAllTeams() then
 			Spring.SendMessageToPlayer(
 				Spring.GetLocalPlayerID(),
 				"<"

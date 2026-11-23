@@ -10,6 +10,11 @@ XPValues = {
 	reloadScale = 1.25,
 }
 
+local restrictedSpectators = Spring.GetModOptions().restrictedspectators
+if restrictedSpectators and not Engine.FeatureSupport.restrictSpectatorsToAllyTeam then
+	error("Restricted spectator vision requires a Recoil engine with restrictSpectatorsToAllyTeam support.")
+end
+
 local modrules = {
 
 	construction = {
@@ -90,6 +95,7 @@ local modrules = {
 	},
 
 	system = {
+		restrictSpectatorsToAllyTeam = restrictedSpectators,
 		allowTake = false, -- Enables and disables the /take UI command; /take runs take2 instead.
 		useStartPositionSelecter = false,
 		LuaAllocLimit = 1536, -- default: 1536.  Global Lua alloc limit (in megabytes)

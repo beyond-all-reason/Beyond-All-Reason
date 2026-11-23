@@ -71,6 +71,16 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "restrictedspectators",
+		name = "Limit Eliminated Players to Allied Vision",
+		desc = "Players who resign or are eliminated can only spectate their own side until the game ends. Players who start as spectators retain full vision.",
+		type = "bool",
+		def = false,
+		section = "options_main",
+	},
+
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
 		key = "allowuserwidgets",
 		name = "Allow Custom Widgets",
 		desc = "Allow custom user widgets or disallow them",

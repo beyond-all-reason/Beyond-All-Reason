@@ -19,7 +19,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local function hookCallIn()
 		-- check if game is a replay or spectating
-		allowForwarding = Spring.IsReplay() or Spring.GetSpectatingState()
+		allowForwarding = Spring.IsReplay() or Spring.CanSpectateAllTeams()
 		if hooked and not allowForwarding then
 			gadgetHandler:RemoveCallIn("UnitDamaged")
 			hooked = false
