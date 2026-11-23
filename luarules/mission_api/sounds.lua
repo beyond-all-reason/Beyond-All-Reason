@@ -42,18 +42,12 @@ local function processSoundQueue(frameNumber)
 	playSound(sound.soundfile, sound.volume, sound.position)
 end
 
+-- Stops the sound while it plays; queued ones still play. Older engines cannot stop a sample.
 local function stopSound(soundfile)
-	local soundQueue = GG["MissionAPI"].soundQueue
-	for i = #soundQueue, 1, -1 do
-		if soundQueue[i].soundfile == soundfile then
-			table.remove(soundQueue, i)
-		end
+	if not Spring.StopSoundByFilename then
+		return
 	end
-
-	-- Older engines only drop the queued entries.
-	if Spring.StopSoundByFilename then
-		Spring.StopSoundByFilename(soundfile)
-	end
+	Spring.StopSoundByFilename(soundfile)
 	if playingQueuedSoundfile == soundfile then
 		playingQueuedSoundfile = nil
 		nextSoundAt = 0

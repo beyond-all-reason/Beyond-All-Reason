@@ -29,12 +29,11 @@ describe("mission_api.sounds.StopSound", function()
 		sounds.EnqueueSound("sounds/voice.wav")
 	end)
 
-	it("stops the sample and drops the queued entries of that file only", function()
+	it("stops the sample and leaves the queue alone", function()
 		sounds.StopSound("sounds/voice.wav")
 
 		assert.are.same({ "sounds/voice.wav" }, stopped)
-		assert.are.equal(1, #missionApi.soundQueue)
-		assert.are.equal("sounds/other.wav", missionApi.soundQueue[1].soundfile)
+		assert.are.equal(3, #missionApi.soundQueue)
 	end)
 
 	it("lets the next queued sound start when the playing one is stopped", function()
@@ -46,12 +45,15 @@ describe("mission_api.sounds.StopSound", function()
 		assert.are.same({ "sounds/voice.wav", "sounds/other.wav" }, played)
 	end)
 
-	it("only drops the queued entries on an engine without StopSoundByFilename", function()
+	it("does nothing on an engine without StopSoundByFilename", function()
 		env.Spring.StopSoundByFilename = nil
+		sounds.ProcessSoundQueue(0)
 
 		sounds.StopSound("sounds/voice.wav")
+		sounds.ProcessSoundQueue(1)
 
-		assert.are.equal(1, #missionApi.soundQueue)
+		assert.are.equal(2, #missionApi.soundQueue)
+		assert.are.same({ "sounds/voice.wav" }, played)
 	end)
 
 	it("forgets the playing sound once it is stopped or over", function()
