@@ -20,18 +20,21 @@ end
 
 describe("spectator vision after elimination", function()
 	it("offers the three lobby choices in order and defaults to full view", function()
-		local optionsByKey = {}
-		for _, option in ipairs(VFS.Include("modoptions.lua")) do
-			optionsByKey[option.key] = option
+		local option
+		for _, candidate in ipairs(VFS.Include("modoptions.lua")) do
+			if candidate.key == "restrictedspectators" then
+				option = candidate
+				break
+			end
 		end
-		local option = assert(optionsByKey.restrictedspectators)
-		assert.equals("list", option.type)
+		assert(option, "missing restrictedspectators lobby option")
+		assert.same("list", option.type)
 		local keys = {}
 		for _, item in ipairs(option.items) do
 			keys[#keys + 1] = item.key
 		end
 		assert.same({ "allied", "optin", "full" }, keys)
-		assert.equals("full", option.def)
+		assert.same("full", option.def)
 		local rules = systemRules(option.def)
 		assert.is_false(rules.spectatorFullViewOptIn)
 		assert.is_false(rules.restrictSpectatorsToAllyTeam)
