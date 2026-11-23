@@ -1,5 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local unitsMatchingCondition = GG['MissionAPI'].Modules.UnitQuery.UnitsMatchingCondition
+local getIncludedUnits = GG['MissionAPI'].Modules.UnitQuery.GetIncludedUnits
 
 -- A trigger refused while they are all inside (inactive, prerequisites, stage) asks again half a second later.
 local RETRY_FRAMES = 15
@@ -24,7 +24,7 @@ end
 ---@return boolean
 local function isGathered(parameters, unitIDsInside)
 	local anyWaitedFor = false
-	for _, unitID in ipairs(unitsMatchingCondition(parameters)) do
+	for _, unitID in ipairs(getIncludedUnits(parameters)) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			if not unitIDsInside[unitID] then
 				return false
@@ -42,14 +42,14 @@ local function markChanged(context, triggerID)
 	end
 end
 
--- Fires once when every unit the filter matches is inside the area, and again only after
+-- Fires once when every unit includeUnit matches is inside the area, and again only after
 -- one has walked out and they are all back, if it repeats.
 return {
 	type = 'UnitsGatheredInLocation',
 	parameters = {
-		{ name = 'area',     required = true, type = ParameterTypes.Area },
-		{ name = 'filter',   required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',  required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'area',        required = true, type = ParameterTypes.Area },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Looking at the group costs engine calls per unit, so it is done last: only after something
@@ -91,7 +91,7 @@ return {
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
 				gathering.unitIDs[unitID] = nil
-				if gathering.fired and context.DoesUnitMatchCondition(unitID, parameters) then
+				if gathering.fired and context.IsUnitIncluded(unitID, parameters) then
 					gathering.fired = false
 				end
 			end
@@ -106,14 +106,14 @@ return {
 		end,
 		-- One of them lost outside the area can complete the group.
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
-			if context.DoesUnitMatchCondition(unitID, trigger.parameters) then
+			if context.IsUnitIncluded(unitID, trigger.parameters) then
 				markChanged(context, triggerID)
 			end
 		end,
 		UnitGiven = function(trigger, triggerID, context, unitID, unitDefID, newTeam, oldTeam)
 			local parameters = trigger.parameters
-			if context.DoesUnitMatchCondition(unitID, parameters, unitDefID, newTeam)
-				or context.DoesUnitMatchCondition(unitID, parameters, unitDefID, oldTeam) then
+			if context.IsUnitIncluded(unitID, parameters, unitDefID, newTeam)
+				or context.IsUnitIncluded(unitID, parameters, unitDefID, oldTeam) then
 				markChanged(context, triggerID)
 			end
 		end,

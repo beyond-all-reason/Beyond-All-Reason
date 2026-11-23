@@ -667,7 +667,7 @@ describe("mission_api.validation.sections", function()
 			for _, progress in ipairs({ 0, 0.5, 1 }) do
 				V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = progress,
-					filter = { unitDefName = "armmercury" },
+					includeUnit = { unitDefName = "armmercury" },
 				})))
 			end
 		end)
@@ -675,9 +675,9 @@ describe("mission_api.validation.sections", function()
 		it("reports a unit def without a stockpiling weapon", function()
 			V.assertMessage(
 				V.validateTrigger(
-					V.trigger(V.conditionTypes.StockpileCount, { count = 1, filter = { unitDefName = "armwar" } })
+					V.trigger(V.conditionTypes.StockpileCount, { count = 1, includeUnit = { unitDefName = "armwar" } })
 				),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: filter.unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -685,11 +685,11 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(
 				V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = 0.5,
-					filter = {
+					includeUnit = {
 						difficulties = { Easy = { unitDefName = "armmercury" }, Hard = { unitDefName = "armwar" } },
 					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: filter.unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -699,10 +699,10 @@ describe("mission_api.validation.sections", function()
 					textKey = "stockpile",
 					trigger = {
 						type = V.conditionTypes.StockpileCount,
-						parameters = { count = 1, filter = { unitDefName = "armwar" } },
+						parameters = { count = 1, includeUnit = { unitDefName = "armwar" } },
 					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: filter.unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: includeUnit.unitDefName"
 			)
 		end)
 	end)

@@ -2,7 +2,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function matchesBuild(trigger, context, unitID, unitDefID, unitTeam, builderID)
 	local parameters = trigger.parameters
-	if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+	if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 		return false
 	end
 	if parameters.builderName and not context.DoesUnitHaveName(builderID, parameters.builderName) then
@@ -25,8 +25,8 @@ end
 return {
 	type = 'ConstructionStarted',
 	parameters = {
-		{ name = 'filter',         required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',        required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit',    required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',    required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'builderName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
 	},

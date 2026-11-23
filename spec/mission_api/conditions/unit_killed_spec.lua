@@ -36,8 +36,8 @@ describe("mission_api.conditions.unit_killed", function()
 		for _, parameter in ipairs(unitKilled.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_nil(unitKilled.parameters.requiresOneOf)
 	end)
 
@@ -46,20 +46,20 @@ describe("mission_api.conditions.unit_killed", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		onUnitDestroyed(trigger({ filter = { unitName = "engineers" } }), triggerID, context, 100, 1, 0)
+		onUnitDestroyed(trigger({ includeUnit = { unitName = "engineers" } }), triggerID, context, 100, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onUnitDestroyed(trigger({ filter = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onUnitDestroyed(trigger({ includeUnit = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
 		onUnitDestroyed(
-			trigger({ filter = { unitDefName = { [1] = true }, teamName = 5 } }),
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 5 } }),
 			triggerID,
 			context,
 			100,
@@ -72,7 +72,7 @@ describe("mission_api.conditions.unit_killed", function()
 	it("fires for a matching kill", function()
 		local context, fired = newContext()
 		onUnitDestroyed(
-			trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }),
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }),
 			triggerID,
 			context,
 			100,

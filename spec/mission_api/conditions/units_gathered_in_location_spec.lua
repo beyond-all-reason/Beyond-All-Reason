@@ -51,7 +51,7 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 
 	local function squadTrigger()
 		return TriggerBuilder.new()
-			:WithParameters({ area = area, filter = { unitName = "squad", teamName = 0 } })
+			:WithParameters({ area = area, includeUnit = { unitName = "squad", teamName = 0 } })
 			:Build()
 	end
 
@@ -86,8 +86,8 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 		assert.are.same({
 			type = "UnitsGatheredInLocation",
 			area = "Area!",
-			filter = "UnitFilter!",
-			exclude = "UnitFilters",
+			includeUnit = "UnitFilter!",
+			excludeUnit = "UnitFilters",
 		}, summarizeSchema(unitsGathered))
 	end)
 

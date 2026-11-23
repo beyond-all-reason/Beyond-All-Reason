@@ -31,7 +31,7 @@ local triggers = {
 		type = conditionTypes.UnitOrdered,
 		parameters = {
 			command = CMD.ANY,
-			filter = { unitName = 'enemyConstructor' },
+			includeUnit = { unitName = 'enemyConstructor' },
 		},
 		actions = { 'changeToPlayer', 'messageOnPlayer' },
 	},

@@ -9,8 +9,8 @@ local ACTIVATION = true
 return {
 	type = 'UnitIdled',
 	parameters = {
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Synthetic callin raised once post-frame, per unit whose idle state changed.
@@ -25,7 +25,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID) then
 				return
 			end
 			context.ActivateTrigger(trigger)

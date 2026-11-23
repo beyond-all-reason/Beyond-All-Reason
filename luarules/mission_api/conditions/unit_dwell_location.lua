@@ -7,8 +7,8 @@ return {
 		-- Circle: { x = 0, z = 0, radius = 123 }
 		{ name = 'area',        required = true,  type = ParameterTypes.Area },
 		{ name = 'duration',    required = true,  type = ParameterTypes.Number },
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Dwell time starts the frame after entering, so a duration of 0 fires on the first frame.
@@ -25,7 +25,7 @@ return {
 			local parameters = trigger.parameters
 			for unitID, enteredFrame in pairs(dwellingUnits) do
 				if enteredFrame >= 0 and frameNumber > enteredFrame and frameNumber - enteredFrame >= parameters.duration
-					and context.DoesUnitMatchCondition(unitID, parameters) then
+					and context.IsUnitIncluded(unitID, parameters) then
 					if context.ActivateTrigger(trigger) then
 						dwellingUnits[unitID] = -1 -- Prevent multiple activations for the same unit.
 					end
@@ -41,7 +41,7 @@ return {
 			local frameNumber = Spring.GetGameFrame()
 			for i = 1, #unitIDs do
 				local unitID = unitIDs[i]
-				if context.DoesUnitMatchCondition(unitID, parameters) then
+				if context.IsUnitIncluded(unitID, parameters) then
 					dwellingUnits[unitID] = frameNumber
 				end
 			end

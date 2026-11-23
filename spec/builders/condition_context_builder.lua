@@ -10,7 +10,7 @@
 ---@class ConditionContextMock
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
----@field DoesUnitMatchCondition fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
+---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
@@ -61,7 +61,7 @@ function TCB:WithInFactory(value)
 	return self
 end
 
----Where DoesUnitMatchCondition looks up a unit's def and team: the spec's UnitDefs and Spring.
+---Where IsUnitIncluded looks up a unit's def and team: the spec's UnitDefs and Spring.
 ---@param self ConditionContextBuilder
 ---@param env table
 ---@return ConditionContextBuilder
@@ -119,9 +119,9 @@ function TCB:Build()
 		},
 	}
 
-	-- A copy of matchUnitFilter and doesUnitMatchCondition in unit_query.lua, over this context's
+	-- A copy of getUnitFilterMatch and isUnitIncluded in unit_query.lua, over this context's
 	-- DoesUnitHaveName and the spec's Spring; keep them in step.
-	local function matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+	local function getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
 		local Spring = instance.env.Spring
 		if unitFilter.teamName ~= nil then
 			teamID = teamID or Spring.GetUnitTeam(unitID)
@@ -153,16 +153,18 @@ function TCB:Build()
 			allyTeamID
 	end
 
-	context.DoesUnitMatchCondition = function(unitID, parameters, unitDefID, teamID)
+	context.IsUnitIncluded = function(unitID, parameters, unitDefID, teamID)
 		local matches, allyTeamID
-		if parameters.filter ~= nil then
-			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, parameters.filter, unitDefID, teamID, nil)
+		if parameters.includeUnit ~= nil then
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, parameters.includeUnit, unitDefID, teamID, nil)
 			if not matches then
 				return false
 			end
 		end
-		for _, unitFilter in ipairs(parameters.exclude or {}) do
-			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+		for _, unitFilter in ipairs(parameters.excludeUnit or {}) do
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
 			if matches then
 				return false
 			end

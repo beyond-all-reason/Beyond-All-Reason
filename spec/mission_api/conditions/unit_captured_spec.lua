@@ -57,8 +57,8 @@ describe("mission_api.conditions.unit_captured", function()
 		for _, parameter in ipairs(unitCaptured.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.oldTeamName)
 		assert.is_true(names.newTeamName)
 		assert.is_true(names.ignoreMissionActions)
@@ -70,44 +70,44 @@ describe("mission_api.conditions.unit_captured", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		taken(trigger({ filter = { unitName = "engineers" } }), context, 1)
+		taken(trigger({ includeUnit = { unitName = "engineers" } }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = { [2] = true } } }), context, 1) -- unitDefID 1 = armpw
+		taken(trigger({ includeUnit = { unitDefName = { [2] = true } } }), context, 1) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by oldTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 5 }), context, 1)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } }, oldTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = { [1] = true } }, newTeamName = 5 }), context, 1)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } }, newTeamName = 5 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching capture", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 0, newTeamName = 1 }), context, 1)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } }, oldTeamName = 0, newTeamName = 1 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire for a gift", function()
 		local context, fired = newContext()
-		taken(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { captured = false })
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, { captured = false })
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters mission captures by default", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = { [1] = true } } }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } } }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true }
@@ -118,7 +118,7 @@ describe("mission_api.conditions.unit_captured", function()
 	it("fires on a mission capture when ignoreMissionActions is false, whatever the engine flag says", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true, captured = false }
@@ -129,7 +129,7 @@ describe("mission_api.conditions.unit_captured", function()
 	it("does not fire on a mission gift, even when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		taken(
-			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, captured = true }

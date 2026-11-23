@@ -46,7 +46,7 @@ end
 ---@param unitDefName string?
 ---@param teamID TeamID?
 ---@return UnitID[]
-local function matchingUnits(unitName, unitDefName, teamID)
+local function getMatchingUnits(unitName, unitDefName, teamID)
 	local unitDef = unitDefName and UnitDefNames[unitDefName] ---@as table
 	local unitDefID = unitDef and unitDef.id ---@as UnitDefID?
 
@@ -74,7 +74,7 @@ end
 ---@param unitName string?
 ---@param unitDefName string?
 ---@return boolean
-local function doesUnitMatch(unitID, unitName, unitDefName)
+local function isUnitMatch(unitID, unitName, unitDefName)
 	if unitName and not tracking.DoesUnitHaveName(unitID, unitName) then
 		return false
 	end
@@ -87,7 +87,7 @@ local function doesUnitMatch(unitID, unitName, unitDefName)
 	return true
 end
 
----Returns whether every fact the unit filter gives is true of the unit,
+---Returns whether the unit meets every criterion of the unit filter,
 ---then the unit's def, team, and alliance for the next filter to reuse.
 ---@param unitID UnitID
 ---@param unitFilter table
@@ -98,7 +98,7 @@ end
 ---@return UnitDefID? unitDefID
 ---@return TeamID? teamID
 ---@return AllyTeamID? allyTeamID
-local function matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+local function getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
 	local filterTeamID = unitFilter.teamName
 	if filterTeamID ~= nil then
 		teamID = teamID or spGetUnitTeam(unitID)
@@ -130,36 +130,37 @@ local function matchUnitFilter(unitID, unitFilter, unitDefID, teamID, allyTeamID
 	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName), unitDefID, teamID, allyTeamID
 end
 
----Returns whether every fact the unit filter gives is true of the unit.
+---Returns whether the unit meets every criterion of the unit filter.
 ---@param unitID UnitID
 ---@param unitFilter table
 ---@param unitDefID UnitDefID? the unit's def, non-nil when the caller has it
 ---@param teamID TeamID? the unit's team, non-nil when the caller has it
 ---@return boolean
-local function doesUnitMatchFilter(unitID, unitFilter, unitDefID, teamID)
-	return (matchUnitFilter(unitID, unitFilter, unitDefID, teamID, nil))
+local function isUnitFilterMatch(unitID, unitFilter, unitDefID, teamID)
+	return (getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, nil))
 end
 
----Returns whether the unit matches a condition's `filter` and none of its `exclude` filters.
----Each of the unit's facts is looked up at most once.
+---Returns whether the unit matches a condition's `includeUnit` and none of its `excludeUnit` filters.
+---The unit's def, team, and alliance are each looked up at most once.
 ---@param unitID UnitID
 ---@param parameters table the condition's parameters
 ---@param unitDefID UnitDefID? the unit's def, when the caller has it
 ---@param teamID TeamID? the unit's team, when the caller has it
 ---@return boolean
-local function doesUnitMatchCondition(unitID, parameters, unitDefID, teamID)
+local function isUnitIncluded(unitID, parameters, unitDefID, teamID)
 	local matches, allyTeamID
-	local filter = parameters.filter
-	if filter ~= nil then
-		matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, filter, unitDefID, teamID, nil)
+	local includeUnit = parameters.includeUnit
+	if includeUnit ~= nil then
+		matches, unitDefID, teamID, allyTeamID = getUnitFilterMatch(unitID, includeUnit, unitDefID, teamID, nil)
 		if not matches then
 			return false
 		end
 	end
-	local exclude = parameters.exclude
-	if exclude ~= nil then
-		for i = 1, #exclude do
-			matches, unitDefID, teamID, allyTeamID = matchUnitFilter(unitID, exclude[i], unitDefID, teamID, allyTeamID)
+	local excludeUnit = parameters.excludeUnit
+	if excludeUnit ~= nil then
+		for i = 1, #excludeUnit do
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, excludeUnit[i], unitDefID, teamID, allyTeamID)
 			if matches then
 				return false
 			end
@@ -171,7 +172,7 @@ end
 ---The units of a unit filter's team, its alliance, or every team, of its unit defs if it gives them.
 ---@param unitFilter table
 ---@return UnitID[]
-local function unitsOfFilterTeams(unitFilter)
+local function getUnitsOfFilterTeams(unitFilter)
 	local teamIDs
 	if unitFilter.teamName ~= nil then
 		teamIDs = { unitFilter.teamName }
@@ -197,29 +198,29 @@ local function unitsOfFilterTeams(unitFilter)
 	return units
 end
 
----The units a condition's `filter` matches, less those its `exclude` filters match.
----@param parameters table the condition's parameters, with a `filter`
+---The units a condition's `includeUnit` matches, less those its `excludeUnit` filters match.
+---@param parameters table the condition's parameters, with an `includeUnit`
 ---@return UnitID[]
-local function unitsMatchingCondition(parameters)
-	local filter = parameters.filter
+local function getIncludedUnits(parameters)
+	local includeUnit = parameters.includeUnit
 	local units
-	if filter.unitName ~= nil then
+	if includeUnit.unitName ~= nil then
 		units = {}
-		for _, unitID in ipairs(unitsWithName(filter.unitName)) do
-			if (matchUnitFilter(unitID, filter)) then
+		for _, unitID in ipairs(unitsWithName(includeUnit.unitName)) do
+			if getUnitFilterMatch(unitID, includeUnit) then
 				units[#units + 1] = unitID
 			end
 		end
 	else
-		units = unitsOfFilterTeams(filter)
+		units = getUnitsOfFilterTeams(includeUnit)
 	end
-	if parameters.exclude == nil then
+	if parameters.excludeUnit == nil then
 		return units
 	end
 
 	local matched = {}
 	for _, unitID in ipairs(units) do
-		if doesUnitMatchCondition(unitID, parameters) then
+		if isUnitIncluded(unitID, parameters) then
 			matched[#matched + 1] = unitID
 		end
 	end
@@ -227,9 +228,9 @@ local function unitsMatchingCondition(parameters)
 end
 
 return {
-	MatchingUnits = matchingUnits,
-	UnitsMatchingCondition = unitsMatchingCondition,
-	DoesUnitMatch = doesUnitMatch,
-	DoesUnitMatchFilter = doesUnitMatchFilter,
-	DoesUnitMatchCondition = doesUnitMatchCondition,
+	GetMatchingUnits = getMatchingUnits,
+	GetIncludedUnits = getIncludedUnits,
+	IsUnitMatch = isUnitMatch,
+	IsUnitFilterMatch = isUnitFilterMatch,
+	IsUnitIncluded = isUnitIncluded,
 }

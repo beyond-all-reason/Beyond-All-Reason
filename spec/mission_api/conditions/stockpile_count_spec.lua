@@ -46,7 +46,7 @@ describe("mission_api.conditions.stockpile_count", function()
 		for _, parameter in ipairs(stockpileCount.parameters) do
 			required[parameter.name] = parameter.required
 		end
-		assert.are.same({ count = true, filter = true, exclude = false }, required)
+		assert.are.same({ count = true, includeUnit = true, excludeUnit = false }, required)
 	end)
 
 	it("fires when the count rises to the threshold", function()
@@ -81,7 +81,7 @@ describe("mission_api.conditions.stockpile_count", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		local t = trigger({ count = 1, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ count = 1, includeUnit = { unitDefName = { [1] = true } } })
 		changed(t, context, 100, 2, 0, 1)
 		assert.are.equal(0, fired())
 		changed(t, context, 101, 1, 0, 1)
@@ -93,7 +93,7 @@ describe("mission_api.conditions.stockpile_count", function()
 		context.DoesUnitHaveName = function(unitID, name)
 			return unitID == 101 and name == "silo"
 		end
-		local t = trigger({ count = 1, filter = { unitName = "silo" } })
+		local t = trigger({ count = 1, includeUnit = { unitName = "silo" } })
 		changed(t, context, 100, 1, 0, 1)
 		assert.are.equal(0, fired())
 		changed(t, context, 101, 1, 0, 1)

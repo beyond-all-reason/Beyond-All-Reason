@@ -1233,7 +1233,7 @@ describe("mission_api.validation.parameter_validators", function()
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
 		return V.validateTrigger(
-			V.trigger(V.conditionTypes.UnitOrdered, { command = command, filter = { unitName = "x" } })
+			V.trigger(V.conditionTypes.UnitOrdered, { command = command, includeUnit = { unitName = "x" } })
 		)
 	end
 

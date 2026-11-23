@@ -226,7 +226,7 @@ local triggers = {
 	triggerWithFractionOutOfRange = {
 		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			filter = { teamName = 'player', unitDefName = 'armcom' },
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 5.0, -- error: a fraction must be between 0 and 1
 		},
 		actions = { 'actionMissingType' },
@@ -235,7 +235,7 @@ local triggers = {
 	triggerWithInvalidFractionType = {
 		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			filter = { teamName = 'player', unitDefName = 'armcom' },
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 'notANumber',
 		},
 		actions = { 'actionMissingType' },

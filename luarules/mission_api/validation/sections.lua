@@ -264,7 +264,7 @@ local function hasStockpileWeapon(unitDef)
 end
 
 -- A unit filter's unitDefName is one name or a list of them.
-local function unitDefNamesOf(unitDefName)
+local function getUnitDefNames(unitDefName)
 	if type(unitDefName) == "table" then
 		return unitDefName
 	end
@@ -281,24 +281,24 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 		return
 	end
 
-	for _, filter in ipairs(context.PossibleValues(trigger.parameters.filter)) do
-		local unitDefNames = type(filter) == "table" and unitDefNamesOf(filter.unitDefName) or {}
+	for _, includeUnit in ipairs(context.PossibleValues(trigger.parameters.includeUnit)) do
+		local unitDefNames = type(includeUnit) == "table" and getUnitDefNames(includeUnit.unitDefName) or {}
 		for _, unitDefName in ipairs(unitDefNames) do
 			local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
 			if unitDef and not hasStockpileWeapon(unitDef) then
 				reporter.Error(
 					id,
 					"Unit '" .. unitDefName .. "' has no stockpiling weapon",
-					"Parameter: filter.unitDefName"
+					"Parameter: includeUnit.unitDefName"
 				)
 			end
 		end
 	end
 end
 
--- Whether every unit the filter matches has the fact an exclusion gives for this field.
-local function doesFilterImplyFact(context, filter, field, value)
-	if field == "allianceName" and filter.allianceName == nil and type(filter.teamName) == "string" then
+-- Whether every unit the filter matches meets an exclusion's criterion for this field.
+local function doesFilterImplyCriterion(context, filter, field, value)
+	if field == "allianceName" and type(filter.teamName) == "string" then
 		local teamID = context.Teams[filter.teamName]
 		return teamID ~= nil and Spring.GetTeamAllyTeamID(teamID) == context.Alliances[value]
 	end
@@ -309,10 +309,10 @@ local function doesFilterImplyFact(context, filter, field, value)
 		return false
 	end
 	local isExcludedDef = {}
-	for _, unitDefName in ipairs(unitDefNamesOf(value)) do
+	for _, unitDefName in ipairs(getUnitDefNames(value)) do
 		isExcludedDef[unitDefName] = true
 	end
-	for _, unitDefName in ipairs(unitDefNamesOf(filter.unitDefName)) do
+	for _, unitDefName in ipairs(getUnitDefNames(filter.unitDefName)) do
 		if not isExcludedDef[unitDefName] then
 			return false
 		end
@@ -320,21 +320,21 @@ local function doesFilterImplyFact(context, filter, field, value)
 	return true
 end
 
--- An exclusion whose every fact is true of every unit the filter matches removes them all.
+-- An exclusion whose every criterion is met by every unit includeUnit matches removes them all.
 local function validateUnitFilterExclusions(context, reporter, id, trigger)
 	local parameters = trigger.parameters
 	if type(parameters) ~= "table" then
 		return
 	end
 
-	for _, filter in ipairs(context.PossibleValues(parameters.filter)) do
-		for _, exclude in ipairs(context.PossibleValues(parameters.exclude)) do
-			if type(filter) == "table" and type(exclude) == "table" then
-				for index, excluded in ipairs(exclude) do
+	for _, includeUnit in ipairs(context.PossibleValues(parameters.includeUnit)) do
+		for _, excludeUnit in ipairs(context.PossibleValues(parameters.excludeUnit)) do
+			if type(includeUnit) == "table" and type(excludeUnit) == "table" then
+				for index, excluded in ipairs(excludeUnit) do
 					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
 					if removesAll then
 						for field, value in pairs(excluded) do
-							if not doesFilterImplyFact(context, filter, field, value) then
+							if not doesFilterImplyCriterion(context, includeUnit, field, value) then
 								removesAll = false
 								break
 							end
@@ -343,8 +343,8 @@ local function validateUnitFilterExclusions(context, reporter, id, trigger)
 					if removesAll then
 						reporter.Error(
 							id,
-							"exclude[" .. index .. "] removes every unit the filter matches",
-							"Parameter: exclude"
+							"excludeUnit[" .. index .. "] removes every unit includeUnit matches",
+							"Parameter: excludeUnit"
 						)
 					end
 				end

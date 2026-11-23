@@ -29,41 +29,39 @@ describe("mission_api.unit_query", function()
 		missionApi.unitIDBeingSpawned = nil
 	end)
 
-	describe("DoesUnitMatchFilter", function()
-		it("matches a unit with every fact given", function()
+	describe("IsUnitFilterMatch", function()
+		it("matches a unit that meets every criterion", function()
 			local unitFilter = { unitName = "commander", unitDefName = { [2] = true }, teamName = 0 }
-			assert.is_true(unitQuery.DoesUnitMatchFilter(100, unitFilter))
+			assert.is_true(unitQuery.IsUnitFilterMatch(100, unitFilter))
 		end)
 
 		it("matches on a team alone", function()
-			assert.is_true(unitQuery.DoesUnitMatchFilter(101, { teamName = 0 }))
-			assert.is_false(unitQuery.DoesUnitMatchFilter(101, { teamName = 1 }))
+			assert.is_true(unitQuery.IsUnitFilterMatch(101, { teamName = 0 }))
+			assert.is_false(unitQuery.IsUnitFilterMatch(101, { teamName = 1 }))
 		end)
 
 		it("rejects a unit without the name", function()
-			assert.is_false(unitQuery.DoesUnitMatchFilter(101, { unitName = "commander" }))
+			assert.is_false(unitQuery.IsUnitFilterMatch(101, { unitName = "commander" }))
 		end)
 
 		it("rejects a unit of another unit def", function()
-			assert.is_false(
-				unitQuery.DoesUnitMatchFilter(100, { unitName = "commander", unitDefName = { [1] = true } })
-			)
+			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "commander", unitDefName = { [1] = true } }))
 		end)
 
-		it("rejects a unit on another team, though the other facts are true", function()
-			assert.is_false(unitQuery.DoesUnitMatchFilter(100, { unitName = "commander", teamName = 1 }))
+		it("rejects a unit on another team, though it meets the other criteria", function()
+			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "commander", teamName = 1 }))
 		end)
 
 		it("treats a unit being spawned as having its loadout name", function()
 			missionApi.nameOfUnitBeingSpawned = "pawn"
 			missionApi.unitIDBeingSpawned = 101
-			assert.is_true(unitQuery.DoesUnitMatchFilter(101, { unitName = "pawn" }))
+			assert.is_true(unitQuery.IsUnitFilterMatch(101, { unitName = "pawn" }))
 		end)
 
 		it("treats no other unit as having the loadout name while one is spawned", function()
 			missionApi.nameOfUnitBeingSpawned = "pawn"
 			missionApi.unitIDBeingSpawned = 101
-			assert.is_false(unitQuery.DoesUnitMatchFilter(100, { unitName = "pawn" }))
+			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "pawn" }))
 		end)
 	end)
 end)

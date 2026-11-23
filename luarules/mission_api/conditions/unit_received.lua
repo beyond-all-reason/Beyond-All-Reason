@@ -8,8 +8,8 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'UnitReceived',
 	parameters = {
-		{ name = 'filter',               required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',              required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit',          required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',          required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'oldTeamName',          required = false, type = ParameterTypes.TeamName },
 		{ name = 'newTeamName',          required = false, type = ParameterTypes.TeamName },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
@@ -30,7 +30,7 @@ return {
 			if isCapture then
 				return
 			end
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID) then
 				return
 			end
 			if parameters.oldTeamName and parameters.oldTeamName ~= oldTeam then

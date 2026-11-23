@@ -30,24 +30,24 @@ describe("mission_api.conditions.unit_exists", function()
 
 	local triggerID = "t"
 
-	it("declares its type and parameters, requiring a filter", function()
+	it("declares its type and parameters, requiring includeUnit", function()
 		assert.are.equal("UnitExists", unitExists.type)
-		assert.are.equal("filter", unitExists.parameters[1].name)
+		assert.are.equal("includeUnit", unitExists.parameters[1].name)
 		assert.is_true(unitExists.parameters[1].required)
-		assert.are.equal("exclude", unitExists.parameters[2].name)
+		assert.are.equal("excludeUnit", unitExists.parameters[2].name)
 		assert.is_falsy(unitExists.parameters[2].required)
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onMetaUnitAdded(trigger({ filter = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onMetaUnitAdded(trigger({ includeUnit = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
 		onMetaUnitAdded(
-			trigger({ filter = { unitDefName = { [1] = true }, teamName = 5 } }),
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 5 } }),
 			triggerID,
 			context,
 			100,
@@ -60,7 +60,7 @@ describe("mission_api.conditions.unit_exists", function()
 	it("fires for a matching unit", function()
 		local context, fired = newContext()
 		onMetaUnitAdded(
-			trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }),
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }),
 			triggerID,
 			context,
 			100,

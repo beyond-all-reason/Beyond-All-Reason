@@ -13,7 +13,7 @@ local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 local FIRES_ON_DETECTED = true
 
 local function matchesUnit(parameters, context, unitID, unitDefID)
-	if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID) then
+	if not context.IsUnitIncluded(unitID, parameters, unitDefID) then
 		return false
 	end
 	return true
@@ -22,8 +22,8 @@ end
 return {
 	type = 'UnitDetected',
 	parameters = {
-		{ name = 'filter',             required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',            required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit',        required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',        required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'sensorAllianceName', required = false, type = ParameterTypes.AllianceName },
 		{ name = 'sensorTypes',        required = false, type = ParameterTypes.SensorTypes },
 	},

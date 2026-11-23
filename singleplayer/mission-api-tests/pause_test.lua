@@ -36,7 +36,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.ANY,
-			filter = { unitName = 'scout' },
+			includeUnit = { unitName = 'scout' },
 		},
 		actions = { 'unpause', 'messageUnpaused' },
 	},

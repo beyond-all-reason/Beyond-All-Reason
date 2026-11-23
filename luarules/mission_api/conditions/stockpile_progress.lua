@@ -30,8 +30,8 @@ return {
 	type = 'StockpileProgress',
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -51,7 +51,7 @@ return {
 				state.progress = progress
 				state.completed = false
 
-				if crossings > 0 and context.DoesUnitMatchCondition(unitID, parameters) then
+				if crossings > 0 and context.IsUnitIncluded(unitID, parameters) then
 					for _ = 1, crossings do
 						context.ActivateTrigger(trigger)
 					end
@@ -78,8 +78,8 @@ return {
 				return
 			end
 
-			local filter = trigger.parameters.filter
-			if filter.unitDefName and not filter.unitDefName[unitDefID] then
+			local includeUnit = trigger.parameters.includeUnit
+			if includeUnit.unitDefName and not includeUnit.unitDefName[unitDefID] then
 				return
 			end
 

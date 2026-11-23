@@ -50,8 +50,8 @@ describe("mission_api.conditions.unit_received", function()
 		for _, parameter in ipairs(unitReceived.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.oldTeamName)
 		assert.is_true(names.newTeamName)
 		assert.is_true(names.ignoreMissionActions)
@@ -60,13 +60,13 @@ describe("mission_api.conditions.unit_received", function()
 
 	it("fires when a unit is shared to a team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 1, newTeamName = 0 }), context, 1)
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } }, oldTeamName = 1, newTeamName = 0 }), context, 1)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2) -- unitDefID 2 = armsolar
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2) -- unitDefID 2 = armsolar
 		assert.are.equal(0, fired())
 	end)
 
@@ -75,38 +75,38 @@ describe("mission_api.conditions.unit_received", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		given(trigger({ filter = { unitName = "gift" } }), context, 1)
+		given(trigger({ includeUnit = { unitName = "gift" } }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by oldTeamName, which is the giving team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } }, oldTeamName = 9 }), context, 1)
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } }, oldTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by newTeamName, which is the receiving team", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } }, newTeamName = 9 }), context, 1)
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } }, newTeamName = 9 }), context, 1)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a capture", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { captured = true })
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, { captured = true })
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters mission transfers by default", function()
 		local context, fired = newContext()
-		given(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, { transferringUnits = true })
+		given(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, { transferringUnits = true })
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires on a mission transfer when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true }
@@ -117,7 +117,7 @@ describe("mission_api.conditions.unit_received", function()
 	it("fires on a mission gift when ignoreMissionActions is false, whatever the engine flag says", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, captured = true }
@@ -128,7 +128,7 @@ describe("mission_api.conditions.unit_received", function()
 	it("does not fire on a mission capture, even when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		given(
-			trigger({ filter = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			{ transferringUnits = true, capturingUnits = true }

@@ -43,15 +43,15 @@ describe("mission_api.conditions.unit_left_location", function()
 		for _, parameter in ipairs(unitLeftLocation.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_nil(unitLeftLocation.parameters.requiresOneOf)
 	end)
 
 	it("fires for a unit that left the area", function()
 		local context, fired = newContext()
 		onUnitsLeftArea(
-			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
 			triggerID,
 			context,
 			{ 100 }
@@ -62,7 +62,7 @@ describe("mission_api.conditions.unit_left_location", function()
 	it("fires once per unit leaving together", function()
 		local context, fired = newContext()
 		onUnitsLeftArea(
-			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
 			triggerID,
 			context,
 			{ 100, 101 }
@@ -76,7 +76,7 @@ describe("mission_api.conditions.unit_left_location", function()
 		end
 		local context, fired = newContext()
 		onUnitsLeftArea(
-			trigger({ area = area, filter = { unitDefName = { [1] = true } } }),
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
 			triggerID,
 			context,
 			{ 100 }
@@ -86,10 +86,10 @@ describe("mission_api.conditions.unit_left_location", function()
 
 	it("does not fire for a unit the filters reject", function()
 		local context, fired = newContext()
-		context.DoesUnitMatchCondition = function()
+		context.IsUnitIncluded = function()
 			return false
 		end
-		onUnitsLeftArea(trigger({ area = area, filter = { unitName = "scouts" } }), triggerID, context, { 100 })
+		onUnitsLeftArea(trigger({ area = area, includeUnit = { unitName = "scouts" } }), triggerID, context, { 100 })
 		assert.are.equal(0, fired())
 	end)
 end)

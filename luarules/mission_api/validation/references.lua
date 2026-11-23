@@ -271,7 +271,7 @@ end
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
 --- The unit filter fields with a name of this type.
-local function unitFilterFieldsOfType(nameType)
+local function getUnitFilterFieldsOfType(nameType)
 	local fields = {}
 	for _, field in ipairs(unitFilterFields) do
 		if field.type == nameType then
@@ -385,7 +385,7 @@ end
 --- Triggers only ever refer to names, never create them.
 local function collectTriggerNames(context, nameKind, referencedNames)
 	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
-	local unitFilterNameFields = unitFilterFieldsOfType(nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
 	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
 	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 
@@ -415,7 +415,7 @@ end
 --- An objective can hold a trigger inline, which refers to names as any other trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
-	local unitFilterNameFields = unitFilterFieldsOfType(nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
 	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
 	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 

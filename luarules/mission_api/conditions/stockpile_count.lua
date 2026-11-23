@@ -4,8 +4,8 @@ return {
 	type = 'StockpileCount',
 	parameters = {
 		{ name = 'count',       required = true,  type = ParameterTypes.PositiveInteger },
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		StockpileChanged = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
@@ -13,7 +13,7 @@ return {
 			if oldCount >= parameters.count or newCount < parameters.count then
 				return
 			end
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

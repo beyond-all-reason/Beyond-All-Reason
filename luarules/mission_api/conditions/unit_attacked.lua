@@ -12,8 +12,8 @@ end
 return {
 	type = 'UnitAttacked',
 	parameters = {
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- A dead attacker passes no attacker info. We recover attackerTeam from any projectiles when we can.
@@ -31,7 +31,7 @@ return {
 				return
 			end
 			local parameters = trigger.parameters
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

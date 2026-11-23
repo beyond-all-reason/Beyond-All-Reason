@@ -83,13 +83,13 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'UnitKilled',                                  -- PascalCase, unique, matches the file name
 	parameters = {
-		{ name = 'filter',  required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude', required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 		-- requiresOneOf = { 'a', 'b' },                  -- optional, on the array itself
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			if not context.DoesUnitMatchCondition(unitID, trigger.parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, trigger.parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)
@@ -106,10 +106,10 @@ return {
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
-- A condition about one unit takes `filter`, a unit filter of `unitName`, `unitDefName`,
-  `teamName`, and `allianceName`, and `exclude`, a list of unit filters, and checks both with
-  `context.DoesUnitMatchCondition`. A filter's `unitDefName` is one name or a list of them, and
-  arrives processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
+- A condition about one unit takes `includeUnit`, a unit filter of `unitName`, `unitDefName`, and
+  either `teamName` or `allianceName`, and `excludeUnit`, a list of unit filters, and checks both
+  with `context.IsUnitIncluded`. A filter's `unitDefName` is one name or a list of them, and arrives
+  processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
   `builderName` or `transportDefName`.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the

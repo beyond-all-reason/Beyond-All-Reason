@@ -11,8 +11,8 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'ConstructionCanceled',
 	parameters = {
-		{ name = 'filter',      required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',     required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Construction doesn't have the ambiguous decision-making between factory/buildee capture
@@ -23,7 +23,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

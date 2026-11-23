@@ -13,4 +13,5 @@ local unitFilterFields = {
 
 return {
 	UnitFilterFields = unitFilterFields,
+	AtMostOneOf = { "teamName", "allianceName" },
 }

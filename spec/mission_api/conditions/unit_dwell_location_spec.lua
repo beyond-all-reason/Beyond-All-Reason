@@ -46,14 +46,14 @@ describe("mission_api.conditions.unit_dwell_location", function()
 				required[parameter.name] = true
 			end
 		end
-		assert.are.same({ area = true, duration = true, filter = true }, required)
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.are.same({ area = true, duration = true, includeUnit = true }, required)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_nil(unitDwellLocation.parameters.requiresOneOf)
 	end)
 
 	it("does not fire before the unit has dwelt for the full duration", function()
-		local t = trigger({ area = area, duration = 3, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 3, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -62,7 +62,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("fires once the unit has dwelt for the full duration", function()
-		local t = trigger({ area = area, duration = 2, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 2, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -71,7 +71,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("does not fire again for the same dwell once activated", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 1, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		onGameFrame(t, triggerID, context, 11) -- fires here
@@ -81,7 +81,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("restarts the dwell for a unit that leaves and re-enters", function()
-		local t = trigger({ area = area, duration = 2, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 2, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 }) -- enters on frame 10
 		onGameFrame(t, triggerID, context, 11)
@@ -97,9 +97,9 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("does not start a dwell for a unit the filters reject", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitName = "scouts" } })
+		local t = trigger({ area = area, duration = 1, includeUnit = { unitName = "scouts" } })
 		local context, fired = newContext()
-		context.DoesUnitMatchCondition = function()
+		context.IsUnitIncluded = function()
 			return false
 		end
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
@@ -108,7 +108,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("does not fire for a unit that lost its name while dwelling", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitName = "scouts" } })
+		local t = trigger({ area = area, duration = 1, includeUnit = { unitName = "scouts" } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		context.DoesUnitHaveName = function()
@@ -119,7 +119,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("tracks multiple units independently", function()
-		local t = trigger({ area = area, duration = 1, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 1, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100, 101 })
 		onGameFrame(t, triggerID, context, 11)
@@ -127,7 +127,7 @@ describe("mission_api.conditions.unit_dwell_location", function()
 	end)
 
 	it("fires a duration of 0 on the frame after entering", function()
-		local t = trigger({ area = area, duration = 0, filter = { unitDefName = { [1] = true } } })
+		local t = trigger({ area = area, duration = 0, includeUnit = { unitDefName = { [1] = true } } })
 		local context, fired = newContext()
 		onUnitsEnteredArea(t, triggerID, context, { 100 })
 		onGameFrame(t, triggerID, context, 10)

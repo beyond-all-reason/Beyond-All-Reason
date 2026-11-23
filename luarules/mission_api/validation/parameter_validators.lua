@@ -13,7 +13,7 @@ local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 local stateCommands = VFS.Include("common/stateCommands.lua")
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
-local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
+local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -96,6 +96,14 @@ local function getListValidator(elementValidator, emptyMessage)
 		end
 		return results
 	end
+end
+
+local function isCompactSequence(values)
+	local length = 0
+	for index in ipairs(values) do
+		length = index
+	end
+	return length == table.count(values)
 end
 
 --------------------------------------------------------------------------------
@@ -213,7 +221,7 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
-	-- One unit def name, or a list of them. Processing reads the list with ipairs.
+	-- One unit def name, or a list of them.
 	local validateUnitDefNameList =
 		getListValidator(parameterValidators[Types.UnitDefName], "unitDefName list is empty")
 	parameterValidators[Types.UnitDefNames] = function(unitDefNames)
@@ -223,11 +231,8 @@ local function registerValueValidators(parameterValidators, context)
 		if type(unitDefNames) ~= "table" then
 			return { { message = "Unexpected parameter type, expected string or table, got " .. type(unitDefNames) } }
 		end
-		local count = #unitDefNames
-		for key in pairs(unitDefNames) do
-			if not (type(key) == "number" and key >= 1 and key <= count and key % 1 == 0) then
-				return { { message = "Expected a list of unit def names, got key: " .. tostring(key) } }
-			end
+		if not isCompactSequence(unitDefNames) then
+			return { { message = "Expected a list of unit def names without gaps" } }
 		end
 		return validateUnitDefNameList(unitDefNames)
 	end
@@ -1157,6 +1162,7 @@ end
 
 local function registerUnitFilterValidators(parameterValidators, context)
 	local Types = context.Types
+	local unitFilterFields, exclusiveFields = unitFilterSchema.UnitFilterFields, unitFilterSchema.AtMostOneOf
 
 	local fieldNames = {}
 	local isField = {}
@@ -1210,18 +1216,8 @@ local function registerUnitFilterValidators(parameterValidators, context)
 			addResult(results, "Unit filter is empty, give at least one of: " .. quotedList(fieldNames))
 		end
 
-		local teamName, allianceName = unitFilter.teamName, unitFilter.allianceName
-		if #results == 0 and teamName ~= nil and allianceName ~= nil then
-			if Spring.GetTeamAllyTeamID(context.Teams[teamName]) ~= context.Alliances[allianceName] then
-				addResult(
-					results,
-					"Team '"
-						.. teamName
-						.. "' is not in alliance '"
-						.. allianceName
-						.. "', so the filter matches no unit"
-				)
-			end
+		if countPresent(unitFilter, exclusiveFields) > 1 then
+			addResult(results, "Unit filter takes only one of: " .. quotedList(exclusiveFields))
 		end
 		return results
 	end
@@ -1231,16 +1227,8 @@ local function registerUnitFilterValidators(parameterValidators, context)
 	local validateUnitFilterList = getListValidator(validateUnitFilter)
 	parameterValidators[Types.UnitFilters] = function(unitFilters)
 		local results = validateUnitFilterList(unitFilters)
-		if type(unitFilters) ~= "table" then
-			return results
-		end
-
-		local count = #unitFilters
-		-- The runtime reads the list with ipairs, so a filter under any other key would be skipped.
-		for key in pairs(unitFilters) do
-			if not (type(key) == "number" and key >= 1 and key <= count and key % 1 == 0) then
-				addResult(results, "Unit filters must be a list, got key: " .. tostring(key))
-			end
+		if type(unitFilters) == "table" and not isCompactSequence(unitFilters) then
+			addResult(results, "Expected a list of unit filters without gaps")
 		end
 		return results
 	end

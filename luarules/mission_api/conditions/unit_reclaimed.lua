@@ -19,8 +19,8 @@ end
 return {
 	type = 'UnitReclaimed',
 	parameters = {
-		{ name = 'filter',               required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',              required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit',          required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',          required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 	},
 	callins = {
@@ -31,7 +31,7 @@ return {
 				return
 			end
 
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

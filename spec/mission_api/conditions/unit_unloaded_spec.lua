@@ -41,8 +41,8 @@ describe("mission_api.conditions.unit_unloaded", function()
 		for _, parameter in ipairs(unitUnloaded.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.filter)
-		assert.is_true(names.exclude)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
 		assert.is_nil(unitUnloaded.parameters.requiresOneOf)
@@ -50,19 +50,19 @@ describe("mission_api.conditions.unit_unloaded", function()
 
 	it("fires when a unit is unloaded from a transport", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armck
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName, which is the passenger's team", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = { [1] = true }, teamName = 9 } }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 9 } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -71,7 +71,7 @@ describe("mission_api.conditions.unit_unloaded", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		unloaded(trigger({ filter = { unitName = "passenger" } }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitName = "passenger" } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -80,14 +80,14 @@ describe("mission_api.conditions.unit_unloaded", function()
 		context.DoesUnitHaveName = function(unitID)
 			return unitID == 100 -- the passenger has the name, the transport does not
 		end
-		unloaded(trigger({ filter = { unitName = "passenger" }, transportName = "dropship" }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitName = "passenger" }, transportName = "dropship" }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by transportDefName", function()
 		local context, fired = newContext()
 		unloaded(
-			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
 			context,
 			1,
 			0,
@@ -95,7 +95,7 @@ describe("mission_api.conditions.unit_unloaded", function()
 		) -- 10 = armatlas
 		assert.are.equal(0, fired())
 		unloaded(
-			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
 			context,
 			1,
 			0,
@@ -107,9 +107,9 @@ describe("mission_api.conditions.unit_unloaded", function()
 	-- Spring.UnitDetach raises UnitUnloaded for undocking drones and detached turrets.
 	it("does not fire when the unloader is not a transport, even when named", function()
 		local context, fired = newContext()
-		unloaded(trigger({ filter = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- 20 = a drone carrier
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- 20 = a drone carrier
 		unloaded(
-			trigger({ filter = { unitDefName = { [1] = true } }, transportDefName = "armdronecarryland" }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "armdronecarryland" }),
 			context,
 			1,
 			0,

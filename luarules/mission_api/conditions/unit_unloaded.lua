@@ -6,8 +6,8 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'UnitUnloaded',
 	parameters = {
-		{ name = 'filter',           required = true,  type = ParameterTypes.UnitFilter },
-		{ name = 'exclude',          required = false, type = ParameterTypes.UnitFilters },
+		{ name = 'includeUnit',      required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',      required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },
 	},
@@ -18,7 +18,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if not context.DoesUnitMatchCondition(unitID, parameters, unitDefID, unitTeam) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			if parameters.transportName and not context.DoesUnitHaveName(transportID, parameters.transportName) then
