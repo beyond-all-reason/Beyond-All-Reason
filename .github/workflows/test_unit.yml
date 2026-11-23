@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 4 * * *' # nightly, includes specs that pull requests skip
   workflow_dispatch:
+    inputs:
+      engine:
+        description: 'RecoilEngine commit to test on, in place of .github/recoil-lua/ENGINE'
 
 jobs:
   pull-request-for-push:
@@ -46,9 +49,14 @@ jobs:
     - name: Resolve recoil-lua
       id: recoil-lua
       env:
+        ENGINE_INPUT: ${{ inputs.engine }}
         RECIPE: ${{ hashFiles('.github/recoil-lua/patches/**', '.github/workflows/test_unit.yml') }}
       run: |
-        engine=$(cat .github/recoil-lua/ENGINE)
+        engine=${ENGINE_INPUT:-$(cat .github/recoil-lua/ENGINE)}
+        if ! [[ "$engine" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::The engine is not a full commit hash: $engine"
+          exit 1
+        fi
         echo "Engine $engine"
         echo "engine=$engine" >> "$GITHUB_OUTPUT"
         echo "key=$engine-$RECIPE" >> "$GITHUB_OUTPUT"
@@ -74,7 +82,10 @@ jobs:
         git -C "$src" fetch --quiet --filter=tree:0 origin "$ENGINE"
         git -C "$src" checkout --quiet "$ENGINE"
         git -C "$src" submodule update --init --recursive --quiet
-        git -C "$src" -c user.name=ci -c user.email=ci@localhost am "$GITHUB_WORKSPACE"/.github/recoil-lua/patches/*.patch
+        # An engine commit with recoil-lua needs no patches.
+        if [ ! -f "$src/rts/lib/lua/src/lua.cpp" ]; then
+          git -C "$src" -c user.name=ci -c user.email=ci@localhost am "$GITHUB_WORKSPACE"/.github/recoil-lua/patches/*.patch
+        fi
         cmake -S "$src" -B "$RUNNER_TEMP/recoil-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DAI_TYPES=NONE
         cmake --build "$RUNNER_TEMP/recoil-build" --target recoil-lua
 
