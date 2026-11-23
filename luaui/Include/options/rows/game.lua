@@ -41,6 +41,22 @@ return function(model)
 			end,
 		},
 		{
+			id = "eliminatedSpectatorVision",
+			group = "game",
+			category = types.basic,
+			available = Spring.CanOptIntoFullView ~= nil,
+			name = BAR.I18N("ui.settings.option.eliminatedSpectatorVision"),
+			description = BAR.I18N("ui.settings.option.eliminatedSpectatorVision_descr"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.eliminatedSpectatorVision_allied"),
+				BAR.I18N("modoptions.restrictedspectators.items.optin.name"),
+				BAR.I18N("ui.settings.option.eliminatedSpectatorVision_lobby"),
+			},
+			value = 3,
+			configInt = "EliminatedSpectatorVision",
+		},
+		{
 			id = "autoquit",
 			group = "game",
 			category = types.basic,
