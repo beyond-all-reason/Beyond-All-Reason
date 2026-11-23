@@ -53,6 +53,18 @@ local function loadHalf(synced, world)
 	return env.gadget, env
 end
 
+-- A message up to its last command's parameters, and those sorted: the builder writes a table of
+-- parameters in the order pairs walks it.
+local function splitLastParams(message)
+	local start, list = message:match("^(.*:)([^:]*)$")
+	local params = {}
+	for param in list:gmatch("[^;]+") do
+		params[#params + 1] = param
+	end
+	table.sort(params)
+	return start, params
+end
+
 describe("api_campaign_ai", function()
 	local world ---@type table
 
@@ -184,7 +196,9 @@ describe("api_campaign_ai", function()
 
 		it("sets every military quota: scouts, attack power, raid power", function()
 			campaignAI.SetMilitaryQuota(0, 120, 20, TEAM_ID)
-			assert.same({ { teamID = TEAM_ID, message = "1|17:1=0;2=120;3=20" } }, world.sent)
+			local start, quotas = splitLastParams(world.sent[1].message)
+			assert.are.equal("1|17:", start)
+			assert.same({ "1=0", "2=120", "3=20" }, quotas)
 		end)
 
 		it("sets only the military quotas that are given", function()
@@ -207,12 +221,11 @@ describe("api_campaign_ai", function()
 			assert.same({ { teamID = TEAM_ID, message = "1|12:1=101" } }, world.sent)
 		end)
 
-		it("defines a squad: its ID, where it gathers, then its units in unit def order", function()
+		it("defines a squad: its ID, where it gathers, then its units", function()
 			campaignAI.DefineSquad(5, { [9] = 2, [7] = 3 }, 4300, 1600, 600, 400, TEAM_ID)
-			assert.same(
-				{ { teamID = TEAM_ID, message = "1|201:5|204:1=4300,1600;2=600;3=400|202:7=3;9=2" } },
-				world.sent
-			)
+			local start, unitCounts = splitLastParams(world.sent[1].message)
+			assert.are.equal("1|201:5|204:1=4300,1600;2=600;3=400|202:", start)
+			assert.same({ "7=3", "9=2" }, unitCounts)
 		end)
 
 		it("leaves a squad's attack range to the AI when none is given", function()
@@ -316,6 +329,16 @@ describe("api_campaign_ai", function()
 		it("goes out through the net with its team", function()
 			syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_201:5")
 			assert.same({ "CampaignAISignal:3:201:5" }, world.luaRulesMessages)
+		end)
+
+		it("goes out with its second ID", function()
+			syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_301:2;5")
+			assert.same({ "CampaignAISignal:3:301:2;5" }, world.luaRulesMessages)
+		end)
+
+		it("does not go out in a shape that cannot be read back", function()
+			syncedHalf:RecvSkirmishAIMessage(TEAM_ID, "ai_201:5;7;9")
+			assert.same({}, world.luaRulesMessages)
 		end)
 
 		it("gets no answer, which the AI would take as its own", function()
