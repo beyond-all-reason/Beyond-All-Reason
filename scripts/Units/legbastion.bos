@@ -164,6 +164,7 @@ Create()
 	turn armPivot2 to y-axis <120> now;
 	turn armPivot3 to y-axis <-120> now;
 	move turret to y-axis [6] now;
+	move aimfromy to y-axis [6] now;
 
 	turn leftAimingArm to z-axis <45> speed <45>;
 	turn rightAimingArm to z-axis <-45> speed <45>;
@@ -276,7 +277,7 @@ SweepFire()
 		//get PRINT(1235, targetswap, isfiring, timer);
 		if (targetswap == 1 AND isfiring == 1 AND isOpen AND lastfired+fireTime>gameframe)
 		{
-			emit-sfx 2048 from fireline;
+			emit-sfx 2048 from lineflare;
 			timer = timer + 1;
 		}
 		if (timer > 150)
