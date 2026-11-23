@@ -11,6 +11,8 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local stateCommands = VFS.Include("common/stateCommands.lua")
+local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -455,7 +457,7 @@ local function registerValueValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
--- Spatial validators: Position, Positions, Area and Direction
+-- Spatial validators: Position, Positions, Area, Direction and FacingOrDirection
 --------------------------------------------------------------------------------
 
 -- Height is optional, so a position without y is only checked for x and z.
@@ -568,6 +570,17 @@ local function registerSpatialValidators(parameterValidators, context)
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
+
+	parameterValidators[Types.FacingOrDirection] = function(value)
+		local valueType = type(value)
+		if valueType == "table" then
+			return parameterValidators[Types.Direction](value)
+		end
+		if valueType ~= "string" and valueType ~= "number" then
+			return { { message = "Unexpected parameter type, expected string, number or table, got " .. valueType } }
+		end
+		return parameterValidators[Types.Facing](value)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -629,13 +642,6 @@ local function getNameValidator(nameKey, message)
 	end
 end
 
-local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, "number")
-	if luaTypeResult then
-		addResult(results, luaTypeResult, "[2]")
-	end
-end
-
 local function validateNoParams(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -645,13 +651,28 @@ local function validateNoParams(params, results)
 	end
 end
 
-local function validateOnOffParam(params, results)
-	local value = params
-	if type(params) == "table" and #params == 1 then
-		value = params[1]
+-- One command's validator: it takes one of that command's states, bare or as {state}.
+local function getStateValidator(commandStates)
+	local allowed, named = {}, {}
+	for name, value in pairs(commandStates) do
+		named[#named + 1] = { name = name, value = value }
+		allowed[value] = true
 	end
-	if value ~= 0 and value ~= 1 then
-		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	table.sort(named, function(a, b)
+		return a.value < b.value
+	end)
+	for index, state in ipairs(named) do
+		named[index] = state.name .. " (" .. state.value .. ")"
+	end
+	local message = "Parameter must be one of: " .. table.concat(named, ", ")
+	return function(params, results)
+		local value = params
+		if type(params) == "table" and #params == 1 then
+			value = params[1]
+		end
+		if not allowed[value] then
+			addResult(results, message, "[2]")
+		end
 	end
 end
 
@@ -698,10 +719,6 @@ local validatorsByCommandName = {
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
 	GATHERWAIT = validateNoParams,
-	-- 0 (off) or 1 (on):
-	CLOAK = validateOnOffParam,
-	ONOFF = validateOnOffParam,
-	REPEAT = validateOnOffParam,
 	-- Wait parameters:
 	TIMEWAIT = validateSeconds,
 	SQUADWAIT = validateSquadSize,
@@ -730,10 +747,10 @@ local validatorsByCommandName = {
 	RESURRECT = validate4orFeatureName,
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
-	-- Single number parameter:
-	FIRE_STATE = validateNumberParam,
-	MOVE_STATE = validateNumberParam,
 }
+for commandName, commandStates in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(commandStates)
+end
 
 local function validateOrderOptions(options, results)
 	if not options then
@@ -1013,6 +1030,108 @@ local function registerLoadoutValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
+-- Camera validators: the camera enums and keyframes
+--------------------------------------------------------------------------------
+
+local function quotedList(names)
+	return "'" .. table.concat(names, "', '") .. "'"
+end
+
+--- Validates a string that must be one of an enum's values, listing them when it is not.
+local function getEnumValidator(enums, enumType, valueName)
+	local valueSet = enums[enumType]
+	local names = {}
+	for name in pairs(valueSet) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	local allowedList = quotedList(names)
+
+	return function(value)
+		local luaTypeResult = validateLuaType(value, "string")
+		if luaTypeResult then
+			return { { message = luaTypeResult } }
+		end
+		if not valueSet[value] then
+			return { { message = "Invalid " .. valueName .. ": '" .. value .. "'. Must be one of: " .. allowedList } }
+		end
+	end
+end
+
+local function countPresent(keyframe, fields)
+	local count = 0
+	for _, field in ipairs(fields) do
+		if keyframe[field] ~= nil then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local function registerCameraValidators(parameterValidators, context)
+	local Types = context.Types
+	local enums = context.Enums
+
+	parameterValidators[Types.CameraEasing] = getEnumValidator(enums, Types.CameraEasing, "easing")
+	parameterValidators[Types.CameraSequenceEnd] =
+		getEnumValidator(enums, Types.CameraSequenceEnd, "camera sequence end")
+	parameterValidators[Types.CameraPath] = getEnumValidator(enums, Types.CameraPath, "camera path")
+	parameterValidators[Types.CameraClock] = getEnumValidator(enums, Types.CameraClock, "camera clock")
+
+	local eyeFields, lookAtFields = cameraKeyframeSchema.ExactlyOneOf, cameraKeyframeSchema.AtMostOneOf
+
+	local function validateKeyframe(keyframe)
+		local luaTypeResult = validateTableType(keyframe)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		-- Fields in name order, so the messages come out in the same order every run.
+		local fields = {}
+		for field in pairs(keyframe) do
+			fields[#fields + 1] = tostring(field)
+		end
+		table.sort(fields)
+
+		local results = {}
+		for _, field in ipairs(fields) do
+			local fieldType = cameraKeyframeSchema.Settings[field]
+			if fieldType then
+				appendResults(results, parameterValidators[fieldType](keyframe[field]), "." .. field)
+			else
+				results[#results + 1] = { message = "Unknown keyframe field '" .. field .. "'" }
+			end
+		end
+
+		local eyeCount = countPresent(keyframe, eyeFields)
+		if eyeCount == 0 then
+			results[#results + 1] = { message = "Keyframe needs one of: " .. quotedList(eyeFields) }
+		elseif eyeCount > 1 then
+			results[#results + 1] = { message = "Keyframe places the eye twice, use one of: " .. quotedList(eyeFields) }
+		end
+		if keyframe.relativeToHeading ~= nil and keyframe.unitName == nil then
+			results[#results + 1] = {
+				message = "Keyframe relativeToHeading needs a unitName to take the heading from",
+				isWarning = true,
+			}
+		end
+
+		local lookAtCount = countPresent(keyframe, lookAtFields)
+		if lookAtCount > 1 then
+			results[#results + 1] =
+				{ message = "Keyframe has more than one look-at target, use one of: " .. quotedList(lookAtFields) }
+		elseif lookAtCount == 1 and (keyframe.pitch ~= nil or keyframe.yaw ~= nil) then
+			results[#results + 1] =
+				{ message = "Keyframe pitch and yaw are ignored while it looks at a target", isWarning = true }
+		end
+
+		return results
+	end
+
+	parameterValidators[Types.CameraKeyframes] = getListValidator(validateKeyframe, "Keyframes table is empty")
+end
+
+--------------------------------------------------------------------------------
 
 local function createParameterValidators(context)
 	local parameterValidators = {}
@@ -1022,6 +1141,7 @@ local function createParameterValidators(context)
 	registerSpatialValidators(parameterValidators, context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
+	registerCameraValidators(parameterValidators, context)
 
 	return parameterValidators
 end

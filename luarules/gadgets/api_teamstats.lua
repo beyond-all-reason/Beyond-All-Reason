@@ -30,19 +30,24 @@ end
 -- Reclaim is the one exception: which team took a feature's metal and energy only shows
 -- on the synced side, in the step a builder takes on it. So a small synced half counts it
 -- and leaves each team's running totals in a rules param, which the unsynced half reads
--- into its samples like the rest - still nothing through the network or the replay.
+-- into its samples like the rest - still nothing through the network or the replay. It
+-- also leaves what each team reclaimed over the engine's last income period, which the
+-- unsynced half takes out of the income.
 if gadgetHandler:IsSyncedCode() then
 	local spGetFeatureResources = Spring.GetFeatureResources
 	local spSetTeamRulesParam = Spring.SetTeamRulesParam
 	local spGetGameFrame = Spring.GetGameFrame
 	-- The unsynced half reads these for every team and gates them as it gates the rest.
 	local PRIVATE = { private = true }
+	-- The engine's income period, in frames: a team's income is what came in over the last one.
+	local INCOME_PERIOD = 30
 	-- [featureID] = what it held at the last reclaim step on it, and whose builder took it.
 	---@type table<integer, { team: integer, metal: number, energy: number, frame: integer }?>
 	local lastSeen = {}
-	-- [teamID] = { metal, energy } taken so far, and which of them changed since the params
-	-- were last set.
-	---@type table<integer, { metal: number, energy: number }?>
+	-- [teamID] = { metal, energy } taken so far, what they were as the last income period
+	-- closed (`metalAt`, `energyAt`) and what came in over it as last set (`metalRate`,
+	-- `energyRate`); and which teams' totals changed since the params were last set.
+	---@type table<integer, { metal: number, energy: number, metalAt: number, energyAt: number, metalRate: number?, energyRate: number? }?>
 	local reclaimed = {}
 	---@type table<integer, boolean>
 	local changed = {}
@@ -51,7 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 		if metal <= 0 and energy <= 0 then
 			return
 		end
-		local r = reclaimed[teamID] or { metal = 0, energy = 0 }
+		local r = reclaimed[teamID] or { metal = 0, energy = 0, metalAt = 0, energyAt = 0 }
 		reclaimed[teamID] = r
 		r.metal = r.metal + math.max(0, metal)
 		r.energy = r.energy + math.max(0, energy)
@@ -101,20 +106,31 @@ if gadgetHandler:IsSyncedCode() then
 			local energy = Spring.GetTeamRulesParam(teamID, "teamStatsReclaimedEnergy")
 			metal, energy = tonumber(metal), tonumber(energy)
 			if metal or energy then
-				reclaimed[teamID] = { metal = metal or 0, energy = energy or 0 }
+				metal, energy = metal or 0, energy or 0
+				reclaimed[teamID] = { metal = metal, energy = energy, metalAt = metal, energyAt = energy }
 			end
 		end
 	end
 
-	function gadget:GameFrame(frame)
-		if frame % 30 ~= 0 or not next(changed) then
+	-- After the frame's steps, when the engine closes an income period: what was reclaimed
+	-- since the last one closed is the part of that period's income reclaim brought in. A step
+	-- is credited at the next step on its feature, a frame later, so this runs a frame behind
+	-- the engine's period: that shows only in the second a reclaim starts or stops.
+	function gadget:GameFramePost(frame)
+		if frame % INCOME_PERIOD ~= 0 then
 			return
 		end
-		for teamID in pairs(changed) do
-			local r = reclaimed[teamID]
-			if r then
+		for teamID, r in pairs(reclaimed) do
+			if changed[teamID] then
 				spSetTeamRulesParam(teamID, "teamStatsReclaimedMetal", r.metal, PRIVATE)
 				spSetTeamRulesParam(teamID, "teamStatsReclaimedEnergy", r.energy, PRIVATE)
+			end
+			local metal, energy = r.metal - r.metalAt, r.energy - r.energyAt
+			r.metalAt, r.energyAt = r.metal, r.energy
+			if metal ~= r.metalRate or energy ~= r.energyRate then
+				r.metalRate, r.energyRate = metal, energy
+				spSetTeamRulesParam(teamID, "teamStatsReclaimRateMetal", metal, PRIVATE)
+				spSetTeamRulesParam(teamID, "teamStatsReclaimRateEnergy", energy, PRIVATE)
 			end
 		end
 		changed = {}
@@ -338,6 +354,9 @@ local SAMPLED = {
 	-- What the team's builders took from wrecks, rocks and trees, from the synced half.
 	"metalReclaimed",
 	"energyReclaimed",
+	-- And per second right now, which the income above leaves out.
+	"metalReclaimIncome",
+	"energyReclaimIncome",
 	-- The wind is everyone's; every team's sample carries it, so a chart reads it off any.
 	"windSpeed",
 	-- So is the lava's height, on a lava map.
@@ -1596,17 +1615,29 @@ end
 
 -- Fills `out` with every SAMPLED key for the team, as things stand right now: the
 -- counters from the tally, the economy and the conversion from the engine, and the
--- build power in use from the builders' rolling reading.
+-- build power in use from the builders' rolling reading. The engine's income holds the
+-- reclaim, which the synced half measures over the same period: it is taken out and kept
+-- apart.
 local function readLive(teamID, out)
 	local t = teams[teamID]
 	---@cast t -?
 	local cur, storage, _, income, expense = spGetTeamResources(teamID, "metal")
-	out.metalIncome = income or 0
+	income = income or 0
+	local reclaim = spGetTeamRulesParam(teamID, "teamStatsReclaimRateMetal") or 0
+	---@cast reclaim number
+	reclaim = math.max(0, math.min(income, reclaim))
+	out.metalIncome = income - reclaim
+	out.metalReclaimIncome = reclaim
 	out.metalExpense = expense or 0
 	out.metalCurrent = cur or 0
 	out.metalStorage = storage or 0
 	cur, storage, _, income, expense = spGetTeamResources(teamID, "energy")
-	out.energyIncome = income or 0
+	income = income or 0
+	local energyReclaim = spGetTeamRulesParam(teamID, "teamStatsReclaimRateEnergy") or 0
+	---@cast energyReclaim number
+	energyReclaim = math.max(0, math.min(income, energyReclaim))
+	out.energyIncome = income - energyReclaim
+	out.energyReclaimIncome = energyReclaim
 	out.energyExpense = expense or 0
 	out.energyCurrent = cur or 0
 	out.energyStorage = storage or 0

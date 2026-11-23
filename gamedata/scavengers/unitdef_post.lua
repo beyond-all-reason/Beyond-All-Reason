@@ -5,7 +5,10 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.category = uDef.category .. " SCAVENGER"
 	end
 	uDef.customparams.isscavenger = true
-	uDef.capturable = false
+	local unitNamePrefix = string.sub(name, 1, 3)
+	if unitNamePrefix ~= "cor" and unitNamePrefix ~= "arm" and unitNamePrefix ~= "leg" then
+		uDef.capturable = false
+	end
 	uDef.decloakonfire = true
 	uDef.hidedamage = true
 	if uDef.decoyfor and not string.find(uDef.decoyfor, "_scav") then

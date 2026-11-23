@@ -573,6 +573,12 @@ function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	addPenetratorProjectile(projectileID, ownerID, weaponParams[weaponDefID])
 end
 
+function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
+	if projectiles[projectileID] ~= nil then
+		projectiles[projectileID] = nil
+	end
+end
+
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 	if projectileID and projectiles[projectileID] then
 		-- Only process collisions with terrain or water.
