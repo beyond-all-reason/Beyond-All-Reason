@@ -69,9 +69,10 @@ describe("mission_api.marching", function()
 			GetUnitCommandCount = function(unitID)
 				return #(units[unitID].queue or {})
 			end,
+			-- An order's tag is its table, as each one the engine queues gets its own.
 			GetUnitCurrentCommand = function(unitID, index)
 				local order = units[unitID].queue[index]
-				return order[1], 0, 0, order[2][1], order[2][2], order[2][3]
+				return order[1], 0, tostring(order), order[2][1], order[2][2], order[2][3]
 			end,
 		}
 	end)
@@ -178,7 +179,7 @@ describe("mission_api.marching", function()
 		end)
 	end)
 
-	describe("matchSpeed", function()
+	describe("pace", function()
 		---@type table<integer, number|false>
 		local speeds
 		---@type table<integer, number>
@@ -213,7 +214,7 @@ describe("mission_api.marching", function()
 			for _, unit in pairs(units) do
 				unit.queue = {}
 			end
-			Marching.UpdateSpeeds(0)
+			Marching.UpdateSpeeds()
 		end)
 
 		it("holds every marcher to the slowest one's speed", function()
@@ -243,16 +244,14 @@ describe("mission_api.marching", function()
 			assert.are.same({}, speeds)
 		end)
 
-		it("keeps the pace while the last march order is queued, checked every half second", function()
+		it("keeps the pace while the last march order is queued", function()
 			marchMatched({ moveTo(3000, 1000), moveTo(3000, 2000, { "shift" }) })
 			table.remove(units[1].queue, 1)
-			Marching.UpdateSpeeds(15)
+			Marching.UpdateSpeeds()
 			assert.are.same({ 40 / 60, 40 / 60, false }, speeds)
 			units[1].queue = {}
-			Marching.UpdateSpeeds(16)
-			assert.are.equal(40 / 60, speeds[1])
 			speeds = {}
-			Marching.UpdateSpeeds(30)
+			Marching.UpdateSpeeds()
 			assert.are.same({ false }, speeds)
 		end)
 
@@ -261,7 +260,7 @@ describe("mission_api.marching", function()
 			units[1].queue = { moveTo(500, 500) }
 			units[2].transporter = 9
 			speeds = {}
-			Marching.UpdateSpeeds(15)
+			Marching.UpdateSpeeds()
 			assert.are.same({ false, false }, speeds)
 		end)
 
@@ -269,9 +268,9 @@ describe("mission_api.marching", function()
 			marchMatched({ moveTo(3000, 1000) })
 			units[3].dead = true
 			speeds = {}
-			Marching.UpdateSpeeds(15)
+			Marching.UpdateSpeeds()
 			units[3].dead, units[3].queue = false, {}
-			Marching.UpdateSpeeds(30)
+			Marching.UpdateSpeeds()
 			assert.is_nil(speeds[3])
 		end)
 	end)

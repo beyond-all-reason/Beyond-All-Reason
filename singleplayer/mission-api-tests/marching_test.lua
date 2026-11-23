@@ -36,12 +36,12 @@ local triggers = {
 		actions = { 'moveNorth', 'queueMoveEastFacingNorth', 'messageQueue' },
 	},
 
-	matchSpeed = {
-		type = triggerTypes.TimeElapsed,
+	holdPace = {
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 150,
 		},
-		actions = { 'moveWestMatchingSpeed', 'messageMatchSpeed' },
+		actions = { 'moveWestHoldingPace', 'messageHoldPace' },
 	},
 }
 
@@ -117,20 +117,19 @@ local actions = {
 		},
 	},
 
-	moveWestMatchingSpeed = {
+	moveWestHoldingPace = {
 		type = actionTypes.IssueOrders,
 		parameters = {
 			unitName = 'squad',
 			orders = { { CMD.MOVE, { 2000, 0, 3000 } } },
 			marching = true,
-			matchSpeed = true,
 		},
 	},
 
-	messageMatchSpeed = {
+	messageHoldPace = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Marching west with matchSpeed: the fast bots hold the slow one's pace.",
+			messageKey = "Marching west: the fast bots hold the slow one's pace.",
 		},
 	},
 }

@@ -1,6 +1,6 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function issueOrders(unitName, orders, marching, direction, matchSpeed)
+local function issueOrders(unitName, orders, marching, direction)
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
@@ -10,9 +10,7 @@ local function issueOrders(unitName, orders, marching, direction, matchSpeed)
 		local marchingModule = GG['MissionAPI'].Modules.Marching
 		local unitOrders = marchingModule.GetMarchingOrders(unitIDs, orders, direction)
 		missionOrders.GiveUnitOrders(unitOrders)
-		if matchSpeed then
-			marchingModule.MatchSpeed(unitOrders)
-		end
+		marchingModule.MatchSpeed(unitOrders)
 	else
 		missionOrders.GiveOrders(unitIDs, orders)
 	end
@@ -26,7 +24,6 @@ return {
 			{ name = 'orders', required = true, type = ParameterTypes.Orders },
 			{ name = 'marching', required = false, type = ParameterTypes.Boolean },
 			{ name = 'direction', required = false, type = ParameterTypes.Direction },
-			{ name = 'matchSpeed', required = false, type = ParameterTypes.Boolean },
 		},
 		actionFunction = issueOrders,
 	}

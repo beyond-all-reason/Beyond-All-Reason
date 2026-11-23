@@ -19,6 +19,8 @@ local validationReport = VFS.Include("luarules/mission_api/validation/report.lua
 local loadReport = validationReport.Create()
 
 local missionLoaded = true
+-- Marching units get their own speed back within half a second of their march order going.
+local MARCH_UPDATE_FRAMES = math.floor(Game.gameSpeed / 2)
 local missionLoadError
 local missionLoadStep
 
@@ -234,7 +236,9 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
-	GG["MissionAPI"].Modules.Marching.UpdateSpeeds(frameNumber)
+	if frameNumber % MARCH_UPDATE_FRAMES == 0 then
+		GG["MissionAPI"].Modules.Marching.UpdateSpeeds()
+	end
 end
 
 function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)
