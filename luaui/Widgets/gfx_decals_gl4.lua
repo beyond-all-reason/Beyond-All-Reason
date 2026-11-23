@@ -29,7 +29,7 @@ local spEcho = Spring.Echo
 -- Notes and TODO
 -- yes these are geometry shader decals
 -- we are gonna try to sample heightmap
--- atlasColor is diffuse + alpha
+-- atlasColorAlpha is diffuse + alpha
 -- The color is expected to blend up to 0.5,
 -- atlasNormals is normals + emission
 
@@ -40,13 +40,10 @@ local spEcho = Spring.Echo
 -- possibly solvable via batched decal removal, a good amount of time after they become transparent?
 -- TODO:
 -- use global sun params for lighting calcs
--- DONE disable parallax
 -- DONE enable support for old-style decals
 -- paint emission
 -- soften and make large decal creation above saturation threshold more probabilistic
 -- always allow the creation of small decals
--- DONE control parallax via config
--- SKIP fix parallax to work
 -- DONE Validate normals
 -- DONE decal fade-in?
 -- DONE cache decal UV's
@@ -66,10 +63,7 @@ local spEcho = Spring.Echo
 local shaderConfig = {
 	HEIGHTOFFSET = 0.5, -- Additional height added to everything
 	LOSDARKNESS = 0.7, -- additional LOS darken factor
-	PARALLAX = 0, -- 1 for on, kinda broken, do not use
-	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda weird at the moment
-	GLOWTHRESHOLD = 0.99,
 	FADEINTIME = 20, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
@@ -100,8 +94,6 @@ local cellArea = areaResolution * areaResolution
 local maxDecalLayersPerCell = 16
 
 ------------------------ GL4 BACKEND -----------------------------------
-
-local atlasHeights = nil
 
 local atlas = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
 local upperkeys = {}
@@ -180,9 +172,6 @@ local uniformInts = {
 	mapNormalsTex = 4,
 	atlasColorAlpha = 5,
 	atlasNormals = 6,
-	atlasHeights = ((shaderConfig.PARALLAX == 1) and 7) or nil,
-	atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8) or nil,
-	atlasRG = ((shaderConfig.USEGLOW == 1) and 9) or nil,
 }
 
 local shaderSourceCache = {
@@ -587,7 +576,6 @@ local function AddDecal(
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	spawnframe = spawnframe or spGetGameFrame()
-	--spEcho(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p, q, s, t = 0, 1, 0, 1
 
 	--spEcho(decaltexturename) --used for displaying which decal texture is spawned
@@ -682,9 +670,6 @@ local function DrawDecals()
 		glTexture(4, "$normals")
 		glTexture(5, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
 		glTexture(6, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
-		if shaderConfig.PARALLAX == 1 then
-			glTexture(7, atlasHeights)
-		end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -716,7 +701,7 @@ local function DrawDecals()
 		end
 
 		-- Restore the GL state
-		for i = 0, 8 do
+		for i = 0, 6 do
 			glTexture(i, false)
 		end
 		glCulling(false) -- This is the correct default mode!
@@ -2139,10 +2124,6 @@ function widget:Initialize()
 	widgetHandler:AddAction("decalsgl4stats", decalsgl4statsCmd, nil, "t")
 	widgetHandler:AddAction("decalsgl4skipdraw", decalsgl4skipdrawCmd, nil, "t")
 
-	--if makeAtlases() == false then
-	--	goodbye("Failed to init texture atlas for DecalsGL4")
-	--	return
-	--end
 	local initsuccess = initGL4("DecalsGL4")
 	if initsuccess == nil then
 		widgetHandler:RemoveWidget()

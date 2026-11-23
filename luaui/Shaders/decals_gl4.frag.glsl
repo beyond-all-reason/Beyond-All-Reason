@@ -25,21 +25,8 @@ uniform sampler2D infoTex;
 uniform sampler2D miniMapTex;
 uniform sampler2D mapNormalsTex;
 uniform sampler2DShadow shadowTex;
-uniform sampler2D atlasColorAlpha;
-uniform sampler2D atlasNormals;
-
-
-#if (PARALLAX == 1)
-	uniform sampler2D atlasHeights;
-#endif
-
-#if (AMBIENTOCCLUSION == 1)
-	uniform sampler2D atlasORM;
-#endif
-
-#if (USEGLOW == 1)
-	uniform sampler2D atlasRG;
-#endif
+uniform sampler2D atlasColorAlpha; // RGB: diffuse, A: opacity
+uniform sampler2D atlasNormals; // RGB: normal, A: emission
 
 out vec4 fragColor;
 
@@ -98,36 +85,16 @@ vec3 ReOrientNormalUnpacked(vec3 basenormal, vec3 detailnormal){ // for unpacked
 	return normalize(r);
 }
 
-vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir, float height)
-{    
-    vec2 p = (viewDir.xz)* (height * 1);
-    return p;    
-} 
-
 #line 31000
 void main(void)
 {
 	vec3 campos = cameraViewInv[3].xyz;
 	vec3 camtoworld = normalize(g_position.xyz - campos);
 
-	#if (PARALLAX == 1)
-		vec3 tangentviewpos = (tbnmatrix * campos.xzy).xyz; // Y points to camera
-		vec3 tangentfragpos = (tbnmatrix * g_position.xzy).xyz; // Y points up
-		vec3 tangentviewdir =  normalize(tangentfragpos - tangentviewpos); // Y points up!
-		vec4 tex3color = texture(atlasHeights, g_uv.xy);
-		//float height =
-
-		// do parallax here !
-		vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
-	#else
-		vec2 parallaxUV = vec2(0.0);
-
-	#endif
-
 	// Sample the decal color first, so invisible fragments bail before all the sampling and shading below.
 	// This matters a lot in fields of overlapping alpha-blended decals: most of every decal quad is
 	// transparent padding, and faded decals linger in the VBOs long before batched removal kicks in.
-	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy);
+	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy);
 
 	// The blended alpha is tex1color.a^2 * fade, so below ~1/255 this fragment cannot change the framebuffer.
 	// The glow contribution is provably black too: Temperature() is black below 300 kelvin, and its argument
@@ -145,11 +112,11 @@ void main(void)
 	float bias = (offaxis*offaxis)*-2.0;
 
 	if (bias < -0.01){ // only pay for the sharper-mip resample at grazing view angles
-		tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
+		tex1color = texture(atlasColorAlpha, g_uv.xy, bias);
 	}
 	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
 	
-	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
+	vec4 tex2color = texture(atlasNormals, g_uv.xy, bias);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
 	if (dot(tex2color.rgb, vec3(1.0)) < 0.001) fragNormal = vec3(0.0, 0.0, 1.0);// check if the normals are missing, if yes, then sub with Z up. 
 	
@@ -192,11 +159,6 @@ void main(void)
 	// Blend underwater parts of the decals correctly
 	vec4 waterblendfactors = waterBlend(g_position.y);
 	fragColor.rgb = mix(fragColor.rgb, fragColor.rgb * waterblendfactors.rgb, waterblendfactors.a);
-	#if (AMBIENTOCCLUSION == 1) 
-		vec4 tex4color = texture(atlasORM, g_uv.xy  - parallaxUV.xy);
-	#else
-		vec4 tex4color = vec4 (0.0);
-	#endif
 	
 	// Darken the whole goddamned decal:
 	fragColor.rgb *= 0.80; 
@@ -235,13 +197,9 @@ void main(void)
 	//fragColor.r += g_parameters.w;
 	//fragColor.rgb += heatColor;
 	//fragColor.rgb = tbnmatrix[2] * 0.5 + 0.5;
-	//fragColor.rgb = tangentviewdir.yyy * 0.5 + 0.5;
 	//fragColor.rgb = tex1color.rgb;
-	//fragColor.rgb = tex3color.bbb;
-	//fragColor.rgb = abs((parallaxUV.xyx * 10) + 0.5);
 	//fragColor.rgb = fract(tspace.xyz* 0.01);
 	//fragColor.rgb = reorientedNormal.rgb * 0.5 + 0.5;
-	//fragColor.rgb = max(vec3(parallaxUV.x, - parallaxUV.x, 0.0) * 10, 0.0);
 	//fragColor.a = 1.0;
 	//fragColor.rgb = g_uv.zyy;
 	//fragColor.rgba = vec4(0.5);
