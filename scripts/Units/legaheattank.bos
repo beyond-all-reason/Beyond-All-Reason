@@ -163,6 +163,7 @@ FireWeapon1()
 		sleep 2000;
 		return (0);
 	}
+	return (0);
 }
 
 AimFromWeapon1(pieceIndex)

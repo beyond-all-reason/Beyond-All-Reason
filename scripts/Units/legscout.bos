@@ -27,6 +27,7 @@ Create()
 	Weapon1TurretX = <300.0>;
 	Weapon1TurretY = <300.0>;
 	hide flare;
+	oldHeading = get HEADING;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay = 1500;
@@ -38,8 +39,8 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (heading - oldHeading)*3/2;
-		//turn body to y-axis steery speed <120>;
+		steery = WRAPDELTA(heading - oldHeading)*3/2;
+		turn body to y-axis steery speed <120>;
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
 		spin rTyre around x-axis speed currentSpeed;
@@ -52,6 +53,7 @@ Steering(heading, steery, currentSpeed)
 StopMoving()
 {
 	signal SIGNAL_TURNON;
+	turn body to y-axis <0> speed <120>;
 	stop-spin rTyre around x-axis;
 	stop-spin lTyre around x-axis;
 	
@@ -64,6 +66,7 @@ StartMoving(reversing)
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
+	oldHeading = get HEADING;
 	start-script Steering();
 
 
@@ -82,13 +85,39 @@ ExecuteRestoreAfterDelay()
 	if (Stunned) {
 		return (1);
 	}
-	turn mount to y-axis <0.0> speed <150.0>;
-	turn gun to x-axis <0.0> speed <150.0>;
+	set-signal-mask SIGNAL_AIM1;
+
+	var done;
+	var delta;
+
+	while (!done){
+		done = TRUE;
+		delta = WRAPDELTA(0 - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(<150.0> / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (<150.0> / 30);
+			done = FALSE;
+		}else{
+			curHead1 = 0;
+		}
+		delta = WRAPDELTA(0 - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(<150.0> / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (<150.0> / 30);
+			done = FALSE;
+		}else{
+			curPitch1 = 0;
+		}
+		turn mount to y-axis curHead1 speed <150.0>;
+		turn gun to x-axis <0.0> - curPitch1 speed <150.0>;
+		if (!done) {
+			sleep 1;
+		}
+	}
 }
 SetStunned(State)
 {
 	Stunned = State;
 	if (!Stunned) {
+		set-signal-mask SIGNAL_AIM1;
 		start-script ExecuteRestoreAfterDelay();
 	}
 }
@@ -103,10 +132,37 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn mount to y-axis heading speed <300.0>;
-	turn gun to x-axis <0.0> - pitch speed <300.0>;
-	wait-for-turn mount around y-axis;
-	wait-for-turn gun around x-axis;
+
+	var canShoot;
+	var delta;
+	var nextHead;
+	var nextPitch;
+
+	while (!canShoot){
+		canShoot = TRUE;
+		delta = WRAPDELTA(heading - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			nextHead = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
+			canShoot = FALSE;
+		}else{
+			nextHead = heading;
+		}
+		delta = WRAPDELTA(pitch - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			nextPitch = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
+			canShoot = FALSE;
+		}else{
+			nextPitch = pitch;
+		}
+		turn mount to y-axis nextHead speed Weapon1TurretY;
+		turn gun to x-axis <0.0> - nextPitch speed Weapon1TurretX;
+		if (!canShoot) {
+			sleep 1;
+		}
+		curHead1 = nextHead;
+		curPitch1 = nextPitch;
+	}
+
 	start-script RestoreAfterDelay();
 	return (1);
 }

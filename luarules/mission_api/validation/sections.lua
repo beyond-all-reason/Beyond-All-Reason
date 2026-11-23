@@ -265,8 +265,8 @@ end
 
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
-	local triggerTypes = context.TriggerTypes
-	if trigger.type ~= triggerTypes.StockpileCount and trigger.type ~= triggerTypes.StockpileProgress then
+	local conditionTypes = context.ConditionTypes
+	if trigger.type ~= conditionTypes.StockpileCount and trigger.type ~= conditionTypes.StockpileProgress then
 		return
 	end
 	if type(trigger.parameters) ~= "table" then
@@ -289,7 +289,7 @@ local function validateObjectiveInlineTrigger(
 	context,
 	objectiveReport,
 	validateSchema,
-	statisticsTriggerTypes,
+	statisticsConditionTypes,
 	objective,
 	objectiveID
 )
@@ -308,7 +308,7 @@ local function validateObjectiveInlineTrigger(
 	-- Statistics triggers require a quantity, but an objective tracks its progress with its
 	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
 	local parameters = trigger.parameters
-	if statisticsTriggerTypes[trigger.type] and type(parameters) == "table" then
+	if statisticsConditionTypes[trigger.type] and type(parameters) == "table" then
 		if parameters.quantity ~= nil then
 			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
 		end
@@ -320,7 +320,7 @@ local function validateObjectiveInlineTrigger(
 		objectiveReport,
 		objectiveID,
 		"Objective trigger",
-		context.TriggerParameters,
+		context.ConditionParameters,
 		trigger.type,
 		parameters
 	)
@@ -329,7 +329,7 @@ end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
+	local statisticsConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.Quantity)
 
 	-- The inline trigger is registered before the difficulty and variables are resolved,
 	-- so it can't vary. Its parameters can, as any trigger's.
@@ -356,7 +356,7 @@ local function validateObjectivesSection(context, report, validateFieldValue, va
 				context,
 				objectiveReport,
 				validateSchema,
-				statisticsTriggerTypes,
+				statisticsConditionTypes,
 				objective,
 				objectiveID
 			)
@@ -388,7 +388,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 	end
 end
 
---- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
+--- Settings are optional in raw missions; conditions_loader.lua applies the defaults later.
 local function validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
@@ -428,7 +428,7 @@ local function validateTriggersSection(
 				triggerReport,
 				triggerID,
 				"Trigger",
-				context.TriggerParameters,
+				context.ConditionParameters,
 				trigger.type,
 				trigger.parameters
 			)

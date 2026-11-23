@@ -61,18 +61,4 @@ function dynamicBuildOptions.patch(buildOptions, builtDefID, added)
 	end
 end
 
---- Applies all published changes to copies of unit defs' build options.
----@param unitBuildOptions table<number, number[]?> UnitDefID -> build options, patched in place
----@param teamID integer? also apply that team's own changes
-function dynamicBuildOptions.apply(unitBuildOptions, teamID)
-	for builderDefID, options in pairs(dynamicBuildOptions.getChanges(teamID)) do
-		local buildOptions = unitBuildOptions[builderDefID]
-		if buildOptions then
-			for builtDefID, added in pairs(options) do
-				dynamicBuildOptions.patch(buildOptions, builtDefID, added)
-			end
-		end
-	end
-end
-
 return dynamicBuildOptions
