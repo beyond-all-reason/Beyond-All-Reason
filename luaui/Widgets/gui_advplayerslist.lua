@@ -4146,7 +4146,10 @@ function widget:MousePress(x, y, button)
 									.. (clickedPlayer.accountID or clickedPlayer.orgname or clickedPlayer.name)
 							)
 							return true
-						elseif not Spring.CanSpectateAllTeams() and (clickedPlayer.spec or clickedPlayer.allyteam ~= myAllyTeamID) then
+						elseif
+							not Spring.CanSpectateAllTeams()
+							and (clickedPlayer.spec or clickedPlayer.allyteam ~= myAllyTeamID)
+						then
 							return true
 						elseif alt and not clickedPlayer.ai then
 							-- ALT+click: track player camera in PIP

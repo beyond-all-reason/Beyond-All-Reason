@@ -220,6 +220,8 @@ local function updateButtons()
 	end
 	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
 		addButton("resign", BAR.I18N("ui.topbar.button.resign"))
+	elseif spec and _modOpts.restrictedspectators == "optin" and not Spring.CanSpectateAllTeams() then
+		addButton("fullView", BAR.I18N("ui.topbar.button.fullView"))
 	end
 
 	if WG.options then
@@ -1012,6 +1014,8 @@ local function applyButtonAction(button)
 				showQuitscreen = now
 			end
 		end
+	elseif button == "fullView" then
+		Spring.SendCommands("specfullview optin")
 	elseif button == "options" then
 		toggleWindow("options")
 	elseif button == "save" then

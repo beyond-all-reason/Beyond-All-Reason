@@ -14,6 +14,7 @@
 				"teamResign": "Call for team resign."
 			},
 			"button": {
+				"fullView": "Full View",
 				"quit": "Quit",
 				"resign": "Resign",
 				"lobby": "Lobby",
@@ -3647,8 +3648,22 @@
 			"desc": "Should game results affect OpenSkill. Note that games with AI or games that are not balanced are always unranked."
 		},
 		"restrictedspectators": {
-			"name": "Limit Eliminated Players to Allied Vision",
-			"desc": "Players who resign or are eliminated can only spectate their own side until the game ends. Players who start as spectators retain full vision."
+			"name": "Spectator Vision After Elimination",
+			"desc": "Choose what players can see after resigning or being eliminated. Players who start as spectators retain full vision.",
+			"items": {
+				"full": {
+					"name": "Full View",
+					"desc": "See all teams immediately."
+				},
+				"optin": {
+					"name": "Allied Vision with Full View Button",
+					"desc": "Start with your side's view. Choose Full View to see all teams, including their chat and map marks."
+				},
+				"allied": {
+					"name": "Locked Allied Vision (Tournament)",
+					"desc": "Keep your side's view until the game ends. Opposing teams' chat and map marks stay hidden."
+				}
+			}
 		},
 		"allowuserwidgets": {
 			"name": "Allow Custom Widgets",
