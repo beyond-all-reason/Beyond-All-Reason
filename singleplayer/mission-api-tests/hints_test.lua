@@ -1,26 +1,26 @@
 --- Test mission for ShowHint and HideHint.
 
-local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
 local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 	showBuildSolar = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 1 },
 		actions = { "hintSolar" },
 	},
 	replaceWithTimedMex = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 4 },
 		actions = { "hintMex" },
 	},
 	showFromData = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 8 },
 		actions = { "hintMetalAmount" },
 	},
 	hideLastHint = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 11 },
 		actions = { "hideHint" },
 	},
