@@ -77,6 +77,7 @@ local function collateSchemas()
 		unitEntryFields = table.copy(loadoutSchema.UnitEntryFields),
 		featureEntryFields = table.copy(loadoutSchema.FeatureEntryFields),
 		unitFilterFields = table.copy(unitFilterSchema.UnitFilterFields),
+		unitFilterAtMostOneOf = table.copy(unitFilterSchema.AtMostOneOf),
 		parameterTypes = table.copy(parameterTypes.Types),
 		enums = table.copy(parameterTypes.Enums),
 	}
