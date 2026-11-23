@@ -35,6 +35,7 @@ local function loadController(deletionCallin, hasTargetChanged)
 			end,
 			RegisterCMDID = function() end,
 			RegisterAllowCommand = function() end,
+			RegisterUnitCommand = function() end,
 		},
 		Spring = {},
 	}

@@ -797,6 +797,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.RegisterCommand then
 			Spring.RegisterCommand(CMD_ATTACK_TARGETS, { movement = true, attack = true })
 		end
+		gadgetHandler:RegisterUnitCommand(CMD.ANY)
 		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 		gadgetHandler:RegisterAllowCommand(CMD_ATTACK_TARGETS)
 	end

@@ -1,4 +1,4 @@
-local function loadLimiter(targetCount)
+local function loadLimiter(targetCount, rectangle)
 	local selected, orders, targets = {}, {}, {}
 	for id = 1, 40 do
 		selected[id] = id
@@ -41,7 +41,14 @@ local function loadLimiter(targetCount)
 			GetUnitPosition = function(id)
 				return id, 0, id
 			end,
-			GetUnitsInCylinder = function()
+			GetUnitsInRectangle = function(x1, z1, x2, z2, allegiance)
+				assert.is_true(rectangle)
+				assert.same({ 0, 0, 20, 60, -4 }, { x1, z1, x2, z2, allegiance })
+				return targets
+			end,
+			GetUnitsInCylinder = function(x, z, radius, allegiance)
+				assert.is_falsy(rectangle)
+				assert.same({ 10, 30, 100, -4 }, { x, z, radius, allegiance })
 				return targets
 			end,
 			GetLocalTeamID = function()
@@ -73,9 +80,9 @@ local function loadLimiter(targetCount)
 end
 
 describe("raw area attack limiter", function()
-	for _, params in ipairs({ { 10, 20, 30, 100 }, { 0, 0, 0, 20, 40, 60 } }) do
+	for _, params in ipairs({ { 10, 20, 30, 100 }, { 20, 0, 0, 0, 40, 60 } }) do
 		it("splits a large " .. #params .. "-parameter raw Attack", function()
-			local gadget, orders = loadLimiter(60)
+			local gadget, orders = loadLimiter(60, #params == 6)
 			assert.is_true(gadget:GetInfo().enabled)
 			assert.is_true(gadget:CommandNotify(20, params, { shift = true }))
 			assert.are.equal(40, #orders)

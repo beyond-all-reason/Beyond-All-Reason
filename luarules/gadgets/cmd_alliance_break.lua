@@ -112,6 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterUnitCommand(CMD_ATTACK)
+		gadgetHandler:RegisterUnitCommand(CMD_ATTACK_TARGETS)
 		gadgetHandler:RegisterUnitCommand(CMD_LOOPBACKATTACK)
 		gadgetHandler:RegisterUnitCommand(CMD_MANUALFIRE)
 		gadgetHandler:RegisterUnitCommand(CMD_UNIT_SET_TARGET)
