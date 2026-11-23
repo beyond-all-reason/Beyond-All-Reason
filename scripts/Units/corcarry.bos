@@ -166,15 +166,15 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 1;
 	}
-	move dbl to x-axis [-5.6] speed [8];
-	move dbl to z-axis [-5.6] speed [8];
-	move dbr to x-axis [5.6] speed [8];
-	move dbr to z-axis [-5.6] speed [8];
-	move dtl to x-axis [-5.6] speed [8];  
-	move dtl to z-axis [5.6] speed [8];
-	move dtr to x-axis [5.6] speed [8];
-	move dtr to z-axis [5.6] speed [8];
-	wait-for-move dtr along x-axis;
+	// move dbl to x-axis [-5.6] speed [8];
+	// move dbl to z-axis [-5.6] speed [8];
+	// move dbr to x-axis [5.6] speed [8];
+	// move dbr to z-axis [-5.6] speed [8];
+	// move dtl to x-axis [-5.6] speed [8];  
+	// move dtl to z-axis [5.6] speed [8];
+	// move dtr to x-axis [5.6] speed [8];
+	// move dtr to z-axis [5.6] speed [8];
+	// wait-for-move dtr along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
