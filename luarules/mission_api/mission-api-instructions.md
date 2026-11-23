@@ -13,6 +13,8 @@ actions, and the runtime is generic and knows no individual mission.
   text through the battle log (see Runtime surfaces), because synced code can do neither.
 - Missions live in `singleplayer/` (tests in `singleplayer/mission-api-tests/`) and are included by
   path from `entryPoint` in the `missionoptions` modoption, which `game_setup.lua` reads.
+- A mission's resource overflow is lost rather than shared with allies; `alliedResourceOverflow = true`
+  in `missionoptions` gives it to allies as in skirmish (`gamedata/modrules.lua`).
 
 ## Load order
 
