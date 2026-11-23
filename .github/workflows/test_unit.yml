@@ -38,7 +38,7 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         MISSION_SPEC_INPUTS: >-
-          ^(luarules/mission_api/|spec/mission_api/|luarules/gadgets/api_mission|luaui/Widgets/api_mission|singleplayer/|common/|gamedata/|spec/builders/|spec/support/|spec/spec_helper\.lua$|\.github/workflows/test_unit\.yml$|\.busted$|lux\.)
+          ^(luarules/mission_api/|spec/mission_api/|luarules/gadgets/api_mission|luaui/Widgets/api_mission|singleplayer/|common/|gamedata/|spec/builders/|spec/support/|spec/spec_helper\.lua$|\.github/recoil-lua/|\.github/workflows/test_unit\.yml$|\.busted$|lux\.)
       run: |
         changed=$(git diff --name-only HEAD^1 HEAD)
         if ! grep -qE "$MISSION_SPEC_INPUTS" <<< "$changed"; then
@@ -95,13 +95,12 @@ jobs:
         cmake --build "$RUNNER_TEMP/recoil-build" --target recoil-lua
 
         # A Lua installation for Lux to find through pkg-config. It has no library.
-        # lua5.1 runs recoil-lua with -a, since busted needs addresses in tostring.
         prefix=~/.cache/recoil-lua
         mkdir -p "$prefix/bin" "$prefix/include" "$prefix/lib/pkgconfig"
-        install -m 755 "$RUNNER_TEMP/recoil-build/rts/lib/lua/recoil-lua" "$prefix/bin/recoil-lua"
-        cp "$src"/rts/lib/lua/include/*.h "$prefix/include/"
-        printf '#!/bin/sh\nexec %s/bin/recoil-lua -a "$@"\n' "$prefix" > "$prefix/bin/lua5.1"
-        chmod 755 "$prefix/bin/lua5.1"
+        install -m 755 "$RUNNER_TEMP/recoil-build/rts/lib/lua/recoil-lua" "$prefix/bin/lua5.1"
+        cp "$src"/rts/lib/lua/include/{lua,luaconf,lauxlib,lualib}.h "$prefix/include/"
+        # lua.h includes the engine's LuaUser.h, which is C++, and the rocks are C.
+        echo '#include <stdbool.h>' > "$prefix/include/LuaUser.h"
         cat > "$prefix/lib/pkgconfig/lua5.1.pc" <<EOF
         prefix=$prefix
         includedir=\${prefix}/include
@@ -120,6 +119,14 @@ jobs:
         echo "PKG_CONFIG_PATH=$HOME/.cache/recoil-lua/lib/pkgconfig" >> "$GITHUB_ENV"
         # A run that fell back to 64-bit Lua would test the wrong thing.
         ~/.cache/recoil-lua/bin/lua5.1 -e 'assert(2^24 + 1 == 2^24, "recoil-lua has 64-bit numbers")'
+        echo '_Static_assert(sizeof(lua_Number) == sizeof(float), "the Lua headers have 64-bit numbers");' |
+          cc -fsyntax-only $(PKG_CONFIG_PATH=~/.cache/recoil-lua/lib/pkgconfig pkg-config --cflags lua5.1) -include lua.h -x c -
+
+    - name: Set up busted for recoil-lua
+      run: |
+        git -c core.quotePath=false ls-files > "$RUNNER_TEMP/spec_files.txt"
+        echo "SPEC_FILE_LIST=$RUNNER_TEMP/spec_files.txt" >> "$GITHUB_ENV"
+        echo "LUA_INIT=@$GITHUB_WORKSPACE/.github/recoil-lua/busted_modules.lua" >> "$GITHUB_ENV"
 
     - name: Cache the lux binary
       uses: actions/cache@v4
