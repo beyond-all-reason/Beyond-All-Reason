@@ -268,8 +268,6 @@ local function collectKeyframeNames(context, nameFields, parameterNames, actionI
 	end
 end
 
---- Records every distinct name held by the entity's parameters of this kind. A trigger
---- can name several units at once, e.g. a passenger and the transport carrying it.
 --- The unit filter fields with a name of this type.
 local function getUnitFilterFieldsOfType(nameType)
 	local fields = {}
@@ -321,6 +319,8 @@ local function collectUnitFilterNames(
 	end
 end
 
+--- Records every distinct name held by the entity's parameters of this kind. A trigger
+--- can name several units at once, e.g. a passenger and the transport carrying it.
 local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
 	local seen = {}
 	for _, parameterName in ipairs(parameterNames or {}) do

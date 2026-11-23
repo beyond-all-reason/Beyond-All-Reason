@@ -130,16 +130,6 @@ local function getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTea
 	return unitName == nil or tracking.DoesUnitHaveName(unitID, unitName), unitDefID, teamID, allyTeamID
 end
 
----Returns whether the unit meets every criterion of the unit filter.
----@param unitID UnitID
----@param unitFilter table
----@param unitDefID UnitDefID? the unit's def, non-nil when the caller has it
----@param teamID TeamID? the unit's team, non-nil when the caller has it
----@return boolean
-local function isUnitFilterMatch(unitID, unitFilter, unitDefID, teamID)
-	return (getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, nil))
-end
-
 ---Returns whether the unit matches a condition's `includeUnit` and none of its `excludeUnit` filters.
 ---The unit's def, team, and alliance are each looked up at most once.
 ---@param unitID UnitID
@@ -231,6 +221,5 @@ return {
 	GetMatchingUnits = getMatchingUnits,
 	GetIncludedUnits = getIncludedUnits,
 	IsUnitMatch = isUnitMatch,
-	IsUnitFilterMatch = isUnitFilterMatch,
 	IsUnitIncluded = isUnitIncluded,
 }

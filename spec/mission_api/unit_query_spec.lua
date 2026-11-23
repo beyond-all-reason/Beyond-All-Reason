@@ -29,39 +29,44 @@ describe("mission_api.unit_query", function()
 		missionApi.unitIDBeingSpawned = nil
 	end)
 
-	describe("IsUnitFilterMatch", function()
+	describe("IsUnitIncluded", function()
 		it("matches a unit that meets every criterion", function()
 			local unitFilter = { unitName = "commander", unitDefName = { [2] = true }, teamName = 0 }
-			assert.is_true(unitQuery.IsUnitFilterMatch(100, unitFilter))
+			assert.is_true(unitQuery.IsUnitIncluded(100, { includeUnit = unitFilter }))
 		end)
 
 		it("matches on a team alone", function()
-			assert.is_true(unitQuery.IsUnitFilterMatch(101, { teamName = 0 }))
-			assert.is_false(unitQuery.IsUnitFilterMatch(101, { teamName = 1 }))
+			assert.is_true(unitQuery.IsUnitIncluded(101, { includeUnit = { teamName = 0 } }))
+			assert.is_false(unitQuery.IsUnitIncluded(101, { includeUnit = { teamName = 1 } }))
 		end)
 
 		it("rejects a unit without the name", function()
-			assert.is_false(unitQuery.IsUnitFilterMatch(101, { unitName = "commander" }))
+			assert.is_false(unitQuery.IsUnitIncluded(101, { includeUnit = { unitName = "commander" } }))
 		end)
 
 		it("rejects a unit of another unit def", function()
-			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "commander", unitDefName = { [1] = true } }))
+			assert.is_false(
+				unitQuery.IsUnitIncluded(
+					100,
+					{ includeUnit = { unitName = "commander", unitDefName = { [1] = true } } }
+				)
+			)
 		end)
 
 		it("rejects a unit on another team, though it meets the other criteria", function()
-			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "commander", teamName = 1 }))
+			assert.is_false(unitQuery.IsUnitIncluded(100, { includeUnit = { unitName = "commander", teamName = 1 } }))
 		end)
 
 		it("treats a unit being spawned as having its loadout name", function()
 			missionApi.nameOfUnitBeingSpawned = "pawn"
 			missionApi.unitIDBeingSpawned = 101
-			assert.is_true(unitQuery.IsUnitFilterMatch(101, { unitName = "pawn" }))
+			assert.is_true(unitQuery.IsUnitIncluded(101, { includeUnit = { unitName = "pawn" } }))
 		end)
 
 		it("treats no other unit as having the loadout name while one is spawned", function()
 			missionApi.nameOfUnitBeingSpawned = "pawn"
 			missionApi.unitIDBeingSpawned = 101
-			assert.is_false(unitQuery.IsUnitFilterMatch(100, { unitName = "pawn" }))
+			assert.is_false(unitQuery.IsUnitIncluded(100, { includeUnit = { unitName = "pawn" } }))
 		end)
 	end)
 end)

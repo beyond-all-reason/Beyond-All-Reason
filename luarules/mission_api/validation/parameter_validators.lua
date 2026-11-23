@@ -1165,10 +1165,8 @@ local function registerUnitFilterValidators(parameterValidators, context)
 	local unitFilterFields, exclusiveFields = unitFilterSchema.UnitFilterFields, unitFilterSchema.AtMostOneOf
 
 	local fieldNames = {}
-	local isField = {}
 	for index, field in ipairs(unitFilterFields) do
 		fieldNames[index] = field.name
-		isField[field.name] = true
 	end
 
 	local function validateUnitFilter(unitFilter)
@@ -1199,17 +1197,6 @@ local function registerUnitFilterValidators(parameterValidators, context)
 				fieldCount = fieldCount + 1
 				appendResults(results, parameterValidators[field.type](value), "." .. field.name)
 			end
-		end
-
-		local unknownFields = {}
-		for key in pairs(unitFilter) do
-			if not isField[key] then
-				unknownFields[#unknownFields + 1] = tostring(key)
-			end
-		end
-		table.sort(unknownFields)
-		for _, key in ipairs(unknownFields) do
-			addResult(results, "Unknown unit filter field '" .. key .. "'")
 		end
 
 		if fieldCount == 0 and #results == 0 then
