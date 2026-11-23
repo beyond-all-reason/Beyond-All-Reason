@@ -173,8 +173,9 @@ return {
 		local current, storage, pull, income, expense, share, sent, received, excess =
 			Spring.GetTeamResources(teamID, resource)
 		if pull then -- Spring.GetTeamResources can still return nil on enemies when called with CallAsTeam or from unsynced (allied mask); this nil check IS necessary
-			local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM or HIDDEN_ENERGY_PULL_PARAM
-			pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0) -- supposedly never nil if the returned pull is non-nil (share the same allied mask as Spring.GetTeamResources()); 
+			local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM
+				or HIDDEN_ENERGY_PULL_PARAM
+			pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0) -- supposedly never nil if the returned pull is non-nil (share the same allied mask as Spring.GetTeamResources());
 			-- but gadgets layering *might* still cause this to be called before we had the chance to Initialize() the zero values.
 		end
 		return current, storage, pull, income, expense, share, sent, received, excess
