@@ -51,8 +51,8 @@ local function stopSound(soundfile)
 	end
 
 	-- Older engines only drop the queued entries.
-	if Spring.StopSoundFile then
-		Spring.StopSoundFile(soundfile)
+	if Spring.StopSoundByFilename then
+		Spring.StopSoundByFilename(soundfile)
 	end
 	if playingQueuedSoundfile == soundfile then
 		playingQueuedSoundfile = nil

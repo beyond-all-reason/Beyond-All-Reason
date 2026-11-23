@@ -15,7 +15,7 @@ describe("mission_api.sounds.StopSound", function()
 		env.Spring.PlaySoundFile = function(soundfile)
 			played[#played + 1] = soundfile
 		end
-		env.Spring.StopSoundFile = function(soundfile)
+		env.Spring.StopSoundByFilename = function(soundfile)
 			stopped[#stopped + 1] = soundfile
 		end
 		env.Spring.SendLuaUIMsg = function() end
@@ -46,8 +46,8 @@ describe("mission_api.sounds.StopSound", function()
 		assert.are.same({ "sounds/voice.wav", "sounds/other.wav" }, played)
 	end)
 
-	it("only drops the queued entries on an engine without StopSoundFile", function()
-		env.Spring.StopSoundFile = nil
+	it("only drops the queued entries on an engine without StopSoundByFilename", function()
+		env.Spring.StopSoundByFilename = nil
 
 		sounds.StopSound("sounds/voice.wav")
 
