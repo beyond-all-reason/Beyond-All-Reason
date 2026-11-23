@@ -1,6 +1,6 @@
-local function loadController(hasUnitPreDelete, hasTargetRemoved)
-	if hasUnitPreDelete == nil then
-		hasUnitPreDelete = true
+local function loadController(deletionCallin, hasTargetChanged)
+	if deletionCallin == nil then
+		deletionCallin = { unsynced = false }
 	end
 	local queue, targets, dead, deleted, crashing = {}, {}, {}, {}, {}
 	local nextTag, listID, stunned = 0, 1, false
@@ -23,9 +23,10 @@ local function loadController(hasUnitPreDelete, hasTargetRemoved)
 		UnitDefs = { { canAttack = true } },
 		Script = {
 			GetCallInList = function()
-				return hasUnitPreDelete
-						and { UnitPreDelete = {}, UnitAttackTargetRemoved = hasTargetRemoved ~= false and {} or nil }
-					or {}
+				return {
+					RenderUnitDestroyed = deletionCallin or nil,
+					UnitAttackTargetChanged = hasTargetChanged ~= false and {} or nil,
+				}
 			end,
 		},
 		gadgetHandler = {
@@ -143,7 +144,7 @@ local function loadController(hasUnitPreDelete, hasTargetRemoved)
 		end,
 		delete = function(id)
 			dead[id] = true
-			env.gadget:UnitPreDelete(id)
+			env.gadget:RenderUnitDestroyed(id)
 			deleted[id] = true
 		end,
 		reuse = function(id)
@@ -177,7 +178,7 @@ describe("pending Attack controller targets", function()
 		g.crashing[20] = true
 		assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
 	end)
-	it("advances at UnitPreDelete, not at UnitDestroyed", function()
+	it("advances at RenderUnitDestroyed, not at UnitDestroyed", function()
 		local g = loadController()
 		g.eraseActive()
 		g.dead[20] = true
@@ -187,12 +188,12 @@ describe("pending Attack controller targets", function()
 		assert.are.equal(20, g.queue[1].id)
 		assert.are.equal(30, g.queue[1].params[1])
 	end)
-	it("notifies UnitPreDelete while the target ID is still valid", function()
+	it("notifies RenderUnitDestroyed while the target ID is still valid", function()
 		local controller = loadController()
-		local onPreDelete = controller.env.gadget.UnitPreDelete
-		controller.env.gadget.UnitPreDelete = function(self, targetID)
+		local onRenderUnitDestroyed = controller.env.gadget.RenderUnitDestroyed
+		controller.env.gadget.RenderUnitDestroyed = function(self, targetID)
 			assert.is_true(controller.env.Spring.ValidUnitID(targetID))
-			onPreDelete(self, targetID)
+			onRenderUnitDestroyed(self, targetID)
 		end
 		controller.delete(20)
 		assert.is_false(controller.env.Spring.ValidUnitID(20))
@@ -254,6 +255,14 @@ describe("pending Attack controller targets", function()
 		assert.are.equal(70, g.queue[1].params[1])
 		assert.are.equal(80, g.queue[2].params[1])
 	end)
+	it("uses native queues when RenderUnitDestroyed is unsynced-only", function()
+		local g = loadController({ unsynced = true })
+		local before = #g.queue
+		assert.is_false(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 50, 60 }, { coded = 0 }))
+		assert.are.equal(before + 2, #g.queue)
+		assert.are.equal(20, g.queue[#g.queue].id)
+		assert.are.equal(60, g.queue[#g.queue].params[1])
+	end)
 	it("does not revive a deleted future target when the engine reuses its ID", function()
 		local g = loadController()
 		g.delete(30)
@@ -297,7 +306,25 @@ describe("pending Attack controller targets", function()
 	end)
 end)
 
+local function notifyNeutralized(controller, unitID, targetID)
+	local oldTarget = { type = "unit", unitID = targetID }
+	return controller.env.gadget:UnitAttackTargetChanged(unitID, 1, 0, oldTarget, { type = "none" }, "neutralized")
+end
+
 describe("controller completion and neutralized targets", function()
+	it("keeps pending entries when an ordinary target changes or is cleared", function()
+		local g = loadController()
+		local oldTarget = { type = "unit", unitID = 20 }
+		for _, newTarget in ipairs({
+			{ type = "unit", unitID = 30 },
+			{ type = "ground", x = 1, y = 2, z = 3 },
+			{ type = "none" },
+		}) do
+			assert.is_nil(g.env.gadget:UnitAttackTargetChanged(1, 1, 0, oldTarget, newTarget, "changed"))
+			assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
+		end
+		assert.same({}, g.stops)
+	end)
 	it("stops movement when the last virtual attacks become unattackable", function()
 		local g = loadController()
 		g.eraseActive()
@@ -329,9 +356,9 @@ describe("controller completion and neutralized targets", function()
 	end)
 	it("removes neutralized pending targets only for the notified unit", function()
 		local g = loadController()
-		g.env.gadget:UnitAttackTargetRemoved(2, 1, 0, 20)
+		notifyNeutralized(g, 2, 20)
 		assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		notifyNeutralized(g, 1, 20)
 		assert.are.equal(30, g.env.GG.GetPendingAttackTarget(1, -1))
 		assert.are.equal(10, g.queue[1].params[1])
 		assert.same({}, g.stops)
@@ -343,14 +370,14 @@ describe("controller completion and neutralized targets", function()
 	it("does not advance or stop at neutralization of the pending head", function()
 		local g = loadController()
 		g.eraseActive()
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		notifyNeutralized(g, 1, 20)
 		assert.are.equal(34927, g.queue[1].id)
 		assert.are.equal(30, g.env.GG.GetPendingAttackTarget(1, -1))
 		assert.same({}, g.stops)
 	end)
 	it("can explicitly append a target removed by neutralization", function()
 		local g = loadController()
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		notifyNeutralized(g, 1, 20)
 		g.env.gadget:AllowCommand(1, 1, 0, 20, { 20 }, { shift = true, coded = 32 })
 		g.delete(30)
 		g.delete(40)
@@ -363,17 +390,17 @@ describe("neutralized controller reference cleanup", function()
 		local g = loadController()
 		g.eraseActive()
 		local tag = g.queue[1].tag
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 30)
-		assert.same({ tag }, g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 40))
+		notifyNeutralized(g, 1, 20)
+		notifyNeutralized(g, 1, 30)
+		assert.same({ tag }, notifyNeutralized(g, 1, 40))
 		assert.are.equal(tag, g.queue[1].tag)
 		assert.same({}, g.stops)
 		assert.is_nil(g.env.GG.GetPendingAttackTarget(1, -1))
 	end)
 	it("removes the reference behind the final retained Attack", function()
 		local g = loadController()
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 30)
-		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 40)
+		notifyNeutralized(g, 1, 30)
+		notifyNeutralized(g, 1, 40)
 		g.eraseActive()
 		local c = g.queue[1]
 		g.env.gadget:CommandFallback(1, 1, 0, c.id, c.params, 0, c.tag)
@@ -381,8 +408,8 @@ describe("neutralized controller reference cleanup", function()
 		assert.are.equal(20, g.queue[1].params[1])
 		assert.same({}, g.stops)
 	end)
-	it("uses native orders if only UnitPreDelete is available", function()
-		local g = loadController(true, false)
+	it("uses native orders if only RenderUnitDestroyed is available", function()
+		local g = loadController(nil, false)
 		local before = #g.queue
 		assert.is_false(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 50, 60 }, { coded = 0 }))
 		assert.are.equal(before + 2, #g.queue)

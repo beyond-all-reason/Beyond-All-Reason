@@ -25,7 +25,8 @@ if gadgetHandler:IsSyncedCode() then
 	local groupsByTail = {}
 	local pendingTargetUnits = {}
 	local callins = Script.GetCallInList()
-	local hasTargetLifecycle = callins.UnitPreDelete ~= nil and callins.UnitAttackTargetRemoved ~= nil
+	local deletion = callins.RenderUnitDestroyed
+	local hasTargetLifecycle = deletion ~= nil and deletion.unsynced == false and callins.UnitAttackTargetChanged ~= nil
 	-- Set while the controller inserts its own Attack so the command callins can
 	-- tell it apart from a player's prepended Attack.
 	local issuingControllerAttack = false
@@ -705,7 +706,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+	function gadget:UnitAttackTargetChanged(unitID, unitDefID, unitTeam, oldTarget, newTarget, reason)
+		if reason ~= "neutralized" then
+			return
+		end
+		local targetID = oldTarget.unitID
 		local state = targetListStates[unitID]
 		if not state then
 			return
@@ -734,7 +739,7 @@ if gadgetHandler:IsSyncedCode() then
 		clearState(unitID)
 	end
 
-	function gadget:UnitPreDelete(targetID)
+	function gadget:RenderUnitDestroyed(targetID)
 		-- A recycled engine ID must not revive an old queued target. Mark the
 		-- shared execution entries before advancing any controller.
 		local entries = entriesByTarget[targetID]
