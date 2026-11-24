@@ -400,6 +400,7 @@ local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
 -- Definition files read these modules from GG when they are included, in this order.
 _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
+_G.GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 _G.GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
@@ -411,8 +412,6 @@ local conditionDefinitions = VFS.Include("luarules/mission_api/conditions_loader
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
--- Same old name the gadget keeps, so missions exported by the mission editor validate too.
-_G.GG["MissionAPI"].TriggerDefinitions = conditionDefinitions
 _G.GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 parameterTypes.Enums[parameterTypes.Types.EffectType] = _G.GG["MissionAPI"].EffectDefinitions.Types
 local lowestDifficulty = math.huge

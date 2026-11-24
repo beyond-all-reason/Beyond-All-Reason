@@ -1,4 +1,5 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -23,18 +24,8 @@ describe("mission_api.conditions.unit_unloaded", function()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			DoesUnitHaveName = function(_unitID)
-				return true
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
@@ -50,29 +41,28 @@ describe("mission_api.conditions.unit_unloaded", function()
 		for _, parameter in ipairs(unitUnloaded.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
-		assert.are.same({ "unitName", "unitDefName" }, unitUnloaded.parameters.requiresOneOf)
+		assert.is_nil(unitUnloaded.parameters.requiresOneOf)
 	end)
 
 	it("fires when a unit is unloaded from a transport", function()
 		local context, fired = newContext()
-		unloaded(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ unitDefName = "armpw" }), context, 2, 0) -- unitDefID 2 = armck
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName, which is the passenger's team", function()
 		local context, fired = newContext()
-		unloaded(trigger({ unitDefName = "armpw", teamName = 9 }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 9 } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -81,7 +71,7 @@ describe("mission_api.conditions.unit_unloaded", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		unloaded(trigger({ unitName = "passenger" }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitName = "passenger" } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -90,23 +80,41 @@ describe("mission_api.conditions.unit_unloaded", function()
 		context.DoesUnitHaveName = function(unitID)
 			return unitID == 100 -- the passenger has the name, the transport does not
 		end
-		unloaded(trigger({ unitName = "passenger", transportName = "dropship" }), context, 1, 0)
+		unloaded(trigger({ includeUnit = { unitName = "passenger" }, transportName = "dropship" }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by transportDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ unitDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 10) -- 10 = armatlas
+		unloaded(
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			context,
+			1,
+			0,
+			10
+		) -- 10 = armatlas
 		assert.are.equal(0, fired())
-		unloaded(trigger({ unitDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 11)
+		unloaded(
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "corvalk" }),
+			context,
+			1,
+			0,
+			11
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	-- Spring.UnitDetach raises UnitUnloaded for undocking drones and detached turrets.
 	it("does not fire when the unloader is not a transport, even when named", function()
 		local context, fired = newContext()
-		unloaded(trigger({ unitDefName = "armpw" }), context, 1, 0, 20) -- 20 = a drone carrier
-		unloaded(trigger({ unitDefName = "armpw", transportDefName = "armdronecarryland" }), context, 1, 0, 20)
+		unloaded(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- 20 = a drone carrier
+		unloaded(
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, transportDefName = "armdronecarryland" }),
+			context,
+			1,
+			0,
+			20
+		)
 		assert.are.equal(0, fired())
 	end)
 end)

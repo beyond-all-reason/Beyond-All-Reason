@@ -1,21 +1,38 @@
 local CONDITIONS_DIR = "luarules/mission_api/conditions/"
 local CONDITION_FILES_PATTERN = "*.lua"
+local VALID_KINDS = table.invert(VFS.Include("luarules/mission_api/condition_kinds.lua"))
 
--- Some triggers declare no callins and are activated elsewhere:
--- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
--- - event-type triggers by whatever owns the trigger (objectives.lua)
+-- Every condition declares a `kind` from ConditionKinds (condition_kinds.lua).
+-- Statistics conditions (TotalUnits*, UnitsOwned) declare no callins; their
+-- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
 local function loadConditionDefinitions()
+
 	local conditionFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
 	local types = {}
+	local kinds = {}
 	local parameters = {}
 	local callins = {}
 
 	for typeID, filePath in ipairs(conditionFiles) do
 		local conditionDefinition = VFS.Include(filePath)
 		local conditionType = conditionDefinition.type
+		local kind = conditionDefinition.kind
+
+		if not VALID_KINDS[kind] then
+			Spring.Log(
+				"conditions_loader",
+				LOG.ERROR,
+				"[Mission API] Condition '"
+					.. tostring(conditionType)
+					.. "' has invalid kind: "
+					.. tostring(kind)
+					.. ". Must be 'event' or 'metric'."
+			)
+		end
 
 		types[conditionType] = typeID
+		kinds[typeID] = kind
 		parameters[typeID] = conditionDefinition.parameters or {}
 
 		for callinName, handler in pairs(conditionDefinition.callins or {}) do
@@ -24,8 +41,13 @@ local function loadConditionDefinitions()
 		end
 	end
 
+	-- Shared trigger settings schema (global, not per-trigger).
+	local settings = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
+
 	return {
 		Types = types,
+		Kinds = kinds,
+		Settings = settings,
 		Parameters = parameters,
 		Callins = callins,
 	}
@@ -34,11 +56,11 @@ end
 local function processRawTriggers(rawTriggers)
 	local triggers = {}
 
-	-- Apply defaults:
 	for triggerID, rawTrigger in pairs(rawTriggers) do
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}
 		settings.repeating = settings.repeating or false
+		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
 		settings.active = settings.active == nil and true or settings.active
 		settings.stages = settings.stages or {}
@@ -46,6 +68,10 @@ local function processRawTriggers(rawTriggers)
 		rawTrigger.settings = settings
 		rawTrigger.triggered = false
 		rawTrigger.repeatCount = 0
+		-- Threshold bookkeeping: `occurrences` tallies event conditions towards
+		-- `count`; `metricSatisfied` edge-triggers metric conditions.
+		rawTrigger.occurrences = 0
+		rawTrigger.metricSatisfied = false
 
 		triggers[triggerID] = table.copy(rawTrigger)
 	end
@@ -53,7 +79,25 @@ local function processRawTriggers(rawTriggers)
 	return triggers
 end
 
+--- Groups triggers by type once at load, so per-frame call-in dispatch does not
+--- have to scan every trigger for every type registered on that call-in.
+local function indexTriggersByType(triggers)
+	local byType = {}
+
+	for triggerID, trigger in pairs(triggers) do
+		local ofType = byType[trigger.type]
+		if not ofType then
+			ofType = {}
+			byType[trigger.type] = ofType
+		end
+		ofType[#ofType + 1] = { id = triggerID, trigger = trigger }
+	end
+
+	return byType
+end
+
 return {
 	LoadConditionDefinitions = loadConditionDefinitions,
 	ProcessRawTriggers = processRawTriggers,
+	IndexTriggersByType = indexTriggersByType,
 }

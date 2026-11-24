@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Units canceled while in production at a factory belong to `ProductionCanceled`, instead.
 
@@ -10,11 +11,10 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'ConstructionCanceled',
+	kind = ConditionKinds.Event,
 	parameters = {
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Construction doesn't have the ambiguous decision-making between factory/buildee capture
@@ -25,13 +25,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-				return
-			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if parameters.teamName and parameters.teamName ~= unitTeam then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

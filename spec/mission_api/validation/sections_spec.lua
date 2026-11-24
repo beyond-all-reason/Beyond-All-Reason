@@ -306,14 +306,98 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(result, "Objective trigger missing required parameter. Objective: o, Parameter: seconds")
 		end)
 
-		-- Objective triggers take their quantity from the objective's own amount.
-		it("warns when a statistics trigger specifies quantity", function()
+		it("reports a threshold on the inline trigger, which the objective's amount sets", function()
 			local result = validateObjectiveTrigger({
 				type = V.conditionTypes.UnitsOwned,
-				parameters = { teamName = "player", quantity = 5, unitDefName = "armwar" },
+				parameters = { teamName = "player" },
+				atLeast = 5,
 			})
 
-			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
+			V.assertMessage(
+				result,
+				"Objective trigger must not have a 'atLeast' field; use the objective's amount. Objective: o"
+			)
+		end)
+
+		it("reports an unknown parameter", function()
+			local result = validateObjectiveTrigger({
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player", quantity = 5 },
+			})
+
+			V.assertMessage(result, "Unknown parameter. Objective: o, Parameter: quantity")
+		end)
+
+		it("accepts a metric trigger, whose amount becomes the level to reach", function()
+			V.assertValid(validateObjective({
+				textKey = "ok",
+				amount = 3,
+				trigger = { type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player" } },
+			}))
+		end)
+	end)
+
+	describe("objective fields, unknown", function()
+		it("reports an unknown field", function()
+			local result = validateObjective({ textKey = "ok", amountt = 3 })
+
+			V.assertMessage(result, "Unknown field. Objective: o, Field: amountt")
+		end)
+	end)
+
+	describe("trigger thresholds", function()
+		local function validateTrigger(trigger)
+			trigger.actions = { "a" }
+			return V.validate(V.mission():WithTrigger("t", trigger):WithAction("a", {
+				type = V.actionTypes.SendMessage,
+				parameters = { messageKey = "ok" },
+			}))
+		end
+
+		it("passes for an event trigger with a count", function()
+			V.assertValid(validateTrigger({
+				type = V.conditionTypes.TotalUnitsKilled,
+				parameters = { teamName = "player" },
+				count = 3,
+			}))
+		end)
+
+		it("passes for a metric trigger with a bound", function()
+			V.assertValid(validateTrigger({
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player" },
+				atMost = 0,
+			}))
+		end)
+
+		it("rejects count on a metric trigger", function()
+			local result =
+				validateTrigger({ type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player" }, count = 3 })
+
+			V.assertMessage(result, "Metric conditions are thresholded with atLeast/atMost, not count. Trigger: t")
+		end)
+
+		it("rejects atLeast on an event trigger", function()
+			local result = validateTrigger({
+				type = V.conditionTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				atLeast = 3,
+			})
+
+			V.assertMessage(result, "Event conditions are thresholded with count, not atLeast/atMost. Trigger: t")
+		end)
+
+		it("requires a bound on a metric trigger", function()
+			local result = validateTrigger({ type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player" } })
+
+			V.assertMessage(result, "Metric conditions require atLeast and/or atMost. Trigger: t")
+		end)
+
+		it("reports an unknown field", function()
+			local result =
+				validateTrigger({ type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, amount = 3 })
+
+			V.assertMessage(result, "Unknown field. Trigger: t, Field: amount")
 		end)
 	end)
 
@@ -667,15 +751,17 @@ describe("mission_api.validation.sections", function()
 			for _, progress in ipairs({ 0, 0.5, 1 }) do
 				V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = progress,
-					unitDefName = "armmercury",
+					includeUnit = { unitDefName = "armmercury" },
 				})))
 			end
 		end)
 
 		it("reports a unit def without a stockpiling weapon", function()
 			V.assertMessage(
-				V.validateTrigger(V.trigger(V.conditionTypes.StockpileCount, { count = 1, unitDefName = "armwar" })),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+				V.validateTrigger(
+					V.trigger(V.conditionTypes.StockpileCount, { count = 1, includeUnit = { unitDefName = "armwar" } })
+				),
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -683,9 +769,11 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(
 				V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = 0.5,
-					unitDefName = { difficulties = { Easy = "armmercury", Hard = "armwar" } },
+					includeUnit = {
+						difficulties = { Easy = { unitDefName = "armmercury" }, Hard = { unitDefName = "armwar" } },
+					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -695,10 +783,10 @@ describe("mission_api.validation.sections", function()
 					textKey = "stockpile",
 					trigger = {
 						type = V.conditionTypes.StockpileCount,
-						parameters = { count = 1, unitDefName = "armwar" },
+						parameters = { count = 1, includeUnit = { unitDefName = "armwar" } },
 					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: includeUnit.unitDefName"
 			)
 		end)
 	end)
@@ -794,7 +882,7 @@ describe("mission_api.validation.sections", function()
 
 				V.assertMessage(
 					result,
-					"Expected an array of difficulty names, got key: Easy. Trigger: t, Setting: difficulties"
+					"Expected a list of difficulty names without gaps. Trigger: t, Setting: difficulties"
 				)
 			end)
 		end)
@@ -891,16 +979,17 @@ describe("mission_api.validation.sections", function()
 
 	describe("requiresOneOf", function()
 		it("reports when none of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, {}))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.TransportLoaded, {}))
 
 			V.assertMessage(
 				result,
-				[[Trigger is missing required parameter, at least one of {"unitName","unitDefName"} is required. Trigger: t]]
+				[[Trigger is missing required parameter, at least one of {"transportName","transportDefName"} is required. Trigger: t]]
 			)
 		end)
 
 		it("passes when one of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, { unitDefName = "armwar" }))
+			local result =
+				V.validateTrigger(V.trigger(V.conditionTypes.TransportLoaded, { transportDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)

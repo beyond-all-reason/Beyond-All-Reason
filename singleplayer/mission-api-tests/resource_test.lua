@@ -159,8 +159,9 @@ local triggers = {
 		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			metal = 1500,
+			resource = 'metal',
 		},
+		atLeast = 1500,
 		actions = { 'messageMetalStored' },
 	},
 
@@ -168,17 +169,33 @@ local triggers = {
 		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			energy = 3000,
+			resource = 'energy',
 		},
+		atLeast = 3000,
 		actions = { 'messageEnergyStored' },
+	},
+
+	-- A metric measures one value, so "metal AND energy" is two conditions
+	-- chained by a prerequisite rather than one condition with two thresholds.
+	enoughMetalForBoth = {
+		type = conditionTypes.ResourceStored,
+		parameters = {
+			teamName = 'player',
+			resource = 'metal',
+		},
+		atLeast = 1800,
+		actions = { 'messageMetalForBoth' },
 	},
 
 	bothResourcesStored = {
 		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			metal = 1800,
-			energy = 3500,
+			resource = 'energy',
+		},
+		atLeast = 3500,
+		settings = {
+			prerequisites = { 'enoughMetalForBoth' },
 		},
 		actions = { 'messageBothStored' },
 	},
@@ -189,8 +206,9 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 5,
+			resource = 'metal',
 		},
+		atLeast = 5,
 		actions = { 'messageMetalIncome' },
 	},
 
@@ -198,8 +216,9 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			energy = 500,
+			resource = 'energy',
 		},
+		atLeast = 500,
 		actions = { 'messageEnergyIncome' },
 	},
 
@@ -209,9 +228,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 1,
+			resource = 'metal',
 			sources = { 'extractor' },
 		},
+		atLeast = 1,
 		actions = { 'messageExtractorMetalIncome' },
 	},
 
@@ -220,9 +240,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			energy = 200,
+			resource = 'energy',
 			sources = { 'production' },
 		},
+		atLeast = 200,
 		actions = { 'messageProductionEnergyIncome' },
 	},
 
@@ -231,9 +252,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 0.5,
+			resource = 'metal',
 			sources = { 'production' },
 		},
+		atLeast = 0.5,
 		actions = { 'messageProductionMetalIncome' },
 	},
 
@@ -242,9 +264,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 2,
+			resource = 'metal',
 			sources = { 'extractor', 'production' },
 		},
+		atLeast = 2,
 		actions = { 'messageMultipleSourcesMetalIncome' },
 	},
 
@@ -252,9 +275,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 0.1,
+			resource = 'metal',
 			sources = { 'reclaim' },
 		},
+		atLeast = 0.1,
 		actions = { 'messageFeatureReclaimMetalIncome' },
 	},
 
@@ -262,9 +286,10 @@ local triggers = {
 		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 70,
+			resource = 'metal',
 			sources = { 'reclaim' },
 		},
+		atLeast = 70,
 		actions = { 'messageUnitReclaimMetalIncome' },
 	},
 
@@ -274,8 +299,9 @@ local triggers = {
 		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
-			metal = 1,
+			resource = 'metal',
 		},
+		atLeast = 1,
 		actions = { 'messageMetalPull' },
 	},
 
@@ -283,8 +309,9 @@ local triggers = {
 		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
-			energy = 100,
+			resource = 'energy',
 		},
+		atLeast = 100,
 		actions = { 'messageEnergyPull' },
 	},
 }
@@ -591,6 +618,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "[Resource Test] has >= 3000 energy stored.",
+		},
+	},
+
+	messageMetalForBoth = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "[Resource Test] has >= 1800 metal (half of the combined check).",
 		},
 	},
 

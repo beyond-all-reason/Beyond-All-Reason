@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Fires when a matching unit runs out of work: Its order queue empties or all that's
 -- left in the queue are "idle tasks" - non-ordered but nevertheless active commands.
@@ -8,11 +9,10 @@ local ACTIVATION = true
 
 return {
 	type = 'UnitIdled',
+	kind = ConditionKinds.Event,
 	parameters = {
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Synthetic callin raised once post-frame, per unit whose idle state changed.
@@ -27,13 +27,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-				return
-			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if parameters.teamName and parameters.teamName ~= Spring.GetUnitTeam(unitID) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID) then
 				return
 			end
 			context.ActivateTrigger(trigger)

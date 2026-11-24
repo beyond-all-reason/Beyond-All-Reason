@@ -10,6 +10,7 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -267,6 +268,57 @@ local function collectKeyframeNames(context, nameFields, parameterNames, actionI
 	end
 end
 
+--- The unit filter fields with a name of this type.
+local function getUnitFilterFieldsOfType(nameType)
+	local fields = {}
+	for _, field in ipairs(unitFilterFields) do
+		if field.type == nameType then
+			fields[#fields + 1] = field.name
+		end
+	end
+	return fields
+end
+
+--- A condition's unit filters refer to the names they ask a unit about.
+local function collectUnitFilterNames(
+	context,
+	nameFields,
+	filterNames,
+	filterListNames,
+	parameters,
+	source,
+	referencedNames
+)
+	local seen = {}
+	local function collect(unitFilter)
+		if type(unitFilter) ~= "table" then
+			return
+		end
+		for _, field in ipairs(nameFields) do
+			local name = unitFilter[field]
+			if type(name) == "string" and not seen[name] then
+				seen[name] = true
+				recordSource(referencedNames, name, source)
+			end
+		end
+	end
+
+	for _, parameterName in ipairs(filterNames or {}) do
+		for _, unitFilter in ipairs(context.PossibleValues(parameters[parameterName])) do
+			collect(unitFilter)
+		end
+	end
+	for _, parameterName in ipairs(filterListNames or {}) do
+		for _, unitFilters in ipairs(context.PossibleValues(parameters[parameterName])) do
+			if type(unitFilters) == "table" then
+				for _, unitFilter in ipairs(unitFilters) do
+					collect(unitFilter)
+				end
+			end
+		end
+	end
+end
+
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
 local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
@@ -333,6 +385,9 @@ end
 --- Triggers only ever refer to names, never create them.
 local function collectTriggerNames(context, nameKind, referencedNames)
 	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
+	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
+	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		local parameters = parametersOf(trigger)
@@ -344,6 +399,15 @@ local function collectTriggerNames(context, nameKind, referencedNames)
 				"trigger " .. triggerID,
 				referencedNames
 			)
+			collectUnitFilterNames(
+				context,
+				unitFilterNameFields,
+				filterNames[trigger.type],
+				filterListNames[trigger.type],
+				parameters,
+				"trigger " .. triggerID,
+				referencedNames
+			)
 		end
 	end
 end
@@ -351,6 +415,9 @@ end
 --- An objective can hold a trigger inline, which refers to names as any other trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
+	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
+	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 
 	for objectiveID, objective in pairs(context.Objectives) do
 		local trigger = type(objective) == "table" and objective.trigger
@@ -359,6 +426,15 @@ local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 			collectParameterNames(
 				context,
 				referencingParameterNames[trigger.type],
+				parameters,
+				"objective " .. objectiveID .. " (trigger)",
+				referencedNames
+			)
+			collectUnitFilterNames(
+				context,
+				unitFilterNameFields,
+				filterNames[trigger.type],
+				filterListNames[trigger.type],
 				parameters,
 				"objective " .. objectiveID .. " (trigger)",
 				referencedNames
@@ -515,6 +591,12 @@ local function validateVariableReferences(context, report)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+		if type(trigger) == "table" then
+			recordKeys(
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				"trigger " .. triggerID
+			)
+		end
 	end
 	for actionID, action in pairs(context.Actions) do
 		recordKeys(parametersOf(action), "action " .. actionID)

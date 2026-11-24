@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local function getUnitStates(context, triggerID)
 	local constructionState = context.ConstructionState
@@ -12,12 +13,11 @@ end
 
 return {
 	type = 'ConstructionProgress',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		-- Unit build steps include build, repair, and reclaim, so this sees finished units.
@@ -28,10 +28,11 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.teamName and parameters.teamName ~= Spring.GetUnitTeam(unitID) then
+			local includeUnit = parameters.includeUnit
+			if includeUnit.teamName and includeUnit.teamName ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then
+			if includeUnit.unitDefName and not includeUnit.unitDefName[Spring.GetUnitDefID(unitID)] then
 				return
 			end
 
@@ -50,7 +51,7 @@ return {
 			end
 			unitStates[unitID] = 'done'
 
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+			if not context.IsUnitIncluded(unitID, parameters) then
 				return
 			end
 

@@ -45,7 +45,7 @@ local triggers = {
 	passengerUnloaded = {
 		type = conditionTypes.UnitUnloaded,
 		parameters = {
-			unitName = 'passenger',
+			includeUnit = { unitName = 'passenger' },
 			transportName = 'dropship',
 		},
 		actions = { 'messagePassengerUnloaded' },
