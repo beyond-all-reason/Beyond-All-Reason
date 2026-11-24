@@ -1,5 +1,9 @@
+local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
+
+-- The condition file reads GG['MissionAPI'].Modules.ConditionKinds at load time.
+MissionApiBuilder.new():Install()
 
 local missionStarted = VFS.Include("luarules/mission_api/conditions/mission_started.lua")
 local onGameStart = missionStarted.callins.GameStart

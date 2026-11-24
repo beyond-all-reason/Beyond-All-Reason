@@ -1,10 +1,12 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Undocking drones and detached turrets raise UnitUnloaded as well, so only transports count.
 -- A transport that dies unloads its passengers in the engine and BAR (usually) destroys them.
 
 return {
 	type = 'UnitUnloaded',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit',      required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit',      required = false, type = ParameterTypes.UnitFilters },

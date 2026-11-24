@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'UnitNotExists',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },

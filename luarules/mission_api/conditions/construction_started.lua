@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local function matchesBuild(trigger, context, unitID, unitDefID, unitTeam, builderID)
 	local parameters = trigger.parameters
@@ -24,6 +25,7 @@ end
 
 return {
 	type = 'ConstructionStarted',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit',    required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit',    required = false, type = ParameterTypes.UnitFilters },

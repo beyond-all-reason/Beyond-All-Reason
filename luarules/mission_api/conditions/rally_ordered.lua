@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local CMD_INSERT = CMD.INSERT
 local CMD_ANY    = CMD.ANY
@@ -26,6 +27,7 @@ end
 
 return {
 	type = 'RallyOrdered',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
 		{ name = 'includeUnit',          required = true,  type = ParameterTypes.UnitFilter },

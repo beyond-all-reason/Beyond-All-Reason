@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local DAMAGETYPE_FACTORY_CANCEL = Game.envDamageTypes.FactoryCancel
 local DAMAGETYPE_FACTORY_KILLED = Game.envDamageTypes.FactoryKilled -- Kills current buildee, which might be completed. Oy vey.
@@ -16,6 +17,7 @@ end
 
 return {
 	type = 'ProductionCanceled',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit',    required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit',    required = false, type = ParameterTypes.UnitFilters },

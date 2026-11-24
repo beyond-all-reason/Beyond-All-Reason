@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Fires when a matching unit regains tasks: Its order queue contains a queueing command,
 -- and at least one of those commands is not an "idle task" - a brief automatic task.
@@ -8,6 +9,7 @@ local ACTIVATION = false
 
 return {
 	type = 'UnitUnidled',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },

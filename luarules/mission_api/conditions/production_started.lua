@@ -1,9 +1,11 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- For buildings or units placed by constructors, see ConstructionStarted.
 
 return {
 	type = 'ProductionStarted',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit',    required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit',    required = false, type = ParameterTypes.UnitFilters },

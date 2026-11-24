@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Units canceled while in production at a factory belong to `ProductionCanceled`, instead.
 
@@ -10,6 +11,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'ConstructionCanceled',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
 		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
