@@ -37,7 +37,7 @@ local doesUnitHaveName
 local doesUnitMatch ---@type function
 local untrackUnitID
 local doesFeatureHaveName
-local trackFeature
+local trackFeature ---@type function
 local untrackFeatureID
 
 -- Shared trigger state (exposed to per-trigger handlers via conditionContext):
