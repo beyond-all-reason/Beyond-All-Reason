@@ -47,7 +47,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -78,12 +78,12 @@ describe("mission_api.conditions.stockpile_progress", function()
 		for _, parameter in ipairs(stockpileProgress.parameters) do
 			required[parameter.name] = parameter.required
 		end
-		assert.are.same({ progress = true, unitName = false, unitDefName = false, teamName = false }, required)
+		assert.are.same({ progress = true, includeUnit = true, excludeUnit = false }, required)
 	end)
 
 	it("fires when the progress crosses the threshold", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1)
 		poll(t, context, 100, 0.3)
 		assert.are.equal(0, fired())
@@ -95,7 +95,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("reads the progress only on poll frames", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1)
 		progressByUnit[100] = 0.6
 		callins.GameFrame(t, "t", context, POLL_FRAMES - 1)
@@ -106,7 +106,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("fires for an item that completed between polls from below the threshold", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1, 0.3)
 		completed(t, context, 100, 1)
 		poll(t, context, 100, 0.1)
@@ -115,7 +115,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("fires twice when the next item also passes the threshold before the poll", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1, 0.3)
 		completed(t, context, 100, 1)
 		poll(t, context, 100, 0.6)
@@ -124,7 +124,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("does not fire again for an item it fired for before it completed", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1, 0.3)
 		poll(t, context, 100, 0.6)
 		completed(t, context, 100, 1)
@@ -134,7 +134,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("tracks only units that can stockpile", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 3)
 		poll(t, context, 100, 0.6)
 		assert.are.equal(0, fired())
@@ -143,7 +143,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5, unitDefName = "armsilo" })
+		local t = trigger({ progress = 0.5, includeUnit = { unitDefName = { [1] = true } } })
 		added(t, context, 100, 2)
 		poll(t, context, 100, 0.6)
 		assert.are.equal(0, fired())
@@ -154,7 +154,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		local t = trigger({ progress = 0.5, unitName = "silo" })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1)
 		poll(t, context, 100, 0.6)
 		assert.are.equal(0, fired())
@@ -162,7 +162,7 @@ describe("mission_api.conditions.stockpile_progress", function()
 
 	it("forgets a unit once it is removed", function()
 		local context, fired = newContext()
-		local t = trigger({ progress = 0.5 })
+		local t = trigger({ progress = 0.5, includeUnit = { unitName = "silo" } })
 		added(t, context, 100, 1)
 		removed(t, context, 100)
 		assert.is_nil(context.StockpileState.t)

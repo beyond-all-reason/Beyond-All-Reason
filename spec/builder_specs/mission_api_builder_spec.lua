@@ -346,7 +346,7 @@ describe("MissionApiBuilder", function()
 			local unitQuery = first.Modules.UnitQuery
 			local second = MissionApiBuilder.new():Install()
 
-			assert.is_function(unitQuery.MatchingUnits)
+			assert.is_function(unitQuery.GetMatchingUnits)
 			assert.are.equal(unitQuery, second.Modules.UnitQuery)
 		end)
 

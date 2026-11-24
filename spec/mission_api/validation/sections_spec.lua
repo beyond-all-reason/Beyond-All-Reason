@@ -667,15 +667,17 @@ describe("mission_api.validation.sections", function()
 			for _, progress in ipairs({ 0, 0.5, 1 }) do
 				V.assertValid(V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = progress,
-					unitDefName = "armmercury",
+					includeUnit = { unitDefName = "armmercury" },
 				})))
 			end
 		end)
 
 		it("reports a unit def without a stockpiling weapon", function()
 			V.assertMessage(
-				V.validateTrigger(V.trigger(V.conditionTypes.StockpileCount, { count = 1, unitDefName = "armwar" })),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+				V.validateTrigger(
+					V.trigger(V.conditionTypes.StockpileCount, { count = 1, includeUnit = { unitDefName = "armwar" } })
+				),
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -683,9 +685,11 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(
 				V.validateTrigger(V.trigger(V.conditionTypes.StockpileProgress, {
 					progress = 0.5,
-					unitDefName = { difficulties = { Easy = "armmercury", Hard = "armwar" } },
+					includeUnit = {
+						difficulties = { Easy = { unitDefName = "armmercury" }, Hard = { unitDefName = "armwar" } },
+					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Trigger: t, Parameter: includeUnit.unitDefName"
 			)
 		end)
 
@@ -695,10 +699,10 @@ describe("mission_api.validation.sections", function()
 					textKey = "stockpile",
 					trigger = {
 						type = V.conditionTypes.StockpileCount,
-						parameters = { count = 1, unitDefName = "armwar" },
+						parameters = { count = 1, includeUnit = { unitDefName = "armwar" } },
 					},
 				})),
-				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: unitDefName"
+				"Unit 'armwar' has no stockpiling weapon. Objective: o, Parameter: includeUnit.unitDefName"
 			)
 		end)
 	end)
@@ -794,7 +798,7 @@ describe("mission_api.validation.sections", function()
 
 				V.assertMessage(
 					result,
-					"Expected an array of difficulty names, got key: Easy. Trigger: t, Setting: difficulties"
+					"Expected a list of difficulty names without gaps. Trigger: t, Setting: difficulties"
 				)
 			end)
 		end)
@@ -891,16 +895,17 @@ describe("mission_api.validation.sections", function()
 
 	describe("requiresOneOf", function()
 		it("reports when none of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, {}))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.TransportLoaded, {}))
 
 			V.assertMessage(
 				result,
-				[[Trigger is missing required parameter, at least one of {"unitName","unitDefName"} is required. Trigger: t]]
+				[[Trigger is missing required parameter, at least one of {"transportName","transportDefName"} is required. Trigger: t]]
 			)
 		end)
 
 		it("passes when one of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitKilled, { unitDefName = "armwar" }))
+			local result =
+				V.validateTrigger(V.trigger(V.conditionTypes.TransportLoaded, { transportDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)

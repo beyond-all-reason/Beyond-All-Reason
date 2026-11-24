@@ -49,7 +49,7 @@ describe("mission_api.schema_utils", function()
 			-- A trigger can name several units at once, e.g. a passenger and its transport.
 			table.sort(result[conditionTypes.TransportLoaded])
 			assert.are.same({ "passengerName", "transportName" }, result[conditionTypes.TransportLoaded])
-			assert.are.same({ "unitName" }, result[conditionTypes.UnitKilled])
+			assert.are.same({ "unitName" }, result[conditionTypes.UnitsOwned])
 		end)
 
 		it("omits condition types without a parameter of that type", function()
@@ -77,6 +77,18 @@ describe("mission_api.schema_utils", function()
 				schemas.triggerSettings
 			)
 			assert.is_not_nil(schemas.conditions.UnitKilled)
+		end)
+
+		it("includes the fields of a unit filter", function()
+			GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
+			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
+
+			local schemas = schemaUtils.CollateSchemas()
+
+			assert.are.same(
+				MissionSpecEnv.include(env, "luarules/mission_api/unit_filter_schema.lua").UnitFilterFields,
+				schemas.unitFilterFields
+			)
 		end)
 	end)
 end)

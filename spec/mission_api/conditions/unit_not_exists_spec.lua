@@ -24,7 +24,7 @@ describe("mission_api.conditions.unit_not_exists", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -36,10 +36,9 @@ describe("mission_api.conditions.unit_not_exists", function()
 		for _, parameter in ipairs(unitNotExists.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitNotExists.parameters.requiresOneOf)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
+		assert.is_nil(unitNotExists.parameters.requiresOneOf)
 	end)
 
 	it("filters by unitName", function()
@@ -47,25 +46,39 @@ describe("mission_api.conditions.unit_not_exists", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		onMetaUnitRemoved(trigger({ unitName = "engineers" }), triggerID, context, 100, 1, 0)
+		onMetaUnitRemoved(trigger({ includeUnit = { unitName = "engineers" } }), triggerID, context, 100, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ unitDefName = "corfast" }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
+		onMetaUnitRemoved(trigger({ includeUnit = { unitDefName = { [2] = true } } }), triggerID, context, 100, 1, 0) -- unitDefID 1 = armpw
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ unitDefName = "armpw", teamName = 5 }), triggerID, context, 100, 1, 0)
+		onMetaUnitRemoved(
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 5 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when the last matching unit is gone", function()
 		local context, fired = newContext()
-		onMetaUnitRemoved(trigger({ unitDefName = "armpw", teamName = 0 }), triggerID, context, 100, 1, 0)
+		onMetaUnitRemoved(
+			trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }),
+			triggerID,
+			context,
+			100,
+			1,
+			0
+		)
 		assert.are.equal(1, fired())
 	end)
 end)

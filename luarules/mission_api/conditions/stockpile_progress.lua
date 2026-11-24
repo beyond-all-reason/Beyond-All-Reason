@@ -30,10 +30,8 @@ return {
 	type = 'StockpileProgress',
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -53,10 +51,7 @@ return {
 				state.progress = progress
 				state.completed = false
 
-				if crossings > 0
-					and (not parameters.unitName or context.DoesUnitHaveName(unitID, parameters.unitName))
-					and (not parameters.teamName or parameters.teamName == Spring.GetUnitTeam(unitID))
-				then
+				if crossings > 0 and context.IsUnitIncluded(unitID, parameters) then
 					for _ = 1, crossings do
 						context.ActivateTrigger(trigger)
 					end
@@ -83,8 +78,8 @@ return {
 				return
 			end
 
-			local parameters = trigger.parameters
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+			local includeUnit = trigger.parameters.includeUnit
+			if includeUnit.unitDefName and not includeUnit.unitDefName[unitDefID] then
 				return
 			end
 

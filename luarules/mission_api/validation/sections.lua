@@ -263,6 +263,14 @@ local function hasStockpileWeapon(unitDef)
 	return false
 end
 
+-- A unit filter's unitDefName is one name or a list of them.
+local function getUnitDefNames(unitDefName)
+	if type(unitDefName) == "table" then
+		return unitDefName
+	end
+	return { unitDefName }
+end
+
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
 	local conditionTypes = context.ConditionTypes
@@ -273,10 +281,74 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 		return
 	end
 
-	for _, unitDefName in ipairs(context.PossibleValues(trigger.parameters.unitDefName)) do
-		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
-		if unitDef and not hasStockpileWeapon(unitDef) then
-			reporter.Error(id, "Unit '" .. unitDefName .. "' has no stockpiling weapon", "Parameter: unitDefName")
+	for _, includeUnit in ipairs(context.PossibleValues(trigger.parameters.includeUnit)) do
+		local unitDefNames = type(includeUnit) == "table" and getUnitDefNames(includeUnit.unitDefName) or {}
+		for _, unitDefName in ipairs(unitDefNames) do
+			local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+			if unitDef and not hasStockpileWeapon(unitDef) then
+				reporter.Error(
+					id,
+					"Unit '" .. unitDefName .. "' has no stockpiling weapon",
+					"Parameter: includeUnit.unitDefName"
+				)
+			end
+		end
+	end
+end
+
+-- Whether every unit the filter matches meets an exclusion's criterion for this field.
+local function doesFilterImplyCriterion(context, filter, field, value)
+	if field == "allianceName" and type(filter.teamName) == "string" then
+		local teamID = context.Teams[filter.teamName]
+		return teamID ~= nil and Spring.GetTeamAllyTeamID(teamID) == context.Alliances[value]
+	end
+	if field ~= "unitDefName" then
+		return filter[field] == value
+	end
+	if filter.unitDefName == nil then
+		return false
+	end
+	local isExcludedDef = {}
+	for _, unitDefName in ipairs(getUnitDefNames(value)) do
+		isExcludedDef[unitDefName] = true
+	end
+	for _, unitDefName in ipairs(getUnitDefNames(filter.unitDefName)) do
+		if not isExcludedDef[unitDefName] then
+			return false
+		end
+	end
+	return true
+end
+
+-- An exclusion whose every criterion is met by every unit includeUnit matches removes them all.
+local function validateUnitFilterExclusions(context, reporter, id, trigger)
+	local parameters = trigger.parameters
+	if type(parameters) ~= "table" then
+		return
+	end
+
+	for _, includeUnit in ipairs(context.PossibleValues(parameters.includeUnit)) do
+		for _, excludeUnit in ipairs(context.PossibleValues(parameters.excludeUnit)) do
+			if type(includeUnit) == "table" and type(excludeUnit) == "table" then
+				for index, excluded in ipairs(excludeUnit) do
+					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
+					if removesAll then
+						for field, value in pairs(excluded) do
+							if not doesFilterImplyCriterion(context, includeUnit, field, value) then
+								removesAll = false
+								break
+							end
+						end
+					end
+					if removesAll then
+						reporter.Error(
+							id,
+							"excludeUnit[" .. index .. "] removes every unit includeUnit matches",
+							"Parameter: excludeUnit"
+						)
+					end
+				end
+			end
 		end
 	end
 end
@@ -325,6 +397,7 @@ local function validateObjectiveInlineTrigger(
 		parameters
 	)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateUnitFilterExclusions(context, objectiveReport, objectiveID, trigger)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -433,6 +506,7 @@ local function validateTriggersSection(
 				trigger.parameters
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
+			validateUnitFilterExclusions(context, triggerReport, triggerID, trigger)
 		end
 	end
 end
