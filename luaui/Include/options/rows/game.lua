@@ -44,7 +44,7 @@ return function(model)
 			id = "eliminatedSpectatorVision",
 			group = "game",
 			category = types.basic,
-			available = Spring.CanOptIntoFullView ~= nil,
+			available = Engine.FeatureSupport.gameControlledSpectators == true,
 			name = BAR.I18N("ui.settings.option.eliminatedSpectatorVision"),
 			description = BAR.I18N("ui.settings.option.eliminatedSpectatorVision_descr"),
 			type = "select",

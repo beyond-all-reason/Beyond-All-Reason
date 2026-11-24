@@ -1,6 +1,10 @@
--- Older engines only have unrestricted spectators.
-if Spring.GetSpectatingState and not Spring.CanSpectateAllTeams then
-	function Spring.CanSpectateAllTeams()
+if Spring.GetSpectatorFullCommunications then
+	Spring.CanSpectateAllTeams = Spring.GetSpectatorFullCommunications
+	if Script.GetName() == "LuaUI" and Spring.SetSpectatorFullCommunications then
+		VFS.Include("common/spectatorVision.lua").installWidgetControls(Spring)
+	end
+elseif Spring.GetSpectatingState and not Spring.CanSpectateAllTeams then
+	Spring.CanSpectateAllTeams = function()
 		return (Spring.GetSpectatingState())
 	end
 end

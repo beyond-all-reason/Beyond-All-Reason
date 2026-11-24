@@ -10,16 +10,12 @@ XPValues = {
 	reloadScale = 1.25,
 }
 
-local spectatorMode = Spring.GetModOptions().restrictedspectators
--- The original boolean lobby option used 1 for tournament mode in saved presets.
-local restrictedSpectators = spectatorMode == "allied" or tonumber(spectatorMode) == 1 or spectatorMode == true
-local spectatorFullViewOptIn = spectatorMode == "optin"
-if restrictedSpectators and not Engine.FeatureSupport.restrictSpectatorsToAllyTeam then
-	error("Restricted spectator vision requires a Recoil engine with restrictSpectatorsToAllyTeam support.")
-end
-
-if spectatorFullViewOptIn and not Engine.FeatureSupport.spectatorFullViewOptIn then
-	error("Optional full spectator vision requires a Recoil engine with spectatorFullViewOptIn support.")
+local vision = VFS.Include("common/spectatorVision.lua")
+if
+	vision.lobbyMode(Spring.GetModOptions().restrictedspectators) ~= vision.full
+	and not Engine.FeatureSupport.gameControlledSpectators
+then
+	error("Restricted spectator vision requires an engine with game-controlled spectator access.")
 end
 
 local modrules = {
@@ -102,8 +98,6 @@ local modrules = {
 	},
 
 	system = {
-		restrictSpectatorsToAllyTeam = restrictedSpectators,
-		spectatorFullViewOptIn = spectatorFullViewOptIn,
 		allowTake = false, -- Enables and disables the /take UI command; /take runs take2 instead.
 		useStartPositionSelecter = false,
 		LuaAllocLimit = 1536, -- default: 1536.  Global Lua alloc limit (in megabytes)

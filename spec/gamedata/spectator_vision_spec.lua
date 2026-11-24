@@ -35,31 +35,131 @@ describe("spectator vision after elimination", function()
 		end
 		assert.same({ "allied", "optin", "full" }, keys)
 		assert.same("full", option.def)
-		local rules = systemRules(option.def)
-		assert.is_false(rules.spectatorFullViewOptIn)
-		assert.is_false(rules.restrictSpectatorsToAllyTeam)
+		assert.is_table(systemRules(option.def))
 	end)
 
-	it("enables explicit opt-in only for the optional Full View mode", function()
-		local rules = systemRules("optin", { spectatorFullViewOptIn = true })
-		assert.is_false(rules.restrictSpectatorsToAllyTeam)
-		assert.is_true(rules.spectatorFullViewOptIn)
-	end)
-
-	it("keeps tournament mode locked, including saved boolean lobby settings", function()
-		for _, mode in ipairs({ "allied", "1" }) do
-			local rules = systemRules(mode, { restrictSpectatorsToAllyTeam = true })
-			assert.is_true(rules.restrictSpectatorsToAllyTeam)
-			assert.is_false(rules.spectatorFullViewOptIn)
+	it("requires the spectator setters for restricted lobbies, including old presets", function()
+		for _, mode in ipairs({ "optin", "allied", "1", true }) do
+			assert.has_error(function()
+				systemRules(mode)
+			end)
+			assert.is_table(systemRules(mode, { gameControlledSpectators = true }))
 		end
 	end)
 
-	it("requires engine support for the chosen restriction", function()
-		assert.has_error(function()
-			systemRules("optin", { restrictSpectatorsToAllyTeam = true })
-		end)
-		assert.has_error(function()
-			systemRules("allied", { spectatorFullViewOptIn = true })
-		end)
+	it("latches the stricter setting until the player opts in or the game ends", function()
+		for _, case in ipairs({
+			{ "allied", 3, false, false },
+			{ "optin", 1, false, false },
+			{ "optin", 3, false, true },
+			{ "full", 2, false, true },
+			{ "full", 3, true, true },
+		}) do
+			local lobby, personal, immediate, afterClick = unpack(case)
+			local spec, access, view, selection, click = false, false, false, false, false
+			local env = SpecEnv.new({
+				gadget = {},
+				gadgetHandler = {
+					IsSyncedCode = function()
+						return false
+					end,
+				},
+				Script = {
+					LuaUI = setmetatable({
+						BARSpectatorFullViewButton = function()
+							return click
+						end,
+					}, {
+						__call = function()
+							return true
+						end,
+					}),
+				},
+				Spring = {
+					GetModOptions = function()
+						return { restrictedspectators = lobby }
+					end,
+					GetMyPlayerID = function()
+						return 0
+					end,
+					GetSpectatingState = function()
+						return spec
+					end,
+					GetConfigInt = function()
+						return personal
+					end,
+					IsGameOver = function()
+						return false
+					end,
+					GetSpectatorFullCommunications = function()
+						return access
+					end,
+					SetSpectatorFullCommunications = function(value)
+						access = value
+					end,
+					SetSpectatorFullView = function(value)
+						view = value
+					end,
+					SetSpectatorFullSelect = function(value)
+						selection = value
+					end,
+				},
+			})
+			SpecEnv.include(env, "luarules/gadgets/game_spectator_vision.lua")
+			spec = true
+			env.gadget:PlayerChanged(0)
+			env.gadget:Update()
+			assert.same({ immediate, immediate, immediate }, { access, view, selection })
+			personal, click = 3, true
+			env.gadget:PlayerChanged(0)
+			env.gadget:Update()
+			assert.same({ afterClick, afterClick, afterClick }, { access, view, selection })
+			env.gadget:GameOver()
+			assert.same({ true, true, true }, { access, view, selection })
+		end
+	end)
+
+	it("checks direct widget setters against the original allyteam and the current grant", function()
+		local access, view, selection, team = false, false, false, 0
+		local spring = {
+			GetMyPlayerID = function()
+				return 0
+			end,
+			GetSpectatorFullCommunications = function()
+				return access
+			end,
+			SetSpectatorFullCommunications = function(value)
+				access = value
+			end,
+			GetPlayerInfo = function()
+				return "player", true, true, 0, 0
+			end,
+			GetTeamInfo = function(id)
+				return id, 0, false, false, "", id == 2 and 1 or 0
+			end,
+			SetSpectatorFullView = function(value)
+				view = value
+			end,
+			SetSpectatorFullSelect = function(value)
+				selection = value
+			end,
+			SetSpectatorTeam = function(id)
+				team = id
+				return true
+			end,
+		}
+		VFS.Include("common/spectatorVision.lua").installWidgetControls(spring)
+		assert.is_nil(spring.SetSpectatorFullCommunications)
+		assert.is_true(spring.SetSpectatorTeam(1))
+		assert.is_false(spring.SetSpectatorTeam(2))
+		spring.SetSpectatorFullView(true)
+		spring.SetSpectatorFullSelect(true)
+		assert.same({ false, false, 1 }, { view, selection, team })
+
+		access = true
+		assert.is_true(spring.SetSpectatorTeam(2))
+		spring.SetSpectatorFullView(true)
+		spring.SetSpectatorFullSelect(true)
+		assert.same({ true, true, 2 }, { view, selection, team })
 	end)
 end)
