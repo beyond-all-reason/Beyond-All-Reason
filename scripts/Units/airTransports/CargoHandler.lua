@@ -174,7 +174,7 @@ end
 ---@param cargo table
 function CargoHandler.BeginUnloading(cargo)
 	cargo.unloadingCount = cargo.unloadingCount + 1
-	CargoHandler.SetSpeedDamping(0.2, cargo, false)
+	CargoHandler.SetSpeedDamping(TransportAPI.LiveSetting("unloadSpeed", 0.2), cargo, false)
 	if cargo.unloadingCount == 1 then
 		CargoHandler.CanLoad(false)
 	end

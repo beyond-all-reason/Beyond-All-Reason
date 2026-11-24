@@ -28,6 +28,8 @@ return {
 	speedModModes = { [0] = "none", "by seats used", "by weight" },
 	speedModStrength = "Penalty strength",
 	comSpeedModStrength = "Commander penalty",
+	unloadSpeed = "Speed while unloading",
+	unloadTime = "Unload beam time",
 
 	ghosts = "Unload preview",
 	ghostsHint = "Shows where each passenger will land before you click",

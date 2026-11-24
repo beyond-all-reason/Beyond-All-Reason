@@ -1032,7 +1032,10 @@ local liveSettings = {
 	speedModMode = { -1, 2, true }, -- -1: each transport's own setting
 	speedModStrength = { -1, 1 },
 	comSpeedModStrength = { -1, 1 },
+	unloadSpeed = { 0.1, 1 },
+	unloadTime = { 0.1, 1 },
 }
+local liveDefaults = { unloadSpeed = 0.2, unloadTime = 1 } ---@type table<string, number>
 
 local function getLiveSetting(key)
 	if key == "enemyLoadMode" then
@@ -1046,7 +1049,7 @@ local function getLiveSetting(key)
 	elseif key == "enemyLoadFrames" then
 		return MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY
 	end
-	return Spring.GetGameRulesParam("tractorbeam_" .. key) or -1
+	return Spring.GetGameRulesParam("tractorbeam_" .. key) or liveDefaults[key] or -1
 end
 
 local function setLiveSetting(key, value)
@@ -1235,7 +1238,33 @@ end
 
 -- CMD LIFECYCLE
 
+-- the engine asks about a queued unload only every half second: a transport in a run of drops asks itself
+---@param transporterID UnitID
+local function tryNextUnload(transporterID)
+	local Q = spGetUnitCommands(transporterID, 1)
+	local params = Q and Q[1] and Q[1].id == CMD.UNLOAD_UNIT and Q[1].params
+	local passengerID = params and params[4] ---@as UnitID?
+	local dropped = droppedBy[transporterID]
+	if not (passengerID and dropped and not dropped[passengerID] and spValidUnitID(passengerID)) then
+		return
+	end
+	gadget:AllowUnitTransportUnload(
+		transporterID,
+		spGetUnitDefID(transporterID) --[[@as UnitDefID]],
+		spGetUnitTeam(transporterID) --[[@as TeamID]],
+		passengerID,
+		spGetUnitDefID(passengerID) --[[@as UnitDefID]],
+		spGetUnitTeam(passengerID) --[[@as TeamID]],
+		params[1],
+		params[2],
+		params[3]
+	)
+end
+
 function gadget:GameFrame(frame)
+	for transporterID in pairs(droppedBy) do
+		tryNextUnload(transporterID)
+	end
 	-- resumes and compacts in one pass; an entry removed from inside a coroutine may stay until next frame
 	offset = 0
 	for i = 1, areaLoadCoroutinesCount do
@@ -1534,6 +1563,7 @@ function gadget:AllowUnitTransportUnload(
 		end
 		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- Keep overriding engine's movegoal
 		spUnitFinishCommand(transporterID) -- consume the command
+		tryNextUnload(transporterID)
 		return false
 	end
 

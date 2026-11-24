@@ -360,6 +360,7 @@ local function speedSetting(key, own)
 	end
 	return own
 end
+TransportAPI.LiveSetting = speedSetting
 
 ---@param cargo table
 ---@return number speedMultiplier

@@ -34,6 +34,8 @@ local GAMEPLAY = {
 	{ key = "speedModMode", step = 1, min = -1, max = 2 },
 	{ key = "speedModStrength", step = 0.05, min = -1, max = 1 },
 	{ key = "comSpeedModStrength", step = 0.05, min = -1, max = 1 },
+	{ key = "unloadSpeed", step = 0.1, min = 0.1, max = 1 },
+	{ key = "unloadTime", step = 0.1, min = 0.1, max = 1 },
 }
 
 local TOGGLES = { "ghosts", "rings", "claimLines", "rightClickLoad" }

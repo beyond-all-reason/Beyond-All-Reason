@@ -424,8 +424,10 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 		local newPassengerRotX, newPassengerRotY, newPassengerRotZ
 		local normalizedProgress
 		local transporterRotX, transporterRotY, transporterRotZ
-		for frame = 0, loadTime - 1 do
-			normalizedProgress = progress[frame]
+		-- the same curve, played faster
+		local unloadTime = math.max(1, math.floor(loadTime * TransportAPI.LiveSetting("unloadTime", 1) + 0.5))
+		for frame = 0, unloadTime - 1 do
+			normalizedProgress = progress[math.floor(frame * loadTime / unloadTime)]
 
 			passengerData.animProgress = 1 - normalizedProgress -- keep track of our progress for Killed() script
 

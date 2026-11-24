@@ -874,13 +874,20 @@ local function finishDrop()
 end
 
 ---@param p UnloadPlan
-local function issuePlan(p, options)
+---@param insertAt integer? queue position the drops go in at, the orders behind them kept
+local function issuePlan(p, options, insertAt)
 	if p.place == false then
 		return
 	end
 	-- a transport's later drops queue behind its first
 	local given = {} ---@type table<integer, true>
 	local function give(transportID, params)
+		if insertAt then
+			local order = { insertAt, CMD_UNLOAD_UNIT, 0, params[1], params[2], params[3], params[4], params[5] }
+			spGiveOrderToUnit(transportID, CMD.INSERT, order, CMD.OPT_ALT)
+			insertAt = insertAt + 1
+			return
+		end
 		spGiveOrderToUnit(transportID, CMD_UNLOAD_UNIT, params, given[transportID] and CMD.OPT_SHIFT or options)
 		given[transportID] = true
 	end
@@ -932,8 +939,12 @@ local function dropHere(transportID, passengerID)
 			return true
 		end
 	end
-	-- behind an unload under way, so quick clicks empty the transport one by one
-	local append = queue[1] ~= nil and queue[1].id == CMD_UNLOAD_UNIT
+	-- in front of the transport's other orders, behind the unloads already there: quick clicks go down in order
+	local front = 0
+	while queue[front + 1] and queue[front + 1].id == CMD_UNLOAD_UNIT do
+		front = front + 1
+	end
+	local append = front > 0
 	queuedPads = collectQueuedPads({ transportID })
 	local armed = drop ~= nil
 	drop = { transportID, passengerID }
@@ -944,7 +955,7 @@ local function dropHere(transportID, passengerID)
 	if not p or p.place == false or (#p.pads == 0 and #p.failed == 0) then
 		return false
 	end
-	issuePlan(p, append and CMD.OPT_SHIFT or 0)
+	issuePlan(p, 0, front)
 	return true
 end
 
