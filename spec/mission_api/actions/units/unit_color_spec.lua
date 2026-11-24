@@ -3,6 +3,8 @@ local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
+env.Game.textColorCodes = { Color = "\255", ColorAndOutline = "\254" }
+env.BAR = { Utilities = { Color = MissionSpecEnv.include(env, "common/springUtilities/color.lua") } }
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()

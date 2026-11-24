@@ -67,6 +67,8 @@ env.UnitDefNames = {
 }
 env.FeatureDefNames = { armwar_dead = { id = 1 } }
 env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/facingFunctions.lua") }
+env.Game.textColorCodes = { Color = "\255", ColorAndOutline = "\254" }
+env.BAR.Utilities.Color = MissionSpecEnv.include(env, "common/springUtilities/color.lua")
 
 MissionApiBuilder.new():Install(env)
 env.GG["MissionAPI"].Modules.UnitColor = MissionSpecEnv.include(env, "luarules/mission_api/unit_color.lua")

@@ -36,8 +36,8 @@ local function slotFor(packed)
 	slot = nextSlot
 	nextSlot = nextSlot + 1
 	slotOfColor[packed] = slot
-	local r, g, b = math.floor(packed / 65536), math.floor(packed / 256) % 256, packed % 256
-	Spring.SetCustomPaletteColor(slot, r / 255, g / 255, b / 255)
+	local r, g, b = BAR.Utilities.Color.FromInt(packed)
+	Spring.SetCustomPaletteColor(slot, r, g, b)
 	return slot
 end
 
