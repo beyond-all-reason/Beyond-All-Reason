@@ -724,6 +724,10 @@ local function setCurrentChatLine(line)
 	end
 end
 
+local function teamChatColor(allyTeamID)
+	return allyTeamID == myAllyTeamID and colorAllyStr or colorOtherAllyStr
+end
+
 local function addChatLine(
 	gameFrame,
 	lineType,
@@ -844,8 +848,25 @@ local function addChatLine(
 		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize, channelTagWidth)
 	end
 
-	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
+	local lineColor = ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1])
+	local teamChatAllyTeamID
+	if lineType == LineTypes.Player and channelScope == "TEAM" and playernames[name] then
+		local allyTeamID = playernames[name][1]
+		-- Processors may supply their own color. Only defer the normal team-chat color.
+		if lineColor == teamChatColor(allyTeamID) then
+			teamChatAllyTeamID = allyTeamID
+		end
+	end
 	for i, line in ipairs(wordwrappedText) do
+		local lineText = line
+		if teamChatAllyTeamID then
+			-- Wrapping can repeat the leading color when it splits a long word.
+			if ssub(line, 1, #lineColor) == lineColor then
+				lineText = ssub(line, #lineColor + 1)
+			end
+		elseif i > 1 then
+			lineText = lineColor .. line
+		end
 		chatLines[chatLineID] = {
 			startTime = startTime,
 			gameFrame = i == 1 and gameFrame,
@@ -862,7 +883,8 @@ local function addChatLine(
 				and playernames[name][5]
 				and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])
 			) or false,
-			text = (i > 1 and lineColor or "") .. line,
+			text = lineText,
+			teamChatAllyTeamID = teamChatAllyTeamID,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -1516,7 +1538,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if channel == "allies" then
-			c = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
+			c = teamChatColor(playernames[name][1])
 		elseif channel == "spectators" then
 			c = colorSpecStr
 		else
@@ -2073,23 +2095,19 @@ drawChatLine = function(i)
 		)
 		return right, left
 	else
+		local text = chatLines[i].text
+		if chatLines[i].teamChatAllyTeamID then
+			text = teamChatColor(chatLines[i].teamChatAllyTeamID) .. text
+		end
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(
-				font,
-				chatLines[i].text,
-				textPosX,
-				fontHeightOffset,
-				usedFontSize,
-				"o",
-				{ 0, 0, 0, 1 }
-			)
+			ChatEmoji.DrawRichText(font, text, textPosX, fontHeightOffset, usedFontSize, "o", { 0, 0, 0, 1 })
 		else
 			font:Begin(true)
 			font:SetOutlineColor(0, 0, 0, 1)
-			font:Print(chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o")
+			font:Print(text, textPosX, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
-		return state.textRight(font, chatLines[i].text, textPosX, usedFontSize, chatLines[i].richText), left
+		return state.textRight(font, text, textPosX, usedFontSize, chatLines[i].richText), left
 	end
 end
 
@@ -4553,7 +4571,11 @@ end
 function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	local allyTeamID = Spring.GetLocalAllyTeamID()
+	if myAllyTeamID ~= allyTeamID then
+		myAllyTeamID = allyTeamID
+		state.uiDirty = true
+	end
 	if mySpec and inputMode == "a:" then
 		inputMode = "s:"
 	end
