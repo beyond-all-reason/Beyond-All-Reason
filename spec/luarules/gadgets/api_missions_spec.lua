@@ -70,7 +70,10 @@ local function loadGadget(options, world)
 		["luarules/mission_api/variables.lua"] = {
 			ResolveReferences = noop,
 			GetStartingValues = function()
-				return {}, {}
+				return {}
+			end,
+			GetPersistentKeys = function()
+				return {}
 			end,
 		},
 		["luarules/mission_api/batch.lua"] = {

@@ -144,10 +144,8 @@ end
 
 --- Variables start at their declared values. Persistent variables start at the saved value instead,
 --- when the save has one of the declared value's type.
---- @return table values
---- @return table<string, true> persistentKeys
 local function getStartingValues(declared, declaredPersistent, saved)
-	local values, persistentKeys = {}, {}
+	local values = {}
 	for key, value in pairs(type(declared) == "table" and declared or {}) do
 		values[key] = type(value) == "table" and table.copy(value) or value
 	end
@@ -157,9 +155,17 @@ local function getStartingValues(declared, declaredPersistent, saved)
 			value = savedValue
 		end
 		values[key] = type(value) == "table" and table.copy(value) or value
+	end
+	return values
+end
+
+--- @return table<string, true>
+local function getPersistentKeys(declaredPersistent)
+	local persistentKeys = {}
+	for key in pairs(type(declaredPersistent) == "table" and declaredPersistent or {}) do
 		persistentKeys[key] = true
 	end
-	return values, persistentKeys
+	return persistentKeys
 end
 
 local function getVariable(key)
@@ -199,6 +205,7 @@ return {
 	ResolveValue = resolveValue,
 	ResolveReferences = resolveReferences,
 	GetStartingValues = getStartingValues,
+	GetPersistentKeys = getPersistentKeys,
 	Get = getVariable,
 	Set = setVariable,
 	ReportVariableWrites = reportVariableWrites,
