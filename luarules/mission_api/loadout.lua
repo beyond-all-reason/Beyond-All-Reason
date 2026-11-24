@@ -139,7 +139,15 @@ for _, unitDef in pairs(UnitDefs) do
 end
 
 local function spawnFeature(featureDefName, x, y, z, heading, facing, featureName)
+	-- A trigger in FeatureCreated can create features inside this CreateFeature.
+	local mapi = GG.MissionAPI
+	local inProgressSpawnName = mapi.nameOfFeatureBeingSpawned
+	local inProgressSpawnDefID = mapi.defIDOfFeatureBeingSpawned
+	mapi.nameOfFeatureBeingSpawned = featureName
+	mapi.defIDOfFeatureBeingSpawned = FeatureDefNames[featureDefName].id
 	local featureID = Spring.CreateFeature(featureDefName, x, y, z, heading, gaiaTeamID)
+	mapi.nameOfFeatureBeingSpawned = inProgressSpawnName
+	mapi.defIDOfFeatureBeingSpawned = inProgressSpawnDefID
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
 	if featureID and unitDefName then
