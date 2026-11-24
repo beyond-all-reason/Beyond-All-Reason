@@ -1,6 +1,6 @@
 ---
---- Test mission demonstrating AreaCleared: three guards and a tower die in turn, and the
---- triggers fire only when the last of them is gone.
+--- Test mission demonstrating AreaCleared: three guards and a tower die in turn, and each
+--- trigger fires only when the last unit it counts is gone.
 ---
 
 local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
@@ -23,20 +23,30 @@ local triggers = {
 
 	outpostClearedOfTeam = {
 		type = conditionTypes.AreaCleared,
-		parameters = { area = outpost, teamName = 'enemy' },
+		parameters = { area = outpost, includeUnit = { teamName = 'enemy' } },
 		actions = { 'messageTeam' },
 	},
 
 	outpostClearedOfAlliance = {
 		type = conditionTypes.AreaCleared,
-		parameters = { area = outpost, allianceName = 'enemies' },
+		parameters = { area = outpost, includeUnit = { allianceName = 'enemies' } },
 		actions = { 'messageAlliance' },
+	},
+
+	outpostClearedOfGuards = {
+		type = conditionTypes.AreaCleared,
+		parameters = {
+			area = outpost,
+			includeUnit = { teamName = 'enemy' },
+			excludeUnit = { { unitName = 'tower' } },
+		},
+		actions = { 'messageGuards' },
 	},
 
 	-- Nobody of theirs was ever here, so this never fires.
 	emptyAreaCleared = {
 		type = conditionTypes.AreaCleared,
-		parameters = { area = { x = 3000, z = 3000, radius = 100 }, teamName = 'enemy' },
+		parameters = { area = { x = 3000, z = 3000, radius = 100 }, includeUnit = { teamName = 'enemy' } },
 		actions = { 'messageEmpty' },
 	},
 }
@@ -57,6 +67,10 @@ local actions = {
 	messageAlliance = {
 		type = actionTypes.SendMessage,
 		parameters = { messageKey = 'AreaCleared test: the outpost is cleared of the enemy alliance (expected at 10 seconds).' },
+	},
+	messageGuards = {
+		type = actionTypes.SendMessage,
+		parameters = { messageKey = 'AreaCleared test: the outpost is cleared of guards, the tower not counted (expected at 5 seconds).' },
 	},
 	messageEmpty = {
 		type = actionTypes.SendMessage,

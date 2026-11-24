@@ -4,11 +4,14 @@ local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_bui
 local MissionSpecEnv = require("mission_api.spec_helper")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
----@type table<integer, integer> unitID -> ally team, 1 when not listed
-local unitAllyTeams = {}
+---@type table<integer, integer> unitID -> team and ally team, 1 when not listed
+local unitTeams, unitAllyTeams = {}, {}
 
 local env = MissionSpecEnv.new({
 	Spring = {
+		GetUnitTeam = function(unitID)
+			return unitTeams[unitID] or 1
+		end,
 		GetUnitAllyTeam = function(unitID)
 			return unitAllyTeams[unitID] or 1
 		end,
@@ -26,19 +29,19 @@ describe("mission_api.triggers.area_cleared", function()
 	local frameNumber = 0
 
 	before_each(function()
-		unitAllyTeams, frameNumber = {}, 0
+		unitTeams, unitAllyTeams, frameNumber = {}, {}, 0
 	end)
 
 	local function teamTrigger()
-		return TriggerBuilder.new():WithParameters({ area = area, teamName = 1 }):Build()
+		return TriggerBuilder.new():WithParameters({ area = area, includeUnit = { teamName = 1 } }):Build()
 	end
 
 	local function allianceTrigger()
-		return TriggerBuilder.new():WithParameters({ area = area, allianceName = 1 }):Build()
+		return TriggerBuilder.new():WithParameters({ area = area, includeUnit = { allianceName = 1 } }):Build()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -75,9 +78,8 @@ describe("mission_api.triggers.area_cleared", function()
 		assert.are.same({
 			type = "AreaCleared",
 			area = "Area!",
-			teamName = "TeamName",
-			allianceName = "AllianceName",
-			requiresOneOf = { "teamName", "allianceName" },
+			includeUnit = "UnitFilter!",
+			excludeUnit = "UnitFilters",
 		}, summarizeSchema(areaCleared))
 	end)
 
@@ -144,6 +146,19 @@ describe("mission_api.triggers.area_cleared", function()
 		local context, fired = newContext()
 		unitAllyTeams[200] = 0
 		callins.UnitsEnteredArea(t, "t", context, { 100, 200 })
+		frame(t, context)
+		callins.UnitsLeftArea(t, "t", context, { 100 })
+		frame(t, context)
+		assert.are.equal(1, fired())
+	end)
+
+	it("does not count a unit excludeUnit matches", function()
+		local t = TriggerBuilder.new()
+			:WithParameters({ area = area, includeUnit = { allianceName = 1 }, excludeUnit = { { teamName = 5 } } })
+			:Build()
+		local context, fired = newContext()
+		unitTeams[300] = 5
+		callins.UnitsEnteredArea(t, "t", context, { 100, 300 })
 		frame(t, context)
 		callins.UnitsLeftArea(t, "t", context, { 100 })
 		frame(t, context)
