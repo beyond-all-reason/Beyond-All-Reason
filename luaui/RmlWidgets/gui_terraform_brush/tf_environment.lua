@@ -190,6 +190,8 @@ function M.attach(doc, ctx)
 			waterPlaneColor = { gl.GetWaterRendering("planeColor") },
 			waterDiffuseColor = { gl.GetWaterRendering("diffuseColor") },
 			waterSpecularColor = { gl.GetWaterRendering("specularColor") },
+			splatTexMults = { gl.GetMapRendering("splatTexMults") },
+			splatTexScales = { gl.GetMapRendering("splatTexScales") },
 		}
 	end
 	widgetState.captureEnvDefaults()

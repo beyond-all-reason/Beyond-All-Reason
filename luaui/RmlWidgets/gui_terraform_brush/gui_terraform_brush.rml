@@ -10059,6 +10059,7 @@
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">SPLAT TEX MULTIPLIERS</div>
+				<div id="btn-env-reset-splatmults" class="tf-env-reset-btn" data-event-click="onEnvResetSplatMults()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">0</div>
@@ -10092,6 +10093,7 @@
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">TILE SIZE (ELMO)</div>
+				<div id="btn-env-reset-splatscales" class="tf-env-reset-btn" data-event-click="onEnvResetSplatScales()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">0</div>

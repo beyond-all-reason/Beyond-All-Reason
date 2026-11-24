@@ -12329,6 +12329,27 @@ local initialModel = {
 		_envSetSlider("slider-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5))
 		_envSetSlider("slider-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5))
 	end,
+	onEnvResetSplatMults = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexMults) then
+			return
+		end
+		for ch = 1, 4 do
+			_envSetSlider("slider-env-splatmult-" .. (ch - 1), math.floor((d.splatTexMults[ch] or 0) * 1000 + 0.5))
+		end
+		-- Last: the sliders round to 0.001 on their way
+		Spring.SetMapRenderingParams({ splatTexMults = d.splatTexMults })
+	end,
+	onEnvResetSplatScales = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexScales) then
+			return
+		end
+		Spring.SetMapRenderingParams({ splatTexScales = d.splatTexScales })
+		if widgetState.envRefreshSplatTiles then
+			widgetState.envRefreshSplatTiles(true)
+		end
+	end,
 	onEnvResetFog = function(_event)
 		local d = widgetState.envDefaults
 		if not d then
