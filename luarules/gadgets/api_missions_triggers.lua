@@ -201,16 +201,16 @@ local function evaluateMetric(trigger, value)
 	return activated
 end
 
-local function activateTriggerAndReport(trigger, onActivationAttempted, triggerID, argument)
+local function activateTriggerAndReport(trigger, onTryActivate, triggerID, argument)
 	local activated = activateTrigger(trigger)
-	onActivationAttempted(trigger, triggerID, conditionContext, argument, activated)
+	onTryActivate(trigger, triggerID, conditionContext, argument, activated)
 end
 
 ---Activates the trigger when the batch ends, and returns nothing.
----A condition that needs the outcome passes onActivationAttempted(trigger, triggerID, context, argument, activated).
-local function deferActivation(trigger, onActivationAttempted, triggerID, argument)
-	if onActivationAttempted then
-		batch.Defer(activateTriggerAndReport, trigger, onActivationAttempted, triggerID, argument)
+---A condition that needs the outcome passes onTryActivate(trigger, triggerID, context, argument, activated).
+local function deferActivation(trigger, onTryActivate, triggerID, argument)
+	if onTryActivate then
+		batch.Defer(activateTriggerAndReport, trigger, onTryActivate, triggerID, argument)
 	else
 		batch.Defer(activateTrigger, trigger)
 	end

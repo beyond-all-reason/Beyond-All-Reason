@@ -1,7 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
-local function onActivationAttempted(trigger, triggerID, context, unitID, activated)
+local function onTryActivate(trigger, triggerID, context, unitID, activated)
 	local dwellingUnits = context.DwellingUnitsInAreas[triggerID]
 	-- Prevents a second activation for the same unit, unless it left the area before this one went through.
 	if activated and dwellingUnits and dwellingUnits[unitID] then
@@ -36,7 +36,7 @@ return {
 			for unitID, enteredFrame in pairs(dwellingUnits) do
 				if enteredFrame >= 0 and frameNumber > enteredFrame and frameNumber - enteredFrame >= parameters.duration
 					and context.IsUnitIncluded(unitID, parameters) then
-					context.ActivateTrigger(trigger, onActivationAttempted, triggerID, unitID)
+					context.ActivateTrigger(trigger, onTryActivate, triggerID, unitID)
 				end
 			end
 		end,

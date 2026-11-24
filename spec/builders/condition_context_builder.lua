@@ -8,7 +8,7 @@
 -- is also how a test varies an answer part-way through.
 
 ---@class ConditionContextMock
----@field ActivateTrigger fun(trigger: table, onActivationAttempted: function?, triggerID: string?, argument: any?)
+---@field ActivateTrigger fun(trigger: table, onTryActivate: function?, triggerID: string?, argument: any?)
 ---@field EvaluateMetric fun(trigger: table, value: number|boolean|string)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
@@ -38,12 +38,12 @@ local TCB = {}
 TCB.__index = TCB
 
 ---An ActivateTrigger that asks decide(trigger) whether the activation goes through.
----It reports the outcome to onActivationAttempted, as the gadget does when the batch ends.
+---It reports the outcome to onTryActivate, as the gadget does when the batch ends.
 function TCB.ReportsActivation(context, decide)
-	return function(trigger, onActivationAttempted, triggerID, argument)
+	return function(trigger, onTryActivate, triggerID, argument)
 		local activated = decide(trigger)
-		if onActivationAttempted then
-			onActivationAttempted(trigger, triggerID, context, argument, activated)
+		if onTryActivate then
+			onTryActivate(trigger, triggerID, context, argument, activated)
 		end
 	end
 end
@@ -98,10 +98,10 @@ function TCB:Build()
 
 	local context ---@type ConditionContextMock
 	context = {
-		ActivateTrigger = function(trigger, onActivationAttempted, triggerID, argument)
+		ActivateTrigger = function(trigger, onTryActivate, triggerID, argument)
 			activateCalls[#activateCalls + 1] = { trigger = trigger }
-			if onActivationAttempted then
-				onActivationAttempted(trigger, triggerID, context, argument, true)
+			if onTryActivate then
+				onTryActivate(trigger, triggerID, context, argument, true)
 			end
 		end,
 		-- Metric conditions only report what they sampled; the gadget compares it

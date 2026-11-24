@@ -15,7 +15,7 @@ local function matchesBuild(trigger, context, unitID, unitDefID, unitTeam, build
 	return true
 end
 
-local function onActivationAttempted(trigger, triggerID, context, buildeeID, activated)
+local function onTryActivate(trigger, triggerID, context, buildeeID, activated)
 	if activated then
 		context.ClaimConstructionStart(buildeeID, triggerID)
 	end
@@ -26,7 +26,7 @@ end
 
 local function startConstruction(trigger, triggerID, context, buildeeID)
 	if not context.HasConstructionStarted(buildeeID, triggerID) then
-		context.ActivateTrigger(trigger, onActivationAttempted, triggerID, buildeeID)
+		context.ActivateTrigger(trigger, onTryActivate, triggerID, buildeeID)
 	end
 end
 

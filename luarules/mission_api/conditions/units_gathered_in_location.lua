@@ -43,7 +43,7 @@ local function markChanged(context, triggerID)
 	end
 end
 
-local function onActivationAttempted(trigger, triggerID, context, frameNumber, activated)
+local function onTryActivate(trigger, triggerID, context, frameNumber, activated)
 	local gathering = context.GatheredUnitsInAreas[triggerID]
 	if not gathering then
 		return
@@ -86,7 +86,7 @@ return {
 				gathering.changed = false
 				gathering.retryFrame = nil
 			else
-				context.ActivateTrigger(trigger, onActivationAttempted, triggerID, frameNumber)
+				context.ActivateTrigger(trigger, onTryActivate, triggerID, frameNumber)
 			end
 		end,
 		UnitsEnteredArea = function(trigger, triggerID, context, unitIDs)

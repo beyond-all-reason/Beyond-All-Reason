@@ -126,8 +126,8 @@ return {
   ends, enforcing the `settings` keys `active`, `prerequisites`, `stages`, `repeating` with
   `maxRepeats`, `count`, and `difficulties` (see Objectives and stages, and Difficulty), and returns
   nothing. A condition that needs the outcome calls
-  `context.ActivateTrigger(trigger, onActivationAttempted, triggerID, argument)`, and
-  `onActivationAttempted(trigger, triggerID, context, argument, activated)` runs once the activation
+  `context.ActivateTrigger(trigger, onTryActivate, triggerID, argument)`, and
+  `onTryActivate(trigger, triggerID, context, argument, activated)` runs once the activation
   has been tried. When `activated` is false, `active`, `prerequisites`, and `stages` can pass later,
   and `maxRepeats` and `difficulties` never will. Record an activation only when `activated` is true,
   and decide what happens for each kind of refusal.
