@@ -6,9 +6,9 @@
 --- of their own.
 ---
 --- The TotalUnits* types are events: cumulative tallies that only ever rise, so
---- each matching occurrence is deferred to ActivateTrigger, which applies `count`.
+--- each matching occurrence defers a call to ActivateTrigger, which applies `count`.
 --- UnitsOwned is a metric: a level that moves in both directions, so its running
---- value is deferred to EvaluateMetric, which applies `atLeast`/`atMost`.
+--- value defers a call to EvaluateMetric, which applies `atLeast`/`atMost`.
 ---
 --- Trigger activation and iteration belong to the triggers gadget, so they are
 --- injected via Init() rather than imported.
@@ -52,11 +52,9 @@ local function updateUnitStatistics(conditionType, teamID, unitDefName, unitName
 		statisticsTriggerCounts[triggerID] = count
 
 		if isMetric then
-			-- A level: compare the running value against the condition's bounds.
 			trigger.lastValue = count
 			batch.DeferNetValue(evaluateLastValue, trigger)
 		elseif direction > 0 then
-			-- A tally: report the occurrence and let `count` decide whether it fires.
 			batch.Defer(activateTrigger, trigger)
 		end
 	end)

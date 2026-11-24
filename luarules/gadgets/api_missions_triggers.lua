@@ -661,9 +661,10 @@ function gadget:Initialize()
 		return
 	end
 
+	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
 	triggers = GG["MissionAPI"].Triggers
 	triggersByType = VFS.Include("luarules/mission_api/conditions_loader.lua").IndexTriggersByType(triggers)
-	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
+	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 	callins = {}
 	for callinName, handlersByType in pairs(GG["MissionAPI"].ConditionDefinitions.Callins) do
 		local handlersWithTriggers = {}
@@ -701,7 +702,6 @@ function gadget:Initialize()
 	local tracking = GG["MissionAPI"].Modules.Tracking
 	doesUnitHaveName = tracking.DoesUnitHaveName
 	untrackUnitID = tracking.UntrackUnitID
-	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
 	doesFeatureHaveName = tracking.DoesFeatureHaveName
 	untrackFeatureID = tracking.UntrackFeatureID
 
