@@ -308,7 +308,7 @@ local function AddFNode(pos)
 	return true
 end
 
--- tractor beam transports: an unload line has a point for every passenger
+-- tractor beam transports: how many points an unload line has
 local function UnloadLineSlots()
 	return usingCmd == CMD_UNLOADUNIT and WG.UnloadSnap and WG.UnloadSnap.LineSlots() or nil
 end

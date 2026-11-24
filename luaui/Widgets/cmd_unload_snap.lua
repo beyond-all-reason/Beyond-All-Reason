@@ -692,6 +692,28 @@ local function addNamedPad(p, transportID, passengerID, x, z, reserved, budget)
 	return budget
 end
 
+-- a transport's whole cargo on the free pad nearest x, z
+---@param p UnloadPlan
+local function addCargoPad(p, transportID, padDefID, x, z, reserved, budget)
+	local px, py, pz, left = findPadSpot(padDefID, x, z, reserved, budget)
+	if px and py and pz then
+		---@type UnloadPad
+		local pad = {
+			transportID = transportID,
+			padDefID = padDefID,
+			x = px,
+			y = py,
+			z = pz,
+			spots = landingSpots(transportID, spGetUnitIsTransporting(transportID) or {}, px, pz),
+		}
+		p.pads[#p.pads + 1] = pad
+		reserved[#reserved + 1] = padRect(pad)
+	else
+		p.failed[#p.failed + 1] = { unitID = transportID, padDefID = padDefID, x = x, z = z }
+	end
+	return left
+end
+
 ---@return UnloadPlan?
 local function makePlan(cx, cz, shift)
 	local placeTransport, buildings = buildingsToPlace(shift)
@@ -710,24 +732,7 @@ local function makePlan(cx, cz, shift)
 	end
 	local budget = SEARCH_BUDGET ---@type number
 	for i = 1, #chosen do
-		local entry = chosen[i]
-		local x, y, z, left = findPadSpot(entry.padDefID, cx, cz, reserved, budget)
-		budget = left
-		if x and y and z then
-			---@type UnloadPad
-			local pad = {
-				transportID = entry.unitID,
-				padDefID = entry.padDefID,
-				x = x,
-				y = y,
-				z = z,
-				spots = landingSpots(entry.unitID, spGetUnitIsTransporting(entry.unitID) or {}, x, z),
-			}
-			result.pads[#result.pads + 1] = pad
-			reserved[#reserved + 1] = padRect(pad)
-		else
-			result.failed[#result.failed + 1] = entry
-		end
+		budget = addCargoPad(result, chosen[i].unitID, chosen[i].padDefID, cx, cz, reserved, budget)
 	end
 	return result
 end
@@ -783,7 +788,7 @@ local function spreadPlan(cx, cz, radius, shift, transports, reserved)
 end
 
 -- cargo for a drawn line: only when every transport in the selection is a loaded tractor beam one
----@return { unitID: integer, cargo: integer[], along: number }[]? loads, integer total
+---@return { unitID: integer, cargo: integer[], along: number }[]? loads, integer points
 local function lineCargo()
 	local selected = spGetSelectedUnits()
 	local loads, total = {}, 0
@@ -798,10 +803,12 @@ local function lineCargo()
 			total = total + #carried
 		end
 	end
-	if total < 2 then
+	-- several transports: a point each for the whole cargo; one transport: a point per passenger
+	local points = #loads > 1 and #loads or total
+	if points < 2 then
 		return nil, 0
 	end
-	return loads, total
+	return loads, points
 end
 
 -- stops drawing the ghosts past the first keep
@@ -959,15 +966,15 @@ local function dropHere(transportID, passengerID)
 	return true
 end
 
--- a line drawn with custom formations, one node per passenger: transports take runs of it in the order they
--- stand along it, each passenger its own drop
+-- a line drawn with custom formations: transports take it in the order they stand along it, several
+-- a node each for their whole cargo, a lone one a node per passenger
 ---@return UnloadPlan?
 local function linePlan(nodes, shift)
-	local loads, total = lineCargo()
-	if not loads or total ~= #nodes then
+	local loads, points = lineCargo()
+	if not loads or points ~= #nodes then
 		return nil
 	end
-	local first, last = nodes[1], nodes[total]
+	local first, last = nodes[1], nodes[points]
 	local dirX, dirZ = last[1] - first[1], last[3] - first[3]
 	for i = 1, #loads do
 		local x, _, z = spGetUnitPosition(loads[i].unitID)
@@ -981,9 +988,17 @@ local function linePlan(nodes, shift)
 	local budget, node = SEARCH_BUDGET, 0 ---@type number, integer
 	for i = 1, #loads do
 		local load = loads[i]
-		for j = 1, #load.cargo do
-			node = node + 1
-			budget = addNamedPad(result, load.unitID, load.cargo[j], nodes[node][1], nodes[node][3], reserved, budget)
+		if #loads > 1 then
+			local padDefID = TransportAPI.GetUnloadPadType(load.unitID) ---@type integer?
+			if padDefID then
+				budget = addCargoPad(result, load.unitID, padDefID, nodes[i][1], nodes[i][3], reserved, budget)
+			end
+		else
+			for j = 1, #load.cargo do
+				node = node + 1
+				local point = nodes[node]
+				budget = addNamedPad(result, load.unitID, load.cargo[j], point[1], point[3], reserved, budget)
+			end
 		end
 	end
 	return result
@@ -1070,10 +1085,10 @@ function widget:Initialize()
 		DropUnit = dropUnit,
 		DropHere = dropHere,
 		UnloadAllHere = unloadAllHere,
-		---@return integer? passengers an unload line gets one point each, nil for one point per transport
+		---@return integer? points an unload line gets, nil when custom formations hands out its own
 		LineSlots = function()
-			local loads, total = lineCargo()
-			return loads and total or nil
+			local loads, points = lineCargo()
+			return loads and points or nil
 		end,
 		GiveLine = giveLine,
 		-- the line while it is being drawn, for the ghosts
