@@ -2,9 +2,9 @@
 --- Objective lifecycle for the Mission API: activation, progress, completion, failure,
 --- cancellation, and visibility. Stage state lives in stages.lua.
 ---
---- An objective with a trigger is watched by its condition record (see
+--- An objective with a condition is watched by its condition record (see
 --- objectives_loader); this module only decides what activation, progress and
---- completion mean. Objectives without a trigger are driven by actions alone.
+--- completion mean. Objectives without a condition are driven by actions alone.
 ---
 --- Completion is latched: a completed objective never becomes incomplete again,
 --- even if the metric it watched moves back out of range.
@@ -178,8 +178,8 @@ local function completeObjective(objectiveID)
 end
 
 --- Progress that did not complete the objective. Events report how many
---- occurrences have been tallied towards their amount; metrics report the value last
---- sampled against the level they must reach. Metrics are sampled often,
+--- occurrences have been tallied towards `count`; metrics report the value last
+--- sampled against the bound they are compared with. Metrics are sampled often,
 --- so only a changed value counts as progress.
 local function reportProgress(objectiveID, progress)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
@@ -192,7 +192,7 @@ local function reportProgress(objectiveID, progress)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
---- One step of progress towards the amount, for objectives that actions drive.
+--- One step of progress towards `count`, for objectives that actions drive.
 local function updateObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
 	if objective.completed or not objective.active then
@@ -209,7 +209,6 @@ end
 
 return {
 	SetObjectiveActive = setObjectiveActive,
-	TryAdvanceStage = tryAdvanceStage,
 	ActivateObjective = activateObjective,
 	CancelObjective = cancelObjective,
 	UpdateObjective = updateObjective,
@@ -218,5 +217,6 @@ return {
 	FailObjective = failObjective,
 	HideObjective = hideObjective,
 	ShowObjective = showObjective,
+	TryAdvanceStage = tryAdvanceStage,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

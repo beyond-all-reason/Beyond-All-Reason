@@ -97,15 +97,18 @@ describe("mission_api.validation.references", function()
 			})))
 	end)
 
-	it("treats inline objective triggers as name references", function()
+	it("treats objective conditions as name references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithObjective("watchBot", {
 				textKey = "watch bot",
-				trigger = { type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player", unitName = "bot" } },
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player", unitName = "bot" },
+				atLeast = 1,
 			})
 			:WithObjective("watchRock", {
 				textKey = "watch rock",
-				trigger = { type = V.conditionTypes.FeatureDestroyed, parameters = { featureName = "rock" } },
+				type = V.conditionTypes.FeatureDestroyed,
+				parameters = { featureName = "rock" },
 			})
 			:WithTrigger("t", {
 				type = V.conditionTypes.TimeElapsed,
@@ -386,10 +389,8 @@ describe("mission_api.validation.references", function()
 					V.mission()
 						:WithObjective("surviveBomb", {
 							textKey = "survive",
-							trigger = {
-								type = V.conditionTypes.CountdownFinished,
-								parameters = { countdownID = "bomb" },
-							},
+							type = V.conditionTypes.CountdownFinished,
+							parameters = { countdownID = "bomb" },
 						})
 						:WithTrigger("start", {
 							type = V.conditionTypes.TimeElapsed,
@@ -478,16 +479,17 @@ describe("mission_api.validation.references", function()
 			)
 		end)
 
-		it("warns about a countdown an inline objective trigger refers to, but no action adds", function()
+		it("warns about a countdown an objective condition refers to, but no action adds", function()
 			local result = V.validate(V.mission():WithObjective("surviveGhost", {
 				textKey = "survive",
-				trigger = { type = V.conditionTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
+				type = V.conditionTypes.CountdownFinished,
+				parameters = { countdownID = "ghost" },
 			}))
 
 			V.assertMessage(
 				result,
 				"Countdown is referenced, but never created. Countdown: ghost, "
-					.. "Referenced in: objective surviveGhost (trigger)"
+					.. "Referenced in: objective surviveGhost (condition)"
 			)
 		end)
 	end)
@@ -632,11 +634,11 @@ describe("mission_api.validation.references", function()
 					type = V.actionTypes.SendMessage,
 					parameters = { messageKey = "ok" },
 				})
-				:WithObjective("o", { textKey = "ok", amount = { variable = "delay" } }))
+				:WithObjective("o", { textKey = "ok", count = { variable = "delay" } }))
 
 			assert.are.same({
 				"Variable has no value at the start of the mission. Variable: delay, "
-					.. "Referenced in: objective o (amount), trigger t (seconds)",
+					.. "Referenced in: objective o (count), trigger t (seconds)",
 			}, result.warnings)
 			assert.is_true(result.ok)
 		end)
