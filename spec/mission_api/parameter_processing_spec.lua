@@ -4,15 +4,15 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 local env = MissionSpecEnv.new()
 local parameterTypes = MissionSpecEnv.registerModules(env).ParameterTypes
 local actionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 GG["MissionAPI"].ActionDefinitions = actionDefinitions
-GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
 local parameterProcessing = MissionSpecEnv.include(env, "luarules/mission_api/parameter_processing.lua")
 GG["MissionAPI"] = nil
 
 local actionTypes = actionDefinitions.Types
-local triggerTypes = triggerDefinitions.Types
+local conditionTypes = conditionDefinitions.Types
 
 local GROUND_HEIGHT = 42
 
@@ -132,10 +132,31 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("CameraKeyframes", function()
+		it("fills in the ground height for keyframe positions that have no y", function()
+			local parameters = processAction({
+				type = actionTypes.PlayCameraSequence,
+				parameters = {
+					keyframes = {
+						{ position = { x = 10, z = 20 }, lookAtPosition = { x = 1, z = 2 } },
+						{ position = { x = 10, y = 500, z = 20 } },
+						{ unitName = "hero", lookAtUnitName = "boss" },
+					},
+				},
+			})
+
+			local keyframes = parameters.keyframes
+			assert.are.same({ x = 10, y = GROUND_HEIGHT, z = 20 }, keyframes[1].position)
+			assert.are.same({ x = 1, y = GROUND_HEIGHT, z = 2 }, keyframes[1].lookAtPosition)
+			assert.are.equal(500, keyframes[2].position.y)
+			assert.are.same({ unitName = "hero", lookAtUnitName = "boss" }, keyframes[3])
+		end)
+	end)
+
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({
-				type = triggerTypes.ResourceIncome,
+				type = conditionTypes.ResourceIncome,
 				parameters = { teamID = 0, resource = "metal", quantity = 1, sources = { "extractor", "reclaim" } },
 			})
 

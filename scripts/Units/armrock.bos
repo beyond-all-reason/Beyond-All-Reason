@@ -5,7 +5,7 @@ piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
        rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint,
        firepoint;
 
-static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -259,15 +259,15 @@ UnitSpeed(){
 	}
 }
 StartMoving(reversing){
-  signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
-	 call-script StopWalking();
+	call-script StopWalking();
 }
 
 Create()
@@ -749,7 +749,7 @@ DeathAnim() {// For C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources
 
 Killed(severity, corpsetype)
 {
-			if( severity <= 25 )
+	if( severity <= 25 )
 	{
 		call-script DeathAnim();
 		corpsetype = 1;

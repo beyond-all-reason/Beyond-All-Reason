@@ -287,6 +287,7 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field _pendingFogOff integer?
 ---@field _pendingForceStart integer?
 ---@field refreshEnvSunAzEl function?
+---@field envRefreshSplatTiles function?
 ---@field updateTransportBtns function?
 ---@field projectSyncCell function?
 ---@field applySkybox function?
@@ -2542,7 +2543,10 @@ widgetState.applyEnvConfig = function(d)
 		end
 	end
 	local atmosParams = {}
-	-- Env-preset fog is not applied (placeholder fog, see FOG_OFF): force it off.
+	-- Env-preset fog is not applied (placeholder fog, see FOG_OFF): force it off,
+	-- but hold what the config carried so a save writes it back.
+	local fs, fe = tonumber(d.fogStart), tonumber(d.fogEnd)
+	widgetState.envHeldFog = (fs and fe) and { fs, fe } or nil
 	atmosParams.fogStart = FOG_OFF.fogStart
 	atmosParams.fogEnd = FOG_OFF.fogEnd
 	if d.fogColor then
@@ -2839,6 +2843,11 @@ widgetState.buildEnvConfigContent = function(opts)
 	local uShadow = gl.GetSun("shadowDensity", "unit")
 	local fgS = gl.GetAtmosphere("fogStart")
 	local fgE = gl.GetAtmosphere("fogEnd")
+	-- Fog still off (the engine nudges 1.99/2 to about 2/2.03) is the editor hiding it: keep the loaded fog.
+	local heldFog = widgetState.envHeldFog
+	if heldFog and math.abs(fgS - FOG_OFF.fogStart) < 0.05 and math.abs(fgE - FOG_OFF.fogEnd) < 0.05 then
+		fgS, fgE = heldFog[1], heldFog[2]
+	end
 	local fgC = { gl.GetAtmosphere("fogColor") }
 	local snC = { gl.GetAtmosphere("sunColor") }
 	local skC = { gl.GetAtmosphere("skyColor") }
@@ -2855,6 +2864,11 @@ widgetState.buildEnvConfigContent = function(opts)
 	end
 	local fmt4 = function(t)
 		return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0)
+	end
+	-- Exact: a scale like 1/96 does not fit four decimals
+	local fmtNumber = VFS.Include("common/map_export.lua").fmtNumber
+	local fmtExact = function(v)
+		return fmtNumber(v or 0)
 	end
 	local bstr = function(v)
 		return v and "true" or "false"
@@ -2916,7 +2930,9 @@ widgetState.buildEnvConfigContent = function(opts)
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
 		"\tsplatTexMults = " .. fmt4({ smR, smG, smB, smA }) .. ",",
-		"\tsplatTexScales = " .. fmt4({ ssR, ssG, ssB, ssA }) .. ",",
+		"\tsplatTexScales = { "
+			.. table.concat({ fmtExact(ssR), fmtExact(ssG), fmtExact(ssB), fmtExact(ssA) }, ", ")
+			.. " },",
 		"\tvoidWater = " .. bstr(vW) .. ",",
 		"\tvoidGround = " .. bstr(vG) .. ",",
 		"",
@@ -12313,6 +12329,27 @@ local initialModel = {
 		_envSetSlider("slider-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5))
 		_envSetSlider("slider-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5))
 	end,
+	onEnvResetSplatMults = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexMults) then
+			return
+		end
+		for ch = 1, 4 do
+			_envSetSlider("slider-env-splatmult-" .. (ch - 1), math.floor((d.splatTexMults[ch] or 0) * 1000 + 0.5))
+		end
+		-- Last: the sliders round to 0.001 on their way
+		Spring.SetMapRenderingParams({ splatTexMults = d.splatTexMults })
+	end,
+	onEnvResetSplatScales = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexScales) then
+			return
+		end
+		Spring.SetMapRenderingParams({ splatTexScales = d.splatTexScales })
+		if widgetState.envRefreshSplatTiles then
+			widgetState.envRefreshSplatTiles(true)
+		end
+	end,
 	onEnvResetFog = function(_event)
 		local d = widgetState.envDefaults
 		if not d then
@@ -17352,6 +17389,7 @@ local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environme
 widgetState.tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
+widgetState.tfExport = require("luaui/RmlWidgets/gui_terraform_brush/tf_export")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
 local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
 local tfLights = require("luaui/RmlWidgets/gui_terraform_brush/tf_lights")
@@ -18510,6 +18548,7 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	widgetState.tfBlockout.attach(doc, ctx)
+	widgetState.tfExport.attach(doc, ctx)
 	widgetState.attachWheelLockGesture(doc)
 	tfTileset.attach(doc, ctx)
 	if tfSurface then
@@ -18971,6 +19010,26 @@ function widget:Initialize()
 		end
 	end
 
+	-- A real map (compiled or legacy) names its sky and its sun intensity in mapinfo.lua, and the
+	-- engine has no getter for either: seed both, or a save records no sky and intensity 1, and the
+	-- first sun slider nudge writes 1 back. A generated canvas declares neither; a project load
+	-- applies its own environment later and wins.
+	do
+		local mapinfo = VFS.Include("common/mapinfo_read.lua")()
+		local sky = mapinfo and mapinfo.atmosphere and mapinfo.atmosphere.skybox
+		if not widgetState.envCurrentSkybox and type(sky) == "string" and sky ~= "" then
+			-- the library copy when there is one (what a project names), else the map's own file
+			local libPath = "Terraform Brush/SkyBoxes/" .. (sky:match("([^/\\]+)$") or sky)
+			widgetState.envCurrentSkybox = VFS.FileExists(libPath, VFS.RAW_FIRST) and libPath or ("maps/" .. sky)
+		end
+		local sunDir = mapinfo and mapinfo.lighting and mapinfo.lighting.sundir
+		local intensity = type(sunDir) == "table" and tonumber(sunDir[4]) or nil
+		if intensity and intensity > 0 and intensity <= 10 then
+			widgetState.envSunIntensity = intensity
+			widgetState.refreshEnvSunSliders()
+		end
+	end
+
 	widgetState.installQuitGuard()
 
 	-- Expose UI-side API for key capture and badge refresh
@@ -19012,6 +19071,11 @@ function widget:Initialize()
 		---@return string? skyboxPath
 		getCurrentSkybox = function()
 			return widgetState.envCurrentSkybox
+		end,
+		-- The project save moves a sky the map ships (maps/...) into the library and repoints
+		-- the pick there; same texture, so nothing is re-applied.
+		setCurrentSkybox = function(path)
+			widgetState.envCurrentSkybox = path
 		end,
 		-- Start script for opening a map project (see widgetState.buildProjectStartScript).
 		---@param manifest MapProjectManifest
@@ -20200,6 +20264,11 @@ function widget:Update()
 			widgetState.pushPerfPrefs()
 		end
 
+		-- FILE > EXPORT MAP: the export waits for the save it started.
+		if widgetState.exportUi then
+			widgetState.exportUi.update()
+		end
+
 		-- Quit guard: the save started from the popup finished; carry on, or keep the popup
 		-- up with the failure.
 		local qs = widgetState.quitGuardSaving
@@ -20847,6 +20916,9 @@ function widget:Update()
 					local setDm = ctx.setDm
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
+					if spActive and widgetState.splatTexOpen and widgetState.envRefreshSplatTiles then
+						widgetState.envRefreshSplatTiles()
+					end
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
 					-- Only when the canvas really cannot splat-paint: with a DNTS set baked in it works.
 					setDm("newMapEngineSplatNotice", generatedBlankMap and _newMapSplatUnavailable())

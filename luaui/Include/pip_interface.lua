@@ -258,9 +258,9 @@ function M.new(ui)
 			-- Returns: current, storage, pull, income, expense, share
 			local _
 			t.metalCur, t.metalMax, t.metalPull, t.metalIncome, _, t.metalShare =
-				Spring.GetTeamResources(teamID, "metal")
+				BAR.Utilities.GetTeamRealResources(teamID, "metal")
 			t.energyCur, t.energyMax, t.energyPull, t.energyIncome, _, t.energyShare =
-				Spring.GetTeamResources(teamID, "energy")
+				BAR.Utilities.GetTeamRealResources(teamID, "energy")
 			if not (t.metalCur and t.energyCur) then
 				return nil
 			end

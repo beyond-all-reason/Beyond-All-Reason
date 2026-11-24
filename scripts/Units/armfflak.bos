@@ -26,32 +26,32 @@ Create()
 	hide flare2;
 	gun_1 = flare1;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script FloatMotion();	
-    turn sleeve1 to x-axis <-30> speed <25.0>;
-    turn sleeve2 to x-axis <-30> speed <25.0>;
-    spin turret around y-axis speed <25.0>;
+	start-script FloatMotion();
+	turn sleeve1 to x-axis <-30> speed <25.0>;
+	turn sleeve2 to x-axis <-30> speed <25.0>;
+	spin turret around y-axis speed <25.0>;
 }
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    turn sleeve1 to x-axis <-30> speed <25.0>;
-    turn sleeve2 to x-axis <-30> speed <25.0>;
-    spin turret around y-axis speed <25.0>;
+	if (Stunned) {
+		return (1);
+	}
+	turn sleeve1 to x-axis <-30> speed <25.0>;
+	turn sleeve2 to x-axis <-30> speed <25.0>;
+	spin turret around y-axis speed <25.0>;
 }
 Stop()
 {
-    spin turret around y-axis speed <0.0>;
+	spin turret around y-axis speed <0.0>;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script Stop();
 	} else {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -76,35 +76,30 @@ FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
-	    emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel1 to z-axis [0.0] speed [37.500000];
+		move barrel1 to z-axis [0.0] speed [37.5];
 	}
 	if( gun_1 == 1 )
 	{
-	    emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-10.0] now;
 		sleep 100;
-		move barrel2 to z-axis [0.0] speed [37.500000];
+		move barrel2 to z-axis [0.0] speed [37.5];
 	}
 	gun_1 = !gun_1;
-	return (0);
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = gun_1;
-	return (0);
 }
 
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret;
-	return (0);
 }
-
-
 
 Killed(severity, corpsetype)
 {

@@ -46,7 +46,9 @@ static-var  spray;
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 SmokeItUp()
-{	while (TRUE) {
+{
+	while (TRUE)
+	{
 		emit-sfx 259 from exhaust;
 		sleep 45;
 		emit-sfx 259 from exhaust;
@@ -77,10 +79,10 @@ MoveCranes()
 
 Create()
 {
-    turn arm1 to z-axis <-85> now;
-    turn arm2 to z-axis <-85> now;
-    turn arm3 to z-axis <-85> now;
-    move base to y-axis [35] now;
+	turn arm1 to z-axis <-85> now;
+	turn arm2 to z-axis <-85> now;
+	turn arm3 to z-axis <-85> now;
+	move base to y-axis [35] now;
 	start-script Deactivate();
 	spray = nanoFlare1a;
 	SLEEP_UNTIL_UNITFINISHED;
@@ -89,7 +91,6 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-
 	spray = (spray + 1) % 6;
 	pieceIndex = nanoFlare1a + spray;
 }
@@ -114,8 +115,8 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	turn arm1 to z-axis <-85> speed <90>;
-    turn arm2 to z-axis <-85> speed <90>;
-    turn arm3 to z-axis <-85> speed <90>;
+	turn arm2 to z-axis <-85> speed <90>;
+	turn arm3 to z-axis <-85> speed <90>;
 
 	move base to y-axis [0] speed [35.0];
 	wait-for-move base along y-axis;
@@ -128,20 +129,18 @@ Deactivate()
 
 StartBuilding()
 {
-
-    signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
-    start-script MoveCranes();
+	start-script MoveCranes();
 	start-script SmokeItUp();
-
 }
 
 StopBuilding()
 {
-    signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;
 	turn arm1 to z-axis <-85> speed <90>;
-    turn arm2 to z-axis <-85> speed <90>;
-    turn arm3 to z-axis <-85> speed <90>;
+	turn arm2 to z-axis <-85> speed <90>;
+	turn arm3 to z-axis <-85> speed <90>;
 }
 
 QueryBuildInfo(pieceIndex)
@@ -155,57 +154,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode beam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano1 type BITMAPONLY | NOHEATCLOUD;
-		// explode beam2 type BITMAPONLY | NOHEATCLOUD;
-		// explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		// explode beam3 type BITMAPONLY | NOHEATCLOUD;
-		// explode nano3 type BITMAPONLY | NOHEATCLOUD;
-		// explode beam4 type BITMAPONLY | NOHEATCLOUD;
-		// explode nano4 type BITMAPONLY | NOHEATCLOUD;
-		// explode pad type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode beam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano2 type FALL | NOHEATCLOUD;
-		// explode beam3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode pad type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode beam1 type SMOKE | FALL | NOHEATCLOUD;
-		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam3 type SMOKE | FALL | NOHEATCLOUD;
-		// explode nano3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam4 type SMOKE | FALL | NOHEATCLOUD;
-		// explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode beam1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		// explode beam2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode beam4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode base type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

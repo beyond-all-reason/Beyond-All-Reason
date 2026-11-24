@@ -7,7 +7,7 @@
 piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
        rfoot, lfoot, beamcase, nano, aimy1, cagelight, cagelight_emit;
 
-static-var  notBuilding, isMoving, readyToBuild;
+static-var  isMoving, readyToBuild;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
@@ -153,18 +153,17 @@ StopWalking() {
 	turn torso to x-axis <0.0> speed <47.499995>;
 }
 UnitSpeed(){
- maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
- animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
- maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
- while(TRUE){
-  animSpeed = (get CURRENT_SPEED);
-  if (animSpeed<1) animSpeed=1;
-  animSpeed = (maxSpeed * 4) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-  if (animSpeed<2) animSpeed=2;
-  if (animspeed>8) animSpeed = 8;
-  sleep 131;
- }
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 4) / animSpeed; 
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed>8) animSpeed = 8;
+		sleep 131;
+	}
 }
 
 #define BASEPIECE pelvis
@@ -174,22 +173,6 @@ UnitSpeed(){
 #define MAXTILT 100
 
 #include "../unit_hitbyweaponid_and_smoke.h"
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to z-axis <0> speed <1000>;
-	
-	turn beamhinge to x-axis <0> speed <360>;
-	wait-for-turn beamhinge around x-axis;	
-
-	turn beamcase to z-axis <0> speed <180>;
-	wait-for-turn beamcase around z-axis;
-	
-	turn aimy1 to y-axis <0.0> speed <160.0>;
-	wait-for-turn aimy1 around y-axis;
-}
 
 Create()
 {

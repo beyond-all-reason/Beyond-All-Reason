@@ -295,6 +295,7 @@ AimWeapon2(heading, pitch)
 		wait-for-turn rlauncher around x-axis;
 		return (1);
 	}
+	return (0);
 }
 
 FireWeapon2()

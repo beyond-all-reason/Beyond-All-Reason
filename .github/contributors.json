@@ -1,0 +1,30 @@
+{
+  "_doc": "Ledger contributor name -> GitHub login. Lets a contributor answer /confirm-license for rows recorded under a display name. Names that already equal a login need no entry.",
+  "PtaQ": {
+    "github": "PtaQQ"
+  },
+  "ZephyrSkies": {
+    "github": "ZephyrSkies7"
+  },
+  "Cremuss": {
+    "github": "Cremuss"
+  },
+  "Tharsis": {
+    "github": "Tharsy"
+  },
+  "Hornet": {
+    "github": "TheSilverHornet"
+  },
+  "Protar": {
+    "github": "Protar1458"
+  },
+  "Leon Devereux": {
+    "github": "LeonDevereux"
+  },
+  "Johnathan Crimson": {
+    "github": "JohnathanCrimson"
+  },
+  "Tom Fyuri": {
+    "github": "TomFyuri"
+  }
+}

@@ -1,3 +1,8 @@
+-- nil when not counting down (engine 2026.09+), 0 on older engines
+local function selfDTime(unitID)
+	return Spring.GetUnitSelfDTime(unitID) or 0
+end
+
 local function skip()
 	return Spring.GetGameFrame() <= 0
 end
@@ -28,16 +33,16 @@ local function test()
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	assert(
-		Spring.GetUnitSelfDTime(unitID) > 0,
-		string.format("Expected GetUnitSelfDTime > 0 after selfd, got %d", Spring.GetUnitSelfDTime(unitID))
+		selfDTime(unitID) > 0,
+		string.format("Expected GetUnitSelfDTime > 0 after selfd, got %s", selfDTime(unitID))
 	)
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	assertEqual(
-		Spring.GetUnitSelfDTime(unitID),
+		selfDTime(unitID),
 		0,
-		string.format("GetUnitSelfDTime after stop: expected 0, got %d", Spring.GetUnitSelfDTime(unitID))
+		string.format("GetUnitSelfDTime after stop: expected 0, got %s", selfDTime(unitID))
 	)
 	assertEqual(
 		Spring.GetUnitCommandCount(unitID),
@@ -50,19 +55,19 @@ local function test()
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	assertEqual(
-		Spring.GetUnitSelfDTime(unitID),
+		selfDTime(unitID),
 		0,
-		string.format("GetUnitSelfDTime for queued selfd: expected 0, got %d", Spring.GetUnitSelfDTime(unitID))
+		string.format("GetUnitSelfDTime for queued selfd: expected 0, got %s", selfDTime(unitID))
 	)
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.STOP, nil, nil, nil })
 	assertEqual(
-		Spring.GetUnitSelfDTime(unitID),
+		selfDTime(unitID),
 		0,
 		string.format(
-			"GetUnitSelfDTime after stop of queued selfd: expected 0, got %d",
-			Spring.GetUnitSelfDTime(unitID)
+			"GetUnitSelfDTime after stop of queued selfd: expected 0, got %s",
+			selfDTime(unitID)
 		)
 	)
 	assertEqual(

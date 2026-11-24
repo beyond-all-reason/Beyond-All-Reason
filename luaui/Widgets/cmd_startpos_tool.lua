@@ -3920,6 +3920,25 @@ function widget:Initialize()
 		finishStartbox = finishStartbox,
 		encodeStartboxes = boxExport.encode,
 	}
+
+	-- A real map (compiled or legacy) carries its start positions in mapinfo teams[n].startPos
+	-- (from team 0): start from them, so the tool shows them and a project save records them.
+	-- A project load replaces them (loadStartPositions clears first); a canvas has none.
+	local mapinfo = VFS.Include("common/mapinfo_read.lua")()
+	local teams = mapinfo and mapinfo.teams
+	if type(teams) == "table" and #positions == 0 then
+		local i = 0
+		while type(teams[i]) == "table" do
+			local sp = type(teams[i].startpos) == "table" and teams[i].startpos or {}
+			local x, z = tonumber(sp.x), tonumber(sp.z)
+			if x and z then
+				-- an export records the side and slot; a legacy map alternates two sides
+				local ally = tonumber(teams[i].allyteam) or (i % 2 + 1)
+				addPosition(x, z, ally, tonumber(teams[i].teamslot) or (math_floor(i / 2) + 1))
+			end
+			i = i + 1
+		end
+	end
 end
 
 function widget:Shutdown()
