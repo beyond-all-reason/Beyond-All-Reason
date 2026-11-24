@@ -8,6 +8,7 @@ local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.
 local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 local cutsceneFieldTypes = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
@@ -137,6 +138,64 @@ local function createValueValidators(context, parameterValidators)
 	return validateValue, validateValueWithDifficulties, validateValueWithDifficultiesAndVariables
 end
 
+--- Reports every string key not in `allowedKeys`, so that a misspelt field fails loudly
+--- instead of being silently ignored at runtime.
+local function validateNoUnknownKeys(reporter, id, values, allowedKeys, valueLabel)
+	local unknownKeys = {}
+	for key in pairs(values) do
+		if type(key) == "string" and not allowedKeys[key] then
+			unknownKeys[#unknownKeys + 1] = key
+		end
+	end
+	table.sort(unknownKeys)
+	for _, key in ipairs(unknownKeys) do
+		reporter.Error(id, "Unknown " .. string.lower(valueLabel), valueLabel .. ": " .. key)
+	end
+end
+
+local THRESHOLD_FIELDS = { "count", "atLeast", "atMost" }
+
+--- Checks a condition's threshold against its kind, so that picking a type from the
+--- wrong family is an error rather than a silently ignored field:
+---   event  - an occurrence tallied upwards, thresholded with `count`
+---   metric - a level sampled now, thresholded with `atLeast` / `atMost`
+--- Thresholds may differ by difficulty and read variables, which resolve at mission start.
+local function validateConditionThreshold(context, reporter, id, condition, validateValue)
+	local Types = context.Types
+	local fieldTypes = { count = Types.PositiveInteger, atLeast = Types.Number, atMost = Types.Number }
+	for _, fieldName in ipairs(THRESHOLD_FIELDS) do
+		local value = condition[fieldName]
+		if value ~= nil then
+			for _, result in ipairs(validateValue(fieldTypes[fieldName], value)) do
+				local details = "Field: " .. fieldName .. (result.parameterNameSuffix or "")
+				local reportResult = result.isWarning and reporter.Warn or reporter.Error
+				reportResult(id, result.message, details)
+			end
+		end
+	end
+
+	local kind = context.ConditionKinds[condition.type]
+	if kind == ConditionKinds.Metric then
+		if condition.count ~= nil then
+			reporter.Error(id, "Metric conditions are thresholded with atLeast/atMost, not count")
+		end
+		if condition.atLeast == nil and condition.atMost == nil then
+			reporter.Error(id, "Metric conditions require atLeast and/or atMost")
+		end
+		if
+			type(condition.atLeast) == "number"
+			and type(condition.atMost) == "number"
+			and condition.atLeast > condition.atMost
+		then
+			reporter.Error(id, "atLeast must not be greater than atMost")
+		end
+	elseif kind == ConditionKinds.Event then
+		if condition.atLeast ~= nil or condition.atMost ~= nil then
+			reporter.Error(id, "Event conditions are thresholded with count, not atLeast/atMost")
+		end
+	end
+end
+
 local function createEntryValidator(context, validateValue)
 	return function(reporter, id, data)
 		for _, result in ipairs(validateValue(context.Types.String, id)) do
@@ -193,7 +252,9 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 			)
 		end
 
+		local declaredParameters = {}
 		for _, parameter in ipairs(schema) do
+			declaredParameters[parameter.name] = true
 			local value = parameters[parameter.name]
 			if value == nil then
 				if parameter.required then
@@ -207,6 +268,7 @@ local function createSchemaValidator(context, parameterValidators, validateParam
 				end
 			end
 		end
+		validateNoUnknownKeys(reporter, id, parameters, declaredParameters, "Parameter")
 	end
 end
 
@@ -263,6 +325,14 @@ local function hasStockpileWeapon(unitDef)
 	return false
 end
 
+-- A unit filter's unitDefName is one name or a list of them.
+local function getUnitDefNames(unitDefName)
+	if type(unitDefName) == "table" then
+		return unitDefName
+	end
+	return { unitDefName }
+end
+
 -- A unit def without a stockpiling weapon never changes its stockpile, so the trigger could never fire.
 local function validateStockpileTrigger(context, reporter, id, trigger)
 	local conditionTypes = context.ConditionTypes
@@ -273,10 +343,74 @@ local function validateStockpileTrigger(context, reporter, id, trigger)
 		return
 	end
 
-	for _, unitDefName in ipairs(context.PossibleValues(trigger.parameters.unitDefName)) do
-		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
-		if unitDef and not hasStockpileWeapon(unitDef) then
-			reporter.Error(id, "Unit '" .. unitDefName .. "' has no stockpiling weapon", "Parameter: unitDefName")
+	for _, includeUnit in ipairs(context.PossibleValues(trigger.parameters.includeUnit)) do
+		local unitDefNames = type(includeUnit) == "table" and getUnitDefNames(includeUnit.unitDefName) or {}
+		for _, unitDefName in ipairs(unitDefNames) do
+			local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+			if unitDef and not hasStockpileWeapon(unitDef) then
+				reporter.Error(
+					id,
+					"Unit '" .. unitDefName .. "' has no stockpiling weapon",
+					"Parameter: includeUnit.unitDefName"
+				)
+			end
+		end
+	end
+end
+
+-- Whether every unit the filter matches meets an exclusion's criterion for this field.
+local function doesFilterImplyCriterion(context, filter, field, value)
+	if field == "allianceName" and type(filter.teamName) == "string" then
+		local teamID = context.Teams[filter.teamName]
+		return teamID ~= nil and Spring.GetTeamAllyTeamID(teamID) == context.Alliances[value]
+	end
+	if field ~= "unitDefName" then
+		return filter[field] == value
+	end
+	if filter.unitDefName == nil then
+		return false
+	end
+	local isExcludedDef = {}
+	for _, unitDefName in ipairs(getUnitDefNames(value)) do
+		isExcludedDef[unitDefName] = true
+	end
+	for _, unitDefName in ipairs(getUnitDefNames(filter.unitDefName)) do
+		if not isExcludedDef[unitDefName] then
+			return false
+		end
+	end
+	return true
+end
+
+-- An exclusion whose every criterion is met by every unit includeUnit matches removes them all.
+local function validateUnitFilterExclusions(context, reporter, id, trigger)
+	local parameters = trigger.parameters
+	if type(parameters) ~= "table" then
+		return
+	end
+
+	for _, includeUnit in ipairs(context.PossibleValues(parameters.includeUnit)) do
+		for _, excludeUnit in ipairs(context.PossibleValues(parameters.excludeUnit)) do
+			if type(includeUnit) == "table" and type(excludeUnit) == "table" then
+				for index, excluded in ipairs(excludeUnit) do
+					local removesAll = type(excluded) == "table" and next(excluded) ~= nil
+					if removesAll then
+						for field, value in pairs(excluded) do
+							if not doesFilterImplyCriterion(context, includeUnit, field, value) then
+								removesAll = false
+								break
+							end
+						end
+					end
+					if removesAll then
+						reporter.Error(
+							id,
+							"excludeUnit[" .. index .. "] removes every unit includeUnit matches",
+							"Parameter: excludeUnit"
+						)
+					end
+				end
+			end
 		end
 	end
 end
@@ -285,14 +419,8 @@ end
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
 
-local function validateObjectiveInlineTrigger(
-	context,
-	objectiveReport,
-	validateSchema,
-	statisticsConditionTypes,
-	objective,
-	objectiveID
-)
+--- The objective's `amount` is its threshold, so the inline trigger carries none of its own.
+local function validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
 	local trigger = objective.trigger
 	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) or context.IsVariableReference(trigger) then
 		return
@@ -304,16 +432,13 @@ local function validateObjectiveInlineTrigger(
 	if trigger.actions ~= nil then
 		objectiveReport.Error(objectiveID, "Objective trigger must not have an 'actions' field")
 	end
-
-	-- Statistics triggers require a quantity, but an objective tracks its progress with its
-	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
-	local parameters = trigger.parameters
-	if statisticsConditionTypes[trigger.type] and type(parameters) == "table" then
-		if parameters.quantity ~= nil then
-			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
+	for _, fieldName in ipairs(THRESHOLD_FIELDS) do
+		if trigger[fieldName] ~= nil then
+			objectiveReport.Error(
+				objectiveID,
+				"Objective trigger must not have a '" .. fieldName .. "' field; use the objective's amount"
+			)
 		end
-		parameters = table.copy(parameters)
-		parameters.quantity = 1
 	end
 
 	validateSchema(
@@ -322,14 +447,14 @@ local function validateObjectiveInlineTrigger(
 		"Objective trigger",
 		context.ConditionParameters,
 		trigger.type,
-		parameters
+		trigger.parameters
 	)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, trigger)
+	validateUnitFilterExclusions(context, objectiveReport, objectiveID, trigger)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local statisticsConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.Quantity)
 
 	-- The inline trigger is registered before the difficulty and variables are resolved,
 	-- so it can't vary. Its parameters can, as any trigger's.
@@ -351,15 +476,9 @@ local function validateObjectivesSection(context, report, validateFieldValue, va
 				objectiveReport.Error(objectiveID, "Objective has empty textKey")
 			end
 
+			validateNoUnknownKeys(objectiveReport, objectiveID, objective, objectiveFieldTypes, "Field")
 			validateTypedFields(objectiveReport, objectiveID, validateField, objectiveFieldTypes, objective, "Field")
-			validateObjectiveInlineTrigger(
-				context,
-				objectiveReport,
-				validateSchema,
-				statisticsConditionTypes,
-				objective,
-				objectiveID
-			)
+			validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
 		end
 	end
 end
@@ -402,6 +521,7 @@ local function validateTriggerSettings(triggerReport, validateValue, validateTab
 	end
 
 	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
+	validateNoUnknownKeys(triggerReport, triggerID, settings, triggerSettingTypes, "Setting")
 	validateTypedFields(triggerReport, triggerID, validateValue, triggerSettingTypes, settings, "Setting")
 
 	if settings.maxRepeats and not settings.repeating then
@@ -409,20 +529,33 @@ local function validateTriggerSettings(triggerReport, validateValue, validateTab
 	end
 end
 
+local ALLOWED_TRIGGER_KEYS = {
+	type = true,
+	parameters = true,
+	settings = true,
+	actions = true,
+	count = true,
+	atLeast = true,
+	atMost = true,
+}
+
 local function validateTriggersSection(
 	context,
 	report,
 	parameterValidators,
 	validateValue,
 	validateEntry,
-	validateSchema
+	validateSchema,
+	validateThresholdValue
 )
 	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		if validateEntry(triggerReport, triggerID, trigger) then
+			validateNoUnknownKeys(triggerReport, triggerID, trigger, ALLOWED_TRIGGER_KEYS, "Field")
 			validateTriggerActions(context, triggerReport, trigger, triggerID)
+			validateConditionThreshold(context, triggerReport, triggerID, trigger, validateThresholdValue)
 			validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 			validateSchema(
 				triggerReport,
@@ -433,6 +566,7 @@ local function validateTriggersSection(
 				trigger.parameters
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
+			validateUnitFilterExclusions(context, triggerReport, triggerID, trigger)
 		end
 	end
 end
@@ -694,7 +828,15 @@ local function validate(context, report, parameterValidators)
 	-- Same order here as in the report:
 	validateStagesSection(context, report, validateValue, validateEntry)
 	validateObjectivesSection(context, report, validateValueWithDifficultiesAndVariables, validateEntry, validateSchema)
-	validateTriggersSection(context, report, parameterValidators, validateValue, validateEntry, validateSchema)
+	validateTriggersSection(
+		context,
+		report,
+		parameterValidators,
+		validateValue,
+		validateEntry,
+		validateSchema,
+		validateValueWithDifficultiesAndVariables
+	)
 	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)
 	validateLoadoutsSection(context, report, parameterValidators)

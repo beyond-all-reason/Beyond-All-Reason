@@ -3,7 +3,12 @@ local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
-local env = MissionSpecEnv.new()
+local env = MissionSpecEnv.new({
+	UnitDefs = { [1] = { name = "armpw" } },
+})
+env.Spring.GetUnitDefID = function()
+	return 1
+end
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load.
 MissionApiBuilder.new():Install()
@@ -17,7 +22,7 @@ describe("mission_api.conditions.unit_entered_location", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -32,30 +37,39 @@ describe("mission_api.conditions.unit_entered_location", function()
 		for _, parameter in ipairs(unitEnteredLocation.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitEnteredLocation.parameters.requiresOneOf)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
+		assert.is_nil(unitEnteredLocation.parameters.requiresOneOf)
 	end)
 
 	it("fires for a unit that entered the area", function()
 		local context, fired = newContext()
-		onUnitsEnteredArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100 })
+		onUnitsEnteredArea(
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per unit entering together", function()
 		local context, fired = newContext()
-		onUnitsEnteredArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100, 101 })
+		onUnitsEnteredArea(
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100, 101 }
+		)
 		assert.are.equal(2, fired())
 	end)
 
 	it("checks every unit before activating, so an activation cannot change a later match", function()
-		local t = trigger({ area = area, unitName = "scouts" })
+		local t = trigger({ area = area, includeUnit = { unitName = "scouts" } })
 		local context, fired = newContext()
 		local activate = context.ActivateTrigger
 		context.ActivateTrigger = function(...)
-			context.DoesUnitMatch = function()
+			context.IsUnitIncluded = function()
 				return false
 			end
 			return activate(...)
@@ -66,10 +80,10 @@ describe("mission_api.conditions.unit_entered_location", function()
 
 	it("does not fire for a unit the filters reject", function()
 		local context, fired = newContext()
-		context.DoesUnitMatch = function()
+		context.IsUnitIncluded = function()
 			return false
 		end
-		onUnitsEnteredArea(trigger({ area = area, unitName = "scouts" }), triggerID, context, { 100 })
+		onUnitsEnteredArea(trigger({ area = area, includeUnit = { unitName = "scouts" } }), triggerID, context, { 100 })
 		assert.are.equal(0, fired())
 	end)
 end)

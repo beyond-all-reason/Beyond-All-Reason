@@ -3,7 +3,12 @@ local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
-local env = MissionSpecEnv.new()
+local env = MissionSpecEnv.new({
+	UnitDefs = { [1] = { name = "armpw" } },
+})
+env.Spring.GetUnitDefID = function()
+	return 1
+end
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load, and Spring inside its handler.
 MissionApiBuilder.new():Install()
@@ -23,7 +28,7 @@ describe("mission_api.conditions.unit_left_location", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -38,21 +43,30 @@ describe("mission_api.conditions.unit_left_location", function()
 		for _, parameter in ipairs(unitLeftLocation.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitLeftLocation.parameters.requiresOneOf)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
+		assert.is_nil(unitLeftLocation.parameters.requiresOneOf)
 	end)
 
 	it("fires for a unit that left the area", function()
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100 })
+		onUnitsLeftArea(
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per unit leaving together", function()
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100, 101 })
+		onUnitsLeftArea(
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100, 101 }
+		)
 		assert.are.equal(2, fired())
 	end)
 
@@ -61,16 +75,21 @@ describe("mission_api.conditions.unit_left_location", function()
 			return nil
 		end
 		local context, fired = newContext()
-		onUnitsLeftArea(trigger({ area = area, unitDefName = "armpw" }), triggerID, context, { 100 })
+		onUnitsLeftArea(
+			trigger({ area = area, includeUnit = { unitDefName = { [1] = true } } }),
+			triggerID,
+			context,
+			{ 100 }
+		)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a unit the filters reject", function()
 		local context, fired = newContext()
-		context.DoesUnitMatch = function()
+		context.IsUnitIncluded = function()
 			return false
 		end
-		onUnitsLeftArea(trigger({ area = area, unitName = "scouts" }), triggerID, context, { 100 })
+		onUnitsLeftArea(trigger({ area = area, includeUnit = { unitName = "scouts" } }), triggerID, context, { 100 })
 		assert.are.equal(0, fired())
 	end)
 end)

@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local CMD_INSERT = CMD.INSERT
 local CMD_ANY    = CMD.ANY
@@ -38,13 +39,12 @@ end
 
 return {
 	type = 'UnitOrdered',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
-		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',             required = false, type = ParameterTypes.TeamName },
+		{ name = 'includeUnit',          required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',          required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
-		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		-- The trigger wants an incoming order that is likely to be executed by the recipient unit.
@@ -70,13 +70,7 @@ return {
 				return
 			end
 
-			if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
-				return
-			end
-			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if trigger.parameters.teamName and trigger.parameters.teamName ~= unitTeam then
+			if not context.IsUnitIncluded(unitID, trigger.parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

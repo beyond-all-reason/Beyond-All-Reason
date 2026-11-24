@@ -37,7 +37,7 @@ local triggers = {
 	targetAttacked = {
 		type = conditionTypes.UnitAttacked,
 		parameters = {
-			unitName = 'target',
+			includeUnit = { unitName = 'target' },
 		},
 		actions = { 'messageTargetAttacked' },
 	},
@@ -45,8 +45,7 @@ local triggers = {
 	tankAttackedRepeatedly = {
 		type = conditionTypes.UnitAttacked,
 		parameters = {
-			unitDefName = 'armstump',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armstump', teamName = 'player' },
 		},
 		settings = {
 			repeating = true,
@@ -59,8 +58,7 @@ local triggers = {
 	wrongTeamAttacked = {
 		type = conditionTypes.UnitAttacked,
 		parameters = {
-			unitDefName = 'armstump',
-			teamName = 'enemy',
+			includeUnit = { unitDefName = 'armstump', teamName = 'enemy' },
 		},
 		actions = { 'messageWrongTeam' },
 	},

@@ -35,7 +35,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -74,15 +74,14 @@ describe("mission_api.conditions.unit_attacked", function()
 		for _, parameter in ipairs(unitAttacked.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, unitAttacked.parameters.requiresOneOf)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
+		assert.is_nil(unitAttacked.parameters.requiresOneOf)
 	end)
 
 	it("fires when an enemy weapon hits a matching unit", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw", teamName = 0 }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -95,7 +94,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	it("fires once per hit", function()
 		local context, fired = newContext()
 		for _ = 1, 3 do
-			damaged(trigger({ unitDefName = "armpw" }), context, {
+			damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 				unitDefID = 1,
 				unitTeam = 0,
 				damage = 50,
@@ -111,7 +110,7 @@ describe("mission_api.conditions.unit_attacked", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		damaged(trigger({ unitName = "target" }), context, {
+		damaged(trigger({ includeUnit = { unitName = "target" } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -123,7 +122,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "corak" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [2] = true } } }), context, {
 			unitDefID = 1, -- armpw
 			unitTeam = 0,
 			damage = 50,
@@ -135,7 +134,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("filters by teamName, which is the attacked unit's team", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw", teamName = 1 }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 1 } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -147,7 +146,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("counts paralyze damage as an attack", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -160,7 +159,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("includes hits that deal no damage", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 0,
@@ -172,7 +171,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("ignores damage from the unit's own team", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -184,7 +183,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("ignores damage from an allied team", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -196,7 +195,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("fires for a dead attacker's projectile once its team is recovered", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -210,7 +209,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	-- Death and self-destruct explosions use real weapons but arrive with no attacker and no projectile.
 	it("ignores weapon damage with no team to blame", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -235,7 +234,7 @@ describe("mission_api.conditions.unit_attacked", function()
 			Game.envDamageTypes.KilledByLua,
 		}
 		for _, weaponDefID in ipairs(environmental) do
-			damaged(trigger({ unitDefName = "armpw" }), context, {
+			damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 				unitDefID = 1,
 				unitTeam = 0,
 				damage = 50,
@@ -248,7 +247,7 @@ describe("mission_api.conditions.unit_attacked", function()
 
 	it("counts being crushed as an attack", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,
@@ -261,7 +260,7 @@ describe("mission_api.conditions.unit_attacked", function()
 	-- The game registers scripted damage types (timed areas, ...) below the engine's lowest index.
 	it("counts the game's scripted damage types as attacks", function()
 		local context, fired = newContext()
-		damaged(trigger({ unitDefName = "armpw" }), context, {
+		damaged(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, {
 			unitDefID = 1,
 			unitTeam = 0,
 			damage = 50,

@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'FeatureReclaimed',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'featureName',    required = false, type = ParameterTypes.FeatureName },
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },

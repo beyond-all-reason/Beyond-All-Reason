@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 
 -- Fires when a matching unit's detection level rises into the sensor set watched by the trigger.
@@ -13,13 +14,7 @@ local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 local FIRES_ON_DETECTED = true
 
 local function matchesUnit(parameters, context, unitID, unitDefID)
-	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
-		return false
-	end
-	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-		return false
-	end
-	if parameters.owningTeamName and parameters.owningTeamName ~= Spring.GetUnitTeam(unitID) then
+	if not context.IsUnitIncluded(unitID, parameters, unitDefID) then
 		return false
 	end
 	return true
@@ -27,13 +22,12 @@ end
 
 return {
 	type = 'UnitDetected',
+	kind = ConditionKinds.Event,
 	parameters = {
-		{ name = 'unitName',           required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',        required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'owningTeamName',     required = false, type = ParameterTypes.TeamName },
+		{ name = 'includeUnit',        required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',        required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'sensorAllianceName', required = false, type = ParameterTypes.AllianceName },
 		{ name = 'sensorTypes',        required = false, type = ParameterTypes.SensorTypes },
-		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		-- Artificial callin raised once a frame, for units whose sensor state was touched.

@@ -39,7 +39,7 @@ describe("mission_api.conditions.production_started", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -57,29 +57,41 @@ describe("mission_api.conditions.production_started", function()
 		for _, parameter in ipairs(productionStarted.parameters) do
 			names[parameter.name] = parameter.required
 		end
-		assert.is_true(names.unitDefName) -- a buildee has no unitName yet, so this stands in as required
-		assert.is_false(names.teamName)
+		assert.is_true(names.includeUnit)
+		assert.is_false(names.excludeUnit)
 		assert.is_false(names.factoryName)
 		assert.is_false(names.factoryDefName)
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw" }), context, 2, 0, 10) -- unitDefID 2 = armck
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0, 10) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 9, 10)
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by factoryDefName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", factoryDefName = "armvp" }), context, 1, 0, 10) -- factory 10 = armlab
+		produced(
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, factoryDefName = "armvp" }),
+			context,
+			1,
+			0,
+			10
+		) -- factory 10 = armlab
 		assert.are.equal(0, fired())
-		produced(trigger({ unitDefName = "armpw", factoryDefName = "armlab" }), context, 1, 0, 10)
+		produced(
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, factoryDefName = "armlab" }),
+			context,
+			1,
+			0,
+			10
+		)
 		assert.are.equal(1, fired())
 	end)
 
@@ -88,19 +100,19 @@ describe("mission_api.conditions.production_started", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		produced(trigger({ unitDefName = "armpw", factoryName = "botlab" }), context, 1, 0, 10)
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true } }, factoryName = "botlab" }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching production", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamName = 0 }), context, 1, 0, 10)
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires once per buildee, so a queue of them fires once each", function()
 		local context, fired = newContext()
-		local watchThePawns = trigger({ unitDefName = "armpw" })
+		local watchThePawns = trigger({ includeUnit = { unitDefName = { [1] = true } } })
 		produced(watchThePawns, context, 1, 0, 10)
 		produced(watchThePawns, context, 1, 0, 10)
 		assert.are.equal(2, fired())
@@ -108,13 +120,13 @@ describe("mission_api.conditions.production_started", function()
 
 	it("does not fire for a build frame placed by a constructor", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw" }), context, 1, 0, 20) -- builder 20 = armck
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 20) -- builder 20 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a unit that has no builder", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw" }), context, 1, 0, nil)
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, nil)
 		assert.are.equal(0, fired())
 	end)
 
@@ -123,7 +135,7 @@ describe("mission_api.conditions.production_started", function()
 			return false
 		end
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw" }), context, 1, 0, 10)
+		produced(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 10)
 		assert.are.equal(0, fired())
 	end)
 end)
