@@ -287,6 +287,7 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field _pendingFogOff integer?
 ---@field _pendingForceStart integer?
 ---@field refreshEnvSunAzEl function?
+---@field envRefreshSplatTiles function?
 ---@field updateTransportBtns function?
 ---@field projectSyncCell function?
 ---@field applySkybox function?
@@ -2864,6 +2865,11 @@ widgetState.buildEnvConfigContent = function(opts)
 	local fmt4 = function(t)
 		return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0)
 	end
+	-- Exact: a scale like 1/96 does not fit four decimals
+	local fmtNumber = VFS.Include("common/map_export.lua").fmtNumber
+	local fmtExact = function(v)
+		return fmtNumber(v or 0)
+	end
 	local bstr = function(v)
 		return v and "true" or "false"
 	end
@@ -2924,7 +2930,9 @@ widgetState.buildEnvConfigContent = function(opts)
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
 		"\tsplatTexMults = " .. fmt4({ smR, smG, smB, smA }) .. ",",
-		"\tsplatTexScales = " .. fmt4({ ssR, ssG, ssB, ssA }) .. ",",
+		"\tsplatTexScales = { "
+			.. table.concat({ fmtExact(ssR), fmtExact(ssG), fmtExact(ssB), fmtExact(ssA) }, ", ")
+			.. " },",
 		"\tvoidWater = " .. bstr(vW) .. ",",
 		"\tvoidGround = " .. bstr(vG) .. ",",
 		"",
@@ -20887,6 +20895,9 @@ function widget:Update()
 					local setDm = ctx.setDm
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
+					if spActive and widgetState.splatTexOpen and widgetState.envRefreshSplatTiles then
+						widgetState.envRefreshSplatTiles()
+					end
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
 					-- Only when the canvas really cannot splat-paint: with a DNTS set baked in it works.
 					setDm("newMapEngineSplatNotice", generatedBlankMap and _newMapSplatUnavailable())
