@@ -53,9 +53,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legamphlab_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecaltype = "decals/legamphlab_11_11_aoplane.png",
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "builder",
 			model_author = "ZephyrSkies, Tharsis",

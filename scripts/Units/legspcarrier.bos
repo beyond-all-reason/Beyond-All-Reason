@@ -116,6 +116,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    return (0);
 }
 
 SetStunned(State)

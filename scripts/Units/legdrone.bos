@@ -145,6 +145,7 @@ Docked(customparam, dockpiece, carrierarg1, carrierarg2, carrierarg3)
 		spin base around y-axis speed <10> accelerate <1>;
 		return 1;
 	}
+	return 0;
 }
 
 Undocked(customparam, dockpiece)

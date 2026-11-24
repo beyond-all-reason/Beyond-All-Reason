@@ -1,11 +1,11 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- One squad of fast and slow bots marching on a timer. Each march shows one parameter.
 local triggers = {
 
 	start = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -13,7 +13,7 @@ local triggers = {
 	},
 
 	keepShape = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -21,7 +21,7 @@ local triggers = {
 	},
 
 	turnShape = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 43,
 		},
@@ -29,11 +29,19 @@ local triggers = {
 	},
 
 	queueTwoMoves = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 83,
 		},
 		actions = { 'moveNorth', 'queueMoveEastFacingNorth', 'messageQueue' },
+	},
+
+	holdPace = {
+		type = conditionTypes.TimeElapsed,
+		parameters = {
+			seconds = 150,
+		},
+		actions = { 'moveWestHoldingPace', 'messageHoldPace' },
 	},
 }
 
@@ -106,6 +114,22 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "Two moves, the second queued and facing a point to the north.",
+		},
+	},
+
+	moveWestHoldingPace = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'squad',
+			orders = { { CMD.MOVE, { 2000, 0, 3000 } } },
+			marching = true,
+		},
+	},
+
+	messageHoldPace = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Marching west: the fast bots hold the slow one's pace.",
 		},
 	},
 }

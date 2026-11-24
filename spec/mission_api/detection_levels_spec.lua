@@ -1,6 +1,6 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
@@ -150,7 +150,7 @@ describe("mission_api.detection_levels", function()
 		before_each(function()
 			-- Fresh per test: the compiled level mask caches onto the trigger it belongs to.
 			trigger = TriggerBuilder.new():Build()
-			context = TriggerContextBuilder.new():Build()
+			context = ConditionContextBuilder.new():Build()
 			env.Spring.GetUnitIsDead = function()
 				return false
 			end
@@ -249,7 +249,7 @@ describe("mission_api.detection_levels", function()
 		local losStateReads
 
 		before_each(function()
-			context = TriggerContextBuilder.new():Build()
+			context = ConditionContextBuilder.new():Build()
 			env.Spring.GetUnitIsDead = function()
 				return false
 			end

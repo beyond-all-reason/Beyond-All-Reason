@@ -190,6 +190,8 @@ function M.attach(doc, ctx)
 			waterPlaneColor = { gl.GetWaterRendering("planeColor") },
 			waterDiffuseColor = { gl.GetWaterRendering("diffuseColor") },
 			waterSpecularColor = { gl.GetWaterRendering("specularColor") },
+			splatTexMults = { gl.GetMapRendering("splatTexMults") },
+			splatTexScales = { gl.GetMapRendering("splatTexScales") },
 		}
 	end
 	widgetState.captureEnvDefaults()
@@ -1105,10 +1107,6 @@ function M.attach(doc, ctx)
 			"splatmult-1",
 			"splatmult-2",
 			"splatmult-3",
-			"splatscale-0",
-			"splatscale-1",
-			"splatscale-2",
-			"splatscale-3",
 			"lava-amp",
 			"lava-period",
 			"lava-fogheight",
@@ -1578,22 +1576,118 @@ function M.attach(doc, ctx)
 		end)
 	end
 
-	-- Splat tex scales
+	-- Splat tile size: the rows work in elmo per repeat, the engine takes 1 / elmo
+	local splatTileRows = {}
+	local splatScalesLine = doc:GetElementById("lbl-env-splatscales")
+	local splatShown = {}
+	local function refreshSplatTiles(force)
+		local r, g, b, a = gl.GetMapRendering("splatTexScales")
+		if not force and r == splatShown[1] and g == splatShown[2] and b == splatShown[3] and a == splatShown[4] then
+			return
+		end
+		splatShown[1], splatShown[2], splatShown[3], splatShown[4] = r, g, b, a
+		for _, show in ipairs(splatTileRows) do
+			show()
+		end
+		if splatScalesLine then
+			local function short(v)
+				return (string.format("%.8f", v or 0):gsub("0+$", ""):gsub("%.$", ""))
+			end
+			splatScalesLine.inner_rml =
+				string.format("texScales = { %s, %s, %s, %s }", short(r), short(g), short(b), short(a))
+		end
+	end
 	for ch = 0, 3 do
 		local chIdx = ch + 1
-		envSlider("slider-env-splatscale-" .. ch, function(v)
-			return v / 10000
-		end, function()
-			local r, g, b, a = gl.GetMapRendering("splatTexScales")
-			local c = { r, g, b, a }
-			return (c[chIdx] or 0) * 10000
-		end, function(val)
-			local r, g, b, a = gl.GetMapRendering("splatTexScales")
-			local c = { r, g, b, a }
-			c[chIdx] = val
-			Spring.SetMapRenderingParams({ splatTexScales = c })
-		end)
+		local sliderId = "slider-env-splatscale-" .. ch
+		local sl = doc:GetElementById(sliderId)
+		local box = doc:GetElementById("input-env-splatscale-" .. ch)
+		if sl and box then
+			local trackMin = tonumber(sl:GetAttribute("min")) or 16
+			local trackMax = tonumber(sl:GetAttribute("max")) or 1024
+			-- Rounded to hide float noise: 1/96 reads back as 95.999997
+			local function getElmo()
+				local scale = select(chIdx, gl.GetMapRendering("splatTexScales")) or 0
+				return scale > 0 and math.floor(1000 / scale + 0.5) / 1000 or 0
+			end
+			local function trackPos(elmo)
+				return math.max(trackMin, math.min(trackMax, math.floor(elmo + 0.5)))
+			end
+			local function setElmo(elmo)
+				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local c = { r, g, b, a }
+				c[chIdx] = 1 / elmo
+				Spring.SetMapRenderingParams({ splatTexScales = c })
+				refreshSplatTiles(true)
+			end
+			splatTileRows[#splatTileRows + 1] = function()
+				local elmo = getElmo()
+				sl:SetAttribute("value", tostring(trackPos(elmo)))
+				if widgetState.focusedRmlInput ~= box then
+					box:SetAttribute("value", (string.format("%.3f", elmo):gsub("%.?0+$", "")))
+				end
+			end
+
+			trackSliderDrag(sl, sliderId)
+			sl:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then
+					return
+				end
+				local raw = tonumber(event.parameters.value) or tonumber(sl:GetAttribute("value"))
+				raw = raw and math.floor(raw + 0.5)
+				-- The handle already matching is the code moving it: keep the typed decimals
+				if raw and raw ~= trackPos(getElmo()) then
+					setElmo(raw)
+				end
+				event:StopPropagation()
+			end, false)
+
+			local function step(dir)
+				return function(event)
+					playSound("tick")
+					local elmo = getElmo()
+					setElmo(math.max(1, dir > 0 and math.floor(elmo) + 1 or math.ceil(elmo) - 1))
+					event:StopPropagation()
+				end
+			end
+			local downBtn = doc:GetElementById("btn-env-splatscale-" .. ch .. "-down")
+			if downBtn then
+				downBtn:AddEventListener("click", step(-1), false)
+			end
+			local upBtn = doc:GetElementById("btn-env-splatscale-" .. ch .. "-up")
+			if upBtn then
+				upBtn:AddEventListener("click", step(1), false)
+			end
+
+			local textAtFocus
+			box:AddEventListener("focus", function()
+				Spring.SDLStartTextInput()
+				widgetState.focusedRmlInput = box
+				textAtFocus = box:GetAttribute("value")
+			end, false)
+			box:AddEventListener("blur", function(event)
+				Spring.SDLStopTextInput()
+				widgetState.focusedRmlInput = nil
+				local text = tostring(box:GetAttribute("value") or "")
+				local typed = tonumber((text:gsub(",", ".")))
+				-- An untouched box shows a rounded value: writing it back would nudge the scale
+				if typed and typed >= 1 and text ~= textAtFocus then
+					setElmo(typed)
+				else
+					refreshSplatTiles(true)
+				end
+				event:StopPropagation()
+			end, false)
+			box:AddEventListener("keydown", function(event)
+				if widgetState.isReturnEvent(event) then
+					box:Blur()
+				end
+			end, false)
+		end
 	end
+	refreshSplatTiles(true)
+	-- Presets and project loads change the scales behind the open window
+	widgetState.envRefreshSplatTiles = refreshSplatTiles
 
 	-- ---- Grass config popup controls ----
 	local function grassCfgPull()

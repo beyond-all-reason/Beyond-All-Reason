@@ -136,6 +136,7 @@ AimWeapon1(heading, pitch)
 		
 		return (1);
 	}
+	return (0);
 }
 
 Rock_Main_Cannon()
@@ -211,6 +212,7 @@ AimWeapon2(heading, pitch)
 		
 		return (1);
 	}
+	return (0);
 }
 
 FireWeapon2()
@@ -276,6 +278,7 @@ AimWeapon3(heading, pitch)
 		
 		return (1);
 	}
+	return (0);
 }
 
 FireWeapon3()
