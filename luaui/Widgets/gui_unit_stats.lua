@@ -143,7 +143,7 @@ local format = string.format
 local glColor = gl.Color
 
 local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetTeamResources = Spring.GetTeamResources
+local BARGetTeamRealResources = BAR.Utilities.GetTeamRealResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
@@ -561,8 +561,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	------------------------------------------------------------------------------------
 	if isBuilding then
 		local myTeamID = spGetMyTeamID()
-		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = spGetTeamResources(myTeamID, "metal")
-		local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec = spGetTeamResources(myTeamID, "energy")
+		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = BARGetTeamRealResources(myTeamID, "metal")
+		local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec = BARGetTeamRealResources(myTeamID, "energy")
 
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost

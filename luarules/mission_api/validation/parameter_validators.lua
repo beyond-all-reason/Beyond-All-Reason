@@ -11,6 +11,7 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local stateCommands = VFS.Include("common/stateCommands.lua")
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 
 --------------------------------------------------------------------------------
@@ -641,13 +642,6 @@ local function getNameValidator(nameKey, message)
 	end
 end
 
-local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, "number")
-	if luaTypeResult then
-		addResult(results, luaTypeResult, "[2]")
-	end
-end
-
 local function validateNoParams(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -657,13 +651,28 @@ local function validateNoParams(params, results)
 	end
 end
 
-local function validateOnOffParam(params, results)
-	local value = params
-	if type(params) == "table" and #params == 1 then
-		value = params[1]
+-- One command's validator: it takes one of that command's states, bare or as {state}.
+local function getStateValidator(commandStates)
+	local allowed, named = {}, {}
+	for name, value in pairs(commandStates) do
+		named[#named + 1] = { name = name, value = value }
+		allowed[value] = true
 	end
-	if value ~= 0 and value ~= 1 then
-		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	table.sort(named, function(a, b)
+		return a.value < b.value
+	end)
+	for index, state in ipairs(named) do
+		named[index] = state.name .. " (" .. state.value .. ")"
+	end
+	local message = "Parameter must be one of: " .. table.concat(named, ", ")
+	return function(params, results)
+		local value = params
+		if type(params) == "table" and #params == 1 then
+			value = params[1]
+		end
+		if not allowed[value] then
+			addResult(results, message, "[2]")
+		end
 	end
 end
 
@@ -710,10 +719,6 @@ local validatorsByCommandName = {
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
 	GATHERWAIT = validateNoParams,
-	-- 0 (off) or 1 (on):
-	CLOAK = validateOnOffParam,
-	ONOFF = validateOnOffParam,
-	REPEAT = validateOnOffParam,
 	-- Wait parameters:
 	TIMEWAIT = validateSeconds,
 	SQUADWAIT = validateSquadSize,
@@ -742,10 +747,10 @@ local validatorsByCommandName = {
 	RESURRECT = validate4orFeatureName,
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
-	-- Single number parameter:
-	FIRE_STATE = validateNumberParam,
-	MOVE_STATE = validateNumberParam,
 }
+for commandName, commandStates in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(commandStates)
+end
 
 local function validateOrderOptions(options, results)
 	if not options then

@@ -151,7 +151,35 @@ local function getSettings()
 	return settings
 end
 
+-- Published by unit_builder_priority: the pull of passive builders that the engine does not see
+-- while they are restricted. Readable by allies and spectators only.
+local HIDDEN_METAL_PULL_PARAM = "hiddenMetalPull"
+local HIDDEN_ENERGY_PULL_PARAM = "hiddenEnergyPull"
+
 return {
+	---Same as Spring.GetTeamResources, but with the pull corrected for the restricted passive builders.
+	---@param teamID TeamID
+	---@param resource "metal"|"energy"
+	---@return number? current
+	---@return number? storage
+	---@return number? pull Engine pull plus the hidden pull of restricted passive builders
+	---@return number? income
+	---@return number? expense
+	---@return number? share
+	---@return number? sent
+	---@return number? received
+	---@return number? excess
+	GetTeamRealResources = function(teamID, resource)
+		local current, storage, pull, income, expense, share, sent, received, excess =
+			Spring.GetTeamResources(teamID, resource)
+		if pull then -- Spring.GetTeamResources can still return nil on enemies when called with CallAsTeam or from unsynced (allied mask); this nil check IS necessary
+			local hiddenParam = string.sub(resource, 1, 1) == "m" and HIDDEN_METAL_PULL_PARAM
+				or HIDDEN_ENERGY_PULL_PARAM
+			pull = pull + (Spring.GetTeamRulesParam(teamID, hiddenParam) or 0) -- supposedly never nil if the returned pull is non-nil (share the same allied mask as Spring.GetTeamResources());
+			-- but gadgets layering *might* still cause this to be called before we had the chance to Initialize() the zero values.
+		end
+		return current, storage, pull, income, expense, share, sent, received, excess
+	end,
 	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
 	GetAllyTeamCount = function()
 		return getSettings().allyTeamCount

@@ -17,7 +17,7 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = WRAPDELTA(heading - oldheading)*3;
+		steery = (heading - oldheading)*3;
 		turn steer to y-axis steery speed <120>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
@@ -106,38 +106,35 @@ ExecuteRestoreAfterDelay()
 
 	var done;
 	var delta;
-	var nextHead;
-	var nextPitch;
 
 	while (!done){
 		done = TRUE;
 		delta = WRAPDELTA(0 - curHead1);
 		if (ABSOLUTE_GREATER_THAN(delta,(<90.0> / 30))) {
-			nextHead = curHead1 + SIGN(delta) * (<90.0> / 30);
+			curHead1 = curHead1 + SIGN(delta) * (<90.0> / 30);
 			done = FALSE;
 		}else{
-			nextHead = 0;
+			curHead1 = 0;
 		}
 		delta = WRAPDELTA(0 - curPitch1);
 		if (ABSOLUTE_GREATER_THAN(delta,(<50.0> / 30))) {
-			nextPitch = curPitch1 + SIGN(delta) * (<50.0> / 30);
+			curPitch1 = curPitch1 + SIGN(delta) * (<50.0> / 30);
 			done = FALSE;
 		}else{
-			nextPitch = 0;
+			curPitch1 = 0;
 		}
-		turn turret to y-axis nextHead speed <90.0>;
-		turn gun to x-axis <0.0> - nextPitch speed <50.0>;
+		turn turret to y-axis curHead1 speed <90.0>;
+		turn gun to x-axis <0.0> - curPitch1 speed <50.0>;
 		if (!done) {
 			sleep 1;
 		}
-		curHead1 = nextHead;
-		curPitch1 = nextPitch;
 	}
  }
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
+	    set-signal-mask SIGNAL_AIM1;
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
