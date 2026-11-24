@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	stopFirstQueuedVoice = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			repeating = true,
 		},
