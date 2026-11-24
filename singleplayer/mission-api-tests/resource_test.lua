@@ -2,7 +2,7 @@
 --- Resource triggers and actions test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -10,7 +10,7 @@ local triggers = {
 	-- ── Bootstrap ─────────────────────────────────────────────────────────────
 
 	start = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -18,7 +18,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergy = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -26,7 +26,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyRemove = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -34,7 +34,7 @@ local triggers = {
 	},
 
 	waveMetalOnly = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -42,7 +42,7 @@ local triggers = {
 	},
 
 	waveMetalOnlyRemove = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -50,7 +50,7 @@ local triggers = {
 	},
 
 	waveEnergyOnly = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
@@ -58,7 +58,7 @@ local triggers = {
 	},
 
 	waveEnergyOnlyRemove = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 14,
 		},
@@ -66,7 +66,7 @@ local triggers = {
 	},
 
 	waveMex = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 16,
 		},
@@ -74,7 +74,7 @@ local triggers = {
 	},
 
 	waveFusion = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -82,7 +82,7 @@ local triggers = {
 	},
 
 	waveMetalMaker = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 24,
 		},
@@ -90,7 +90,7 @@ local triggers = {
 	},
 
 	waveNuke = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 30,
 		},
@@ -98,7 +98,7 @@ local triggers = {
 	},
 
 	waveReclaim = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 32,
 		},
@@ -106,7 +106,7 @@ local triggers = {
 	},
 
 	orderIncomeReclaimer = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 33,
 		},
@@ -114,7 +114,7 @@ local triggers = {
 	},
 
 	waveUnitReclaim = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36,
 		},
@@ -122,7 +122,7 @@ local triggers = {
 	},
 
 	orderUnitIncomeReclaimer = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -130,7 +130,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecond = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 40,
 		},
@@ -138,7 +138,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecondRemove = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 47,
 		},
@@ -146,7 +146,7 @@ local triggers = {
 	},
 
 	waveMetalAndEnergyPerSecond2 = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 53,
 		},
@@ -156,29 +156,46 @@ local triggers = {
 	-- ── ResourceStored ────────────────────────────────────────────────────────
 
 	enoughMetalStored = {
-		type = triggerTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			metal = 1500,
+			resource = 'metal',
 		},
+		atLeast = 1500,
 		actions = { 'messageMetalStored' },
 	},
 
 	enoughEnergyStored = {
-		type = triggerTypes.ResourceStored,
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			energy = 3000,
+			resource = 'energy',
 		},
+		atLeast = 3000,
 		actions = { 'messageEnergyStored' },
 	},
 
-	bothResourcesStored = {
-		type = triggerTypes.ResourceStored,
+	-- A metric measures one value, so "metal AND energy" is two conditions
+	-- chained by a prerequisite rather than one condition with two thresholds.
+	enoughMetalForBoth = {
+		type = conditionTypes.ResourceStored,
 		parameters = {
 			teamName = 'player',
-			metal = 1800,
-			energy = 3500,
+			resource = 'metal',
+		},
+		atLeast = 1800,
+		actions = { 'messageMetalForBoth' },
+	},
+
+	bothResourcesStored = {
+		type = conditionTypes.ResourceStored,
+		parameters = {
+			teamName = 'player',
+			resource = 'energy',
+		},
+		atLeast = 3500,
+		settings = {
+			prerequisites = { 'enoughMetalForBoth' },
 		},
 		actions = { 'messageBothStored' },
 	},
@@ -186,105 +203,115 @@ local triggers = {
 	-- ── ResourceIncome ────────────────────────────────────────────────────────
 
 	metalIncomeReached = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 5,
+			resource = 'metal',
 		},
+		atLeast = 5,
 		actions = { 'messageMetalIncome' },
 	},
 
 	energyIncomeReached = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			energy = 500,
+			resource = 'energy',
 		},
+		atLeast = 500,
 		actions = { 'messageEnergyIncome' },
 	},
 
 	-- ── ResourceIncome (sources) ──────────────────────────────────────────────
 
 	extractorMetalIncomeReached = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 1,
+			resource = 'metal',
 			sources = { 'extractor' },
 		},
+		atLeast = 1,
 		actions = { 'messageExtractorMetalIncome' },
 	},
 
 	productionEnergyIncomeReached = {
 		-- Triggered once armfus (second 20) is generating production energy income.
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			energy = 200,
+			resource = 'energy',
 			sources = { 'production' },
 		},
+		atLeast = 200,
 		actions = { 'messageProductionEnergyIncome' },
 	},
 
 	productionMetalIncomeReached = {
 		-- Triggered once armmmkr (second 24) is producing metal from energy.
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 0.5,
+			resource = 'metal',
 			sources = { 'production' },
 		},
+		atLeast = 0.5,
 		actions = { 'messageProductionMetalIncome' },
 	},
 
 	multipleSourcesMetalIncomeReached = {
 		-- Combined extractor + production metal income.
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 2,
+			resource = 'metal',
 			sources = { 'extractor', 'production' },
 		},
+		atLeast = 2,
 		actions = { 'messageMultipleSourcesMetalIncome' },
 	},
 
 	reclaimMetalIncomeReached = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 0.1,
+			resource = 'metal',
 			sources = { 'reclaim' },
 		},
+		atLeast = 0.1,
 		actions = { 'messageFeatureReclaimMetalIncome' },
 	},
 
 	unitReclaimMetalIncomeReached = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 70,
+			resource = 'metal',
 			sources = { 'reclaim' },
 		},
+		atLeast = 70,
 		actions = { 'messageUnitReclaimMetalIncome' },
 	},
 
 	-- ── ResourcePull ──────────────────────────────────────────────────────────
 
 	metalPullReached = {
-		type = triggerTypes.ResourcePull,
+		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
-			metal = 1,
+			resource = 'metal',
 		},
+		atLeast = 1,
 		actions = { 'messageMetalPull' },
 	},
 
 	energyPullReached = {
-		type = triggerTypes.ResourcePull,
+		type = conditionTypes.ResourcePull,
 		parameters = {
 			teamName = 'player',
-			energy = 100,
+			resource = 'energy',
 		},
+		atLeast = 100,
 		actions = { 'messageEnergyPull' },
 	},
 }
@@ -297,7 +324,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmstor', x = 1900, z = 1800, teamName = 'player' },
+				{ unitDefName = 'armmstor', position = { x = 1900, z = 1800 }, teamName = 'player' },
 			},
 		},
 	},
@@ -306,7 +333,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armestor', x = 1900, z = 1900, teamName = 'player' },
+				{ unitDefName = 'armestor', position = { x = 1900, z = 1900 }, teamName = 'player' },
 			},
 		},
 	},
@@ -315,7 +342,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmex', x = 2220, z = 2210, teamName = 'player' },
+				{ unitDefName = 'armmex', position = { x = 2220, z = 2210 }, teamName = 'player' },
 			},
 		},
 	},
@@ -324,7 +351,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1900, teamName = 'player' },
+				{ unitDefName = 'armfus', position = { x = 1800, z = 1900 }, teamName = 'player' },
 			},
 		},
 	},
@@ -333,7 +360,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmmkr', x = 1800, z = 2000, teamName = 'player' },
+				{ unitDefName = 'armmmkr', position = { x = 1800, z = 2000 }, teamName = 'player' },
 			},
 		},
 	},
@@ -342,7 +369,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corsilo', x = 2000, z = 2110, teamName = 'player' },
+				{ unitDefName = 'corsilo', position = { x = 2000, z = 2110 }, teamName = 'player' },
 			},
 		},
 	},
@@ -351,7 +378,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2100, z = 2000, facing = 's' },
+				{ featureDefName = 'armllt_dead', position = { x = 2100, z = 2000 }, orientation = 's' },
 			},
 		},
 	},
@@ -360,7 +387,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 2100, z = 2100, teamName = 'player', unitName = 'incomeReclaimer' },
+				{ unitDefName = 'armrectr', position = { x = 2100, z = 2100 }, teamName = 'player', unitName = 'incomeReclaimer' },
 			},
 		},
 	},
@@ -369,7 +396,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 2200, z = 2100, teamName = 'player', unitName = 'unitReclaimTarget' },
+				{ unitDefName = 'armllt', position = { x = 2200, z = 2100 }, teamName = 'player', unitName = 'unitReclaimTarget' },
 			},
 		},
 	},
@@ -591,6 +618,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			messageKey = "[Resource Test] has >= 3000 energy stored.",
+		},
+	},
+
+	messageMetalForBoth = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "[Resource Test] has >= 1800 metal (half of the combined check).",
 		},
 	},
 

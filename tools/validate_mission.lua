@@ -327,6 +327,18 @@ for index, name in ipairs({
 	_G.CMD[name] = index
 	_G.CMD[index] = name
 end
+-- The state values mission files name.
+for name, value in pairs({
+	MOVESTATE_HOLDPOS = 0,
+	MOVESTATE_MANEUVER = 1,
+	MOVESTATE_ROAM = 2,
+	FIRESTATE_HOLDFIRE = 0,
+	FIRESTATE_RETURNFIRE = 1,
+	FIRESTATE_FIREATWILL = 2,
+	FIRESTATE_FIREATNEUTRAL = 3,
+}) do
+	_G.CMD[name] = value
+end
 
 _G.GameCMD = VFS.Include("modules/customcommands.lua").GameCMD or {}
 
@@ -388,6 +400,7 @@ local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
 -- Definition files read these modules from GG when they are included, in this order.
 _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
+_G.GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 _G.GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
@@ -395,10 +408,10 @@ _G.GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variab
 _G.GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 
 local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+local conditionDefinitions = VFS.Include("luarules/mission_api/conditions_loader.lua").LoadConditionDefinitions()
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
-_G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
+_G.GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
 _G.GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 parameterTypes.Enums[parameterTypes.Types.EffectType] = _G.GG["MissionAPI"].EffectDefinitions.Types
 local lowestDifficulty = math.huge

@@ -1,10 +1,10 @@
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 
-describe("TriggerContextBuilder", function()
+describe("ConditionContextBuilder", function()
 	describe("defaults", function()
 		it("answers name and ownership questions in the affirmative", function()
-			local context = TriggerContextBuilder.new():Build()
+			local context = ConditionContextBuilder.new():Build()
 
 			assert.is_true(context.DoesUnitHaveName(1, "bots"))
 			assert.is_true(context.DoesFeatureHaveName(1, "wreck"))
@@ -14,18 +14,18 @@ describe("TriggerContextBuilder", function()
 		end)
 
 		it("treats every unit as having been under construction", function()
-			assert.is_true(TriggerContextBuilder.new():Build().WasUnderConstruction[100])
+			assert.is_true(ConditionContextBuilder.new():Build().WasUnderConstruction[100])
 		end)
 
 		it("exposes the shared state tables the handlers write into", function()
-			local context = TriggerContextBuilder.new():Build()
+			local context = ConditionContextBuilder.new():Build()
 
 			assert.are.same({}, context.ConstructionState)
 			assert.are.same({}, context.DwellingUnitsInAreas)
 		end)
 
 		it("reports no reclaim income", function()
-			local context = TriggerContextBuilder.new():Build()
+			local context = ConditionContextBuilder.new():Build()
 
 			assert.is_nil(context.GetReclaimIncomeSnapshot(0))
 		end)
@@ -33,7 +33,7 @@ describe("TriggerContextBuilder", function()
 
 	describe("ActivateTrigger", function()
 		it("counts and records activations", function()
-			local context = TriggerContextBuilder.new():Build()
+			local context = ConditionContextBuilder.new():Build()
 			local trigger = TriggerBuilder.new():Build()
 
 			assert.is_true(context.ActivateTrigger(trigger))
@@ -45,7 +45,7 @@ describe("TriggerContextBuilder", function()
 
 	describe("construction claims", function()
 		it("claims a buildee once per trigger", function()
-			local context = TriggerContextBuilder.new():Build()
+			local context = ConditionContextBuilder.new():Build()
 
 			assert.is_falsy(context.HasConstructionStarted(100, "t"))
 
@@ -59,11 +59,11 @@ describe("TriggerContextBuilder", function()
 
 	describe("overrides", function()
 		it("reports a build frame inside a factory", function()
-			assert.is_true(TriggerContextBuilder.new():WithInFactory(true):Build().InFactory(100))
+			assert.is_true(ConditionContextBuilder.new():WithInFactory(true):Build().InFactory(100))
 		end)
 
 		it("takes a function, for an answer that varies by buildee", function()
-			local context = TriggerContextBuilder.new()
+			local context = ConditionContextBuilder.new()
 				:WithInFactory(function(buildeeID)
 					return buildeeID == 100
 				end)
@@ -75,8 +75,8 @@ describe("TriggerContextBuilder", function()
 	end)
 
 	it("gives each built context its own state", function()
-		local first = TriggerContextBuilder.new():Build()
-		local second = TriggerContextBuilder.new():Build()
+		local first = ConditionContextBuilder.new():Build()
+		local second = ConditionContextBuilder.new():Build()
 
 		first.ActivateTrigger(TriggerBuilder.new():Build())
 

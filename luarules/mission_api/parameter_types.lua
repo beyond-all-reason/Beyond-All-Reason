@@ -20,6 +20,10 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
+	Color = "Color",
+	CameraKeyframes = "CameraKeyframes",
+	UnitFilter = "UnitFilter",
+	UnitFilters = "UnitFilters",
 
 	-- String Validators:
 	String = "String",
@@ -38,17 +42,28 @@ local types = {
 	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	Resource = "Resource",
 	VideoFile = "VideoFile",
+	SkyboxFile = "SkyboxFile",
 	Difficulty = "Difficulty",
+	CameraEasing = "CameraEasing",
+	CameraSequenceEnd = "CameraSequenceEnd",
+	CameraPath = "CameraPath",
+	CameraClock = "CameraClock",
 	UnitAttribute = "UnitAttribute",
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
+	EffectName = "EffectName",
+	AiState = "AiState",
 
 	-- Number Validators:
 	Number = "Number",
 	Quantity = "Quantity",
 	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
+	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle",
+	Elevation = "Elevation",
 	MessageType = "MessageType",
 
 	-- Boolean Validators:
@@ -60,6 +75,12 @@ local types = {
 	-- Number-or-String Validators:
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
+
+	-- String-or-Table Validators:
+	UnitDefNames = "UnitDefNames",
+
+	-- Number-or-String-or-Table Validators:
+	FacingOrDirection = "FacingOrDirection",
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
@@ -74,6 +95,7 @@ local internalTypes = {
 	[types.TeamName] = "TeamID",
 	[types.AllianceName] = "AllyTeamID",
 	[types.AllianceNames] = "AllyTeamIDs",
+	[types.UnitDefNames] = "UnitDefIDSet",
 }
 
 -- Difficulties are read by the client, so must be available in JSON
@@ -97,6 +119,9 @@ local enums = {
 		east = true,
 		west = true,
 	},
+	-- A metric must yield a single measured value, so resource-based metrics
+	-- select one resource rather than accepting metal and energy together.
+	[types.Resource] = { metal = true, energy = true },
 
 	[types.Difficulty] = difficulties,
 
@@ -108,7 +133,47 @@ local enums = {
 		Dialogue = 5,
 	},
 
+	-- The Easings of common/camera_math.lua
+	[types.CameraEasing] = {
+		linear = true,
+		inSine = true,
+		outSine = true,
+		inOutSine = true,
+		inQuad = true,
+		outQuad = true,
+		inOutQuad = true,
+		inCubic = true,
+		outCubic = true,
+		inOutCubic = true,
+		smoothstep = true,
+		cut = true,
+	},
+
+	[types.CameraSequenceEnd] = {
+		release = true,
+		restore = true,
+		hold = true,
+	},
+
+	[types.CameraPath] = {
+		linear = true,
+		spline = true,
+	},
+
+	-- real: seconds of real time, also while the game is paused; game: game seconds
+	[types.CameraClock] = {
+		real = true,
+		game = true,
+	},
+
 	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
+
+	[types.AiState] = {
+		PASSIVE = 1,
+		DEFENSIVE = 2,
+		NORMAL = 3,
+		AGGRESSIVE = 4,
+	},
 }
 
 local enumSets = {

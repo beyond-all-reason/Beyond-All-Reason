@@ -11,6 +11,11 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local stateCommands = VFS.Include("common/stateCommands.lua")
+local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
+
+local isCompactSequence = table.isCompactSequence
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -151,6 +156,10 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
+	parameterValidators[Types.AiState] = getLookupValidator(validateString, "state", function(state)
+		return enums[Types.AiState][state]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -183,7 +192,11 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
-	parameterValidators[Types.CountdownID] = validateString
+	parameterValidators[Types.EffectName] = validateString
+	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
+	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
+		return countdownID:sub(1, 2) ~= "__"
+	end)
 	parameterValidators[Types.CutsceneID] = validateString
 	-- TODO: A cutscene-type script has no definition yet.
 	parameterValidators[Types.CutsceneScriptID] = validateString
@@ -202,6 +215,22 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
+	-- One unit def name, or a list of them.
+	local validateUnitDefNameList =
+		getListValidator(parameterValidators[Types.UnitDefName], "unitDefName list is empty")
+	parameterValidators[Types.UnitDefNames] = function(unitDefNames)
+		if type(unitDefNames) == "string" then
+			return parameterValidators[Types.UnitDefName](unitDefNames)
+		end
+		if type(unitDefNames) ~= "table" then
+			return { { message = "Unexpected parameter type, expected string or table, got " .. type(unitDefNames) } }
+		end
+		if not isCompactSequence(unitDefNames) then
+			return { { message = "Expected a list of unit def names without gaps" } }
+		end
+		return validateUnitDefNameList(unitDefNames)
+	end
+
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
@@ -209,12 +238,8 @@ local function registerValueValidators(parameterValidators, context)
 	-- would leave its name unresolved and the trigger disabled on every difficulty.
 	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
 	parameterValidators[Types.Difficulties] = function(difficulties)
-		if type(difficulties) == "table" then
-			for key in pairs(difficulties) do
-				if type(key) ~= "number" then
-					return { { message = "Expected an array of difficulty names, got key: " .. tostring(key) } }
-				end
-			end
+		if type(difficulties) == "table" and not isCompactSequence(difficulties) then
+			return { { message = "Expected a list of difficulty names without gaps" } }
 		end
 		return validateDifficultyList(difficulties)
 	end
@@ -234,6 +259,17 @@ local function registerValueValidators(parameterValidators, context)
 						.. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'",
 				},
 			}
+		end
+	end
+
+	parameterValidators[Types.Resource] = function(resource)
+		local typeResult = validateString(resource)
+		if typeResult then
+			return typeResult
+		end
+
+		if not enums[Types.Resource][resource] then
+			return { { message = "Invalid resource: " .. resource .. ". Must be one of 'metal', 'energy'" } }
 		end
 	end
 
@@ -270,6 +306,22 @@ local function registerValueValidators(parameterValidators, context)
 		-- TODO: Read the video file as well.
 		if not VFS.FileExists(videoFile) then
 			return { { message = "Invalid videoFile: " .. videoFile .. ". File does not exist" } }
+		end
+	end
+
+	-- Whether it is a cubemap is only known once the texture loads, in api_map_lighting.lua.
+	parameterValidators[Types.SkyboxFile] = function(skyboxFile)
+		local luaTypeResult = validateString(skyboxFile)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if not skyboxFile:lower():match("%.dds$") then
+			return { { message = "Invalid skyboxFile: " .. skyboxFile .. ". Expected a .dds cubemap" } }
+		end
+
+		if not VFS.FileExists(skyboxFile) then
+			return { { message = "Invalid skyboxFile: " .. skyboxFile .. ". File does not exist" } }
 		end
 	end
 
@@ -348,6 +400,28 @@ local function registerValueValidators(parameterValidators, context)
 	end
 	parameterValidators[Types.VariableValue] = validateVariableValue
 
+	parameterValidators[Types.Color] = function(color)
+		local luaTypeResult = validateTableType(color)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local result = {}
+		for _, field in ipairs({ "r", "g", "b" }) do
+			local value = color[field]
+			local fieldResult = validateField(value, field, "number")
+			if not fieldResult and value < 0 then
+				fieldResult =
+					{ message = "Color channel must be >= 0, got " .. value, parameterNameSuffix = "." .. field }
+			end
+			if fieldResult then
+				result[#result + 1] = fieldResult
+			end
+		end
+
+		return result
+	end
+
 	--- Number validators:
 	parameterValidators[Types.Quantity] = function(quantity)
 		local luaTypeResult = parameterValidators[Types.Number](quantity)
@@ -381,10 +455,35 @@ local function registerValueValidators(parameterValidators, context)
 			return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
 		end
 	end
+
+	parameterValidators[Types.TimeOfDay] = function(hour)
+		local luaTypeResult = parameterValidators[Types.Number](hour)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if hour < 0 or hour > 24 then
+			return { { message = "TimeOfDay must be an hour from 0 to 24, got " .. hour } }
+		end
+	end
+
+	-- Any number of degrees: 450 is 90, east.
+	parameterValidators[Types.CompassAngle] = parameterValidators[Types.Number]
+
+	parameterValidators[Types.Elevation] = function(degrees)
+		local luaTypeResult = parameterValidators[Types.Number](degrees)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if degrees < -90 or degrees > 90 then
+			return { { message = "Elevation must be between -90 and 90 degrees, got " .. degrees } }
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
--- Spatial validators: Position, Positions, Area and Direction
+-- Spatial validators: Position, Positions, Area, Direction and FacingOrDirection
 --------------------------------------------------------------------------------
 
 -- Height is optional, so a position without y is only checked for x and z.
@@ -497,6 +596,17 @@ local function registerSpatialValidators(parameterValidators, context)
 		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
+
+	parameterValidators[Types.FacingOrDirection] = function(value)
+		local valueType = type(value)
+		if valueType == "table" then
+			return parameterValidators[Types.Direction](value)
+		end
+		if valueType ~= "string" and valueType ~= "number" then
+			return { { message = "Unexpected parameter type, expected string, number or table, got " .. valueType } }
+		end
+		return parameterValidators[Types.Facing](value)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -558,13 +668,6 @@ local function getNameValidator(nameKey, message)
 	end
 end
 
-local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, "number")
-	if luaTypeResult then
-		addResult(results, luaTypeResult, "[2]")
-	end
-end
-
 local function validateNoParams(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -574,27 +677,28 @@ local function validateNoParams(params, results)
 	end
 end
 
-local function validateOnOffParam(params, results)
-	local value = params
-	if type(params) == "table" and #params == 1 then
-		value = params[1]
+-- One command's validator: it takes one of that command's states, bare or as {state}.
+local function getStateValidator(commandStates)
+	local allowed, named = {}, {}
+	for name, value in pairs(commandStates) do
+		named[#named + 1] = { name = name, value = value }
+		allowed[value] = true
 	end
-	if value ~= 0 and value ~= 1 then
-		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	table.sort(named, function(a, b)
+		return a.value < b.value
+	end)
+	for index, state in ipairs(named) do
+		named[index] = state.name .. " (" .. state.value .. ")"
 	end
-end
-
--- The engine's selected units handler passes these to WaitCommandsAI on the player's client, which
--- gives the selected units WAIT orders. A unit given one with GiveOrderToUnit drops it without waiting.
-local function getUIOnlyValidator(commandName)
-	return function(_, results)
-		addResult(
-			results,
-			"Command "
-				.. commandName
-				.. " is dropped when a mission gives it, it only works for a player's selected units",
-			"[1]"
-		)
+	local message = "Parameter must be one of: " .. table.concat(named, ", ")
+	return function(params, results)
+		local value = params
+		if type(params) == "table" and #params == 1 then
+			value = params[1]
+		end
+		if not allowed[value] then
+			addResult(results, message, "[2]")
+		end
 	end
 end
 
@@ -619,6 +723,17 @@ local validate4orEitherName = getNumberArrayValidator(
 	{ "unitName", "featureName" }
 )
 
+local validateSeconds = getNumberArrayValidator({ 1 }, "1 number {seconds}")
+local validateSquadSizeArray = getNumberArrayValidator({ 1 }, "1 number {squad size}")
+
+local function validateSquadSize(params, results)
+	local resultCount = #results
+	validateSquadSizeArray(params, results)
+	if #results == resultCount and (params[1] < 2 or params[1] % 1 ~= 0) then
+		addResult(results, "Squad size must be a whole number of at least 2", "[2][1]")
+	end
+end
+
 -- Build commands are unitDefName strings, see https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
 local validateBuildOrder =
 	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
@@ -629,15 +744,10 @@ local validatorsByCommandName = {
 	STOP = validateNoParams,
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
-	-- 0 (off) or 1 (on):
-	CLOAK = validateOnOffParam,
-	ONOFF = validateOnOffParam,
-	REPEAT = validateOnOffParam,
-	-- UI only:
-	TIMEWAIT = getUIOnlyValidator("TIMEWAIT"),
-	DEATHWAIT = getUIOnlyValidator("DEATHWAIT"),
-	SQUADWAIT = getUIOnlyValidator("SQUADWAIT"),
-	GATHERWAIT = getUIOnlyValidator("GATHERWAIT"),
+	GATHERWAIT = validateNoParams,
+	-- Wait parameters:
+	TIMEWAIT = validateSeconds,
+	SQUADWAIT = validateSquadSize,
 	-- Unit name parameter:
 	GUARD = validateUnitNameParam,
 	-- 3 number parameters:
@@ -663,10 +773,10 @@ local validatorsByCommandName = {
 	RESURRECT = validate4orFeatureName,
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
-	-- Single number parameter:
-	FIRE_STATE = validateNumberParam,
-	MOVE_STATE = validateNumberParam,
 }
+for commandName, commandStates in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(commandStates)
+end
 
 local function validateOrderOptions(options, results)
 	if not options then
@@ -751,6 +861,16 @@ local function registerOrderValidators(parameterValidators, context)
 		end
 	end
 
+	-- DEATHWAIT waits on the units in an area, or on the units with a name.
+	local validateArea = parameterValidators[Types.Area]
+	validatorsByCommandName.DEATHWAIT = function(params, results)
+		if params == nil then
+			addResult(results, "Parameter must be an area or a unit name", "[2]")
+		elseif type(params) ~= "table" or params.unitName == nil then
+			appendResults(results, validateArea(params), "[2]")
+		end
+	end
+
 	-- Validators by command ID, skipping any command this engine version does not define.
 	local commandValidators = {}
 	for commandName, commandValidator in pairs(validatorsByCommandName) do
@@ -805,10 +925,70 @@ local function registerOrderValidators(parameterValidators, context)
 		local results = {}
 		validateCommandAndParams(order, results)
 		validateOrderOptions(order[3], results)
+
+		local params = order[2]
+		if type(params) == "table" and params.unitName ~= nil and params.featureName ~= nil then
+			addResult(results, "Give a unitName or a featureName, not both", "[2]")
+		end
 		return results
 	end
 
-	parameterValidators[Types.Orders] = getListValidator(validateOrder, "Orders table is empty")
+	local validateOrderList = getListValidator(validateOrder, "Orders table is empty")
+
+	local isWaitCommand = {}
+	for _, commandName in ipairs({ "WAIT", "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		local commandID = CMD[commandName] ---@as any
+		if commandID then
+			isWaitCommand[commandID] = true
+		end
+	end
+
+	-- Orders are given in sequence and stop at the first gap, so an order past one is never given.
+	parameterValidators[Types.Orders] = function(orders)
+		local results = validateOrderList(orders)
+		if type(orders) ~= "table" then
+			return results
+		end
+
+		local reachable = 0
+		while orders[reachable + 1] ~= nil do
+			reachable = reachable + 1
+		end
+		for key in pairs(orders) do
+			if not (type(key) == "number" and key >= 1 and key <= reachable and key % 1 == 0) then
+				results = results or {}
+				addResult(
+					results,
+					"Order is never given: orders stop at the first gap",
+					"[" .. tostring(key) .. "]",
+					true
+				)
+			end
+		end
+
+		local isWait, isQueuedWait = {}, {}
+		for index = 1, reachable do
+			local order = orders[index]
+			isWait[index] = type(order) == "table" and isWaitCommand[order[1]]
+			isQueuedWait[index] = isWait[index] and type(order[3]) == "table" and table.contains(order[3], "shift")
+		end
+		local queueEndsInWait = isWait[1]
+		for index = 2, reachable do
+			if isQueuedWait[index] and queueEndsInWait then
+				results = results or {}
+				addResult(
+					results,
+					"A queued wait right after another wait can cancel both, so neither is kept",
+					"[" .. index .. "]",
+					true
+				)
+				queueEndsInWait = false
+			else
+				queueEndsInWait = isQueuedWait[index]
+			end
+		end
+		return results
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -825,9 +1005,7 @@ local function registerLoadoutValidators(parameterValidators, context)
 				return entryTypeResult
 			end
 
-			-- The entry itself is the position, since x, y and z are fields of the entry.
-			local results = appendResults({}, parameterValidators[Types.Position](entry))
-
+			local results = {}
 			for _, field in ipairs(fields) do
 				local value = entry[field.name]
 				if value == nil then
@@ -844,8 +1022,204 @@ local function registerLoadoutValidators(parameterValidators, context)
 		end
 	end
 
-	parameterValidators[Types.UnitLoadout] = getListValidator(getEntryValidator(loadoutSchema.UnitEntryFields))
+	local isCodedWaitCommand = {}
+	for _, commandName in ipairs({ "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT" }) do
+		local commandID = CMD[commandName] ---@as any
+		if commandID then
+			isCodedWaitCommand[commandID] = true
+		end
+	end
+
+	-- Only loadout entries are checked, since only they specify unit defs.
+	local validateUnitEntryFields = getEntryValidator(loadoutSchema.UnitEntryFields)
+	local function validateUnitEntry(entry)
+		local results = validateUnitEntryFields(entry)
+		if type(entry) ~= "table" then
+			return results
+		end
+
+		local unitDef = UnitDefNames[entry.unitDefName]
+		local firstOrder = type(entry.orders) == "table" and entry.orders[1]
+		if unitDef and unitDef.isFactory and type(firstOrder) == "table" and isCodedWaitCommand[firstOrder[1]] then
+			addResult(
+				results,
+				"A factory drops a wait given before its other orders, so the units it builds skip it",
+				".orders[1]",
+				true
+			)
+		end
+		return results
+	end
+
+	parameterValidators[Types.UnitLoadout] = getListValidator(validateUnitEntry)
 	parameterValidators[Types.FeatureLoadout] = getListValidator(getEntryValidator(loadoutSchema.FeatureEntryFields))
+end
+
+--------------------------------------------------------------------------------
+-- Camera validators: the camera enums and keyframes
+--------------------------------------------------------------------------------
+
+local function quotedList(names)
+	return "'" .. table.concat(names, "', '") .. "'"
+end
+
+--- Validates a string that must be one of an enum's values, listing them when it is not.
+local function getEnumValidator(enums, enumType, valueName)
+	local valueSet = enums[enumType]
+	local names = {}
+	for name in pairs(valueSet) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	local allowedList = quotedList(names)
+
+	return function(value)
+		local luaTypeResult = validateLuaType(value, "string")
+		if luaTypeResult then
+			return { { message = luaTypeResult } }
+		end
+		if not valueSet[value] then
+			return { { message = "Invalid " .. valueName .. ": '" .. value .. "'. Must be one of: " .. allowedList } }
+		end
+	end
+end
+
+local function countPresent(keyframe, fields)
+	local count = 0
+	for _, field in ipairs(fields) do
+		if keyframe[field] ~= nil then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local function registerCameraValidators(parameterValidators, context)
+	local Types = context.Types
+	local enums = context.Enums
+
+	parameterValidators[Types.CameraEasing] = getEnumValidator(enums, Types.CameraEasing, "easing")
+	parameterValidators[Types.CameraSequenceEnd] =
+		getEnumValidator(enums, Types.CameraSequenceEnd, "camera sequence end")
+	parameterValidators[Types.CameraPath] = getEnumValidator(enums, Types.CameraPath, "camera path")
+	parameterValidators[Types.CameraClock] = getEnumValidator(enums, Types.CameraClock, "camera clock")
+
+	local eyeFields, lookAtFields = cameraKeyframeSchema.ExactlyOneOf, cameraKeyframeSchema.AtMostOneOf
+
+	local function validateKeyframe(keyframe)
+		local luaTypeResult = validateTableType(keyframe)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		-- Fields in name order, so the messages come out in the same order every run.
+		local fields = {}
+		for field in pairs(keyframe) do
+			fields[#fields + 1] = tostring(field)
+		end
+		table.sort(fields)
+
+		local results = {}
+		for _, field in ipairs(fields) do
+			local fieldType = cameraKeyframeSchema.Settings[field]
+			if fieldType then
+				appendResults(results, parameterValidators[fieldType](keyframe[field]), "." .. field)
+			else
+				results[#results + 1] = { message = "Unknown keyframe field '" .. field .. "'" }
+			end
+		end
+
+		local eyeCount = countPresent(keyframe, eyeFields)
+		if eyeCount == 0 then
+			results[#results + 1] = { message = "Keyframe needs one of: " .. quotedList(eyeFields) }
+		elseif eyeCount > 1 then
+			results[#results + 1] = { message = "Keyframe places the eye twice, use one of: " .. quotedList(eyeFields) }
+		end
+		if keyframe.relativeToHeading ~= nil and keyframe.unitName == nil then
+			results[#results + 1] = {
+				message = "Keyframe relativeToHeading needs a unitName to take the heading from",
+				isWarning = true,
+			}
+		end
+
+		local lookAtCount = countPresent(keyframe, lookAtFields)
+		if lookAtCount > 1 then
+			results[#results + 1] =
+				{ message = "Keyframe has more than one look-at target, use one of: " .. quotedList(lookAtFields) }
+		elseif lookAtCount == 1 and (keyframe.pitch ~= nil or keyframe.yaw ~= nil) then
+			results[#results + 1] =
+				{ message = "Keyframe pitch and yaw are ignored while it looks at a target", isWarning = true }
+		end
+
+		return results
+	end
+
+	parameterValidators[Types.CameraKeyframes] = getListValidator(validateKeyframe, "Keyframes table is empty")
+end
+
+--------------------------------------------------------------------------------
+-- Unit filter validators: UnitFilter and UnitFilters
+--------------------------------------------------------------------------------
+
+local function registerUnitFilterValidators(parameterValidators, context)
+	local Types = context.Types
+	local unitFilterFields, exclusiveFields = unitFilterSchema.UnitFilterFields, unitFilterSchema.AtMostOneOf
+
+	local fieldNames = {}
+	for index, field in ipairs(unitFilterFields) do
+		fieldNames[index] = field.name
+	end
+
+	local function validateUnitFilter(unitFilter)
+		local luaTypeResult = validateTableType(unitFilter)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+		-- Only a filter inside a list reaches this as a difficulties table.
+		if context.IsDifficultiesTable(unitFilter) then
+			return {
+				{
+					message = "Unit filter in a list cannot differ by difficulty, give the whole list per difficulty",
+				},
+			}
+		end
+
+		local results = {}
+		local fieldCount = 0
+		for _, field in ipairs(unitFilterFields) do
+			local value = unitFilter[field.name]
+			if context.IsDifficultiesTable(value) then
+				addResult(
+					results,
+					"Unit filter field cannot differ by difficulty, give the whole filter per difficulty",
+					"." .. field.name
+				)
+			elseif value ~= nil then
+				fieldCount = fieldCount + 1
+				appendResults(results, parameterValidators[field.type](value), "." .. field.name)
+			end
+		end
+
+		if fieldCount == 0 and #results == 0 then
+			addResult(results, "Unit filter is empty, give at least one of: " .. quotedList(fieldNames))
+		end
+
+		if countPresent(unitFilter, exclusiveFields) > 1 then
+			addResult(results, "Unit filter takes only one of: " .. quotedList(exclusiveFields))
+		end
+		return results
+	end
+
+	parameterValidators[Types.UnitFilter] = validateUnitFilter
+
+	local validateUnitFilterList = getListValidator(validateUnitFilter)
+	parameterValidators[Types.UnitFilters] = function(unitFilters)
+		local results = validateUnitFilterList(unitFilters)
+		if type(unitFilters) == "table" and not isCompactSequence(unitFilters) then
+			addResult(results, "Expected a list of unit filters without gaps")
+		end
+		return results
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -858,6 +1232,8 @@ local function createParameterValidators(context)
 	registerSpatialValidators(parameterValidators, context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
+	registerCameraValidators(parameterValidators, context)
+	registerUnitFilterValidators(parameterValidators, context)
 
 	return parameterValidators
 end

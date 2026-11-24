@@ -7,7 +7,7 @@
 piece  torso, flare, Hip, RLLeg, LLLeg, LULeg, RULeg, LUArm,
        RUArm, RLArm, LLArm, Head,lfoot,rfoot, aimx1, aimy1;
 
-static-var  isMoving, building, moveSpeed, currentSpeed;
+static-var  isMoving;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corfast_anim_walk.blend 
@@ -303,7 +303,6 @@ UnitSpeed(){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
   animSpeed = (maxSpeed * 4) / animSpeed; 
-  //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<3) animSpeed=3;
   if (animspeed>8) animSpeed = 8;
   sleep 131;
@@ -336,9 +335,6 @@ Create()
 	hide aimy1;
 	hide flare;
 	isMoving = FALSE;
-	building = 0;
-	moveSpeed = get MAX_SPEED;
-	currentSpeed = 100;
 	animSpeed = 4;
 }
 
@@ -346,7 +342,6 @@ StartBuilding(heading, pitch)
 {
 	show flare;
 	signal SIGNAL_BUILD;
-	building = 1;	
 	turn aimy1 to y-axis heading speed <250.0>;
 	turn aimx1 to x-axis <-60> speed <150.0>;
 	wait-for-turn aimy1 around y-axis;
@@ -360,7 +355,6 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;	
 	set INBUILDSTANCE to 0;
-	building = 0;	
 	turn aimy1 to y-axis <0.0> speed <250.0>;
 	turn aimx1 to x-axis <0.0> speed <150.0>;
 	turn aimy1 to x-axis <0> speed <5>;

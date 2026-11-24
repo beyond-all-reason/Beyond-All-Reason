@@ -1,14 +1,9 @@
+#include "../recoil_common_includes.h"
 
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-
-
-piece base, blade1, blade2, blade3, blade4, blade5, blade6, cagelight1, cagelight2, cagelight3, siloVent, 
+piece  base, blade1, blade2, blade3, blade4, blade5, blade6, cagelight1, cagelight2, cagelight3, siloVent,
 flare, cagelight_emit1, cagelight_emit2, cagelight_emit3, ventSmoke;
-static-var  restore_delay, shotcount, issmoking;
+
+static-var  restore_delay, shotcount;
 
 static-var  silo_state;
 // 0 = closed
@@ -17,53 +12,40 @@ static-var  silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 SmokeItUp()
-{	
-	if (issmoking == 0 OR TRUE)
-	{
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 1;
-		emit-sfx 257 from ventSmoke;
-		sleep 500;
-		issmoking = 0;
-	}
+{
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
+	emit-sfx 257 from ventSmoke;
+	sleep 500;
 }
 
 Create()
 {
-	issmoking = 0;
 	hide flare;
 	hide cagelight_emit1;
 	hide cagelight_emit2;
@@ -106,9 +88,6 @@ OpenSilo()
 		spin cagelight2 around y-axis speed <420> accelerate <10>;
 		spin cagelight3 around y-axis speed <420> accelerate <10>;
 
-		//turn door1 to z-axis <127.5> speed <15>;
-		//turn door2 to z-axis <-127.5> speed <15>;
-
 		turn blade1 to y-axis <-35> speed <4.118>;
 		turn blade2 to y-axis <-35> speed <4.118>;
 		turn blade3 to y-axis <-35> speed <4.118>;
@@ -118,7 +97,7 @@ OpenSilo()
 
 		turn siloVent to x-axis <-45> speed <8>;
 		wait-for-turn blade1 around y-axis;
-		
+
 		silo_state = 2;
 	}
 }
@@ -148,7 +127,7 @@ CloseSiloDoors()
 	hide cagelight_emit1;
 	hide cagelight_emit2;
 	hide cagelight_emit3;
-	
+
 	wait-for-turn blade1 around y-axis;
 	hide ventSmoke;
 	silo_state = 0;
@@ -157,7 +136,7 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIG_AIM; // kill any OpenSilo threads
+	signal SIGNAL_AIM1; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
@@ -172,10 +151,10 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script OpenSilo();
 	start-script RestoreAfterDelay();
 	if (silo_state == 2)
@@ -185,7 +164,7 @@ AimPrimary(heading, pitch)
 	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -194,17 +173,13 @@ FirePrimary()
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

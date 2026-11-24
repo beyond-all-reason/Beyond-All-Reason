@@ -1,4 +1,4 @@
-include("keysym.h.lua")
+local KEY_X = Spring.GetKeyCode("x")
 
 local widget = widget ---@type Widget
 
@@ -122,7 +122,7 @@ function widget:DrawWorld()
 	DrawBuildMenuBlastRange()
 
 	if #selectedUnits > 0 then
-		local keyPressed = spGetKeyState(KEYSYMS.X)
+		local keyPressed = spGetKeyState(KEY_X)
 		local _, _, meta = spGetModKeyState()
 		if meta and keyPressed then
 			DrawBlastRadiusSelectedUnits()

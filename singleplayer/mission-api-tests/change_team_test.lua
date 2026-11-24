@@ -6,13 +6,13 @@
 --- Giving team 'enemy' an AI in the start script must log a validation warning for 'changeToPlayer'.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnConstructors = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -20,7 +20,7 @@ local triggers = {
 	},
 
 	switchToEnemy = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -28,10 +28,10 @@ local triggers = {
 	},
 
 	enemyConstructorOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'enemyConstructor',
+			includeUnit = { unitName = 'enemyConstructor' },
 		},
 		actions = { 'changeToPlayer', 'messageOnPlayer' },
 	},
@@ -43,8 +43,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 1800, z = 1600, teamName = 'player' },
-				{ unitDefName = 'corck', x = 2000, z = 1600, teamName = 'enemy', unitName = 'enemyConstructor' },
+				{ unitDefName = 'armck', position = { x = 1800, z = 1600 }, teamName = 'player' },
+				{ unitDefName = 'corck', position = { x = 2000, z = 1600 }, teamName = 'enemy', unitName = 'enemyConstructor' },
 			},
 		},
 	},

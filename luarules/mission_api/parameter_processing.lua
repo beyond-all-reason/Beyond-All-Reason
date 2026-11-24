@@ -9,8 +9,9 @@ local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local conditionsSchemaParameters = GG["MissionAPI"].ConditionDefinitions.Parameters
 local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 local teams = GG["MissionAPI"].Teams
 local alliances = GG["MissionAPI"].Alliances
 
@@ -82,6 +83,17 @@ local function processAllianceNames(allianceNames)
 	return allyTeamIDs
 end
 
+local function processUnitDefNames(unitDefNames)
+	if type(unitDefNames) == "string" then
+		unitDefNames = { unitDefNames }
+	end
+	local unitDefIDs = {}
+	for _, unitDefName in ipairs(unitDefNames) do
+		unitDefIDs[UnitDefNames[unitDefName].id] = true
+	end
+	return unitDefIDs
+end
+
 local processParameter ---@type function
 
 local function processUnitLoadout(unitLoadout)
@@ -94,8 +106,33 @@ local function processUnitLoadout(unitLoadout)
 	end
 end
 
+local function processUnitFilter(unitFilter)
+	for _, field in ipairs(unitFilterFields) do
+		if internalTypes[field.type] then
+			processParameter(unitFilter, field)
+		end
+	end
+end
+
+local function processUnitFilters(unitFilters)
+	for _, unitFilter in ipairs(unitFilters) do
+		processUnitFilter(unitFilter)
+	end
+end
+
 local function processSoundFile(soundfile)
 	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
+end
+
+local function processCameraKeyframes(keyframes)
+	for _, keyframe in ipairs(keyframes) do
+		if keyframe.position then
+			processPosition(keyframe.position)
+		end
+		if keyframe.lookAtPosition then
+			processPosition(keyframe.lookAtPosition)
+		end
+	end
 end
 
 local function processEnumSet(values)
@@ -104,6 +141,11 @@ local function processEnumSet(values)
 		valueSet[value] = true
 	end
 	return valueSet
+end
+
+-- The engine's {r, g, b}
+local function processColor(color)
+	return { color.r, color.g, color.b }
 end
 
 local processors = {
@@ -116,7 +158,12 @@ local processors = {
 	[ParameterTypes.TeamName] = processTeamName,
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
+	[ParameterTypes.UnitDefNames] = processUnitDefNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
+	[ParameterTypes.Color] = processColor,
+	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
+	[ParameterTypes.UnitFilter] = processUnitFilter,
+	[ParameterTypes.UnitFilters] = processUnitFilters,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet
@@ -172,15 +219,7 @@ local function processActionParameters(actions)
 end
 
 local function processTriggerParameters(triggers)
-	processParameters(triggers, triggersSchemaParameters)
-end
-
-local function processManagedObjectiveParameters(managedObjectives)
-	for triggerType, objectives in pairs(managedObjectives) do
-		for _, objective in ipairs(objectives) do
-			processSchemaParameters(objective.parameters, triggersSchemaParameters[triggerType])
-		end
-	end
+	processParameters(triggers, conditionsSchemaParameters)
 end
 
 return {
@@ -188,5 +227,4 @@ return {
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
-	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }

@@ -27,7 +27,6 @@ end, math.huge)
 ---@field lineNames table<string, table[]>
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
----@field ManagedObjectives table
 ---@field Countdowns table<string, MissionCountdown>
 ---@field Objectives table
 ---@field Stages table
@@ -39,7 +38,7 @@ end, math.huge)
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
----@field TriggerDefinitions table
+---@field ConditionDefinitions table
 ---@field Modules table
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
@@ -49,7 +48,7 @@ end, math.huge)
 ---@class MissionApiMockCalls
 ---@field spawnUnitLoadout table
 ---@field spawnFeatureLoadout table
----@field convertOrdersTargetingNames table
+---@field giveOrders table
 ---@field playSound table
 ---@field enqueueSound table
 ---@field processSoundQueue table
@@ -63,7 +62,8 @@ end, math.huge)
 ---@field failObjective table
 ---@field hideObjective table
 ---@field showObjective table
----@field updateObjectiveProgress table
+---@field reportProgress table
+---@field setObjectiveActive table
 ---@field echoObjectiveUpdate table
 ---@field activateTrigger table
 
@@ -113,7 +113,6 @@ function MB.new()
 		lineNames = {},
 		soundFiles = {},
 		soundQueue = {},
-		managedObjectives = {},
 		countdowns = {},
 		objectives = {},
 		stages = {},
@@ -122,7 +121,7 @@ function MB.new()
 		unitLoadout = {},
 		featureLoadout = {},
 		actionDefinitions = {},
-		triggerDefinitions = {},
+		conditionDefinitions = {},
 		objectiveTriggers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
@@ -230,14 +229,6 @@ function MB:WithAction(actionID, action)
 	return self
 end
 
----@param objectiveID string
----@param metadata table
----@return MissionApiBuilder
-function MB:WithManagedObjective(objectiveID, metadata)
-	self.managedObjectives[objectiveID] = metadata or {}
-	return self
-end
-
 ---Seed a countdown, shaped as countdowns.lua AddCountdown() creates them.
 ---@param countdownID string
 ---@param countdown MissionCountdown?
@@ -279,8 +270,8 @@ end
 
 ---@param definitions table
 ---@return MissionApiBuilder
-function MB:WithTriggerDefinitions(definitions)
-	self.triggerDefinitions = definitions or {}
+function MB:WithConditionDefinitions(definitions)
+	self.conditionDefinitions = definitions or {}
 	return self
 end
 
@@ -307,6 +298,8 @@ end
 ---stubs then share with any module already holding them.
 ---@return MissionApiMock
 function MB:Build(installed)
+	-- Stage stubs read and write the table the modules will see: the installed one, or the mock itself.
+	local stateTable = installed
 	installed = installed or {}
 
 	local trackedUnitIDs = refill(installed.trackedUnitIDs, {})
@@ -318,12 +311,12 @@ function MB:Build(installed)
 	local tracking = SpecEnv.include(
 		SpecEnv.new({
 			GG = {
-				MissionAPI = {
+				MissionAPI = setmetatable({
 					trackedUnitIDs = trackedUnitIDs,
 					trackedUnitNames = trackedUnitNames,
 					trackedFeatureIDs = trackedFeatureIDs,
 					trackedFeatureNames = trackedFeatureNames,
-				},
+				}, { __index = installed }),
 			},
 		}),
 		TRACKING_PATH
@@ -347,7 +340,7 @@ function MB:Build(installed)
 
 	local spawnUnitCalls = {}
 	local spawnFeatureCalls = {}
-	local convertOrdersCalls = {}
+	local giveOrdersCalls = {}
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
 	local processSoundQueueCalls = {}
@@ -355,7 +348,8 @@ function MB:Build(installed)
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
 	local activateObjectiveCalls = {}
-	local updateProgressCalls = {}
+	local reportProgressCalls = {}
+	local setObjectiveActiveCalls = {}
 	local cancelObjectiveCalls = {}
 	local updateObjectiveCalls = {}
 	local completeObjectiveCalls = {}
@@ -366,16 +360,20 @@ function MB:Build(installed)
 	local activateTriggerCalls = {}
 
 	local loadout = {
-		-- Identity by default, matching the no-op conversion case.
-		ConvertOrdersTargetingNames = function(orders)
-			convertOrdersCalls[#convertOrdersCalls + 1] = { orders = orders }
-			return orders
-		end,
 		SpawnUnitLoadout = function(unitLoadout)
 			spawnUnitCalls[#spawnUnitCalls + 1] = { loadout = unitLoadout }
 		end,
 		SpawnFeatureLoadout = function(featureLoadout)
 			spawnFeatureCalls[#spawnFeatureCalls + 1] = { loadout = featureLoadout }
+		end,
+	}
+
+	local missionOrders = {
+		GiveOrders = function(unitIDs, orders)
+			giveOrdersCalls[#giveOrdersCalls + 1] = { unitIDs = unitIDs, orders = orders }
+		end,
+		GiveUnitOrders = function(unitOrders)
+			giveOrdersCalls[#giveOrdersCalls + 1] = { unitOrders = unitOrders }
 		end,
 	}
 
@@ -391,12 +389,33 @@ function MB:Build(installed)
 		end,
 	}
 
-	local objectives = {
+	-- Mirrors stages.lua, keeping CurrentStageID up to date so a spec can read where a change left it.
+	local stages = {
+		GetCurrentStageID = function()
+			return stateTable.CurrentStageID
+		end,
+		GetChangeCount = function()
+			return #changeStageCalls
+		end,
+		SetInitialStage = function(stageID)
+			stateTable.CurrentStageID = stageID
+		end,
+		GetStage = function(stageID)
+			return stateTable.Stages[stageID]
+		end,
 		ActivateStage = function(stageID)
 			activateStageCalls[#activateStageCalls + 1] = { stageID = stageID }
+			stateTable.CurrentStageID = stageID
 		end,
 		ChangeStage = function(stageID)
 			changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
+			stateTable.CurrentStageID = stageID
+		end,
+	}
+
+	local objectives = {
+		SetObjectiveActive = function(objectiveID, active)
+			setObjectiveActiveCalls[#setObjectiveActiveCalls + 1] = { objectiveID = objectiveID, active = active }
 		end,
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
@@ -410,6 +429,9 @@ function MB:Build(installed)
 		UpdateObjective = function(objectiveID)
 			updateObjectiveCalls[#updateObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
+		ReportProgress = function(objectiveID, progress)
+			reportProgressCalls[#reportProgressCalls + 1] = { objectiveID = objectiveID, progress = progress }
+		end,
 		CompleteObjective = function(objectiveID)
 			completeObjectiveCalls[#completeObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
@@ -422,23 +444,6 @@ function MB:Build(installed)
 		ShowObjective = function(objectiveID)
 			showObjectiveCalls[#showObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
-		UpdateObjectiveProgress = function(
-			objectiveID,
-			eventTeamID,
-			eventUnitDefName,
-			eventUnitNames,
-			direction,
-			managedObjMetadata
-		)
-			updateProgressCalls[#updateProgressCalls + 1] = {
-				objectiveID = objectiveID,
-				teamID = eventTeamID,
-				unitDefName = eventUnitDefName,
-				unitNames = eventUnitNames,
-				direction = direction,
-				metadata = managedObjMetadata,
-			}
-		end,
 		EchoObjectiveUpdate = function(objectiveID, objective)
 			echoCalls[#echoCalls + 1] = { objectiveID = objectiveID, objective = objective }
 		end,
@@ -447,8 +452,11 @@ function MB:Build(installed)
 	local modules = {
 		Tracking = tracking,
 		Loadout = loadout,
+		Orders = missionOrders,
 		Sounds = sounds,
+		Stages = stages,
 		Objectives = objectives,
+		ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua"),
 	}
 
 	if self.realParameterTypes then
@@ -474,7 +482,6 @@ function MB:Build(installed)
 		lineNames = self.lineNames,
 		soundFiles = self.soundFiles,
 		soundQueue = self.soundQueue,
-		ManagedObjectives = self.managedObjectives,
 		Countdowns = self.countdowns,
 		Objectives = self.objectives,
 		Stages = self.stages,
@@ -486,7 +493,7 @@ function MB:Build(installed)
 		ObjectiveTriggers = self.objectiveTriggers,
 		ObjectiveStages = objectiveStages,
 		ActionDefinitions = self.actionDefinitions,
-		TriggerDefinitions = self.triggerDefinitions,
+		ConditionDefinitions = self.conditionDefinitions,
 		Modules = modules,
 		ActivateTrigger = function(trigger)
 			activateTriggerCalls[#activateTriggerCalls + 1] =
@@ -498,7 +505,7 @@ function MB:Build(installed)
 		calls = {
 			spawnUnitLoadout = spawnUnitCalls,
 			spawnFeatureLoadout = spawnFeatureCalls,
-			convertOrdersTargetingNames = convertOrdersCalls,
+			giveOrders = giveOrdersCalls,
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
 			processSoundQueue = processSoundQueueCalls,
@@ -512,7 +519,8 @@ function MB:Build(installed)
 			failObjective = failObjectiveCalls,
 			hideObjective = hideObjectiveCalls,
 			showObjective = showObjectiveCalls,
-			updateObjectiveProgress = updateProgressCalls,
+			reportProgress = reportProgressCalls,
+			setObjectiveActive = setObjectiveActiveCalls,
 			echoObjectiveUpdate = echoCalls,
 			activateTrigger = activateTriggerCalls,
 		},
@@ -520,7 +528,6 @@ function MB:Build(installed)
 			local tracked = {
 				spawnUnitCalls,
 				spawnFeatureCalls,
-				convertOrdersCalls,
 				playSoundCalls,
 				enqueueSoundCalls,
 				processSoundQueueCalls,
@@ -528,7 +535,8 @@ function MB:Build(installed)
 				changeStageCalls,
 				tryAdvanceCalls,
 				activateObjectiveCalls,
-				updateProgressCalls,
+				reportProgressCalls,
+				setObjectiveActiveCalls,
 				updateObjectiveCalls,
 				cancelObjectiveCalls,
 				completeObjectiveCalls,
@@ -547,6 +555,7 @@ function MB:Build(installed)
 		end,
 	}
 
+	stateTable = stateTable or mock
 	return mock
 end
 

@@ -58,8 +58,8 @@ Create()
 
 Activate()
 {
-    show smallThrust1;
-    show smallThrust2;
+    show smallthrust1;
+    show smallthrust2;
     turn wing1 to z-axis <0> speed <30>;
     turn wing2 to z-axis <0> speed <30>;
     wait-for-turn wing2 around z-axis;
@@ -142,49 +142,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		// explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode finr type BITMAPONLY | NOHEATCLOUD;
-		// explode finl type BITMAPONLY | NOHEATCLOUD;
-		// explode wingr type BITMAPONLY | NOHEATCLOUD;
-		// explode wingl type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		// explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode finr type BITMAPONLY | NOHEATCLOUD;
-		// explode finl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode wingr type FALL | NOHEATCLOUD;
-		// explode wingl type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		// explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode finr type BITMAPONLY | NOHEATCLOUD;
-		// explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode wingr type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode wingl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		// explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		// explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		// explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode finr type BITMAPONLY | NOHEATCLOUD;
-		// explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode wingr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		// explode wingl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
