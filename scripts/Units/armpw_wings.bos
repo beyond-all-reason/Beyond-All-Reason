@@ -1,0 +1,15 @@
+
+#include "../recoil_common_includes.h"
+
+piece base, lwing, rwing;
+
+Create()
+{
+}
+
+Killed(severity, corpsetype)
+{
+	explode lwing type FALL | SMOKE | NOHEATCLOUD;
+	explode rwing type FALL | SMOKE | NOHEATCLOUD;
+	return (0);
+}

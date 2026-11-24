@@ -151,7 +151,7 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				-- tolerance = 750,
-				firetolerance = 750,
+				firetolerance = 50,
 				largebeamlaser = true,
 				impulsefactor = 0,
 				intensity = 5,
@@ -193,6 +193,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				gravityaffected = "true",
 				impulsefactor = 2.4,
 				name = "Ultra Heavy Riot Autocannon",
 				noselfdamage = true,
@@ -335,6 +336,7 @@ return {
 			[6] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LEGFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 			[7] = {

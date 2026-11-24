@@ -1,56 +1,39 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-
-#define SIG_BUILD	4
-
-// piece , , , , , , ,, , , , , , ,;
+#include "../recoil_common_includes.h"
 
 piece base, turretbase, turretstrutA, turretstrutB, nano, beam, cagelight, cagelight_emit, ltrack, rtrack;
 
-static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
+static-var  notBuilding;
 
+#define BASEPIECE base
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 100
 
-activatescr()
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
 {
-	// turn  to z-axis <0.000000> now;
-	// turn  to z-axis <-210> speed <360>;
-	// turn  to z-axis <0.000000> now;
-	// turn  to z-axis <210> speed <360>;
-	// sleep 600;
+	hide beam;
+	hide cagelight_emit;
+	notBuilding = 1;
+	SLEEP_UNTIL_UNITFINISHED;
+}
 
-	// move  to y-axis [7] speed [12];
-	// move  to y-axis [5] speed [12];
-	// sleep 200;
-
+Activate()
+{
 	move turretstrutA to y-axis [3] speed [20];
 	wait-for-move turretstrutA along y-axis;
 	move turretstrutB to y-axis [3] speed [20];
 	wait-for-move turretstrutB along y-axis;
 	move nano to y-axis [2] speed [20];
-	
+	notBuilding = 0;
 }
 
-deactivatescr()
+Deactivate()
 {
-	// set INBUILDSTANCE to 0;
-	// hide cagelight_emit;
-	// turn cagelight to y-axis <0> speed <1000>;
-	// turn  to y-axis <0.000000> speed <160.038462>;
-	// turn  to y-axis <0.000000> speed <160.038462>;
-	// wait-for-turn  around y-axis;
-
-	// move  to y-axis [0] speed [12];
-	// move  to y-axis [0] speed [12];
-	// sleep 200;
-
-	// turn  to z-axis <0> speed <240>;
-	// turn  to z-axis <0> speed <240>;
-	// sleep 200;
-
-	set INBUILDSTANCE to 0;
 	hide cagelight_emit;
+	set INBUILDSTANCE to 0;
 	turn cagelight to y-axis <0> speed <1000>;
 	turn nano to x-axis <0> speed <20>;
 	wait-for-turn nano around x-axis;
@@ -59,78 +42,15 @@ deactivatescr()
 	move turretstrutB to y-axis [0] speed [20];
 	wait-for-move turretstrutB along y-axis;
 	move turretstrutA to y-axis [0] speed [20];
-}
-
-#define BASEPIECE base
-#define HITSPEED <55.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 3
-#define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	hide beam;
-	hide cagelight_emit;
-	restore_delay = 3000;
 	notBuilding = 1;
-	moveSpeed = get MAX_SPEED;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	hide cagelight_emit;
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
 	show beam;
-	start-script RequestState(0);
+	start-script Activate();
 	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	// turn  to y-axis heading speed <160.038462>;
-	// wait-for-turn  around y-axis;
+	signal SIGNAL_BUILD;
 	turn nano to y-axis heading speed <160>;
 	wait-for-turn nano around y-axis;
 	set INBUILDSTANCE to 1;
@@ -142,29 +62,22 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide beam;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	hide cagelight_emit;
 	move cagelight to y-axis [0] speed [20];
 	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
 	turn nano to y-axis <0> speed <160>;
-	wait-for-turn nano around y-axis;	
-	start-script RequestState(1);
+	wait-for-turn nano around y-axis;
+	start-script Deactivate();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = beam;
-
-}
-
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = beam;
 }
 
 Killed(severity, corpsetype)
@@ -173,47 +86,32 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type BITMAPONLY | NOHEATCLOUD;
-		//explode  type BITMAPONLY | NOHEATCLOUD;
 		explode nano type BITMAPONLY | NOHEATCLOUD;
 		explode cagelight type BITMAPONLY | NOHEATCLOUD;
-		//explode  type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type FALL | NOHEATCLOUD;
 		explode cagelight type FALL | NOHEATCLOUD;
 		explode turretbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode cagelight type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turretbase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		//explode  type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode ltrack type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rtrack type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode  type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
-
-

@@ -3,9 +3,7 @@
 
 piece  base, lwing, rwing, bwing, lblades, rblades, bblades, lflare, rflare;
 
-static-var gun;
-
-#define SIG_AIM				2
+static-var gun_1, docked;
 
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
@@ -20,7 +18,7 @@ static-var gun;
 
 Create()
 {
-	gun = 0;
+	gun_1 = 0;
 	hide lflare;
 	hide rflare;
 	
@@ -57,43 +55,42 @@ Deactivate()
 	turn bwing to x-axis <-45> speed <30>;
 }
 
-QueryPrimary(piecenum)
-{	
-	if (gun == 0)
+QueryWeapon1(pieceIndex)
+{
+	if (gun_1 == 0)
 	{
-		piecenum = lflare;
-		gun = 1;
+		pieceIndex = lflare;
+		gun_1 = 1;
 	}
-	if (gun == 1)
+	if (gun_1 == 1)
 	{
-		piecenum = rflare;
-		gun = 0;
+		pieceIndex = rflare;
+		gun_1 = 0;
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	return (1);
+	return (!docked);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	gun = !gun;
-	return (1);
+	gun_1 = !gun_1;
 }
 
 Shot1(zero)
 {
-	if(gun == 0)
+	if(gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from rflare;
 	}
-	if(gun == 1)
+	if(gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from lflare;
 	}
@@ -141,17 +138,19 @@ Killed(severity, corpsetype)
 
 Docked(customparam, dockpiece, carrierarg1, carrierarg2, carrierarg3)
 {
+	docked = 1;
 	if(customparam == 1)
 	{
 		turn base to y-axis carrierarg1 now;
 		spin base around y-axis speed <10> accelerate <1>;
 		return 1;
-		
 	}
+	return 0;
 }
 
 Undocked(customparam, dockpiece)
-{	
+{
+	docked = 0;
 	stop-spin base around y-axis;
 	turn base to y-axis <0> speed <600>;
 	return 1;

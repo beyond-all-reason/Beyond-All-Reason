@@ -30,6 +30,12 @@ for weaponDefID, def in pairs(WeaponDefs) do
 	end
 end
 
+function gadget:Initialize()
+	for weaponDefID in pairs(krogkickWeapon) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
+end
+
 function gadget:UnitPreDamaged(
 	unitID,
 	unitDefID,

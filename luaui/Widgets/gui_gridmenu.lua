@@ -28,10 +28,8 @@ end
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -41,9 +39,6 @@ local math_min = math.min
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
-local CMD_OPT_CTRL = CMD.OPT_CTRL
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 -------------------------------------------------------------------------------
 --- STATIC VALUES
@@ -153,10 +148,13 @@ local costOverrides = {}
 --- KEYBIND VALUES
 -------------------------------------------------------------------------------
 
-include("keysym.h.lua")
-local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
+local dynamicBuildOptions = require("common/dynamicBuildOptions")
+local KEY = {
+	ESCAPE = Spring.GetKeyCode("esc"),
+	LSHIFT = Spring.GetKeyCode("shift"),
+}
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 local categoryKeys = {}
 local keyLayout = {}
@@ -351,8 +349,8 @@ end
 
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
-	name = "Back",
-	keyText = "Shift",
+	name = BAR.I18N("ui.buildMenu.back"),
+	keyText = keyConfig.sanitizeKey("shift", currentLayout),
 })
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
@@ -365,29 +363,52 @@ local isPregame
 --- Unit prep
 -------------------------------------------------------------------------------
 
-local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
-local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
+local grid = require("luaui/configs/gridmenu_config")
+local units = require("luaui/configs/unit_buildmenu_config")
 
-local unitBuildOptions = {}
+local defBuildOptions = {} -- unitDefID -> the def's build options, shared by every team
+local unitBuildOptions = {} -- unitDefID -> build options for the local team; the def list until a change copies it
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
 
-local function refreshUnitDefs()
-	unitBuildOptions = {}
-	unitMetal_extractor = {}
-	unitTranslatedHumanName = {}
-	unitTranslatedTooltip = {}
-	iconTypes = {}
-	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+local function patchBuildOption(builderDefID, builtDefID, added)
+	local buildOptions = unitBuildOptions[builderDefID]
+	if not buildOptions then
+		return
+	end
+	if buildOptions == defBuildOptions[builderDefID] then
+		buildOptions = { unpack(buildOptions) }
+		unitBuildOptions[builderDefID] = buildOptions
+	end
+	dynamicBuildOptions.patch(buildOptions, builtDefID, added)
+end
 
-	-- unit names and icons
+-- Resets the builders an earlier team's changes patched, then applies the local team's
+local function refreshBuildOptions()
+	for udid, buildOptions in pairs(defBuildOptions) do
+		unitBuildOptions[udid] = buildOptions
+	end
+	for builderDefID, options in pairs(dynamicBuildOptions.getChanges(Spring.GetLocalTeamID())) do
+		for builtDefID, added in pairs(options) do
+			patchBuildOption(builderDefID, builtDefID, added)
+		end
+	end
+end
+
+local function refreshUnitNames()
 	for udid, ud in pairs(UnitDefs) do
-		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
+	end
+end
 
+-- Once: icontypes.lua includes every unit file, and each UnitDefs buildOptions read builds a new table
+local function loadUnitDefs()
+	local orgIconTypes = require("gamedata/icontypes")
+	for udid, ud in pairs(UnitDefs) do
+		defBuildOptions[udid] = ud.buildOptions
 		if ud.customParams.metal_extractor then
 			unitMetal_extractor[udid] = ud.customParams.metal_extractor
 		end
@@ -395,25 +416,8 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-end
-
--- starting units
-local startUnits = string.split(
-	Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"),
-	"|"
-)
-local startBuildOptions = {}
-for _, uDefIDString in ipairs(startUnits) do
-	local uDefID = tonumber(uDefIDString)
-	if uDefID ~= nil then
-		local unitDef = UnitDefs[uDefID]
-		if unitDef then
-			startBuildOptions[uDefID] = true
-			for _, buildoptionDefID in pairs(unitDef.buildOptions) do
-				startBuildOptions[buildoptionDefID] = true
-			end
-		end
-	end
+	refreshUnitNames()
+	refreshBuildOptions()
 end
 
 -------------------------------------------------------------------------------
@@ -609,8 +613,8 @@ end
 local function cmdOptsToFactoryQueueChange(cmdOpts)
 	local optTable = {}
 	if type(cmdOpts) == "number" then
-		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
-		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
+		optTable.ctrl = getCodedOptState(cmdOpts, CMD.OPT_CTRL)
+		optTable.shift = getCodedOptState(cmdOpts, CMD.OPT_SHIFT)
 		optTable.right = getCodedOptState(cmdOpts, CMD.OPT_RIGHT)
 	else
 		optTable = cmdOpts
@@ -689,7 +693,7 @@ local function updateBuildProgress()
 	end
 
 	local unitBuildID = Spring.GetUnitIsBuilding(activeBuilderID)
-	local unitBuildDefID = unitBuildID and spGetUnitDefID(unitBuildID)
+	local unitBuildDefID = unitBuildID and Spring.GetUnitDefID(unitBuildID)
 
 	currentlyBuildingRectID = uDefCellIds[unitBuildDefID]
 
@@ -810,7 +814,7 @@ local function updateGrid()
 			if uDefID then
 				uDefCellIds[uDefID] = cellRectID
 
-				rect.opts.disabled = units.unitRestricted[uDefID]
+				rect.opts.disabled = units.isRestricted(uDefID, activeBuilder)
 
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
@@ -1014,6 +1018,7 @@ end
 
 local function refreshCommands()
 	gridOpts = nil
+	local liveOptions -- build options the active builder unit really has, when known
 
 	if isPregame and startDefID then
 		activeBuilder = startDefID
@@ -1034,17 +1039,30 @@ local function refreshCommands()
 	else
 		updateCategories(CONFIG.buildCategories)
 
+		-- the unit's live build options (they can change at runtime); the def copy is for pregame
 		local buildOptions = unitBuildOptions[activeBuilder]
+		local cmdDescs = activeBuilderID and Spring.GetUnitCmdDescs(activeBuilderID)
+		if cmdDescs then
+			buildOptions = {}
+			liveOptions = {}
+			for i = 1, #cmdDescs do
+				local cmdID = cmdDescs[i].id
+				if cmdID < 0 then
+					buildOptions[#buildOptions + 1] = -cmdID
+					liveOptions[-cmdID] = true
+				end
+			end
+		end
 		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
-	-- Filter out hidden units from gridOpts
+	-- Filter out hidden units from gridOpts, and options the unit lacks (the home page layout is static)
 	if gridOpts then
 		local filteredOpts = {}
 		for i, opt in pairs(gridOpts) do
 			if opt and opt.id then
 				local uDefID = -opt.id
-				if not units.unitHidden[uDefID] then
+				if not units.unitHidden[uDefID] and (not liveOptions or liveOptions[uDefID]) then
 					filteredOpts[i] = opt
 				end
 			else
@@ -1168,7 +1186,7 @@ local function setCurrentCategory(category)
 			local cellCmdOpt = gridOpts[i]
 			local cellCmd = cellCmdOpt and cellCmdOpt.id
 
-			if cellCmd and not units.unitRestricted[-cellCmd] then
+			if cellCmd and not units.isRestricted(-cellCmd, activeBuilder) then
 				firstCmd = cellCmd
 				break
 			end
@@ -1214,7 +1232,7 @@ local function queueUnit(uDefID, opts, quantity)
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
 				for _ = 1, quantity do
-					spGiveOrderToUnit(uid, -uDefID, 0, opts)
+					Spring.GiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
 		end
@@ -1268,6 +1286,21 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	return quantity
 end
 
+--- unitDefID currently shown in the grid cell at (row, col), or nil.
+--- Rows and columns are the 3x4 grid the keybinds address, even when docked to the bottom.
+---@param row integer|string 1..3
+---@param col integer|string 1..4
+---@return integer?
+local function getUnitDefIDByRowCol(row, col)
+	row = tonumber(row)
+	col = tonumber(col)
+	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
+		return nil
+	end
+	local cell = cellRects[(row - 1) * 4 + col]
+	return cell and cell.opts and cell.opts.uDefID or nil
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1276,12 +1309,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
 
-	if (not row or row < 1 or row > 3) or (not col or col < 1 or col > 4) then
-		return
-	end
-
-	local uDefID = cellRects[(row - 1) * 4 + col].opts.uDefID -- cellRects iterate row then column
-	if not uDefID or units.unitRestricted[uDefID] then
+	local uDefID = getUnitDefIDByRowCol(row, col)
+	if not uDefID or units.isRestricted(uDefID, activeBuilder) then
 		return
 	end
 
@@ -1414,13 +1443,11 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
-	refreshUnitDefs()
-
-	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	for unitDefID, reasons in pairs(blockedUnitsData) do
-		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons.hidden ~= nil
-	end
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
+	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
+	loadUnitDefs()
+	units.loadBlocked()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		-- Build menu needs to be disabled right now and before we recreate
@@ -1434,7 +1461,7 @@ function widget:Initialize()
 
 	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
 	if isPregame then
-		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		local missionOptions = require("luaui/Include/mission_options")
 		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 
@@ -1479,6 +1506,12 @@ function widget:Initialize()
 
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
+	end
+	WG.gridmenu.getUnitDefIDByRowCol = getUnitDefIDByRowCol
+	WG.gridmenu.changeQueueCount = function(factoryID, unitDefID, change)
+		if builderIsFactory and activeBuilderID == factoryID and type(change) == "number" then
+			updateQueueNr(unitDefID, change)
+		end
 	end
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
@@ -1652,12 +1685,6 @@ function widget:Initialize()
 	WG.gridmenu.removeHighlight = removeHighlight
 	WG.gridmenu.clearHighlights = clearHighlights
 	WG.gridmenu.hasHighlight = hasHighlight
-
-	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	for unitDefID, reasons in pairs(blockedUnitsData) do
-		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons.hidden ~= nil
-	end
 end
 
 -------------------------------------------------------------------------------
@@ -1864,7 +1891,8 @@ end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
-	refreshUnitDefs()
+	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
+	refreshUnitNames()
 	redraw = true
 end
 
@@ -2185,6 +2213,13 @@ local function drawCell(rect)
 	local disabled = rect.opts.disabled
 	local underConstructionDim = backgroundRect.opts.builderUnderConstruction and not rect.opts.hovered and not disabled
 	local queuenr = rect.opts.queuenr
+	if queuenr and WG.Quotas then
+		-- Ignore the count from the quota widget.
+		queuenr = queuenr - WG.Quotas.getQuotaOrderCount(activeBuilderID, uid)
+		if queuenr < 1 then
+			queuenr = nil
+		end
+	end
 	local quotaNumber
 	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
 		quotaNumber = WG.Quotas.getQuotas()[activeBuilderID][uid]
@@ -2801,7 +2836,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, modifier, isRepeat)
-	if key == KEYSYMS.ESCAPE then
+	if key == KEY.ESCAPE then
 		if currentCategory then
 			clearCategory()
 			return true
@@ -2814,7 +2849,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 function widget:KeyRelease(key)
-	if key ~= KEYSYMS.LSHIFT then
+	if key ~= KEY.LSHIFT then
 		return
 	end
 
@@ -2937,7 +2972,9 @@ function widget:MousePress(x, y, button)
 							end
 
 							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
+							-- Ignore the count from the quota widget.
 							local queueCount = tonumber(cellRect.opts.queuenr or 0)
+								- (WG.Quotas and WG.Quotas.getQuotaOrderCount(activeBuilderID, unitDefID) or 0)
 							local quotas = WG.Quotas and WG.Quotas.getQuotas()
 							local currentQuota = (
 								quotas
@@ -3055,7 +3092,7 @@ function widget:DrawScreen()
 					math_floor(buildersRectYend - backgroundRect.y),
 					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3073,12 +3110,13 @@ function widget:DrawScreen()
 				end, true)
 			end
 			if not buildmenuTex then
+				local ss = WG.FlowUI.supersample or 2
 				buildmenuTex = gl.CreateTexture(
-					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
-					math_floor(buildersRectYend - backgroundRect.y) * 2,
-					{ --*(vsy<1400 and 2 or 2)
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * ss,
+					math_floor(buildersRectYend - backgroundRect.y) * ss,
+					{
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.RGBA8,
 						fbo = true,
 					}
 				)
@@ -3203,10 +3241,10 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 		return
 	end
 
-	-- If factory is in repeat, queue does not change, except if it is alt-queued
+	-- The queue does not change under repeat because the order is recycled to the back.
 	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
-
-	if factoryRepeat and not options.alt then
+	-- Internal orders are the exception; see `CFactoryCAI::DecreaseQueueCount`.
+	if factoryRepeat and not options.internal then
 		return
 	end
 
@@ -3287,7 +3325,13 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = Spring.GetLocalTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshBuildOptions()
+		doUpdate = true
+	end
 end
 
 function widget:GetConfigData()
@@ -3339,11 +3383,20 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:UnitBlocked(unitDefID, reasons)
-	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons.hidden ~= nil
+function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
+	units.setBlocked(unitDefID, reasons, builderUnitDefID)
 	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
 		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
+	end
+end
+
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
+	end
+	patchBuildOption(builderUnitDefID, builtUnitDefID, added)
+	if builderUnitDefID == activeBuilder then
+		doUpdate = true
 	end
 end
 

@@ -36,7 +36,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 3,
-			subfolder = "ArmBots",
+			subfolder = "Legion/Bots",
 		},
 		featuredefs = {
 			dead = {
@@ -107,6 +107,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				fireTolerance = 7000,
+				gravityaffected = "true",
 				tolerance = 7000,
 				impactonly = 1,
 				impulsefactor = 0.123,

@@ -21,6 +21,7 @@ return {
 		speed = 46.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		name = "Railgun",
 		objectname = "Units/LEGRAIL.s3o",
 		script = "Units/LEGRAIL.cob",
@@ -42,7 +43,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "ArmVehicles",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

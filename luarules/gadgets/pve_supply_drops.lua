@@ -125,8 +125,8 @@ if scavengersAIEnabled then
 end
 
 -- VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_capture.lua")
+local nearbyCaptureLibrary = require("luarules/Utilities/damgam_lib/nearby_capture")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 
 -- local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
 -- 	if scavengersAIEnabled == true then

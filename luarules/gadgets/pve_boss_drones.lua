@@ -24,7 +24,7 @@ end
 local pveTeamID = BAR.Utilities.GetScavTeamID() or BAR.Utilities.GetRaptorTeamID()
 local raptorQueenCount = Spring.GetModOptions().raptor_queen_count
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 
 local unitListNames = {
 	-- Brood Raptors

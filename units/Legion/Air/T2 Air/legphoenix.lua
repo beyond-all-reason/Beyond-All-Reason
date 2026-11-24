@@ -41,7 +41,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Protar/Hornet",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legionaircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -142,7 +142,7 @@ return {
 				areaofeffect = 121,
 				avoidfeature = false,
 				burst = 5,
-				burstrate = 0.4,
+				burstrate = 0.26667,
 				craterareaofeffect = 0,
 				collidefriendly = false,
 				commandfire = false,

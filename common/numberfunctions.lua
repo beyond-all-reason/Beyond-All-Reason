@@ -1,3 +1,15 @@
+if not math.int_min then
+	---The smallest integer value that is represented accurately in-sequence in float32.
+	---@type integer
+	math.int_min = -16777216
+end
+
+if not math.int_max then
+	---The largest integer value that is represented accurately in-sequence in float32.
+	---@type integer
+	math.int_max = 16777216
+end
+
 if not math.isInRect then
 	function math.isInRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 		return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
@@ -299,5 +311,21 @@ if not math.clampRadians then
 			ret = ret - twoPi
 		end
 		return ret
+	end
+end
+
+if not math.quadraticRoots then
+	---@param a number
+	---@param b number
+	---@param c number
+	---@return number? root1 nil when the roots are complex
+	---@return number? root2
+	function math.quadraticRoots(a, b, c)
+		local discriminant = b * b - 4 * a * c
+		if discriminant < 0 then
+			return
+		end
+		discriminant = math.sqrt(discriminant)
+		return (-b + discriminant) / (2 * a), (-b - discriminant) / (2 * a)
 	end
 end

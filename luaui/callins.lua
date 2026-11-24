@@ -142,7 +142,9 @@ CallInsList = {
 	"UnitSold",
 
 	"VisibleExplosion",
+	"VisibleExplosionBatch",
 	"Barrelfire",
+	"BarrelfireBatch",
 	"CrashingAircraft",
 	"ClearMapMarks",
 }

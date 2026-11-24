@@ -29,7 +29,7 @@ return {
 		script = "Units/LEGCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 260,
+		sightdistance = 330,
 		terraformspeed = 450,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -75,7 +75,7 @@ return {
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {

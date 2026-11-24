@@ -6,7 +6,6 @@ return {
 		buildtime = 14100,
 		canrepeat = false,
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		energycost = 8100,
 		energyupkeep = 20,
 		explodeas = "mediumBuildingexplosiongeneric-uw",

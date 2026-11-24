@@ -4,7 +4,7 @@
 
 piece  flare1, flare2, flare3, flare4, pad, base, nanob, nanos, exhaust, ventsmoke, cagelight1, cagelight1_emit, cagelight2, cagelight2_emit;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -22,6 +22,7 @@ Create()
 	hide cagelight1_emit;
 	hide cagelight2_emit;
 	spray = 0;
+	hasOpened = 0;
 }
 
 #define BASEPIECE base
@@ -40,26 +41,24 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	FACTORY_OPEN_BUILD;
-	
-	move exhaust to y-axis [0] speed [8];
+	if( !hasOpened )
+	{
+
+		move exhaust to y-axis [0] speed [8];
+		hasOpened = 1;
+	}
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn nanos to x-axis 0 speed <30>;
-	turn nanob to z-axis 0 speed <30>;
-	wait-for-turn nanos around x-axis;
-	
-	move exhaust to y-axis [-8] speed [8];
 
-	
 	FACTORY_CLOSE_BUILD;
 }
 

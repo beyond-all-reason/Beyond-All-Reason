@@ -160,6 +160,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					speceffect = "retarget",
+				},
 				damage = {
 					vtol = 110,
 				},
@@ -168,12 +171,8 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
-			},
-			[2] = {
-				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "CORBOT_MISSILE",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

@@ -14,7 +14,7 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 110,
+		health = 180,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -38,7 +38,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "ArmBuildings/SeaUtil",
+			subfolder = "Legion/SeaUtility",
 			unitgroup = "util",
 		},
 		featuredefs = {

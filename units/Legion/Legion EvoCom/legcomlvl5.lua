@@ -121,7 +121,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			reaimtime = 5,
-			subfolder = "",
+			subfolder = "Legion/Legion EvoCom",
 			tombstone = "legstone",
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",
@@ -386,7 +386,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			botcannon = {

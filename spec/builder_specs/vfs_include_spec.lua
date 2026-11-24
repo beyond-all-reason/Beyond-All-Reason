@@ -20,7 +20,7 @@ describe("VFS.Include mock", function()
 	it("keeps a nested include of a path already being included isolated", function()
 		local outer = setmetatable({ marker = "outer" }, { __index = _G })
 
-		local reentrant = VFS.Include("spec/fixtures/reentrant_include.lua", outer)
+		local reentrant = require("spec/fixtures/reentrant_include", outer)
 
 		assert.are.equal("outer", reentrant.before)
 		assert.are.equal("outer", reentrant.after)

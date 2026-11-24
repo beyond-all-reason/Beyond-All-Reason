@@ -63,9 +63,10 @@ lArmFlare,
 rArmGun,
 rArmFlare,
 rArmRotationFlare,
-lArmRotationFlare;
+lArmRotationFlare,
+midtorsofirepoint;
 
-static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, isFiring3, isFiring4, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady; 			
+static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, isFiring3, isFiring4, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, oldPitch1, oldPitch2, oldPitch3, oldPitch4; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -1313,7 +1314,7 @@ RestoreRArmRay()
 
 QueryWeapon1(piecenum) //Hull Rotation
 {
-	piecenum = midTorso;
+	piecenum = midtorsofirepoint;
 }
 
 AimFromWeapon1(piecenum)
@@ -1385,8 +1386,20 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	start-script Open();
 	signal SIG_AIM_2;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading1 - heading);
+	if ((isfiring1 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch1 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 	if (isTurning == 1)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <90>;
@@ -1395,7 +1408,7 @@ AimWeapon2(heading, pitch)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
-	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
+	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed pitchSpeed;
 	
 	if (isfiring1 == 0 AND (((get ABS(oldHeading1 - heading)) > 65536) OR ((get ABS(oldHeading1 - heading) > <1>) AND ((get ABS(oldHeading1 - heading)) < 65536 - <1>))))
 	{
@@ -1404,6 +1417,7 @@ AimWeapon2(heading, pitch)
 		wait-for-turn lArmShoulderJoint around x-axis;
 	}
 	oldHeading1 = heading;
+	oldPitch1 = pitch;
 	start-script RestoreLRay();
 	isfiring1 = 1;
 	return (1);
@@ -1426,8 +1440,20 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	start-script Open();
 	signal SIG_AIM_3;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading2 - heading);
+	if ((isfiring2 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch2 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 	if (isTurning == 1)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <90>;
@@ -1436,7 +1462,7 @@ AimWeapon3(heading, pitch)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoAim) speed <35>;
 	}
-	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <35>;
+	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed pitchSpeed;
 	
 	if (isfiring2 == 0 AND (((get ABS(oldHeading2 - heading)) > 65536) OR ((get ABS(oldHeading2 - heading) > <1>) AND ((get ABS(oldHeading2 - heading)) < 65536 - <1>))))
 	{
@@ -1445,6 +1471,7 @@ AimWeapon3(heading, pitch)
 		wait-for-turn rArmShoulderJoint around x-axis;
 	}
 	oldHeading2 = heading;
+	oldPitch2 = pitch;
 	start-script RestoreRRay();
 	isfiring2 = 1;
 	return (1);
@@ -1480,6 +1507,7 @@ AimFromWeapon4(pieceIndex)
 
 AimWeapon4(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	// signal SIG_AIM_4;
 	// set-signal-mask SIG_AIM_4;
 	// oldHeading3 = heading;
@@ -1489,7 +1517,17 @@ AimWeapon4(heading, pitch)
 	turn lArmRotationFlare to z-axis <20> speed <20>;
 	signal SIG_AIM_4;
 	// set-signal-mask SIG_AIM_4;
-	oldHeading3 = heading;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading3 - heading);
+	if ((isfiring3 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch3 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 
 
 	if (((heading - torsoAim)<<120> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
@@ -1501,7 +1539,7 @@ AimWeapon4(heading, pitch)
 			{
 				turn lArmGun to y-axis (heading - torsoAim) speed <35>;
 			}
-			turn lArmGun to x-axis (-1*pitch) speed <35>;
+			turn lArmGun to x-axis (-1*pitch) speed pitchSpeed;
 			
 		if (isfiring3 == 0 AND (((get ABS(oldHeading3 - heading)) > 65536) OR ((get ABS(oldHeading3 - heading) > <1>) AND ((get ABS(oldHeading3 - heading)) < 65536 - <1>))))
 			{
@@ -1509,6 +1547,8 @@ AimWeapon4(heading, pitch)
 				wait-for-turn lArmGun around y-axis;
 				wait-for-turn lArmGun around x-axis;
 			}
+		oldHeading3 = heading;
+		oldPitch3 = pitch;
 		start-script RestoreLArmRay();
 		isfiring3 = 1;
 		return (1);
@@ -1544,6 +1584,7 @@ AimFromWeapon5(pieceIndex)
 
 AimWeapon5(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	// signal SIG_AIM_5;
 	// set-signal-mask SIG_AIM_5;
 	// oldHeading4 = heading;
@@ -1554,7 +1595,17 @@ AimWeapon5(heading, pitch)
 	
 	signal SIG_AIM_5;
 	// set-signal-mask SIG_AIM_5;
-	oldHeading4 = heading;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading4 - heading);
+	if ((isfiring4 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch4 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 
 
 	if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-120>) OR (get ABS(heading - torsoAim)>58000)){
@@ -1566,7 +1617,7 @@ AimWeapon5(heading, pitch)
 			{
 				turn rArmGun to y-axis (heading - torsoAim) speed <35>;
 			}
-		turn rArmGun to x-axis (-1*pitch) speed <35>;
+		turn rArmGun to x-axis (-1*pitch) speed pitchSpeed;
 			
 		if (isfiring4 == 0 AND (((get ABS(oldHeading4 - heading)) > 65536) OR ((get ABS(oldHeading4 - heading) > <1>) AND ((get ABS(oldHeading4 - heading)) < 65536 - <1>))))
 			{
@@ -1574,6 +1625,8 @@ AimWeapon5(heading, pitch)
 				wait-for-turn rArmGun around y-axis;
 				wait-for-turn rArmGun around x-axis;
 			}
+		oldHeading4 = heading;
+		oldPitch4 = pitch;
 		start-script RestoreRArmRay();
 		isfiring4 = 1;
 		return (1);

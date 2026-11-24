@@ -404,7 +404,7 @@ local function joystatetostr(js)
 	end
 	return jstr .. "]"
 end
-local Json = Json or VFS.Include("common/luaUtilities/json.lua")
+local Json = Json or require("common/luaUtilities/json")
 
 local buttonorder = {
 	LeftXAxis,

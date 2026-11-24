@@ -22,7 +22,7 @@ return {
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
 		movestate = 0,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/legnavydestro.s3o",
 		script = "Units/legnavydestro.cob",
 		seismicsignature = 0,

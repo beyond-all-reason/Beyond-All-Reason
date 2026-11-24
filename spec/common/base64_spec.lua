@@ -1,4 +1,7 @@
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local env = SpecEnv.new()
+local base64 = SpecEnv.include(env, "common/luaUtilities/base64.lua")
 
 --- Rewrites base64url output into the standard alphabet, standing in for a producer that
 --- encodes with plain base64.
@@ -12,16 +15,15 @@ end
 
 --- Captures Spring.Log output for the duration of fn.
 local function captureLogs(fn)
-	local originalLog = Spring.Log
 	local messages = {}
 
-	Spring.Log = function(tag, level, message)
+	env.Spring.Log = function(tag, level, message)
 		messages[#messages + 1] = { tag = tag, level = level, message = message }
 	end
 
 	local ok, err = pcall(fn)
 
-	Spring.Log = originalLog
+	env.Spring.Log = nil
 
 	if not ok then
 		error(err, 0)
