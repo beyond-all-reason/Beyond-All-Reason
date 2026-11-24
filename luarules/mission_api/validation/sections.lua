@@ -425,7 +425,7 @@ local function validateVariableValueCondition(context, reporter, id, condition)
 		if value ~= nil and type(value) ~= "number" then
 			reporter.Error(
 				id,
-				"VariableValue checks numbers, but variable '" .. key .. "' is a " .. type(value),
+				"Variable '" .. key .. "' is a " .. type(value) .. ", so VariableValue cannot check it",
 				"Parameter: key"
 			)
 		end
@@ -827,7 +827,7 @@ local function validateAddToVariableAction(context, actionReport, actionID, acti
 		if current ~= nil and type(current) ~= "number" then
 			actionReport.Error(
 				actionID,
-				"Variable '" .. key .. "' is a " .. type(current) .. ", so it cannot be added to",
+				"Variable '" .. key .. "' is a " .. type(current) .. ", so AddToVariable cannot add to it",
 				"Parameter: key"
 			)
 		end
@@ -939,8 +939,12 @@ local function validateVariablesSection(context, report, parameterValidators)
 		if savedValue ~= nil and type(savedValue) ~= type(value) then
 			variableReport.Warn(
 				tostring(key),
-				"Saved value is a " .. type(savedValue) .. " but the variable is a " .. type(value),
-				"The saved value is ignored"
+				"Saved value is a "
+					.. type(savedValue)
+					.. ", but the variable is a "
+					.. type(value)
+					.. ", so the saved value is ignored",
+				"In: PersistentVariables"
 			)
 		end
 	end

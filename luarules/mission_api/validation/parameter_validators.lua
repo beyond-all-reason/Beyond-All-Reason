@@ -439,9 +439,16 @@ local function registerValueValidators(parameterValidators, context)
 	end
 	parameterValidators[Types.VariableType] = validateVariableType
 
-	parameterValidators[Types.VariableKey] = getLookupValidator(validateString, "variable", function(key)
-		return context.Variables[key] ~= nil
-	end)
+	parameterValidators[Types.VariableKey] = function(key)
+		local typeResult = validateString(key)
+		if typeResult then
+			return typeResult
+		end
+
+		if context.Variables[key] == nil then
+			return { { message = "Variable is not declared: " .. key } }
+		end
+	end
 
 	parameterValidators[Types.Color] = function(color)
 		local luaTypeResult = validateTableType(color)
