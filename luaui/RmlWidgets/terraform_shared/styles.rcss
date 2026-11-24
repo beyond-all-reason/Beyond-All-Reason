@@ -181,13 +181,10 @@ sliderarrowdec:hover
 }
 
 /* === Scrollable panel bodies ===
- * Every floating terraformer window keeps its header (drag handle, close
- * button, header rail) pinned and puts the rest of its content in a
- * `.tf-panel-body`, so a panel taller than the screen can still be dragged and
- * closed. The max-height here is only the pre-layout fallback: the shared
- * helper widget re-caps each body to the space actually left below its window,
- * so a panel near the top of the screen gets more room than one near the
- * bottom.
+ * Every floating terraformer window keeps its header pinned and puts the rest in a
+ * `.tf-panel-body`, so a panel taller than the screen can still be dragged and closed.
+ * This max-height is only the pre-layout fallback: a shared helper re-caps each body to
+ * the space left below its window.
  */
 .tf-panel-body {
 	overflow-x: hidden;

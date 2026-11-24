@@ -22,40 +22,8 @@ local decalAlpha = 0.66
 --------------- Atlas textures ----------------
 
 local atlas = require("unittextures/decals_features/featureaoplates_atlas")
-local getUVCoords = atlas.getUVCoords
-atlas.flip(atlas)
-local atlassedImages = {}
-
-local featureDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
--- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
-
-local function basepath(s, pattern)
-	while string.find(s, pattern, 1, true) do
-		s = string.sub(s, string.find(s, pattern, 1, true) + 1)
-	end
-	return s
-end
-
-local function makeAtlas()
-	for filename, uvs in pairs(atlas) do
-		if type(uvs) == "table" then
-			local s3oname = basepath(filename, "/")
-			if string.find(s3oname, "_dead", 1, true) then
-				--spEcho('s3oname',s3oname)
-				s3oname = string.sub(s3oname, 1, string.find(s3oname, "_dead", 1, true) + 4)
-				atlassedImages[s3oname] = filename
-			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then
-				s3oname = string.sub(s3oname, 1, 7)
-
-				--spEcho('s3oname',s3oname)
-				atlassedImages[s3oname] = filename
-			else
-				--spEcho('Custom Feature AO plate:',s3oname, filename)])
-				atlassedImages[s3oname] = filename
-			end
-		end
-	end
-end
+local plateAtlas
+local featureDefIDtoDecalInfo = {}
 
 ---- GL4 Backend Stuff----
 local groundPlateVBO = nil
@@ -87,20 +55,23 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
 
-	local p, q, s, t = getUVCoords(atlas, decalInfo.texfile)
+	local p, q, s, t = unpack(decalInfo.uv)
+	if decalInfo.atlasIndex == 1 then
+		s, t = 1 - s, 1 - t -- runtime atlas images use the opposite Y orientation
+	end
 	--spEcho (featureDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
 
 	pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
 		{
-			decalInfo.sizez,
-			decalInfo.sizex,
+			decalInfo.sizeZ,
+			decalInfo.sizeX,
 			0,
 			additionalheight, -- lengthwidthcornerheight
 			0, --Spring.GetUnitTeam(featureID), -- teamID
 			numVertices, -- how many triangles should we make
 			gf,
-			0,
+			decalInfo.atlasIndex, -- parameters.y selects the prebuilt/runtime atlas
 			decalInfo.alpha * decalAlpha,
 			0, -- the gameFrame (for animations), and any other parameters one might want to add
 			q,
@@ -143,12 +114,18 @@ function widget:DrawWorldPreUnit()
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		--glDepthTest(false)
 		glTexture(0, atlas.atlasimage)
+		if plateAtlas.runtimeTexture then
+			glTexture(1, plateAtlas.runtimeTexture)
+		end
 		groundPlateShader:Activate()
 		groundPlateShader:SetUniform("iconDistance", disticon)
 		groundPlateShader:SetUniform("addRadius", 0)
 		groundPlateVBO.VAO:DrawArrays(GL.POINTS, groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
+		if plateAtlas.runtimeTexture then
+			glTexture(1, false)
+		end
 		glCulling(false)
 		gl.DepthTest(GL.ALWAYS)
 		gl.DepthTest(false)
@@ -179,55 +156,24 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	makeAtlas()
-	--if true then return end
-	for id, featureDefID in pairs(FeatureDefs) do
-		local FD = FeatureDefs[id]
-		if
-			FD.modelname
-			and (string.find(FD.modelname:lower(), "_dead", nil, true) or string.find(FD.name, "_heap", nil, true))
-		then -- todo TREES!
-			-- lets see if we can find an image for this one!
-			local modelnamenos3o = string.gsub(string.lower(FD.modelname), ".s3o", "")
-			modelnamenos3o = basepath(modelnamenos3o, "/")
-
-			--spEcho(FD.name, modelnamenos3o, atlassedImages[modelnamenos3o] )
-			if atlassedImages[modelnamenos3o] then
-				--spEcho(modelnamenos3o,atlassedImages[modelnamenos3o])
-				local atlasname = basepath(atlassedImages[modelnamenos3o], "/")
-				local sizestr = ""
-				if string.find(atlasname, "_dead", nil, true) then -- regular wrecks
-					sizestr = string.sub(
-						atlasname,
-						(string.find(atlasname, "_dead", nil, true) or 0) + 6,
-						string.find(atlasname, "_aoplane.dds", nil, true) - 1
-					)
-				else -- heaps override
-					sizestr = string.sub(atlasname, 9, 11)
-				end
-
-				--spEcho(atlasname, modelnamenos3o, sizestr)
-				local sizex = string.sub(sizestr, 1, string.find(sizestr, "_", nil, true) - 1)
-				local sizez = string.sub(sizestr, string.find(sizestr, "_", nil, true) + 1)
-				--spEcho(sizex, sizez)
-				featureDefIDtoDecalInfo[id] = {
-					texfile = atlassedImages[modelnamenos3o],
-					sizex = (sizex or 8) * 16,
-					sizez = (sizez or 8) * 16,
-					alpha = 1.0,
-				}
-			end
-		elseif FD.customParams then
-			if FD.customParams.decalinfo_texfile then
-				featureDefIDtoDecalInfo[id] = {
-					texfile = atlassedImages[FD.customParams.decalinfo_texfile],
-					sizex = (tonumber(FD.customParams.decalinfo_sizex) or 5) * 16,
-					sizez = (tonumber(FD.customParams.decalinfo_sizez) or 5) * 16,
-					alpha = (tonumber(FD.customParams.decalinfo_alpha) or 1.0) * 1.0,
-				}
-			end
+	local GroundAOAtlas = VFS.Include(luaShaderDir .. "GroundAOAtlas.lua")
+	plateAtlas = GroundAOAtlas.Create(atlas, "unittextures/decals_features", FeatureDefs, "feature")
+	local runtimeImages = {}
+	local runtimeImageCount = 0
+	for _, plate in pairs(plateAtlas.plates) do
+		if plate.atlasIndex == 1 and not runtimeImages[plate.texturePath] then
+			runtimeImages[plate.texturePath] = true
+			runtimeImageCount = runtimeImageCount + 1
 		end
 	end
+	local runtimeInfo = plateAtlas.runtimeTexture and gl.TextureInfo(plateAtlas.runtimeTexture)
+	Spring.Echo(
+		"Ground AO feature incremental atlas: "
+			.. runtimeImageCount
+			.. " image(s), "
+			.. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created")
+	)
+	featureDefIDtoDecalInfo = plateAtlas.plates
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
@@ -235,6 +181,7 @@ function widget:Initialize()
 	shaderConfig.HEIGHTOFFSET = 0
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 0
+	shaderConfig.USE_SECONDARY_TEXTURE = plateAtlas.runtimeTexture and 1 or 0
 	shaderConfig.FULL_ROTATION = 1
 	shaderConfig.CLIPTOLERANCE = 1.2
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
@@ -246,6 +193,7 @@ function widget:Initialize()
 	shaderConfig.USE_CORNERRECT = nil
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates Features")
 	if groundPlateVBO == nil then
+		plateAtlas:Delete()
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -304,6 +252,9 @@ end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("givefeatures", "t")
+	if plateAtlas then
+		plateAtlas:Delete()
+	end
 	if type(groundPlateShader) == "table" then
 		groundPlateShader:Finalize()
 		groundPlateShader = nil

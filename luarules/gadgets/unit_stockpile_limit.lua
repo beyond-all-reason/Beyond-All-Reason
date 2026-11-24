@@ -23,7 +23,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GetUnitStockpile = Spring.GetUnitStockpile
 	local GiveOrderToUnit = Spring.GiveOrderToUnit
+	local FindUnitCmdDesc = Spring.FindUnitCmdDesc
+	local EditUnitCmdDesc = Spring.EditUnitCmdDesc
 	local mathClamp = math.clamp
+	local mathMin = math.min
 
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
@@ -47,7 +50,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		local stock, queued = GetUnitStockpile(unitID)
 		if queued and stock then
-			local count = stock + queued - MaxStockpile
+			-- only queued builds can be taken back, the stock stays until fired
+			local count = mathMin(stock + queued - MaxStockpile, queued)
 			while count < 0 do
 				if count <= -100 then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
@@ -77,6 +81,14 @@ if gadgetHandler:IsSyncedCode() then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right" })
 					count = count - 1
 				end
+			end
+			-- the engine's label is stock/(stock + queued), it can't show a target below the stock
+			local cmdDescIndex = FindUnitCmdDesc(unitID, CMD_STOCKPILE)
+			if cmdDescIndex then
+				EditUnitCmdDesc(unitID, cmdDescIndex, {
+					name = stock .. "/" .. MaxStockpile,
+					params = { tostring(unitStockpileLimit[unitDefID]) }, -- for the order menu's tooltip
+				})
 			end
 		end
 	end

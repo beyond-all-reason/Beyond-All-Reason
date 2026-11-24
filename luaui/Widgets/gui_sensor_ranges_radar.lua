@@ -393,7 +393,7 @@ function widget:DrawWorld()
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
 
-	gl.DepthTest(true)
+	gl.DepthTest(false)
 	-- Note that we are skipping the first and last vertex, as those are the center of the circle :
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices - 0, 0, circleInstanceVBO.usedElements)
 	-- TODO: In the future, when BASE VERTEX works, use the following line instead:

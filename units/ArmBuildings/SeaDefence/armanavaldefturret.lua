@@ -31,7 +31,7 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			reaimtime = 4,
 			removewait = true,
 			techlevel = 2,

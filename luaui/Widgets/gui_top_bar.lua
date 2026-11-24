@@ -35,6 +35,7 @@ local sp = {
 	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
 	GetSpectatingState = Spring.GetSpectatingState,
 	GetTeamResources = Spring.GetTeamResources,
+	GetTeamRealResources = BAR.Utilities.GetTeamRealResources,
 	GetMyTeamID = Spring.GetLocalTeamID,
 	GetMouseState = Spring.GetMouseState,
 	GetWind = Spring.GetWind,
@@ -72,7 +73,8 @@ local isSingle = false
 local gameFrame = sp.GetGameFrame()
 
 -- Resources
-local r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+local r =
+	{ metal = { sp.GetTeamRealResources(myTeamID, "metal") }, energy = { sp.GetTeamRealResources(myTeamID, "energy") } }
 local energyOverflowLevel, metalOverflowLevel
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -101,6 +103,7 @@ local noWindText1 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind1")
 local noWindText2 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind2")
 local windFunctions = require("common/wind_functions")
 local noWind = windFunctions.isNoWind() -- constant per game: Game.windMin/windMax never change
+local windHistory = { frames = {}, values = {}, every = 150, window = 300 * Game.gameSpeed } -- the tooltip's graph
 
 local function refreshWindTidalTextCache()
 	tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
@@ -146,7 +149,6 @@ local textures = {
 	waves = ":n:LuaUI/Images/tidal-waves.png",
 	com = ":n:Icons/corcom.png",
 }
-local textWarnColor = "\255\255\215\215"
 
 -- UI Elements
 local topbarArea = {}
@@ -255,7 +257,6 @@ local blinkDirection = true
 local blinkProgress = 0
 --------------------------------------------------------------------------------
 
-
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
 	gl.Vertex(px, py, 0)
@@ -331,7 +332,6 @@ local function short(n, f)
 	shortCacheCount = shortCacheCount + 1
 	return result
 end
-
 
 local function updateComs(forceText)
 	local area = comsArea
@@ -412,6 +412,50 @@ local function updateAvgWind()
 	end
 end
 
+local function windGraph()
+	local frames, values = windHistory.frames, windHistory.values
+	if #frames < 2 or noWind or maxWind <= minWind then
+		return nil
+	end
+	local from = frames[#frames] - windHistory.window
+	local points = {}
+	for i = 1, #frames do
+		points[2 * i - 1], points[2 * i] = frames[i] - from, values[i]
+	end
+	return {
+		points = points,
+		xMax = windHistory.window,
+		yMax = maxWind,
+		left = "-5:00",
+		right = "0:00",
+	}
+end
+
+local function setWindTooltip()
+	WG.tooltip.AddTooltip("wind", windArea, {
+		rows = {
+			{ BAR.I18N("ui.minimap.windAverage"), noWind and BAR.I18N("ui.topbar.wind.nowind1") or avgWindValue },
+			{ BAR.I18N("ui.minimap.windMinimum"), minWind, dim = true },
+			{ BAR.I18N("ui.minimap.windMaximum"), maxWind, dim = true },
+			{ BAR.I18N("ui.minimap.windLow"), riskWindValue .. "%", dim = true },
+		},
+		note = BAR.I18N("ui.minimap.windAdvice"),
+		graph = windGraph(),
+	}, nil, BAR.I18N("ui.topbar.windspeed"))
+end
+
+local function sampleWind(n)
+	local frames, values = windHistory.frames, windHistory.values
+	frames[#frames + 1], values[#values + 1] = n, select(4, sp.GetWind())
+	while frames[1] < n - windHistory.window do
+		table.remove(frames, 1)
+		table.remove(values, 1)
+	end
+	if WG.tooltip and windArea[1] then
+		setWindTooltip()
+	end
+end
+
 local function updateWind()
 	local area = windArea
 
@@ -444,17 +488,7 @@ local function updateWind()
 	end)
 
 	if WG.tooltip and refreshUi then
-		local avgWindValueForTooltip = noWind and BAR.I18N("ui.topbar.wind.nowind1") or avgWindValue
-		WG.tooltip.AddTooltip(
-			"wind",
-			area,
-			BAR.I18N(
-				"ui.topbar.windspeedTooltip",
-				{ avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }
-			),
-			nil,
-			BAR.I18N("ui.topbar.windspeed")
-		)
+		setWindTooltip()
 	end
 end
 
@@ -1439,7 +1473,10 @@ end
 function init()
 	refreshUi = true
 
-	r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+	r = {
+		metal = { sp.GetTeamRealResources(myTeamID, "metal") },
+		energy = { sp.GetTeamRealResources(myTeamID, "energy") },
+	}
 	topbarArea =
 		{ mathFloor(xPos + (cfg.borderPadding * widgetScale)), mathFloor(vsy - (height * widgetScale)), vsx, vsy }
 
@@ -1601,6 +1638,9 @@ function widget:GameFrame(n)
 	timers.gameFrameHappened = true
 	if n == 2 then
 		init()
+	end
+	if n % windHistory.every == 0 and not noWind then
+		sampleWind(n)
 	end
 end
 
@@ -1863,7 +1903,10 @@ function widget:Update(dt)
 	if now > timers.nextSlowUpdate then
 		timers.nextSlowUpdate = now + 0.25
 		local prevR = r
-		r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
+		r = {
+			metal = { sp.GetTeamRealResources(myTeamID, "metal") },
+			energy = { sp.GetTeamRealResources(myTeamID, "energy") },
+		}
 		-- check if we need to smooth the resources
 		local metalDiff7 = r.metal[7] - prevR.metal[7]
 		local metalDiff8 = r.metal[8] - prevR.metal[8]
@@ -2108,7 +2151,6 @@ local function drawResBars()
 		end
 	end
 end
-
 
 local function drawUiBackground()
 	if showResourceBars then
@@ -2358,7 +2400,7 @@ function widget:DrawScreen()
 		end
 		uiBgTex = gl.CreateTexture(mathFloor(topbarArea[3] - topbarArea[1]), mathFloor(topbarArea[4] - topbarArea[2]), {
 			target = GL.TEXTURE_2D,
-			format = GL.ALPHA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		if uiTex then
@@ -2369,7 +2411,7 @@ function widget:DrawScreen()
 			mathFloor(topbarArea[4] - topbarArea[2]),
 			{ --*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
+				format = GL.RGBA8,
 				fbo = true,
 			}
 		)
@@ -2530,8 +2572,6 @@ function widget:DrawScreen()
 		end
 	end
 
-
-
 	glColor(1, 1, 1, 1)
 	glPopMatrix()
 
@@ -2574,9 +2614,6 @@ end
 function widget:MouseMove(x, y)
 	adjustSliders(x, y)
 end
-
-
-
 
 function widget:MousePress(x, y, button)
 	if button == 1 then
@@ -2661,8 +2698,8 @@ function widget:PlayerChanged()
 		resbarHover = nil
 		if prevMyTeamID ~= myTeamID then
 			r = {
-				metal = { sp.GetTeamResources(myTeamID, "metal") },
-				energy = { sp.GetTeamResources(myTeamID, "energy") },
+				metal = { sp.GetTeamRealResources(myTeamID, "metal") },
+				energy = { sp.GetTeamRealResources(myTeamID, "energy") },
 			}
 			smoothedResources = r
 		end
@@ -2893,4 +2930,3 @@ function widget:Shutdown()
 		end
 	end
 end
-

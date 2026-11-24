@@ -21,6 +21,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+-- the configured ones (the settings'), for when another set of fonts is put back
+local configuredFont, configuredFont2 = defaultFont, defaultFont2
 local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
 local defaultSize = 34
@@ -47,6 +49,19 @@ function widget:Initialize()
 	widget:ViewResize(spGetViewGeometry())
 
 	WG.fonts = {}
+	---Fonts 1 and 2 for what asks for them from here on, in place of the configured ones for this
+	---game only (FlowUI2 sets its own while it runs, so the widgets without a FlowUI2 copy match it);
+	---nil puts the configured one back. Fonts already handed out stay as they are.
+	---@param file1 string? e.g. "fonts/Montserrat-Medium.ttf"
+	---@param file2 string?
+	WG.fonts.setDefaultFonts = function(file1, file2)
+		defaultFont = file1 or configuredFont
+		defaultFont2 = file2 or configuredFont2
+	end
+	---@return string font1, string font2 the files fonts 1 and 2 are now
+	WG.fonts.getDefaultFonts = function()
+		return defaultFont, defaultFont2
+	end
 	WG.fonts.getFont = function(file, size, outlineSize, outlineStrength)
 		if not file or file == 1 then
 			file = defaultFont

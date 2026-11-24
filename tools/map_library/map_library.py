@@ -82,6 +82,11 @@ class LibraryError(Exception):
 SIGN_IN = ("cannot prompt because user interactivity", "unable to get password",
            "could not read username", "could not read password", "terminal prompts disabled",
            "authentication failed", " 401")
+# SSH_KEY: an SSH remote where ssh itself failed before GitHub saw the account.
+# The helper runs ssh with BatchMode, so a key behind a passphrase needs ssh-agent.
+# Checked before NO_ACCESS, whose "permission denied" would otherwise claim it.
+SSH_KEY = ("permission denied (publickey", "host key verification failed",
+           "no supported authentication methods")
 NO_ACCESS = ("permission denied", "repository not found", "access denied", "not authorized", " 403")
 NO_NETWORK = ("could not resolve host", "connection timed out", "connection refused",
               "network is unreachable", "failed to connect", "unable to access",
@@ -92,6 +97,8 @@ def classify_git_error(stderr: bytes) -> str:
     text = stderr.decode("utf-8", errors="replace").lower()
     if any(mark in text for mark in SIGN_IN):
         return "sign_in"
+    if any(mark in text for mark in SSH_KEY):
+        return "ssh_key"
     if any(mark in text for mark in NO_ACCESS):
         return "no_access"
     if any(mark in text for mark in NO_NETWORK):

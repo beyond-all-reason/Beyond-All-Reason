@@ -6,7 +6,7 @@ return {
 		maxdec = 1.125,
 		energycost = 40000,
 		metalcost = 4000,
-		builddistance = 175,
+		builddistance = 300,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
 		buildtime = 150000,
@@ -428,7 +428,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
@@ -436,6 +437,7 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

@@ -24,15 +24,12 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-include("keysym.h.lua")
 local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
 local pairs = pairs
 local ipairs = ipairs
 local tonumber = tonumber
 local string_format = string.format
-local table_invert = table.invert
-local pcall = pcall
 --- CHANGE START ---
 -- Helper function to clear a table without creating garbage, using the standard Lua method.
 local function clearTable(t)
@@ -41,8 +38,6 @@ local function clearTable(t)
 	end
 end
 --- CHANGE END ---
-
-SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
 
@@ -182,26 +177,59 @@ local activeCmdDescsCacheDelay = 0.05 -- Cache for 50ms
 -------------------------------------------------------------------------------
 
 local unitName = {}
-local unitBuildOptions = {}
+local defBuildOptions = {} -- unitDefID -> the def's build options, shared by every team
+local unitBuildOptions = {} -- unitDefID -> build options for myTeamID; the def list until a change copies it
 local unitBuildOptionSet = {} -- unitDefID -> { buildOptionDefID = true }
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
-local function refreshUnitDefs()
-	unitName = {}
-	unitBuildOptions = {}
-	unitBuildOptionSet = {}
-	unitMetal_extractor = {}
-	unitTranslatedHumanName = {}
-	unitTranslatedTooltip = {}
-	iconTypes = {}
+
+local function patchBuildOption(builderDefID, builtDefID, added)
+	local buildOptions = unitBuildOptions[builderDefID]
+	if not buildOptions then
+		return
+	end
+	if buildOptions == defBuildOptions[builderDefID] then
+		buildOptions = { unpack(buildOptions) }
+		unitBuildOptions[builderDefID] = buildOptions
+	end
+	dynamicBuildOptions.patch(buildOptions, builtDefID, added)
+	unitBuildOptionSet[builderDefID][builtDefID] = added or nil
+end
+
+-- Resets the builders an earlier team's changes patched, then applies myTeamID's
+local function refreshBuildOptions()
+	for udid, buildOptions in pairs(defBuildOptions) do
+		if unitBuildOptions[udid] ~= buildOptions then
+			unitBuildOptions[udid] = buildOptions
+			local set = {}
+			for i = 1, #buildOptions do
+				set[buildOptions[i]] = true
+			end
+			unitBuildOptionSet[udid] = set
+		end
+	end
+	for builderDefID, options in pairs(dynamicBuildOptions.getChanges(myTeamID)) do
+		for builtDefID, added in pairs(options) do
+			patchBuildOption(builderDefID, builtDefID, added)
+		end
+	end
+end
+
+local function refreshUnitNames()
+	for udid, ud in pairs(UnitDefs) do
+		unitTranslatedHumanName[udid] = ud.translatedHumanName
+		unitTranslatedTooltip[udid] = ud.translatedTooltip
+	end
+end
+
+-- Once: icontypes.lua includes every unit file, and each UnitDefs buildOptions read builds a new table
+local function loadUnitDefs()
 	local orgIconTypes = require("gamedata/icontypes")
 	for udid, ud in pairs(UnitDefs) do
 		unitName[udid] = ud.name
-		unitBuildOptions[udid] = ud.buildOptions
-		unitTranslatedHumanName[udid] = ud.translatedHumanName
-		unitTranslatedTooltip[udid] = ud.translatedTooltip
+		defBuildOptions[udid] = ud.buildOptions
 		if ud.customParams.metal_extractor then
 			unitMetal_extractor[udid] = ud.customParams.metal_extractor
 		end
@@ -209,14 +237,8 @@ local function refreshUnitDefs()
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
 	end
-	dynamicBuildOptions.apply(unitBuildOptions)
-	for udid, buildOptions in pairs(unitBuildOptions) do
-		local set = {}
-		for i = 1, #buildOptions do
-			set[buildOptions[i]] = true
-		end
-		unitBuildOptionSet[udid] = set
-	end
+	refreshUnitNames()
+	refreshBuildOptions()
 end
 
 local spIsUnitSelected = Spring.IsUnitSelected
@@ -431,7 +453,14 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
+	local previousTeamID = myTeamID
 	myTeamID = spGetMyTeamID()
+	if myTeamID ~= previousTeamID then
+		-- build options can differ per team
+		refreshBuildOptions()
+		cachedActiveCmdDescs = nil
+		doUpdate = true
+	end
 end
 
 local function UpdateGridGeometry()
@@ -724,7 +753,7 @@ function widget:ViewResize()
 end
 
 function widget:LanguageChanged()
-	refreshUnitDefs()
+	refreshUnitNames()
 	clear()
 	doUpdate = true
 end
@@ -1479,16 +1508,16 @@ local function refreshBuildmenuTexture()
 	refreshBuildmenu = false
 	if not buildmenuTex and width > 0.05 and height > 0.05 then
 		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
-		buildmenuTex =
-			gl.CreateTexture(math_floor(width * vsx) * 2, math_floor(height * vsy) * 2, { --*(vsy<1400 and 2 or 1)
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
+		local ss = WG.FlowUI.supersample or 2
+		buildmenuTex = gl.CreateTexture(math_floor(width * vsx) * ss, math_floor(height * vsy) * ss, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA8,
+			fbo = true,
+		})
 		buildmenuTexHasContent = false
 		buildmenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 			target = GL.TEXTURE_2D,
-			format = GL.RGBA,
+			format = GL.RGBA8,
 			fbo = true,
 		})
 		gl.R2tHelper.RenderInRect(
@@ -1922,6 +1951,10 @@ function widget:SelectionChanged(sel)
 		throttleDelay = 0.015
 	end
 
+	if (SelectedUnitsCount == 0) ~= (selCount == 0) then
+		throttleDelay = 0 -- units picked from none, or all let go: this frame
+	end
+
 	selectionUpdateTime = os_clock() + throttleDelay
 	-- Invalidate cached commands on selection change
 	cachedActiveCmdDescs = nil
@@ -2279,7 +2312,7 @@ end
 function widget:Initialize()
 	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
 	widgetHandler:RegisterUnitCommand(widget, CMD_STOP_PRODUCTION)
-	refreshUnitDefs()
+	loadUnitDefs()
 	units.loadBlocked()
 
 	if widgetHandler:IsWidgetKnown("Grid menu") then
@@ -2478,12 +2511,11 @@ function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 end
 
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
-	local buildOptions = unitBuildOptions[builderUnitDefID]
-	if buildOptions then
-		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)
-		unitBuildOptionSet[builderUnitDefID][builtUnitDefID] = added or nil
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added, teamID)
+	if teamID and teamID ~= myTeamID then
+		return
 	end
+	patchBuildOption(builderUnitDefID, builtUnitDefID, added)
 	if currentSelBuilderDefs[builderUnitDefID] then
 		cachedActiveCmdDescs = nil
 		doUpdate = true
