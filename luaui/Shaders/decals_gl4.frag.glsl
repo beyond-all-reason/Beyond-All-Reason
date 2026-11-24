@@ -27,6 +27,11 @@ uniform sampler2D mapNormalsTex;
 uniform sampler2DShadow shadowTex;
 uniform sampler2D atlasColorAlpha; // RGB: diffuse, A: opacity
 uniform sampler2D atlasNormals; // RGB: normal, A: emission
+flat in uint g_atlasIndex;
+#if (USE_RUNTIME_ATLASES == 1)
+uniform sampler2D runtimeColorAlpha;
+uniform sampler2D runtimeNormals;
+#endif
 
 out vec4 fragColor;
 
@@ -88,13 +93,24 @@ vec3 ReOrientNormalUnpacked(vec3 basenormal, vec3 detailnormal){ // for unpacked
 #line 31000
 void main(void)
 {
+	// Capture derivatives before any divergent sampler selection or early discard.
+	vec2 uvDx = dFdx(g_uv.xy);
+	vec2 uvDy = dFdy(g_uv.xy);
 	vec3 campos = cameraViewInv[3].xyz;
 	vec3 camtoworld = normalize(g_position.xyz - campos);
 
 	// Sample the decal color first, so invisible fragments bail before all the sampling and shading below.
 	// This matters a lot in fields of overlapping alpha-blended decals: most of every decal quad is
 	// transparent padding, and faded decals linger in the VBOs long before batched removal kicks in.
-	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy);
+	vec4 tex1color;
+	#if (USE_RUNTIME_ATLASES == 1)
+	if (g_atlasIndex == 1u) {
+		tex1color = textureGrad(runtimeColorAlpha, g_uv.xy, uvDx, uvDy);
+	} else
+	#endif
+	{
+		tex1color = textureGrad(atlasColorAlpha, g_uv.xy, uvDx, uvDy);
+	}
 
 	// The blended alpha is tex1color.a^2 * fade, so below ~1/255 this fragment cannot change the framebuffer.
 	// The glow contribution is provably black too: Temperature() is black below 300 kelvin, and its argument
@@ -112,11 +128,28 @@ void main(void)
 	float bias = (offaxis*offaxis)*-2.0;
 
 	if (bias < -0.01){ // only pay for the sharper-mip resample at grazing view angles
-		tex1color = texture(atlasColorAlpha, g_uv.xy, bias);
+		float gradientScale = exp2(bias);
+		#if (USE_RUNTIME_ATLASES == 1)
+		if (g_atlasIndex == 1u) {
+			tex1color = textureGrad(runtimeColorAlpha, g_uv.xy, uvDx * gradientScale, uvDy * gradientScale);
+		} else
+		#endif
+		{
+			tex1color = textureGrad(atlasColorAlpha, g_uv.xy, uvDx * gradientScale, uvDy * gradientScale);
+		}
 	}
 	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
 	
-	vec4 tex2color = texture(atlasNormals, g_uv.xy, bias);
+	vec4 tex2color;
+	float normalGradientScale = exp2(bias);
+	#if (USE_RUNTIME_ATLASES == 1)
+	if (g_atlasIndex == 1u) {
+		tex2color = textureGrad(runtimeNormals, g_uv.xy, uvDx * normalGradientScale, uvDy * normalGradientScale);
+	} else
+	#endif
+	{
+		tex2color = textureGrad(atlasNormals, g_uv.xy, uvDx * normalGradientScale, uvDy * normalGradientScale);
+	}
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
 	if (dot(tex2color.rgb, vec3(1.0)) < 0.001) fragNormal = vec3(0.0, 0.0, 1.0);// check if the normals are missing, if yes, then sub with Z up. 
 	

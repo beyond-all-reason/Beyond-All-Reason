@@ -13,6 +13,7 @@ layout (location = 1) in vec4 uvoffsets;
 layout (location = 2) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 3) in vec4 worldPos; // w = also gameframe it was created on
 layout (location = 4) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd, w: fadeintime
+layout (location = 5) in float atlasIndex;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -28,6 +29,7 @@ out DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	flat uint v_atlasIndex;
 };
 
 bool vertexClipped(vec4 clipspace, float tolerance) {
@@ -47,6 +49,7 @@ void main()
 	v_centerpos.w = 1.0;
 	v_uvoffsets = uvoffsets;
 	v_parameters = parameters;
+	v_atlasIndex = uint(atlasIndex);
 	v_lengthwidthrotation = lengthwidthrotation;
 	
 	v_skipdraw = 0u;

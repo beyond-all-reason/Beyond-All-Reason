@@ -95,33 +95,9 @@ local maxDecalLayersPerCell = 16
 
 ------------------------ GL4 BACKEND -----------------------------------
 
-local atlas = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
-local upperkeys = {}
-for k, v in pairs(atlas) do
-	if type(v) == "table" then
-		if string.lower(k) ~= k then
-			upperkeys[k] = true
-		end
-	end
-end
-for k, _ in pairs(upperkeys) do
-	atlas[string.lower(k)] = atlas[k]
-	atlas[k] = nil
-end
-upperkeys = nil
--- re-pad the atlas a little bit to avoid mip bleed:
---function(t,p) for k,v in pairs(t) do if type(v) == "table" then p = p or 0.5; local px,py = p/t.width, p/t.height; v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py end end end ,
-
--- FIXME: Actually fix the unused scars having full white alpha (all emissive) in normal texture!
-for k, v in pairs(atlas) do
-	if type(v) == "table" then -- do 8/512 padding
-		local px = (8 / 512) * v[5] / atlas.width
-		local py = (8 / 512) * v[6] / atlas.height
-		v[1], v[2], v[3], v[4] = v[1] + px, v[2] - px, v[3] + py, v[4] - py
-	end
-end
-
-atlas.flip(atlas)
+local bakedDiffuse = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
+local bakedNormal = require("luaui/images/decals_gl4/decalsgl4_atlas_normal")
+local decalAtlas
 
 ---@type InstanceVBOTable?
 local decalVBO = nil
@@ -199,6 +175,9 @@ local shaderLargeSourceCache = {
 
 local function goodbye(reason)
 	spEcho("DrawPrimitiveAtUnits GL4 widget exiting with reason: " .. reason)
+	if decalAtlas then
+		decalAtlas:Delete()
+	end
 	widgetHandler:RemoveWidget()
 end
 
@@ -219,6 +198,7 @@ local function initGL4(DPATname)
 
 	if not decalLargeShader then
 		goodbye("Failed to compile " .. DPATname .. " GL4 ")
+		return false
 	end
 
 	local smallDecalLayout
@@ -229,6 +209,7 @@ local function initGL4(DPATname)
 			{ id = 2, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
 			{ id = 3, name = "worldPos", size = 4 },
 			{ id = 4, name = "parameters", size = 4 },
+			{ id = 5, name = "atlasIndex", size = 1 },
 		}
 	else
 		smallDecalLayout = {
@@ -237,6 +218,7 @@ local function initGL4(DPATname)
 			{ id = 3, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
 			{ id = 4, name = "worldPos", size = 4 },
 			{ id = 5, name = "parameters", size = 4 },
+			{ id = 6, name = "atlasIndex", size = 1 },
 		}
 	end
 
@@ -247,6 +229,7 @@ local function initGL4(DPATname)
 	)
 	if decalVBO == nil then
 		goodbye("Failed to create decalVBO")
+		return false
 	end
 
 	if decalUseGeometryShader then
@@ -271,12 +254,14 @@ local function initGL4(DPATname)
 			{ id = 3, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
 			{ id = 4, name = "worldPos", size = 4 },
 			{ id = 5, name = "parameters", size = 4 },
+			{ id = 6, name = "atlasIndex", size = 1 },
 		},
 		64, -- maxelements
 		DPATname .. "Large VBO" -- name
 	)
 	if decalLargeVBO == nil then
 		goodbye("Failed to create decalLargeVBO")
+		return false
 	end
 
 	decalLargeVBO.vertexVBO = planeVBO
@@ -294,12 +279,14 @@ local function initGL4(DPATname)
 			{ id = 3, name = "alphastart_alphadecay_heatstart_heatdecay", size = 4 },
 			{ id = 4, name = "worldPos", size = 4 },
 			{ id = 5, name = "parameters", size = 4 },
+			{ id = 6, name = "atlasIndex", size = 1 },
 		},
 		64, -- maxelements
 		DPATname .. "Extra Large VBO" -- name
 	)
 	if decalExtraLargeVBO == nil then
 		goodbye("Failed to create decalExtraLargeVBO")
+		return false
 	end
 
 	decalExtraLargeVBO.vertexVBO = planeVBO
@@ -321,6 +308,8 @@ local numDecalsToRemove = 0 -- how many decals in the VBOs are in decalRemoveLis
 -- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
 local activeDecalData = {}
 local footprintDecalSet = {} -- tracks which decalIndex values are footprints (for rebuild)
+local decalTextures = {} -- instance ID -> stable texture identity and optional footprint flips
+local bakedVBOMirrors = {} -- allocated lazily for legacy consumers of GetVBOData
 local decalVersion = 0 -- increments when external consumers need to refresh cached decal data
 
 -- Rebuild activeDecalData from existing VBO instance data.
@@ -335,35 +324,37 @@ local function RebuildActiveDecalData()
 			local data = vbo.instanceData
 			for instanceID, instanceIndex in pairs(vbo.instanceIDtoIndex) do
 				local offset = (instanceIndex - 1) * step
-				local posx = data[offset + 13]
-				local posz = data[offset + 15]
-				local length = data[offset + 1]
-				local width = data[offset + 2]
-				local size = mathMax(length, width)
-				local rotation = data[offset + 3]
-				local p = data[offset + 5]
-				local q = data[offset + 6]
-				local s = data[offset + 7]
-				local t = data[offset + 8]
-				local alphastart = data[offset + 9]
-				local alphadecay = data[offset + 10]
-				local spawnframe = data[offset + 16]
-				activeDecalData[instanceID] = {
-					posx,
-					posz,
-					size,
-					alphastart,
-					alphadecay,
-					spawnframe,
-					footprintDecalSet[instanceID] or false,
-					width,
-					length,
-					rotation,
-					p,
-					q,
-					s,
-					t,
-				}
+				if data[offset + 21] == 0 then -- legacy consumers only understand the baked atlas
+					local posx = data[offset + 13]
+					local posz = data[offset + 15]
+					local length = data[offset + 1]
+					local width = data[offset + 2]
+					local size = mathMax(length, width)
+					local rotation = data[offset + 3]
+					local p = data[offset + 5]
+					local q = data[offset + 6]
+					local s = data[offset + 7]
+					local t = data[offset + 8]
+					local alphastart = data[offset + 9]
+					local alphadecay = data[offset + 10]
+					local spawnframe = data[offset + 16]
+					activeDecalData[instanceID] = {
+						posx,
+						posz,
+						size,
+						alphastart,
+						alphadecay,
+						spawnframe,
+						footprintDecalSet[instanceID] or false,
+						width,
+						length,
+						rotation,
+						p,
+						q,
+						s,
+						t,
+					}
+				end
 			end
 		end
 	end
@@ -576,15 +567,12 @@ local function AddDecal(
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	spawnframe = spawnframe or spGetGameFrame()
-	local p, q, s, t = 0, 1, 0, 1
-
-	--spEcho(decaltexturename) --used for displaying which decal texture is spawned
-	if atlas[decaltexturename] == nil then
+	local image = decalAtlas:Get(decaltexturename)
+	if not image then
 		spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:", decaltexturename)
-	else
-		local uvs = atlas[decaltexturename]
-		p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
+		return nil
 	end
+	local p, q, s, t = unpack(image.uv)
 
 	local posy = spGetGroundHeight(posx, posz)
 	--spEcho (unitDefID,decalInfo.texfile, width, length, alpha)
@@ -607,6 +595,8 @@ local function AddDecal(
 	dCT[9], dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
 	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
 	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
+	dCT[21] = image.atlasIndex
+	decalTextures[decalIndex] = { texture = image.key }
 
 	pushDecal(targetVBO, dCT, decalIndex)
 	if lifetime then
@@ -670,6 +660,10 @@ local function DrawDecals()
 		glTexture(4, "$normals")
 		glTexture(5, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
 		glTexture(6, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
+		if decalAtlas.runtimeAlbedo then
+			glTexture(7, decalAtlas.runtimeAlbedo)
+			glTexture(8, decalAtlas.runtimeNormal)
+		end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -701,7 +695,7 @@ local function DrawDecals()
 		end
 
 		-- Restore the GL state
-		for i = 0, 6 do
+		for i = 0, 8 do
 			glTexture(i, false)
 		end
 		glCulling(false) -- This is the correct default mode!
@@ -747,6 +741,7 @@ function RemoveDecal(instanceID) -- assigns the forward-declared local above
 	if decalRemoveList[instanceID] then -- expired: invisible already, the next compaction drops it
 		return
 	end
+	decalTextures[instanceID] = nil
 	local removed = false
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
@@ -765,6 +760,11 @@ end
 
 -- drops the listed decals in order and uploads what moved
 local function compactDecals(vbo)
+	for id in pairs(decalRemoveList) do
+		if vbo.instanceIDtoIndex[id] then
+			decalTextures[id] = nil
+		end
+	end
 	local removed, firstChanged = compactInstanceVBO(vbo, decalRemoveList)
 	if firstChanged then
 		uploadDecalsFrom(vbo, firstChanged - 1)
@@ -1986,6 +1986,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 		and Spring.GetUnitIsDead(unitID) == false
 		and UnitScriptDecals[unitDefID]
 		and UnitScriptDecals[unitDefID][whichDecal]
+		and UnitScriptDecals[unitDefID][whichDecal].cacheTable
 	then
 		local decalTable = UnitScriptDecals[unitDefID][whichDecal]
 
@@ -2038,6 +2039,11 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			decalIndex = decalIndex + 1
 			--spEcho(decalIndex)
 			pushDecal(decalVBO, decalCache, decalIndex)
+			decalTextures[decalIndex] = {
+				texture = decalTable.texture,
+				fliphorizontal = decalTable.fliphorizontal,
+				flipvertical = decalTable.flipvertical,
+			}
 			local deathtime = spawnframe + lifetime
 			if decalRemoveQueue[deathtime] == nil then
 				decalRemoveQueue[deathtime] = { decalIndex }
@@ -2056,7 +2062,7 @@ end
 local pendingRestore = nil -- Holds saved decal data between SetConfigData and Initialize
 local gameOver = false
 
-local savedDecalsFormatVersion = 2
+local savedDecalsFormatVersion = 3
 local savedDecalFieldCount = 13
 
 local function PackSavedDecals(savedDecals)
@@ -2124,8 +2130,15 @@ function widget:Initialize()
 	widgetHandler:AddAction("decalsgl4stats", decalsgl4statsCmd, nil, "t")
 	widgetHandler:AddAction("decalsgl4skipdraw", decalsgl4skipdrawCmd, nil, "t")
 
+	local DecalAtlas = VFS.Include("luaui/Include/DecalAtlas.lua")
+	decalAtlas = DecalAtlas.Create(bakedDiffuse, bakedNormal, "luaui/images/decals_gl4")
+	shaderConfig.USE_RUNTIME_ATLASES = decalAtlas.runtimeAlbedo and 1 or 0
+	uniformInts.runtimeColorAlpha = decalAtlas.runtimeAlbedo and 7 or nil
+	uniformInts.runtimeNormals = decalAtlas.runtimeNormal and 8 or nil
+	spEcho("Decals GL4 incremental atlases: " .. decalAtlas.runtimeCount .. " pair(s)")
 	local initsuccess = initGL4("DecalsGL4")
-	if initsuccess == nil then
+	if not initsuccess then
+		decalAtlas:Delete()
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -2135,7 +2148,7 @@ function widget:Initialize()
 		for i = 1, 100 do
 			local w = mathRandom() * 15 + 7
 			w = w * w
-			local texture = randtablechoice(atlas)
+			local texture = randtablechoice(decalAtlas.entries)
 			--spEcho(texture)
 			AddDecal(
 				texture,
@@ -2167,12 +2180,55 @@ function widget:Initialize()
 	end
 	WG.decalsgl4.RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
-	-- uploads pending decals first: callers may draw the instance VBOs themselves
+	-- Legacy consumers know only the baked atlas. Filter on demand without changing
+	-- the world renderer's mixed draw order or copying any VBO in baked-only games.
+	local exportedVersion = -1
+	local exportedVBOs = {}
 	WG.decalsgl4.GetVBOData = function()
 		for vbo in pairs(pendingUploadFrom) do
 			uploadDecalsFrom(vbo)
 		end
-		return vboTableCache, footprintDecalSet
+		if not decalAtlas.runtimeAlbedo then
+			return vboTableCache, footprintDecalSet
+		end
+		if exportedVersion ~= decalVersion then
+			for i, vbo in ipairs(vboTableCache) do
+				local hasRuntime = false
+				for index = 1, vbo.usedElements do
+					if vbo.instanceData[(index - 1) * vbo.instanceStep + 21] == 1 then
+						hasRuntime = true
+						break
+					end
+				end
+				if hasRuntime then
+					local mirror = bakedVBOMirrors[i]
+					if not mirror then
+						mirror = InstanceVBOTable.makeInstanceVBOTable(vbo.layout, 64, "DecalsGL4 baked export " .. i)
+						bakedVBOMirrors[i] = mirror
+					end
+					if not mirror then
+						return nil -- never expose runtime UVs against a legacy sampler
+					end
+					InstanceVBOTable.clearInstanceTable(mirror)
+					local row = {}
+					for index = 1, vbo.usedElements do
+						local offset = (index - 1) * vbo.instanceStep
+						if vbo.instanceData[offset + 21] == 0 then
+							for field = 1, vbo.instanceStep do
+								row[field] = vbo.instanceData[offset + field]
+							end
+							pushElementInstance(mirror, row, vbo.indextoInstanceID[index], true, true)
+						end
+					end
+					uploadAllElements(mirror)
+					exportedVBOs[i] = mirror
+				else
+					exportedVBOs[i] = vbo
+				end
+			end
+			exportedVersion = decalVersion
+		end
+		return exportedVBOs, footprintDecalSet
 	end
 	WG.decalsgl4.GetVersion = function()
 		return decalVersion
@@ -2189,7 +2245,7 @@ function widget:Initialize()
 		if curFrame > 0 then
 			local restoredCount = 0
 			local frameOffset = curFrame - (pendingRestore.saveFrame or 0)
-			for _, entry in ipairs(pendingRestore.decals) do
+			for entryIndex, entry in ipairs(pendingRestore.decals) do
 				local step = #entry
 				-- Support compact 13-field format and legacy 20-field format
 				local vboEntry
@@ -2222,6 +2278,26 @@ function widget:Initialize()
 				elseif step == 20 then
 					vboEntry = entry
 				end
+				local texture = pendingRestore.textures and pendingRestore.textures[entryIndex]
+				if vboEntry then
+					vboEntry[21] = 0 -- old saves always refer to the baked atlas
+					if texture then
+						local image = decalAtlas:Get(texture.texture)
+						if image then
+							local p, q, s, t = unpack(image.uv)
+							if texture.fliphorizontal then
+								p, q = q, p
+							end
+							if texture.flipvertical then
+								s, t = t, s
+							end
+							vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8] = p, q, s, t
+							vboEntry[21] = image.atlasIndex
+						else
+							vboEntry = nil -- missing content must not sample unrelated baked UVs
+						end
+					end
+				end
 				if vboEntry then
 					-- Adjust spawnframe by the elapsed time between save and restore
 					vboEntry[16] = vboEntry[16] + frameOffset
@@ -2245,6 +2321,8 @@ function widget:Initialize()
 							end
 
 							pushElementInstance(targetVBO, vboEntry, decalIndex, true, true)
+							decalTextures[decalIndex] = texture
+							footprintDecalSet[decalIndex] = texture and texture.footprint or nil
 
 							local deathtime = vboEntry[16] + lifetime
 							if decalRemoveQueue[deathtime] == nil then
@@ -2262,6 +2340,7 @@ function widget:Initialize()
 				end
 			end
 			-- Batch upload all restored decals
+			decalVersion = decalVersion + 1
 			if decalVBO.dirty then
 				uploadAllElements(decalVBO)
 			end
@@ -2281,43 +2360,41 @@ function widget:Initialize()
 	--pre-optimize UnitScriptDecals:
 	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do
 		for i, decalTable in ipairs(UnitScriptDecalSet) do
-			local p, q, s, t = 0, 1, 0, 1
-
-			if atlas[decalTable.texture] == nil then
+			local image = decalAtlas:Get(decalTable.texture)
+			if not image then
 				spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:", decalTable.texture)
 			else
-				local uvs = atlas[decalTable.texture]
-				p, q, s, t = uvs[1], uvs[2], uvs[3], uvs[4]
+				local p, q, s, t = unpack(image.uv)
 				if decalTable.fliphorizontal then
 					p, q = q, p
 				end
 				if decalTable.flipvertical then
 					s, t = t, s
 				end
+				decalTable.cacheTable = {
+					decalTable.width,
+					decalTable.height,
+					0,
+					decalTable.maxalpha,
+					p,
+					q,
+					s,
+					t,
+					decalTable.alphastart or 1,
+					decalTable.alphadecay or 0 / (lifeTimeMult * lifeTimeMultMult),
+					decalTable.heatstart or 0,
+					decalTable.heatdecay or 1,
+					0,
+					0,
+					0,
+					0,
+					decalTable.bwfactor or 1,
+					decalTable.glowsustain or 1,
+					decalTable.glowadd or 1,
+					decalTable.fadeintime or shaderConfig.FADEINTIME or 1,
+					image.atlasIndex,
+				}
 			end
-
-			decalTable.cacheTable = {
-				decalTable.width,
-				decalTable.height,
-				0,
-				decalTable.maxalpha,
-				p,
-				q,
-				s,
-				t,
-				decalTable.alphastart or 1,
-				decalTable.alphadecay or 0 / (lifeTimeMult * lifeTimeMultMult),
-				decalTable.heatstart or 0,
-				decalTable.heatdecay or 1,
-				0,
-				0,
-				0,
-				0,
-				decalTable.bwfactor or 1,
-				decalTable.glowsustain or 1,
-				decalTable.glowadd or 1,
-				decalTable.fadeintime or shaderConfig.FADEINTIME or 1,
-			}
 		end
 	end
 end
@@ -2331,15 +2408,6 @@ end
 function widget:SunChanged()
 	--local nmp = _G["NightModeParams"]
 	--spEcho("widget:SunChanged()",nmp)
-end
-
-function widget:ShutDown()
-	widgetHandler:RemoveAction("decalsgl4stats", "t")
-	widgetHandler:RemoveAction("decalsgl4skipdraw", "t")
-
-	WG.decalsgl4 = nil
-	widgetHandler:DeregisterGlobal("AddDecalGL4")
-	widgetHandler:DeregisterGlobal("RemoveDecalGL4")
 end
 
 function widget:GameOver()
@@ -2394,9 +2462,9 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 						spawnframe, -- [13] spawnframe
 					}
 					if footprintDecalSet[instanceID] then
-						footprints[#footprints + 1] = { size = size, data = entry }
+						footprints[#footprints + 1] = { size = size, data = entry, texture = decalTextures[instanceID] }
 					else
-						scars[#scars + 1] = { size = size, data = entry }
+						scars[#scars + 1] = { size = size, data = entry, texture = decalTextures[instanceID] }
 					end
 				end
 			end
@@ -2412,6 +2480,7 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 	end)
 
 	local savedDecals = {}
+	local savedTextures = {}
 	local savedCount = 0
 	-- Add biggest scars first
 	for i = 1, #scars do
@@ -2420,6 +2489,7 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 		end
 		savedCount = savedCount + 1
 		savedDecals[savedCount] = scars[i].data
+		savedTextures[savedCount] = scars[i].texture
 	end
 	-- Fill remaining slots with biggest footprints
 	for i = 1, #footprints do
@@ -2428,12 +2498,22 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 		end
 		savedCount = savedCount + 1
 		savedDecals[savedCount] = footprints[i].data
+		local texture = footprints[i].texture
+		if texture then
+			savedTextures[savedCount] = {
+				texture = texture.texture,
+				fliphorizontal = texture.fliphorizontal,
+				flipvertical = texture.flipvertical,
+				footprint = true,
+			}
+		end
 	end
 
 	local savedTable = {
 		lifeTimeMult = lifeTimeMult,
 		savedDecalsPacked = PackSavedDecals(savedDecals),
 		savedDecalsFormat = savedDecalsFormatVersion,
+		savedDecalTextures = savedTextures,
 		saveFrame = frame,
 	}
 	return savedTable
@@ -2456,12 +2536,25 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	if savedDecals and #savedDecals > 0 then
 		pendingRestore = {
 			decals = savedDecals,
+			textures = data.savedDecalTextures,
 			saveFrame = data.saveFrame or 0,
 		}
 	end
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("decalsgl4stats", "t")
+	widgetHandler:RemoveAction("decalsgl4skipdraw", "t")
+	WG.decalsgl4 = nil
+	widgetHandler:DeregisterGlobal("AddDecalGL4")
+	widgetHandler:DeregisterGlobal("RemoveDecalGL4")
+	if decalAtlas then
+		decalAtlas:Delete()
+	end
+	for _, mirror in pairs(bakedVBOMirrors) do
+		mirror:Delete()
+	end
+	bakedVBOMirrors = {}
 	if type(decalShader) == "table" then
 		decalShader:Finalize()
 		decalShader = nil

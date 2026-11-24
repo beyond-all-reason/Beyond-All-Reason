@@ -23,6 +23,7 @@ in DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
+	flat uint v_atlasIndex;
 } dataIn[];
 
 out DataGS {
@@ -32,6 +33,7 @@ out DataGS {
 	vec4 g_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 	mat3 tbnmatrix;
 };
+flat out uint g_atlasIndex;
 
 mat3 rotY;
 vec3 decalDimensions; // length, height, widgth
@@ -47,6 +49,7 @@ vec2 transformUV(float u, float v){// this is needed for atlassing
 }
 
 void offsetVertex4( float x, float y, float z, float u, float v){
+	g_atlasIndex = dataIn[0].v_atlasIndex;
 	g_uv.xy = transformUV(u,v);
 	vec3 primitiveCoords = vec3(x,y,z) * decalDimensions;
 	//vec3 vecnorm = normalize(primitiveCoords);// AHA zero case!

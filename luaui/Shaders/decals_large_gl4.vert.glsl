@@ -15,6 +15,7 @@ layout (location = 2) in vec4 uvoffsets;
 layout (location = 3) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 4) in vec4 worldPos; // also gameframe it was created on
 layout (location = 5) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd, w: fadeintime
+layout (location = 6) in float atlasIndex;
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -31,6 +32,7 @@ out DataGS {
 	vec4 g_parameters;
 	mat3 tbnmatrix;
 };
+flat out uint g_atlasIndex;
 
 // This function takes in a set of UV coordinates [0,1] and transforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
@@ -72,6 +74,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 #line 11000
 void main()
 {
+	g_atlasIndex = uint(atlasIndex);
 	// Calc the fade alpha first: dead or off-screen decals collapse to a single clipped vertex, so their
 	// triangles never rasterize (mirrors the v_skipdraw culling done in the geometry shader path).
 	float currentFrame = timeInfo.x + timeInfo.w;
