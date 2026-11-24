@@ -81,21 +81,18 @@ if gadgetHandler:IsSyncedCode() then
 	local detonated, missedDetonations = 0, 0
 
 	--------------------------------------------------------------------
-	-- Seeded PRNG (Park-Miller; exact in doubles, independent of math.random)
+	-- Seeded PRNG (Lehmer; exact in the engine's float32 numbers, independent of math.random)
 	--------------------------------------------------------------------
 
 	local prngState = 1
 
 	local function initrandom(seed)
-		prngState = seed % 2147483647
-		if prngState <= 0 then
-			prngState = prngState + 2147483646
-		end
+		prngState = seed % 65536 + 1
 	end
 
 	local function getrandom()
-		prngState = (prngState * 16807) % 2147483647
-		return (prngState - 1) / 2147483646
+		prngState = (prngState * 75) % 65537
+		return (prngState - 1) / 65536
 	end
 
 	--------------------------------------------------------------------

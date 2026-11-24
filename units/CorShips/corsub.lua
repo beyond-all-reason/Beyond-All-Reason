@@ -137,8 +137,6 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "TORPEDO",
-				maindir = "0 0 1",
-				maxangledif = 90,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

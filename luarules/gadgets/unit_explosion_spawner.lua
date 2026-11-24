@@ -23,6 +23,7 @@ end
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
 -- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
+-- spawns_debris = the string of a unit to create and destroy on the spot, so only its death script plays
 
 local spCreateFeature = Spring.CreateFeature
 local spCreateUnit = Spring.CreateUnit
@@ -34,6 +35,7 @@ local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetFeatureDirection = Spring.SetFeatureDirection
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spSetUnitNoSelect = Spring.SetUnitNoSelect
 local spSpawnCEG = Spring.SpawnCEG
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitHealth = Spring.SetUnitHealth
@@ -76,7 +78,7 @@ local expireCount = 0
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
 local spawnNames = {}
-local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
+local minWaterDepth = -20 -- see movedefs.lua
 
 for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -91,11 +93,19 @@ for weaponDefID = 0, #WeaponDefs do
 			mode = wdcp.spawns_mode,
 			ceg = wdcp.spawns_ceg,
 			stun = wdcp.spawns_stun,
+			debris = wdcp.spawns_debris and UnitDefNames[wdcp.spawns_debris] and wdcp.spawns_debris,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
 		end
 		wantedList[#wantedList + 1] = weaponDefID
+	end
+end
+
+local droneUnitNames = {}
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.drone then
+		droneUnitNames[unitDef.name] = true
 	end
 end
 
@@ -113,9 +123,39 @@ function gadget:Explosion_GetWantedWeaponDef()
 	return wantedList
 end
 
+local function FaceAwayFromOwner(unitID, ownerID, x, z)
+	local ownx, _, ownz = spGetUnitPosition(ownerID)
+	if ownx then
+		local dx = (x - ownx)
+		local dz = (z - ownz)
+		local l = mathSqrt((dx * dx) + (dz * dz))
+		if l > 0 then
+			dx = dx / l
+			dz = dz / l
+			spSetUnitDirection(unitID, dx, 0, dz)
+			spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
+		end
+	end
+end
+
 local function SpawnUnit(spawnData)
 	local spawnDef = spawnData.spawnDef
 	if spawnDef then
+		local x, z = spawnData.x, spawnData.z
+		if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
+			return -- Out of bounds
+		end
+
+		if spawnDef.debris then
+			local debrisID = spCreateUnit(spawnDef.debris, x, spawnData.y, z, 0, spawnData.teamID)
+			if debrisID then
+				if spawnData.ownerID then
+					FaceAwayFromOwner(debrisID, spawnData.ownerID, x, z)
+				end
+				spDestroyUnit(debrisID, true)
+			end
+		end
+
 		if spawnDef.feature then
 			local featureID = spCreateFeature(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 			if not featureID then
@@ -125,23 +165,19 @@ local function SpawnUnit(spawnData)
 			local rot = random() * TAU
 			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
 		else
-			-- Early validation checks
-			local x, z = spawnData.x, spawnData.z
-			if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
-				return -- Out of bounds
-			end
 
 			local validSurface = false
+			local unitDetonates = x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ -- out of bounds?
 			local y = spGetGroundHeight(x, z)
 
 			if not spawnDef.surface then
 				validSurface = true
-			elseif spawnData.y < mathMax(y + 32, 32) then
+			else
 				local surface = spawnDef.surface
-				if stringFind(surface, "LAND", 1, true) and y > minWaterDepth then
-					validSurface = true
-				elseif stringFind(surface, "SEA", 1, true) and y <= 0 then
-					validSurface = true
+				validSurface = (surface:find("LAND", 1, true) and y >= minWaterDepth)
+					or (surface:find("SEA", 1, true) and y <= 0)
+				if validSurface and spawnData.y >= mathMax(y + 32, 32) then
+					unitDetonates = true
 				end
 			end
 
@@ -204,19 +240,17 @@ local function SpawnUnit(spawnData)
 
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
+				FaceAwayFromOwner(unitID, ownerID, x, z)
+			end
 
-				local ownx, owny, ownz = spGetUnitPosition(ownerID)
-				if ownx then
-					local dx = (x - ownx)
-					local dz = (z - ownz)
-					local l = mathSqrt((dx * dx) + (dz * dz))
-					if l > 0 then
-						dx = dx / l
-						dz = dz / l
-						spSetUnitDirection(unitID, dx, 0, dz)
-						spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
-					end
-				end
+			if unitDetonates then
+				spDestroyUnit(unitID, false, false) -- e.g. mines use explodeas
+				return
+			end
+
+			if droneUnitNames[spawnUnitName] then
+				spSetUnitNoSelect(unitID, true)
+				SendToUnsynced("setUnitNoGroup", unitID, true)
 			end
 
 			if spawnDef.expire then
@@ -266,7 +300,22 @@ end
 
 function gadget:Initialize()
 	for i = 1, #wantedList do
-		Script.SetWatchExplosion(wantedList[i], true)
+		gadgetHandler:RegisterExplosion(wantedList[i])
+	end
+	if #wantedList == 0 then
+		gadgetHandler:RemoveCallIn("Explosion")
+	end
+end
+
+local function getProjectileTeam(projectileID, ownerID)
+	local teamID = spGetProjectileTeamID(projectileID) or (ownerID and spGetUnitTeam(ownerID))
+	if teamID then
+		return teamID
+	end
+
+	local allyTeamID = Spring.GetProjectileAllyTeamID(projectileID)
+	if allyTeamID then
+		return (Spring.GetTeamList(allyTeamID) or {})[1]
 	end
 end
 
@@ -276,29 +325,24 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		return
 	end
 
-	if spawnDefs[weaponDefID] then
-		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = proID and spGetProjectileTeamID(proID)
-		if not teamID and ownerID then
-			teamID = spGetUnitTeam(ownerID)
-		end
-		if not teamID then
-			return
-		end
-
-		-- Don't let awakening children embrace the glory of their birthright
-		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
-		spawnCount = spawnCount + 1
-		local spawnData = spawnList[spawnCount] or {}
-		spawnData.spawnDef = spawnDef
-		spawnData.x = x
-		spawnData.y = y
-		spawnData.z = z
-		spawnData.ownerID = ownerID
-		spawnData.teamID = teamID
-		spawnData.weaponDefID = weaponDefID
-		spawnList[spawnCount] = spawnData
+	local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
+	local teamID = proID and getProjectileTeam(proID, ownerID)
+	if not teamID then
+		return
 	end
+
+	-- Don't let awakening children embrace the glory of their birthright
+	-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them
+	spawnCount = spawnCount + 1
+	local spawnData = spawnList[spawnCount] or {}
+	spawnData.spawnDef = spawnDef
+	spawnData.x = x
+	spawnData.y = y
+	spawnData.z = z
+	spawnData.ownerID = ownerID
+	spawnData.teamID = teamID
+	spawnData.weaponDefID = weaponDefID
+	spawnList[spawnCount] = spawnData
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile)

@@ -86,10 +86,11 @@ function widget:MouseMove(mx, my)
 	return true
 end
 
-include("keysym.h.lua")
+local KEY_S = Spring.GetKeyCode("s")
+local KEY_D = Spring.GetKeyCode("d")
 
 function widget:KeyPress(key)
-	if key == KEYSYMS.S then
+	if key == KEY_S then
 		local str = "\t[" .. exportedTeam .. "] = {\n"
 		str = str .. '\t\tnameLong = "",\n'
 		str = str .. '\t\tnameShort = "",\n'
@@ -119,7 +120,7 @@ function widget:KeyPress(key)
 		final_polygons = {}
 		exportedTeam = exportedTeam + 1
 	end
-	if key == KEYSYMS.D and #final_polygons > 0 then
+	if key == KEY_D and #final_polygons > 0 then
 		final_polygons[#final_polygons] = nil
 	end
 end

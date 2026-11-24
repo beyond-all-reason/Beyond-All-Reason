@@ -6,7 +6,6 @@ return {
 		buildtime = 14100,
 		canrepeat = false,
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		energycost = 8100,
 		energyupkeep = 20,
 		explodeas = "mediumBuildingexplosiongeneric-uw",
@@ -29,9 +28,7 @@ return {
 		yardmap = "h cbbbbbbc bssssssb bsssossb bsobbssb bssbbosb bssosssb bssssssb cbbbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 7.7,
-			buildinggrounddecalsizey = 7.7,
-			buildinggrounddecaltype = "decals/leganavalmex_aoplane.dds",
+			buildinggrounddecaltype = "decals/leganavalmex_7_7_aoplane.png",
 			cvbuildable = true,
 			metal_extractor = 4,
 			standardextractor = true,

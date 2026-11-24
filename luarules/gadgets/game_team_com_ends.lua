@@ -149,7 +149,7 @@ function gadget:Initialize()
 	if
 		deathmode ~= "com"
 		and deathmode ~= "own_com"
-		and deathmode ~= "territorial_domination"
+		and deathmode ~= "dominion"
 		and deathmode ~= "builders"
 	then
 		gadgetHandler:RemoveGadget(self)

@@ -19,7 +19,7 @@ local spEcho = Spring.Echo
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -288,8 +288,11 @@ local function initGL4()
 	mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
 	mapMarkInstanceVBO.numVertices = numVertices
 	mapMarkInstanceVBO.vertexVBO = markerVBO
-	mapMarkInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+	mapMarkInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 	mapMarkInstanceVBO.primitiveType = GL.LINES
 
 	if false then -- testing
@@ -339,6 +342,10 @@ end
 
 function widget:Shutdown()
 	WG.PointTracker = nil
+	if type(mapMarkShader) == "table" then
+		mapMarkShader:Finalize()
+		mapMarkShader = nil
+	end
 end
 
 function widget:DrawScreen()
@@ -355,6 +362,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 		label == "Start " .. playerTeam
 		or cmdType ~= "point"
 		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView))
+		or (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID))
 	then
 		return
 	end

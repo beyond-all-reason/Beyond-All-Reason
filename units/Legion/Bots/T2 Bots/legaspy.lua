@@ -46,11 +46,12 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			deactivate_time = 8,
 			firestateoncloak = 0,
 			model_author = "ZephyrSkies (model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
-			subfolder = "Legion/Bots/T2",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "buildert2",
 		},

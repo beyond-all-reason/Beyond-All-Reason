@@ -96,7 +96,8 @@ function gadget:Update(dt)
 
 	VolumeTarget = math_floor(target + 0.5)
 	if VolumeTarget ~= PreviousVolumeTarget then
-		spSetConfigInt("snd_volbattle", VolumeTarget)
+		-- overlay: the sound system still gets notified, without rewriting springsettings.cfg on every change
+		spSetConfigInt("snd_volbattle", VolumeTarget, true)
 		PreviousVolumeTarget = VolumeTarget
 	end
 end

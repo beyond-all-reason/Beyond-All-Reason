@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  ground, base, door1, door2, NanoTurret, Nanoemit;
+piece  ground, base, door1, door2, NanoTurret, Nanoemit, firepoint;
 
 static-var  buildHeading, readyToBuild, oldHead;
 
@@ -48,7 +48,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = firepoint;
 }
 
 

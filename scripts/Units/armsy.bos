@@ -4,7 +4,7 @@
 
 piece  base,pad, nc1,nc2,nc3,nc4,nt1,nt2,nt3,nt4,nano1,nano2,nano3,nano4,beam1,beam2,beam3,beam4,cagelight,cagelight_emit;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -35,6 +35,7 @@ Create()
 	spray = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -66,39 +67,31 @@ StopBuilding()
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	move nt1 to y-axis [5] speed [10];
-	move nt2 to y-axis [5] speed [10];
-	move nt3 to y-axis [5] speed [10];
-	move nt4 to y-axis [5] speed [10];
-	wait-for-move nt1 along y-axis;
-	turn nc1 to z-axis <90> speed <180>;
-	turn nc2 to z-axis <90> speed <180>;
-	turn nc3 to z-axis <-90> speed <180>;
-	turn nc4 to z-axis <-90> speed <180>;
-	wait-for-turn nc1 around z-axis;
-	
+	if( !hasOpened )
+	{
+		move nt1 to y-axis [5] speed [10];
+		move nt2 to y-axis [5] speed [10];
+		move nt3 to y-axis [5] speed [10];
+		move nt4 to y-axis [5] speed [10];
+		wait-for-move nt1 along y-axis;
+		turn nc1 to z-axis <90> speed <180>;
+		turn nc2 to z-axis <90> speed <180>;
+		turn nc3 to z-axis <-90> speed <180>;
+		turn nc4 to z-axis <-90> speed <180>;
+		wait-for-turn nc1 around z-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	
-	sleep 5000;
-
-	turn nc1 to z-axis <0> speed <180>;
-	turn nc2 to z-axis <0> speed <180>;
-	turn nc3 to z-axis <0> speed <180>;
-	turn nc4 to z-axis <0> speed <180>;
-	wait-for-turn nc1 around z-axis;
-	move nt1 to y-axis [0] speed [10];
-	move nt2 to y-axis [0] speed [10];
-	move nt3 to y-axis [0] speed [10];
-	move nt4 to y-axis [0] speed [10];
-	wait-for-move nt1 along y-axis;
 
 	FACTORY_CLOSE_BUILD;
 }

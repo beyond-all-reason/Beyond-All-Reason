@@ -1,0 +1,8 @@
+{
+	"id": "camera_fov_changer",
+	"display_name": "FOV changer",
+	"keybindings": [
+		{ "action": "fov_inc 5", "label": "actions.camera.fovIncrease", "defaultKeysets": ["ctrl+sc_p", "sc_numpad7"] },
+		{ "action": "fov_dec 5", "label": "actions.camera.fovDecrease", "defaultKeysets": ["ctrl+sc_o", "sc_numpad1"] }
+	]
+}

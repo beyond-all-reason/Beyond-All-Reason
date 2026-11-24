@@ -26,12 +26,12 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 535,
 		sonardistance = 535,
-		speed = 273,
+		speed = 220,
 		turnrate = 720,
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Seaplanes",
+			subfolder = "Legion/SeaPlanes",
 			unitgroup = "sub",
 		},
 		sfxtypes = {

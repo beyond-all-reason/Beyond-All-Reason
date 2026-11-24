@@ -98,7 +98,7 @@ return {
 			paralyzemultiplier = 0,
 			reaimtime = 5,
 			spawnpad_unit = "legnanotcbase",
-			subfolder = "",
+			subfolder = "Legion",
 			tombstone = "legstone",
 		},
 		featuredefs = {
@@ -338,13 +338,15 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				def = "legcomlaser",
+				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

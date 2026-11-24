@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 1.35,
 		turnrate = 360,
 		customparams = {
+			maxrange = 480,
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",

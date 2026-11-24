@@ -20,6 +20,7 @@ return {
 		speed = 40.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGBAR.s3o",
 		script = "Units/LEGBAR.cob",
@@ -48,7 +49,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "CorVehicles/T2",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

@@ -2,7 +2,7 @@ return {
 	corafus = {
 		buildangle = 4096,
 		buildpic = "CORAFUS.DDS",
-		buildtime = 329200,
+		buildtime = 330000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "84 95 84",
@@ -14,7 +14,7 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
-		health = 9800,
+		health = 9400,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,

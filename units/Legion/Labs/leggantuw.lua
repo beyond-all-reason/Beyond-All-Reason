@@ -22,7 +22,6 @@ return {
 		metalstorage = 800,
 		minwaterdepth = 30,
 		objectname = "Units/LEGGANT.s3o",
-		radardistance = 50,
 		script = "Units/LEGGANT.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
@@ -40,7 +39,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/leggant_aoplane.dds",
+			buildinggrounddecaltype = "decals/leggant_15_15_aoplane.png",
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 15,
 			buildinggrounddecaldecayspeed = 30,

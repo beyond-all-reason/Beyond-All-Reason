@@ -147,11 +147,10 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Legion T1 Land Constructors
-	--[[
 	if name == "legca" or name == "legck" or name == "legcv" then
 		local numBuildoptions = #buildoptions
+		buildoptions[numBuildoptions + 1] = "legmext15" -- T1.5 Metal Extractor
 	end
-	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca" or name == "legack" or name == "legacv" then

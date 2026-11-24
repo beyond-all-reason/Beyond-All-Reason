@@ -45,7 +45,7 @@ local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 local SendToUnsynced = SendToUnsynced
 
-local resolveAttachPiece = VFS.Include("luarules/gadgets/include/unit_attachments.lua").ResolveAttachPiece
+local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 local SpUnitAttach = Spring.UnitAttach
 
 --repairs and reclaims start at the edge of the unit radius
@@ -215,11 +215,19 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	local nanoID = attached_turrets[unitID]
+	if capture or not nanoID or Spring.GetUnitTeam(nanoID) == newTeam or GG.IsTransferForced(newTeam) then
+		return true
+	end
+	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
+end
+
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	local nanoID = attached_turrets[unitID]
 	-- Best-effort since the engine can refuse transfer:
 	if nanoID and Spring.GetUnitTeam(nanoID) ~= newTeam then
-		Spring.TransferUnit(nanoID, newTeam)
+		Spring.TransferUnit(nanoID, newTeam, Spring.AreTeamsAllied(newTeam, oldTeam))
 	end
 end
 

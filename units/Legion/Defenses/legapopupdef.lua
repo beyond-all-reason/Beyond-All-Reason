@@ -28,9 +28,7 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legapopupdef_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecaltype = "decals/legapopupdef_5_5_aoplane.png",
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Johnathan Crimson (Proposal)",
@@ -116,6 +114,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				gravityaffected = "true",
 				impulsefactor = 2.4,
 				name = "Heavy Riot Blast Cannon",
 				noselfdamage = true,

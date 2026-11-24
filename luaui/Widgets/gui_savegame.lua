@@ -21,33 +21,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local SAVE_DIR = "Saves"
 local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
 
-local LOAD_GAME_STRING = "loadFilename "
 local SAVE_TYPE = "save "
-
-local saveFilenameEdit = nil -- never created; legacy UI stub the guards below check
-
-local function WriteDate(dateTable)
-	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year)
-		.. " "
-		.. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
-end
-
-local function SecondsToClock(seconds)
-	local seconds = tonumber(seconds)
-
-	if seconds <= 0 then
-		return "00:00"
-	else
-		hours = string.format("%02d", mathFloor(seconds / 3600))
-		mins = string.format("%02d", mathFloor(seconds / 60 - (hours * 60)))
-		secs = string.format("%02d", mathFloor(seconds - hours * 3600 - mins * 60))
-		if seconds >= 3600 then
-			return hours .. ":" .. mins .. ":" .. secs
-		else
-			return mins .. ":" .. secs
-		end
-	end
-end
 
 local function trim(str)
 	return str:match("^()%s*$") and "" or str:match("^%s*(.*%S)")
@@ -57,59 +31,6 @@ end
 -- Savegame utility functions
 --------------------------------------------------------------------------------
 -- FIXME: currently unused as it doesn't seem to give the correct order
-
-local function GetSaveExtension(path)
-	if VFS.FileExists(path .. ".ssf") then
-		return ".ssf"
-	end
-	return VFS.FileExists(path .. ".slsf") and ".slsf"
-end
-
-local function GetSaveWithExtension(path)
-	local ext = GetSaveExtension(path)
-	return ext and path .. ext
-end
-
--- Returns the data stored in a save file
-local function GetSave(path)
-	local ret = nil
-	local success, err = pcall(function()
-		local saveData = VFS.Include(path)
-		saveData.filename = string.sub(path, SAVE_DIR_LENGTH, -5) -- pure filename without directory or extension
-		saveData.path = path
-		ret = saveData
-	end)
-	if not success then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error getting save " .. path .. ": " .. err)
-	else
-		local engineSaveFilename = GetSaveWithExtension(string.sub(path, 1, -5))
-		if not engineSaveFilename then
-			--Spring.Log(widget:GetInfo().name, LOG.ERROR, "Save " .. engineSaveFilename .. " does not exist")
-			return nil
-		else
-			return ret
-		end
-	end
-end
-
-local function GetSaveDescText(saveFile)
-	if not saveFile then
-		return ""
-	end
-	return (saveFile.description or "no description")
-		.. "\n"
-		.. saveFile.gameName
-		.. " "
-		.. saveFile.gameVersion
-		.. "\n"
-		.. saveFile.map
-		.. "\n"
-		.. (WG.Translate("interface", "time_ingame") or "Ingame time")
-		.. ": "
-		.. SecondsToClock((saveFile.totalGameframe or saveFile.gameframe or 0) / 30)
-		.. "\n"
-		.. WriteDate(saveFile.date)
-end
 
 local function FindFirstEmptySaveSlot()
 	-- Find the first unused save slot number (e.g., save001, save002, etc.)
@@ -174,63 +95,6 @@ local function SaveGame(filename, description, requireOverwrite)
 	end)
 	if not success then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error saving game: " .. err)
-	end
-end
-
-local function LoadGameByFilename(filename)
-	local saveData = GetSave(SAVE_DIR .. "/" .. filename .. ".lua")
-	if saveData then
-		if Spring.GetMenuName and Spring.SendLuaMenuMsg and Spring.GetMenuName() then
-			Spring.SendLuaMenuMsg(LOAD_GAME_STRING .. filename)
-		else
-			local ext = GetSaveExtension(SAVE_DIR .. "/" .. filename)
-			if not ext then
-				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: cannot find save file.")
-				return
-			end
-			local success, err = pcall(function()
-				-- This should perhaps be handled in chobby first?
-				--Spring.Log(widget:GetInfo().name, LOG.INFO, "Save file " .. path .. " loaded")
-
-				local script = [[
-	[GAME]
-	{
-		SaveFile=__FILE__;
-		IsHost=1;
-		OnlyLocal=1;
-		MyPlayerName=__PLAYERNAME__;
-	}
-	]]
-				script = script:gsub("__FILE__", filename .. ext)
-				script = script:gsub("__PLAYERNAME__", saveData.playerName)
-				Spring.Reload(script)
-			end)
-			if not success then
-				Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error loading game: " .. err)
-			end
-		end
-	else
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Save game " .. filename .. " not found")
-	end
-	if saveFilenameEdit then
-		saveFilenameEdit:SetText(filename)
-	end
-end
-
-local function DeleteSave(filename)
-	if not filename then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "No filename specified for save deletion")
-	end
-	local success, err = pcall(function()
-		local pathNoExtension = SAVE_DIR .. "/" .. filename
-		os.remove(pathNoExtension .. ".lua")
-		local saveFilePath = GetSaveWithExtension(pathNoExtension)
-		if saveFilePath then
-			os.remove(saveFilePath)
-		end
-	end)
-	if not success then
-		Spring.Log(widget:GetInfo().name, LOG.ERROR, "Error deleting save " .. filename .. ": " .. err)
 	end
 end
 

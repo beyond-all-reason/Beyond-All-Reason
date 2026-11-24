@@ -17,6 +17,11 @@ local actionHandler = {
 	keyRepeatActions = {},
 	keyReleaseActions = {},
 	syncActions = {},
+	-- Actions triggered by a currently held physical key, keyed by scancode and captured at press time.
+	-- The engine rebuilds the action list at release time from a single key only with the live modifier state.
+	-- So a modified bind (e.g. Shift+n) gets no matching release dispatch once the modifier is let go first.
+	-- Capturing the press list makes chained or modified binds releasable.
+	pressedKeyActions = {},
 }
 
 --------------------------------------------------------------------------------
@@ -39,7 +44,7 @@ end
 --  Insertions
 --
 
-local function InsertCallInfo(callInfoList, widget, func, data)
+local function InsertCallInfo(callInfoList, widget, func, data, copiesActions)
 	local layer = widget.whInfo.layer
 	local index = 1
 	for i, ci in ipairs(callInfoList) do
@@ -51,18 +56,18 @@ local function InsertCallInfo(callInfoList, widget, func, data)
 			index = i + 1
 		end
 	end
-	table.insert(callInfoList, index, { widget, func, data })
+	table.insert(callInfoList, index, { widget, func, data, copiesActions })
 	return true
 end
 
-function actionHandler:AddAction(widget, cmd, func, data, types)
+function actionHandler:AddAction(widget, cmd, func, data, types, copiesActions)
 	local function add(actionMap)
 		local callInfoList = actionMap[cmd]
 		if callInfoList == nil then
 			callInfoList = {}
 			actionMap[cmd] = callInfoList
 		end
-		return InsertCallInfo(callInfoList, widget, func, data)
+		return InsertCallInfo(callInfoList, widget, func, data, copiesActions)
 	end
 
 	-- make sure that this is a fully initialized widget
@@ -191,6 +196,20 @@ end
 --  Calls
 --
 
+local function CopyActionList(actions)
+	local copy = {}
+	for i, action in ipairs(actions) do
+		local actionCopy = {}
+		for k, v in pairs(action) do
+			actionCopy[k] = v
+		end
+		copy[i] = actionCopy
+	end
+	return copy
+end
+
+actionHandler.CopyActionList = CopyActionList
+
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions, key, scanCode)
 	local callInfoList = actionMap[cmd]
 	if callInfoList == nil then
@@ -200,7 +219,21 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 		--local widget = callInfo[1]
 		local func = callInfo[2]
 		local data = callInfo[3]
-		if func(cmd, optLine, optWords, data, isRepeat, release, actions, key, scanCode) then
+		local callbacks = callInfo[4] and actions and CopyActionList(actions) or actions
+		if func(cmd, optLine, optWords, data, isRepeat, release, callbacks, key, scanCode) then
+			return true
+		end
+	end
+	return false
+end
+
+local function TryActionList(actionMap, actionsToTry, isRepeat, release, triggeringActions, key, scanCode)
+	for _, bAction in ipairs(actionsToTry) do
+		local cmd = bAction.command
+		local extra = bAction.extra
+		local words = string.split(extra)
+
+		if TryAction(actionMap, cmd, extra, words, isRepeat, release, triggeringActions, key, scanCode) then
 			return true
 		end
 	end
@@ -208,28 +241,48 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 end
 
 function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
-	if not (actions and next(actions)) then
+	local hasActions = actions ~= nil and next(actions) ~= nil
+
+	if press then
+		-- Remember which actions this physical key triggered, so their release can still be dispatched even when the modifier state no longer matches the bind at release time. Always written (nil included) so a press whose release never arrives cannot leave a stale list behind for the next press of the same key.
+		if scanCode and not isRepeat then
+			self.pressedKeyActions[scanCode] = hasActions and actions or nil
+		end
+
+		if not hasActions then
+			return false
+		end
+
+		local actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
+		if TryActionList(actionSet, actions, isRepeat, false, actions, key, scanCode) then
+			return true
+		end
+
 		return false
 	end
 
-	local actionSet
-	if press then
-		actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-	else
-		actionSet = self.keyReleaseActions
+	-- Release: prefer the action list captured at press time.
+	local releaseActions = (scanCode and self.pressedKeyActions[scanCode]) or actions
+	if scanCode then
+		self.pressedKeyActions[scanCode] = nil
 	end
 
-	for _, bAction in ipairs(actions) do
-		local cmd = bAction.command
-		local extra = bAction.extra
-		local words = string.split(extra)
+	if not (releaseActions and next(releaseActions)) then
+		return false
+	end
 
-		if TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions, key, scanCode) then
-			return true
-		end
+	if TryActionList(self.keyReleaseActions, releaseActions, false, true, releaseActions, key, scanCode) then
+		return true
 	end
 
 	return false
+end
+
+-- Drops a key's captured actions without dispatching them, for releases that never reach KeyAction: A textOwner can swallow the release of the key that installed it, which would otherwise leave the capture behind to be dispatched by some later release.
+function actionHandler:ClearPressedKey(scanCode)
+	if scanCode then
+		self.pressedKeyActions[scanCode] = nil
+	end
 end
 
 function actionHandler:TextAction(line)

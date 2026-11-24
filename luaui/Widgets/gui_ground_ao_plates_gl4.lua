@@ -19,10 +19,9 @@ local spEcho = Spring.Echo
 -- Configurable Parts:
 local groundaoplatealpha = 1.0
 
-local atlas = VFS.Include("unittextures/decals/unitaoplates_atlas.lua")
-local getUVCoords = atlas.getUVCoords
-atlas.flip(atlas)
-local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
+local atlas = require("unittextures/decals/unitaoplates_atlas")
+local plateAtlas
+local unitDefIDtoInstanceData = {} -- key unitdef, the plate's instance data, with the gameframe set per push
 
 ---@type InstanceVBOTable?
 local groundPlateVBO = nil
@@ -48,40 +47,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
-	local gf = spGetGameFrame()
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then
+	local instanceData = unitDefID and unitDefIDtoInstanceData[unitDefID]
+	if instanceData == nil then
 		return
 	end -- these can't/dont have plates
 
-	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-
-	local p, q, s, t = getUVCoords(atlas, decalInfo.texfile)
-	--spEcho(decalInfo.texfile, p,q,s,t)
+	instanceData[7] = spGetGameFrame()
 
 	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
-		{
-			decalInfo.sizey,
-			decalInfo.sizex,
-			0,
-			0, -- length, width, cornersize, height
-			0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
-			4, -- how many vertices should we make (4 is a quad)
-			gf,
-			0,
-			decalInfo.alpha,
-			0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,
-			p,
-			t,
-			s, -- These are our default UV atlas transformations, note how Y axis is flipped for atlas
-			0,
-			0,
-			0,
-			0,
-		}, -- these are just padding zeros, that will get filled in
+		instanceData, -- copied in, so one table per unitdef serves every plate
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, this is used when reinitializing everything on VisibleUnitsChanged
@@ -102,10 +79,16 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(GL_LEQUAL)
 		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, atlas.atlasimage)
+		if plateAtlas.runtimeTexture then
+			glTexture(1, plateAtlas.runtimeTexture)
+		end
 		groundPlateShader:Activate()
 		groundPlateVBO.VAO:DrawArrays(GL_POINTS, groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
+		if plateAtlas.runtimeTexture then
+			glTexture(1, false)
+		end
 		glCulling(false)
 		gl.DepthTest(GL.ALWAYS)
 		gl.DepthTest(false)
@@ -114,25 +97,54 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:Initialize()
-	-- Init texture atlas
-	--makeAtlas()
-
-	-- Init the unitDefIDtoDecalInfo
-	for id, UD in pairs(UnitDefs) do
-		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
-			--local UD.name
-			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
-			--spEcho(texname)
-			if atlas[texname] then
-				unitDefIDtoDecalInfo[id] = {
-					texfile = texname,
-					-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
-					sizex = (UD.customParams.buildinggrounddecalsizex or 0.0) * 16,
-					sizey = (UD.customParams.buildinggrounddecalsizey or 0.0) * 16,
-					alpha = (UD.customParams.buildinggrounddecalalpha or 1.0) * groundaoplatealpha,
-				}
-			end
+	if not gl.CreateShader then
+		widgetHandler:RemoveWidget()
+		return
+	end
+	local GroundAOAtlas = VFS.Include(luaShaderDir .. "GroundAOAtlas.lua")
+	plateAtlas = GroundAOAtlas.Create(atlas, "unittextures/decals", UnitDefs, "unit")
+	local runtimeImages = {}
+	local runtimeImageCount = 0
+	for _, plate in pairs(plateAtlas.plates) do
+		if plate.atlasIndex == 1 and not runtimeImages[plate.texturePath] then
+			runtimeImages[plate.texturePath] = true
+			runtimeImageCount = runtimeImageCount + 1
 		end
+	end
+	local runtimeInfo = plateAtlas.runtimeTexture and gl.TextureInfo(plateAtlas.runtimeTexture)
+	Spring.Echo(
+		"Ground AO unit incremental atlas: "
+			.. runtimeImageCount
+			.. " image(s), "
+			.. (runtimeInfo and (runtimeInfo.xsize .. "x" .. runtimeInfo.ysize) or "not created")
+	)
+
+	-- Init the unitDefIDtoInstanceData
+	for id, plate in pairs(plateAtlas.plates) do
+		local p, q, s, t = unpack(plate.uv)
+		if plate.atlasIndex == 1 then
+			s, t = 1 - s, 1 - t -- runtime atlas images use the opposite Y orientation
+		end
+		unitDefIDtoInstanceData[id] = {
+			plate.sizeZ,
+			plate.sizeX,
+			0,
+			0, -- length, width, cornersize, height
+			0, -- teamID is unused here
+			4, -- four vertices make a quad
+			0, -- the gameFrame, set per push
+			plate.atlasIndex, -- parameters.y selects the prebuilt/runtime atlas
+			plate.alpha * groundaoplatealpha,
+			0, -- parameters.w is filled with the glow rate in the vertex shader
+			q,
+			p,
+			t,
+			s, -- preserve the primitive renderer's UV ordering
+			0,
+			0,
+			0,
+			0,
+		} -- instance data is filled by the VBO helper
 	end
 
 	-- Init GL4 things
@@ -143,6 +155,7 @@ function widget:Initialize()
 	shaderConfig.HEIGHTOFFSET = 0
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 0
+	shaderConfig.USE_SECONDARY_TEXTURE = plateAtlas.runtimeTexture and 1 or 0
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	shaderConfig.POST_VERTEX =
 		"v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2; // match CUS glow rate"
@@ -156,6 +169,7 @@ function widget:Initialize()
 
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
 	if groundPlateVBO == nil then
+		plateAtlas:Delete()
 		spEcho("Error while initializing InitDrawPrimitiveAtUnit, removing widget")
 		widgetHandler:RemoveWidget()
 		return
@@ -186,5 +200,15 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)
+	end
+end
+
+function widget:Shutdown()
+	if plateAtlas then
+		plateAtlas:Delete()
+	end
+	if type(groundPlateShader) == "table" then
+		groundPlateShader:Finalize()
+		groundPlateShader = nil
 	end
 end

@@ -1,5 +1,5 @@
-local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local ModoptionPayload = require("common/luaUtilities/modoption_payload")
+local base64 = require("common/luaUtilities/base64")
 
 local function encode(json, compress)
 	return base64.Encode(compress and VFS.ZlibCompress(json) or json)
