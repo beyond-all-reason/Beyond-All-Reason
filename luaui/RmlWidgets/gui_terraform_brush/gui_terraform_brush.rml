@@ -18,7 +18,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.20</span>
+					<span class="tf-title-version">1.20.1</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -10059,6 +10059,7 @@
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">SPLAT TEX MULTIPLIERS</div>
+				<div id="btn-env-reset-splatmults" class="tf-env-reset-btn" data-event-click="onEnvResetSplatMults()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">0</div>
@@ -10091,36 +10092,38 @@
 		</div>
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
-				<div class="tf-collapsible-title">SPLAT TEX SCALES</div>
+				<div class="tf-collapsible-title">TILE SIZE (ELMO)</div>
+				<div id="btn-env-reset-splatscales" class="tf-env-reset-btn" data-event-click="onEnvResetSplatScales()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">0</div>
 				<div id="btn-env-splatscale-0-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input type="range" id="slider-env-splatscale-0" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<input type="range" id="slider-env-splatscale-0" class="tf-slider" min="16" max="1024" step="1" value="100" />
 				<div id="btn-env-splatscale-0-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-				<input type="text" id="slider-env-splatscale-0-numbox" class="tf-slider-numbox" value="0" />
+				<input type="text" id="input-env-splatscale-0" class="tf-slider-numbox tf-splat-tile-box" value="100" />
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">1</div>
 				<div id="btn-env-splatscale-1-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input type="range" id="slider-env-splatscale-1" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<input type="range" id="slider-env-splatscale-1" class="tf-slider" min="16" max="1024" step="1" value="100" />
 				<div id="btn-env-splatscale-1-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-				<input type="text" id="slider-env-splatscale-1-numbox" class="tf-slider-numbox" value="0" />
+				<input type="text" id="input-env-splatscale-1" class="tf-slider-numbox tf-splat-tile-box" value="100" />
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 20dp;">2</div>
 				<div id="btn-env-splatscale-2-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input type="range" id="slider-env-splatscale-2" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<input type="range" id="slider-env-splatscale-2" class="tf-slider" min="16" max="1024" step="1" value="100" />
 				<div id="btn-env-splatscale-2-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-				<input type="text" id="slider-env-splatscale-2-numbox" class="tf-slider-numbox" value="0" />
+				<input type="text" id="input-env-splatscale-2" class="tf-slider-numbox tf-splat-tile-box" value="100" />
 			</div>
 			<div class="flex flex-row gap-1 items-center">
 				<div class="text-sm text-keybind" style="width: 20dp;">3</div>
 				<div id="btn-env-splatscale-3-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input type="range" id="slider-env-splatscale-3" class="tf-slider" min="0" max="200" step="1" value="0" />
+				<input type="range" id="slider-env-splatscale-3" class="tf-slider" min="16" max="1024" step="1" value="100" />
 				<div id="btn-env-splatscale-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-				<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
+				<input type="text" id="input-env-splatscale-3" class="tf-slider-numbox tf-splat-tile-box" value="100" />
 			</div>
+			<div id="lbl-env-splatscales" class="tf-splat-scales-line"></div>
 		</div>
 		</div><!-- /tf-panel-body -->
 	</div>
