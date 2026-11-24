@@ -681,8 +681,10 @@ local function addDroneToCarrier(ownerID, carrierData, dronetypeIndex, subUnitID
 	droneData.bearing, droneData.bearingJitter =
 		findFreeBearing(carrierData, dronetypeIndex, carrierData.maxunits[dronetypeIndex])
 	carrierData.subUnitsList[subUnitID] = droneData
+	if not droneCarrierIdList[subUnitID] then
+		totalDroneCount = totalDroneCount + 1
+	end
 	droneCarrierIdList[subUnitID] = ownerID
-	totalDroneCount = totalDroneCount + 1
 	return dockingpiece
 end
 
@@ -877,45 +879,9 @@ local function spawnUnit(spawnData)
 	end
 end
 
-local function attachToNewCarrier(newCarrier, subUnitID)
+local function attachToNewCarrier(newCarrier, subUnitID, dronetypeIndex)
 	if carrierMetaList[newCarrier] then
-		spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
-		droneCarrierIdList[subUnitID] = newCarrier
-		local subUnitCount = carrierMetaList[newCarrier].subUnitCount
-		subUnitCount = subUnitCount + 1
-		carrierMetaList[newCarrier].subUnitCount = subUnitCount
-		local dockingpiece
-		local dockingpieceindex
-		if carrierMetaList[newCarrier].docking then
-			for i = 1, #carrierMetaList[newCarrier].availablePieces do
-				if carrierMetaList[newCarrier].availablePieces[i].dockingPieceAvailable then
-					dockingpiece = carrierMetaList[newCarrier].availablePieces[i].dockingPiece
-					dockingpieceindex = i
-					carrierMetaList[newCarrier].availablePieces[i].dockingPieceAvailable = false
-					break
-				end
-			end
-		else
-			dockingpiece = 1
-			dockingpieceindex = 1
-		end
-		local droneCurrentHealth, droneMaxHealth = spGetUnitHealth(subUnitID)
-		local droneData = {
-			active = true,
-			docked = false,
-			stayDocked = false,
-			activeDocking = false,
-			inFormation = false,
-			engaged = false,
-			dockingPiece = dockingpiece,
-			dockingPieceIndex = dockingpieceindex,
-			remainingAmmo = 0,
-			maxAmmo = 0,
-			originalMaxHealth = droneMaxHealth or 1,
-			approachSpeed = droneApproachSpeed(UnitDefs[spGetUnitDefID(subUnitID)]),
-		}
-		carrierMetaList[newCarrier].subUnitsList[subUnitID] = droneData
-		totalDroneCount = totalDroneCount + 1
+		addDroneToCarrier(newCarrier, carrierMetaList[newCarrier], dronetypeIndex, subUnitID)
 	else
 		local oldCarrierID = Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id")
 		if oldCarrierID and carrierMetaList[oldCarrierID] then
@@ -1476,7 +1442,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				if carrierMetaList[unitID].subUnitsList[subUnitID] then
 					if evolvedCarrierID then
 						undockSequence(unitID, subUnitID)
-						attachToNewCarrier(evolvedCarrierID, subUnitID)
+						attachToNewCarrier(evolvedCarrierID, subUnitID, droneMetaData.dronetypeIndex)
 					else
 						applyCarrierDeaththroe(carrierMetaList[unitID], subUnitID, droneMetaData)
 					end

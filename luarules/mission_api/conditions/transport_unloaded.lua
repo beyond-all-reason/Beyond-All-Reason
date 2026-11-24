@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Docking drones, hats, and attached turrets raise UnitLoaded as well.
 -- A transportName is checked whether it's an actual transport. A transportDefName is not.
@@ -6,6 +7,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'TransportUnloaded',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },

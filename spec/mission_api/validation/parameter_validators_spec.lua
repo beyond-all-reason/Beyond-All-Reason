@@ -90,13 +90,12 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Quantity", function()
 		it("rejects a negative number", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitsOwned, {
-				teamName = "player",
-				quantity = -1,
-				unitDefName = "armwar",
-			}))
+			local result = V.validateAction({
+				type = V.actionTypes.AddCountdown,
+				parameters = { countdownID = "c", seconds = -1 },
+			})
 
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Parameter: quantity")
+			V.assertMessage(result, "Quantity must be >= 0, got -1. Action: a, Parameter: seconds")
 		end)
 	end)
 
@@ -1232,7 +1231,9 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
-		return V.validateTrigger(V.trigger(V.conditionTypes.UnitOrdered, { command = command, unitName = "x" }))
+		return V.validateTrigger(
+			V.trigger(V.conditionTypes.UnitOrdered, { command = command, includeUnit = { unitName = "x" } })
+		)
 	end
 
 	describe("Command", function()

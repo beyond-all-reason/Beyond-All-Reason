@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local CMD_INSERT = CMD.INSERT
 
@@ -10,6 +11,7 @@ local CMD_INSERT = CMD.INSERT
 
 return {
 	type = 'ProductionOrdered',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'buildDefName',         required = true,  type = ParameterTypes.UnitDefName },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },

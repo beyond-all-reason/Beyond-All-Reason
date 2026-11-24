@@ -25,7 +25,7 @@ describe("mission_api.conditions.construction_finished", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -41,10 +41,9 @@ describe("mission_api.conditions.construction_finished", function()
 		for _, parameter in ipairs(constructionFinished.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
-		assert.are.same({ "unitName", "unitDefName" }, constructionFinished.parameters.requiresOneOf)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
+		assert.is_nil(constructionFinished.parameters.requiresOneOf)
 	end)
 
 	it("filters by unitName", function()
@@ -52,44 +51,44 @@ describe("mission_api.conditions.construction_finished", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		finished(trigger({ unitName = "powerplant" }), context, 1, 0)
+		finished(trigger({ includeUnit = { unitName = "powerplant" } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar" }), context, 2, 0) -- unitDefID 2 = armwin
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire for a unit that was never under construction (spawned, etc)", function()
 		local context, fired = newContext()
 		context.WasUnderConstruction = {} -- gives nil
-		finished(trigger({ unitDefName = "armsolar" }), context, 1, 0)
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team allied with teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 2) -- team 2 allied with 0
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team hostile to teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 3)
+		finished(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 3)
 		assert.are.equal(0, fired())
 	end)
 end)

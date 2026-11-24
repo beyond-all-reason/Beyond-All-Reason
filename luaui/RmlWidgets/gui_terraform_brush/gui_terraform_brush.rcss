@@ -1633,6 +1633,13 @@ body {
 .tf-dc-reset-btn:hover .tf-action-btn-text { color: #f0f0f0; }
 /* Sun & Shadows: max 5 chars (-9999) */
 #tf-env-sun-root .tf-slider-numbox { flex: 0 0 38dp; }
+/* Splat tile size: decimals (96.125) */
+#tf-splattex-root .tf-splat-tile-box { flex: 0 0 52dp; }
+.tf-splat-scales-line {
+	margin-top: 6dp;
+	font-size: 1.125rem;
+	color: #9ca3af;
+}
 
 /* === Env window inline reset button (small in section headers) === */
 .tf-env-reset-btn {

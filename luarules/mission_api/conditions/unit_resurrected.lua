@@ -1,12 +1,14 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'UnitResurrected',
+	kind = ConditionKinds.Event,
 	parameters = {
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
+		{ name = 'includeUnit', required = false, type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'featureName', required = false, type = ParameterTypes.FeatureName },
-		requiresOneOf = { 'featureName', 'unitDefName' },
+		requiresOneOf = { 'featureName', 'includeUnit' },
 	},
 	callins = {
 		UnitCreated = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, builderID)
@@ -25,10 +27,7 @@ return {
 			if trigger.parameters.featureName and not context.DoesFeatureHaveName(featureID, trigger.parameters.featureName) then
 				return
 			end
-			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if trigger.parameters.teamName and unitTeam ~= trigger.parameters.teamName then
+			if not context.IsUnitIncluded(unitID, trigger.parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)
