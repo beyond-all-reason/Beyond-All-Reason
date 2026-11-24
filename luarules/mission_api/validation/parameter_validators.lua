@@ -15,6 +15,8 @@ local stateCommands = VFS.Include("common/stateCommands.lua")
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
 
+local isCompactSequence = table.isCompactSequence
+
 --------------------------------------------------------------------------------
 -- Helper functions
 --------------------------------------------------------------------------------
@@ -96,14 +98,6 @@ local function getListValidator(elementValidator, emptyMessage)
 		end
 		return results
 	end
-end
-
-local function isCompactSequence(values)
-	local length = 0
-	for index in ipairs(values) do
-		length = index
-	end
-	return length == table.count(values)
 end
 
 --------------------------------------------------------------------------------
