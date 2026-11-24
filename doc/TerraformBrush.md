@@ -286,7 +286,7 @@ Paints the map's own colour texture in layers, like an image editor. Picking the
 
 Paints the four detail-texture channels of a map's splat distribution.
 
-- **TEXTURE CHANNEL** 1 to 4 (keys 1 to 4). **SPLAT TEX PARAMS** opens a window with each channel's texture multiplier and scale.
+- **TEXTURE CHANNEL** 1 to 4 (keys 1 to 4). **SPLAT TEX PARAMS** opens a window with each channel's texture multiplier and tile size: the distance in elmo after which the texture repeats (96 = a tile every 96 elmo). The line under the rows shows the matching `texScales` for mapinfo, and RESET on either section returns to the loaded values.
 - DISPLAY adds a **Splat Map** chip.
 - CONTROLS: STRENGTH, INTENSITY, SIZE, ROTATION, FALL-OFF, FRACTAL EDGE, FRACTAL FREQ.
 - **SAVE SPLATS** writes the texture to `Terraform Brush/Splats/`; the chip beside it cycles PNG, DDS and TGA.

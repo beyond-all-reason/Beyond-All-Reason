@@ -1,5 +1,5 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
-local matchingUnits = GG["MissionAPI"].Modules.UnitQuery.MatchingUnits
+local getMatchingUnits = GG["MissionAPI"].Modules.UnitQuery.GetMatchingUnits
 
 local SOURCE_DEFAULT = "mission"
 
@@ -18,7 +18,7 @@ end
 
 local function setUnitAttribute(unitName, unitDefName, teamID, attribute, value, source)
 	source = source or SOURCE_DEFAULT
-	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
+	for _, unitID in ipairs(getMatchingUnits(unitName, unitDefName, teamID)) do
 		setUnitAttributeValue(unitID, attribute, value, source)
 	end
 end
@@ -33,7 +33,7 @@ end
 
 local function multiplyUnitAttribute(unitName, unitDefName, teamID, attribute, multiplier, source)
 	source = source or SOURCE_DEFAULT
-	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
+	for _, unitID in ipairs(getMatchingUnits(unitName, unitDefName, teamID)) do
 		setUnitAttributeMultiplier(unitID, attribute, multiplier, source)
 	end
 end
@@ -56,7 +56,7 @@ end
 local function setUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, value, source)
 	weapon = EXPLOSIONS[weapon] or weapon
 	source = source or SOURCE_DEFAULT
-	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
+	for _, unitID in ipairs(getMatchingUnits(unitName, unitDefName, teamID)) do
 		setUnitWeaponValue(unitID, weapon, attribute, value, source)
 	end
 end
@@ -72,7 +72,7 @@ end
 local function multiplyUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, multiplier, source)
 	weapon = EXPLOSIONS[weapon] or weapon
 	source = source or SOURCE_DEFAULT
-	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
+	for _, unitID in ipairs(getMatchingUnits(unitName, unitDefName, teamID)) do
 		setUnitWeaponMultiplier(unitID, weapon, attribute, multiplier, source)
 	end
 end

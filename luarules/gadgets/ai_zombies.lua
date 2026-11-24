@@ -230,7 +230,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	trackedUnitData.canFly[unitDefID] = unitDef.canFly == true
 	trackedUnitData.height[unitDefID] = unitDef.height or 0
 	trackedUnitData.capturableOrObjective[unitDefID] = isObjective or unitDef.capturable ~= false
-	if unitDef.canCloak then
+	if
+		unitDef.canCloak
+		and not (unitDef.customParams and (unitDef.customParams.iscommander or unitDef.customParams.isscavcommander))
+	then
 		trackedUnitData.canCloak[unitDefID] = true
 	end
 end

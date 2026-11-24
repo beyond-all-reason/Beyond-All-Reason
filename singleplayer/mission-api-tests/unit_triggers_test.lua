@@ -18,9 +18,7 @@ local triggers = {
 			maxRepeats = 77,
 		},
 		parameters = {
-			unitName = 'bots',
-			teamName = 'player',
-			unitDefName = 'armpw',
+			includeUnit = { unitName = 'bots', teamName = 'player', unitDefName = 'armpw' },
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
 		},
@@ -35,9 +33,7 @@ local triggers = {
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {
-			unitName = 'bots',
-			teamName = 'player',
-			unitDefName = 'armpw',
+			includeUnit = { unitName = 'bots', teamName = 'player', unitDefName = 'armpw' },
 			duration = 60,
 			area = { x1 = 2000, z1 = 2300, x2 = 2200, z2 = 2500 },
 		},
@@ -47,7 +43,7 @@ local triggers = {
 	botExists = {
 		type = conditionTypes.UnitExists,
 		parameters = {
-			unitDefName = 'armpw',
+			includeUnit = { unitDefName = 'armpw' },
 		},
 		actions = { 'messageBotExists' },
 	},
@@ -55,7 +51,7 @@ local triggers = {
 	botNotExists = {
 		type = conditionTypes.UnitNotExists,
 		parameters = {
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 		},
 		actions = { 'messageBotNotExists' },
 	},
@@ -63,7 +59,7 @@ local triggers = {
 	botDied = {
 		type = conditionTypes.UnitKilled,
 		parameters = {
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 		},
 		actions = { 'messageBotDied' },
 	},
@@ -71,9 +67,7 @@ local triggers = {
 	botEnteredLocation = {
 		type = conditionTypes.UnitEnteredLocation,
 		parameters = {
-			unitName = 'bots',
-			teamName = 'player',
-			unitDefName = 'armpw',
+			includeUnit = { unitName = 'bots', teamName = 'player', unitDefName = 'armpw' },
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
 		actions = { 'messageBotEnteredLocation', 'spawnCapturable', 'spawnDecoy' },
@@ -91,8 +85,7 @@ local triggers = {
 	squadGathered = {
 		type = conditionTypes.UnitsGatheredInLocation,
 		parameters = {
-			unitName = 'squad',
-			teamName = 'player',
+			includeUnit = { unitName = 'squad', teamName = 'player' },
 			area = { x = 1200, z = 2000, radius = 200 },
 		},
 		actions = { 'messageSquadEnteredLocation' },
@@ -101,9 +94,7 @@ local triggers = {
 	botLeftLocation = {
 		type = conditionTypes.UnitLeftLocation,
 		parameters = {
-			unitName = 'bots',
-			teamName = 'player',
-			unitDefName = 'armpw',
+			includeUnit = { unitName = 'bots', teamName = 'player', unitDefName = 'armpw' },
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
 		-- for some reason, CMD.CAPTURE doesn't work in the same frame as either acting unit or its target is spawned
@@ -113,7 +104,7 @@ local triggers = {
 	unitCaptured = {
 		type = conditionTypes.UnitCaptured,
 		parameters = {
-			unitDefName = 'armwin',
+			includeUnit = { unitDefName = 'armwin' },
 		},
 		actions = { 'messageCaptured', 'spawnResBots', 'orderRes' },
 	},
@@ -121,8 +112,7 @@ local triggers = {
 	constructionStartedSolar = {
 		type = conditionTypes.ConstructionStarted,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 		},
 		actions = { 'messageConstructionStartedSolar' },
 	},
@@ -130,8 +120,7 @@ local triggers = {
 	constructionHalfwaySolar = {
 		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 			progress = 0.5,
 		},
 		actions = { 'messageConstructionHalfwaySolar' },
@@ -140,8 +129,7 @@ local triggers = {
 	constructionFinishedSolar = {
 		type = conditionTypes.ConstructionFinished,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 		},
 		actions = { 'messageConstructionFinishedSolar' },
 	},
@@ -149,8 +137,7 @@ local triggers = {
 	constructionStartedByDecoy = {
 		type = conditionTypes.ConstructionStarted,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 			builderName = 'decoys',
 		},
 		actions = { 'messageConstructionStartedByDecoy' },
@@ -160,8 +147,7 @@ local triggers = {
 	constructionFinishedByDecoy = {
 		type = conditionTypes.ConstructionFinished,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 		},
 		actions = { 'messageConstructionFinishedByDecoy' },
 	},
@@ -185,8 +171,7 @@ local triggers = {
 	constructionCanceledSolar = {
 		type = conditionTypes.ConstructionCanceled,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 		},
 		actions = { 'messageConstructionCanceledSolar' },
 	},
@@ -210,8 +195,7 @@ local triggers = {
 	constructionStartedByAssister = {
 		type = conditionTypes.ConstructionStarted,
 		parameters = {
-			unitDefName = 'armsolar',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armsolar', teamName = 'player' },
 			builderName = 'assister',
 		},
 		actions = { 'messageConstructionStartedByAssister' },
@@ -237,8 +221,7 @@ local triggers = {
 	unitReclaimedRadar = {
 		type = conditionTypes.UnitReclaimed,
 		parameters = {
-			unitDefName = 'armrad',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armrad', teamName = 'player' },
 		},
 		actions = { 'messageUnitReclaimedRadar' },
 	},
@@ -246,7 +229,7 @@ local triggers = {
 	unitReclaimedByName = {
 		type = conditionTypes.UnitReclaimed,
 		parameters = {
-			unitName = 'doomedRadar',
+			includeUnit = { unitName = 'doomedRadar' },
 		},
 		actions = { 'messageUnitReclaimedByName' },
 	},
@@ -254,7 +237,7 @@ local triggers = {
 	unitReclaimedByMission = {
 		type = conditionTypes.UnitReclaimed,
 		parameters = {
-			unitName = 'doomedSolar',
+			includeUnit = { unitName = 'doomedSolar' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageUnitReclaimedByMission' },
@@ -275,8 +258,7 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			unitDefName = 'armpw',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armpw', teamName = 'player' },
 		},
 		actions = { 'messageProductionStartedPawn' },
 	},
@@ -284,8 +266,7 @@ local triggers = {
 	productionStartedByBotLab = {
 		type = conditionTypes.ProductionStarted,
 		parameters = {
-			unitDefName = 'armck',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armck', teamName = 'player' },
 			factoryName = 'botlab',
 		},
 		actions = { 'messageProductionStartedByBotLab' },
@@ -294,8 +275,7 @@ local triggers = {
 	productionStartedByVehiclePlant = {
 		type = conditionTypes.ProductionStarted,
 		parameters = {
-			unitDefName = 'armfav',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armfav', teamName = 'player' },
 			factoryDefName = 'armvp',
 		},
 		actions = { 'messageProductionStartedByVehiclePlant' },
@@ -304,8 +284,7 @@ local triggers = {
 	unitRessed = {
 		type = conditionTypes.UnitResurrected,
 		parameters = {
-			unitDefName = 'armllt',
-			teamName = 'player',
+			includeUnit = { unitDefName = 'armllt', teamName = 'player' },
 		},
 		actions = { 'messageRessed' },
 	},

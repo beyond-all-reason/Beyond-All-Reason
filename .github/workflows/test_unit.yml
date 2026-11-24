@@ -18,7 +18,12 @@ jobs:
 
   busted:
     needs: pull-request-for-push
-    if: ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true' }}
+    # A release pull request's head is the default branch, whose push run tests the same tree.
+    if: >-
+      ${{ !cancelled() && needs.pull-request-for-push.outputs.has-pull-request != 'true'
+      && !(github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.head_ref == github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

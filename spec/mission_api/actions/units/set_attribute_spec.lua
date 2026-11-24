@@ -6,7 +6,7 @@ local env = MissionSpecEnv.new()
 ---@type table, table
 local queried, queryResult
 local unitQuerySpy = {
-	MatchingUnits = function(unitName, unitDefName, teamID)
+	GetMatchingUnits = function(unitName, unitDefName, teamID)
 		queried[#queried + 1] = { unitName, unitDefName, teamID }
 		return queryResult
 	end,

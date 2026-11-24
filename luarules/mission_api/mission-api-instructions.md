@@ -85,12 +85,15 @@ return {
 	type = 'UnitKilled',                                  -- PascalCase, unique, matches the file name
 	kind = ConditionKinds.Event,                          -- Event or Metric, see below
 	parameters = {
-		{ name = 'unitName', required = false, type = ParameterTypes.UnitName },
-		requiresOneOf = { 'unitName', 'unitDefName' },    -- optional, on the array itself
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
+		-- requiresOneOf = { 'a', 'b' },                  -- optional, on the array itself
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			-- filter on trigger.parameters, then:
+			if not context.IsUnitIncluded(unitID, trigger.parameters, unitDefID, unitTeam) then
+				return
+			end
 			context.ActivateTrigger(trigger)
 		end,
 	},
@@ -111,6 +114,11 @@ return {
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
+- A condition about one unit takes `includeUnit`, a unit filter of `unitName`, `unitDefName`, and
+  either `teamName` or `allianceName`, and `excludeUnit`, a list of unit filters, and checks both
+  with `context.IsUnitIncluded`. A filter's `unitDefName` is one name or a list of them, and arrives
+  processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
+  `builderName` or `transportDefName`.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the
   matching `needs*` check or silently never fires.
@@ -168,7 +176,8 @@ return {
 - Action functions receive processed values: a `TeamName` parameter arrives as a team ID, so name
   the argument `teamID` and never look it up again (`GG['MissionAPI'].Teams` maps both ways, so
   `Teams[teamID]` returns the name instead of raising). Trigger handlers read the same value from
-  `trigger.parameters.teamName`.
+  `trigger.parameters.teamName`, and from a unit filter's `teamName`. A unit filter's
+  `allianceName` arrives as an allyteam ID.
 - An action uses no randomness, because the mission author relies on the outcome.
 - An action does the obvious, safe thing by default; anything that can strand a unit or surprise the
   author needs an explicit parameter.

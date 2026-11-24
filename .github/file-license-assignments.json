@@ -98191,6 +98191,13 @@
     "source": "manual-audit"
   },
   {
+    "file": "unittextures/decals/armsonar_4_4_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Beherith",
     "date": "2026-06-16T17:55:36Z",
     "file": "unittextures/decals/armsonar_aoplane.dds",
@@ -98277,6 +98284,13 @@
     "license": "LicenseRef-BAR-CLA-1.0",
     "pr": "manual-audit",
     "source": "manual-audit"
+  },
+  {
+    "file": "unittextures/decals/armwar_8_8_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "Beherith",
@@ -98755,6 +98769,13 @@
     "source": "manual-audit"
   },
   {
+    "file": "unittextures/decals/corsonar_4_4_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Beherith",
     "date": "2026-06-16T17:55:36Z",
     "file": "unittextures/decals/corsonar_aoplane.dds",
@@ -98972,6 +98993,13 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals/legamphlab_11_11_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Protar",
     "date": "2026-09-01T20:21:28Z",
     "file": "unittextures/decals/legamstor_aoplane.dds",
@@ -98981,6 +99009,20 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals/leganavalfusion_11_11_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
+    "file": "unittextures/decals/leganavalmex_7_7_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Protar",
     "date": "2026-09-01T20:21:28Z",
     "file": "unittextures/decals/legap_aoplane.dds",
@@ -98988,6 +99030,13 @@
     "pr": "4001",
     "source": "manual-audit",
     "status": "awaiting_license"
+  },
+  {
+    "file": "unittextures/decals/legapopupdef_5_5_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "ZephyrSkies",
@@ -99102,6 +99151,13 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals/leggant_15_15_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Protar",
     "date": "2026-09-01T20:21:28Z",
     "file": "unittextures/decals/leggatet3_aoplane.dds",
@@ -99143,6 +99199,13 @@
     "license": "CC-BY-SA-4.0",
     "pr": "4001",
     "source": "manual-audit"
+  },
+  {
+    "file": "unittextures/decals/legjuno_5_5_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "Tharsis",
@@ -99359,6 +99422,20 @@
     "pr": "5030",
     "source": "manual-audit",
     "status": "awaiting_license"
+  },
+  {
+    "file": "unittextures/decals/leguwestore_6_6_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
+    "file": "unittextures/decals/leguwmstore_6_6_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "Protar",
@@ -103940,6 +104017,13 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals_features/legamphlab_dead_11_11_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "ZephyrSkies",
     "date": "2026-11-07T13:11:18Z",
     "file": "unittextures/decals_features/legamphtank_dead_4_4_aoplane.dds",
@@ -103957,6 +104041,20 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals_features/leganavalfusion_dead_11_11_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
+    "file": "unittextures/decals_features/leganavalmex_dead_7_7_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Protar",
     "date": "2026-09-07T15:04:01Z",
     "file": "unittextures/decals_features/legap_dead_8_8_aoplane.dds",
@@ -103964,6 +104062,13 @@
     "pr": "5030",
     "source": "manual-audit",
     "status": "awaiting_license"
+  },
+  {
+    "file": "unittextures/decals_features/legapopupdef_dead_5_5_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "ZephyrSkies",
@@ -104274,6 +104379,13 @@
     "status": "awaiting_license"
   },
   {
+    "file": "unittextures/decals_features/leggant_dead_15_15_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
     "contributor": "Protar",
     "date": "2026-09-01T20:25:05Z",
     "file": "unittextures/decals_features/leggat_dead_5_5_aoplane.dds",
@@ -104395,6 +104507,13 @@
     "pr": "5030",
     "source": "manual-audit",
     "status": "awaiting_license"
+  },
+  {
+    "file": "unittextures/decals_features/legjuno_dead_5_5_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "Tharsis",
@@ -104766,6 +104885,20 @@
     "license": "CC-BY-SA-4.0",
     "pr": "5030",
     "source": "manual-audit"
+  },
+  {
+    "file": "unittextures/decals_features/leguwestore_dead_6_6_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
+  },
+  {
+    "file": "unittextures/decals_features/leguwmstore_dead_6_6_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10166,
+    "date": "2026-11-20"
   },
   {
     "contributor": "ZephyrSkies",

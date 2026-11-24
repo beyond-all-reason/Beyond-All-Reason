@@ -13,7 +13,7 @@ describe("mission_api.camera", function()
 		Builders.MissionApi
 			.new()
 			:WithModule("UnitQuery", {
-				MatchingUnits = function(unitName)
+				GetMatchingUnits = function(unitName)
 					return unitsByName[unitName] or {}
 				end,
 			})

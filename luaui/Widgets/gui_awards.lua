@@ -204,15 +204,14 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 					"o"
 				)
 			end
-			font:Print(
-				"\255\120\120\120" .. BAR.I18N("ui.awards.runnersUp"),
-				widgetX + mathFloor(512 * widgetScale),
-				widgetY + widgetHeightScaled - offset - mathFloor(5 * widgetScale),
-				14 * widgetScale,
-				"o"
-			)
-
 			if secondScore > 0 then
+				font:Print(
+					"\255\120\120\120" .. BAR.I18N("ui.awards.runnersUp"),
+					widgetX + mathFloor(512 * widgetScale),
+					widgetY + widgetHeightScaled - offset - mathFloor(5 * widgetScale),
+					14 * widgetScale,
+					"o"
+				)
 				if pic == "comwreath" then
 					secondScore = round(secondScore, 2)
 				else
@@ -482,9 +481,14 @@ function widget:DrawScreen()
 
 	glCallList(Background)
 
-	if FirstAward and SecondAward and ThirdAward then
+	-- these are nil when that category was not awarded
+	if FirstAward then
 		glCallList(FirstAward)
+	end
+	if SecondAward then
 		glCallList(SecondAward)
+	end
+	if ThirdAward then
 		glCallList(ThirdAward)
 	end
 	if CowAward then

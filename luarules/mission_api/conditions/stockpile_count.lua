@@ -6,10 +6,8 @@ return {
 	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'count',       required = true,  type = ParameterTypes.PositiveInteger },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		requiresOneOf = { 'unitName', 'unitDefName' },
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
 	},
 	callins = {
 		StockpileChanged = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
@@ -17,13 +15,7 @@ return {
 			if oldCount >= parameters.count or newCount < parameters.count then
 				return
 			end
-			if parameters.teamName and parameters.teamName ~= unitTeam then
-				return
-			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-				return
-			end
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+			if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 				return
 			end
 			context.ActivateTrigger(trigger)

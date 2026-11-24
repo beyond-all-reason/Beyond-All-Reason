@@ -39,7 +39,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/leggant_aoplane.dds",
+			buildinggrounddecaltype = "decals/leggant_15_15_aoplane.png",
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 15,
 			buildinggrounddecaldecayspeed = 30,

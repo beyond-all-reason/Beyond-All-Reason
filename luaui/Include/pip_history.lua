@@ -975,7 +975,7 @@ end
 -- the records wait in pendingRes, frame in the age slot, until the next tick's first phase.
 function Store:SampleResources(frame)
 	self.resLast = frame
-	local spGetTeamResources = Spring.GetTeamResources
+	local BARGetTeamRealResources = BAR.Utilities.GetTeamRealResources
 	local teams = Spring.GetTeamList() --[[@as table<integer, integer>]]
 	local gaia = Spring.GetGaiaTeamID()
 	local buf = self.pendingRes
@@ -984,8 +984,8 @@ function Store:SampleResources(frame)
 		local team = teams[i]
 		local _, _, isDead = Spring.GetTeamInfo(team, false)
 		if team ~= gaia and not isDead then
-			local mCur, mMax, mPull, mInc, _, mShare = spGetTeamResources(team, "metal")
-			local eCur, eMax, ePull, eInc, _, eShare = spGetTeamResources(team, "energy")
+			local mCur, mMax, mPull, mInc, _, mShare = BARGetTeamRealResources(team, "metal")
+			local eCur, eMax, ePull, eInc, _, eShare = BARGetTeamRealResources(team, "energy")
 			if mCur and eCur then
 				local mm = Spring.GetTeamRulesParam(team, "mmLevel")
 				buf[n + 1] = team

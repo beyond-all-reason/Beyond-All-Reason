@@ -4,6 +4,14 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.20.1 - 2026-11-24
+
+### Fixes
+
+- **SPLAT TEX PARAMS takes the tile size in elmo.** The scale rows are now TILE SIZE (ELMO): type the distance after which a channel's texture repeats (96 for a tile every 96 elmo), decimals allowed. The old rows moved the scale in steps of 0.0001, so a size like 96 was out of reach and the detail texture drifted against the diffuse. The line under the rows shows the matching `texScales` for mapinfo.
+- **SPLAT TEX PARAMS has RESET** on both sections: back to the values the map, project or preset loaded with.
+- **Saved splat scales keep their precision.** Environment files and map projects wrote the scales with four decimals, and exports cut small numbers to seven. All three now write the exact value.
+
 ## 1.20 - 2026-11-06
 
 Map export: a saved project becomes a map that plays without the editor, and comes back into it.
