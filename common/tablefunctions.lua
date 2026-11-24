@@ -369,18 +369,15 @@ end
 
 if not table.isCompactSequence then
 	---Check that all values in the table form a compact sequence, 1..n, without gaps.
-	table.isCompactSequence = function(tbl)
-		local length = 0
-		for _ in ipairs(tbl) do
-			length = length + 1
-		end
-		local key, value = length, nil ---@type any, any
-		repeat
-			key, value = next(tbl, key)
-			if key ~= nil then
+	---@param tbl table
+	function table.isCompactSequence(tbl)
+		local count = 0
+		for _ in pairs(tbl) do
+			count = count + 1
+			if tbl[count] == nil then
 				return false
 			end
-		until value == nil
+		end
 		return true
 	end
 end
