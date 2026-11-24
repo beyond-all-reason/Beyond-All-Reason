@@ -290,11 +290,15 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+static-var gun_1;
 Shot1()
 {
 	//emit-sfx 1024 + 0 from flare;
 	//segtarget = segtarget +  (Rand( 100, 200 ));
 	//aimy1target = aimy1target +  (Rand( 0, 400 ) - 200);
+	#ifdef FLARESNUM
+		gun_1 = (gun_1+1)%FLARESNUM;
+	#endif
 	lastshotframe = (GET GAME_FRAME) + 150;
 	return (TRUE);
 }
@@ -397,11 +401,11 @@ FireWeapon1()
 	#endif
 }
 
+
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = flare;
+	pieceIndex = flare + gun_1;
 }
-
 
 
 AimFromWeapon1(pieceIndex)
