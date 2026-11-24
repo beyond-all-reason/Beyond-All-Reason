@@ -102,6 +102,36 @@ describe("widget manifests", function()
 		assert.are.equal(FOLDER .. "gui_example/", widgets[1].dir)
 		assertOneWarningMentioning(warnings, "gui_repeat/manifest.json")
 	end)
+
+	it("reads several modes as one set, the first mode keeping a repeated id and each noting its own", function()
+		local byMode = {
+			zip = { [FOLDER .. "unit_shipped/manifest.json"] = manifest('"unit_shipped"') },
+			raw = {
+				[FOLDER .. "unit_copy/manifest.json"] = manifest('"unit_shipped"'),
+				[FOLDER .. "gui_own/manifest.json"] = manifest('"gui_own"'),
+			},
+		}
+		local env = SpecEnv.new({
+			VFS = {
+				SubDirs = function(folder, _, mode)
+					return dirsOf(byMode[mode], folder)
+				end,
+				FileExists = function(path, mode)
+					return byMode[mode][path] ~= nil
+				end,
+				LoadFile = function(path, mode)
+					return byMode[mode][path]
+				end,
+			},
+		})
+		local manifests = SpecEnv.include(env, "modules/widgets/manifests.lua")
+
+		local widgets, warnings = manifests.Discover(FOLDER, { "zip", "raw" })
+
+		assert.are.same({ "unit_shipped", "gui_own" }, ids(widgets))
+		assert.are.same({ "zip", "raw" }, { widgets[1].vfsMode, widgets[2].vfsMode })
+		assertOneWarningMentioning(warnings, "unit_copy/manifest.json")
+	end)
 end)
 
 describe("marking loaded widgets", function()

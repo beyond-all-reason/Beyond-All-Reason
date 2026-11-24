@@ -7,12 +7,12 @@
 	<link type="text/rcss" href="gui_unit_library.rcss" />
 </head>
 <!--
-	UNIT LIBRARY (refactor plan, U2 + U7). Shared by the mission editor and the terraform brush:
-	whichever opened it last gets the pick. Five filter rows that combine (AND across rows, OR
-	within a row: Shift+click adds), each chip with the count it would leave. Every control is a
-	fixed callback; the arrays are assigned from the widget's Update, at most a page of tiles.
-	Ctrl+click on TILES adds or removes one, Shift+click adds the range from the last tile clicked
-	(the asset library's gestures); the editor cycles through the picks, one per drop.
+	UNIT LIBRARY. Shared by the mission editor and the terraform brush: whichever opened it last
+	gets the pick. Five filter rows combine (AND across rows, OR within a row: Shift+click adds),
+	each chip showing the count it would leave. Every control is a fixed callback; the widget's
+	Update assigns the arrays, at most a page of tiles. Ctrl+click on a tile adds or removes it,
+	Shift+click adds the range from the last tile clicked; the editor cycles through the picks,
+	one per drop.
 -->
 <body data-model="unit_library_model">
 <div id="ul-root" class="fp-root ul-root widget-shadow rounded-md bg-darkest p-2">
@@ -58,10 +58,9 @@
 			<div class="tf-collapsible-title">FILTERS</div>
 		</div>
 		<div id="ul-body-filters" class="ul-section-body" data-class-hidden="folded.filters">
-			<!-- Label at the left of each row. The rows a search is narrowed by first (faction,
-			     tier) come first, the type is split into units and buildings, and domain (which
-			     mostly repeats the type) comes last. A click on a label clears that row; the label
-			     lights while its row has a filter on. -->
+			<!-- Label at the left of each row. Faction and tier come first (they narrow a search most),
+			     type is split into units and buildings, domain comes last. A click on a label
+			     clears its row; the label lights while its row filters. -->
 			<div id="ul-row-faction" class="ul-frow">
 				<div class="ul-flabel" data-class-active="rowActive.faction" data-event-click="clearRow('faction')" data-event-mouseover="rowNote('faction')">FACTION</div>
 				<div class="ul-chip-row">
@@ -139,8 +138,8 @@
 			<div class="ul-empty" data-if="none">No unit type matches. Clear a chip or the search.</div>
 		</div>
 	</div>
-	<!-- Saved groups (U9), at the bottom and folded until opened (PtaQ): a click picks one up
-	     to place, x deletes the file. -->
+	<!-- Saved groups, at the bottom and folded until opened: a click picks one up to place,
+	     x deletes the file. -->
 	<div id="ul-frame-blueprints" class="tf-section-frame" data-class-tf-collapsed="folded.blueprints" data-class-hidden="!blueprintsShown">
 		<div id="ul-fold-blueprints" class="tf-section-title-row" data-event-click="fold('blueprints')">
 			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.blueprints ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />

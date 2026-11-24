@@ -113,7 +113,8 @@ local function updateAllyUnitsBuildPowers(allyID, boostMultiplier)
 	local teamIDs = boostableAllies[allyID]
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 	for teamID in pairs(teamIDs) do
-		for unitID in pairs(teamBoostableUnits[teamID]) do
+		local units = teamBoostableUnits[teamID]
+		for unitID in pairs(units) do
 			if builderWatch[unitID] then
 				setUnitModifier(unitID, "buildSpeed", boostMultiplier, ATTRIBUTE_SOURCE)
 			else
@@ -123,13 +124,25 @@ local function updateAllyUnitsBuildPowers(allyID, boostMultiplier)
 	end
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if builderWatchDefs[unitDefID] then
-		if teamBoostableUnits[unitTeam] then
-			teamBoostableUnits[unitTeam][unitID] = true
-			builderWatch[unitID] = true
-		end
+local function watchBuilder(unitID, unitDefID, unitTeam)
+	if builderWatchDefs[unitDefID] and teamBoostableUnits[unitTeam] then
+		teamBoostableUnits[unitTeam][unitID] = true
+		builderWatch[unitID] = true
 	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	watchBuilder(unitID, unitDefID, unitTeam)
+end
+
+-- the new team's boost, if any, applies on its next update
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if builderWatch[unitID] then
+		builderWatch[unitID] = nil
+		teamBoostableUnits[oldTeam][unitID] = nil
+		GG.UnitAttributes.SetUnitModifier(unitID, "buildSpeed", nil, ATTRIBUTE_SOURCE)
+	end
+	watchBuilder(unitID, unitDefID, newTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)

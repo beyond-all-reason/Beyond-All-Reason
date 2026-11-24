@@ -21,6 +21,7 @@ return {
 		speed = 39.0,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGMED.s3o",
 		script = "Units/LEGMED.cob",

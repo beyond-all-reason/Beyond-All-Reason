@@ -160,7 +160,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetCameraVectors = Spring.GetCameraVectors
+local spGetCameraDirection = Spring.GetCameraDirection
 local spGetGameFrame = Spring.GetGameFrame
 
 -- GL4 field renderer: hull geometry in chunked VBOs, per-field parameters in an SSBO, distance fade
@@ -201,42 +201,39 @@ local timingInterval = 120 -- echo every N draw calls
 
 -- Cached camera state to avoid recalculating every frame
 local cachedCameraX, cachedCameraY, cachedCameraZ = 0, 0, 0
-local cachedCamFwdX, cachedCamFwdY, cachedCamFwdZ = 0, 0, 1
+local cachedCamFwdX, cachedCamFwdY, cachedCamFwdZ = 0.0, 0.0, 1.0
 local cachedCosFrustumAngle = 0 -- Pre-computed cosine of frustum half-angle (avoids trig per-call)
 local drawCounter = 0 -- Increments every draw call; works even when game is paused (unlike spGetGameFrame)
 local lastCameraUpdateDraw = -999
 local cameraMovementThreshold = 10 -- Minimum distance to consider camera moved (in elmos)
 local cameraRotationThreshold = 0.01 -- Minimum dot product change to consider camera rotated
 local cameraGeneration = 0 -- Increments when camera moves to invalidate visibility cache
+local cameraGenerationAnchor = { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 } -- camera position and forward at the last generation bump
 
 -- Check if a point is within the camera view frustum
 -- Camera state cache, refreshed once per draw; cameraGeneration counts moves/rotations
 local function UpdateCameraCache(currentDrawCount)
 	if currentDrawCount ~= lastCameraUpdateDraw then
 		local newCamX, newCamY, newCamZ = spGetCameraPosition()
-		local camVectors = spGetCameraVectors()
-		local newCamForward = camVectors.forward
+		local fwdX, fwdY, fwdZ = spGetCameraDirection()
 
-		-- Check if camera has moved significantly (compare against cached old position)
-		local dx = newCamX - cachedCameraX
-		local dy = newCamY - cachedCameraY
-		local dz = newCamZ - cachedCameraZ
+		-- Moved or rotated significantly since the last generation bump; measured from there rather
+		-- than from the previous draw, so a slow pan still adds up
+		local anchor = cameraGenerationAnchor
+		local dx = newCamX - anchor[1]
+		local dy = newCamY - anchor[2]
+		local dz = newCamZ - anchor[3]
 		local moved = (dx * dx + dy * dy + dz * dz) > cameraMovementThreshold * cameraMovementThreshold
-
-		-- Check if camera has rotated significantly (dot product change)
-		local oldDot = cachedCamFwdX * newCamForward[1]
-			+ cachedCamFwdY * newCamForward[2]
-			+ cachedCamFwdZ * newCamForward[3]
-		local rotated = oldDot < (1 - cameraRotationThreshold)
-
-		-- Increment cache generation if camera moved or rotated
+		local rotated = anchor[4] * fwdX + anchor[5] * fwdY + anchor[6] * fwdZ < (1 - cameraRotationThreshold)
 		if moved or rotated then
 			cameraGeneration = cameraGeneration + 1
+			anchor[1], anchor[2], anchor[3] = newCamX, newCamY, newCamZ
+			anchor[4], anchor[5], anchor[6] = fwdX, fwdY, fwdZ
 		end
 
 		-- Update cached camera state
 		cachedCameraX, cachedCameraY, cachedCameraZ = newCamX, newCamY, newCamZ
-		cachedCamFwdX, cachedCamFwdY, cachedCamFwdZ = newCamForward[1], newCamForward[2], newCamForward[3]
+		cachedCamFwdX, cachedCamFwdY, cachedCamFwdZ = fwdX, fwdY, fwdZ
 
 		-- Pre-compute frustum cone cosine (avoids trig per-call)
 		local aspect = vsx / vsy
@@ -415,6 +412,9 @@ local batch = {
 	heightRectCount = 0,
 	lastHeightPatchClock = 0.0,
 	heightPatchInterval = 0.3, -- seconds between height patch passes; the overlay is drawn without depth test
+	scaleCamX = 0.0, -- camera position cameraScale was last traced from
+	scaleCamY = 0.0,
+	scaleCamZ = 0.0,
 	hullBounds = setmetatable({}, { __mode = "k" }), -- [hull] = {minX, maxX, minZ, maxZ, pointCount}
 	clusterEnergyPositiveCount = 0,
 	clusterTracyPhase = nil,
@@ -483,7 +483,6 @@ end
 -- Cache to avoid redundant Spring API calls
 local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
 local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
-local lastCameraCheckClock = 0 -- Track when we last checked camera up vector (clock-based for pause support)
 
 -- Per-frame visibility and distance cache to avoid redundant calculations
 local clusterVisibilityCache = {} -- {[cid] = {frame, inView, dist, fadeMult}}
@@ -580,7 +579,7 @@ end
 
 -- Information tables
 local knownFeatures
-local flyingFeatures
+local flyingFeatures ---@type table<integer, table>
 local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
@@ -3163,8 +3162,6 @@ end
 --------------------------------------------------------------------------------
 -- Drawing
 
-local camUpVector
-
 -- Process deferred features that may have come into view
 local function ProcessDeferredFeatures(frame)
 	if
@@ -3175,6 +3172,7 @@ local function ProcessDeferredFeatures(frame)
 	end
 
 	batch.lastDeferFrame = frame
+	UpdateCameraCache(drawCounter) -- not refreshed by the draw while the overlay is hidden
 
 	-- Process deferred creations - check if they're now in view
 	local remainingDeferred = 0
@@ -3741,8 +3739,15 @@ local function UpdateReclaimFields()
 	-- Keep background clustering alive even when overlay is hidden, so first
 	-- selection doesn't need to do all clustering/text prep in one stall.
 	-- Hidden: the feature bookkeeping above stays current, the recluster waits until the overlay is
-	-- shown again. The reveal hides the fields until that recluster is done (waitForFresh*).
-	if not overlayVisible and not dirty.forceFullRedraw then
+	-- shown again. The reveal hides the fields until that recluster is done (waitForFresh*). Except
+	-- once every feature is gone: clearing the last fields costs nothing and lets the widget sleep.
+	if
+		cachedKnownFeaturesCount == 0
+		and next(flyingFeatures) == nil
+		and (#featureClusters > 0 or #energyFeatureClusters > 0)
+	then
+		dirty.needCluster = true
+	elseif not overlayVisible and not dirty.forceFullRedraw then
 		return
 	end
 	local revealWaiting = batch.waitForFreshMetal or batch.waitForFreshEnergy
@@ -3908,17 +3913,49 @@ local function UpdateReclaimFields()
 		dirty.fieldSync = true -- picked up by the next DrawWorldPreUnit
 	end
 
-	-- Update camera facing vector (used for text rotation in DrawWorld)
-	local now = os.clock()
-	if dirty.needRedraw or (now - (lastCameraCheckClock or 0)) >= 0.15 then
-		local camUpVectorNew = spGetCameraVectors().up
-		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
-			camUpVector = camUpVectorNew
-		end
-		lastCameraCheckClock = now
-	end
-
 	dirty.needRedraw = false
+end
+
+-- Nothing tracked, queued, drawn or fading out: a map without reclaimable features, or one reclaimed
+-- bare. The per-frame call-ins are removed then, and FeatureCreated brings them back.
+batch.frameCallIns = { "Update", "DrawWorldPreUnit", "DrawWorld" }
+---@type boolean
+batch.sleeping = false
+
+batch.isIdle = function()
+	return cachedKnownFeaturesCount == 0
+		and next(flyingFeatures) == nil
+		and batch.pendCreateCount == batch.pendCreateHead
+		and batch.pendDestrCount == batch.pendDestrHead
+		and batch.deferCreateCount == 0
+		and batch.deferDestrCount == 0
+		and not batch.clusterJobActive
+		and #featureClusters == 0
+		and #energyFeatureClusters == 0
+		and next(animState.fading) == nil
+		and next(animState.fadingEnergy) == nil
+end
+
+batch.sleep = function()
+	if dirty.fieldSync then
+		SyncFieldRenderer() -- release whatever the renderer still holds
+	end
+	batch.sleeping = true
+	for i = 1, #batch.frameCallIns do
+		widgetHandler:RemoveCallIn(batch.frameCallIns[i])
+	end
+end
+
+batch.wake = function()
+	if not batch.sleeping then
+		return
+	end
+	batch.sleeping = false
+	lastCameraUpdateDraw = -999 -- the camera cache went stale while asleep
+	animState.lastTickClock = osClock()
+	for i = 1, #batch.frameCallIns do
+		widgetHandler:UpdateCallIn(batch.frameCallIns[i])
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -3956,6 +3993,7 @@ function widget:Initialize()
 
 	-- Initialize camera scale early to avoid thick lines on first draw
 	local cx, cy, cz = spGetCameraPosition()
+	batch.scaleCamX, batch.scaleCamY, batch.scaleCamZ = cx, cy, cz
 	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 	if desc ~= nil then
 		local cameraDist = min(64000000, (cx - w[1]) ^ 2 + (cy - w[2]) ^ 2 + (cz - w[3]) ^ 2)
@@ -4157,8 +4195,6 @@ function widget:Initialize()
 		widget:FeatureCreated(featureID)
 	end
 
-	camUpVector = spGetCameraVectors().up
-
 	widget:SelectionChanged(Spring.GetSelectedUnits())
 end
 
@@ -4244,16 +4280,17 @@ function widget:ActiveCommandChanged()
 end
 
 function widget:Update(dt)
-	local tU0 = osClock()
+	local tU0 = debugTiming and osClock() or 0
 	-- Update camera scale when enabled
 	-- Always call both to keep cached draw states current (avoid short-circuit skipping)
 	local metalEnabled = UpdateDrawEnabled()
 	local energyEnabled = UpdateDrawEnergyEnabled()
 	if metalEnabled or energyEnabled then
 		local cx, cy, cz = spGetCameraPosition()
-		-- Only recompute cameraScale if camera actually moved
-		local dx, dy, dz = cx - cachedCameraX, cy - cachedCameraY, cz - cachedCameraZ
+		-- Only recompute cameraScale once the camera has moved since the last trace
+		local dx, dy, dz = cx - batch.scaleCamX, cy - batch.scaleCamY, cz - batch.scaleCamZ
 		if dx * dx + dy * dy + dz * dz > 1 then
+			batch.scaleCamX, batch.scaleCamY, batch.scaleCamZ = cx, cy, cz
 			local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 			local cameraDist = 35000000
 			if desc ~= nil then
@@ -4268,14 +4305,18 @@ function widget:Update(dt)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
+	batch.wake()
 	-- Check if feature is near the camera view
 	local x, y, z = spGetFeaturePosition(featureID)
 	-- Pre-gamestart: process all features immediately to discover all metal fields
-	if x and gameStarted and batch.deferOutOfView and not IsPositionNearView(x, y, z) then
-		-- Defer processing for out-of-view features
-		batch.deferCreateCount = batch.deferCreateCount + 1
-		batch.deferCreations[batch.deferCreateCount] = featureID
-		return
+	if x and gameStarted and batch.deferOutOfView then
+		UpdateCameraCache(drawCounter) -- not refreshed by the draw while the overlay is hidden
+		if not IsPositionNearView(x, y, z) then
+			-- Defer processing for out-of-view features
+			batch.deferCreateCount = batch.deferCreateCount + 1
+			batch.deferCreations[batch.deferCreateCount] = featureID
+			return
+		end
 	end
 
 	-- Batch feature creations instead of processing immediately
@@ -4288,11 +4329,14 @@ function widget:FeatureDestroyed(featureID, allyTeamID)
 	-- Check if feature is near the camera view (use known position if available)
 	local feature = knownFeatures[featureID]
 	-- Pre-gamestart: process all features immediately to discover all metal fields
-	if feature and gameStarted and batch.deferOutOfView and not IsPositionNearView(feature.x, feature.y, feature.z) then
-		-- Defer processing for out-of-view features
-		batch.deferDestrCount = batch.deferDestrCount + 1
-		batch.deferDestructions[batch.deferDestrCount] = featureID
-		return
+	if feature and gameStarted and batch.deferOutOfView then
+		UpdateCameraCache(drawCounter)
+		if not IsPositionNearView(feature.x, feature.y, feature.z) then
+			-- Defer processing for out-of-view features
+			batch.deferDestrCount = batch.deferDestrCount + 1
+			batch.deferDestructions[batch.deferDestrCount] = featureID
+			return
+		end
 	end
 
 	-- Batch feature destructions instead of processing immediately
@@ -4389,6 +4433,14 @@ local DrawReclaimLabels = (function()
 	}
 	local slow = { x = {}, y = {}, z = {}, fs = {}, alpha = {}, text = {}, energy = {}, count = 0 }
 
+	-- The labels lie flat, turned to the camera's up vector. Only GetCameraVectors returns that, as
+	-- eight new tables per call; the vector follows from the camera rotation alone, so it is re-read
+	-- only when the rotation changes.
+	local spGetCameraRotation = Spring.GetCameraRotation
+	local spGetCameraVectors = Spring.GetCameraVectors
+	local camRotX, camRotY, camRotZ
+	local planeCos, planeSin = 1.0, 0.0
+
 	-- GetTextWidth is size-independent (normalised to font size 1) and the
 	-- label set is a handful of distinct formatted amounts, so memoising it
 	-- removes a per-icon, per-frame engine call.
@@ -4467,8 +4519,10 @@ local DrawReclaimLabels = (function()
 
 	local function CollectFadingLabels(fadingTbl, isEnergy, camY)
 		local sizeMul = isEnergy and energyTextSizeMultiplier or 1
+		-- the group fade, as the renderer applies it to the fading fields
+		local toggle = isEnergy and animState.toggleEnergy or animState.toggleMetal
 		for _uid, entry in pairs(fadingTbl) do
-			local alpha = entry.alpha or 0
+			local alpha = (entry.alpha or 0) * toggle
 			local center = entry.center
 			if
 				alpha > 0.001
@@ -4612,16 +4666,20 @@ local DrawReclaimLabels = (function()
 		end
 
 		-- Ground-plane rotation, shared by every label and icon this frame.
-		local upX, upZ = -camUpVector[1], -camUpVector[3]
-		local lenSq = upX * upX + upZ * upZ
-		local cosF, sinF
-		if lenSq > 0.0001 then
-			local invLen = 1 / sqrt(lenSq)
-			cosF = upZ * invLen
-			sinF = upX * invLen
-		else
-			cosF, sinF = 1, 0
+		local rx, ry, rz = spGetCameraRotation()
+		if rx ~= camRotX or ry ~= camRotY or rz ~= camRotZ then
+			camRotX, camRotY, camRotZ = rx, ry, rz
+			local up = spGetCameraVectors().up
+			local upX, upZ = -up[1], -up[3]
+			local lenSq = upX * upX + upZ * upZ
+			if lenSq > 0.0001 then
+				local invLen = 1 / sqrt(lenSq)
+				planeCos, planeSin = upZ * invLen, upX * invLen
+			else
+				planeCos, planeSin = 1.0, 0.0
+			end
 		end
+		local cosF, sinF = planeCos, planeSin
 		local negSinF = -sinF
 		local negCosF = -cosF
 
@@ -4705,6 +4763,9 @@ function widget:DrawWorld()
 
 	local hasFadingMetal = next(animState.fading) ~= nil
 	local hasFadingEnergy = next(animState.fadingEnergy) ~= nil
+	if not hasFadingMetal and not hasFadingEnergy and #featureClusters == 0 and #energyFeatureClusters == 0 then
+		return -- no labels
+	end
 	local showMetal = not batch.waitForFreshMetal and (drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal)
 	local showEnergy = not batch.waitForFreshEnergy
 		and (
@@ -4765,6 +4826,11 @@ function widget:DrawWorldPreUnit()
 				)
 			end
 		end
+	end
+
+	if batch.isIdle() then
+		batch.sleep()
+		return
 	end
 
 	-- Nothing shown and nothing fading out: no animation, camera or renderer work this frame. The

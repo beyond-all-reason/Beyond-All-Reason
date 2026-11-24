@@ -87,7 +87,7 @@
 .text-warning-semi-alpha { color: #fad400ba; }
 .border-warning-semi-alpha { border-color: #fad400ba; }
 
-/* === danger RED (#ef4444) === */
+/* === DANGER RED (#ef4444) === */
 .bg-danger { background-color: #ef4444; }
 .text-danger { color: #ef4444; }
 .border-danger { border-color: #ef4444; }
@@ -120,7 +120,6 @@
 .box-shadow-lg { box-shadow: rgba(0, 0, 0, 150) 2dp 3dp 10dp 2dp; }
 
 /* === Text Shadows === */
-/* .text-shadow-primary { font-effect: shadow( 4px 4px #FDC04C ); } */
 .text-shadow { font-effect: shadow( 0px 1px #2b2b2b ); }
 .text-shadow-darker { font-effect: shadow( 2px 2px #282828 ); }
 .text-shadow-darkest { font-effect: shadow( 2px 2px #1d1d1d ); }
@@ -131,7 +130,7 @@
 .text-outline-darker-lg { font-effect: outline(2dp #282828); }
 .text-outline-darkest { font-effect: outline(1dp #1d1d1d); }
 .text-outline-darkest-lg { font-effect: outline(2dp #1d1d1d); }
-.text-outline-none { font-effect: outline(1dp #ffffff00); } /* This isn't a great pattern but the closest we can get to a none property, order of this selector matters.*/
+.text-outline-none { font-effect: outline(1dp #ffffff00); } /* The closest thing to a none value; the order of this selector matters. */
 
 /* === Gradients === */
 .bg-gradient {
@@ -265,6 +264,6 @@
     margin-right: 6dp;
 }
 
-/* The concept of overrides are the closest we get to an !important and should be used sparingly and created only for main variables - achieved cos cascades */
+/* Overrides are the closest thing to !important (they win by cascade order): use them sparingly, for main variables only. */
 .text-light-override { color: #e5e7eb; }
 .box-shadow-none { box-shadow: none; }

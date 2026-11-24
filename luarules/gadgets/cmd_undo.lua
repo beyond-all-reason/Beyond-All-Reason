@@ -437,7 +437,7 @@ if gadgetHandler:IsSyncedCode() then
 		fromLua
 	)
 		if cmdID == CMD_SELFD then
-			if Spring.GetUnitSelfDTime(unitID) > 0 then
+			if (Spring.GetUnitSelfDTime(unitID) or 0) > 0 then
 				selfdCmdUnits[unitID] = nil
 			else
 				selfdCmdUnits[unitID] = true

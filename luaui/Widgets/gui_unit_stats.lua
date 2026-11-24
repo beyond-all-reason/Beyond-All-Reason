@@ -68,7 +68,6 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	--spEcho("3rd = "..  thirdhighestUnitDef .. ", ".. thirdRate)
 end
 
-include("keysym.h.lua")
 ----v1.7 by Doo changes
 -- Reverted "Added beamtime to oRld value to properly count dps of BeamLaser weapons" because reload starts at the beginning of the beamtime
 -- Reduced the "minimal" reloadTime to properly calculate dps for low reloadtime weapons
@@ -144,7 +143,7 @@ local format = string.format
 local glColor = gl.Color
 
 local spGetMyTeamID = Spring.GetLocalTeamID
-local spGetTeamResources = Spring.GetTeamResources
+local BARGetTeamRealResources = BAR.Utilities.GetTeamRealResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
@@ -562,8 +561,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	------------------------------------------------------------------------------------
 	if isBuilding then
 		local myTeamID = spGetMyTeamID()
-		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = spGetTeamResources(myTeamID, "metal")
-		local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec = spGetTeamResources(myTeamID, "energy")
+		local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = BARGetTeamRealResources(myTeamID, "metal")
+		local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec = BARGetTeamRealResources(myTeamID, "energy")
 
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost

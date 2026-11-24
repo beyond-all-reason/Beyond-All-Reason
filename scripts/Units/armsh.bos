@@ -67,9 +67,9 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	spin fan around z-axis speed <1080> accelerate <60>; 
+	spin fan around z-axis speed <1080> accelerate <60>;
 }
 
 StopMoving()

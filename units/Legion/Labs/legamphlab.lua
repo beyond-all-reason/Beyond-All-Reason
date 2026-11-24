@@ -26,7 +26,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
 		terraformspeed = 750,
-		workertime = 150,
+		workertime = 300,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		-- 	yardmap = [[h
 		-- oo oo oo oo oo oo
@@ -53,9 +53,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legamphlab_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecaltype = "decals/legamphlab_11_11_aoplane.png",
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "builder",
 			model_author = "ZephyrSkies, Tharsis",

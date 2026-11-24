@@ -101,4 +101,6 @@ return {
 	[78506] = eventmanager, -- Twig (KOTH organizer)
 	[51535] = eventmanager, -- Nightmare2512
 	--[84658] = eventmanager, -- OPman
+	[113844] = eventmanager, -- Chronographer
+	[336478] = eventmanager, -- HMSIndeconstructable
 }
