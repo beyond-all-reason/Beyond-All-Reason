@@ -281,6 +281,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		recentDamage[unitID] = nil
 		recentDamageFrame[unitID] = nil
 		deathDamage[unitID] = nil
+		-- a stale entry calls COB on whichever unit reuses this ID next
+		if setMexSpeed[unitID] then
+			setMexSpeed[unitID] = nil
+		end
 	end
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then

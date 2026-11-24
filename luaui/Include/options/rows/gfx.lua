@@ -13,8 +13,7 @@ return function(model)
 	local screenModes = WG.screenMode and WG.screenMode.GetScreenModes() or {}
 	local displays = WG.screenMode and WG.screenMode.GetDisplays() or {}
 
-	local currentDisplay = 1
-	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
+	local v_sx, v_sy = Spring.GetViewGeometry()
 	local displayNames = {}
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
@@ -28,32 +27,51 @@ return function(model)
 				.. "  ("
 				.. display.hz
 				.. "hz)"
-			if
-				v_px >= display.x
-				and v_px < display.x + display.width
-				and v_py >= display.y
-				and v_py < display.y + display.height
-			then
-				currentDisplay = index
-			end
 		elseif model.devMode or model.devUI then -- advSettings
 			displayNames[index] = display.name
 		end
 	end
+
+	-- The display the game window is on. Not GetViewGeometry: its position is the view's inside the window,
+	-- 0, 0 outside dual screen mode, which always named the display at the desktop's origin.
+	local function windowDisplay()
+		-- spanning displays (the switcher's mode type 4): the Multi Display entry, where it is listed
+		if Spring.GetConfigInt("Fullscreen", 0) ~= 1 and Spring.GetConfigInt("WindowBorderless", 0) == 1 then
+			local w, h = Spring.GetWindowGeometry()
+			for _, mode in ipairs(screenModes) do
+				if mode.type == 4 and displayNames[mode.display] and mode.width == w and mode.height == h then
+					return mode.display
+				end
+			end
+		end
+		local _, _, x, y = Spring.GetScreenGeometry()
+		for index, display in ipairs(displays) do
+			if display.width > 0 and display.x == x and display.y == y then
+				return index
+			end
+		end
+		return 1
+	end
+	local currentDisplay = windowDisplay()
 	local selectedDisplay = currentDisplay
 
-	local resolutionNames = {}
-	local screenmodeOffset = 0
-	for _, screenMode in ipairs(screenModes) do
-		if screenMode.display == currentDisplay then
-			resolutionNames[#resolutionNames + 1] = screenMode.name
-		elseif #resolutionNames == 0 then
-			screenmodeOffset = screenmodeOffset + 1
+	local resolutionNames, screenmodeOffset
+	local function listModes(displayIndex)
+		resolutionNames = {}
+		screenmodeOffset = 0
+		for _, screenMode in ipairs(screenModes) do
+			if screenMode.display == displayIndex then
+				resolutionNames[#resolutionNames + 1] = screenMode.name
+			elseif #resolutionNames == 0 then
+				screenmodeOffset = screenmodeOffset + 1
+			end
 		end
 	end
+	listModes(currentDisplay)
 
 	-- The entry the window is in now, if one is: fullscreen or borderless (the switcher's mode types 1 and
-	-- 2), or the windowed mode of its size, borders included as the switcher sets it.
+	-- 2), the display span of its size (4), or the windowed mode of its size, borders included as the
+	-- switcher sets it (3).
 	local function currentResolution()
 		local fullscreen = Spring.GetConfigInt("Fullscreen", 0) == 1
 		local borderless = Spring.GetConfigInt("WindowBorderless", 0) == 1
@@ -63,6 +81,8 @@ return function(model)
 			if not mode then
 				break
 			elseif fullscreen and mode.type == (borderless and 2 or 1) then
+				return i
+			elseif not fullscreen and borderless and mode.type == 4 and mode.width == w and mode.height == h then
 				return i
 			elseif
 				not fullscreen
@@ -149,23 +169,15 @@ return function(model)
 			options = displayNames,
 			value = currentDisplay,
 			onchange = function(option, value)
-				--currentDisplay = value
 				selectedDisplay = value
 				Spring.SetConfigInt("SelectedDisplay", value)
-				resolutionNames = {}
-				screenmodeOffset = 0
-				for _, screenMode in ipairs(screenModes) do
-					if screenMode.display == selectedDisplay then
-						resolutionNames[#resolutionNames + 1] = screenMode.name
-					elseif #resolutionNames == 0 then
-						screenmodeOffset = screenmodeOffset + 1
-					end
-				end
-				getOption("resolution").options = resolutionNames
+				listModes(selectedDisplay)
+				local resolution = getOption("resolution")
+				resolution.options = resolutionNames
 				if selectedDisplay == currentDisplay then
-					getOption("resolution").value = Spring.GetConfigInt("SelectedScreenMode", 1)
+					resolution.onload(resolution)
 				else
-					getOption("resolution").value = 0
+					resolution.value = 0
 				end
 				model.forceUpdate = true
 			end,
@@ -187,6 +199,18 @@ return function(model)
 				--	WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
 				--end
 
+				-- the window went to another display (a mode picked there, or dragged): list that one's modes
+				local moved = false
+				local now = windowDisplay()
+				if now ~= currentDisplay then
+					currentDisplay, selectedDisplay = now, now
+					listModes(now)
+					local display = getOption("display")
+					if display then
+						display.value = now
+					end
+					moved = true
+				end
 				-- the mode the window is in, not the last one picked
 				if selectedDisplay ~= currentDisplay then
 					return -- another display's modes are listed
@@ -205,7 +229,9 @@ return function(model)
 					option.options = names
 					option.value = #names
 				end
+				return moved
 			end,
+			-- the window moves a frame or more later; onload follows it to its display
 			onchange = function(option, value)
 				if value > #resolutionNames then
 					return -- the size the window has now
@@ -214,18 +240,6 @@ return function(model)
 
 				if WG.screenMode then
 					WG.screenMode.SetScreenMode(value + screenmodeOffset)
-					currentDisplay = 1
-					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
-					for index, display in ipairs(displays) do
-						if
-							v_px >= display.x
-							and v_px < display.x + display.width
-							and v_py >= display.y
-							and v_py < display.y + display.height
-						then
-							currentDisplay = index
-						end
-					end
 				end
 			end,
 		},
