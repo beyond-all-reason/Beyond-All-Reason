@@ -269,10 +269,9 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 		end
 		addBatchSamples({})
 
-		local caseCount, failures = 0, {}
+		local failures = {}
 
 		local function runCase(batches, startsSatisfied, repeating)
-			caseCount = caseCount + 1
 			local trigger = {
 				type = "UnitsOwned",
 				parameters = {},
@@ -306,7 +305,7 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 						described[i] = "{" .. table.concat(batches[i], ",") .. "}"
 					end
 					failures[#failures + 1] = string.format(
-						"start %s, %s, batches %s: fired %d times, expected %d",
+						"start %s, %s, batches %s: activated %d times, expected %d",
 						startsSatisfied and "satisfied" or "unsatisfied",
 						repeating and "repeating" or "once",
 						table.concat(described, " "),
@@ -342,10 +341,6 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 			end
 		end
 
-		print(string.format("\n%d cases, %d failures", caseCount, #failures))
-		for i = 1, math.min(#failures, 12) do
-			print(failures[i])
-		end
-		assert.are.equal(0, #failures)
+		assert.are.equal(0, #failures, table.concat(failures, ";", 1, math.min(#failures, 12)))
 	end)
 end)

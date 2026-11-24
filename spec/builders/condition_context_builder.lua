@@ -9,7 +9,7 @@
 
 ---@class ConditionContextMock
 ---@field ActivateTrigger fun(trigger: table, onTryActivate: function?, triggerID: string?, argument: any?)
----@field EvaluateMetric fun(trigger: table, value: number|boolean|string)
+---@field EvaluateMetric fun(trigger: table, value: number)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
