@@ -11,6 +11,7 @@ local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
+local thresholdFields = VFS.Include("luarules/mission_api/objectives_loader.lua").ThresholdFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -632,7 +633,7 @@ local function validateThresholdVariableReferences(context, report)
 		return
 	end
 
-	local function checkThreshold(value, fieldName, label, id)
+	local function checkThresholdField(value, fieldName, label, id)
 		context.CallOnVariableKeys(value, function(key)
 			if writtenKeys[key] then
 				report.Error(
@@ -648,8 +649,8 @@ local function validateThresholdVariableReferences(context, report)
 
 	local function checkThresholds(condition, label, id)
 		if type(condition) == "table" then
-			for _, fieldName in ipairs({ "count", "atLeast", "atMost" }) do
-				checkThreshold(condition[fieldName], fieldName, label, id)
+			for _, fieldName in ipairs(thresholdFields) do
+				checkThresholdField(condition[fieldName], fieldName, label, id)
 			end
 		end
 	end
