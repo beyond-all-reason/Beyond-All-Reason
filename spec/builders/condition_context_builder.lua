@@ -11,7 +11,7 @@
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field EvaluateMetric fun(trigger: table, value: number)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
----@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
+---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
@@ -64,6 +64,15 @@ function TCB:WithInFactory(value)
 	return self
 end
 
+---Where IsUnitIncluded looks up a unit's def and team: the spec's UnitDefs and Spring.
+---@param self ConditionContextBuilder
+---@param env table
+---@return ConditionContextBuilder
+function TCB:WithEnv(env)
+	self.env = env
+	return self
+end
+
 ---@param self ConditionContextBuilder
 ---@return ConditionContextMock
 function TCB:Build()
@@ -88,7 +97,6 @@ function TCB:Build()
 			evaluateCalls[#evaluateCalls + 1] = { trigger = trigger, value = value }
 		end,
 		DoesUnitHaveName = asFunction(true),
-		DoesUnitMatch = asFunction(true),
 		DoesFeatureHaveName = asFunction(true),
 		IsBuildFrameOwner = asFunction(true),
 		InFactory = asFunction(instance.inFactory),
@@ -120,6 +128,59 @@ function TCB:Build()
 			evaluateMetric = evaluateCalls,
 		},
 	}
+
+	-- A copy of getUnitFilterMatch and isUnitIncluded in unit_query.lua, over this context's
+	-- DoesUnitHaveName and the spec's Spring; keep them in step.
+	local function getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+		local Spring = instance.env.Spring
+		if unitFilter.teamName ~= nil then
+			teamID = teamID or Spring.GetUnitTeam(unitID)
+			if teamID ~= unitFilter.teamName then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		if unitFilter.allianceName ~= nil then
+			if allyTeamID == nil then
+				if teamID ~= nil then
+					allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+				else
+					allyTeamID = Spring.GetUnitAllyTeam(unitID)
+				end
+			end
+			if allyTeamID ~= unitFilter.allianceName then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		if unitFilter.unitDefName ~= nil then
+			unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+			if not unitFilter.unitDefName[unitDefID] then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName),
+			unitDefID,
+			teamID,
+			allyTeamID
+	end
+
+	context.IsUnitIncluded = function(unitID, parameters, unitDefID, teamID)
+		local matches, allyTeamID
+		if parameters.includeUnit ~= nil then
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, parameters.includeUnit, unitDefID, teamID, nil)
+			if not matches then
+				return false
+			end
+		end
+		for _, unitFilter in ipairs(parameters.excludeUnit or {}) do
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+			if matches then
+				return false
+			end
+		end
+		return true
+	end
 
 	---How many times a handler asked this context to activate its trigger.
 	context.timesFired = function()

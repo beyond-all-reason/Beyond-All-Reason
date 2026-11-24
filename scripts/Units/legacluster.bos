@@ -294,6 +294,11 @@ FireWeapon2()
 
 QueryWeapon1(pieceIndex)
 {
+	if( !isOpen )
+	{
+		pieceIndex = turretmidpoint; // the flares would be underground
+		return (0);
+	}
 	if( nextBarrel == 0 )
 	{
 		pieceIndex = flareTop;
@@ -306,6 +311,11 @@ QueryWeapon1(pieceIndex)
 
 QueryWeapon2(pieceIndex)
 {
+	if( !isOpen )
+	{
+		pieceIndex = turretmidpoint; // the flares would be underground
+		return (0);
+	}
 	if( nextBarrel == 0 )
 	{
 		pieceIndex = flareTop;

@@ -33,7 +33,7 @@ local triggers = {
 	firstNukeHalfBuilt = {
 		type = conditionTypes.StockpileProgress,
 		parameters = {
-			unitName = 'silo',
+			includeUnit = { unitName = 'silo' },
 			progress = 0.5,
 		},
 		actions = { 'messageFirstNukeHalfBuilt' },
@@ -42,7 +42,7 @@ local triggers = {
 	firstNukeStocked = {
 		type = conditionTypes.StockpileCount,
 		parameters = {
-			unitName = 'silo',
+			includeUnit = { unitName = 'silo' },
 			count = 1,
 		},
 		actions = { 'messageFirstNukeStocked', 'waitToLaunchFirstNuke' },
@@ -67,7 +67,7 @@ local triggers = {
 	fiveNukesStocked = {
 		type = conditionTypes.StockpileCount,
 		parameters = {
-			unitName = 'silo',
+			includeUnit = { unitName = 'silo' },
 			count = 5,
 		},
 		actions = { 'messageFiveNukesStocked', 'waitToLaunchFiveNukes' },

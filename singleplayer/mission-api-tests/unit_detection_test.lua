@@ -68,7 +68,7 @@ local triggers = {
 	anyDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyDetected' },
@@ -77,7 +77,7 @@ local triggers = {
 	anyUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyUndetected' },
@@ -89,7 +89,7 @@ local triggers = {
 	radarDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'radar' },
 		},
@@ -101,7 +101,7 @@ local triggers = {
 	radarUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'radar' },
 		},
@@ -114,7 +114,7 @@ local triggers = {
 	visionDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'vision' },
 		},
@@ -126,7 +126,7 @@ local triggers = {
 	visionUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'vision' },
 		},
@@ -142,7 +142,7 @@ local triggers = {
 	seismicDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'spy',
+			includeUnit = { unitName = 'spy' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
@@ -152,7 +152,7 @@ local triggers = {
 	seismicUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'spy',
+			includeUnit = { unitName = 'spy' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},
@@ -168,7 +168,7 @@ local triggers = {
 	radarOrVisionDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'radar', 'vision' },
 		},
@@ -178,7 +178,7 @@ local triggers = {
 	radarOrVisionUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'radar', 'vision' },
 		},
@@ -192,7 +192,7 @@ local triggers = {
 	seismicOrVisionDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic', 'vision' },
 		},
@@ -202,7 +202,7 @@ local triggers = {
 	seismicOrVisionUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic', 'vision' },
 		},
@@ -220,7 +220,7 @@ local triggers = {
 	anyLevelDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyLevelDetected' },
@@ -229,7 +229,7 @@ local triggers = {
 	anyLevelUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
+			includeUnit = { unitName = 'visionTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageAnyLevelUndetected' },
@@ -242,7 +242,7 @@ local triggers = {
 	deathDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'deathTarget',
+			includeUnit = { unitName = 'deathTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageDeathDetected' },
@@ -255,7 +255,7 @@ local triggers = {
 	deathUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'deathTarget',
+			includeUnit = { unitName = 'deathTarget' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageDeathUndetected' },
@@ -270,7 +270,7 @@ local triggers = {
 	unscopedDetected = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 		},
 		actions = { 'messageUnscopedDetected' },
 	},
@@ -278,7 +278,7 @@ local triggers = {
 	unscopedUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 		},
 		actions = { 'messageUnscopedUndetected' },
 	},
@@ -286,8 +286,7 @@ local triggers = {
 	owningTeamMatches = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'enemy',
+			includeUnit = { unitName = 'radarTarget', teamName = 'enemy' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamMatches' },
@@ -297,8 +296,7 @@ local triggers = {
 	owningTeamUndetected = {
 		type = conditionTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'enemy',
+			includeUnit = { unitName = 'radarTarget', teamName = 'enemy' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamUndetected' },
@@ -308,8 +306,7 @@ local triggers = {
 	owningTeamExcludes = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'player',
+			includeUnit = { unitName = 'radarTarget', teamName = 'player' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageOwningTeamExcludes' },
@@ -319,8 +316,7 @@ local triggers = {
 	bothNameFilters = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			unitDefName = 'corfast',
+			includeUnit = { unitName = 'radarTarget', unitDefName = 'corfast' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageBothNameFilters' },
@@ -331,7 +327,7 @@ local triggers = {
 	unitDefNameOnly = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitDefName = 'corfast',
+			includeUnit = { unitDefName = 'corfast' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageUnitDefNameOnly' },
@@ -341,7 +337,7 @@ local triggers = {
 	unitDefNameExcludes = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitDefName = 'armpw',
+			includeUnit = { unitDefName = 'armpw' },
 			sensorAllianceName = 'players',
 		},
 		actions = { 'messageUnitDefNameExcludes' },
@@ -353,7 +349,7 @@ local triggers = {
 	wrongSensorExcludes = {
 		type = conditionTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
+			includeUnit = { unitName = 'radarTarget' },
 			sensorAllianceName = 'players',
 			sensorTypes = { 'seismic' },
 		},

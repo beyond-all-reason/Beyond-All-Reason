@@ -14,6 +14,7 @@ local shaderConfig = {
 	TEAMCOLORIZATION = 1.0, -- default of the teamcolorization frag uniform, unused by the default shading
 	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	USETEXTURE = 1, -- 1 if you want to use textures (atlasses too!) , 0 if not
+	USE_SECONDARY_TEXTURE = 0, -- parameters.y selects texture unit 0/1; opt in per caller
 	BILLBOARD = 0, -- 1 if you want camera facing billboards, 0 is flat on ground
 	POST_ANIM = " ", -- what you want to do in the animation post function (glsl snippet, see shader source)
 	POST_VERTEX = "v_color = v_color;", -- noop
@@ -81,6 +82,9 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname, sharedShader)
 		DrawPrimitiveAtUnitShader = sharedShader
 	else
 		local uniformInt = shaderConfig.USETEXTURE and { DrawPrimitiveAtUnitTexture = 0 } or {}
+		if shaderConfig.USE_SECONDARY_TEXTURE == 1 then
+			uniformInt.DrawPrimitiveAtUnitTexture2 = 1
+		end
 
 		shaderSourceCache.shaderName = DPATname .. "Shader GL4"
 		shaderSourceCache.shaderConfig = shaderConfig

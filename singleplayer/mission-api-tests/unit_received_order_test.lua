@@ -19,7 +19,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 		},
 		actions = { 'messageBotsOrdered' },
 	},
@@ -32,7 +32,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageBotsMoved' },
@@ -53,7 +53,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.BUILD,
-			unitName = 'cons',
+			includeUnit = { unitName = 'cons' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageConBuildOrdered' },
@@ -66,7 +66,7 @@ local triggers = {
 		},
 		parameters = {
 			command = 'armsolar',
-			unitName = 'cons',
+			includeUnit = { unitName = 'cons' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageConSolarOrdered' },
@@ -87,7 +87,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'lab',
+			includeUnit = { unitName = 'lab' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabRallied' },
@@ -100,7 +100,7 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'lab',
+			includeUnit = { unitName = 'lab' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabExecuted' },

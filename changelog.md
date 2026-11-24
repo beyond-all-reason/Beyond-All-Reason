@@ -11,6 +11,7 @@
   - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. Debris still waits twice that unit's time.
 - [Controls]
   - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
+  - Pressing a command key or starting the drag of an area or line exits a current selection drag.
 - [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
 - [Legion]
   - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
@@ -31,6 +32,7 @@
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
   - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.

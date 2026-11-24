@@ -287,6 +287,7 @@ local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 ---@field _pendingFogOff integer?
 ---@field _pendingForceStart integer?
 ---@field refreshEnvSunAzEl function?
+---@field envRefreshSplatTiles function?
 ---@field updateTransportBtns function?
 ---@field projectSyncCell function?
 ---@field applySkybox function?
@@ -2864,6 +2865,11 @@ widgetState.buildEnvConfigContent = function(opts)
 	local fmt4 = function(t)
 		return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0)
 	end
+	-- Exact: a scale like 1/96 does not fit four decimals
+	local fmtNumber = VFS.Include("common/map_export.lua").fmtNumber
+	local fmtExact = function(v)
+		return fmtNumber(v or 0)
+	end
 	local bstr = function(v)
 		return v and "true" or "false"
 	end
@@ -2924,7 +2930,9 @@ widgetState.buildEnvConfigContent = function(opts)
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
 		"\tsplatTexMults = " .. fmt4({ smR, smG, smB, smA }) .. ",",
-		"\tsplatTexScales = " .. fmt4({ ssR, ssG, ssB, ssA }) .. ",",
+		"\tsplatTexScales = { "
+			.. table.concat({ fmtExact(ssR), fmtExact(ssG), fmtExact(ssB), fmtExact(ssA) }, ", ")
+			.. " },",
 		"\tvoidWater = " .. bstr(vW) .. ",",
 		"\tvoidGround = " .. bstr(vG) .. ",",
 		"",
@@ -12321,6 +12329,27 @@ local initialModel = {
 		_envSetSlider("slider-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5))
 		_envSetSlider("slider-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5))
 	end,
+	onEnvResetSplatMults = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexMults) then
+			return
+		end
+		for ch = 1, 4 do
+			_envSetSlider("slider-env-splatmult-" .. (ch - 1), math.floor((d.splatTexMults[ch] or 0) * 1000 + 0.5))
+		end
+		-- Last: the sliders round to 0.001 on their way
+		Spring.SetMapRenderingParams({ splatTexMults = d.splatTexMults })
+	end,
+	onEnvResetSplatScales = function(_event)
+		local d = widgetState.envDefaults
+		if not (d and d.splatTexScales) then
+			return
+		end
+		Spring.SetMapRenderingParams({ splatTexScales = d.splatTexScales })
+		if widgetState.envRefreshSplatTiles then
+			widgetState.envRefreshSplatTiles(true)
+		end
+	end,
 	onEnvResetFog = function(_event)
 		local d = widgetState.envDefaults
 		if not d then
@@ -20887,6 +20916,9 @@ function widget:Update()
 					local setDm = ctx.setDm
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
+					if spActive and widgetState.splatTexOpen and widgetState.envRefreshSplatTiles then
+						widgetState.envRefreshSplatTiles()
+					end
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
 					-- Only when the canvas really cannot splat-paint: with a DNTS set baked in it works.
 					setDm("newMapEngineSplatNotice", generatedBlankMap and _newMapSplatUnavailable())

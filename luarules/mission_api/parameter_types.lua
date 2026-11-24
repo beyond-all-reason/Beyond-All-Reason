@@ -22,6 +22,8 @@ local types = {
 	SensorTypes = "SensorTypes",
 	Color = "Color",
 	CameraKeyframes = "CameraKeyframes",
+	UnitFilter = "UnitFilter",
+	UnitFilters = "UnitFilters",
 
 	-- String Validators:
 	String = "String",
@@ -74,6 +76,9 @@ local types = {
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
 
+	-- String-or-Table Validators:
+	UnitDefNames = "UnitDefNames",
+
 	-- Number-or-String-or-Table Validators:
 	FacingOrDirection = "FacingOrDirection",
 
@@ -90,6 +95,7 @@ local internalTypes = {
 	[types.TeamName] = "TeamID",
 	[types.AllianceName] = "AllyTeamID",
 	[types.AllianceNames] = "AllyTeamIDs",
+	[types.UnitDefNames] = "UnitDefIDSet",
 }
 
 -- Difficulties are read by the client, so must be available in JSON

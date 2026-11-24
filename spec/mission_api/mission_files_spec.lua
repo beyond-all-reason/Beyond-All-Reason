@@ -66,36 +66,19 @@ for _, filePath in ipairs(VFS.DirList("singleplayer/mission-api-tests/", "*.lua"
 	end
 end
 
-local function describeCondition(missionName, group, id, entry)
-	return {
-		where = missionName .. " " .. group .. " " .. id .. " (" .. entry.type .. ")",
-		entry = entry,
-		isMetric = METRIC_TYPES[entry.type] or false,
-	}
-end
-
---- Every trigger across all missions, flattened. Only triggers carry their own
---- threshold; an objective's trigger takes its threshold from the objective's amount.
-local function allTriggers()
+--- Every trigger and objective across all missions, flattened.
+local function allConditions()
 	local conditions = {}
 	for missionName, mission in pairs(missions) do
-		for id, entry in pairs(mission.Triggers or {}) do
-			if type(entry) == "table" and type(entry.type) == "string" then
-				conditions[#conditions + 1] = describeCondition(missionName, "trigger", id, entry)
-			end
-		end
-	end
-	return conditions
-end
-
---- Every trigger and objective trigger across all missions, flattened.
-local function allConditions()
-	local conditions = allTriggers()
-	for missionName, mission in pairs(missions) do
-		for id, objective in pairs(mission.Objectives or {}) do
-			local entry = type(objective) == "table" and objective.trigger
-			if type(entry) == "table" and type(entry.type) == "string" then
-				conditions[#conditions + 1] = describeCondition(missionName, "objective", id, entry)
+		for _, group in ipairs({ { "trigger", mission.Triggers }, { "objective", mission.Objectives } }) do
+			for id, entry in pairs(group[2] or {}) do
+				if type(entry) == "table" and type(entry.type) == "string" then
+					conditions[#conditions + 1] = {
+						where = missionName .. " " .. group[1] .. " " .. id .. " (" .. entry.type .. ")",
+						entry = entry,
+						isMetric = METRIC_TYPES[entry.type] or false,
+					}
+				end
 			end
 		end
 	end
@@ -117,7 +100,7 @@ describe("mission test files", function()
 
 	it("gives every metric condition a bound", function()
 		local problems = {}
-		for _, condition in ipairs(allTriggers()) do
+		for _, condition in ipairs(allConditions()) do
 			if condition.isMetric and condition.entry.atLeast == nil and condition.entry.atMost == nil then
 				problems[#problems + 1] = condition.where
 			end
@@ -128,7 +111,7 @@ describe("mission test files", function()
 
 	it("never gives a metric condition a count", function()
 		local problems = {}
-		for _, condition in ipairs(allTriggers()) do
+		for _, condition in ipairs(allConditions()) do
 			if condition.isMetric and condition.entry.count ~= nil then
 				problems[#problems + 1] = condition.where
 			end
@@ -139,7 +122,7 @@ describe("mission test files", function()
 
 	it("never gives an event condition a bound", function()
 		local problems = {}
-		for _, condition in ipairs(allTriggers()) do
+		for _, condition in ipairs(allConditions()) do
 			if not condition.isMetric and (condition.entry.atLeast ~= nil or condition.entry.atMost ~= nil) then
 				problems[#problems + 1] = condition.where
 			end
@@ -150,7 +133,7 @@ describe("mission test files", function()
 
 	it("keeps every count at 1 or more", function()
 		local problems = {}
-		for _, condition in ipairs(allTriggers()) do
+		for _, condition in ipairs(allConditions()) do
 			local count = condition.entry.count
 			if count ~= nil and (type(count) ~= "number" or count < 1) then
 				problems[#problems + 1] = condition.where
@@ -255,10 +238,10 @@ describe("mission test files", function()
 		assert.are.same({}, problems)
 	end)
 
-	it("keeps objectives to their schema fields", function()
-		-- A misspelt hook or a threshold written on the objective instead of its
-		-- amount would otherwise be ignored without a word.
-		local allowed = {}
+	it("keeps objectives to their schema fields and an inline condition", function()
+		-- nextStage and the on* hooks sit directly on the objective, next to its
+		-- condition, so a nested `trigger` table or a misspelt hook is a leftover.
+		local allowed = { type = true, parameters = true, count = true, atLeast = true, atMost = true }
 		for field in pairs(objectiveFields) do
 			allowed[field] = true
 		end

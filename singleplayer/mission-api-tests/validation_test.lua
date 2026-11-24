@@ -10,14 +10,13 @@ local stages = {
 		objectives = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
-			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidConditionType',
-			'objectiveWithMissingConditionType',
-			'objectiveWithInvalidNextStage',
-			'objectiveWithTriggerHavingActions',
-			'objectiveWithDifficultiesTrigger',
 			'objectiveWithUnknownField',
-			'objectiveWithTriggerHavingThreshold',
+			'objectiveWithInvalidType',
+			'objectiveWithMissingType',
+			'objectiveWithInvalidNextStage',
+			'objectiveWithWrongThresholdForKind',
+			'objectiveWithMissingMetricBound',
+			'objectiveWithDifficultiesType',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -34,66 +33,53 @@ local objectives = {
 
 	objectiveWithInvalidSchemaTypes = {
 		textKey = "schema_type_check",
-		amount = 'notANumber',   -- error: amount must be a number
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		count = 'notANumber',    -- error: count must be a positive integer
 		coop = 'notABoolean',    -- error: coop must be a boolean
-	},
-
-	objectiveWithTriggerHavingSettings = {
-		textKey = "trigger_must_not_have_settings",
-		trigger = {
-			settings = { repeating = true },  -- error: trigger must not have a settings field
-			type = conditionTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-		},
-	},
-
-	objectiveWithInvalidConditionType = {
-		textKey = "trigger_with_invalid_type",
-		trigger = {
-			type = 'invalidType',  -- error: invalid condition type
-		},
-	},
-
-	objectiveWithMissingConditionType = {
-		textKey = "trigger_with_missing_type",
-		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing condition type
-		},
-	},
-
-	objectiveWithInvalidNextStage = {
-		textKey = "invalid_next_stage",
-		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
-	},
-
-	objectiveWithTriggerHavingActions = {
-		textKey = "trigger_must_not_have_actions",
-		trigger = {
-			type = conditionTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-			actions = { 'someAction' },  -- error: objective trigger must not have actions
-		},
-	},
-
-	objectiveWithDifficultiesTrigger = {
-		textKey = "trigger_field_must_not_have_difficulties",
-		trigger = {
-			difficulties = { Easy = { type = conditionTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
-		},
 	},
 
 	objectiveWithUnknownField = {
 		textKey = "unknown_field",
-		amountt = 3,             -- error: unknown field (typo for amount)
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		atMostt = 0,             -- error: unknown field (typo for atMost)
 	},
 
-	objectiveWithTriggerHavingThreshold = {
-		textKey = "trigger_must_not_have_threshold",
-		trigger = {
-			type = conditionTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-			count = 3,           -- error: the objective's amount is its threshold
-		},
+	objectiveWithInvalidType = {
+		textKey = "invalid_type",
+		type = 'invalidType',    -- error: invalid condition type
+	},
+
+	objectiveWithMissingType = {
+		textKey = "missing_type",
+		parameters = { seconds = 100000000 },  -- error: parameters without a type
+	},
+
+	objectiveWithInvalidNextStage = {
+		textKey = "invalid_next_stage",
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
+	},
+
+	objectiveWithWrongThresholdForKind = {
+		textKey = "wrong_threshold",
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		count = 3,               -- error: metrics use atLeast/atMost, not count
+	},
+
+	objectiveWithMissingMetricBound = {
+		textKey = "missing_bound",
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		-- error: metric conditions require atLeast and/or atMost
+	},
+
+	objectiveWithDifficultiesType = {
+		textKey = "type_must_not_have_difficulties",
+		type = { difficulties = { Easy = conditionTypes.TimeElapsed } },  -- error: type does not support difficulties
 	},
 }
 
@@ -231,8 +217,7 @@ local triggers = {
 	triggerWithFractionOutOfRange = {
 		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			teamName = 'player',
-			unitDefName = 'armcom',
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 5.0, -- error: a fraction must be between 0 and 1
 		},
 		actions = { 'actionMissingType' },
@@ -241,8 +226,7 @@ local triggers = {
 	triggerWithInvalidFractionType = {
 		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			teamName = 'player',
-			unitDefName = 'armcom',
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 'notANumber',
 		},
 		actions = { 'actionMissingType' },

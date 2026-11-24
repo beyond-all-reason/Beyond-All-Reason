@@ -85,12 +85,15 @@ return {
 	type = 'UnitKilled',                                  -- PascalCase, unique, matches the file name
 	kind = ConditionKinds.Event,                          -- Event or Metric, see below
 	parameters = {
-		{ name = 'unitName', required = false, type = ParameterTypes.UnitName },
-		requiresOneOf = { 'unitName', 'unitDefName' },    -- optional, on the array itself
+		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit', required = false, type = ParameterTypes.UnitFilters },
+		-- requiresOneOf = { 'a', 'b' },                  -- optional, on the array itself
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			-- filter on trigger.parameters, then:
+			if not context.IsUnitIncluded(unitID, trigger.parameters, unitDefID, unitTeam) then
+				return
+			end
 			context.ActivateTrigger(trigger)
 		end,
 	},
@@ -111,6 +114,11 @@ return {
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
+- A condition about one unit takes `includeUnit`, a unit filter of `unitName`, `unitDefName`, and
+  either `teamName` or `allianceName`, and `excludeUnit`, a list of unit filters, and checks both
+  with `context.IsUnitIncluded`. A filter's `unitDefName` is one name or a list of them, and arrives
+  processed as a set of unit def IDs. Any other unit in the event keeps its own parameters, such as
+  `builderName` or `transportDefName`.
 - `Initialize()` unsubscribes `AllowUnitBuildStep`, `AllowFeatureBuildStep`, `UnitBuildStepPost`,
   and `UnitDamaged` unless a loaded trigger needs them, so a new trigger on one of those extends the
   matching `needs*` check or silently never fires.
@@ -170,7 +178,8 @@ return {
 - Action functions receive processed values: a `TeamName` parameter arrives as a team ID, so name
   the argument `teamID` and never look it up again (`GG['MissionAPI'].Teams` maps both ways, so
   `Teams[teamID]` returns the name instead of raising). Trigger handlers read the same value from
-  `trigger.parameters.teamName`.
+  `trigger.parameters.teamName`, and from a unit filter's `teamName`. A unit filter's
+  `allianceName` arrives as an allyteam ID.
 - An action uses no randomness, because the mission author relies on the outcome.
 - An action does the obvious, safe thing by default; anything that can strand a unit or surprise the
   author needs an explicit parameter.
@@ -286,12 +295,16 @@ return {
 
 ## Objectives and stages
 
-- `objectives_loader` turns an objective's `trigger` (`type` and `parameters`, no threshold of its
-  own) into a condition record `__objective_<objectiveID>` that completes the objective instead of
-  running actions, so objectives reuse every condition handler.
-- The objective's `amount` becomes the threshold: `count` for an event condition, `atLeast` for a
-  metric one, or `atMost = 0` for a metric amount of 0; `objective.target` holds the value the UI
-  counts towards.
+- An objective carries its condition inline, written as on a trigger: `type`, `parameters`, and a
+  threshold (`count`, `atLeast`, or `atMost`). `objectives_loader` turns it into a condition record
+  `__objective_<objectiveID>` that completes the objective instead of running actions, so
+  objectives reuse every condition handler.
+- Leave out `type` for an objective that only actions complete or step (`CompleteObjective`,
+  `UpdateObjective`); `count` is then the number of steps. `objective.target` is the threshold
+  the UI counts towards.
+- An objective's lifecycle hooks (`onActivated`, `onProgress`, `onCompleted`, `onFailed`,
+  `onCanceled`, `onHidden`, `onShown`) name Event triggers to fire; `nextStage` moves to that stage
+  on completion.
 - Stage logic lives in `stages.lua` (`ChangeStage`, `ActivateStage`, …) and objective state in
   `objectives.lua`; the two call each other through `GG['MissionAPI'].Modules`.
 - The `__` prefixes are reserved, so mission scripts do not define IDs that collide.
@@ -314,13 +327,12 @@ return {
   exact difficulty, else the highest specified one below it, else the lowest specified one.
 - Detection is by a non-nil `difficulties` key, not by Lua type, so table parameters (`Area`,
   `Orders`) work the same way.
-- Structural fields (`type`, `settings`, `actions`, an objective's `trigger`) and fields nested
-  inside loadout entries, orders, or camera keyframes do not support it; author the whole
-  parameter per difficulty instead.
+- Structural fields (`type`, `settings`, `actions`) and fields nested inside loadout entries,
+  orders, or camera keyframes do not support it; author the whole parameter per difficulty instead.
 - Difficulties tables survive validation so every difficulty's value is checked, and the loaders run
   before the resolve, so a loader does not consume parameter values: `objectives_loader` builds each
   objective's condition record before thresholds are known, and the resolve pass copies the resolved
-  `amount` onto it as a threshold (`objectives_loader.ApplyThresholds`). Thresholds are fixed once
+  threshold onto it (`objectives_loader.ApplyThresholds`). Thresholds are fixed once
   the mission starts.
 
 ## Work in flight

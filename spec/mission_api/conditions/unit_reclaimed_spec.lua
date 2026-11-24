@@ -25,7 +25,7 @@ describe("mission_api.conditions.unit_reclaimed", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -46,28 +46,27 @@ describe("mission_api.conditions.unit_reclaimed", function()
 		for _, parameter in ipairs(unitReclaimed.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.ignoreMissionActions)
-		assert.are.same({ "unitName", "unitDefName" }, unitReclaimed.parameters.requiresOneOf)
+		assert.is_nil(unitReclaimed.parameters.requiresOneOf)
 	end)
 
 	it("fires when a unit is reclaimed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamName = 0 }), context, 1, 0)
+		destroyed(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad" }), context, 2, 0) -- unitDefID 2 = armsolar
+		destroyed(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armsolar
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName, which is the reclaimee's team and not the reclaimer's", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad", teamName = 9 }), context, 1, 0)
+		destroyed(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 9 } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -76,20 +75,20 @@ describe("mission_api.conditions.unit_reclaimed", function()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		destroyed(trigger({ unitName = "doomedRadar" }), context, 1, 0)
+		destroyed(trigger({ includeUnit = { unitName = "doomedRadar" } }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a unit that was shot down", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armrad" }), context, 1, 0, 42) -- a real weaponDefID
+		destroyed(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 42) -- a real weaponDefID
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires on a mission reclaim when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		destroyed(
-			trigger({ unitDefName = "armrad", ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			0,
@@ -102,7 +101,7 @@ describe("mission_api.conditions.unit_reclaimed", function()
 	it("filters mission reclaims by default", function()
 		local context, fired = newContext()
 		destroyed(
-			trigger({ unitDefName = "armrad" }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } } }),
 			context,
 			1,
 			0,
@@ -116,7 +115,7 @@ describe("mission_api.conditions.unit_reclaimed", function()
 	it("does not fire for an unfenced Lua kill, such as DespawnUnits", function()
 		local context, fired = newContext()
 		destroyed(
-			trigger({ unitDefName = "armrad", ignoreMissionActions = false }),
+			trigger({ includeUnit = { unitDefName = { [1] = true } }, ignoreMissionActions = false }),
 			context,
 			1,
 			0,
@@ -130,7 +129,7 @@ describe("mission_api.conditions.unit_reclaimed", function()
 		for _, damageType in ipairs({ "Killed", "SelfD", "KilledByLua", "Crushed", "ConstructionDecay" }) do
 			local weaponDefID = Game.envDamageTypes[damageType]
 			assert.is_number(weaponDefID, damageType) -- a missing key would pass this test for the wrong reason
-			destroyed(trigger({ unitDefName = "armrad" }), context, 1, 0, weaponDefID)
+			destroyed(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, weaponDefID)
 		end
 		assert.are.equal(0, fired())
 	end)

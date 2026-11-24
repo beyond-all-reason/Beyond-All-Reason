@@ -155,5 +155,195 @@
     "license": "LicenseRef-BAR-CLA-1.0",
     "signed_at": "2026-11-16T08:18:44.720Z",
     "source": "confirm-license-command"
+  },
+  {
+    "file": "unittextures/decals/armsonar_4_4_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/armwar_8_8_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/corsonar_4_4_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/legamphlab_11_11_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/leganavalfusion_11_11_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/leganavalmex_7_7_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/legapopupdef_5_5_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/leggant_15_15_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/legjuno_5_5_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/leguwestore_6_6_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals/leguwmstore_6_6_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/legamphlab_dead_11_11_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/leganavalfusion_dead_11_11_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/leganavalmex_dead_7_7_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/legapopupdef_dead_5_5_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/leggant_dead_15_15_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/legjuno_dead_5_5_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/leguwestore_dead_6_6_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "unittextures/decals_features/leguwmstore_dead_6_6_aoplane.png",
+    "status": "confirmed",
+    "pr": 10166,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-19T11:37:27.847Z",
+    "source": "confirm-license-command",
+    "confirmed_at": "2026-11-20T16:35:13.990Z"
   }
 ]
