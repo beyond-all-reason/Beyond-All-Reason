@@ -6,7 +6,7 @@ name: Find Pull Request For Push
 # reports no pull request, so that the checks run rather than go missing.
 #
 # A push to the default branch always runs. Its open pull request is a release,
-# whose run tests the merge into stable rather than the pushed commit.
+# and the calling workflows skip that pull request's run instead.
 
 on:
   workflow_call:

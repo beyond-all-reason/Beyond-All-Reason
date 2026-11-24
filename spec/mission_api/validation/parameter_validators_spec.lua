@@ -22,7 +22,7 @@ describe("mission_api.validation.parameter_validators", function()
 			})
 
 		local missing = {}
-		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.TriggerDefinitions }) do
+		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.ConditionDefinitions }) do
 			for entityType, parameters in pairs(definitions.Parameters) do
 				for _, parameter in ipairs(parameters) do
 					if parameterValidators[parameter.type] == nil then
@@ -54,7 +54,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Number", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = "bad" }))
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = "bad" }))
 
 			V.assertMessage(
 				result,
@@ -90,7 +90,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Quantity", function()
 		it("rejects a negative number", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitsOwned, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitsOwned, {
 				teamName = "player",
 				quantity = -1,
 				unitDefName = "armwar",
@@ -102,7 +102,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Fraction", function()
 		local function validateProgress(progress)
-			return V.validateTrigger(V.trigger(V.triggerTypes.ConstructionProgress, {
+			return V.validateTrigger(V.trigger(V.conditionTypes.ConstructionProgress, {
 				teamName = "player",
 				unitDefName = "armwar",
 				progress = progress,
@@ -223,7 +223,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("PositiveInteger", function()
 		local function validateTimeRemaining(timeRemaining)
 			return V.validateTrigger(
-				V.trigger(V.triggerTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
+				V.trigger(V.conditionTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
 			)
 		end
 
@@ -561,7 +561,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the area parameter of the trigger under test.
 	local function validateArea(area)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitEnteredLocation, { area = area, unitName = "x" }))
 	end
 
 	describe("Position", function()
@@ -878,7 +878,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("AllianceName", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = 0,
 			}))
@@ -890,7 +890,7 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects an unknown alliance name", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitDetected, {
 				unitName = "x",
 				sensorAllianceName = "nobody",
 			}))
@@ -986,7 +986,14 @@ describe("mission_api.validation.parameter_validators", function()
 			V.env.CMD[name] = i
 			V.env.CMD[i] = name
 		end
-		V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
+		V.env.GameCMD = {
+			AREA_ATTACK_GROUND = 100,
+			[100] = "AREA_ATTACK_GROUND",
+			SMART_TOGGLE = 101,
+			[101] = "SMART_TOGGLE",
+			USER_FIRESTATE = 102,
+			[102] = "USER_FIRESTATE",
+		}
 	end)
 
 	after_each(function()
@@ -1172,13 +1179,49 @@ describe("mission_api.validation.parameter_validators", function()
 			for index = 1, 6 do
 				V.assertMessage(
 					result,
-					"Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}. Action: a, Parameter: orders["
-						.. index
-						.. "][2]"
+					"Parameter must be one of: OFF (0), ON (1). Action: a, Parameter: orders[" .. index .. "][2]"
 				)
 			end
 		end)
 	end
+
+	it("accepts each value of a state command, engine or game", function()
+		local orders = {}
+		for moveState = 0, 2 do
+			orders[#orders + 1] = { V.env.CMD.MOVE_STATE, { moveState } }
+		end
+		for fireState = 0, 3 do
+			orders[#orders + 1] = { V.env.CMD.FIRE_STATE, fireState }
+		end
+		for trajectory = 0, 2 do
+			orders[#orders + 1] = { V.env.GameCMD.SMART_TOGGLE, { trajectory } }
+		end
+		for userFireState = 0, 4 do
+			orders[#orders + 1] = { V.env.GameCMD.USER_FIRESTATE, { userFireState } }
+		end
+
+		V.assertNoMessageContaining(validateOrders(orders), "Parameter: orders")
+	end)
+
+	it("rejects a value a state command does not take", function()
+		local result = validateOrders({
+			{ V.env.CMD.MOVE_STATE, { 3 } },
+			{ V.env.CMD.FIRE_STATE, -1 },
+			{ V.env.GameCMD.SMART_TOGGLE, { 3 } },
+			{ V.env.GameCMD.USER_FIRESTATE, { 5 } },
+		})
+
+		local function message(states, index)
+			return "Parameter must be one of: " .. states .. ". Action: a, Parameter: orders[" .. index .. "][2]"
+		end
+		V.assertMessage(result, message("HOLD_POSITION (0), MANEUVER (1), ROAM (2)", 1))
+		V.assertMessage(result, message("HOLD_FIRE (0), RETURN_FIRE (1), FIRE_AT_WILL (2), FIRE_AT_NEUTRAL (3)", 2))
+		V.assertMessage(result, message("LOW (0), HIGH (1), AUTO (2)", 3))
+		V.assertMessage(
+			result,
+			message("HOLD_FIRE (0), DEFEND (1), RETURN_FIRE (2), FIRE_AT_WILL (3), FIRE_AT_ALL (4)", 4)
+		)
+	end)
 
 	it("rejects AREA_ATTACK without a radius", function()
 		V.assertMessage(
@@ -1189,7 +1232,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
-		return V.validateTrigger(V.trigger(V.triggerTypes.UnitOrdered, { command = command, unitName = "x" }))
+		return V.validateTrigger(V.trigger(V.conditionTypes.UnitOrdered, { command = command, unitName = "x" }))
 	end
 
 	describe("Command", function()
@@ -1410,7 +1453,7 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("passes well-formed keyframes", function()
 			local hero = { unitDefName = "armwar", position = { x = 0, z = 0 }, teamName = "player", unitName = "hero" }
-			local trigger = { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
+			local trigger = { type = V.conditionTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "a" } }
 			local keyframes = {
 				{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", duration = 0 },
 				{ unitName = "hero", offsetZ = -200, offsetY = 100, relativeToHeading = true, path = "spline" },

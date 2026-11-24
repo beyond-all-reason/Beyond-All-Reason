@@ -84,6 +84,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if not unitsWithPower[unitID] then
+		return
+	end
 	unitsWithPower[unitID] = nil
 	teamPowers[unitTeam] = mathMax(teamPowers[unitTeam] - defPower[unitDefID], 0)
 end
