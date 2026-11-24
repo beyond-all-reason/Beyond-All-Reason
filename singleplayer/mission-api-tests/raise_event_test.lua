@@ -2,24 +2,24 @@
 --- Test mission demonstrating RaiseEvent: two triggers share one Event trigger's actions.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	firstCall = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 3 },
 		actions = { 'raiseReinforcements' },
 	},
 
 	secondCall = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 10 },
 		actions = { 'raiseReinforcements' },
 	},
 
 	reinforcementsArrive = {
-		type = triggerTypes.Event,
+		type = conditionTypes.Event,
 		settings = { repeating = true },
 		actions = { 'spawnReinforcements', 'messageReinforcements' },
 	},

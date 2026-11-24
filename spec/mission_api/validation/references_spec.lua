@@ -561,8 +561,8 @@ describe("mission_api.validation.references", function()
 		it("does not warn about an Event trigger a RaiseEvent action names", function()
 			local result = V.validate(
 				V.mission()
-					:WithTrigger("missionStart", { type = V.triggerTypes.MissionStarted, actions = { "raise" } })
-					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithTrigger("missionStart", { type = V.conditionTypes.MissionStarted, actions = { "raise" } })
+					:WithTrigger("raised", { type = V.conditionTypes.Event, actions = { "act" } })
 					:WithAction("raise", { type = V.actionTypes.RaiseEvent, parameters = { triggerID = "raised" } })
 					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 			)
@@ -573,7 +573,7 @@ describe("mission_api.validation.references", function()
 		it("reports a RaiseEvent action naming a trigger that is not an Event", function()
 			local result = V.validate(
 				V.mission()
-					:WithTrigger("missionStart", { type = V.triggerTypes.MissionStarted, actions = { "raise" } })
+					:WithTrigger("missionStart", { type = V.conditionTypes.MissionStarted, actions = { "raise" } })
 					:WithAction("raise", {
 						type = V.actionTypes.RaiseEvent,
 						parameters = { triggerID = "missionStart" },

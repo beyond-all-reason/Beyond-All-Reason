@@ -117,7 +117,7 @@ local function validateEventReferences(context, report)
 				namedTriggerIDs[triggerID] = true
 
 				local trigger = context.Triggers[triggerID]
-				if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
+				if type(trigger) == "table" and trigger.type ~= context.ConditionTypes.Event then
 					local field = fieldName and ("Field: " .. fieldName .. ", ") or ""
 					report.Error(SECTION, label, id, message, field .. "Trigger: " .. triggerID)
 				end
