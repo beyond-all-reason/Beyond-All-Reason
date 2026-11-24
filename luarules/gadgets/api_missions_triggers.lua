@@ -64,9 +64,9 @@ local detectionCount = 0
 local undetectedUnits = {}
 local capturedUnits = {}
 
-local refusedMetricTriggers = {}
-local refusedMetricTriggerList = {}
-local reevaluateRefusedMetricTriggers
+local pendingTriggers = {}
+local triggersToEvaluate = {}
+local evaluatePendingTriggers
 
 ----------------------------------------------------------------
 --- Trigger Functions:
@@ -164,8 +164,8 @@ local function activateTrigger(trigger)
 			actionsDispatcher.Invoke(actionID)
 		end
 	end
-	if next(refusedMetricTriggers) then
-		batch.DeferNetValue(reevaluateRefusedMetricTriggers, refusedMetricTriggers)
+	if next(pendingTriggers) then
+		batch.DeferNetValue(evaluatePendingTriggers, pendingTriggers)
 	end
 
 	return true
@@ -205,21 +205,21 @@ local function evaluateMetric(trigger, value)
 	local activated = activateTrigger(trigger)
 	if not activated then
 		trigger.metricSatisfied = false
-		refusedMetricTriggers[trigger] = true
+		pendingTriggers[trigger] = true
 	end
 	return activated
 end
 
-reevaluateRefusedMetricTriggers = function()
+evaluatePendingTriggers = function()
 	local count = 0
-	for trigger in pairs(refusedMetricTriggers) do
+	for trigger in pairs(pendingTriggers) do
 		count = count + 1
-		refusedMetricTriggerList[count] = trigger
+		triggersToEvaluate[count] = trigger
 	end
 	for i = 1, count do
-		local trigger = refusedMetricTriggerList[i]
-		refusedMetricTriggerList[i] = nil
-		refusedMetricTriggers[trigger] = nil
+		local trigger = triggersToEvaluate[i]
+		triggersToEvaluate[i] = nil
+		pendingTriggers[trigger] = nil
 		evaluateMetric(trigger, trigger.lastValue)
 	end
 end
