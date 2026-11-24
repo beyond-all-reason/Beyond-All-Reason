@@ -30,12 +30,12 @@ OpenAnim()
 	move armature3 to y-axis [0] speed [28];
 	turn armature3 to x-axis <0> speed <13>;
 
-	move piston1 to y-axis [2] speed [40];
+	move piston1 to y-axis [0] speed [40];
 	move rail1 to y-axis [0] speed [20];
 	move rail2 to y-axis [0] speed [20];
 	move rail3 to y-axis [0] speed [20];
 	wait-for-move piston1 along y-axis;
-	move piston2 to y-axis [2] speed [24];
+	move piston2 to y-axis [0] speed [24];
 	wait-for-move piston2 along y-axis;
 	move turret to y-axis [6] speed [32];
 	turn topArmsPivot to x-axis <0> speed <100>;
@@ -164,6 +164,7 @@ Create()
 	turn armPivot2 to y-axis <120> now;
 	turn armPivot3 to y-axis <-120> now;
 	move turret to y-axis [6] now;
+	move aimfromy to y-axis [6] now;
 
 	turn leftAimingArm to z-axis <45> speed <45>;
 	turn rightAimingArm to z-axis <-45> speed <45>;
@@ -276,7 +277,7 @@ SweepFire()
 		//get PRINT(1235, targetswap, isfiring, timer);
 		if (targetswap == 1 AND isfiring == 1 AND isOpen AND lastfired+fireTime>gameframe)
 		{
-			emit-sfx 2048 from fireline;
+			emit-sfx 2048 from lineflare;
 			timer = timer + 1;
 		}
 		if (timer > 150)
