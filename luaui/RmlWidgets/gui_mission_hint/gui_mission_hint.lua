@@ -35,7 +35,8 @@ end
 
 -- Reading time is real time, and stands still while the game is paused.
 function widget:Update(dt)
-	if not secondsLeft or select(3, Spring.GetGameSpeed()) then
+	local isPaused = select(3, Spring.GetGameSpeed())
+	if not secondsLeft or isPaused then
 		return
 	end
 	secondsLeft = secondsLeft - dt
