@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local nanoturretunitIDs = {}
 
 local loadoutcomplete = false
@@ -57,9 +59,10 @@ function gadget:GamePreload()
 		-- so that loaded savegames dont re-place
 		if Spring.GetModOptions().scenariooptions then
 			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-			local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-			scenariooptions = Json.decode(scenariooptions)
-			if scenariooptions and scenariooptions.unitloadout then
+			local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+			if not scenariooptions then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			elseif scenariooptions.unitloadout then
 				Spring.Echo("Scenario: Creating unit loadout")
 				local unitloadout = scenariooptions.unitloadout
 				if unitloadout then

@@ -125,6 +125,16 @@ local function toggleignoreCmd(_, _, params)
 	end
 end
 
+local function isPlayerIgnored(playerID)
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+	if (accountID and ignoredAccounts[accountID]) or (name and ignoredAccountsAndNames[name]) then
+		return true
+	end
+	local displayName = WG.playernames and WG.playernames.getPlayername(playerID)
+	return displayName ~= nil and ignoredAccountsAndNames[displayName] ~= nil
+end
+
 function widget:Initialize()
 	-- add all other ignored account names that aren't in the current game but might be in the lobby
 	for accountID, name in pairs(ignoredAccounts) do
@@ -136,12 +146,14 @@ function widget:Initialize()
 	end
 	processPlayerlist()
 	WG.ignoredAccounts = ignoredAccountsAndNames
+	WG.ignoreList = { isPlayerIgnored = isPlayerIgnored }
 	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, "t")
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("toggleignore")
 	WG.ignoredAccounts = nil
+	WG.ignoreList = nil
 end
 
 function widget:PlayerChanged()
@@ -149,9 +161,8 @@ function widget:PlayerChanged()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-	local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
-	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
-	if accountID and ignoredAccounts[accountID] then
+	-- erases pass so the auto eraser still clears marks placed before the ignore
+	if cmdType ~= "erase" and isPlayerIgnored(playerID) then
 		return true
 	end
 	return nil

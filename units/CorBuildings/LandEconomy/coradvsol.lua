@@ -9,7 +9,6 @@ return {
 		collisionvolumescales = "57 35 57",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.9,
 		energycost = 4000,
 		energymake = 80,
 		energystorage = 100,

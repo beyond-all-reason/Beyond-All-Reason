@@ -28,7 +28,7 @@ return {
 		script = "Units/LEGACK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 318.5,
+		sightdistance = 380,
 		terraformspeed = 900,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -71,7 +71,7 @@ return {
 			area_mex_def = "legmoho",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots/T2",
+			subfolder = "Legion/Constructors",
 			techlevel = 2,
 		},
 		featuredefs = {

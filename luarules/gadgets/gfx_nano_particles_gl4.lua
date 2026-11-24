@@ -50,7 +50,7 @@ if Engine.FeatureSupport and Engine.FeatureSupport.nanoParticlesGL4 then
 	-- effect draws from that same budget, so leaving it at 0 would mean no nano
 	-- particles at all -- restore it before standing down.
 	if (Spring.GetConfigInt("MaxNanoParticles", 0) or 0) <= 0 then
-		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 15000) or 15000) * 0.6))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 20000) or 20000) * 0.6))
 	end
 
 	return false
@@ -1037,6 +1037,18 @@ local builderCache = {}
 -- numeric-for iteration in the per-frame scan).
 local trackedBuilders = {} -- unitID -> arrayIndex (also used as membership set)
 local trackedBuildersList = {} -- arrayIndex -> unitID
+-- targetUnitID -> set of builders that cached it as info.targetID (may hold stale entries)
+local buildersByTarget = {}
+U.noteBuilderTarget = function(builderID, targetID)
+	if targetID and targetID < MAX_UNITS then
+		local set = buildersByTarget[targetID]
+		if not set then
+			set = {}
+			buildersByTarget[targetID] = set
+		end
+		set[builderID] = true
+	end
+end
 
 -- Forward declaration so Initialize can seed the tracked builder set.
 local trackUnit
@@ -4709,6 +4721,7 @@ local function scanBuilders(frame, includeMaintenance)
 							end
 							info.cmdID = cmdID
 							info.targetID = targetID
+							U.noteBuilderTarget(unitID, targetID)
 						end
 						if cmdID then
 							if DEBUG then
@@ -5234,7 +5247,7 @@ local function applyParticleMode(newMode, force)
 
 	if newMode == 0 then
 		-- Hand the spray budget back to the engine.
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.5))
 		return
 	end
 
@@ -5244,7 +5257,7 @@ local function applyParticleMode(newMode, force)
 	if not initGL4() then
 		spEcho("Nano Particles GL4: GL init failed; falling back to engine spray.")
 		NANO_PARTICLE_MODE = 0
-		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
+		Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.5))
 	end
 end
 
@@ -5656,15 +5669,17 @@ function gadget:UnitFinished(unitID, unitDefID)
 	-- just-completed unit. info.targetMeta caches frustum visibility and the
 	-- resolved engine ID across visits keyed by targetID; the worker-task
 	-- itself is no longer cached so cmdID/targetID will refresh next visit.
-	local n = #trackedBuildersList
-	for i = 1, n do
-		local bid = trackedBuildersList[i]
-		local info = builderCache[bid]
-		if info and info.targetID == unitID then
-			info.cmdID = nil
-			info.targetID = nil
-			info.targetMeta = nil
+	local builders = buildersByTarget[unitID]
+	if builders then
+		for bid in pairs(builders) do
+			local info = builderCache[bid]
+			if info and info.targetID == unitID then
+				info.cmdID = nil
+				info.targetID = nil
+				info.targetMeta = nil
+			end
 		end
+		buildersByTarget[unitID] = nil
 	end
 	trackUnit(unitID, unitDefID)
 end
@@ -5934,6 +5949,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	fadeFwdByTarget[unitID] = nil
 	targetPosCache[unitID] = nil
 	targetIncompleteCache[unitID] = nil
+	buildersByTarget[unitID] = nil
 	untrackUnit(unitID)
 end
 
@@ -5960,6 +5976,7 @@ function gadget:RenderUnitDestroyed(unitID)
 	fadeFwdByTarget[unitID] = nil
 	targetPosCache[unitID] = nil
 	targetIncompleteCache[unitID] = nil
+	buildersByTarget[unitID] = nil
 	untrackUnit(unitID)
 end
 

@@ -1,4 +1,4 @@
-local PolygonLib = VFS.Include("common/lib_polygon.lua")
+local PolygonLib = require("common/lib_polygon")
 
 describe("lib_polygon", function()
 	describe("PointInPolygon", function()

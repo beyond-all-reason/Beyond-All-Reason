@@ -644,34 +644,25 @@ def main():
             % (budget["total"], plural(budget["total"]), budget["total_allowance"])
         )
 
-    print(
-        "%d new finding(s): %d error(s), %d warning(s) -- %d on changed lines, %d "
-        "elsewhere in changed files, %d ripple -- %d info/hint. "
-        "Added: %d - %d resolved = %d net, allowance %d over %d changed line(s). "
-        "Total: %d warning(s) left in the changed files, %d before this change, "
-        "max %d over %d line(s), net growth %d. "
-        "%d run(s) per side."
-        % (
-            len(new),
-            len(errors),
-            len(warnings),
-            added,
-            in_files,
-            ripple,
-            len(others),
-            budget["added"],
-            budget["resolved"],
-            budget["net"],
-            budget["added_allowance"],
-            args.changed_lines,
-            budget["total"],
-            budget["base_total"],
-            budget["total_allowance"],
-            args.changed_file_lines,
-            args.changed_file_lines_delta,
-            args.runs,
+    if args.compared:
+        parts = [
+            "%d net new warning%s on changed lines, max %d"
+            % (budget["net"], plural(budget["net"]), budget["added_allowance"])
+        ]
+        if errors:
+            parts.insert(0, "%d new error%s" % (len(errors), plural(len(errors))))
+        if budget["total_judged"]:
+            parts.append(
+                "%d warning%s in changed files, max %d"
+                % (budget["total"], plural(budget["total"]), budget["total_allowance"])
+            )
+        verdict = "fails" if reasons else "passes"
+        print("Type check %s: %s." % (verdict, "; ".join(parts)))
+    else:
+        print(
+            "Type check: %d finding%s in the whole tree."
+            % (len(new), plural(len(new)))
         )
-    )
 
     # Both pools are already sorted nearest first, so the cap spends itself on
     # the changed lines, then the changed files, then the ripple. Every error is

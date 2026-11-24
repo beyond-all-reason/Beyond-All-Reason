@@ -49,12 +49,12 @@ if gadgetHandler:IsSyncedCode() then
 		-- Voilà, now it's actually random! Somehow.
 		-- Feel free to refactor this with less insanity.
 
-		local DonatorAINames = VFS.Include("luarules/configs/ai_namer/donators.lua")
-		local ContributorAINames = VFS.Include("luarules/configs/ai_namer/contributors.lua")
-		local RandomAINames = VFS.Include("luarules/configs/ai_namer/random.lua")
-		local ArmadaAINames = VFS.Include("luarules/configs/ai_namer/armada.lua")
-		local CortexAINames = VFS.Include("luarules/configs/ai_namer/cortex.lua")
-		local LegionAINames = VFS.Include("luarules/configs/ai_namer/legion.lua")
+		local DonatorAINames = require("luarules/configs/ai_namer/donators")
+		local ContributorAINames = require("luarules/configs/ai_namer/contributors")
+		local RandomAINames = require("luarules/configs/ai_namer/random")
+		local ArmadaAINames = require("luarules/configs/ai_namer/armada")
+		local CortexAINames = require("luarules/configs/ai_namer/cortex")
+		local LegionAINames = require("luarules/configs/ai_namer/legion")
 		local RaptorAINames = { "Raptors" }
 		local ScavengerAINames = { "Scavengers" }
 

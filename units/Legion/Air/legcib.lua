@@ -41,7 +41,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			subfolder = "Legion/Air",
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -102,6 +102,7 @@ return {
 				customparams = {
 					nofire = true,
 					junotype = "mini",
+					norangering = 1,
 				},
 				damage = {
 					default = 1,

@@ -121,7 +121,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				spSpawnCEG(largeSplashCEG, posX, posY, posZ)
 				spPlaySoundFile("xplodep3", 0.5, posX, posY, posZ, "sfx")
 				if defData then
-					local health, maxHealth = spGetUnitHealth(unitID)
+					local health, _ = spGetUnitHealth(unitID)
 					local damage = (defData.fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 					if damage >= health then
 						if spGetUnitRulesParam(unitID, "unit_effigy") then
@@ -154,7 +154,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	transportDrops[unitID] = nil
 	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
-	drowningUnitsWatch[unitID] = nil
+	-- Runs nested inside the drowning loop's AddUnitDamage: a write to an absent key, even nil, breaks its pairs.
+	if drowningUnitsWatch[unitID] then
+		drowningUnitsWatch[unitID] = nil
+	end
 end
 
 function gadget:GameFrame(frame)

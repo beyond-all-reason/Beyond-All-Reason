@@ -44,11 +44,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function include(filename, envTable)
+function include(filename, envTable, mode)
 	if string.find(filename, ".h.lua", 1, true) then
 		filename = "Headers/" .. filename
 	end
-	return VFS.Include(LUAUI_DIRNAME .. filename, envTable)
+	return VFS.Include(LUAUI_DIRNAME .. filename, envTable, mode)
 end
 
 --------------------------------------------------------------------------------

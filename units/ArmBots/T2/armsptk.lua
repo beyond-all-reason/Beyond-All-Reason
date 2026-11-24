@@ -3,7 +3,7 @@ return {
 		buildpic = "ARMSPTK.DDS",
 		buildtime = 11500,
 		canmove = true,
-		collisionvolumeoffsets = "0 -2 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 28 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",

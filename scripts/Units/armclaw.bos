@@ -3,10 +3,12 @@
 
 piece  base, post, turret, barrel, flare, aimpoint, sparkemit, glow;
 
-static-var  isOpen, restore_delay;
+static-var  restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+
+#include "../popup_openclose.h"
 
 EmitSparks()
 {
@@ -21,7 +23,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script Deactivate();
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -43,8 +45,7 @@ Create()
 	hide sparkemit;
 
 	restore_delay = 2000;
-	isOpen = 0;
-	start-script Activate();
+	start-script RequestOpen();
 	
 	move aimpoint to y-axis [5] speed [150.0];
 	SLEEP_UNTIL_UNITFINISHED;
@@ -56,21 +57,19 @@ Create()
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Activate()
+OpenAnim()
 {
 	move post to y-axis [4] speed [150.0];
 	move barrel to z-axis [0.0] speed [90.0];
 	wait-for-move post along y-axis;
 	wait-for-move barrel along z-axis;
 	show glow;
-	isOpen = 1;
 	set ARMORED to 0;
 }
 
-Deactivate()
+CloseAnim()
 {
 	set ARMORED to 1;
-	isOpen = 0;
 	turn turret to x-axis <0.0> speed <300.0>;
 	turn post to y-axis <0.0> speed <300.0>;
 	move barrel to z-axis [-8.0] speed [20.0];
@@ -79,6 +78,8 @@ Deactivate()
 	hide glow;
 	move post to y-axis [-26.0] speed [90.0];
 	wait-for-move post along y-axis;
+	wait-for-move barrel along z-axis;
+	wait-for-turn turret around x-axis;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -88,7 +89,7 @@ SetMaxReloadTime(reloadMS)
 
 AimWeapon1(heading, pitch)
 {
-	if (!isOpen) start-script Activate();
+	if (!isOpen) start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
@@ -102,6 +103,11 @@ AimWeapon1(heading, pitch)
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 FireWeapon1()

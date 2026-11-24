@@ -18,14 +18,21 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
+local keybindEditor = require("luaui/Include/keybind_editor_view")
+local editorModel = keybindEditor.model
 
 local doUpdate
 
 local vsx, vsy = spGetViewGeometry()
 
-local screenHeightOrg = 760
-local screenWidthOrg = 1320
+-- The panel's size at 1080p: the list fits this panel, and the keyboard overview asks for
+-- whatever gets its keys read, worked out per screen below.
+local listWidthOrg = 1100
+local listHeightOrg = 610
+-- The page the panel is showing, which decides its size.
+local currentPage = "list"
+local screenHeightOrg = listHeightOrg
+local screenWidthOrg = listWidthOrg
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -49,14 +56,6 @@ local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
 local keybinds, backgroundGuishader, show, wasShown
--- Input ownership is taken once on open and given back on close, rather than every
--- frame, so chat's handling is restored exactly as it was found.
-local ownsInput = false
-local panelHasInput = false
-local textInputStarted = false
--- Keys already down when the panel opened. Their release has to be let through, or
--- whatever they started stays stuck on once the panel starts swallowing releases.
-local heldAtOpen = {}
 
 -- Panel backdrop, baked into a display list rather than redrawn per frame.
 local function drawWindow()
@@ -65,7 +64,7 @@ local function drawWindow()
 		screenY - screenHeight,
 		screenX + screenWidth,
 		screenY,
-		0,
+		1,
 		1,
 		1,
 		1,
@@ -81,10 +80,32 @@ local function refreshText()
 	keybindEditor.refresh()
 end
 
+-- The panel's size at 1080p for the page showing. The keyboard page keeps the list's panel
+-- wherever that already gives it keys of ninety pixels or more on screen, which a 1440p
+-- screen does, so the panel does not change between the pages there. Where it does not - a
+-- 1080p screen gives 68 - the page grows to keys of about a hundred pixels: fifteen of them
+-- plus the panel's margins across, and the keyboard's proportions with the bands around it
+-- down. The 96 is those bands at 1080p: the panel's padding, the header and the footer.
+local function pageSize(page)
+	if page ~= "keyboard" then
+		return listWidthOrg, listHeightOrg
+	end
+	local listKeys = (listHeightOrg - 96) / 7.5 * widgetScale
+	if listKeys >= 90 then
+		return listWidthOrg, listHeightOrg
+	end
+	local keysOrg = 100 * 15 / widgetScale
+	local width = mathFloor(math.max(listWidthOrg, math.min(1560, keysOrg + 40)))
+	local height = mathFloor(math.max(listHeightOrg, (width - 40) * 0.5 + 96))
+
+	return width, height
+end
+
 -- Rebuilds every rect and display list against the new screen size.
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
+	screenWidthOrg, screenHeightOrg = pageSize(currentPage)
 
 	screenHeight = mathFloor(screenHeightOrg * widgetScale)
 	screenWidth = mathFloor(screenWidthOrg * widgetScale)
@@ -97,13 +118,21 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 
 	keybindEditor.init()
+	-- So guishader drops the popups' blur rects along with this widget.
+	keybindEditor.setOwner(widget)
 	local pad = mathFloor(8 * widgetScale)
+	-- The inset area the panel lays out in, and after it the window it sits in: a modal
+	-- dims the whole window, border and all, not just the area inside it.
 	keybindEditor.setArea(
 		screenX + pad,
 		screenY - screenHeight + pad,
 		screenX + screenWidth - pad,
 		screenY - pad,
-		widgetScale
+		widgetScale,
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY
 	)
 
 	if keybinds then
@@ -147,11 +176,11 @@ function widget:DrawScreen()
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 			end)
-			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo", nil, widget)
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			Spring.SetMouseCursor("cursornormal")
 		end
@@ -192,9 +221,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	return true
 end
 
--- The engine runs bound actions on release as well as on press, so releases have to be
--- swallowed too. A key already down when the panel opened is let through instead, or
--- whatever it started stays stuck on.
+-- Swallowed like the presses, but for a key that was already down when the panel opened.
 function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if not show then
 		return false
@@ -202,13 +229,7 @@ function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	keybindEditor.keyRelease(key, scanCode)
 
-	if heldAtOpen[key] then
-		heldAtOpen[key] = nil
-
-		return false
-	end
-
-	return true
+	return not editorModel.releaseGoesThrough(key)
 end
 
 function widget:TextInput(utf8char)
@@ -219,6 +240,10 @@ function widget:TextInput(utf8char)
 	return false
 end
 
+local function overPanel(x, y)
+	return math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
+end
+
 -- Clicks inside the panel go to the editor; a click outside closes it.
 local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then
@@ -226,7 +251,13 @@ local function mouseEvent(x, y, button, release)
 	end
 
 	if show then
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
+			return false
+		end
+
+		if overPanel(x, y) then
 			if not release then
 				keybindEditor.mousePress(x, y, button)
 			end
@@ -253,6 +284,11 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+-- The engine asks this before it picks the cursor and the default command from what is under the panel.
+function widget:IsAbove(x, y)
+	return show == true and not Spring.IsGUIHidden() and overPanel(x, y)
+end
+
 -- Swallowed across the whole panel, not just the list: a wheel that gets through zooms
 -- the camera behind an open editor.
 function widget:MouseWheel(up, value)
@@ -270,6 +306,14 @@ function widget:MouseWheel(up, value)
 	return true
 end
 
+local function ownText()
+	return widgetHandler:OwnText()
+end
+
+local function disownText()
+	widgetHandler:DisownText()
+end
+
 -- Holds input ownership for as long as the panel is open.
 function widget:Update()
 	-- Re-snapshot the live keymap each time the panel opens so bindings made since
@@ -279,78 +323,49 @@ function widget:Update()
 	end
 	wasShown = show
 
-	-- Text ownership is what puts this panel ahead of actionHandler, which otherwise runs
-	-- before every widget and would fire the keybinds being edited. It has to go through
-	-- OwnText: widgetHandler here is a per-widget proxy, so assigning textOwner on it just
-	-- writes a dead field.
-	if show then
-		if not panelHasInput then
-			panelHasInput = true
-			heldAtOpen = Spring.GetPressedKeys and Spring.GetPressedKeys() or {}
-			ownsInput = widgetHandler:OwnText()
-
-			-- Chat has to be asked to let go, and toggling its input flag is the only public
-			-- way to make it cancel. The flag goes straight back because gui_chat persists it,
-			-- and a config save while the panel is open would leave chat input dead next
-			-- launch. isInputActive is the accessor that means chat is holding input;
-			-- getHandleInput is a saved option that reads true whoever the owner is, so poking
-			-- on that cancels the settings search box or the widget selector's filter instead.
-			if not ownsInput and WG.chat and WG.chat.isInputActive and WG.chat.isInputActive() then
-				WG.chat.setHandleInput(false)
-				WG.chat.setHandleInput(true)
-				ownsInput = widgetHandler:OwnText()
-			end
-		elseif not ownsInput then
-			ownsInput = widgetHandler:OwnText()
-		end
-
-		-- Only once it is ours. Starting SDL text input for a field we never took, then
-		-- stopping it again on close, is what kills that field.
-		if ownsInput and not textInputStarted then
-			textInputStarted = true
-			if Spring.SDLStartTextInput then
-				Spring.SDLStartTextInput()
-			end
-		end
-	elseif panelHasInput then
-		panelHasInput = false
-		if ownsInput then
-			ownsInput = false
-			widgetHandler:DisownText()
-		end
-		if textInputStarted then
-			textInputStarted = false
-			if Spring.SDLStopTextInput then
-				Spring.SDLStopTextInput()
-			end
-		end
-	end
+	-- It has to go through OwnText: widgetHandler here is a per-widget proxy, so assigning textOwner on it
+	-- just writes a dead field.
+	editorModel.holdInput(show, ownText, disownText)
 end
 
--- Registers the panel's action, its WG surface and the build-menu hook.
+-- Registers the panel's action and its WG surface.
 function widget:Initialize()
 	refreshText()
 
-	widgetHandler:AddAction("keybindeditor", function()
+	-- "keybindeditor keyboard" opens straight onto the keyboard overview, "keybindeditor list"
+	-- onto the list; bare, it leaves the page as it was last left.
+	widgetHandler:AddAction("keybindeditor", function(_, _, words)
+		if words and words[1] then
+			keybindEditor.setPage(words[1])
+		end
 		show = true
 		doUpdate = true
 		return true
 	end, nil, "t")
 
-	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
-	-- Enable/DisableWidget.
-	keybindEditor.setMenuToggle(function(useGrid)
-		if useGrid == nil then
-			return
-		end
+	-- "keybindprofile <name>" makes that profile live. One action per profile rather than a
+	-- cycle, so a key means the same profile whatever is active. The whole argument line is
+	-- the name: profile names hold spaces, and the engine hands back the args it was bound
+	-- with, so this matches the action ids the editor lists.
+	widgetHandler:AddAction("keybindprofile", function(_, line)
+		return keybindEditor.applyProfile(line)
+	end, nil, "tp")
 
-		if useGrid then
-			Spring.SendCommands("luaui disablewidget Build menu")
-			Spring.SendCommands("luaui enablewidget Grid menu")
-		else
-			Spring.SendCommands("luaui disablewidget Grid menu")
-			Spring.SendCommands("luaui enablewidget Build menu")
+	-- The panel takes the size its page wants; a page switch lays everything out again.
+	keybindEditor.setPageHook(function(page)
+		currentPage = page
+		local width, height = pageSize(page)
+		if width ~= screenWidthOrg or height ~= screenHeightOrg then
+			local resize = widget.ViewResize
+			if resize then
+				resize(widget, vsx, vsy)
+			end
 		end
+	end)
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
 	end)
 
 	WG.keybinds = {}
@@ -373,6 +388,9 @@ function widget:Initialize()
 		refreshText()
 		doUpdate = true
 	end
+	WG.keybinds.hasStagedEdits = function()
+		return keybindEditor.hasStagedEdits()
+	end
 	widget:ViewResize()
 end
 
@@ -380,12 +398,7 @@ end
 function widget:Shutdown()
 	keybindEditor.blur()
 	widgetHandler:DisownText()
-	if ownsInput then
-		ownsInput = false
-		if Spring.SDLStopTextInput then
-			Spring.SDLStopTextInput()
-		end
-	end
+	editorModel.releaseInput()
 	if keybinds then
 		glDeleteList(keybinds)
 		keybinds = nil

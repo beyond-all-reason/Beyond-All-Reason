@@ -37,7 +37,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "ArmBuildings/LandDefenceOffence",
+			subfolder = "Legion/Defenses",
 		},
 		featuredefs = {
 			dead = {
@@ -145,6 +145,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "armmg_WEAPON",
+				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 2,
 			},

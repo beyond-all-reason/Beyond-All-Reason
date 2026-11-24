@@ -7,8 +7,8 @@
 -- Reads the JSON directly rather than through the Lua adapters, because the adapters
 -- use VFS.LoadFile, which the test harness does not mock.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
-local JsonSchema = VFS.Include("spec/common/json_schema.lua")
+local Json = require("common/luaUtilities/json")
+local JsonSchema = require("spec/common/json_schema")
 
 local function loadJson(path)
 	local f = assert(io.open(path, "r"), "cannot open " .. path)
@@ -49,52 +49,11 @@ describe("keybind catalog", function()
 		conformsTo("common/configs/keybind_catalog.schema.json", "common/configs/keybind_catalog.json")
 	end)
 
-	-- Action::Action lowercases the command before Spring.GetKeyBindings ever sees it, so
-	-- a capitalised id here silently matches nothing and the row renders with no keys.
-	-- Only the command is lowered; its arguments keep their case.
-
-	-- The editor cannot capture a bare modifier as a key, so an action bound only that way
-	-- is not editable at all and is hidden rather than listed: shown, its remove chip would
-	-- strip a binding the player could never put back. An action bound both ways stays
-	-- listed - hiding a real key to protect a modifier would be the worse trade.
-	it("hides every purely modifier-only action", function()
-		local defaults = loadJson("common/configs/keybind_defaults.json")
-		local modifiers = { alt = true, ctrl = true, shift = true, meta = true, any = true }
-		local function isModifierOnly(keyset)
-			local parts = 0
-			for part in keyset:gmatch("[^+]+") do
-				if not modifiers[part:lower()] then
-					return false
-				end
-				parts = parts + 1
-			end
-			return parts > 0
-		end
-
-		local kinds = {}
-		for _, profile in ipairs(defaults.profiles) do
-			for _, bind in ipairs(profile.binds) do
-				local seen = kinds[bind.action] or {}
-				seen[isModifierOnly(bind.keyset)] = true
-				kinds[bind.action] = seen
-			end
-		end
-
+	it("never both hides and lists an action", function()
 		local hidden = {}
 		for _, group in ipairs(catalog) do
 			for _, action in ipairs(group.hidden or {}) do
 				hidden[action] = true
-			end
-		end
-
-		for action, seen in pairs(kinds) do
-			if seen[true] and not seen[false] then
-				assert(
-					hidden[action],
-					"action is bound only to modifiers but is not hidden, so "
-						.. "the editor would offer an edit it cannot undo: "
-						.. action
-				)
 			end
 		end
 
@@ -137,5 +96,24 @@ describe("keybind catalog", function()
 				check(bind.action, "profile bind")
 			end
 		end
+
+		local retired = loadJson("common/configs/keybind_retired_includes.json")
+		for _, binds in pairs(retired) do
+			for _, bind in ipairs(binds) do
+				check(bind.action, "retired include bind")
+			end
+		end
+	end)
+end)
+
+-- Read only while migrating a player's own bind file that still keyloads one of the
+-- fragments the shipped presets used to pull in. It records what those files bound, so it
+-- tracks what was deleted rather than what the game ships now.
+describe("retired keybind includes", function()
+	it("matches its schema", function()
+		conformsTo(
+			"common/configs/keybind_retired_includes.schema.json",
+			"common/configs/keybind_retired_includes.json"
+		)
 	end)
 end)

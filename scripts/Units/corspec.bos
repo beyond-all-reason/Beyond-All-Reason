@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh, head, dish, rotator, jam;
 
@@ -229,7 +230,7 @@ UnitSpeed(){
 }
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 	start-script UnitSpeed();
@@ -289,7 +290,6 @@ Activate()
 
 Deactivate()
 {
-	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
 	// no easy way to tell if an on-off action is 
 	// script/gadget controlled or user controlled
 	// assume a deactivate command is a user command 
@@ -308,7 +308,6 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 
 	stop-spin dish around x-axis decelerate <3>;
-	//wait-for-turn dish around x-axis;
 	call-script close();
 	hide jam;
 	return (0);
@@ -320,7 +319,7 @@ signal SIGNAL_OFF;
 set-signal-mask SIGNAL_OFF;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
-sleep 8000; //hardcoded time to stay off after being hit
+sleep deactivateTime;
 recently_damaged = 0;
 set ACTIVATION to desired_activation;
 }

@@ -92,6 +92,7 @@ return {
 			"leghelios",
 		},
 		customparams = {
+			maxrange = 300,
 			unitgroup = "builder",
 			iscommander = true,
 			effigy_offset = 1,
@@ -100,7 +101,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			reaimtime = 5,
-			subfolder = "",
+			subfolder = "Legion/Legion EvoCom",
 			tombstone = "legstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "legcomlvl3",
@@ -359,7 +360,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},
@@ -367,6 +369,7 @@ return {
 			[1] = {
 				def = "ARMMG_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

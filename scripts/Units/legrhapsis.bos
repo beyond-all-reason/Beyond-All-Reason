@@ -1,17 +1,15 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-// piece  body, turret, launcher, flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8;
 piece base, turret, sleeve, barrelA, barrelB, flareA1, flareA2, flareA3, flareA4, flareA5, flareA6, flareB1, flareB2, flareB3, flareB4, flareB5, flareB6;
 
-static-var  shoot, restore_delay, Stunned, barrel;
+static-var  shoot, restore_delay, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-
+#define SMOKE_PIECE base
+#include "../damagedsmoke.h"
 
 ExecuteRestoreAfterDelay()
 {
@@ -28,7 +26,7 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+ 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -53,72 +51,55 @@ Create()
 	hide flareB6;
 
 	shoot = 1;
-	barrel = 0;
 
 	restore_delay = 3000;
-	set-signal-mask SIG_AIM;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	set-signal-mask SIGNAL_AIM1;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script DamagedSmoke();
 	start-script RestoreAfterDelay();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	stop-spin turret around y-axis;
-	turn turret to y-axis heading speed <200.000000>;
-	turn sleeve to x-axis 0 - pitch speed <200.000000>;
+	turn turret to y-axis heading speed <200.0>;
+	turn sleeve to x-axis 0 - pitch speed <200.0>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if(shoot==1) piecenum = flareB1;
-	if(shoot==2) piecenum = flareA1;
+	if(shoot==1) pieceIndex = flareB1;
+	if(shoot==2) pieceIndex = flareA1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = sleeve;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
-FirePrimary()
+FireWeapon1()
 {
 	//looks like intentionally no visual flares on rocket type AA?
-	//spin barrelA around z-axis speed <600.000000>;
-	//shoot++;
-	//if (shoot>10) shoot = 5;
 
-	
 	if(shoot==1){
-		spin barrelA around z-axis speed <900.000000>;
+		spin barrelA around z-axis speed <900.0>;
 		stop-spin barrelB around z-axis decelerate <50>;
 		stop-spin barrelA around z-axis decelerate <30>;
-		//++shoot;
 	}
 	if(shoot==2){
-		spin barrelB around z-axis speed <-900.000000>;
+		spin barrelB around z-axis speed <-900.0>;
 		stop-spin barrelA around z-axis decelerate <50>;
 		stop-spin barrelB around z-axis decelerate <30>;
-		//++shoot;
 	}
 	++shoot;
 	if(shoot==3){
