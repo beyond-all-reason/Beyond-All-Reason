@@ -215,8 +215,6 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
-	-- Must be an array: difficulty.lua resolves the names with ipairs, so any other key
-	-- would leave its name unresolved and the trigger disabled on every difficulty.
 	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
 	parameterValidators[Types.Difficulties] = function(difficulties)
 		if type(difficulties) == "table" then

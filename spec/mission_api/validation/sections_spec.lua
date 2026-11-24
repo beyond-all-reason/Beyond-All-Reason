@@ -788,7 +788,6 @@ describe("mission_api.validation.sections", function()
 				V.assertMessage(result, "Invalid difficulty: Bogus. Trigger: t, Setting: difficulties[1]")
 			end)
 
-			-- The names are resolved with ipairs, so any other key would be silently skipped.
 			it("reports a table that is not an array", function()
 				local result = validateSettings({ difficulties = { Easy = true } })
 
