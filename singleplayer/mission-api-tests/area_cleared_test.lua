@@ -3,39 +3,39 @@
 --- triggers fire only when the last of them is gone.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 
 local outpost = { x = 1000, z = 1000, radius = 300 }
 
 local triggers = {
 	killGuards = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 5 },
 		actions = { 'killGuards' },
 	},
 
 	killTower = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = { seconds = 10 },
 		actions = { 'killTower' },
 	},
 
 	outpostClearedOfTeam = {
-		type = triggerTypes.AreaCleared,
+		type = conditionTypes.AreaCleared,
 		parameters = { area = outpost, teamName = 'enemy' },
 		actions = { 'messageTeam' },
 	},
 
 	outpostClearedOfAlliance = {
-		type = triggerTypes.AreaCleared,
+		type = conditionTypes.AreaCleared,
 		parameters = { area = outpost, allianceName = 'enemies' },
 		actions = { 'messageAlliance' },
 	},
 
 	-- Nobody of theirs was ever here, so this never fires.
 	emptyAreaCleared = {
-		type = triggerTypes.AreaCleared,
+		type = conditionTypes.AreaCleared,
 		parameters = { area = { x = 3000, z = 3000, radius = 100 }, teamName = 'enemy' },
 		actions = { 'messageEmpty' },
 	},

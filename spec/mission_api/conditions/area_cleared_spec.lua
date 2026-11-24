@@ -1,6 +1,6 @@
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
-local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
+local ConditionContextBuilder = VFS.Include("spec/builders/condition_context_builder.lua")
 local MissionSpecEnv = require("mission_api.spec_helper")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -18,7 +18,7 @@ local env = MissionSpecEnv.new({
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load.
 MissionApiBuilder.new():Install(env)
 
-local areaCleared = MissionSpecEnv.include(env, "luarules/mission_api/triggers/area_cleared.lua")
+local areaCleared = MissionSpecEnv.include(env, "luarules/mission_api/conditions/area_cleared.lua")
 local callins = areaCleared.callins
 
 describe("mission_api.triggers.area_cleared", function()
@@ -38,7 +38,7 @@ describe("mission_api.triggers.area_cleared", function()
 	end
 
 	local function newContext()
-		local context = TriggerContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():Build()
 		return context, context.timesFired
 	end
 
