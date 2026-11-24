@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	timedPause = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
