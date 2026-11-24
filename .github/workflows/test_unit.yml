@@ -33,6 +33,9 @@ jobs:
       issues: write
     env:
       LUX_VERSION: '0.54.0'
+      # The commits that add recoil-lua, until an engine release has them.
+      RECOIL_LUA_REPOSITORY: https://github.com/efrec/spring.git
+      RECOIL_LUA_COMMIT: bda4c20461cbbe6e706851f7b9e0c73e5f7e3463 # lua/coilua-standalone
 
     steps:
     - uses: actions/checkout@v5
@@ -55,7 +58,7 @@ jobs:
       id: recoil-lua
       env:
         ENGINE_INPUT: ${{ inputs.engine }}
-        RECIPE: ${{ hashFiles('.github/recoil-lua/patches/**', '.github/workflows/test_unit.yml') }}
+        RECIPE: ${{ hashFiles('.github/workflows/test_unit.yml') }}
       run: |
         engine=${ENGINE_INPUT:-$(cat .github/recoil-lua/ENGINE)}
         if ! [[ "$engine" =~ ^[0-9a-f]{40}$ ]]; then
@@ -107,9 +110,10 @@ jobs:
         git -C "$src" fetch --quiet --filter=tree:0 origin "$ENGINE"
         git -C "$src" checkout --quiet "$ENGINE"
         git -C "$src" submodule update --init --recursive --quiet
-        # An engine commit with recoil-lua needs no patches.
         if [ ! -f "$src/rts/lib/lua/src/lua.cpp" ]; then
-          git -C "$src" -c user.name=ci -c user.email=ci@localhost am "$GITHUB_WORKSPACE"/.github/recoil-lua/patches/*.patch
+          git -C "$src" fetch --quiet --filter=tree:0 "$RECOIL_LUA_REPOSITORY" "$RECOIL_LUA_COMMIT"
+          base=$(git -C "$src" merge-base origin/master "$RECOIL_LUA_COMMIT")
+          git -C "$src" -c user.name=ci -c user.email=ci@localhost cherry-pick "$base..$RECOIL_LUA_COMMIT"
         fi
         cmake -S "$src" -B "$RUNNER_TEMP/recoil-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DAI_TYPES=NONE
         cmake --build "$RUNNER_TEMP/recoil-build" --target recoil-lua
