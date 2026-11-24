@@ -75,7 +75,7 @@ local function createValueValidators(context, parameterValidators)
 				results[#results + 1] = { message = "Variable key must be a string, got " .. type(key) }
 			end
 		end)
-		if #results > 0 or context.HasUnsetVariable(value) then
+		if #results > 0 or context.HasUndeclaredVariable(value) then
 			return results
 		end
 		return validateValue(valueType, context.ResolveValue(value))

@@ -1292,8 +1292,8 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
-		it("does not check a parameter while its variable is unset", function()
-			V.assertNoMessageContaining(waitFor({ variable = "unset" }), "Parameter: seconds")
+		it("does not check a parameter whose variable is undeclared", function()
+			V.assertNoMessageContaining(waitFor({ variable = "undeclared" }), "Parameter: seconds")
 		end)
 
 		it("reports a variable key that is not a string", function()

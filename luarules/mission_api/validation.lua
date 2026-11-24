@@ -81,7 +81,7 @@ local function createValidationContext(mission, report)
 		IsVariableReference = variables.IsVariableReference,
 		HasVariableReference = variables.HasVariableReference,
 		CallOnVariableKeys = variables.CallOnVariableKeys,
-		HasUnsetVariable = variables.HasUnsetVariable,
+		HasUndeclaredVariable = variables.HasUndeclaredVariable,
 		ResolveValue = variables.ResolveValue,
 
 		-- Condition definitions:

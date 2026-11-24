@@ -56,14 +56,14 @@ local function resolveValue(value)
 	return resolved
 end
 
-local function hasUnsetVariable(value)
+local function hasUndeclaredVariable(value)
 	if isVariableReference(value) then
 		return GG["MissionAPI"].Variables[value.variable] == nil
 	elseif type(value) ~= "table" then
 		return false
 	end
 	for _, nested in pairs(value) do
-		if hasUnsetVariable(nested) then
+		if hasUndeclaredVariable(nested) then
 			return true
 		end
 	end
@@ -195,7 +195,7 @@ return {
 	IsVariableReference = isVariableReference,
 	HasVariableReference = hasVariableReference,
 	CallOnVariableKeys = callOnVariableKeys,
-	HasUnsetVariable = hasUnsetVariable,
+	HasUndeclaredVariable = hasUndeclaredVariable,
 	ResolveValue = resolveValue,
 	ResolveReferences = resolveReferences,
 	GetStartingValues = getStartingValues,
