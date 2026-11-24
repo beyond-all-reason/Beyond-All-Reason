@@ -32,9 +32,8 @@ describe("mission_api.statistics", function()
 		return true
 	end
 
-	local function evaluateMetric(trigger, value)
-		measured[#measured + 1] = { trigger = trigger, value = value }
-		return true
+	local function evaluateLastValue(trigger)
+		measured[#measured + 1] = { trigger = trigger, value = trigger.lastValue }
 	end
 
 	local function makeTrigger(conditionType, parameters)
@@ -49,7 +48,7 @@ describe("mission_api.statistics", function()
 		statistics.Init({
 			processTriggersOfType = processTriggersOfType,
 			activateTrigger = activateTrigger,
-			evaluateMetric = evaluateMetric,
+			evaluateLastValue = evaluateLastValue,
 			conditionKinds = conditionKinds,
 			batch = VFS.Include("luarules/mission_api/batch.lua"),
 		})

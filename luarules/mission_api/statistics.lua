@@ -17,19 +17,15 @@
 local ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
 
 local statisticsTriggerCounts = {}
-local processTriggersOfType, activateTrigger, evaluateMetric, conditionKinds
+local processTriggersOfType, activateTrigger, evaluateLastValue, conditionKinds
 local batch ---@type table
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
 	activateTrigger = dependencies.activateTrigger
-	evaluateMetric = dependencies.evaluateMetric
+	evaluateLastValue = dependencies.evaluateLastValue
 	conditionKinds = dependencies.conditionKinds
 	batch = dependencies.batch
-end
-
-local function evaluateLastValue(trigger)
-	evaluateMetric(trigger, trigger.lastValue)
 end
 
 local function updateUnitStatistics(conditionType, teamID, unitDefName, unitNames, direction)
