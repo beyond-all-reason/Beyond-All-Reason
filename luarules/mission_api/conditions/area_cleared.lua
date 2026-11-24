@@ -1,4 +1,5 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
+local ConditionKinds = GG["MissionAPI"].Modules.ConditionKinds
 
 -- A refused trigger (inactive, prerequisites, stage) asks again this much later.
 local RETRY_FRAMES = 0.5 * Game.gameSpeed
@@ -23,6 +24,7 @@ end
 -- An area nobody of theirs was in never fires; one they come back to can fire again, if it repeats.
 return {
 	type = "AreaCleared",
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = "area", required = true, type = ParameterTypes.Area },
 		{ name = "teamName", required = false, type = ParameterTypes.TeamName },
