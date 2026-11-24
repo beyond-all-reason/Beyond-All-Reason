@@ -9,6 +9,12 @@ local MARCH_COMMANDS = {
 	[CMD.PATROL] = true,
 }
 
+-- The unit attributes source of the marching pace.
+local SPEED_SOURCE = "marching"
+
+---@type table<integer, table> unitID to the tag of its last march order and its own speed: { tag, speed }
+local paced = {}
+
 -- A factory takes move orders as rally points but has no speed.
 local function canMarch(unitID)
 	return UnitDefs[Spring.GetUnitDefID(unitID)].speed > 0
@@ -94,6 +100,67 @@ local function getMarchingOrders(unitMap, orders, direction)
 	return marchingOrders
 end
 
+-- The tag of the last march order in the unit's queue: the one just given.
+local function getLastMarchTag(unitID)
+	for index = Spring.GetUnitCommandCount(unitID), 1, -1 do
+		local command, _, tag = Spring.GetUnitCurrentCommand(unitID, index)
+		if MARCH_COMMANDS[command] then
+			return tag
+		end
+	end
+end
+
+---Holds the marchers to the slowest one's speed until their march orders are gone.
+---@param unitOrders table<integer, table[]> as GetMarchingOrders returns them, already given
+local function matchSpeed(unitOrders)
+	local marchers, count, slowest = {}, 0, math.huge
+	for unitID in pairs(unitOrders) do
+		local tag = canMarch(unitID) and getLastMarchTag(unitID)
+		if tag then
+			-- A unit already paced reads back its paced speed, so its own is kept from the first time.
+			local speed = paced[unitID] and paced[unitID].speed
+				or GG.UnitAttributes.GetUnitAttributeValue(unitID, "speed")
+			marchers[unitID] = { tag = tag, speed = speed }
+			count, slowest = count + 1, math.min(slowest, speed)
+		end
+	end
+	if count < 2 then
+		return
+	end
+	-- A modifier, so the pace holds whatever else sets or scales the unit's speed.
+	for unitID, marcher in pairs(marchers) do
+		paced[unitID] = marcher
+		local share = slowest / marcher.speed
+		GG.UnitAttributes.SetUnitModifier(unitID, "speed", share < 1 and share or nil, SPEED_SOURCE)
+	end
+end
+
+-- The whole queue, as an ATTACK can be pushed in front of a FIGHT and a PATROL never leaves it.
+local function hasMarchOrder(unitID, tag)
+	for index = 1, Spring.GetUnitCommandCount(unitID) do
+		local _, _, queuedTag = Spring.GetUnitCurrentCommand(unitID, index)
+		if queuedTag == tag then
+			return true
+		end
+	end
+	return false
+end
+
+local function updateSpeeds()
+	for unitID, marcher in pairs(paced) do
+		local alive = Spring.GetUnitIsDead(unitID) == false
+		-- Arrived, given other orders or loaded: the unit gets its own speed back.
+		if not alive or Spring.GetUnitTransporter(unitID) or not hasMarchOrder(unitID, marcher.tag) then
+			paced[unitID] = nil
+			if alive then
+				GG.UnitAttributes.SetUnitModifier(unitID, "speed", nil, SPEED_SOURCE)
+			end
+		end
+	end
+end
+
 return {
 	GetMarchingOrders = getMarchingOrders,
+	MatchSpeed = matchSpeed,
+	UpdateSpeeds = updateSpeeds,
 }

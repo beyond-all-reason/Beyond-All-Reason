@@ -27,9 +27,7 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecaltype = "decals/leguwmstore_aoplane.dds",
+			buildinggrounddecaltype = "decals/leguwmstore_6_6_aoplane.png",
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
