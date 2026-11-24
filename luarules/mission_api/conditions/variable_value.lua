@@ -5,7 +5,6 @@ local function evaluate(trigger, context)
 	context.EvaluateMetric(trigger, GG['MissionAPI'].Variables[trigger.parameters.key])
 end
 
--- Evaluated after each batch that writes the variable, and at game start, before any MissionStarted trigger.
 return {
 	type = 'VariableValue',
 	kind = ConditionKinds.Metric,

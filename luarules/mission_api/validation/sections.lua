@@ -789,7 +789,7 @@ local function validateFollowCameraEnding(context, actionReport, actionID, actio
 	end
 end
 
---- A variable keeps the type of its starting value.
+-- A variable keeps the type of its starting value.
 local function validateWriteVariableAction(context, actionReport, actionID, action)
 	if action.type ~= context.ActionTypes.WriteVariable or type(action.parameters) ~= "table" then
 		return

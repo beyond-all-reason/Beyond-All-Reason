@@ -569,7 +569,6 @@ end
 -- Variable references
 --------------------------------------------------------------------------------
 
---- Every variable a mission reads is declared in Variables or PersistentVariables.
 local function validateVariableReferences(context, report)
 	local referencedKeys = {}
 
@@ -617,7 +616,6 @@ local function validateVariableReferences(context, report)
 	end
 end
 
---- Rejects a threshold that reads a variable the mission writes, since thresholds are read once, at mission start.
 local function validateThresholdVariableReferences(context, report)
 	local actionTypes = context.ActionTypes
 	local writtenKeys = {}
