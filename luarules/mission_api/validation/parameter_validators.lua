@@ -238,12 +238,8 @@ local function registerValueValidators(parameterValidators, context)
 	-- would leave its name unresolved and the trigger disabled on every difficulty.
 	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
 	parameterValidators[Types.Difficulties] = function(difficulties)
-		if type(difficulties) == "table" then
-			for key in pairs(difficulties) do
-				if type(key) ~= "number" then
-					return { { message = "Expected an array of difficulty names, got key: " .. tostring(key) } }
-				end
-			end
+		if type(difficulties) == "table" and not isCompactSequence(difficulties) then
+			return { { message = "Expected a list of difficulty names without gaps" } }
 		end
 		return validateDifficultyList(difficulties)
 	end

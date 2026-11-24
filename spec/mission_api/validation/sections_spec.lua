@@ -798,7 +798,7 @@ describe("mission_api.validation.sections", function()
 
 				V.assertMessage(
 					result,
-					"Expected an array of difficulty names, got key: Easy. Trigger: t, Setting: difficulties"
+					"Expected a list of difficulty names without gaps"
 				)
 			end)
 		end)
