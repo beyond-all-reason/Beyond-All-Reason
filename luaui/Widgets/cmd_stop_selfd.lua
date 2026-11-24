@@ -37,7 +37,8 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
+	-- nil when not counting down (engine 2026.09+) or when the unit is gone
+	if (Spring.GetUnitSelfDTime(unitID) or 0) > 0 then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	end
 end

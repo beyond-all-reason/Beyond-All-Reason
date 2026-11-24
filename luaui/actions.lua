@@ -44,7 +44,7 @@ end
 --  Insertions
 --
 
-local function InsertCallInfo(callInfoList, widget, func, data)
+local function InsertCallInfo(callInfoList, widget, func, data, copiesActions)
 	local layer = widget.whInfo.layer
 	local index = 1
 	for i, ci in ipairs(callInfoList) do
@@ -56,18 +56,18 @@ local function InsertCallInfo(callInfoList, widget, func, data)
 			index = i + 1
 		end
 	end
-	table.insert(callInfoList, index, { widget, func, data })
+	table.insert(callInfoList, index, { widget, func, data, copiesActions })
 	return true
 end
 
-function actionHandler:AddAction(widget, cmd, func, data, types)
+function actionHandler:AddAction(widget, cmd, func, data, types, copiesActions)
 	local function add(actionMap)
 		local callInfoList = actionMap[cmd]
 		if callInfoList == nil then
 			callInfoList = {}
 			actionMap[cmd] = callInfoList
 		end
-		return InsertCallInfo(callInfoList, widget, func, data)
+		return InsertCallInfo(callInfoList, widget, func, data, copiesActions)
 	end
 
 	-- make sure that this is a fully initialized widget
@@ -196,6 +196,20 @@ end
 --  Calls
 --
 
+local function CopyActionList(actions)
+	local copy = {}
+	for i, action in ipairs(actions) do
+		local actionCopy = {}
+		for k, v in pairs(action) do
+			actionCopy[k] = v
+		end
+		copy[i] = actionCopy
+	end
+	return copy
+end
+
+actionHandler.CopyActionList = CopyActionList
+
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions, key, scanCode)
 	local callInfoList = actionMap[cmd]
 	if callInfoList == nil then
@@ -205,7 +219,8 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 		--local widget = callInfo[1]
 		local func = callInfo[2]
 		local data = callInfo[3]
-		if func(cmd, optLine, optWords, data, isRepeat, release, actions, key, scanCode) then
+		local callbacks = callInfo[4] and actions and CopyActionList(actions) or actions
+		if func(cmd, optLine, optWords, data, isRepeat, release, callbacks, key, scanCode) then
 			return true
 		end
 	end

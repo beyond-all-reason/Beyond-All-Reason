@@ -11,13 +11,13 @@ describe("Command batch callbacks", function()
 			for _, synced in ipairs({ false, true }) do
 				local env = setmetatable({
 					Script = { CommandBatchCallbacks = supported },
-					gadgetHandler = { UnitCommandList = {} }, -- real handler has NO IsSyncedCode method
+					unitCommandLists = { any = {} },
 					IsSyncedCode = function()
 						return synced
 					end,
 					CMD = { ATTACK = 20 },
 					CMD_ANY = "any",
-					allowCommandList = { [20] = {} },
+					allowCommandLists = { [20] = {} },
 					markIdle = function() end,
 					VFS = {
 						Include = function(name)
@@ -29,11 +29,11 @@ describe("Command batch callbacks", function()
 				setfenv(chunk, env)
 				chunk()
 				if supported then
-					env.gadgetHandler.UnitCommandList = { { _unitCommandIDs = { [45] = true } } }
+					env.unitCommandLists[45] = { {} }
 					assert(env.WantsUnitCommandBatch(1, 1, 0, {}))
-					env.gadgetHandler.UnitCommandList = { { _unitCommandIDs = { [20] = true } } }
+					env.unitCommandLists[20] = { {} }
 					assert(not env.WantsUnitCommandBatch(1, 1, 0, {}))
-					env.gadgetHandler.UnitCommandList = {}
+					env.unitCommandLists[20] = nil
 				end
 				assert((type(env.UnitCommandBatch) == "function") == supported)
 				assert((type(env.AllowCommandBatch) == "function") == (supported and synced))

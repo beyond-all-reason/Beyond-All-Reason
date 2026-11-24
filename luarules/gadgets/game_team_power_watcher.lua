@@ -84,6 +84,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if not unitsWithPower[unitID] then
+		return
+	end
 	unitsWithPower[unitID] = nil
 	teamPowers[unitTeam] = mathMax(teamPowers[unitTeam] - defPower[unitDefID], 0)
 end
@@ -99,7 +102,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		if teamPowers[oldTeam] <= defPower[unitDefID] then
 			teamPowers[oldTeam] = 0
 		else
-			teamPowers[oldTeam] = teamPowers[unitTeam] - defPower[unitDefID]
+			teamPowers[oldTeam] = teamPowers[oldTeam] - defPower[unitDefID]
 		end
 
 		if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then

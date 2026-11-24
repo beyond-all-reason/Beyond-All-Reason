@@ -1,5 +1,5 @@
 -- Run the actual PiP command handlers with mocked world/UI state.
-local path = "luaui/Widgets/gui_pip.lua"
+local path = "luaui/Widgets/gui_pip/gui_pip.lua"
 local f = assert(io.open(path))
 local src = f:read("*a")
 f:close()

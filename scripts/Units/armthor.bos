@@ -22,7 +22,7 @@ UnitSpeed()
 		currentSpeed = (get CURRENT_SPEED) * 20 / moveSpeed;
 		if (currentSpeed < 4) currentSpeed = 4;
 		animSpeed = 1800 / currentSpeed;
-		sleep 142;
+		sleep 50;
 	}
 }
 
@@ -295,6 +295,7 @@ AimWeapon2(heading, pitch)
 		wait-for-turn rlauncher around x-axis;
 		return (1);
 	}
+	return (0);
 }
 
 FireWeapon2()

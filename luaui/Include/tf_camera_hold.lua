@@ -1,16 +1,14 @@
 -- Terraform Brush camera hold.
 --
--- The spring camera re-seats its point of focus on the surface every frame (SpringController::Update:
--- pos.y = the terrain, or the smooth mesh in CamSpringTrackMapHeightMode 2), so a stroke that raised or
--- lowered the ground under the view carried the camera up and down with it. The hold keeps the EYE still
--- instead: it remembers where the camera is and where it looks when a stroke starts, and every frame moves
--- the focus along that same view ray to where the ray now meets the surface. The engine then seats the
--- focus on the surface exactly where the hold put it, and the eye does not move. Ground raised into the
--- camera still lifts it.
+-- The spring camera re-seats its focus point on the surface every frame (raw terrain, or the smooth mesh
+-- in CamSpringTrackMapHeightMode 2), so a stroke that raises or lowers the ground under the view would
+-- carry the camera with it. The hold keeps the EYE still instead: it remembers the eye and view direction
+-- when a stroke starts, and every frame moves the focus along that view ray to where it now meets the
+-- surface. Ground raised into the camera still lifts it (see CLEARANCE).
 --
--- After the stroke the hold stays on until the player moves the camera (pan, zoom, rotate, another camera
--- mode): the smooth mesh catches up with a heightmap edit over several frames and would otherwise drift
--- the view after the stroke. No setting is touched. Only the map editor's terraform strokes engage it.
+-- The hold stays on after the stroke until the player moves the camera, because the smooth mesh catches
+-- up with a heightmap edit over several frames. No setting is touched; only editor terraform strokes
+-- engage it.
 
 local M = {}
 
@@ -20,13 +18,15 @@ local MOVED_DIR = 0.002 -- view direction change (dot product) that counts as th
 
 local held = false ---@type boolean
 local stroking = false ---@type boolean
+---@type [number, number, number]
 local eye = { 0, 0, 0 }
+---@type [number, number, number]
 local look = { 0, 0, -1 }
 
--- The surface the engine seats the focus on differs by engine version and setting (raw terrain, or a smooth
--- mesh blended in by zoom), so it is not modelled here: the engine's own focus height (state.py) against
--- the raw ground there gives an offset, and the ray is cast against the ground plus that offset. Exact for
--- terrain tracking; for the smooth mesh a local estimate that the next frame's read-back refines.
+-- The surface the engine seats the focus on depends on engine version and setting, so it is not modelled:
+-- the camera state's focus height (py) minus the raw ground there gives an offset added to the ground.
+-- Exact for terrain tracking; for the smooth mesh a local estimate the next frame refines.
+---@type number
 local surfaceOffset = 0
 
 local function surfaceHeight(x, z)
@@ -39,7 +39,9 @@ local function rayToSurface(maxT)
 		local x, z = eye[1] + look[1] * t, eye[3] + look[3] * t
 		return eye[2] + look[2] * t - surfaceHeight(x, z)
 	end
+	---@type number, number?, number
 	local lo, hi, step = 0, nil, 64
+	---@type number
 	local t = step
 	while t <= maxT do
 		if above(t) <= 0 then
@@ -82,8 +84,8 @@ end
 
 ---@param active boolean a terraform stroke is changing the ground this frame
 function M.update(active)
-	---@type table
 	local state = Spring.GetCameraState()
+	---@cast state CameraState?
 	if not (state and state.name == "spring") then
 		M.release()
 		return

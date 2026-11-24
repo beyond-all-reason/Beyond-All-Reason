@@ -56,13 +56,13 @@ local soundData = {
 	},
 
 	uw = {
-		gain = 1.2 * 0.3,
+		gain = 0.35 * 0.3,
 		pitchmod = 0.17,
 		gainmod = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 8,
 		--priority = 1,
-		rolloff = 0.1,
+		rolloff = 0.08,
 	},
 
 	--[[

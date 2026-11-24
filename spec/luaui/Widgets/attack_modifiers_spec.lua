@@ -137,6 +137,12 @@ describe("Attack modifiers through area widgets", function()
 					ctrl = has(mask, 8),
 					alt = has(mask, 16),
 				}
+				if options.ctrl and (not options.meta or path == "wall fallback") then
+					-- Ctrl removal is handled by the engine for raw area Attacks.
+					assert.is_false(notify({ 101, 0, 0, 1000 }, options))
+					assert.same({}, orders)
+					return
+				end
 				assert.is_true(notify({ 101, 0, 0, 1000 }, options))
 				local queues = { { 999 }, { 999 } }
 				for _, order in ipairs(orders) do

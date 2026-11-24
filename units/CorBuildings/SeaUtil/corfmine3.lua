@@ -23,7 +23,7 @@ return {
 		maxdec = 0,
 		maxslope = 40,
 		metalcost = 32,
-		mincloakdistance = 8,
+		mincloakdistance = 30,
 		minwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORFMINE3.s3o",

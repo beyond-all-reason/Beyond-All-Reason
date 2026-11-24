@@ -4,7 +4,7 @@
 
 piece  	pelvis, torso, aaturret, aasleeve, aabarrel, lshoulder, rshoulder, larm, rarm, lhand, rhand, lsleeve, rsleeve, lbarrel, rbarrel, lstowed, rstowed, lthigh, rthigh, lknee, rknee, lfoot, rfoot, rkeel, lkeel, ltoes, rtoes, aimy, aimx, aaflare, flarel, flarer;
 
-static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, restore_delay, gun_left, miniguncount, wpnheading, shotcount;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, restore_delay, miniguncount, wpnheading, shotcount;
 
 #define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
@@ -408,7 +408,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 4) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -423,7 +422,7 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
+StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	
@@ -466,7 +465,6 @@ Create()
 	
 	isMoving = FALSE;
 	wpnheading = 0;
-	gun_left = 0;
 	miniguncount = 0;
 	animSpeed = 4;
 	shotcount = 0;
@@ -521,7 +519,7 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
-Shot1(zero) //Barrel switcher so each minigun fires at the same time
+Shot1() //Barrel switcher so each minigun fires at the same time
 {
 	signal SIGNAL_FIRE1;
 	set-signal-mask SIGNAL_FIRE1;
@@ -538,12 +536,7 @@ Shot1(zero) //Barrel switcher so each minigun fires at the same time
 		++shotcount;
 	}
 	sleep 32;
-	++miniguncount;
-	if(miniguncount>=2)
-	{
-		miniguncount=0;
-	}
-	return(1);
+	miniguncount = !miniguncount;
 }
 
 
@@ -557,15 +550,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if(miniguncount == 0)
-	{
-		pieceIndex = flarel;
-	}
-	if(miniguncount == 1)
-	{
-		pieceIndex = flarer;
-	}
-	return (0);
+	pieceIndex = flarel + miniguncount;
 }
 
 AimWeapon1(heading, pitch)
@@ -578,11 +563,6 @@ AimWeapon1(heading, pitch)
 	if (!IsOpen) return 0;
 	
 	call-script CATT1_Aim(heading,pitch);
-		
-	//if (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpnheading - heading), <20>)){
-	//	wait-for-turn aimy around y-axis;
-	//	wait-for-turn aimx around x-axis;
-	//}
 	wpnheading = heading;
 	return (1);
 }
@@ -595,7 +575,6 @@ FireWeapon1()
 	spin rbarrel around z-axis speed <1080.0>;
 	stop-spin lbarrel around z-axis decelerate <12>;
 	stop-spin rbarrel around z-axis decelerate <12>;
-	return (0);
 }
 
 
@@ -639,7 +618,6 @@ FireWeapon2()
 	emit-sfx 1024 + 0 from aaflare;
 	sleep 66;
 	stop-spin aabarrel around z-axis decelerate <6>;
-	return (0);
 }
 
 Open()

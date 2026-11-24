@@ -24,8 +24,6 @@ local sequentialCommand = {
 	[CMD.PATROL] = true,
 }
 
-include("keysym.h.lua")
-
 local math_distsq = math.distance3dSquared
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount

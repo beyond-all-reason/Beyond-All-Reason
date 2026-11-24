@@ -12,9 +12,9 @@ function widget:GetInfo()
 	}
 end
 
--- The terraform brush's UNITS tool (refactor plan, U6). The same unit library and the same
--- placer as the mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer);
--- what differs is where a placement goes: here it becomes REAL units, through the Unit Placer
+-- The terraform brush's UNITS tool. The same unit library and the same placer as the
+-- mission editor (luaui/RmlWidgets/gui_unit_library, luaui/Include/unit_placer); what
+-- differs is where a placement goes: here it becomes REAL units, through the Unit Placer
 -- gadget, which keeps every gesture as one stroke to undo and redo.
 --
 -- It works the way the FEATURES tool (cmd_feature_placer.lua) does, with units:
@@ -22,21 +22,25 @@ end
 --            clustered spots; or, with distribution line / grid / box, a FORMATION dragged
 --            out through the shared placer (the Blueprint API draws it)
 --   POINT    one unit per click under the cursor (a multi-pick cycles the type)
---   REMOVE   the brush takes units away; right-click does the same in the other modes
--- Every placement honours the smart filters and the terraform brush's symmetry. With
--- nothing picked the left button SELECTS instead: click, Shift+click, box drag; drag a
--- selected unit to move them all, R turns them, Ctrl+click faces them at a point, Delete,
--- Ctrl+C / X / V.
+--   REMOVE   the brush takes units away (left button)
+-- Every placement honours the smart filters and the terraform brush's symmetry. Right-click
+-- lets go of the pick; it never removes. With nothing picked, LIVE mode leaves plain clicks
+-- to the game (select and order as usual); MISSION mode and other owners keep the tool's
+-- own selection: click, Shift+click, box drag, drag a selected unit to move them all,
+-- Ctrl+click faces them at a point. Either way Delete, R, Ctrl+A and Ctrl+C / X / V act on
+-- the selection.
 --
--- Keys while active: T cycles the team, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole
--- strokes, Tab cycles the formation, R / Shift+R turn, Escape steps back (selection, then
--- the pick). Wheel: Alt rotate, Shift count, Space cadence, Ctrl radius.
+-- Keys while active: Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole strokes, Tab cycles
+-- the formation of an armed placer, R / Shift+R turn, Escape steps back (selection, then the pick),
+-- Alt+Z / Alt+X or mouse 4 / 5 spread or pack. Wheel: Alt rotate, Shift count, Space
+-- cadence, Ctrl radius. There is no team key: the panel's TEAM chip cycles the team.
 
 local Placer = VFS.Include("luaui/Include/unit_placer/placer.lua")
 local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
 local Layout = VFS.Include("luaui/Include/unit_placer/layout.lua")
 local BrushShapes = require("common/brush_shapes")
 local Scatter = require("common/feature_scatter")
+local WorldTool = require("luaui/Include/tf_world_tool")
 
 local MSG = {
 	place = "$unit_place$",
@@ -45,20 +49,72 @@ local MSG = {
 	clearAll = "$unit_clearall$",
 	undo = "$unit_place_undo$",
 	redo = "$unit_place_redo$",
+	mission = "$unit_mission$",
 }
+
+-- MISSION UNITS. The brush places either LIVE units (normal units
+-- to look at, fight with, light) or MISSION units: stand-ins for a mission, frozen in place
+-- by the gadget and carrying a mission TEAM NUMBER (0..TEAMS-1) that need not exist in this
+-- session (they stand on Gaia when it does not). The map project saves them with that
+-- number, which is what the mission editor takes as its loadout. The kind and the mission
+-- team are the brush's own (owner "terraform_brush"); another owner (the mission editor)
+-- brings its own sink and teams.
+---@class UnitPlacerMission
+---@field TEAMS integer
+---@field PARAM string
+---@field PALETTE table<number, number[]> one colour per mission team
+local mission = {
+	TEAMS = 16,
+	PARAM = "mission_team",
+	-- one colour per mission team for the ground rings
+	PALETTE = {
+		{ 0.20, 0.45, 1.00 },
+		{ 1.00, 0.25, 0.20 },
+		{ 0.20, 0.85, 0.30 },
+		{ 1.00, 0.85, 0.15 },
+		{ 0.75, 0.30, 1.00 },
+		{ 0.15, 0.90, 0.90 },
+		{ 1.00, 0.55, 0.10 },
+		{ 1.00, 0.45, 0.75 },
+		{ 0.55, 0.75, 0.20 },
+		{ 0.45, 0.30, 0.15 },
+		{ 0.60, 0.60, 1.00 },
+		{ 0.90, 0.90, 0.90 },
+		{ 0.10, 0.40, 0.30 },
+		{ 0.70, 0.10, 0.30 },
+		{ 0.35, 0.35, 0.35 },
+		{ 0.95, 0.75, 0.55 },
+	},
+	markers = {}, -- { unitID, team } refreshed every few frames
+	markersAt = -1000,
+	lastGame = {}, -- the game's selection as the LIVE mirror last saw it (a set)
+}
+
+--- The mission team of a unit, nil for a live one.
+function mission.teamOf(unitID)
+	local m = Spring.GetUnitRulesParam(unitID, mission.PARAM)
+	return (m and m >= 0) and m or nil
+end
+
+--- The session team a team number stands on: itself when it exists, else Gaia.
+function mission.realTeam(team)
+	local tid, _, isDead = Spring.GetTeamInfo(team, false)
+	if tid and not isDead then
+		return team
+	end
+	return Spring.GetGaiaTeamID()
+end
 local LIBRARY_TITLE = "TERRAFORM BRUSH"
 local SAVE_DIR = "Terraform Brush/UnitMaps/"
 --- Units per message: a 40x40 grid is 1600 units, and one message carrying them all would
 --- be a very long string for one frame.
 local BATCH = 40
 local KEY = {
-	tab = 9,
 	backspace = 8,
 	escape = 27,
 	a = 97,
 	c = 99,
 	r = 114,
-	t = 116,
 	v = 118,
 	x = 120,
 	y = 121,
@@ -85,7 +141,6 @@ local SMART_GRID_STEP = 24
 local SEED_MAX = 16777216 -- 2^24: Lua numbers are floats here
 local SEED_STRIDE = 8191
 local FORMATION_MODE = { line = "LINE", grid = "GRID", box = "BOX" }
-local NEXT_FORMATION = { line = "grid", grid = "box", box = "line" }
 ---@type table<string, boolean>
 local DISTRIBUTIONS = { random = true, regular = true, clustered = true, line = true, grid = true, box = true }
 ---@type table<string, boolean>
@@ -137,6 +192,8 @@ local cos, sin, pi = math.cos, math.sin, math.pi
 ---@field modBase string?
 ---@field lastStampX number?
 ---@field lastStampZ number?
+---@field kind string "live" | "mission": what the brush places
+---@field missionTeam number the mission team number new mission units get
 
 ---@type UnitPlacerState
 local up = {
@@ -162,6 +219,8 @@ local up = {
 		altMax = 200,
 	},
 	team = nil,
+	kind = "live", -- "live" | "mission": what the brush places (see `mission`)
+	missionTeam = 0, -- the mission team number new mission units get
 	dragging = false, -- the button is held on a brush gesture
 	dragAction = nil, -- "place" | "remove"
 	dragStroke = nil, -- one hold is one stroke
@@ -231,6 +290,8 @@ local pv = {
 ---@field clipboard table?
 ---@field pruneTimer number
 ---@field boxAdditive boolean?
+---@field silent boolean? set while an owner selects, so its sink is not told back
+---@field pointer { x: number, z: number }? a harness point standing in for the mouse
 
 ---@type UnitPlacerSelection
 local sel = {
@@ -243,14 +304,96 @@ local sel = {
 	boxY2 = 0,
 	drag = nil, -- { grabID, pressX, pressY, startX, startZ, moved, origins, targets }
 	clipboard = nil, -- { { unitDefName, dx, dz, facing, team }, ... }
+	pointer = nil, -- a harness pointer { x, z } standing in for the mouse (Tool.setPointer)
 	pruneTimer = 0,
 }
+
+-- The lasso round a multi-selection (see "The lasso" below); here because the selection
+-- code above that section marks it dirty.
+---@type { hull: table?, dirty: boolean, age: number, hover: boolean }
+local lasso = { hull = nil, dirty = true, age = 0, hover = false }
 
 -- Built in widget:Initialize, before any callin that reads it.
 local placer ---@type table
 ---@type table?
 local lastPick -- { kind = "unit" | "blueprint" | "paste", value, facing, cycle }
 local Tool = {} -- WG.UnitPlacerTool
+
+----------------------------------------------------------------
+-- Provider and sink
+----------------------------------------------------------------
+-- Everything the gestures READ about placed units goes through `owner.provider`, and
+-- everything they DO goes through `owner.sink`. The brush installs the engine pair (real
+-- units through the Unit Placer gadget, below); the mission editor installs a pair over its
+-- document (records keyed by string, its own undo), and the same gestures, brush,
+-- formations, keys and panel drive both. An id is whatever the provider hands out: a unit
+-- id here, a record key there; the tool never does arithmetic on it.
+--
+-- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
+--   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and
+--   place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r) -> ids,
+--   teams() -> teamIDs, myTeam() -> teamID, pick(mx, my, gx, gz) -> id | nil }
+-- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
+--   undo(), redo(), clearAll(strokeId), selectionChanged?(ids) }
+local engineProvider = {
+	valid = function(unitID)
+		return Spring.ValidUnitID(unitID)
+	end,
+	info = function(unitID)
+		if not Spring.ValidUnitID(unitID) then
+			return nil
+		end
+		local def = UnitDefs[Spring.GetUnitDefID(unitID)]
+		local x, _, z = Spring.GetUnitPosition(unitID)
+		if not (def and x) then
+			return nil
+		end
+		return {
+			id = unitID,
+			name = def.name,
+			defID = def.id,
+			x = x,
+			z = z,
+			facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
+			xsize = def.xsize,
+			zsize = def.zsize,
+			-- a mission unit reports its mission team, so a copy pastes onto that team
+			team = mission.teamOf(unitID) or Spring.GetUnitTeam(unitID),
+		}
+	end,
+	all = function()
+		return Spring.GetAllUnits() or {}
+	end,
+	inScreenRect = function(x1, y1, x2, y2)
+		return Spring.GetUnitsInScreenRectangle(x1, y1, x2, y2) or {}
+	end,
+	inCylinder = function(x, z, radius)
+		return Spring.GetUnitsInCylinder(x, z, radius) or {}
+	end,
+	teams = function()
+		return Spring.GetTeamList() or {}
+	end,
+	myTeam = function()
+		return Spring.GetMyTeamID()
+	end,
+	--- The unit under a screen point, or nil (what a click selects).
+	pick = function(mx, my, _gx, _gz)
+		local kind, target = Spring.TraceScreenRay(mx, my)
+		return kind == "unit" and target or nil
+	end,
+}
+-- The gadget sink is installed once its message functions exist (after "Messages to the
+-- gadget" below); until then the tool is not active anyway.
+local owner = { name = "terraform_brush", provider = engineProvider, sink = nil }
+local gadgetSink
+
+--- The unit library opens under the owner's name: a pick belongs to whoever opened it.
+local function libraryTitle()
+	return owner.title or LIBRARY_TITLE
+end
+
+local PROVIDER_FIELDS = { "valid", "info", "all", "inScreenRect", "inCylinder", "teams", "myTeam", "pick" }
+local SINK_FIELDS = { "place", "remove", "transform", "undo", "redo", "clearAll" }
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -275,16 +418,24 @@ end
 
 local function teams()
 	local out = {}
-	for _, teamID in ipairs(Spring.GetTeamList() or {}) do
+	for _, teamID in ipairs(owner.provider.teams()) do
 		out[#out + 1] = teamID
 	end
 	table.sort(out)
 	return out
 end
 
+--- The brush in MISSION mode (another owner brings its own placement rules).
+function mission.on()
+	return up.kind == "mission" and owner.name == "terraform_brush"
+end
+
 local function currentTeam()
+	if mission.on() then
+		return up.missionTeam
+	end
 	if up.team == nil then
-		up.team = Spring.GetMyTeamID()
+		up.team = owner.provider.myTeam()
 	end
 	return up.team
 end
@@ -294,8 +445,12 @@ local function isFormation()
 end
 
 --- Is the pointer over the unit library, or (`withPanel`) over the terraform brush panel or
---- a project dialog in front of the world? Keys only step aside for the library, as before.
+--- a project dialog in front of the world? Keys only step aside for the library.
 local function overUi(withPanel)
+	-- A harness pointer is on the map by definition.
+	if sel.pointer then
+		return false
+	end
 	local mx, my = Spring.GetMouseState()
 	-- The unit library (RmlUi coordinates, y down).
 	---@type table?
@@ -322,6 +477,9 @@ end
 
 --- The ground under the pointer, plain (the placer and the selection use it).
 local function groundUnderMouse()
+	if sel.pointer then
+		return sel.pointer.x, sel.pointer.z
+	end
 	local mx, my = Spring.GetMouseState()
 	local kind, coords = Spring.TraceScreenRay(mx, my, true)
 	if kind ~= "ground" or not coords then
@@ -333,18 +491,10 @@ end
 --- The brush cursor: the terraform brush's edge-extended one when it is there, which keeps
 --- following the mouse a little past the map border and fades out.
 local function brushCursor()
-	up.edgeFade = 1
-	---@type table?
-	local tb = WG.TerraformBrush
-	if tb and tb.getWorldPositionExtended then
-		local wx, wz, fade = tb.getWorldPositionExtended(up.mode == "point" and 64 or up.radius)
-		if wx then
-			up.edgeFade = fade or 1
-			return wx, wz
-		end
-		return nil, nil
-	end
-	return groundUnderMouse()
+	-- Without the brush this is groundUnderMouse, which honours the harness pointer (Tool.setPointer).
+	local wx, wz, fade = WorldTool.cursor(up.mode == "point" and 64 or up.radius, groundUnderMouse)
+	up.edgeFade = fade
+	return wx, wz
 end
 
 local function getSymmetricPositions(wx, wz, rot)
@@ -400,28 +550,7 @@ local function passesFilters(x, z)
 	if not up.smartEnabled then
 		return true
 	end
-	local sf = up.smartFilters
-	local h = Spring.GetGroundHeight(x, z)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = Spring.GetGroundNormal(x, z)
-		ny = ny or 1.0
-		if sf.avoidCliffs and ny < cos(sf.slopeMax * pi / 180) then
-			return false
-		end
-		if sf.preferSlopes and ny > cos(sf.slopeMin * pi / 180) then
-			return false
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
+	return WorldTool.smart.passes(x, z, up.smartFilters)
 end
 
 --- Spots whose footprint overlaps an earlier one are dropped (a spatial hash, so a big
@@ -584,14 +713,19 @@ end
 -- Messages to the gadget
 ----------------------------------------------------------------
 --- Placements as one stroke: { { name, x, z, facing, team }, ... }, in batches per team.
-local function sendPlacements(spots, strokeId)
+local function gadgetPlace(spots, strokeId)
 	if #spots == 0 then
 		return nil
 	end
 	strokeId = strokeId or nextStrokeId()
 	local byTeam, order = {}, {}
+	local missionKind = mission.on()
 	for _, spot in ipairs(spots) do
 		local team = spot.team or currentTeam()
+		if not missionKind and not Spring.GetTeamInfo(team, false) then
+			-- a mission unit's copy pasted live: its mission team may not exist here
+			team = owner.provider.myTeam()
+		end
 		if not byTeam[team] then
 			byTeam[team] = {}
 			order[#order + 1] = team
@@ -606,13 +740,14 @@ local function sendPlacements(spots, strokeId)
 			for index = first, min(first + BATCH - 1, #list) do
 				entries[#entries + 1] = list[index]
 			end
-			sendMsg(MSG.place .. strokeId .. "|" .. tostring(team) .. "|" .. table.concat(entries, ";"))
+			local teamField = missionKind and ("m" .. tostring(team)) or tostring(team)
+			sendMsg(MSG.place .. strokeId .. "|" .. teamField .. "|" .. table.concat(entries, ";"))
 		end
 	end
 	return strokeId
 end
 
-local function sendRemove(ids, strokeId)
+local function gadgetRemove(ids, strokeId)
 	if #ids == 0 then
 		return
 	end
@@ -627,7 +762,7 @@ local function sendRemove(ids, strokeId)
 end
 
 --- Moves and turns: { { id, x, z, facing }, ... }, one stroke.
-local function sendTransforms(moves)
+local function gadgetTransform(moves)
 	if #moves == 0 then
 		return
 	end
@@ -640,6 +775,36 @@ local function sendTransforms(moves)
 		end
 		sendMsg(MSG.transform .. strokeId .. "|" .. table.concat(part, ";"))
 	end
+end
+
+-- The brush's sink: real units through the gadget, one stroke per gesture.
+gadgetSink = {
+	place = gadgetPlace,
+	remove = gadgetRemove,
+	transform = gadgetTransform,
+	undo = function()
+		sendMsg(MSG.undo)
+	end,
+	redo = function()
+		sendMsg(MSG.redo)
+	end,
+	clearAll = function(strokeId)
+		sendMsg(MSG.clearAll .. tostring(strokeId or nextStrokeId()))
+	end,
+}
+owner.sink = gadgetSink
+
+--- What every gesture calls: the owner's sink, whichever it is.
+local function sendPlacements(spots, strokeId)
+	return owner.sink.place(spots, strokeId)
+end
+
+local function sendRemove(ids, strokeId)
+	return owner.sink.remove(ids, strokeId)
+end
+
+local function sendTransforms(moves)
+	return owner.sink.transform(moves)
 end
 
 ----------------------------------------------------------------
@@ -672,8 +837,6 @@ local function pickedNames()
 	return out
 end
 
---- Does the shared placer (the Blueprint API drag) do the placing now? Groups always; a unit
---- pick when the scatter distribution is a formation.
 --- The game's own build-drag keys, as cmd_blueprint reads them (determineBuildMode):
 --- Shift drags a line, Shift+Ctrl a snapped line, Shift+Alt a filled grid and
 --- Shift+Alt+Ctrl a hollow box. nil without Shift.
@@ -688,6 +851,8 @@ local function gameBuildMode()
 	return ctrl and "SNAPLINE" or "LINE"
 end
 
+--- Does the shared placer (the Blueprint API drag) do the placing now? Groups and Shift
+--- drags always; a unit pick when the scatter distribution is a formation.
 local function placerWanted()
 	if not (up.active and lastPick and up.mode ~= "remove") then
 		return false
@@ -727,7 +892,8 @@ local function syncArming()
 	end
 end
 
---- The pick is gone (Escape, a right-click on the placer, deactivation): back to select mode.
+--- The pick is gone (Escape, a right-click, the placer cancelled, deactivation): back to
+--- select mode.
 local function dropPick()
 	lastPick = nil
 	if placer and placer.armed() then
@@ -735,7 +901,7 @@ local function dropPick()
 	end
 	---@type table?
 	local lib = WG.UnitLibrary
-	if lib and lib.clearPicks and lib.owner and lib.owner() == LIBRARY_TITLE then
+	if lib and lib.clearPicks and lib.owner and lib.owner() == libraryTitle() then
 		lib.clearPicks()
 	end
 	pv.layoutKey, pv.stampKey = nil, nil
@@ -777,7 +943,10 @@ local function stampParams(names)
 	return {
 		shape = up.shape,
 		radius = up.radius,
-		rotation = up.rotation,
+		-- Negated: Scatter turns positions and headings together the engine heading
+		-- way, the mirror of how the outline (and the remove brush) turn, so this makes
+		-- the whole stamp turn with the outline the user aims with.
+		rotation = -up.rotation,
 		count = up.unitCount,
 		distribution = up.distribution,
 		rotRandom = up.rotRandom,
@@ -867,7 +1036,8 @@ local function currentStamp(x, z)
 		local params = stampParams(names)
 		local layout = ensureLayout(params)
 		for _, p in ipairs(positions) do
-			local copyRot = (p.rot or up.rotation) - up.rotation
+			-- The copy's extra turn, negated like the base rotation in stampParams.
+			local copyRot = up.rotation - (p.rot or up.rotation)
 			local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 			for _, placement in ipairs(resolved) do
 				local spot =
@@ -880,7 +1050,8 @@ local function currentStamp(x, z)
 	elseif up.mode == "point" then
 		local rng = Scatter.newRng(pv.seed)
 		for _, p in ipairs(positions) do
-			local facing = degreesToFacing(p.rot or up.rotation)
+			-- Negated like stampParams, so POINT faces where a SCATTER stamp at this rotation does.
+			local facing = degreesToFacing(-(p.rot or up.rotation))
 			if up.rotRandom > 0 and rng:next() * 100 < up.rotRandom then
 				facing = rng:int(0, 3)
 			end
@@ -917,21 +1088,34 @@ end
 --- every symmetry position, each copy turned by its own rotation.
 local function expandPlacement(result)
 	local spots = {}
-	local function add(name, x, z, facing, team)
+	-- `extra` is the owner's: what a copied or blueprinted unit carried besides its type and
+	-- place (the mission editor's orders, quantity, ...). Carried through untouched; the
+	-- gadget's sink never sends it.
+	local function add(name, x, z, facing, team, extra)
 		local positions = getSymmetricPositions(x, z, facing * 90)
 		for index, p in ipairs(positions) do
 			local copyFacing = index == 1 and facing or degreesToFacing(p.rot)
 			local spot = makeSpot(name, p.x, p.z, copyFacing, team)
 			if spot then
+				spot.extra = extra
 				spots[#spots + 1] = spot
 			end
 		end
 	end
 	if result.group then
 		local paste = lastPick and lastPick.kind == "paste" and lastPick.value or nil
+		local blueprint = lastPick and lastPick.kind == "blueprint" and lastPick.value and lastPick.value.units or nil
+		local source = paste or blueprint
 		for _, unit in ipairs(result.units or {}) do
-			local member = paste and unit.index and paste[unit.index]
-			add(unit.unitDefName, unit.x, unit.z, unit.facing or 0, member and member.team or result.team)
+			local member = source and unit.index and source[unit.index]
+			add(
+				unit.unitDefName,
+				unit.x,
+				unit.z,
+				unit.facing or 0,
+				paste and member and member.team or result.team,
+				member and member.extra
+			)
 		end
 	else
 		for _, unit in ipairs(result.spots or {}) do
@@ -948,10 +1132,15 @@ end
 local function unitsInBrush(x, z)
 	local ids, seen = {}, {}
 	for _, p in ipairs(getSymmetricPositions(x, z, up.rotation)) do
-		for _, unitID in ipairs(Spring.GetUnitsInCylinder(p.x, p.z, up.radius * 1.42) or {}) do
+		for _, unitID in ipairs(owner.provider.inCylinder(p.x, p.z, up.radius * 1.42)) do
 			if not seen[unitID] then
-				local ux, _, uz = Spring.GetUnitPosition(unitID)
-				if ux and BrushShapes.isInside(ux - p.x, uz - p.z, up.radius, up.shape, p.rot or up.rotation) then
+				local info = owner.provider.info(unitID)
+				local ux, uz = info and info.x, info and info.z
+				if
+					ux
+					and uz
+					and BrushShapes.isInside(ux - p.x, uz - p.z, up.radius, up.shape, p.rot or up.rotation)
+				then
 					seen[unitID] = true
 					ids[#ids + 1] = unitID
 				end
@@ -973,7 +1162,7 @@ end
 ----------------------------------------------------------------
 -- Ghosts (DrawUnitShapeGL4): the stamp preview and the selection drag
 ----------------------------------------------------------------
-local function newGhostPool(owner)
+local function newGhostPool(ghostOwner)
 	local pool = { handles = {}, count = 0 }
 
 	function pool.clear()
@@ -1017,11 +1206,11 @@ local function newGhostPool(owner)
 				item.z,
 				(item.facing or 0) * pi / 2,
 				alpha or GHOST_ALPHA,
-				item.team,
+				mission.realTeam(item.team),
 				0.15,
 				0,
 				handles[n + 1],
-				owner
+				ghostOwner
 			)
 			if handle then
 				n = n + 1
@@ -1048,6 +1237,14 @@ local dragGhosts = newGhostPool("cmd_unit_placer_drag")
 ----------------------------------------------------------------
 -- Selection
 ----------------------------------------------------------------
+--- LIVE mode: with nothing picked, plain clicks belong to the game (select and order the
+--- live units). MISSION mode and other owners keep the tool's own selection.
+function mission.gameOwnsClicks()
+	return owner.name == "terraform_brush" and up.kind ~= "mission"
+end
+
+--- The selection features (Delete, R, Ctrl+A, density, copy): on with nothing picked. In
+--- LIVE mode they act on the game's selection (mirrored into `sel`, see mission.mirror).
 local function selectModeActive()
 	return up.active
 		and (up.mode == "scatter" or up.mode == "point")
@@ -1055,11 +1252,29 @@ local function selectModeActive()
 		and not (placer and placer.armed())
 end
 
+--- The tool takes plain clicks for its own selection: select mode, outside LIVE.
+local function selectClicksActive()
+	return selectModeActive() and not mission.gameOwnsClicks()
+end
+
+--- An owner that wants to know what is selected (the mission editor's roster follows the
+--- tool's selection) hears every change through its sink's optional `selectionChanged`.
+local function notifySelection()
+	lasso.dirty = true
+	local sink = owner.sink
+	-- Only while the tool is on: a deactivation or an owner change clears the tool's own
+	-- selection, which is not the owner's business.
+	if up.active and not sel.silent and sink and sink.selectionChanged then
+		sink.selectionChanged(sel.ids)
+	end
+end
+
 local function clearSelection()
 	sel.ids, sel.set = {}, {}
 	sel.drag = nil
 	sel.boxing = false
 	dragGhosts.clear()
+	notifySelection()
 end
 
 local function setSelection(ids, additive)
@@ -1067,10 +1282,54 @@ local function setSelection(ids, additive)
 		sel.ids, sel.set = {}, {}
 	end
 	for _, unitID in ipairs(ids) do
-		if Spring.ValidUnitID(unitID) and not sel.set[unitID] then
+		if owner.provider.valid(unitID) and not sel.set[unitID] then
 			sel.set[unitID] = true
 			sel.ids[#sel.ids + 1] = unitID
 		end
+	end
+	notifySelection()
+	if mission.gameOwnsClicks() then
+		mission.pushToGame()
+	end
+end
+
+--- LIVE mode: the tool's selection becomes the game's.
+function mission.pushToGame()
+	Spring.SelectUnitArray(sel.ids)
+	local seen = {}
+	for _, unitID in ipairs(sel.ids) do
+		seen[unitID] = true
+	end
+	mission.lastGame = seen
+end
+
+--- LIVE mode: take the game's selection as the tool's (the other half of setSelection's
+--- push), so Delete, R, Ctrl+A, density and copy act on what was selected the normal way.
+--- Only the PLAYER's changes count: a unit added, or a living one let go. A unit the gadget
+--- re-creates (move, turn, undo) dies out of the game's selection before its remap arrives,
+--- and that must not drop it from the tool's.
+function mission.mirror()
+	local ids = Spring.GetSelectedUnits() or {}
+	local now, changed = {}, false
+	for _, unitID in ipairs(ids) do
+		now[unitID] = true
+		if not mission.lastGame[unitID] then
+			changed = true
+		end
+	end
+	for unitID in pairs(mission.lastGame) do
+		if not now[unitID] and Spring.ValidUnitID(unitID) then
+			changed = true
+		end
+	end
+	mission.lastGame = now
+	if changed then
+		sel.ids, sel.set = {}, {}
+		for _, unitID in ipairs(ids) do
+			sel.set[unitID] = true
+			sel.ids[#sel.ids + 1] = unitID
+		end
+		notifySelection()
 	end
 end
 
@@ -1082,32 +1341,16 @@ local function toggleSelection(unitID)
 				table.remove(sel.ids, index)
 			end
 		end
+		notifySelection()
 	else
 		setSelection({ unitID }, true)
 	end
 end
 
---- What a transform needs of a placed unit, or nil for one gone.
+--- What is placed under this id, as the owner's provider tells it (the engine's unit, or
+--- the mission editor's record). nil when it is gone.
 local function unitInfo(unitID)
-	if not Spring.ValidUnitID(unitID) then
-		return nil
-	end
-	local def = UnitDefs[Spring.GetUnitDefID(unitID)]
-	local x, _, z = Spring.GetUnitPosition(unitID)
-	if not (def and x) then
-		return nil
-	end
-	return {
-		id = unitID,
-		name = def.name,
-		defID = def.id,
-		x = x,
-		z = z,
-		facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
-		xsize = def.xsize,
-		zsize = def.zsize,
-		team = Spring.GetUnitTeam(unitID),
-	}
+	return owner.provider.info(unitID)
 end
 
 local function selectedInfos()
@@ -1120,6 +1363,85 @@ local function selectedInfos()
 	end
 	return out
 end
+
+----------------------------------------------------------------
+-- The lasso: a loop round a selection of two or more. A press on empty ground INSIDE it
+-- grabs the whole group (a drag moves them all), one outside starts a box. Drawn as a
+-- faint fill, brighter under the pointer.
+----------------------------------------------------------------
+local LASSO_PAD = 20
+local LASSO_SIDES = 12
+local LASSO_REFRESH = 0.25 -- seconds: positions change under undo and other owners' edits
+local LASSO_COS, LASSO_SIN = {}, {}
+for i = 0, LASSO_SIDES - 1 do
+	LASSO_COS[i], LASSO_SIN[i] = cos(i * 2 * pi / LASSO_SIDES), sin(i * 2 * pi / LASSO_SIDES)
+end
+
+local function convexHull(points)
+	table.sort(points, function(a, b)
+		return a.x < b.x or (a.x == b.x and a.z < b.z)
+	end)
+	local function cross(o, a, b)
+		return (a.x - o.x) * (b.z - o.z) - (a.z - o.z) * (b.x - o.x)
+	end
+	local lower, upper = {}, {}
+	for i = 1, #points do
+		while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0 do
+			lower[#lower] = nil
+		end
+		lower[#lower + 1] = points[i]
+	end
+	for i = #points, 1, -1 do
+		while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0 do
+			upper[#upper] = nil
+		end
+		upper[#upper + 1] = points[i]
+	end
+	lower[#lower] = nil
+	upper[#upper] = nil
+	for i = 1, #upper do
+		lower[#lower + 1] = upper[i]
+	end
+	return lower
+end
+
+--- The loop round the selection (counter-clockwise), or nil under two selected.
+local function lassoHull()
+	if #sel.ids < 2 then
+		lasso.hull = nil
+		return nil
+	end
+	if not lasso.dirty and lasso.hull then
+		return lasso.hull
+	end
+	lasso.dirty = false
+	local points = {}
+	for _, info in ipairs(selectedInfos()) do
+		local w, h = Layout.footprint(info.xsize, info.zsize, info.facing)
+		local radius = math.sqrt(w * w + h * h) / 2 + LASSO_PAD
+		for i = 0, LASSO_SIDES - 1 do
+			points[#points + 1] = { x = info.x + LASSO_COS[i] * radius, z = info.z + LASSO_SIN[i] * radius }
+		end
+	end
+	lasso.hull = #points >= 3 and convexHull(points) or nil
+	return lasso.hull
+end
+
+local function insideLasso(x, z)
+	local hull = lassoHull()
+	if not (hull and x and #hull >= 3) then
+		return false
+	end
+	for i = 1, #hull do
+		local a, b = hull[i], hull[i % #hull + 1]
+		if (b.x - a.x) * (z - a.z) - (b.z - a.z) * (x - a.x) < 0 then
+			return false
+		end
+	end
+	return true
+end
+
+Tool.insideLasso = insideLasso
 
 --- Moves for the units that actually change.
 local function movesFrom(infos, spots)
@@ -1144,7 +1466,7 @@ local function deleteSelection()
 	end
 	local ids = {}
 	for _, unitID in ipairs(sel.ids) do
-		if Spring.ValidUnitID(unitID) then
+		if owner.provider.valid(unitID) then
 			ids[#ids + 1] = unitID
 		end
 	end
@@ -1153,8 +1475,8 @@ local function deleteSelection()
 end
 
 local function selectAllInBox(x1, y1, x2, y2, additive)
-	local ids = Spring.GetUnitsInScreenRectangle(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
-	setSelection(ids or {}, additive)
+	local ids = owner.provider.inScreenRect(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+	setSelection(ids, additive)
 end
 
 local function selectAllVisible()
@@ -1234,6 +1556,8 @@ local function copySelection()
 			dz = offsets[index].dz,
 			facing = info.facing,
 			team = info.team,
+			-- Asked only here: an owner's extra fields are built on demand, not every frame.
+			extra = owner.provider.extra and owner.provider.extra(info.id) or info.extra,
 		}
 	end
 	sel.clipboard = units
@@ -1358,8 +1682,8 @@ local function openLibrary()
 		return false
 	end
 	return WG.UnitLibrary.open({
-		title = LIBRARY_TITLE,
-		-- Several picked (Shift+click): each drop moves on to the next type (PtaQ's N2).
+		title = libraryTitle(),
+		-- Several picked (Shift+click): each drop moves on to the next type.
 		onPick = function(unitDefName, set)
 			local names = set and set.names or { unitDefName }
 			local cycle = #names > 1 and Cycle.new(names, set.mode) or nil
@@ -1393,12 +1717,20 @@ local function deactivate()
 	clearSelection()
 	stampGhosts.clear()
 	hideBuildGrid()
-	if WG.UnitLibrary and WG.UnitLibrary.owner and WG.UnitLibrary.owner() == LIBRARY_TITLE then
+	if WG.UnitLibrary and WG.UnitLibrary.owner and WG.UnitLibrary.owner() == libraryTitle() then
 		WG.UnitLibrary.close()
 	end
 end
 
 local function cycleTeam()
+	if mission.on() then
+		up.missionTeam = (up.missionTeam + 1) % mission.TEAMS
+		pv.stampKey = nil
+		if placer.armed() then
+			syncArming()
+		end
+		return up.missionTeam
+	end
 	local list = teams()
 	local now = currentTeam()
 	local nextTeam = list[1]
@@ -1429,7 +1761,7 @@ local function saveUnits()
 	local count = 0
 	file:write("-- Unit map: " .. tostring(Game.mapName) .. ", saved " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
 	file:write("return {\n\tunits = {\n")
-	for _, unitID in ipairs(Spring.GetAllUnits() or {}) do
+	for _, unitID in ipairs(owner.provider.all()) do
 		local info = unitInfo(unitID)
 		if info then
 			count = count + 1
@@ -1514,6 +1846,33 @@ Tool.deactivate = deactivate
 Tool.openLibrary = openLibrary
 Tool.team = currentTeam
 Tool.cycleTeam = cycleTeam
+--- The TEAM chip's text: "TEAM 1" live, "MISSION TEAM 2" in MISSION mode
+Tool.teamLabel = function()
+	return (mission.on() and "MISSION TEAM " or "TEAM ") .. tostring(currentTeam())
+end
+--- "live" | "mission"
+Tool.kind = function()
+	return up.kind
+end
+Tool.setKind = function(kind)
+	if kind ~= "live" and kind ~= "mission" then
+		return false
+	end
+	if up.kind ~= kind then
+		up.kind = kind
+		clearSelection()
+		pv.stampKey = nil
+		if placer.armed() then
+			syncArming()
+		end
+	end
+	return true
+end
+--- Every unit on the map into a mission unit (toMission) or back into a live one, in place,
+--- as one undo step. Each keeps its team as its mission team.
+Tool.convertAll = function(toMission)
+	sendMsg(MSG.mission .. nextStrokeId() .. "|" .. (toMission and "1" or "0") .. "|ALL")
+end
 Tool.reroll = reroll
 Tool.clearSelection = clearSelection
 Tool.deleteSelection = deleteSelection
@@ -1521,9 +1880,6 @@ Tool.selectAllVisible = selectAllVisible
 Tool.reformSelection = reformSelection
 Tool.spaceSelection = spaceSelection
 Tool.turnSelection = turnSelection
-Tool.copySelection = copySelection
-Tool.cutSelection = cutSelection
-Tool.paste = paste
 Tool.save = saveUnits
 Tool.load = loadUnits
 Tool.listSaves = listSaves
@@ -1553,6 +1909,8 @@ function Tool.getState()
 		gridSnap = grid.snap,
 		gridSnapSize = grid.snapSize,
 		selectMode = selectModeActive() and true or false,
+		gameClicks = mission.gameOwnsClicks(), -- LIVE: plain clicks select and order as in a game
+		kind = up.kind,
 		selectionCount = #sel.ids,
 		dragging = up.dragging or (sel.drag ~= nil and sel.drag.moved) or false,
 		formation = isFormation(),
@@ -1560,12 +1918,12 @@ function Tool.getState()
 	}
 end
 
---- Spacing of a line / grid / box drag, in build squares, kept across picks.
 --- Let go of the library pick, as a right-click on the map does.
 function Tool.dropPick()
 	dropPick()
 end
 
+--- Spacing of a line / grid / box drag, in build squares, kept across picks.
 function Tool.setSpacing(n)
 	up.spacing = max(0, min(LIMIT.spacingMax, floor(tonumber(n) or 0)))
 	local spec = placer and placer.spec()
@@ -1674,20 +2032,66 @@ function Tool.setGridSnapSize(n)
 end
 
 function Tool.undo()
-	sendMsg(MSG.undo)
+	owner.sink.undo()
 end
 
 function Tool.redo()
-	sendMsg(MSG.redo)
+	owner.sink.redo()
 end
 
 function Tool.clearAll()
 	clearSelection()
-	sendMsg(MSG.clearAll .. nextStrokeId())
+	owner.sink.clearAll(nextStrokeId())
 end
 
---- For the harness: the placer, the type armed now, and a drop at a world point as a click
---- would (a drag from (x1, z1) to (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
+--- Another owner takes the tool: its provider says what is placed, its sink does what a
+--- gesture asks. The mission editor installs a pair over its document; `Tool.resetOwner`
+--- gives the brush its engine pair back. Both drop the selection and the pick: ids mean
+--- nothing across owners.
+---@param name string
+---@param provider table see PROVIDER_FIELDS
+---@param sink table see SINK_FIELDS
+---@param opts table|nil { title = the unit library's title under this owner }
+---@return boolean ok, string|nil why
+function Tool.setOwner(name, provider, sink, opts)
+	for _, field in ipairs(PROVIDER_FIELDS) do
+		if type(provider) ~= "table" or type(provider[field]) ~= "function" then
+			return false, "provider has no " .. field
+		end
+	end
+	for _, field in ipairs(SINK_FIELDS) do
+		if type(sink) ~= "table" or type(sink[field]) ~= "function" then
+			return false, "sink has no " .. field
+		end
+	end
+	clearSelection()
+	dropPick()
+	owner.name, owner.provider, owner.sink = tostring(name), provider, sink
+	owner.title = type(opts) == "table" and opts.title or nil
+	up.team = nil
+	up.undoCount, up.redoCount = 0, 0
+	return true
+end
+
+function Tool.resetOwner()
+	clearSelection()
+	dropPick()
+	owner.name, owner.provider, owner.sink, owner.title = "terraform_brush", engineProvider, gadgetSink, nil
+	up.team = nil
+	up.undoCount, up.redoCount = 0, 0
+end
+
+function Tool.ownerName()
+	return owner.name
+end
+
+--- An owner reports its undo depth (the gadget does so through unit_placer_history).
+function Tool.setHistory(undoCount, redoCount)
+	up.undoCount = tonumber(undoCount) or 0
+	up.redoCount = tonumber(redoCount) or 0
+end
+
+--- For the harness: the placer and the type armed now.
 function Tool.placer()
 	return placer
 end
@@ -1696,6 +2100,100 @@ function Tool.pickedType()
 	return lastPick and lastPick.kind == "unit" and lastPick.value or nil
 end
 
+--- Is anything on the cursor (a unit, a blueprint, a paste, an armed placer)? An owner that
+--- sees right-clicks and Escape first asks this before taking them for itself.
+function Tool.hasPick()
+	return lastPick ~= nil or (placer ~= nil and placer.armed()) or false
+end
+
+--- Does the tool hold anything Escape would let go of (a selection, a drag, a pick)?
+function Tool.holdsSomething()
+	return #sel.ids > 0 or sel.drag ~= nil or Tool.hasPick()
+end
+
+--- The selection, as ids in the order selected (a copy).
+function Tool.selection()
+	local out = {}
+	for index, id in ipairs(sel.ids) do
+		out[index] = id
+	end
+	return out
+end
+
+--- Set the selection from outside (an owner whose own lists select things: the mission
+--- editor's roster). `silent` keeps the owner's sink from hearing it back.
+---@param ids table
+---@param silent boolean|nil
+function Tool.select(ids, silent)
+	-- Selecting means no longer placing: a pick left on the cursor would clear the selection
+	-- on the next update ("a pick means placing again").
+	if ids and #ids > 0 then
+		dropPick()
+	end
+	sel.silent = silent == true
+	setSelection(ids or {}, false)
+	sel.silent = false
+end
+
+--- A HARNESS POINTER: a world point standing in for the mouse (nil gives the mouse back),
+--- and a press, a move and a release there, as the mouse would send them. A probe window
+--- that is not focused cannot move the real pointer, and a world point is what a check
+--- knows. `mods` = { shift, ctrl, alt } held for the press.
+function Tool.setPointer(x, z)
+	sel.pointer = (x and z) and { x = x, z = z } or nil
+end
+
+local function pointerScreen()
+	local p = sel.pointer
+	if not p then
+		local mx, my = Spring.GetMouseState()
+		return mx, my
+	end
+	local sx, sy = Spring.WorldToScreenCoords(p.x, Spring.GetGroundHeight(p.x, p.z), p.z)
+	return floor(sx or 0), floor(sy or 0)
+end
+
+local function withMods(mods, fn)
+	local real = Spring.GetModKeyState
+	mods = mods or {}
+	Spring.GetModKeyState = function()
+		return mods.alt == true, mods.ctrl == true, false, mods.shift == true
+	end
+	local ok, result = pcall(fn)
+	Spring.GetModKeyState = real
+	return ok and result
+end
+
+function Tool.pointerDown(mods)
+	local sx, sy = pointerScreen()
+	return withMods(mods, function()
+		local press = widget.MousePress
+		return press and press(widget, sx, sy, tonumber(mods and mods.button) or 1)
+	end)
+end
+
+function Tool.pointerMove()
+	local sx, sy = pointerScreen()
+	return withMods(nil, function()
+		return widget:MouseMove(sx, sy, 0, 0, 1)
+	end)
+end
+
+function Tool.pointerUp(mods)
+	local sx, sy = pointerScreen()
+	return withMods(mods, function()
+		return widget:MouseRelease(sx, sy, tonumber(mods and mods.button) or 1)
+	end)
+end
+
+--- A key, as if pressed over the map: for an owner that sees keys first and passes some
+--- on (the mission editor), and for its harness.
+function Tool.keyPress(key, mods)
+	return widget:KeyPress(key, mods or {}, false, "", 0, 0)
+end
+
+--- For the harness: a drop at a world point as a click would (a drag from (x1, z1) to
+--- (x2, z2) for the placer; a stamp at (x1, z1) for the brush).
 function Tool.placeAt(x1, z1, x2, z2)
 	if placer.armed() then
 		placer.mousePress(x1, z1, 1)
@@ -1728,12 +2226,17 @@ local function onRemap(oldID, newID)
 			sel.ids[index] = newID
 		end
 	end
+	if mission.gameOwnsClicks() then
+		mission.pushToGame()
+	end
 end
 
 ----------------------------------------------------------------
 -- Widget
 ----------------------------------------------------------------
 function widget:Initialize()
+	local modOptions = Spring.GetModOptions() or {}
+	mission.session = tostring(modOptions.editor_sandbox or "") == "1" or tostring(modOptions.mapeditor or "") == "1"
 	placer = Placer.new({
 		owner = "unit_placer_tool",
 		-- Stays armed after a placement: laying out a base is many drags of the same thing.
@@ -1832,8 +2335,9 @@ end
 
 local function selectPress(mx, my)
 	local _, ctrl, _, shift = Spring.GetModKeyState()
-	local kind, target = Spring.TraceScreenRay(mx, my)
-	if kind == "unit" and not ctrl then
+	local gx, gz = groundUnderMouse()
+	local target = owner.provider.pick(mx, my, gx, gz)
+	if target ~= nil and not ctrl then
 		if shift then
 			toggleSelection(target)
 			return true
@@ -1852,6 +2356,13 @@ local function selectPress(mx, my)
 		local x, z = groundUnderMouse()
 		if x then
 			faceSelection(x, z)
+			return true
+		end
+	end
+	-- Empty ground inside the lasso: grab the whole group, as a press on one of them would.
+	if not shift and #sel.ids >= 2 then
+		local ix, iz = groundUnderMouse()
+		if ix and insideLasso(ix, iz) and beginSelectionDrag(sel.ids[1], mx, my) then
 			return true
 		end
 	end
@@ -1910,8 +2421,11 @@ function widget:MousePress(mx, my, button)
 		if up.mode == "remove" then
 			return beginBrush("remove")
 		end
-		if selectModeActive() then
+		if selectClicksActive() then
 			return selectPress(mx, my)
+		end
+		if lastPick == nil and mission.gameOwnsClicks() then
+			return false
 		end
 		return beginBrush("place")
 	end
@@ -1960,8 +2474,8 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 	-- Only the left button ends a drag: this widget owns the mouse for the whole drag, so the
-	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too, and used to
-	-- drop the formation on the spot.
+	-- release of a spacing button (mouse 4 / 5) pressed mid-drag arrives here too and must
+	-- not drop the formation on the spot.
 	if up.active and placer.armed() and button == 1 then
 		local consumed = placer.mouseRelease()
 		if up.modDrag then
@@ -2048,7 +2562,6 @@ function widget:KeyPress(key, mods)
 		return paste()
 	end
 	if placer.armed() then
-		local spec = placer.spec()
 		return placer.keyPress(key, mods)
 	end
 	if selectModeActive() then
@@ -2070,6 +2583,19 @@ end
 function widget:Update(dt)
 	if not up.active then
 		return
+	end
+	if mission.gameOwnsClicks() then
+		mission.mirror()
+	end
+	if #sel.ids >= 2 then
+		lasso.age = lasso.age + (dt or 0)
+		if lasso.age >= LASSO_REFRESH or sel.drag then
+			lasso.age, lasso.dirty = 0, true
+		end
+		local gx, gz = groundUnderMouse()
+		lasso.hover = gx ~= nil and insideLasso(gx, gz)
+	else
+		lasso.hull, lasso.hover = nil, false
 	end
 	if placer.armed() then
 		-- The build-drag keys take the shape while held and give it back when let go, so a
@@ -2104,7 +2630,7 @@ function widget:Update(dt)
 		sel.pruneTimer = 0
 		for index = #sel.ids, 1, -1 do
 			local unitID = sel.ids[index]
-			if not Spring.ValidUnitID(unitID) then
+			if not owner.provider.valid(unitID) then
 				sel.set[unitID] = nil
 				table.remove(sel.ids, index)
 			end
@@ -2112,7 +2638,11 @@ function widget:Update(dt)
 	end
 
 	-- MouseMove only fires while a button is down in some camera modes; poll the release
-	-- too, so a drag cannot stick when the release is swallowed.
+	-- too, so a drag cannot stick when the release is swallowed. Not under a harness
+	-- pointer: the harness presses and lets go itself, and the real button is up.
+	if sel.pointer then
+		return
+	end
 	local mx, my, left, _, right = Spring.GetMouseState()
 	if sel.drag then
 		if left then
@@ -2159,44 +2689,6 @@ end
 ----------------------------------------------------------------
 -- Drawing
 ----------------------------------------------------------------
-local function rotatePoint(px, pz, angleDeg)
-	local rad = angleDeg * pi / 180
-	return px * cos(rad) - pz * sin(rad), px * sin(rad) + pz * cos(rad)
-end
-
-local function drawRegularPolygon(cx, cz, radius, angleDeg, sides)
-	local step = 2 * pi / sides
-	local offset = angleDeg * pi / 180
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local a = i * step + offset
-			local x, z = cx + radius * cos(a), cz + radius * sin(a)
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local function drawRotatedSquare(cx, cz, radius, angleDeg)
-	local corners = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-	gl.BeginEnd(GL.LINE_LOOP, function()
-		for _, c in ipairs(corners) do
-			local rx, rz = rotatePoint(c[1], c[2], angleDeg)
-			local x, z = cx + rx, cz + rz
-			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local SHAPE_SIDES = { circle = CIRCLE_SEGMENTS, hexagon = 6, octagon = 8, triangle = 3 }
-
-local function drawShape(cx, cz, angleDeg)
-	if up.shape == "square" then
-		drawRotatedSquare(cx, cz, up.radius, angleDeg)
-	else
-		drawRegularPolygon(cx, cz, up.radius, angleDeg, SHAPE_SIDES[up.shape] or CIRCLE_SEGMENTS)
-	end
-end
-
 local function drawCrosshair(x, z)
 	local y = Spring.GetGroundHeight(x, z) + 4
 	local s = 12
@@ -2220,54 +2712,58 @@ local function drawFootprint(x, z, w, h)
 	end)
 end
 
---- Green where the smart filters let a unit stand, red where they refuse.
-local function drawSmartFilterOverlay(cx, cz)
-	local radius = up.radius
-	local rad = up.rotation * pi / 180
-	local cosR, sinR = cos(rad), sin(rad)
-	local half = SMART_GRID_STEP * 0.3
-	local fade = up.edgeFade
-	local GetGroundHeight = Spring.GetGroundHeight
-	gl.DepthTest(true)
-	gl.BeginEnd(GL.TRIANGLES, function()
-		for lx = -radius, radius, SMART_GRID_STEP do
-			for lz = -radius, radius, SMART_GRID_STEP do
-				if BrushShapes.isInside(lx, lz, radius, up.shape, 0) then
-					local wx, wz = cx + lx * cosR - lz * sinR, cz + lx * sinR + lz * cosR
-					if passesFilters(wx, wz) then
-						gl.Color(0.2, 0.85, 0.3, 0.08 * fade)
-					else
-						gl.Color(0.9, 0.15, 0.15, 0.14 * fade)
-					end
-					local x0, x1, z0, z1 = wx - half, wx + half, wz - half, wz + half
-					local y00, y10 = GetGroundHeight(x0, z0) + 3, GetGroundHeight(x1, z0) + 3
-					local y01, y11 = GetGroundHeight(x0, z1) + 3, GetGroundHeight(x1, z1) + 3
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y10, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y00, z0)
-					gl.Vertex(x1, y11, z1)
-					gl.Vertex(x0, y01, z1)
-				end
-			end
-		end
-	end)
-	gl.DepthTest(false)
-end
-
 --- Rings under the selected units, sized by footprint.
 local function drawSelection()
 	gl.LineWidth(2)
 	gl.Color(1.0, 0.85, 0.25, 0.85)
 	for _, unitID in ipairs(sel.ids) do
-		local x, _, z = Spring.GetUnitPosition(unitID)
-		---@type table?
-		local def = x and UnitDefs[Spring.GetUnitDefID(unitID)]
-		if def then
-			drawRegularPolygon(x, z, max(def.xsize or 2, def.zsize or 2) * 8 * 0.75 + 4, 0, 20)
+		local info = unitInfo(unitID)
+		if info then
+			WorldTool.drawPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
+end
+
+--- The lasso round a multi-selection: a faint fill, brighter under the pointer or in a drag,
+--- and a loop that follows the ground (edges cut into short steps so it does not dive).
+local function drawLasso()
+	local hull = lassoHull()
+	if not (hull and #hull >= 3) then
+		return
+	end
+	local hot = lasso.hover or sel.drag ~= nil
+	gl.DepthTest(false)
+	local cx, cz = 0.0, 0.0
+	for _, point in ipairs(hull) do
+		cx, cz = cx + point.x, cz + point.z
+	end
+	cx, cz = cx / #hull, cz / #hull
+	gl.Color(1.0, 0.85, 0.25, hot and 0.09 or 0.035)
+	gl.BeginEnd(GL.TRIANGLE_FAN, function()
+		gl.Vertex(cx, Spring.GetGroundHeight(cx, cz) + 4, cz)
+		for i = 1, #hull + 1 do
+			local point = hull[(i - 1) % #hull + 1]
+			gl.Vertex(point.x, Spring.GetGroundHeight(point.x, point.z) + 4, point.z)
+		end
+	end)
+	gl.LineWidth(2)
+	gl.Color(1.0, 0.85, 0.25, hot and 0.8 or 0.45)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		for i = 1, #hull do
+			local a, b = hull[i], hull[i % #hull + 1]
+			local length = math.sqrt((b.x - a.x) ^ 2 + (b.z - a.z) ^ 2)
+			local steps = max(1, floor(length / 32))
+			for step = 0, steps - 1 do
+				local t = step / steps
+				local x, z = a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t
+				gl.Vertex(x, Spring.GetGroundHeight(x, z) + 5, z)
+			end
+		end
+	end)
+	gl.LineWidth(1)
+	gl.Color(1, 1, 1, 1)
+	gl.DepthTest(true)
 end
 
 --- Red footprints under the units a removal would take.
@@ -2275,13 +2771,11 @@ local function drawRemovalTargets(x, z)
 	gl.LineWidth(2)
 	gl.Color(1.0, 0.2, 0.15, 0.9 * up.edgeFade)
 	for _, unitID in ipairs(unitsInBrush(x, z)) do
-		local ux, _, uz = Spring.GetUnitPosition(unitID)
-		---@type table?
-		local def = ux and UnitDefs[Spring.GetUnitDefID(unitID)]
-		if def then
-			local w, h = Layout.footprint(def.xsize, def.zsize, Spring.GetUnitBuildFacing(unitID) or 0)
-			drawFootprint(ux, uz, w + 4, h + 4)
-			drawRegularPolygon(ux, uz, max(w, h) * 0.5, 45, 4)
+		local info = unitInfo(unitID)
+		if info then
+			local w, h = Layout.footprint(info.xsize, info.zsize, info.facing or 0)
+			drawFootprint(info.x, info.z, w + 4, h + 4)
+			WorldTool.drawPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4, 1, 4, 1)
 		end
 	end
 	gl.LineWidth(1)
@@ -2299,7 +2793,61 @@ local function brushColor(alpha)
 	return removing
 end
 
+--- Ground rings in the mission team's colour under every mission unit in view, so mission
+--- teams read apart even where they all stand on Gaia. Editor sessions only.
+function mission.drawMarkers()
+	local frame = Spring.GetDrawFrame()
+	if frame - mission.markersAt > 15 or frame < mission.markersAt then
+		mission.markersAt = frame
+		local list = {}
+		for _, unitID in ipairs(Spring.GetVisibleUnits(-1, nil, false) or {}) do
+			local m = mission.teamOf(unitID)
+			if m then
+				list[#list + 1] = { unitID, m }
+			end
+		end
+		mission.markers = list
+	end
+	if #mission.markers == 0 then
+		return
+	end
+	gl.LineWidth(3)
+	for _, entry in ipairs(mission.markers) do
+		local unitID, m = entry[1], entry[2]
+		local x, y, z = Spring.GetUnitPosition(unitID)
+		if x then
+			local c = mission.PALETTE[(m % #mission.PALETTE) + 1]
+			gl.Color(c[1], c[2], c[3], 0.85)
+			gl.DrawGroundCircle(x, y, z, (Spring.GetUnitRadius(unitID) or 20) * 1.1, 24)
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+	gl.LineWidth(1)
+end
+
+--- "M<team>" over each marked mission unit (screen space, after DrawWorld's rings).
+function mission.drawLabels()
+	if #mission.markers == 0 then
+		return
+	end
+	for _, entry in ipairs(mission.markers) do
+		local x, y, z = Spring.GetUnitPosition(entry[1])
+		if x then
+			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + (Spring.GetUnitHeight(entry[1]) or 30), z)
+			if sz and sz < 1 then
+				local c = mission.PALETTE[(entry[2] % #mission.PALETTE) + 1]
+				gl.Color(c[1], c[2], c[3], 1)
+				gl.Text("M" .. entry[2], sx, sy, 13, "co")
+			end
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawWorld()
+	if mission.session then
+		mission.drawMarkers()
+	end
 	if grid.overlay then
 		if (not grid.dl) or grid.dlSize ~= grid.snapSize or grid.dirty then
 			buildFullMapGrid()
@@ -2315,8 +2863,11 @@ function widget:DrawWorld()
 		return
 	end
 
-	if #sel.ids > 0 then
+	if #sel.ids > 0 and not mission.gameOwnsClicks() then
 		drawSelection()
+	end
+	if #sel.ids >= 2 and not mission.gameOwnsClicks() then
+		drawLasso()
 	end
 
 	if grid.snap or grid.overlay then
@@ -2369,17 +2920,32 @@ function widget:DrawWorld()
 		if up.mode == "point" and not removing then
 			drawCrosshair(p.x, p.z)
 		else
-			drawShape(p.x, p.z, p.rot or up.rotation)
+			WorldTool.drawShape(up.shape, p.x, p.z, up.radius, p.rot or up.rotation, 1, 4, 1, CIRCLE_SEGMENTS)
 		end
 	end
 	if up.smartEnabled and up.mode == "scatter" and not removing then
-		drawSmartFilterOverlay(x, z)
+		-- green where the smart filters let a unit stand, red where they refuse
+		WorldTool.drawFilterOverlay(
+			x,
+			z,
+			up.radius,
+			up.shape,
+			up.rotation,
+			1,
+			up.edgeFade,
+			SMART_GRID_STEP,
+			nil,
+			passesFilters
+		)
 	end
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1)
 end
 
 function widget:DrawScreen()
+	if mission.session then
+		mission.drawLabels()
+	end
 	if not sel.boxing then
 		return
 	end

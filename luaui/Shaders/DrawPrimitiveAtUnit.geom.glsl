@@ -33,6 +33,10 @@ out DataGS {
 	vec4 g_uv;
 };
 
+#if (USE_SECONDARY_TEXTURE == 1)
+	flat out uint g_atlasIndex;
+#endif
+
 mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
@@ -58,6 +62,9 @@ void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusC
 		gl_Position.z = (gl_Position.z) - ZPULL / (gl_Position.w); // send 16 elmos forward in depth buffer
 	#endif 
 	g_uv.zw = dataIn[0].v_parameters.zw;
+	#if (USE_SECONDARY_TEXTURE == 1)
+		g_atlasIndex = uint(dataIn[0].v_parameters.y);
+	#endif
 	POST_GEOMETRY
 	EmitVertex();
 }

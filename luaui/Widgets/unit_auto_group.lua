@@ -25,8 +25,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 
-include("keysym.h.lua")
-
 ---- CHANGELOG -----
 -- hihoman23,       v5.00   (01nov2023) :   Allows for multiple presets, which are controlled with load_autogroup_preset,
 --											for different saved group presets.

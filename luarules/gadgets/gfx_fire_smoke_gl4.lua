@@ -93,7 +93,8 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
 local minFireSmokeParticles = 10000 -- before MaxParticles is added
-local MAX_PARTICLES = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
+-- MaxParticles went up by half for the engine's cheaper CEG particles; the / 1.5 keeps this effect's budget as it was.
+local MAX_PARTICLES = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
 
 local VBO_CAPACITY = MAX_PARTICLES -- fixed at init; VBO cannot be resized
 local PARTICLE_SIZE_MIN = 1
@@ -480,15 +481,15 @@ void main(void)
 local particleVBO = nil
 local particleShader = nil
 
--- Particle removal queue: [deathFrame] = {slot, ...} (1-based ring slots)
-local particleRemoveQueue = {}
+-- [deathFrame] = live particles expiring that frame
+local deathTally = {}
 
 --------------------------------------------------------------------------------
 -- Ring slot allocator
 --
 -- Particles are written straight into the VBO mirror at the next ring slot whose
 -- previous occupant has expired; the vertex shader already hides expired
--- particles, so a death only clears the slot's death frame. Consecutive slots
+-- particles, so a death only lowers the live count. Consecutive slots
 -- written since the last flush form one upload run.
 --------------------------------------------------------------------------------
 local RING_MAX_SKIPS = 64 -- alive slots skipped per spawn before giving up
@@ -500,7 +501,7 @@ local ring = {
 	shrinkWait = 0, -- frames the window has been oversized
 	drops = 0, -- spawns given up this frame (skip limit hit)
 	head = 0, -- next slot to try (0-based)
-	death = nil, -- [slot + 1] = death frame of the occupant, 0 when never used
+	death = nil, -- [slot + 1] = death frame of the last occupant, 0 when never used
 	live = 0, -- particles whose death frame has not been processed yet
 	runStart = -1, -- first slot of the pending upload run, -1 when empty
 	runEnd = -2, -- last slot of the pending upload run
@@ -511,7 +512,6 @@ local ring = {
 --
 -- High-allocation-rate code paths in this gadget:
 --   * trackedPieceProjectiles[proID] = { ... }    -- per new piece projectile
---   * particleRemoveQueue[deathFrame] = {}        -- per unique death frame
 --   * tracked.offscreenBuffer = {}                -- per piece going off-screen
 --
 -- With many unit deaths (e.g. 80+ flamethrowers shredding everything), the
@@ -522,8 +522,6 @@ local ring = {
 local pools = {
 	tracker = {},
 	trackerN = 0,
-	queue = {},
-	queueN = 0,
 	buffer = {},
 	bufferN = 0,
 }
@@ -562,27 +560,6 @@ function pools.releaseTracker(t)
 	local n = pools.trackerN + 1
 	pools.trackerN = n
 	pools.tracker[n] = t
-end
-
-function pools.acquireQueue()
-	local n = pools.queueN
-	if n > 0 then
-		local q = pools.queue[n]
-		pools.queue[n] = nil
-		pools.queueN = n - 1
-		return q
-	end
-	return {}
-end
-
-function pools.releaseQueue(q)
-	-- Truncate without holding references to the popped particleIDs.
-	for i = 1, #q do
-		q[i] = nil
-	end
-	local n = pools.queueN + 1
-	pools.queueN = n
-	pools.queue[n] = q
 end
 
 function pools.acquireBuffer()
@@ -718,7 +695,7 @@ local function updateMaxParticles(gameFrame)
 		return
 	end -- re-read configint every ~3 seconds
 	visibilityState.nextMaxParticlesFrame = gameFrame + 90
-	local newMax = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles
+	local newMax = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then
 		return
@@ -815,9 +792,13 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	end
 	ring.head = (slot + 1 < window) and slot + 1 or 0
 	death[slot + 1] = deathFrame
-	-- The occupant expired but its removal queue has not run yet: uncount it now,
-	-- the queued entry no longer matches this slot's death frame.
-	ring.live = ring.live + (oldDeath > lastRemovedFrame and 0 or 1)
+	deathTally[deathFrame] = (deathTally[deathFrame] or 0) + 1
+	if oldDeath > lastRemovedFrame then
+		-- the occupant expired but is still counted: it hands its count to this particle
+		deathTally[oldDeath] = deathTally[oldDeath] - 1
+	else
+		ring.live = ring.live + 1
+	end
 	if slot >= particleVBO.usedElements then
 		particleVBO.usedElements = slot + 1
 	end
@@ -849,13 +830,6 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	d[o + 14] = tb
 	d[o + 15] = tb
 	d[o + 16] = alphaMult
-
-	local queue = particleRemoveQueue[deathFrame]
-	if not queue then
-		queue = pools.acquireQueue()
-		particleRemoveQueue[deathFrame] = queue
-	end
-	queue[#queue + 1] = slot + 1
 end
 
 --------------------------------------------------------------------------------
@@ -1005,23 +979,15 @@ local function DrawParticles()
 	glDepthTest(false)
 end
 
--- Frees the slots of particles that expired since the last call. A slot whose death
--- frame no longer matches was already reused (and uncounted) by spawnParticle.
+-- Uncounts the particles that expired since the last call; their slots are reusable
+-- as soon as the death frame has passed.
 local function removeExpiredParticles(gameFrame)
-	local death = ring.death
 	local live = ring.live
 	for f = lastRemovedFrame + 1, gameFrame do
-		local queue = particleRemoveQueue[f]
-		if queue then
-			for i = 1, #queue do
-				local s = queue[i]
-				if death[s] == f then
-					death[s] = 0
-					live = live - 1
-				end
-			end
-			particleRemoveQueue[f] = nil
-			pools.releaseQueue(queue)
+		local expired = deathTally[f]
+		if expired then
+			live = live - expired
+			deathTally[f] = nil
 		end
 	end
 	ring.live = live
@@ -1033,7 +999,15 @@ end
 function ring.updateWindow()
 	local window = ring.window
 	local live = ring.live
-	if (live * 2 > window or ring.drops > 0) and window < ring.capacity then
+	if live == 0 then
+		-- nothing alive: restart at slot 0 so idle frames draw nothing and the draw count regrows from there
+		ring.window = mathMin(ring.capacity, ring.minWindow)
+		ring.shrinkWait = 0
+		ring.head = 0
+		ring.runStart = -1
+		ring.runEnd = -2
+		particleVBO.usedElements = 0
+	elseif (live * 2 > window or ring.drops > 0) and window < ring.capacity then
 		ring.window = mathMin(ring.capacity, window * 2)
 		ring.shrinkWait = 0
 	elseif live * 8 < window and window > ring.minWindow then
@@ -1041,7 +1015,8 @@ function ring.updateWindow()
 		ring.shrinkWait = wait
 		if wait >= 300 then
 			ring.shrinkWait = 0
-			local half = window / 2
+			-- whole slots only: the capacity is not a power of two, so a capped window can be odd
+			local half = mathMax(ring.minWindow, mathFloor(window / 2))
 			local death = ring.death
 			local frame = cachedGameFrame
 			for i = half + 1, window do

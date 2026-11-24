@@ -27,21 +27,20 @@ local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
 
 local sendAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
-
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
 		excludedUnitsDefID[id] = true
 	end
 end
 
-local function addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+local function addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
 	if #newCmds == 0 and not cmdOpts.shift then
 		-- Need to clear orders if not in shift, since just sending the first one
 		-- as not-shift would sometimes fail if that unit is in the end not valid
 		local stopCmd = (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET
 		newCmds[1] = { stopCmd, {}, {} }
 	end
-	newCmds[#newCmds + 1] = { cmdID, unitID, CMD.OPT_SHIFT }
+	newCmds[#newCmds + 1] = { cmdID, unitID, reissueOpts }
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -49,6 +48,21 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
+	local selected = spGetSelectedUnits()
+
+	if cmdID == CMD_ATTACK then
+		-- Ctrl on an area Attack is the engine's "remove matching queued attacks" (SelectAttackNet).
+		-- It adds no orders, so there is nothing to exclude walls from; leave it to the engine.
+		if cmdOpts.ctrl then
+			return false
+		end
+	end
+
+	-- Set Target with Ctrl marks the targets as sticky (they survive Stop). Keep it on the re-issued orders.
+	local reissueOpts = CMD.OPT_SHIFT
+	if cmdID == CMD_UNIT_SET_TARGET and cmdOpts.ctrl then
+		reissueOpts = reissueOpts + CMD.OPT_CTRL
+	end
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
@@ -59,27 +73,20 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 
-		if not excludedUnitsDefID[unitDefID] then
+		if not excludedUnitsDefID[unitDefID] or not spGetUnitNeutral(unitID) then
 			if cmdID == CMD_ATTACK then
 				targetIDs[#targetIDs + 1] = unitID
 			else
-				addNewCommand(newCmds, unitID, cmdOpts, cmdID)
-			end
-		elseif not spGetUnitNeutral(unitID) then
-			if cmdID == CMD_ATTACK then
-				targetIDs[#targetIDs + 1] = unitID
-			else
-				addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+				addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
 			end
 		else
 			somethingWasExcluded = true
 		end
 	end
 	if #targetIDs > 0 and somethingWasExcluded then
-		local selectedUnits = spGetSelectedUnits()
 		if cmdOpts.shift and cmdOpts.meta then
-			local assignments = splitTargets(selectedUnits, targetIDs)
-			for _, unitID in ipairs(selectedUnits) do
+			local assignments = splitTargets(selected, targetIDs)
+			for _, unitID in ipairs(selected) do
 				local targets = assignments[unitID]
 				local x, _, z = Spring.GetUnitPosition(unitID)
 				table.sort(targets, function(a, b)
@@ -90,12 +97,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				sendAttackOrders({ unitID }, targets, cmdOpts, spGiveOrderArrayToUnitArray)
 			end
 		else
-			sendAttackOrders(selectedUnits, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
+			sendAttackOrders(selected, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
 		end
 		return true
 	end
 	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)
+		Spring.GiveOrderArrayToUnitArray(selected, newCmds)
 		return true
 	end
 end

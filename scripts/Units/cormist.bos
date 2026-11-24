@@ -84,19 +84,19 @@ SetMaxReloadTime(reloadMS)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    fired = 0;
+	if (Stunned) {
+		return (1);
+	}
+	fired = 0;
 	turn turret to y-axis <0.0> speed <90.021978>;
 	turn gun to x-axis <0.0> speed <50.010989>;
 }
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -171,14 +171,14 @@ EndBurst2()
 	gun_1 = !gun_1;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = gun;
+	pieceIndex = gun;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
 

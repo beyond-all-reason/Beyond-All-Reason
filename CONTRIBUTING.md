@@ -99,7 +99,9 @@ Plan for these limits **before** writing code. To stay under them:
 All Lua, RML, and RCSS files must be **UTF-8 without BOM**. A BOM (`EF BB BF`) causes Lua to fail to parse and RmlUI to silently ignore the file. Watch out for PowerShell's `Set-Content`/`Out-File`, which default to BOM-prefixed UTF-8.
 ## Licensing and versioning
 
-The license we use is “GNU GPL, v2 or later”.
+Code is licensed under GNU GPL v2 or later (SPDX identifier `GPL-2.0-or-later`); a file may use a more permissive GPL-compatible license if its header says so.
+
+Art and audio are licensed per file. When a pull request adds art or audio, the CLA bot inserts a license choice into the PR description: tick **BAR Project License (CLA)** or **CC-BY-SA 4.0**, then comment `/confirm-license`. Edits and moves of existing assets need no new license. If you submit someone else's work, use the proxy checkbox so the artist can confirm with `/confirm-authorship`. Purchased or stock material (asset stores, sound libraries) may not be added to this repository; ask a maintainer about the private asset repository. The policy, CLA text and FAQ are in [legal/](legal/); see [LICENSE.md](LICENSE.md) for the overview.
 
 Expect your code to be modified. We encourage you to use release versioning and to increment versions when modifying other contributor’s gadgets/widgets. This helps to distinguish the many copies of very-similar code that are sometimes floating around.
 

@@ -324,6 +324,7 @@ return {
 	corageo = "cortex_advancedgeothermalpowerplant",
 	corestor = "cortex_energystorage",
 	corfus = "cortex_fusionreactor",
+	corhltfus = "cortex_overlord",
 	corgeo = "cortex_geothermalpowerplant",
 	cormakr = "cortex_energyconverter",
 	cormex = "cortex_metalextractor",

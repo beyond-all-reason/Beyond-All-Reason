@@ -294,7 +294,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 
 	if not cmdOpts.shift or cmdCount == 0 then
 		-- simple selfd command, so toggle active (if there's no queue, shift doesn't change anything)
-		if spGetUnitSelfDTime(unitID) > 0 then
+		if hasSelfDActive(unitID) then
 			activeSelfD[unitID] = nil
 		else
 			activeSelfD[unitID] = unitDefID
