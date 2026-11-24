@@ -2006,20 +2006,21 @@ local function stepManifest()
 		if job.dnts.detail then
 			add(string.format("\t\t\tdetail = %q,", job.dnts.detail))
 		end
-		local function quad(name, t)
+		local function quad(name, t, fmt)
 			add(
 				string.format(
 					"\t\t\t%s = { %s, %s, %s, %s },",
 					name,
-					fmtNum(t[1] or 0),
-					fmtNum(t[2] or 0),
-					fmtNum(t[3] or 0),
-					fmtNum(t[4] or 0)
+					fmt(t[1] or 0),
+					fmt(t[2] or 0),
+					fmt(t[3] or 0),
+					fmt(t[4] or 0)
 				)
 			)
 		end
-		quad("scales", job.dnts.scales)
-		quad("mults", job.dnts.mults)
+		-- Exact: a scale like 1/96 does not fit four decimals
+		quad("scales", job.dnts.scales, MapExport.fmtNumber)
+		quad("mults", job.dnts.mults, fmtNum)
 		add(string.format("\t\t\tdiffuse_alpha = %s,", fmtNum(job.dnts.diffuse_alpha)))
 		add("\t\t},")
 	end

@@ -9,8 +9,8 @@ GG["MissionAPI"].Teams = { rebels = 1, [1] = "rebels", gaia = GAIA_TEAM_ID, [GAI
 GG["MissionAPI"].Alliances = {}
 GG["MissionAPI"].ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
 	.LoadActionDefinitions()
-GG["MissionAPI"].TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
-	.LoadTriggerDefinitions()
+GG["MissionAPI"].ConditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/conditions_loader.lua")
+	.LoadConditionDefinitions()
 local parameterProcessing = MissionSpecEnv.include(env, "luarules/mission_api/parameter_processing.lua")
 GG["MissionAPI"] = nil
 

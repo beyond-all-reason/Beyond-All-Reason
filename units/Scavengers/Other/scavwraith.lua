@@ -56,6 +56,7 @@ return {
 			juno_kill = true,
 			model_author = "SethDGamre",
 			normaltex = "unittextures/Arm_normal.dds",
+			paralyzemultiplier = 0,
 			subfolder = "Scavengers",
 			nohealthbars = true,
 		},

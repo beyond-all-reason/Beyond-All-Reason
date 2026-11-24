@@ -7,13 +7,13 @@
 --- The third pause, at 15 s, has seconds and ends by itself after 5 s of real time.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnScout = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -21,7 +21,7 @@ local triggers = {
 	},
 
 	firstPause = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -30,7 +30,7 @@ local triggers = {
 
 	-- Fires while paused: commands are relayed and processed between frames.
 	scoutOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 10,
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	secondPause = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},

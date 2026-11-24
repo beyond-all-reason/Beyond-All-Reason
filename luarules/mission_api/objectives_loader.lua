@@ -5,7 +5,7 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 	objectiveID = {
 		textKey = "complete_objective",
 		trigger = {
-			type = triggerTypes.TimeElapsed,
+			type = conditionTypes.TimeElapsed,
 			parameters = {
 				seconds = 3,
 			},
@@ -17,8 +17,8 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
-	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
-		GG["MissionAPI"].TriggerDefinitions.Parameters,
+	local conditionTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
+		GG["MissionAPI"].ConditionDefinitions.Parameters,
 		parameterTypes.Types.Quantity
 	)
 
@@ -37,13 +37,13 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 		if type(objective.trigger) == "table" then
 			local objectiveStages = objectiveToStages[objectiveID] or {}
 			local amount = objective.amount
-			local triggerType = objective.trigger.type
+			local conditionType = objective.trigger.type
 			local triggerParameters = objective.trigger.parameters or {}
 
-			if triggerTypesWithQuantity[triggerType] then
+			if conditionTypesWithQuantity[conditionType] then
 				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
-				table.ensureTable(GG["MissionAPI"].ManagedObjectives, triggerType)
-				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
+				table.ensureTable(GG["MissionAPI"].ManagedObjectives, conditionType)
+				table.insert(GG["MissionAPI"].ManagedObjectives[conditionType], {
 					objectiveID = objectiveID,
 					amount = amount,
 					nextStage = objective.nextStage,
@@ -59,7 +59,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 				local actionID = "__updateObjective_" .. objectiveID
 
 				rawTriggers[triggerID] = {
-					type = triggerType,
+					type = conditionType,
 					parameters = triggerParameters,
 					settings = {
 						stages = objectiveStages,
