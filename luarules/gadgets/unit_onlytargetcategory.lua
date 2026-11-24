@@ -43,8 +43,28 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local function matchesCategory(targetID, category)
+	local categories = unitCategories[Spring.GetUnitDefID(targetID)]
+	return categories and categories[category]
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+	GG.AttackListMatchesTargetCategory = function(unitDefID, targetIDs)
+		local category = unitOnlyTargetsCategory[unitDefID]
+		if category then
+			for _, targetID in ipairs(targetIDs) do
+				if not matchesCategory(targetID, category) then
+					return false
+				end
+			end
+		end
+		return true
+	end
+end
+
+function gadget:Shutdown()
+	GG.AttackListMatchesTargetCategory = nil
 end
 
 function gadget:AllowCommand(
@@ -64,10 +84,7 @@ function gadget:AllowCommand(
 		cmdParams[2] == nil
 		and unitOnlyTargetsCategory[unitDefID]
 		and type(cmdParams[1]) == "number"
-		and not (
-			unitCategories[Spring.GetUnitDefID(cmdParams[1])]
-			and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]
-		)
+		and not matchesCategory(cmdParams[1], unitOnlyTargetsCategory[unitDefID])
 	then
 		return false
 	else

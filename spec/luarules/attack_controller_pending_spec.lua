@@ -41,7 +41,7 @@ local function loadController(deletionCallin, hasTargetChanged)
 	}
 	env.math = setmetatable({
 		bit_or = function(a, b)
-			assert(a == 0 and b == 32)
+			assert((a == 0 or a == 32) and b == 32)
 			return 32
 		end,
 	}, { __index = math })
@@ -85,7 +85,7 @@ local function loadController(deletionCallin, hasTargetChanged)
 	env.Spring.AreTeamsAllied = function()
 		return false
 	end
-	env.Spring.GiveOrderToUnit = function(_, id, params)
+	env.Spring.GiveOrderToUnit = function(_, id, params, options)
 		if id == env.CMD.INSERT then
 			local embedded = {}
 			for i = 4, #params do
@@ -100,6 +100,7 @@ local function loadController(deletionCallin, hasTargetChanged)
 			end
 		else
 			insert(id, params)
+			queue[#queue].options = options
 		end
 	end
 	env.GG.SetUnitAttackTargetList = function(_, _, ids)
@@ -245,6 +246,53 @@ describe("pending Attack controller targets", function()
 		assert.are.equal(60, g.queue[1].params[1])
 		assert.are.equal(10, g.env.GG.GetPendingAttackTarget(1, -1))
 	end)
+	it("restores pending orders before a native Shift-Attack toggles a controller target", function()
+		local g = loadController()
+		local active = g.queue[1]
+		assert.is_true(g.env.gadget:AllowCommand(1, 1, 0, 20, { 30 }, { shift = true, coded = 32 }))
+		assert.are.equal(active, g.queue[1])
+		assert.are.equal(4, #g.queue)
+		for index, target in ipairs({ 20, 30, 40 }) do
+			local order = g.queue[index + 1]
+			assert.are.same({ 20, { target }, 32 }, { order.id, order.params, order.options })
+		end
+		assert.is_nil(g.env.GG.GetPendingAttackTarget(1, -1))
+	end)
+	it("preserves native cancellation when a shifted list repeats a queued attack or fight target", function()
+		for _, commandID in ipairs({ 20, 16 }) do
+			local g = loadController()
+			local gadget = g.env.gadget
+			g.queue[1] = { id = commandID, params = { 30 }, options = { internal = true }, tag = 7 }
+			g.queue[2] = nil
+			assert.is_true(gadget:AllowCommand(2, 1, 0, 34927, { 10, 20 }, { shift = true, coded = 32 }))
+			assert.is_false(gadget:AllowCommand(2, 1, 0, 34927, { 10, 20, 30 }, { shift = true, coded = 32 }))
+			assert.are.equal(4, #g.queue)
+			for index, target in ipairs({ 10, 20, 30 }) do
+				local order = g.queue[index + 1]
+				assert.are.same({ 20, { target }, 32 }, { order.id, order.params, order.options })
+			end
+		end
+	end)
+	it("applies native target restrictions before a list can replace a unit's queue", function()
+		for _, rule in ipairs({ "AttackListMatchesTargetCategory", "AttackListMatchesBomberTargets" }) do
+			local g = loadController()
+			g.env.GG[rule] = function(unitDefID, ids)
+				assert.are.equal(1, unitDefID)
+				return ids[1] ~= 70
+			end
+			local before = #g.queue
+			assert.is_true(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 50, 60 }, { coded = 0 }))
+			assert.is_false(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 70, 80 }, { coded = 0 }))
+			assert.are.same(
+				{ 20, { 70 }, 0 },
+				{ g.queue[before + 1].id, g.queue[before + 1].params, g.queue[before + 1].options }
+			)
+			assert.are.same(
+				{ 20, { 80 }, 32 },
+				{ g.queue[before + 2].id, g.queue[before + 2].params, g.queue[before + 2].options }
+			)
+		end
+	end)
 	it("uses native queues on engines without deletion notifications", function()
 		local g = loadController(false)
 		for index = #g.queue, 1, -1 do
@@ -297,12 +345,18 @@ describe("pending Attack controller targets", function()
 		g.delete(20)
 		assert.are.equal(34927, g.queue[1].id)
 	end)
-	it("clears deletion watchers when its owner is destroyed", function()
+	it("advances a dying owner's native queue until its own deletion", function()
 		local g = loadController()
-		g.eraseActive()
 		g.env.gadget:UnitDestroyed(1)
-		g.delete(20)
-		assert.are.equal(34927, g.queue[1].id)
+		g.env.GG.GetUnitAttackTargetList = function()
+			return nil
+		end
+		g.eraseActive()
+		local ref = g.queue[1]
+		g.env.gadget:CommandFallback(1, 1, 0, ref.id, ref.params, 0, ref.tag)
+		assert.are.equal(20, g.queue[1].params[1])
+		assert.are.equal(30, g.env.GG.GetPendingAttackTarget(1, -1))
+		g.delete(1)
 		assert.is_nil(g.env.GG.GetPendingAttackTarget(1, -1))
 	end)
 end)

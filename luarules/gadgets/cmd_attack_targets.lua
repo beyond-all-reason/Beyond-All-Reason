@@ -259,7 +259,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- which target belongs at the front.
 	local function recheckController(unitID, state, restartFromFront)
 		local targets = GG.GetUnitAttackTargetList and GG.GetUnitAttackTargetList(unitID)
-		if not targets then
+		if not targets and not (state.ownerDestroyed and state.targets) then
 			return false
 		end
 		-- Rendering/Set Target prunes crashing entries before the engine deletes
@@ -281,6 +281,24 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
+	-- Restore the suffix before a repeated order so Recoil can cancel the
+	-- matching Attack, including an active Attack with immediate side effects.
+	-- Keep the reference until the suffix is queued, so the unit never goes idle.
+	local function restoreNativeQueue(unitID, state, reference)
+		clearState(unitID)
+		for index = state.nextTargetIndex, #state.targets do
+			local entry = state.targets[index]
+			if
+				not entry.deleted
+				and not (state.removedEntries and state.removedEntries[entry])
+				and Spring.ValidUnitID(entry.target)
+			then
+				spGiveOrderToUnit(unitID, CMD.ATTACK, { entry.target }, CMD.OPT_SHIFT)
+			end
+		end
+		spGiveOrderToUnit(unitID, CMD.REMOVE, { reference.tag }, CMD.OPT_INTERNAL)
+	end
+
 	local function appendToActiveController(unitID, unitDefID, cmdParams)
 		local state = targetListStates[unitID]
 		if not state or not GG.AppendUnitAttackTargetList then
@@ -294,16 +312,27 @@ if gadgetHandler:IsSyncedCode() then
 		if not recheckController(unitID, state, false) then
 			return false
 		end
+		local requested = {}
+		for _, targetID in ipairs(cmdParams) do
+			requested[targetID] = true
+		end
+		for _, entry in ipairs(state.targets) do
+			if
+				not entry.deleted
+				and not (state.removedEntries and state.removedEntries[entry])
+				and requested[entry.target]
+			then
+				restoreNativeQueue(unitID, state, commands[#commands])
+				return false
+			end
+		end
 		local listID = GG.AppendUnitAttackTargetList(unitID, unitDefID, cmdParams, state)
 		if not listID then
 			return false
 		end
 		state.listID = listID
 		local updated = GG.GetUnitAttackTargetList(unitID)
-		local executionTargets, seen, requested = {}, {}, {}
-		for _, targetID in ipairs(cmdParams) do
-			requested[targetID] = true
-		end
+		local executionTargets, seen = {}, {}
 		for _, entry in ipairs(state.targets) do
 			executionTargets[#executionTargets + 1] = entry
 			if not entry.deleted and not (state.removedEntries and state.removedEntries[entry]) then
@@ -505,6 +534,27 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- A shifted Attack toggles a matching queued object Attack or Fight, even
+	-- if STOP just generated it automatically. A single list command cannot
+	-- take part in that cancellation. Let the engine apply the original orders.
+	local function cancelsQueuedAttack(unitID, targetIDs)
+		local queuedTargets
+		for _, command in ipairs(spGetUnitCommands(unitID, -1) or {}) do
+			if (command.id == CMD.ATTACK or command.id == CMD.FIGHT) and #command.params == 1 then
+				queuedTargets = queuedTargets or {}
+				queuedTargets[command.params[1]] = true
+			end
+		end
+		if queuedTargets then
+			for _, id in ipairs(targetIDs) do
+				if queuedTargets[id] then
+					return true
+				end
+			end
+		end
+		return false
+	end
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD.ATTACK then
 			local targetID = #cmdParams == 1 and cmdParams[1]
@@ -524,11 +574,19 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 		local isReference = #cmdParams == 1 and cmdParams[1] < 0
+		-- Apply per-target restrictions at admission. A fully rejected list must
+		-- never clear or extend the unit's current queue.
 		if
 			not isReference
 			and not cmdOptions.internal
 			and canAttack[unitDefID]
-			and (not Spring.RegisterCommand or not hasTargetLifecycle or Spring.GetUnitIsBeingBuilt(unitID))
+			and (
+				not Spring.RegisterCommand
+				or not hasTargetLifecycle
+				or Spring.GetUnitIsBeingBuilt(unitID)
+				or (GG.AttackListMatchesTargetCategory and not GG.AttackListMatchesTargetCategory(unitDefID, cmdParams))
+				or (GG.AttackListMatchesBomberTargets and not GG.AttackListMatchesBomberTargets(unitDefID, cmdParams))
+			)
 		then
 			giveNativeAttacks(unitID, cmdParams, cmdOptions)
 			return false
@@ -539,6 +597,16 @@ if gadgetHandler:IsSyncedCode() then
 			and not isReference
 			and appendToActiveController(unitID, unitDefID, cmdParams)
 		then
+			return false
+		end
+		if
+			cmdOptions.shift
+			and not cmdOptions.internal
+			and not isReference
+			and canAttack[unitDefID]
+			and cancelsQueuedAttack(unitID, cmdParams)
+		then
+			giveNativeAttacks(unitID, cmdParams, cmdOptions)
 			return false
 		end
 		return canAttack[unitDefID] and cmdParams[1] ~= nil and (not isReference or cmdOptions.internal)
@@ -736,10 +804,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID)
-		clearState(unitID)
+		-- The displayed list is released at death. The native queue can still
+		-- advance on a target's deletion before the owner's own deletion.
+		local state = targetListStates[unitID]
+		if state then
+			state.ownerDestroyed = true
+		end
 	end
 
 	function gadget:RenderUnitDestroyed(targetID)
+		clearState(targetID)
 		-- A recycled engine ID must not revive an old queued target. Mark the
 		-- shared execution entries before advancing any controller.
 		local entries = entriesByTarget[targetID]
