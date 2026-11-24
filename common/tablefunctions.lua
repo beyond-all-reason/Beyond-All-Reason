@@ -367,6 +367,24 @@ if not table.isNilOrEmpty then
 	end
 end
 
+if not table.isCompactSequence then
+	---Check that all values in the table form a compact sequence, 1..n, without gaps.
+	table.isCompactSequence = function(tbl)
+		local length = 0
+		for _ in ipairs(tbl) do
+			length = length + 1
+		end
+		local key, value = length, nil ---@type any, any
+		repeat
+			key, value = next(tbl, key)
+			if key ~= nil then
+				return false
+			end
+		until value == nil
+		return true
+	end
+end
+
 if not table.getKeyOf then
 	---Find key of value in table.
 	---Will always return the first key found, no matter if the table contains
