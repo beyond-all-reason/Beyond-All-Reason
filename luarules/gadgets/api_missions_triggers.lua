@@ -300,38 +300,6 @@ function gadget:GameStart()
 	dispatchConditionCallin("GameStart")
 end
 
-function gadget:RecvLuaMsg(message, playerID)
-	local teamID, signal, id, detail = GG.CampaignAI.ReadSignal(message, playerID)
-	if not teamID then
-		return
-	end
-
-	if signal == aiSignals.SQUAD_FINISHED then
-		local squadName = squads.Assemble(teamID, id)
-		if squadName then
-			dispatchConditionCallin("SquadAssembled", squadName, teamID)
-		end
-	elseif signal == aiSignals.SQUAD_DISBANDED then
-		-- The AI says whether the squad gathers again, 1 or 0. The AI of engine 2026.11.02 does not say yet.
-		local squadName = squads.End(teamID, id, detail and detail == 1)
-		if squadName then
-			dispatchConditionCallin("SquadDisbanded", squadName, teamID)
-		end
-	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
-		local regionName = aiRegions.GetName(teamID, id)
-		local squadName = squads.GetName(teamID, detail)
-		if regionName and squadName then
-			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
-			dispatchConditionCallin(callin, regionName, squadName, teamID)
-		end
-	elseif not unknownAISignals[signal] then
-		unknownAISignals[signal] = true
-		Spring.Log("Mission API triggers", LOG.WARNING, "Unknown campaign AI signal: " .. signal)
-	end
-
-	return true
-end
-
 function gadget:GameFrame(frameNumber)
 	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
@@ -637,6 +605,38 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 
 	reclaimedFeatures[featureID] = nil
 	untrackFeatureID(featureID)
+end
+
+function gadget:RecvLuaMsg(message, playerID)
+	local teamID, signal, id, detail = GG.CampaignAI.ReadSignal(message, playerID)
+	if not teamID then
+		return
+	end
+
+	if signal == aiSignals.SQUAD_FINISHED then
+		local squadName = squads.Assemble(teamID, id)
+		if squadName then
+			dispatchConditionCallin("SquadAssembled", squadName, teamID)
+		end
+	elseif signal == aiSignals.SQUAD_DISBANDED then
+		-- The AI says whether the squad gathers again, 1 or 0. The AI of engine 2026.11.02 does not say yet.
+		local squadName = squads.End(teamID, id, detail and detail == 1)
+		if squadName then
+			dispatchConditionCallin("SquadDisbanded", squadName, teamID)
+		end
+	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
+		local regionName = aiRegions.GetName(teamID, id)
+		local squadName = squads.GetName(teamID, detail)
+		if regionName and squadName then
+			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
+			dispatchConditionCallin(callin, regionName, squadName, teamID)
+		end
+	elseif not unknownAISignals[signal] then
+		unknownAISignals[signal] = true
+		Spring.Log("Mission API triggers", LOG.WARNING, "Unknown campaign AI signal: " .. signal)
+	end
+
+	return true
 end
 
 function gadget:Initialize()

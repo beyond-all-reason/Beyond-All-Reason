@@ -369,7 +369,7 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("SquadTask", function()
 		local function validateTask(task)
 			return V.validateAction({
-				type = V.actionTypes.RunSquad,
+				type = V.actionTypes.SetSquadTask,
 				parameters = { squadName = "raiders", task = task, position = { x = 0, z = 0 } },
 			})
 		end

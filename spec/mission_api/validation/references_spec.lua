@@ -538,19 +538,19 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Squad is referenced, but never created. Squad: ghost, Referenced in: trigger watchGhost"
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: trigger watchGhost"
 			)
 		end)
 
 		it("warns about a squad an action refers to, but no action defines", function()
 			local result = V.validate(V.mission():WithAction("runGhost", {
-				type = V.actionTypes.RunSquad,
+				type = V.actionTypes.SetSquadTask,
 				parameters = { squadName = "ghost", task = "DEFEND", position = { x = 100, z = 100 } },
 			}))
 
 			V.assertMessage(
 				result,
-				"Squad is referenced, but never created. Squad: ghost, Referenced in: action runGhost"
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: action runGhost"
 			)
 		end)
 	end)
@@ -567,7 +567,7 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Region is referenced, but never created. Region: ghost, Referenced in: action clearGhost"
+				"Region name is referenced, but never created. Region name: ghost, Referenced in: action clearGhost"
 			)
 		end)
 	end)
@@ -583,7 +583,7 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Base plan is referenced, but never created. Base plan: ghost, Referenced in: action cancelGhost"
+				"Base plan name is referenced, but never created. Base plan name: ghost, Referenced in: action cancelGhost"
 			)
 		end)
 	end)

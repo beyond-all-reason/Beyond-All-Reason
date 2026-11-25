@@ -1,15 +1,15 @@
 ---
---- Campaign AI repeating squad test mission.
+--- Campaign AI regathering squad test mission.
 ---
 --- Needs the campaign AI on the enemy team: tools/StartScripts/startscript_mission_api_campaign_ai_quicksilver.txt
---- with missionoptions set to the base64url of {"entryPoint":"singleplayer/mission-api-tests/squad_repeat_test.lua"}:
---- eyJlbnRyeVBvaW50Ijoic2luZ2xlcGxheWVyL21pc3Npb24tYXBpLXRlc3RzL3NxdWFkX3JlcGVhdF90ZXN0Lmx1YSJ9
+--- with missionoptions set to the base64url of {"entryPoint":"singleplayer/mission-api-tests/squad_regather_test.lua"}:
+--- eyJlbnRyeVBvaW50Ijoic2luZ2xlcGxheWVyL21pc3Npb24tYXBpLXRlc3RzL3NxdWFkX3JlZ2F0aGVyX3Rlc3QubHVhIn0=
 ---
 --- Expected timeline, watching the messages:
----   5 s    the enemy bot lab starts on two grunts for the raiders, a squad that repeats
+---   5 s    the enemy bot lab starts on two grunts for the raiders, a squad that regathers
 ---   later  "assembled"; 10 s later the raiders are disbanded: "disbanded", and "assembled" again
 ---          within a second, from the same grunts; that happens once or twice before 70 s
----   70 s   the raiders stop repeating and are disbanded: "disbanded" is the last message
+---   70 s   the raiders stop regathering and are disbanded: "disbanded" is the last message
 ---
 
 local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
@@ -22,7 +22,7 @@ local triggers = {
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'defineRaiders', 'repeatRaiders' },
+		actions = { 'defineRaiders', 'regatherRaiders' },
 	},
 
 	raidersAssembled = {
@@ -59,12 +59,12 @@ local triggers = {
 		actions = { 'messageDisbanded' },
 	},
 
-	stopRepeating = {
+	stopRegathering = {
 		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 70,
 		},
-		actions = { 'stopRepeatingRaiders', 'messageStopRepeating', 'disbandRaiders' },
+		actions = { 'stopRegatheringRaiders', 'messageStopRegathering', 'disbandRaiders' },
 	},
 }
 
@@ -81,8 +81,8 @@ local actions = {
 		},
 	},
 
-	repeatRaiders = {
-		type = actionTypes.EnableSquadRepeat,
+	regatherRaiders = {
+		type = actionTypes.EnableSquadRegather,
 		parameters = {
 			squadName = 'raiders',
 		},
@@ -91,7 +91,7 @@ local actions = {
 	messageAssembled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Squad repeat test: the raiders have assembled.",
+			messageKey = "Squad regather test: the raiders have assembled.",
 		},
 	},
 
@@ -113,21 +113,21 @@ local actions = {
 	messageDisbanded = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Squad repeat test: the raiders are disbanded.",
+			messageKey = "Squad regather test: the raiders are disbanded.",
 		},
 	},
 
-	stopRepeatingRaiders = {
-		type = actionTypes.DisableSquadRepeat,
+	stopRegatheringRaiders = {
+		type = actionTypes.DisableSquadRegather,
 		parameters = {
 			squadName = 'raiders',
 		},
 	},
 
-	messageStopRepeating = {
+	messageStopRegathering = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Squad repeat test: the raiders stop repeating.",
+			messageKey = "Squad regather test: the raiders stop regathering.",
 		},
 	},
 }

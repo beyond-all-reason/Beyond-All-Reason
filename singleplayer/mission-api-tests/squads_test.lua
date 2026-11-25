@@ -112,7 +112,7 @@ local actions = {
 	},
 
 	runRaiders = {
-		type = actionTypes.RunSquad,
+		type = actionTypes.SetSquadTask,
 		parameters = {
 			squadName = 'raiders',
 			task = 'DEFEND',

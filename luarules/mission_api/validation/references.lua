@@ -461,9 +461,8 @@ end
 -- Countdown ID and squad, region and base plan name references
 --------------------------------------------------------------------------------
 
---- For a name that one action creates and others refer to. A countdown that is added and then
---- simply left to run out is fine, as is a squad that is defined and left alone, so unlike the
---- names above there is no warning for one that is created but never referenced.
+--- For a name that one action creates and others refer to. A created name need not be referred
+--- to, so only a reference to a name that nothing creates warns.
 local function validateCreatedNameReferences(context, report, label, parameterName, parameterType, creatingActionType)
 	local createdNames = {}
 	local referencedNames = {}
@@ -675,12 +674,19 @@ local function validate(context, report)
 		Types.CountdownID,
 		actionTypes.AddCountdown
 	)
-	validateCreatedNameReferences(context, report, "Squad", "squadName", Types.SquadName, actionTypes.DefineSquad)
-	validateCreatedNameReferences(context, report, "Region", "regionName", Types.RegionName, actionTypes.DefineAiRegion)
+	validateCreatedNameReferences(context, report, "Squad name", "squadName", Types.SquadName, actionTypes.DefineSquad)
 	validateCreatedNameReferences(
 		context,
 		report,
-		"Base plan",
+		"Region name",
+		"regionName",
+		Types.RegionName,
+		actionTypes.DefineAiRegion
+	)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Base plan name",
 		"basePlanName",
 		Types.BasePlanName,
 		actionTypes.AddToBasePlan

@@ -74,7 +74,7 @@ local actions = {
 	},
 
 	sendRaidersWest = {
-		type = actionTypes.RunSquad,
+		type = actionTypes.SetSquadTask,
 		parameters = {
 			squadName = 'raiders',
 			task = 'DEFEND',
@@ -90,7 +90,7 @@ local actions = {
 	},
 
 	sendRaidersEast = {
-		type = actionTypes.RunSquad,
+		type = actionTypes.SetSquadTask,
 		parameters = {
 			squadName = 'raiders',
 			task = 'DEFEND',

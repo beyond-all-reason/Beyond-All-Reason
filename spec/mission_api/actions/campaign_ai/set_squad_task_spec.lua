@@ -6,14 +6,14 @@ local env = MissionSpecEnv.new()
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 MissionApiBuilder.new():Install()
 
-local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/campaign_ai/run_squad.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/campaign_ai/set_squad_task.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local TEAM_ID = 3
 local POSITION = { x = 4300, y = 320, z = 1600 }
 
-describe("mission_api.actions.run_squad", function()
+describe("mission_api.actions.set_squad_task", function()
 	local squads ---@type table
 	local runs ---@type table[]
 
@@ -23,7 +23,7 @@ describe("mission_api.actions.run_squad", function()
 
 		runs = {}
 		GG.CampaignAI = {
-			RunSquad = function(...)
+			SetSquadTask = function(...)
 				runs[#runs + 1] = { ... }
 			end,
 		}
@@ -35,7 +35,7 @@ describe("mission_api.actions.run_squad", function()
 
 	it("declares its type and parameters", function()
 		assert.are.same({
-			type = "RunSquad",
+			type = "SetSquadTask",
 			squadName = "SquadName!",
 			task = "SquadTask!",
 			position = "Position!",

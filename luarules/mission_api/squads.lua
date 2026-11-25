@@ -7,7 +7,7 @@
 ---@field squadID integer
 ---@field teamID integer
 ---@field isAssembled boolean
----@field isRepeating boolean
+---@field regathers boolean
 
 local squadsByName = {} ---@type table<string, MissionSquad?>
 local squadsByID = {} ---@type table<integer, table<integer, MissionSquad?>> by teamID, then squadID
@@ -24,8 +24,7 @@ local function defineSquad(squadName, teamID)
 	local squadID = (squadCounts[teamID] or 0) + 1
 	squadCounts[teamID] = squadID
 
-	local squad =
-		{ squadName = squadName, squadID = squadID, teamID = teamID, isAssembled = false, isRepeating = false }
+	local squad = { squadName = squadName, squadID = squadID, teamID = teamID, isAssembled = false, regathers = false }
 	squadsByName[squadName] = squad
 	table.ensureTable(squadsByID, teamID)[squadID] = squad
 
@@ -58,8 +57,8 @@ local function assembleSquad(teamID, squadID)
 	end
 end
 
---- The AI recruits a repeating squad again under its ID, so that squad stays, gathering.
----@param gathersAgain boolean? as the AI reports it; nil leaves it to the squad's repeat setting
+--- The AI recruits a squad that regathers again under its ID, so that squad stays, gathering.
+---@param gathersAgain boolean? as the AI reports it; nil leaves it to the squad's regather setting
 ---@return string? squadName nil for a squad that is not live
 local function endSquad(teamID, squadID, gathersAgain)
 	local squad = findSquad(teamID, squadID)
@@ -68,7 +67,7 @@ local function endSquad(teamID, squadID, gathersAgain)
 	end
 
 	if gathersAgain == nil then
-		gathersAgain = squad.isRepeating
+		gathersAgain = squad.regathers
 	end
 
 	if gathersAgain then
@@ -92,10 +91,10 @@ end
 
 ---@return integer? squadID nil for a squad that is not live
 ---@return integer? teamID
-local function setSquadRepeating(squadName, isRepeating)
+local function setSquadRegathers(squadName, regathers)
 	local squad = squadsByName[squadName]
 	if squad then
-		squad.isRepeating = isRepeating
+		squad.regathers = regathers
 		return squad.squadID, squad.teamID
 	end
 end
@@ -135,6 +134,6 @@ return {
 	Get = getSquad,
 	GetName = getSquadName,
 	GetAssembled = getAssembledSquad,
-	SetRepeating = setSquadRepeating,
+	SetRegathers = setSquadRegathers,
 	Cancel = cancelSquad,
 }

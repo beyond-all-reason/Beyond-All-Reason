@@ -87,7 +87,7 @@ local actions = {
 	},
 
 	defendEast = {
-		type = actionTypes.RunSquad,
+		type = actionTypes.SetSquadTask,
 		parameters = {
 			squadName = 'raiders',
 			task = 'DEFEND',
