@@ -2095,10 +2095,8 @@ drawChatLine = function(i)
 		)
 		return right, left
 	else
-		local text = chatLines[i].text
-		if chatLines[i].teamChatAllyTeamID then
-			text = teamChatColor(chatLines[i].teamChatAllyTeamID) .. text
-		end
+		local allyTeamID = chatLines[i].teamChatAllyTeamID
+		local text = allyTeamID and teamChatColor(allyTeamID) .. chatLines[i].text or chatLines[i].text
 		if chatLines[i].richText then
 			ChatEmoji.DrawRichText(font, text, textPosX, fontHeightOffset, usedFontSize, "o", { 0, 0, 0, 1 })
 		else
