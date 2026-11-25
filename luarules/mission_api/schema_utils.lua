@@ -54,6 +54,15 @@ local function setTranslationKeys(entry, translationKey)
 	entry.i18nDescriptionKey = translationKey .. ".description"
 end
 
+local function getTranslationKeysByName(names, translationKey)
+	local translationKeys = {}
+	for name in pairs(names) do
+		translationKeys[name] = {}
+		setTranslationKeys(translationKeys[name], translationKey .. "." .. name)
+	end
+	return translationKeys
+end
+
 local function collateRows(rows, translationKey)
 	local collated = {}
 	for index, row in ipairs(rows) do
@@ -83,11 +92,21 @@ local function collateSchemas()
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 	local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
+	local triggerSettings = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
+	local objectiveSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 	return {
 		conditions = collateObjectSchemas(missionAPI.ConditionDefinitions, TRANSLATION_ROOT .. ".conditions"),
-		triggerSettings = table.copy(VFS.Include("luarules/mission_api/triggers_schema.lua").Settings),
+		triggerSettings = table.copy(triggerSettings),
+		triggerSettingTranslationKeys = getTranslationKeysByName(
+			triggerSettings,
+			TRANSLATION_ROOT .. ".triggerSettings"
+		),
 		actions = collateObjectSchemas(missionAPI.ActionDefinitions, TRANSLATION_ROOT .. ".actions"),
-		objectiveSettings = table.copy(VFS.Include("luarules/mission_api/objectives_schema.lua").Settings),
+		objectiveSettings = table.copy(objectiveSettings),
+		objectiveSettingTranslationKeys = getTranslationKeysByName(
+			objectiveSettings,
+			TRANSLATION_ROOT .. ".objectiveSettings"
+		),
 		unitEntryFields = collateRows(loadoutSchema.UnitEntryFields, TRANSLATION_ROOT .. ".unitEntryFields"),
 		featureEntryFields = collateRows(loadoutSchema.FeatureEntryFields, TRANSLATION_ROOT .. ".featureEntryFields"),
 		unitFilterFields = collateRows(unitFilterSchema.UnitFilterFields, TRANSLATION_ROOT .. ".unitFilterFields"),
