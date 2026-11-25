@@ -399,5 +399,16 @@
     "license": "LicenseRef-BAR-CLA-1.0",
     "signed_at": "2026-11-25T19:28:47.686Z",
     "source": "confirm-license-command"
+  },
+  {
+    "file": "unittextures/decals/armwar_10.5_10.5_aoplane.png",
+    "status": "intent",
+    "pr": 10230,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T20:43:11.327Z",
+    "source": "confirm-license-command",
+    "proxy_submitter": "efrec",
+    "proxy_status": "pending-author-confirmation"
   }
 ]
