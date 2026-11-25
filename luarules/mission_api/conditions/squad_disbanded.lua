@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'SquadDisbanded',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'squadName', required = false, type = ParameterTypes.SquadName },
 		{ name = 'teamName', required = false, type = ParameterTypes.AiTeamName },

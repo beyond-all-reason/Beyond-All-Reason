@@ -1,7 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 return {
 	type = 'SquadLeftRegion',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'regionName', required = false, type = ParameterTypes.RegionName },
 		{ name = 'squadName', required = false, type = ParameterTypes.SquadName },
