@@ -24,7 +24,7 @@ local REFRESH_FRAMES = 15
 local words = VFS.Include("luaui/Include/transport_strings.lua")
 
 -- gameplay values the Transport Handler gadget takes live; step = what one click changes
--- min and max mirror the gadget's clamp; below 0 is "per transport"
+-- min and max mirror the gadget's clamp; below 0 is "per transport", first the lowest value above it
 local GAMEPLAY = {
 	{ key = "enemyLoadMode", step = 1, min = 1, max = 5 },
 	{ key = "loadRadius", step = 16, min = 32, max = 512 },
@@ -34,7 +34,7 @@ local GAMEPLAY = {
 	{ key = "speedModMode", step = 1, min = -1, max = 2 },
 	{ key = "speedModStrength", step = 0.05, min = -1, max = 1 },
 	{ key = "comSpeedModStrength", step = 0.05, min = -1, max = 1 },
-	{ key = "unloadSpeed", step = 0.1, min = 0.1, max = 1 },
+	{ key = "unloadSpeed", step = 10, min = -1, max = 300, first = 10 },
 	{ key = "unloadTime", step = 0.1, min = 0.1, max = 1 },
 }
 
@@ -64,6 +64,8 @@ local function formatValue(key, value)
 		return string.format("%.1f s", value / Game.gameSpeed)
 	elseif key == "speedModMode" then
 		return value < 0 and words.perTransport or words.speedModModes[value] or "?"
+	elseif key == "unloadSpeed" then
+		return value < 0 and words.unloadSpeedOwn or string.format("%d", value)
 	end
 	return value < 0 and words.perTransport or string.format("%d%%", value * 100 + 0.5)
 end
@@ -108,11 +110,11 @@ local function step(_, key, direction)
 			if value >= 0 then
 				-- back onto the step grid: rules params come back as 32 bit floats
 				new = math.floor((value + direction * g.step) / g.step + 0.5) * g.step
-				if new < 0 then
+				if new < (g.first or 0) then
 					new = -1
 				end
 			elseif direction > 0 then
-				new = 0 -- leave "per transport" upward only
+				new = g.first or 0 -- leave "per transport" upward only
 			end
 			new = math.clamp(new, g.min, g.max)
 			if math.abs(new - value) >= g.step * 0.5 then

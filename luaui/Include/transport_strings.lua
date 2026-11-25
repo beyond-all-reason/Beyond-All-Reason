@@ -29,6 +29,7 @@ return {
 	speedModStrength = "Penalty strength",
 	comSpeedModStrength = "Commander penalty",
 	unloadSpeed = "Speed while unloading",
+	unloadSpeedOwn = "20% of own",
 	unloadTime = "Unload beam time",
 
 	ghosts = "Unload preview",

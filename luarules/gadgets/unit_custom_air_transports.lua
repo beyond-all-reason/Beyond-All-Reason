@@ -1032,10 +1032,10 @@ local liveSettings = {
 	speedModMode = { -1, 2, true }, -- -1: each transport's own setting
 	speedModStrength = { -1, 1 },
 	comSpeedModStrength = { -1, 1 },
-	unloadSpeed = { 0.1, 1 },
+	unloadSpeed = { -1, 300 }, -- -1: a fifth of each transport's own
 	unloadTime = { 0.1, 1 },
 }
-local liveDefaults = { unloadSpeed = 0.2, unloadTime = 1 } ---@type table<string, number>
+local liveDefaults = { unloadTime = 1 } ---@type table<string, number>
 
 local function getLiveSetting(key)
 	if key == "enemyLoadMode" then
