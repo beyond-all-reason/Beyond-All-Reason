@@ -102,6 +102,10 @@ local function collateSchemas()
 	local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
 	local triggerSettings = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 	local objectiveSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
+	local stageSettings = VFS.Include("luarules/mission_api/stages_schema.lua").Settings
+	local cutsceneSettings = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
+	local countdownSettings = VFS.Include("luarules/mission_api/countdowns_schema.lua").Settings
+	local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 	return {
 		conditions = collateObjectSchemas(missionAPI.ConditionDefinitions, TRANSLATION_ROOT .. ".conditions"),
 		triggerSettings = table.copy(triggerSettings),
@@ -115,10 +119,29 @@ local function collateSchemas()
 			objectiveSettings,
 			TRANSLATION_ROOT .. ".objectiveSettings"
 		),
+		stageSettings = table.copy(stageSettings),
+		stageSettingTranslationKeys = getTranslationKeysByName(stageSettings, TRANSLATION_ROOT .. ".stageSettings"),
+		cutsceneSettings = table.copy(cutsceneSettings),
+		cutsceneSettingTranslationKeys = getTranslationKeysByName(
+			cutsceneSettings,
+			TRANSLATION_ROOT .. ".cutsceneSettings"
+		),
+		countdownSettings = table.copy(countdownSettings),
+		countdownSettingTranslationKeys = getTranslationKeysByName(
+			countdownSettings,
+			TRANSLATION_ROOT .. ".countdownSettings"
+		),
 		unitEntryFields = collateRows(loadoutSchema.UnitEntryFields, TRANSLATION_ROOT .. ".unitEntryFields"),
 		featureEntryFields = collateRows(loadoutSchema.FeatureEntryFields, TRANSLATION_ROOT .. ".featureEntryFields"),
 		unitFilterFields = collateRows(unitFilterSchema.UnitFilterFields, TRANSLATION_ROOT .. ".unitFilterFields"),
 		unitFilterAtMostOneOf = table.copy(unitFilterSchema.AtMostOneOf),
+		cameraKeyframeSettings = table.copy(cameraKeyframeSchema.Settings),
+		cameraKeyframeSettingTranslationKeys = getTranslationKeysByName(
+			cameraKeyframeSchema.Settings,
+			TRANSLATION_ROOT .. ".cameraKeyframeSettings"
+		),
+		cameraKeyframeExactlyOneOf = table.copy(cameraKeyframeSchema.ExactlyOneOf),
+		cameraKeyframeAtMostOneOf = table.copy(cameraKeyframeSchema.AtMostOneOf),
 		parameterTypes = table.copy(parameterTypes.Types),
 		parameterTypeTranslationKeys = getTranslationKeysByName(
 			parameterTypes.Types,
