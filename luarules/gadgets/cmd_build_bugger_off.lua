@@ -131,7 +131,7 @@ local function isNearSite(x, z, xsize, zsize)
 end
 
 local function willBeNearTarget(x, z, vx, vz, xsize, zsize)
-	local frames = 2.25 * BUGGEROFF_LOOKAHEAD
+	local frames = 0.5 * FAST_UPDATE_FREQUENCY
 	return isNearSite(x, z, xsize, zsize) or isNearSite(x + vx * frames, z + vz * frames, xsize, zsize)
 end
 
