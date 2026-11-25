@@ -67,7 +67,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
 				type = V.actionTypes.PlaySound,
-				parameters = { soundfile = "x", enqueue = "bad" },
+				parameters = { soundFile = "x", enqueue = "bad" },
 			})
 
 			V.assertMessage(
@@ -482,23 +482,23 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("SoundFile", function()
 		it("rejects the wrong type", function()
-			local result = V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundfile = 123 } })
+			local result = V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundFile = 123 } })
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected string, got number. Action: a, Parameter: soundfile"
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: soundFile"
 			)
 		end)
 
 		it("rejects a file that does not exist", function()
 			local result = V.validateAction({
 				type = V.actionTypes.PlaySound,
-				parameters = { soundfile = "nonexistent/file.wav" },
+				parameters = { soundFile = "nonexistent/file.wav" },
 			})
 
 			V.assertMessage(
 				result,
-				"Invalid soundfile: nonexistent/file.wav. File does not exist. Action: a, Parameter: soundfile"
+				"Invalid soundfile: nonexistent/file.wav. File does not exist. Action: a, Parameter: soundFile"
 			)
 		end)
 
@@ -513,14 +513,14 @@ describe("mission_api.validation.parameter_validators", function()
 			end
 
 			local result =
-				V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundfile = "dummy.wav" } })
+				V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundFile = "dummy.wav" } })
 
 			V.env.VFS.FileExists = originalFileExists
 			V.env.ReadWAV = originalReadWAV
 
 			V.assertMessage(
 				result,
-				"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundfile"
+				"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundFile"
 			)
 		end)
 	end)
