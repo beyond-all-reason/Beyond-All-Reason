@@ -256,7 +256,9 @@ end
 ----------------------------------------------------------------
 
 local function isFeatureInArea(featureID, area)
-	area = GG["MissionAPI"].Modules.Areas.ResolveArea(area) -- FIXME I AM GARBAGE AHH
+	-- FIXME: shape tables are replaced, not updated, so have to be re-resolved like this.
+	-- FIXME: pre-resolve them without making the mission save/load harder to do?
+	area = GG["MissionAPI"].Modules.Areas.ResolveArea(area)
 	if area == nil then
 		return false
 	end
