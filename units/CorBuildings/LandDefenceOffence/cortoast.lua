@@ -130,8 +130,6 @@ return {
 				},
 				damage = {
 					default = 420,
-					hvyboats = 420,
-					lboats = 420,
 					subs = 90,
 					vtol = 90,
 				},
@@ -165,8 +163,6 @@ return {
 				},
 				damage = {
 					default = 420,
-					hvyboats = 420,
-					lboats = 420,
 					subs = 90,
 					vtol = 90,
 				},
