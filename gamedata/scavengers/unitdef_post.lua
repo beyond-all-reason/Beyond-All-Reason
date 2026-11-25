@@ -1,29 +1,5 @@
 -- -- UnitDef postprocessing specific to Scavenger units only
 
-local MINIBOSS_DIFFICULTY_STEP = 1.15
-local MINIBOSS_DIFFICULTY_LEVELS = { veryeasy = 0, easy = 1, normal = 2, hard = 3, veryhard = 4, epic = 5 }
-local MINIBOSS_MAX_PLAYERS = 8
-local MINIBOSS_NONPLAYER_TEAMS = 2 -- gaia and scavengers
-
-local function minibossScale(uDef)
-	if not (uDef.customparams.scavminiboss and uDef.health and BAR.Utilities.Gametype.IsScavengers()) then
-		return
-	end
-	local players = math.max(1, math.min(MINIBOSS_MAX_PLAYERS, #Spring.GetTeamList() - MINIBOSS_NONPLAYER_TEAMS))
-	local level = MINIBOSS_DIFFICULTY_LEVELS[Spring.GetModOptions().scav_difficulty]
-		or MINIBOSS_DIFFICULTY_LEVELS.normal
-	local mult = players * MINIBOSS_DIFFICULTY_STEP ^ level
-	local damageMult = mult * (tonumber(uDef.customparams.scavminiboss_damagemult) or 1)
-	uDef.health = math.floor(uDef.health * mult)
-	for _, weaponDef in pairs(uDef.weapondefs) do
-		if weaponDef.damage then
-			for armorType, damage in pairs(weaponDef.damage) do
-				weaponDef.damage[armorType] = damage * damageMult
-			end
-		end
-	end
-end
-
 local function scavUnitDef_Post(name, uDef)
 	if not string.find(uDef.category, "OBJECT", 1, true) then
 		uDef.category = uDef.category .. " SCAVENGER"
@@ -146,8 +122,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		uDef.idletime = 150
 	end
-
-	minibossScale(uDef)
 
 	-- Buff _scav units turnrate
 	if uDef.turnrate then

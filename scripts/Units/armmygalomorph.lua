@@ -38,6 +38,7 @@ local EXPORT_FPS = 25 -- Blender scene frame rate the turn speeds below were exp
 local STRIDE = 69 -- elmos per walk cycle
 local FRAME_MS = 1000 / Game.gameSpeed + 0.01 -- Sleep floors to whole frames
 local RATE_MIN, RATE_MAX = 0.3, 3
+local STOP_SPEED = 0.5
 local POSE_SPEED = math.rad(360)
 local YAW_SPEED = math.rad(240)
 local PITCH_SPEED = math.rad(160)
@@ -49,6 +50,7 @@ local FIRE_ANGLE_PITCH = math.rad(6)
 local SMALL_GUN_FIRE_ANGLE_PITCH = math.rad(15)
 local STALL_FRAMES = 6
 local RESTORE_FRAMES = 90
+local LONG_AGO = -1000
 local RECOIL = 2
 local TWO_PI = 2 * math.pi
 local HEADING_TO_RAD = math.pi / 32768
@@ -93,14 +95,16 @@ local weaponIsHeavy = { true, false, true, false }
 local LIGHTNING = 5
 local LEAD_GUN = { [1] = true, [3] = true }
 local YAW_GUN = 1
+local BARRELS_PER_ARM = 2
 local tubes = { flarel3, flarer3 }
 local tubeSide = 1
 local nextArm = leftArm
-local armShotFrame = -1000
-local lastArmFrame = -1000
+local armShotFrame = LONG_AGO
+local lastArmFrame = LONG_AGO
 local HAND_GAP = math.floor(WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].reload * Game.gameSpeed / 2)
+local RECOIL_RETURN_SPEED = RECOIL * Game.gameSpeed / math.max(1, HAND_GAP)
 
-local goalYaw, beliefYaw, lastAimFrame = 0.0, 0.0, -1000
+local goalYaw, beliefYaw, lastAimFrame = 0.0, 0.0, LONG_AGO
 local FOREARM_POSE = -0.349066
 -- measured in game in the firing stance: an elbow turn of 0.5 rad pitched the gun by ELBOW_GAIN * 0.5 and swung it sideways by ELBOW_LEAK * 0.5
 local ELBOW_MAX, ELBOW_GAIN, ELBOW_LEAK = math.rad(15), 0.787, 0.56
@@ -678,7 +682,7 @@ local function StopWalking()
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 
-	local speedMult = 15 / (EXPORT_FPS * ANIM_FRAMES)
+	local speedMult = STOP_SPEED * Game.gameSpeed / (EXPORT_FPS * ANIM_FRAMES)
 
 	Move(base, x_axis, 0.000000, 24.678750 * speedMult)
 	Move(base, y_axis, 0.000000, 66.973083 * speedMult)
@@ -738,12 +742,12 @@ end
 
 local function PoseArms()
 	Turn(torso, y_axis, 0, POSE_SPEED)
-	Turn(lforearm, x_axis, -0.349066, POSE_SPEED)
-	Turn(rforearm, x_axis, -0.349066, POSE_SPEED)
+	Turn(lforearm, x_axis, FOREARM_POSE, POSE_SPEED)
+	Turn(rforearm, x_axis, FOREARM_POSE, POSE_SPEED)
 	Turn(lshoulder, z_axis, 0.785398, POSE_SPEED)
 	Turn(rshoulder, z_axis, -0.785398, POSE_SPEED)
-	Turn(lshoulder, y_axis, 0.174533, POSE_SPEED)
-	Turn(rshoulder, y_axis, -0.174533, POSE_SPEED)
+	Turn(lshoulder, y_axis, POSE_YAW, POSE_SPEED)
+	Turn(rshoulder, y_axis, -POSE_YAW, POSE_SPEED)
 end
 
 local function RestArms()
@@ -877,7 +881,7 @@ function script.FireWeapon(num)
 	local frame = GetGameFrame()
 	arm.shots = arm.shots + 1
 	armShotFrame = frame
-	if arm.shots >= 2 then
+	if arm.shots >= BARRELS_PER_ARM then
 		arm.shots = 0
 		nextArm = (arm == leftArm) and rightArm or leftArm
 		lastArmFrame = frame
@@ -887,7 +891,7 @@ function script.FireWeapon(num)
 	end
 	Move(weaponBarrel[num], z_axis, -RECOIL, RECOIL * Game.gameSpeed)
 	Sleep(FRAME_MS)
-	Move(weaponBarrel[num], z_axis, 0, RECOIL * 4)
+	Move(weaponBarrel[num], z_axis, 0, RECOIL_RETURN_SPEED)
 end
 
 function script.Killed()

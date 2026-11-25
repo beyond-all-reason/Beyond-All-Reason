@@ -309,6 +309,7 @@ local LandUnitsList = {
 		[6] = {
 			--Armada
 			armpwt4_scav = 3,
+			armmygalomorph_scav = 3,
 			armmar_scav = 4,
 			--Cortex
 			corakt4_scav = 3,
@@ -1961,7 +1962,6 @@ local squadSpawnOptionsTable = {
 		legcomlvl8_scav = { minAnger = 70, maxAnger = 1000, maxAlive = 1 },
 		legcomlvl9_scav = { minAnger = 80, maxAnger = 1000, maxAlive = 1 },
 		legcomlvl10_scav = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		armmygalomorph_scav = { minAnger = 30, maxAnger = 65, maxAlive = 1 },
 	},
 
 	decoyCommanders = {
