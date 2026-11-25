@@ -63,6 +63,14 @@ local function getTranslationKeysByName(names, translationKey)
 	return translationKeys
 end
 
+local function getEnumTranslationKeys(enums, translationKey)
+	local translationKeys = {}
+	for enumType, values in pairs(enums) do
+		translationKeys[enumType] = getTranslationKeysByName(values, translationKey .. "." .. enumType)
+	end
+	return translationKeys
+end
+
 local function collateRows(rows, translationKey)
 	local collated = {}
 	for index, row in ipairs(rows) do
@@ -112,7 +120,12 @@ local function collateSchemas()
 		unitFilterFields = collateRows(unitFilterSchema.UnitFilterFields, TRANSLATION_ROOT .. ".unitFilterFields"),
 		unitFilterAtMostOneOf = table.copy(unitFilterSchema.AtMostOneOf),
 		parameterTypes = table.copy(parameterTypes.Types),
+		parameterTypeTranslationKeys = getTranslationKeysByName(
+			parameterTypes.Types,
+			TRANSLATION_ROOT .. ".parameterTypes"
+		),
 		enums = table.copy(parameterTypes.Enums),
+		enumTranslationKeys = getEnumTranslationKeys(parameterTypes.Enums, TRANSLATION_ROOT .. ".enums"),
 	}
 end
 
