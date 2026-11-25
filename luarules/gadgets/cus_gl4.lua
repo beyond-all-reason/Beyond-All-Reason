@@ -3279,6 +3279,9 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	if not preloadedResources and Spring.GetGameFrame() > 0 then
 		tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:FallbackPreload")
 		PreloadRemainingResources()
+		-- the warm-up leaves depth test and depth writes off, and this pass draws the units right after it
+		gl.DepthTest(true)
+		gl.DepthMask(true)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:ResolveDrawPass")
