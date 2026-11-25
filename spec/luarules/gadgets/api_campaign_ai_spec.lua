@@ -207,8 +207,8 @@ describe("api_campaign_ai", function()
 		end)
 
 		it("sets the health a unit def retreats at", function()
-			campaignAI.SetUnitDefRetreat(279, 0.4, TEAM_ID)
-			assert.same({ { teamID = TEAM_ID, message = "1|11:279=0.4" } }, world.sent)
+			campaignAI.SetUnitDefRetreat(279, 0.5, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|11:279=0.5" } }, world.sent)
 		end)
 
 		it("stops the AI's production at factories", function()
@@ -264,8 +264,8 @@ describe("api_campaign_ai", function()
 		end)
 
 		it("sets a gathering squad's retreat threshold in its definition", function()
-			campaignAI.SetSquadRetreat(5, 0.3, false, TEAM_ID)
-			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:5=0.3" } }, world.sent)
+			campaignAI.SetSquadRetreat(5, 0.25, false, TEAM_ID)
+			assert.same({ { teamID = TEAM_ID, message = "1|201:5|204:5=0.25" } }, world.sent)
 		end)
 
 		it("sets an assembled squad's retreat threshold in its definition and for its units", function()

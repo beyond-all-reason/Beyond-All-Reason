@@ -72,7 +72,7 @@ describe("mission_api.marching", function()
 			-- An order's tag is its table, as each one the engine queues gets its own.
 			GetUnitCurrentCommand = function(unitID, index)
 				local order = units[unitID].queue[index]
-				return order[1], 0, tostring(order), order[2][1], order[2][2], order[2][3]
+				return order[1], 0, order, order[2][1], order[2][2], order[2][3]
 			end,
 		}
 	end)
