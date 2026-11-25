@@ -48,6 +48,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
 	GG["MissionAPI"].areaNames = {}
+	GG["MissionAPI"].areaReshapes = {}
 	GG["MissionAPI"].effectNames = {}
 	GG["MissionAPI"].markerNames = {}
 	GG["MissionAPI"].lineNames = {}
@@ -232,6 +233,7 @@ function gadget:GameFrame(frameNumber)
 
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
+	GG["MissionAPI"].Modules.Areas.UpdateReshapes(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
 	if frameNumber % MARCH_UPDATE_FRAMES == 0 then

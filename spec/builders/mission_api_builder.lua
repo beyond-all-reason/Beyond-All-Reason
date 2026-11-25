@@ -27,6 +27,7 @@ end, math.huge)
 ---@field markerNames table
 ---@field lineNames table<string, table[]>
 ---@field areaNames table<string, table>
+---@field areaReshapes table<string, table>
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
 ---@field Countdowns table<string, MissionCountdown>
@@ -488,6 +489,7 @@ function MB:Build(installed)
 		markerNames = self.markerNames,
 		lineNames = self.lineNames,
 		areaNames = {},
+		areaReshapes = {},
 		soundFiles = self.soundFiles,
 		soundQueue = self.soundQueue,
 		Countdowns = self.countdowns,

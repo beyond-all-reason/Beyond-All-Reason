@@ -43,6 +43,7 @@ env.Spring.GetUnitsInCylinder = function(...)
 	return unitsInCylinder
 end
 GG["MissionAPI"].areaNames = {}
+GG["MissionAPI"].areaReshapes = {}
 GG["MissionAPI"].Modules.Areas = MissionSpecEnv.include(env, "luarules/mission_api/areas.lua")
 GG["MissionAPI"].Modules.AreaTracking = MissionSpecEnv.include(env, "luarules/mission_api/area_tracking.lua")
 

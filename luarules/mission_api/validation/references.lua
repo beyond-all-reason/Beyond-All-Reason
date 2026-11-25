@@ -511,6 +511,54 @@ local function validateCountdownIDReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
+-- Area name references
+--------------------------------------------------------------------------------
+
+--- AddArea adds an area under its areaName. Every other area name parameter refers to one,
+--- and so does an area parameter given a name in place of a shape.
+local function validateAreaNameReferences(context, report)
+	local addedNames = {}
+	local referencedNames = {}
+
+	local actionAreaNameParameters = getParameterNamesWithType(context.ActionParameters, context.Types.AreaName)
+	actionAreaNameParameters[context.ActionTypes.AddArea] = nil
+	local actionAreaParameters = getParameterNamesWithType(context.ActionParameters, context.Types.Area)
+	local triggerAreaNameParameters = getParameterNamesWithType(context.ConditionParameters, context.Types.AreaName)
+	local triggerAreaParameters = getParameterNamesWithType(context.ConditionParameters, context.Types.Area)
+
+	local function collectTriggerReferences(trigger, source)
+		local parameters = parametersOf(trigger)
+		if parameters then
+			collectParameterNames(context, triggerAreaNameParameters[trigger.type], parameters, source, referencedNames)
+			collectParameterNames(context, triggerAreaParameters[trigger.type], parameters, source, referencedNames)
+		end
+	end
+
+	for actionID, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters then
+			local source = "action " .. actionID
+			if action.type == context.ActionTypes.AddArea then
+				collectParameterNames(context, { "areaName" }, parameters, source, addedNames)
+			end
+			collectParameterNames(context, actionAreaNameParameters[action.type], parameters, source, referencedNames)
+			collectParameterNames(context, actionAreaParameters[action.type], parameters, source, referencedNames)
+		end
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		collectTriggerReferences(trigger, "trigger " .. triggerID)
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		if type(objective) == "table" then
+			collectTriggerReferences(objective, "objective " .. objectiveID .. " (condition)")
+		end
+	end
+
+	reportUncreatedNames(report, "Area name", addedNames, referencedNames)
+end
+
+--------------------------------------------------------------------------------
 -- Cutscene ID references
 --------------------------------------------------------------------------------
 
@@ -667,6 +715,7 @@ local function validate(context, report)
 	})
 
 	validateCountdownIDReferences(context, report)
+	validateAreaNameReferences(context, report)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
 end
