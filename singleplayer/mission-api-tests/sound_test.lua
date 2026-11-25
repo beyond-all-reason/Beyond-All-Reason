@@ -40,7 +40,6 @@ local triggers = {
 		},
 		parameters = {
 			seconds = 3.5,
-			interval = 7,
 		},
 		actions = { 'stopVoiceQueued1' },
 	},
