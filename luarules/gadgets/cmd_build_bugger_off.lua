@@ -84,6 +84,8 @@ local mostRecentCommandFrame = {}
 local slowUpdateBuilders = {}
 local watchedBuilders = {}
 local builderRadiusOffsets = {}
+local builderTargetX = {}
+local builderTargetZ = {}
 local needsUpdate = false
 local areaCommandCooldown = {}
 
@@ -146,6 +148,8 @@ local function removeBuilder(builderID)
 	slowUpdateBuilders[builderID] = nil
 	watchedBuilders[builderID] = nil
 	builderRadiusOffsets[builderID] = nil
+	builderTargetX[builderID] = nil
+	builderTargetZ[builderID] = nil
 end
 
 local function slowWatchBuilder(builderID)
@@ -288,6 +292,11 @@ function gadget:GameFrame(frame)
 				deferSlowCount = deferSlowCount + 1
 				deferSlow[deferSlowCount] = builderID
 			elseif targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius then
+				if targetX ~= builderTargetX[builderID] or targetZ ~= builderTargetZ[builderID] then
+					builderTargetX[builderID], builderTargetZ[builderID] = targetX, targetZ
+					builderRadiusOffsets[builderID] = 0
+				end
+
 				local buildDefRadius = buildUnitDefData.radius
 				local searchRadius = SEARCH_RADIUS_OFFSET + buildDefRadius
 
