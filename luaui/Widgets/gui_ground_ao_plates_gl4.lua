@@ -123,7 +123,7 @@ function widget:Initialize()
 	for id, plate in pairs(plateAtlas.plates) do
 		local p, q, s, t = unpack(plate.uv)
 		if plate.atlasIndex == 1 then
-			s, t = 1 - s, 1 - t -- runtime atlas images use the opposite Y orientation
+			s, t = t, s -- runtime atlas images use the opposite Y orientation
 		end
 		unitDefIDtoInstanceData[id] = {
 			plate.sizeZ,
