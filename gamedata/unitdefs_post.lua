@@ -122,67 +122,53 @@ local function getDimensions(scale)
 	return dimensions, largest
 end
 
--- Recoil normalizes spheres, cylinders and very thin ellipsoids when loading a volume.
--- Work from those effective dimensions so changing Y does not indirectly change X or Z.
----@param scales string
----@param volumeType string?
-local function getEffectiveVolumeDimensions(scales, volumeType)
-	local dim = getDimensions(scales) or {}
-	local x = math.max(1, dim[1] or 0)
-	local y = math.max(1, dim[2] or 0)
-	local z = math.max(1, dim[3] or 0)
+-- The two axes of a cylinder's round cross-section, indexed by its length axis.
+local cylinderCrossAxes = { x = { 2, 3 }, y = { 1, 3 }, z = { 1, 2 } }
+
+local function normalizeVolume(dim, volumeType)
+	local d = { math.max(1, dim[1] or 0), math.max(1, dim[2] or 0), math.max(1, dim[3] or 0) }
+	local largest = math.max(d[1], d[2], d[3])
+	if largest == 1 then
+		return d, "default" -- Recoil uses the model volume for (1,1,1).
+	end
 	local shape = string.lower(volumeType or "sphere")
 	local kind = shape:sub(1, 1)
-	local axis = kind == "c" and shape:sub(-1) or ""
 	if kind == "c" then
-		if axis == "x" then
-			y = math.max(y, z)
-			z = y
-		elseif axis == "y" then
-			x = math.max(x, z)
-			z = x
-		else
-			axis = "z"
-			x = math.max(x, y)
-			y = x
-		end
-	elseif kind == "e" then
-		if x == y and y == z then
-			kind = "s"
-		else
-			local minScale = math.max(x, y, z) * 0.02
-			x, y, z = math.max(x, minScale), math.max(y, minScale), math.max(z, minScale)
-		end
+		local axes = cylinderCrossAxes[shape:sub(-1)] or cylinderCrossAxes.z
+		local diameter = math.max(d[axes[1]], d[axes[2]])
+		d[axes[1]], d[axes[2]] = diameter, diameter
 	elseif kind ~= "b" then
-		kind = "s"
-		x = math.max(x, y, z)
-		y, z = x, x
+		if kind ~= "e" or (d[1] == d[2] and d[2] == d[3]) then
+			return { largest, largest, largest }, "s"
+		end
+		-- Recoil expands axes below 2% of the largest ellipsoid axis.
+		for i = 1, 3 do
+			d[i] = math.max(d[i], largest * 0.02)
+		end
 	end
-	return x, y, z, kind, axis
+	return d, kind
 end
 
 local function matchSelectionVolumeHeight(ud)
-	if not ud.collisionvolumescales or not ud.selectionvolumescales then
-		-- Stock units without explicit volumes already share the engine's model-based default.
+	local col = getDimensions(ud.collisionvolumescales)
+	local sel = getDimensions(ud.selectionvolumescales)
+	if not col or not sel then
 		return
 	end
 
-	local cx, y, cz = getEffectiveVolumeDimensions(ud.collisionvolumescales, ud.collisionvolumetype)
-	local x, oldY, z, kind, axis =
-		getEffectiveVolumeDimensions(ud.selectionvolumescales, ud.selectionvolumetype or ud.collisionvolumetype)
-	if oldY == y or (cx == 1 and y == 1 and cz == 1) or (x == 1 and oldY == 1 and z == 1) then
+	local selType = ud.selectionvolumetype or ud.collisionvolumetype
+	local old, kind = normalizeVolume(sel, selType)
+	local collision, collisionKind = normalizeVolume(col, ud.collisionvolumetype)
+	local height = collision[2]
+	if kind == "s" or kind == "default" or collisionKind == "default" or old[2] == height then
 		return
 	end
 
-	-- Keep spheres and horizontal cylinders unchanged: Recoil links their Y scale to X or Z.
-	if kind == "s" or axis == "x" or axis == "z" then
-		return
+	-- Keep the new height only if Recoil leaves X/Z and the shape alone.
+	local candidate, newKind = normalizeVolume({ old[1], height, old[3] }, selType)
+	if newKind == kind and candidate[1] == old[1] and candidate[2] == height and candidate[3] == old[3] then
+		ud.selectionvolumescales = table.concat(candidate, " ")
 	end
-	-- Recoil turns equal-axis ellipsoids into spheres and expands excessively thin ones.
-	if kind == "e" and ((x == y and y == z) or math.min(x, y, z) < math.max(x, y, z) * 0.02) then
-		return
-	end
-	ud.selectionvolumescales = x .. " " .. y .. " " .. z
 end
 
 local function enlargeSelectionVolumes()
