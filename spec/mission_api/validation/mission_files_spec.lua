@@ -3,6 +3,7 @@
 ---
 
 local V = require("mission_api.validation.validation_spec_helper")
+local lfs = require("lfs")
 
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
@@ -96,15 +97,13 @@ V.env.VFS.UnpackU32 = V.env.VFS.UnpackU32
 	end
 
 local function getMissionFileNames()
-	local handle = io.popen("ls " .. missionDirectory)
 	local fileNames = {}
-	for fileName in handle:lines() do
-		---@cast fileName string
+	for fileName in lfs.dir(missionDirectory) do
 		if fileName:match("%.lua$") then
 			fileNames[#fileNames + 1] = fileName
 		end
 	end
-	handle:close()
+	table.sort(fileNames)
 	return fileNames
 end
 

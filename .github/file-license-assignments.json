@@ -98286,6 +98286,14 @@
     "source": "manual-audit"
   },
   {
+    "file": "unittextures/decals/armwar_10.5_10.5_aoplane.png",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "contributor": "Beherith",
+    "pr": 10230,
+    "date": "2026-11-25",
+    "submitted_by": "efrec"
+  },
+  {
     "file": "unittextures/decals/armwar_8_8_aoplane.png",
     "license": "LicenseRef-BAR-CLA-1.0",
     "contributor": "Beherith",

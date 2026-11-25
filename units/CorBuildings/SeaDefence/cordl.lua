@@ -34,6 +34,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
+			restrictions_inclusion = "_nosea_",
 			subfolder = "CorBuildings/SeaDefence",
 			unitgroup = "sub",
 			usebuildinggrounddecal = true,

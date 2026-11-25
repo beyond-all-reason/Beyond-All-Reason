@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 4 * * *' # nightly, includes specs that pull requests skip
   workflow_dispatch:
+    inputs:
+      engine:
+        description: 'RecoilEngine commit to test on, in place of .github/recoil-lua/ENGINE'
 
 jobs:
   pull-request-for-push:
@@ -30,6 +33,9 @@ jobs:
       issues: write
     env:
       LUX_VERSION: '0.54.0'
+      # The commits that add recoil-lua, until an engine release has them.
+      RECOIL_LUA_REPOSITORY: https://github.com/efrec/spring.git
+      RECOIL_LUA_COMMIT: bda4c20461cbbe6e706851f7b9e0c73e5f7e3463 # lua/coilua-standalone
 
     steps:
     - uses: actions/checkout@v5
@@ -40,7 +46,7 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         MISSION_SPEC_INPUTS: >-
-          ^(luarules/mission_api/|spec/mission_api/|luarules/gadgets/api_mission|luaui/Widgets/api_mission|singleplayer/|common/|gamedata/|spec/builders/|spec/support/|spec/spec_helper\.lua$|\.github/workflows/test_unit\.yml$|\.busted$|lux\.)
+          ^(luarules/mission_api/|spec/mission_api/|luarules/gadgets/api_mission|luaui/Widgets/api_mission|singleplayer/|common/|gamedata/|spec/builders/|spec/support/|spec/spec_helper\.lua$|\.github/recoil-lua/|\.github/workflows/test_unit\.yml$|\.busted$|lux\.)
       run: |
         changed=$(git diff --name-only HEAD^1 HEAD)
         if ! grep -qE "$MISSION_SPEC_INPUTS" <<< "$changed"; then
@@ -48,10 +54,103 @@ jobs:
           echo "::notice title=Mission specs skipped::No changed file is a mission spec input. Pushes to master and the nightly run cover them."
         fi
 
-    - name: Install Lua 5.1
+    - name: Resolve recoil-lua
+      id: recoil-lua
+      env:
+        ENGINE_INPUT: ${{ inputs.engine }}
+        RECIPE: ${{ hashFiles('.github/workflows/test_unit.yml') }}
+      run: |
+        engine=${ENGINE_INPUT:-$(cat .github/recoil-lua/ENGINE)}
+        if ! [[ "$engine" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::The engine is not a full commit hash: $engine"
+          exit 1
+        fi
+        echo "Engine $engine"
+        echo "engine=$engine" >> "$GITHUB_OUTPUT"
+        echo "key=$engine-$RECIPE" >> "$GITHUB_OUTPUT"
+
+    - name: Compare with the player engine
+      if: github.event_name == 'schedule'
+      continue-on-error: true
+      env:
+        ENGINE: ${{ steps.recoil-lua.outputs.engine }}
+      run: |
+        config=$(curl -fsSL --retry 5 --retry-delay 10 https://launcher-config.beyondallreason.dev/config.json)
+        destination=$(jq -r '
+          .setups[]
+          | select(.package.id == "manual-linux")
+          | .downloads.resources[]
+          | select(.destination | contains("engine"))
+          | .destination
+        ' <<< "$config")
+        tag=${destination#engine/recoil_}
+        player=$(git ls-remote https://github.com/beyond-all-reason/RecoilEngine.git "refs/tags/$tag^{}" | cut -f1)
+        if [ "$player" != "$ENGINE" ]; then
+          echo "::warning title=Engine out of date::Players have engine $tag ($player), and .github/recoil-lua/ENGINE is $ENGINE."
+        fi
+
+    - name: Cache recoil-lua
+      id: recoil-lua-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/recoil-lua
+        key: recoil-lua-${{ steps.recoil-lua.outputs.key }}-${{ runner.os }}-${{ runner.arch }}
+
+    - name: Build recoil-lua
+      if: steps.recoil-lua-cache.outputs.cache-hit != 'true'
+      env:
+        ENGINE: ${{ steps.recoil-lua.outputs.engine }}
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends lua5.1 liblua5.1-0-dev
+        sudo apt-get install -y --no-install-recommends cmake ninja-build \
+          libsdl2-dev libdevil-dev libcurl4-openssl-dev libopenal-dev libogg-dev libvorbis-dev \
+          libunwind-dev libfreetype-dev libglew-dev libminizip-dev libfontconfig-dev
+        src="$RUNNER_TEMP/recoil"
+        git clone --quiet --filter=tree:0 --no-checkout https://github.com/beyond-all-reason/RecoilEngine.git "$src"
+        git -C "$src" fetch --quiet --filter=tree:0 origin "$ENGINE"
+        git -C "$src" checkout --quiet "$ENGINE"
+        git -C "$src" submodule update --init --recursive --quiet
+        if [ ! -f "$src/rts/lib/lua/src/lua.cpp" ]; then
+          git -C "$src" fetch --quiet --filter=tree:0 "$RECOIL_LUA_REPOSITORY" "$RECOIL_LUA_COMMIT"
+          base=$(git -C "$src" merge-base origin/master "$RECOIL_LUA_COMMIT")
+          git -C "$src" -c user.name=ci -c user.email=ci@localhost cherry-pick "$base..$RECOIL_LUA_COMMIT"
+        fi
+        cmake -S "$src" -B "$RUNNER_TEMP/recoil-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DAI_TYPES=NONE
+        cmake --build "$RUNNER_TEMP/recoil-build" --target recoil-lua
+
+        # A Lua installation for Lux to find through pkg-config. It has no library.
+        prefix=~/.cache/recoil-lua
+        mkdir -p "$prefix/bin" "$prefix/include" "$prefix/lib/pkgconfig"
+        install -m 755 "$RUNNER_TEMP/recoil-build/rts/lib/lua/recoil-lua" "$prefix/bin/lua5.1"
+        cp "$src"/rts/lib/lua/include/{lua,luaconf,lauxlib,lualib}.h "$prefix/include/"
+        # lua.h includes the engine's LuaUser.h, which is C++, and the rocks are C.
+        echo '#include <stdbool.h>' > "$prefix/include/LuaUser.h"
+        cat > "$prefix/lib/pkgconfig/lua5.1.pc" <<EOF
+        prefix=$prefix
+        includedir=\${prefix}/include
+        libdir=\${prefix}/lib
+
+        Name: Lua
+        Description: Recoil's float32 Lua 5.1
+        Version: 5.1.4
+        Cflags: -I\${includedir}
+        Libs: -L\${libdir}
+        EOF
+
+    - name: Install recoil-lua
+      run: |
+        echo ~/.cache/recoil-lua/bin >> "$GITHUB_PATH"
+        echo "PKG_CONFIG_PATH=$HOME/.cache/recoil-lua/lib/pkgconfig" >> "$GITHUB_ENV"
+        # A run that fell back to 64-bit Lua would test the wrong thing.
+        ~/.cache/recoil-lua/bin/lua5.1 -e 'assert(2^24 + 1 == 2^24, "recoil-lua has 64-bit numbers")'
+        echo '_Static_assert(sizeof(lua_Number) == sizeof(float), "the Lua headers have 64-bit numbers");' |
+          cc -fsyntax-only $(PKG_CONFIG_PATH=~/.cache/recoil-lua/lib/pkgconfig pkg-config --cflags lua5.1) -include lua.h -x c -
+
+    - name: Set up busted for recoil-lua
+      run: |
+        git -c core.quotePath=false ls-files > "$RUNNER_TEMP/spec_files.txt"
+        echo "SPEC_FILE_LIST=$RUNNER_TEMP/spec_files.txt" >> "$GITHUB_ENV"
+        echo "LUA_INIT=@$GITHUB_WORKSPACE/.github/recoil-lua/busted_modules.lua" >> "$GITHUB_ENV"
 
     - name: Cache the lux binary
       uses: actions/cache@v4
@@ -78,9 +177,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .lux
-        key: lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-${{ hashFiles('lux.lock') }}
+        key: lux-${{ env.LUX_VERSION }}-recoil-lua-${{ steps.recoil-lua.outputs.key }}-${{ runner.os }}-${{ hashFiles('lux.lock') }}
         restore-keys: |
-          lux-${{ env.LUX_VERSION }}-5.1-${{ runner.os }}-
+          lux-${{ env.LUX_VERSION }}-recoil-lua-${{ steps.recoil-lua.outputs.key }}-${{ runner.os }}-
 
     - name: Run busted
       run: lx --lua-version 5.1 test

@@ -2,7 +2,7 @@
 
 Read this before touching `luarules/mission_api/`, `luarules/gadgets/api_mission*.lua`,
 `singleplayer/`, or `spec/mission_api/`. It covers only what is specific to this subsystem; the
-general rules live in `.github/agents.md`.
+general rules live in the root `AGENTS.md`.
 
 ## The system
 
@@ -13,6 +13,8 @@ actions, and the runtime is generic and knows no individual mission.
   text through the battle log (see Runtime surfaces), because synced code can do neither.
 - Missions live in `singleplayer/` (tests in `singleplayer/mission-api-tests/`) and are included by
   path from `entryPoint` in the `missionoptions` modoption, which `game_setup.lua` reads.
+- A mission's resource overflow is lost rather than shared with allies; `alliedResourceOverflow = true`
+  in `missionoptions` gives it to allies as in skirmish (`gamedata/modrules.lua`).
 
 ## Load order
 
@@ -61,8 +63,16 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   key. Synced code cannot translate, so entries are published as game rules params and
   `luaui/Widgets/api_mission_battle_log.lua` translates them into `WG.MissionAPI.BattleLog`; the
   `Spring.Echo` in `AddMessage` is a placeholder until a widget displays the log.
+- The one hint on screen (`ShowHint` / `HideHint`) is the `missionHint` game rules param, JSON or nil;
+  `luaui/RmlWidgets/gui_mission_hint` translates and shows it, and hides a timed one after its `seconds` of real time, not counting a pause.
 - `GG.MapLighting` (`luarules/gadgets/api_map_lighting.lua`) runs the `actions/environment/` actions:
   lighting, time of day, and skybox, blended on game time and lost on a `/luarules reload`.
+- `GG.CampaignAI` (`luarules/gadgets/api_campaign_ai.lua`) runs the `actions/campaign_ai/` actions by
+  sending messages to a team's campaign AI. The engine creates the AI after the loadout spawns, so
+  a message from before the game starts reaches it when the game starts. The AI's signals come
+  back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay. Synced code
+  cannot read which AI runs a team, so the gadget's unsynced half checks it on the AI's host
+  before it sends.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
   `api_mission_camera.lua` gadget passes them to `luaui/Widgets/api_mission_camera.lua`, which

@@ -111,7 +111,7 @@ describe("mission_api.parameter_processing", function()
 		it("records the length of the sound file", function()
 			processAction({
 				type = actionTypes.PlaySound,
-				parameters = { soundfile = "sounds/beep.wav" },
+				parameters = { soundFile = "sounds/beep.wav" },
 			})
 
 			assert.are.equal(1.5, (GG["MissionAPI"] --[[@as table<string, any>]]).soundFiles["sounds/beep.wav"])
@@ -190,7 +190,7 @@ describe("mission_api.parameter_processing", function()
 	it("leaves parameters the mission did not set alone", function()
 		local parameters = processAction({
 			type = actionTypes.PlaySound,
-			parameters = { soundfile = "sounds/beep.wav" },
+			parameters = { soundFile = "sounds/beep.wav" },
 		})
 
 		assert.is_nil(parameters.enqueue)
