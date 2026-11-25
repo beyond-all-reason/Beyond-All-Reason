@@ -135,7 +135,7 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 	if useGeometryShaderForThisShader then
 		local vao = gl.GetVAO()
 		vao:AttachVertexBuffer(vboTable.instanceVBO)
-		vboTable.VAO = vao
+		vboTable.VAO = InstanceVBOTable.fillVAOSlots(vao)
 	else
 		local numSlots = math.max(shaderConfig.MAXVERTICES or 64, 8)
 		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)

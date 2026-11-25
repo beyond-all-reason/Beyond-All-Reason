@@ -5,7 +5,10 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.category = uDef.category .. " SCAVENGER"
 	end
 	uDef.customparams.isscavenger = true
-	uDef.capturable = false
+	local unitNamePrefix = string.sub(name, 1, 3)
+	if unitNamePrefix ~= "cor" and unitNamePrefix ~= "arm" and unitNamePrefix ~= "leg" then
+		uDef.capturable = false
+	end
 	uDef.decloakonfire = true
 	uDef.hidedamage = true
 	if uDef.decoyfor and not string.find(uDef.decoyfor, "_scav") then
@@ -107,7 +110,10 @@ local function scavUnitDef_Post(name, uDef)
 	-- Set autoheal of scav units
 	if uDef.health then
 		if not string.find(name, "scavbeacon") then
-			uDef.health = uDef.health * 1.25
+			-- anti-nukes keep base health for the full spy stun
+			if uDef.customparams.unitgroup ~= "antinuke" then
+				uDef.health = uDef.health * 1.25
+			end
 			if uDef.metalcost then
 				uDef.metalcost = uDef.metalcost * 1.1
 			end
@@ -518,6 +524,8 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 4] = "cordoomt3_scav" -- Epic Bulwark
 		uDef.buildoptions[numBuildoptions + 5] = "corafust3_scav" -- Epic Fusion Reactor
 		uDef.buildoptions[numBuildoptions + 6] = "cormmkrt3_scav" -- Epic Energy Converter
+		uDef.buildoptions[numBuildoptions + 7] = "corhltfus_scav" -- Overlord - Weaponized Fusion Reactor
+
 	end
 
 	-- Cortex T2 Sea Constructors

@@ -1,13 +1,10 @@
-
-
 #include "../recoil_common_includes.h"
 
 piece  head, torso, pelvis, missleflare,
        rleg, rthigh, lthigh, lleg, ltoe,  rtoe, lfoot, rfoot,
         luparm, ruparm, rloarm, lloarm, rshoulder, lshoulder, lbarrel, rbarrel, rflare, lflare, turret, laserflare, antenna, aimx1, aimy1;
 
-static-var  gun_1, gun_3,  isAiming, StompXZ, StompHeading,
-            restore_delay, myHeading, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
+static-var  gun_1, restore_delay, wpn2_lasthead, Stunned;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -485,7 +482,6 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 	}
 }
 
-
 ResetHands() {
 	turn lloarm to x-axis <31.099996> speed <341.110985> / animSpeed;
 	turn lshoulder to x-axis <-0.185313> speed <136.695847> / animSpeed;
@@ -549,7 +545,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
@@ -559,7 +554,7 @@ UnitSpeed(){
 StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-  set-signal-mask SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
@@ -569,8 +564,6 @@ StopMoving(){
 	isMoving=FALSE;
 	call-script StopWalking();
 }
-
-
 
 #define BASEPIECE pelvis
 #define HITSPEED <35.0>
@@ -588,14 +581,11 @@ Create()
 	hide missleflare;
 	hide laserflare;
 	hide aimy1;
-	myHeading=0;
 	moveHands = TRUE;
 	isMoving = FALSE;
-	isAiming = FALSE;
 	call-script CATT1_Init();
 	animSpeed = 5;
 	gun_1 = 0;
-	gun_3 = 0;
 	restore_delay = 2000;
 }
 
@@ -604,29 +594,25 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS;
 }
 
-
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-    
+	if (Stunned) {
+		return (1);
+	}
+
 	call-script ResetHands();
 	moveHands = TRUE;
 	start-script CATT1_Restore();
 
 	turn head to y-axis <0.0> speed <50.010989>;
 
-	wpn1_lasthead = 0xbadface;
 	wpn2_lasthead = 0xbadface;
-	isAiming = FALSE;
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
@@ -653,7 +639,6 @@ AimHands() {
 	turn ruparm to z-axis <0> speed <473.333441> / animSpeed;
 }
 
-
 #define CATT1_PIECE_Y aimy1
 #define CATT1_PIECE_X aimx1
 
@@ -671,8 +656,6 @@ AimWeapon1(heading, pitch) //hand cannons
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	if (moveHands) call-script AimHands();
-	isAiming = TRUE;
-	myHeading = heading;
 	moveHands = FALSE;
 
 	call-script CATT1_Aim(heading,pitch);
@@ -683,7 +666,6 @@ AimWeapon1(heading, pitch) //hand cannons
 AimWeapon2(heading, pitch) //HEAD LASER
 {
 	signal SIGNAL_AIM1;
-	isAiming = TRUE;
 	turn turret to y-axis (heading - CATT1position) speed <300.071429>;
 
 	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <27>))
@@ -698,7 +680,6 @@ AimWeapon2(heading, pitch) //HEAD LASER
 
 AimWeapon3(heading, pitch) //MISSILE WEAPON
 {
-	isAiming = TRUE;
 	return (1);
 }
 
@@ -750,8 +731,6 @@ QueryWeapon3(pieceIndex)
 {
 	pieceIndex = missleflare;
 }
-
-
 
 Killed(severity, corpsetype)
 {
@@ -817,20 +796,20 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ltoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rtoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode ltoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode rtoe type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode rflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

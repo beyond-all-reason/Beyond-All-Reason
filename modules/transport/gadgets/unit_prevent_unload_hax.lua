@@ -20,9 +20,14 @@ local frameMargin = 10
 
 -- paradropped units (customparams.paratrooper) keep the transport's momentum on unload
 local isParatrooper = {}
+-- structures cannot slide, and putting them back would undo the anti-stacking push
+local isImmobile = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.paratrooper then
 		isParatrooper[udid] = true
+	end
+	if not ud.canMove then
+		isImmobile[udid] = true
 	end
 end
 
@@ -50,7 +55,13 @@ local SpSetUnitDirection = Spring.SetUnitDirection
 local unloadedUnits = {}
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-	if unitID == nil or unitDefID == nil or transportID == nil or isCarrierDrone[unitDefID] then
+	if
+		unitID == nil
+		or unitDefID == nil
+		or transportID == nil
+		or isCarrierDrone[unitDefID]
+		or isImmobile[unitDefID]
+	then
 		return
 	end
 	if isParatrooper[unitDefID] then

@@ -1,22 +1,22 @@
--- tf_features.lua: extracted tool module for gui_terraform_brush
+-- tf_features.lua: FEATURES tool panel module for gui_terraform_brush.
 local M = {}
 
 function M.attach(doc, ctx)
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	-- Cache section elements (used by M.sync)
-	widgetState.tfControlsEl = doc:GetElementById("tf-terraform-controls")
-	widgetState.fpControlsEl = doc:GetElementById("tf-feature-controls")
-	widgetState.fpSubmodesEl = doc:GetElementById("tf-feature-submodes")
-	widgetState.shapeRowEl = doc:GetElementById("tf-shape-row")
-
-	-- Slider drag tracking (legitimate imperative state).
-	-- Slider change events wired declaratively via onchange= in RML.
+	-- Change events are wired in the RML (onchange=); only drag tracking is set up here.
 	for _, sid in ipairs({
 		"size",
 		"rotation",
 		"rot-random",
+		"tilt-random",
+		"height-offset",
+		"scale-min",
+		"scale-max",
+		"clumps",
+		"clump-size",
+		"clump-loose",
+		"clump-variety",
 		"count",
 		"cadence",
 		"slope-max",
@@ -37,7 +37,7 @@ function M.attach(doc, ctx)
 		trackSliderDrag(sliderFpHistory, "fp-history")
 	end
 
-	-- All data-event-click/change handlers (onFpXxx) are defined in initialModel in gui_terraform_brush.lua.
+	-- The onFpXxx event handlers live in initialModel in gui_terraform_brush.lua.
 end
 
 function M.sync(doc, ctx, fpState, setSummary)
@@ -48,20 +48,18 @@ function M.sync(doc, ctx, fpState, setSummary)
 	local getCachedEl = ctx.getCachedEl
 	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
-	-- ===== Feature Placer mode: update feature controls =====
-	-- btn-features active state driven by data-class-active="activeTool == 'fp'" in RML.
-	-- Clear terraform mode highlights
 
 	-- DISPLAY/INSTRUMENTS warn chips (shared TB state mirror)
 	if doc and ctx.syncWarnChip then
 		local tbs = (WG.TerraformBrush and WG.TerraformBrush.getState()) or {}
-		local dispActive = tbs.gridOverlay or tbs.heightColormap
+		-- The section's grid button is the placer's own grid, not the terrain brush grid.
+		local dispActive = fpState.gridOverlay or tbs.heightColormap
 		local instActive = fpState.gridSnap or tbs.measureActive or tbs.symmetryActive
 		ctx.syncWarnChip(doc, "warn-chip-fp-overlays", "section-fp-overlays", dispActive)
 		ctx.syncWarnChip(doc, "warn-chip-fp-instruments", "section-fp-instruments", instActive)
 	end
 
-	-- Feature sub-mode and distribution (driven by dm fields via data-class-active)
+	-- Sub-mode and distribution buttons bind these fields via data-class-active.
 	if widgetState.dmHandle then
 		local dmh = widgetState.dmHandle
 		local sm = fpState.mode or "point"
@@ -74,7 +72,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		end
 	end
 
-	-- Feature shape buttons
 	if widgetState.dmHandle then
 		local shp = fpState.shape or "circle"
 		if widgetState.dmHandle.activeShape ~= shp then
@@ -82,16 +79,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 		end
 	end
 
-	-- Gizmo selection. The SELECTION section only appears on an empty mouse,
-	-- because that is the only time clicking the map selects rather than
-	-- places; Reroll is the mirror case, only useful while scattering.
+	-- The SELECTION section only shows in select mode, the only time a map click selects
+	-- rather than places; Reroll is the mirror case, shown while scattering or pointing.
 	if widgetState.dmHandle then
-		local dmh = widgetState.dmHandle
-		local function setDm(f, v)
-			if dmh[f] ~= v then
-				dmh[f] = v
-			end
-		end
+		local setDm = ctx.setDm
 		local count = fpState.selectionCount or 0
 		setDm("fpShowSelection", fpState.selectMode == true)
 		setDm("fpShowReroll", fpState.selectMode ~= true and (fpState.mode == "scatter" or fpState.mode == "point"))
@@ -103,8 +94,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 		uiState.updatingFromCode = true
 		local ds = uiState.draggingSlider
 
-		-- Labels driven by {{fpRadiusStr}}/{{fpRotationStr}}/{{fpRotRandomStr}}/{{fpCountStr}}/{{fpCadenceStr}} in RML.
-		-- Phase 2 step 4: mirror to data-model {{Str}} interpolation
+		-- Slider labels read these {{fp...Str}} fields in the RML.
 		if widgetState.dmHandle then
 			local dm = widgetState.dmHandle
 			local v = tostring(fpState.radius)
@@ -119,6 +109,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpRotRandomStr ~= v then
 				dm.fpRotRandomStr = v
 			end
+			v = tostring(fpState.tiltRandom or 0)
+			if dm.fpTiltRandomStr ~= v then
+				dm.fpTiltRandomStr = v
+			end
+			v = tostring(fpState.heightOffset or 0)
+			if dm.fpHeightOffsetStr ~= v then
+				dm.fpHeightOffsetStr = v
+			end
 			v = string.format("%.2f", fpState.scaleMin or 1)
 			if dm.fpScaleMinStr ~= v then
 				dm.fpScaleMinStr = v
@@ -126,6 +124,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			v = string.format("%.2f", fpState.scaleMax or 1)
 			if dm.fpScaleMaxStr ~= v then
 				dm.fpScaleMaxStr = v
+			end
+			v = (fpState.clumps or 0) == 0 and "AUTO" or tostring(fpState.clumps)
+			if dm.fpClumpsStr ~= v then
+				dm.fpClumpsStr = v
+			end
+			v = string.format("%.2f", fpState.clumpSize or 1)
+			if dm.fpClumpSizeStr ~= v then
+				dm.fpClumpSizeStr = v
+			end
+			v = tostring(fpState.clumpLoose or 25)
+			if dm.fpClumpLooseStr ~= v then
+				dm.fpClumpLooseStr = v
+			end
+			v = tostring(fpState.clumpVariety or 0)
+			if dm.fpClumpVarietyStr ~= v then
+				dm.fpClumpVarietyStr = v
 			end
 			v = tostring(fpState.featureCount)
 			if dm.fpCountStr ~= v then
@@ -137,24 +151,29 @@ function M.sync(doc, ctx, fpState, setSummary)
 			end
 		end
 
-		-- Feature sliders
 		syncAndFlash(getCachedEl(doc, "fp-slider-size"), "fp-size", tostring(fpState.radius))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
+		syncAndFlash(getCachedEl(doc, "fp-slider-tilt-random"), "fp-tilt-random", tostring(fpState.tiltRandom or 0))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-height-offset"),
+			"fp-height-offset",
+			tostring(fpState.heightOffset or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clumps"), "fp-clumps", tostring(fpState.clumps or 0))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-size"), "fp-clump-size", tostring(fpState.clumpSize or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-clump-loose"), "fp-clump-loose", tostring(fpState.clumpLoose or 25))
+		syncAndFlash(
+			getCachedEl(doc, "fp-slider-clump-variety"),
+			"fp-clump-variety",
+			tostring(fpState.clumpVariety or 0)
+		)
 		syncAndFlash(getCachedEl(doc, "fp-slider-count"), "fp-count", tostring(fpState.featureCount))
 		syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
-		-- Smart filter UI sync
-		local fpSmartToggle = getCachedEl(doc, "btn-fp-smart-toggle")
-		if fpSmartToggle then
-			fpSmartToggle:SetAttribute(
-				"src",
-				fpState.smartEnabled and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png"
-			)
-		end
+		-- Smart filters.
 		do
 			local sf = fpState.smartFilters or {}
 			local anyFilterOn = fpState.smartEnabled == true
@@ -166,36 +185,21 @@ function M.sync(doc, ctx, fpState, setSummary)
 		if fpState.smartFilters then
 			local sf = fpState.smartFilters
 
-			-- Mirror smart-filter flags into data-model for data-if visibility.
+			-- These flags drive data-if visibility of the filter rows.
 			if widgetState.dmHandle then
-				local dmh = widgetState.dmHandle
-				local function setDm(f, v)
-					if dmh[f] ~= v then
-						dmh[f] = v
-					end
-				end
+				local setDm = ctx.setDm
 				setDm("fpAvoidCliffs", sf.avoidCliffs == true)
 				setDm("fpPreferSlopes", sf.preferSlopes == true)
 				setDm("fpAltMinEnable", sf.altMinEnable == true)
 				setDm("fpAltMaxEnable", sf.altMaxEnable == true)
 			end
 
-			-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
+			-- Only Avoid Water is set by hand; the slope chips bind fpAvoidCliffs / fpPreferSlopes.
 			local avoidWaterChip = getCachedEl(doc, "fp-filter-chip-avoid-water")
 			if avoidWaterChip then
 				avoidWaterChip:SetClass("active", sf.avoidWater == true)
 			end
-			local slopeAvoidChip = getCachedEl(doc, "fp-slope-mode-avoid")
-			if slopeAvoidChip then
-				slopeAvoidChip:SetClass("active", sf.avoidCliffs == true)
-			end
-			local slopePreferChip = getCachedEl(doc, "fp-slope-mode-prefer")
-			if slopePreferChip then
-				slopePreferChip:SetClass("active", sf.preferSlopes == true)
-			end
 
-			-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
-			-- Label driven by {{fpSlopeMaxStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.slopeMax)
 				if widgetState.dmHandle.fpSlopeMaxStr ~= v then
@@ -207,8 +211,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 				fpSSlopeMax:SetAttribute("value", tostring(sf.slopeMax))
 			end
 
-			-- Slope-min rows visibility driven by data-if="fpPreferSlopes"
-			-- Label driven by {{fpSlopeMinStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.slopeMin)
 				if widgetState.dmHandle.fpSlopeMinStr ~= v then
@@ -228,8 +230,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
-			-- Alt-min slider-row visibility driven by data-if="fpAltMinEnable"
-			-- Label driven by {{fpAltMinStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.altMin)
 				if widgetState.dmHandle.fpAltMinStr ~= v then
@@ -249,8 +249,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
-			-- Alt-max slider-row visibility driven by data-if="fpAltMaxEnable"
-			-- Label driven by {{fpAltMaxStr}} in RML.
 			if widgetState.dmHandle then
 				local v = tostring(sf.altMax)
 				if widgetState.dmHandle.fpAltMaxStr ~= v then
@@ -262,7 +260,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				fpSAltMax:SetAttribute("value", tostring(sf.altMax))
 			end
 
-			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
+			-- SAMPLE lights while the terraform brush is sampling a height for this filter.
 			local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
 			local sampMin = getCachedEl(doc, "btn-fp-alt-min-sample")
 			if sampMin then
@@ -274,17 +272,12 @@ function M.sync(doc, ctx, fpState, setSummary)
 			end
 		end
 
-		-- Grid snap chip sync (FP-specific snap state)
-		local fpGridSnapBtn = getCachedEl(doc, "btn-fp-grid-snap")
-		if fpGridSnapBtn then
-			fpGridSnapBtn:SetClass("active", fpState.gridSnap == true)
-		end
+		-- Grid snap is the feature placer's own, not the terraform brush's.
 		if widgetState.dmHandle then
 			local v = fpState.gridSnap == true
 			if widgetState.dmHandle.fpGridSnap ~= v then
 				widgetState.dmHandle.fpGridSnap = v
 			end
-			-- Snap size label + slider
 			local ss = tostring(fpState.gridSnapSize or 48)
 			if widgetState.dmHandle.fpGridSnapSizeStr ~= ss then
 				widgetState.dmHandle.fpGridSnapSizeStr = ss
@@ -299,36 +292,17 @@ function M.sync(doc, ctx, fpState, setSummary)
 			fpSnapSizeNb:SetAttribute("value", tostring(fpState.gridSnapSize or 48))
 		end
 
-		-- Display overlay sync (shared TerraformBrush state)
+		-- Display, symmetry and measure state is shared with the terraform brush.
 		if WG.TerraformBrush then
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
-				local fpHMap = getCachedEl(doc, "btn-fp-height-colormap")
-				if fpHMap then
-					fpHMap:SetClass("active", tbState.heightColormap == true)
-				end
-				local fpMeas = getCachedEl(doc, "btn-fp-measure")
-				if fpMeas then
-					fpMeas:SetClass("active", tbState.measureActive == true)
-				end
-				local fpSym = getCachedEl(doc, "btn-fp-symmetry")
-				if fpSym then
-					fpSym:SetClass("active", tbState.symmetryActive == true)
-				end
-				-- Mirror display + symmetry/measure flags into data-model.
 				if widgetState.dmHandle then
-					local dmh = widgetState.dmHandle
-					local function setDm(f, v)
-						if dmh[f] ~= v then
-							dmh[f] = v
-						end
-					end
-					-- fpGridOverlay is FP's own building grid, NOT the terrain grid
+					local setDm = ctx.setDm
+					-- fpGridOverlay is the feature placer's own building grid, not the terrain grid.
 					setDm("fpGridOverlay", fpState.gridOverlay == true)
 					setDm("fpHeightColormap", tbState.heightColormap == true)
 					setDm("fpSymmetryActive", tbState.symmetryActive == true)
 					setDm("fpSymmetryRadial", tbState.symmetryRadial == true)
-					setDm("fpSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
 					setDm(
 						"fpSymHasAxis",
 						(tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
@@ -340,58 +314,12 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("fpSymMirrorY", tbState.symmetryMirrorY == true)
 				end
-				-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
-				local fpSymRadial = getCachedEl(doc, "fp-btn-symmetry-radial")
-				if fpSymRadial then
-					fpSymRadial:SetClass("active", tbState.symmetryRadial == true)
-				end
-				local fpSymMX = getCachedEl(doc, "fp-btn-symmetry-mirror-x")
-				if fpSymMX then
-					fpSymMX:SetClass("active", tbState.symmetryMirrorX == true)
-				end
-				local fpSymMY = getCachedEl(doc, "fp-btn-symmetry-mirror-y")
-				if fpSymMY then
-					fpSymMY:SetClass("active", tbState.symmetryMirrorY == true)
-				end
-				-- Measure sub-chip active states
-				local fpMeasRL = getCachedEl(doc, "fp-btn-measure-ruler")
-				if fpMeasRL then
-					fpMeasRL:SetClass("active", tbState.measureRulerMode == true)
-				end
-				local fpMeasST = getCachedEl(doc, "fp-btn-measure-sticky")
-				if fpMeasST then
-					fpMeasST:SetClass("active", tbState.measureStickyMode == true)
-				end
-				local fpMeasSL = getCachedEl(doc, "fp-btn-measure-show-length")
-				if fpMeasSL then
-					fpMeasSL:SetClass("active", tbState.measureShowLength == true)
-				end
-				-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
-				if widgetState.dmHandle then
-					local v = tostring(tbState.symmetryRadialCount or 2)
-					if widgetState.dmHandle.tbSymCountStr ~= v then
-						widgetState.dmHandle.tbSymCountStr = v
-					end
-				end
-				local fpSymRadSlider = getCachedEl(doc, "fp-slider-symmetry-radial-count")
-				if fpSymRadSlider then
-					fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
-				end
-				-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
-				if widgetState.dmHandle then
-					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
-					if widgetState.dmHandle.tbSymAngleStr ~= v then
-						widgetState.dmHandle.tbSymAngleStr = v
-					end
-				end
-				local fpSymAngSlider = getCachedEl(doc, "fp-slider-symmetry-mirror-angle")
-				if fpSymAngSlider then
-					fpSymAngSlider:SetAttribute("value", tostring(tbState.symmetryMirrorAngle or 0))
-				end
+				-- Shared with the other tools: skips a dragged slider, writes only changes.
+				ctx.syncSymmetrySliders(doc, "fp", tbState)
 			end
 		end
 
-		-- Feature history slider sync
+		-- History slider: max is the total undo + redo steps, capped at 400.
 		local sliderFpHist = getCachedEl(doc, "slider-fp-history")
 		if sliderFpHist and ds ~= "fp-history" then
 			local totalSteps = (fpState.undoCount or 0) + (fpState.redoCount or 0)
@@ -410,30 +338,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 		uiState.updatingFromCode = false
 	end
 
-	-- Gray out unsupported shapes in feature mode (no ring, no fill)
+	-- Re-enable every shape button but ring and fill, which the feature brush does not support.
 	for shape, element in pairs(widgetState.shapeButtons) do
 		if element and shape ~= "ring" and shape ~= "fill" then
 			element:SetClass("disabled", false)
 		end
 	end
 
-	-- P3.2 Feature Placer grayouts (per Phase 3 relevance matrix)
+	-- Gray out controls that do nothing in the current mode.
 	if doc and ctx.setDisabledIds then
 		local mode = fpState.mode or "point"
 		local circular = (fpState.shape == "circle")
 		local remove = (mode == "remove")
 		local scatter = (mode == "scatter")
 
-		-- Rotation and randomise-alignment are separate concerns and used to
-		-- share one "circular or remove" condition, which greyed out
-		-- randomise-alignment for every circular brush -- the default shape,
-		-- and the only shape point mode has. It defaults to 100 (fully
-		-- random), so features came out randomly turned with no way to stop
-		-- it.
-		--
-		-- Brush rotation sets the base heading of everything placed (see
-		-- generateLocal / the point-mode branch of ensureLayout), so it is
-		-- meaningful whatever the shape. Only in remove mode is it purely a
+		-- Brush rotation sets the base heading of everything placed (generateLocal, point mode
+		-- in ensureLayout), so it matters for any shape. Only in remove mode is it purely a
 		-- shape orientation, and only then does a circle make it pointless.
 		ctx.setDisabledIds(doc, {
 			"fp-slider-rotation",
@@ -442,18 +362,25 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-rot-cw",
 		}, remove and circular)
 
-		-- Randomise-alignment perturbs each feature's own heading. Nothing to
-		-- do with the brush shape; only meaningless when placing nothing.
+		-- Randomise-alignment and randomise-tilt perturb each placed feature, whatever the
+		-- brush shape; they only do nothing in remove mode.
 		ctx.setDisabledIds(doc, {
 			"fp-slider-rot-random",
 			"fp-slider-rot-random-numbox",
 			"btn-fp-rot-random-down",
 			"btn-fp-rot-random-up",
+			"fp-slider-tilt-random",
+			"fp-slider-tilt-random-numbox",
+			"btn-fp-tilt-random-down",
+			"btn-fp-tilt-random-up",
 		}, remove)
 
-		-- Scale variation applies to whatever gets placed -- scatter and point
-		-- alike -- so like randomise-alignment it only greys out in remove mode.
+		-- Height offset and scale apply to whatever gets placed (scatter and point alike).
 		ctx.setDisabledIds(doc, {
+			"fp-slider-height-offset",
+			"fp-slider-height-offset-numbox",
+			"btn-fp-height-down",
+			"btn-fp-height-up",
 			"fp-slider-scale-min",
 			"fp-slider-scale-min-numbox",
 			"btn-fp-scale-min-down",
@@ -475,6 +402,22 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"btn-fp-dist-random",
 			"btn-fp-dist-regular",
 			"btn-fp-dist-clustered",
+			"fp-slider-clumps",
+			"fp-slider-clumps-numbox",
+			"btn-fp-clumps-down",
+			"btn-fp-clumps-up",
+			"fp-slider-clump-size",
+			"fp-slider-clump-size-numbox",
+			"btn-fp-clump-size-down",
+			"btn-fp-clump-size-up",
+			"fp-slider-clump-loose",
+			"fp-slider-clump-loose-numbox",
+			"btn-fp-clump-loose-down",
+			"btn-fp-clump-loose-up",
+			"fp-slider-clump-variety",
+			"fp-slider-clump-variety-numbox",
+			"btn-fp-clump-variety-down",
+			"btn-fp-clump-variety-up",
 		}, not scatter)
 	end
 

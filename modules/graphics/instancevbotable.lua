@@ -296,6 +296,49 @@ local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a ve
 	return newVAO
 end
 
+local placeholderIndexVBO, placeholderInstanceVBO -- shared by every VAO of this Lua state that fillVAOSlots completes
+-- the VAOs fillVAOSlots completed, so a resize completes their replacements too
+local filledVAOs = setmetatable({}, { __mode = "k" }) ---@type table<VAO, boolean>
+
+--- Attaches placeholder buffers to the index and instance slots a VAO leaves empty: engines without
+--- RecoilEngine #3446 rebuild a VAO on every draw unless all three slots are filled. DrawArrays never
+--- reads the index buffer. The instance buffer holds one element (attribute 15), so only leave
+--- `hasInstance` unset on VAOs drawn with at most one instance. Call it after attaching the VAO's own
+--- buffers, a slot cannot be attached twice.
+---@param vao VAO?
+---@param hasIndex boolean? the VAO has its own index buffer
+---@param hasInstance boolean? the VAO has its own instance buffer
+---@return VAO? vao
+local function fillVAOSlots(vao, hasIndex, hasInstance)
+	if not vao then
+		return vao
+	end
+	if not hasIndex then
+		if not placeholderIndexVBO then
+			placeholderIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+			if not placeholderIndexVBO then
+				return vao
+			end
+			placeholderIndexVBO:Define(1)
+			placeholderIndexVBO:Upload({ 0 })
+		end
+		vao:AttachIndexBuffer(placeholderIndexVBO)
+	end
+	if not hasInstance then
+		if not placeholderInstanceVBO then
+			placeholderInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+			if not placeholderInstanceVBO then
+				return vao
+			end
+			placeholderInstanceVBO:Define(1, { { id = 15, name = "placeholder", size = 1 } })
+			placeholderInstanceVBO:Upload({ 0 })
+		end
+		vao:AttachInstanceBuffer(placeholderInstanceVBO)
+	end
+	filledVAOs[vao] = true
+	return vao
+end
+
 --------------- DEBUG HELPERS --------------------------
 local function comparetables(t1, t2, name)
 	for k, v in pairs(t1) do
@@ -520,8 +563,12 @@ local function resizeInstanceVBOTable(iT)
 	end
 
 	if iT.VAO then -- reattach new if updated :D
+		local filled = filledVAOs[iT.VAO]
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO, iT.instanceVBO, iT.indexVBO)
+		if filled then
+			fillVAOSlots(iT.VAO, iT.indexVBO ~= nil, iT.vertexVBO ~= nil)
+		end
 	end
 
 	if iT.indextoUnitID then
@@ -1783,6 +1830,7 @@ local InstanceVBOTableModule = {
 	makeInstanceVBOTable = makeInstanceVBOTable,
 	clearInstanceTable = clearInstanceTable,
 	makeVAOandAttach = makeVAOandAttach,
+	fillVAOSlots = fillVAOSlots,
 	locateInvalidUnits = locateInvalidUnits,
 	pushElementInstance = pushElementInstance,
 	popElementInstance = popElementInstance,

@@ -1,3 +1,5 @@
+local lfs = require("lfs")
+
 -- Spring logging mocks
 _G.LOG = _G.LOG or {
 	ERROR = "ERROR",
@@ -37,6 +39,9 @@ _G.Spring = _G.Spring
 				print(string.format("[%s] %s: %s", tag, level, message))
 			end
 		end,
+		GetGameFrame = function()
+			return 0
+		end,
 	}
 
 -- Game code echoes while it runs, which would bury the spec output, so an echo counts as
@@ -52,6 +57,10 @@ _G.Game = _G.Game or {}
 -- alldefs_post divides by this to work out the collision speed threshold, so leaving it
 -- nil takes down the whole def post pass and every def arrives raw.
 _G.Game.gameSpeed = _G.Game.gameSpeed or 30
+
+-- the map has a size: a module that keeps a unit on the map reads it when it loads
+_G.Game.mapSizeX = _G.Game.mapSizeX or 4096
+_G.Game.mapSizeZ = _G.Game.mapSizeZ or 4096
 
 _G.Game.envDamageTypes = _G.Game.envDamageTypes
 	or {
@@ -98,8 +107,64 @@ _G.unpack = _G.unpack
 local fileCache
 local sources = {}
 
+local function isDirectory(path)
+	return lfs.attributes(path, "mode") == "directory"
+end
+
+local function joinPath(directory, name)
+	if directory:sub(-1) == "/" then
+		return directory .. name
+	end
+	return directory .. "/" .. name
+end
+
+local function getSortedDirectoryEntries(directory)
+	local entries = {}
+	if isDirectory(directory) then
+		for name in lfs.dir(directory) do
+			if name ~= "." and name ~= ".." then
+				entries[#entries + 1] = name
+			end
+		end
+		table.sort(entries)
+	end
+	return entries
+end
+
+local function findDirectoryIgnoringCase(parent, name)
+	name = name:lower()
+	for _, entry in ipairs(getSortedDirectoryEntries(parent)) do
+		local path = joinPath(parent, entry)
+		if entry:lower() == name and isDirectory(path) then
+			return path
+		end
+	end
+end
+
+local function getCaseInsensitiveLuaPattern(filePattern)
+	local pattern = filePattern:lower():gsub("[%^%$%(%)%%%.%[%]%+%-]", "%%%0"):gsub("%*", ".*"):gsub("%?", ".")
+	return "^" .. pattern .. "$"
+end
+
+local function addFiles(directory, files, recursive, namePattern)
+	for _, name in ipairs(getSortedDirectoryEntries(directory)) do
+		local path = joinPath(directory, name)
+		local mode = lfs.attributes(path, "mode")
+		if mode == "file" then
+			if not namePattern or name:lower():match(namePattern) then
+				files[#files + 1] = path
+			end
+		elseif mode == "directory" and recursive and name ~= ".git" then
+			addFiles(path, files, recursive, namePattern)
+		end
+	end
+	return files
+end
+
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
+_G.VFS.RAW = _G.VFS.RAW or "r"
+_G.VFS.ZIP = _G.VFS.ZIP or "Mmb"
 
 _G.VFS.FileExists = function(path)
 	-- First try the exact path provided
@@ -113,14 +178,10 @@ _G.VFS.FileExists = function(path)
 	if not fileCache then
 		fileCache = {}
 		-- Find all files, excluding .git directory
-		local handle = io.popen("find . -name '.git' -prune -o -type f -print")
-		if handle then
-			for line in handle:lines() do
-				-- Strip leading ./
-				local p = line:gsub("^%./", "")
-				fileCache[p:lower()] = p
-			end
-			handle:close()
+		for _, file in ipairs(addFiles(".", {}, true)) do
+			-- Strip leading ./
+			local p = file:gsub("^%./", "")
+			fileCache[p:lower()] = p
 		end
 	end
 
@@ -231,48 +292,41 @@ _G.VFS.SubDirs = function(path)
 		_G.VFS.FileExists("___dummy_path___")
 	end
 
-	-- Currently the cache only has files. We need directories too or just assume 'find' works if we fix the path.
+	-- Currently the cache only has files. We need directories too or just list the directory once the path is fixed.
 	-- But for SubDirs we want to list subdirectories.
 	-- Let's assume the input path might be wrong casing.
 
 	-- Simple heuristic: try to find the directory case-insensitively if it doesn't exist
-	local searchPath = path
+	local searchPath = nil
 	local handle = io.open(path)
 	if handle then
 		handle:close()
+		searchPath = path
 	else
 		-- Try to find matching directory
-		local parent = path:match("(.+)/[^/]+$") or "."
-		local base = path:match("([^/]+)$")
+		local parent = path:match("(.+)/[^/]+/?$") or "."
+		local base = path:match("([^/]+)/?$")
 		if base then
-			local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
-			if pHandle then
-				local match = pHandle:read("*l")
-				if match then
-					searchPath = match
-				end
-				pHandle:close()
-			end
+			searchPath = findDirectoryIgnoringCase(parent, base)
 		end
 	end
 
 	local dirs = {}
-	local handle = io.popen(string.format("find %s -maxdepth 1 -type d", searchPath))
-	if handle then
-		for line in handle:lines() do
-			if line ~= searchPath then
-				table.insert(dirs, line)
-			end
+	-- a directory that is not there has no subdirectories, the engine returns an empty list
+	if not searchPath then
+		return dirs
+	end
+	for _, name in ipairs(getSortedDirectoryEntries(searchPath)) do
+		local subPath = joinPath(searchPath, name)
+		if isDirectory(subPath) then
+			table.insert(dirs, subPath)
 		end
-		handle:close()
 	end
 	return dirs
 end
 
 _G.VFS.DirList = function(directory, pattern, mode, recursive)
 	-- Returns relative paths with directory prefix, just like native VFS.DirList
-	local files = {}
-	local cmd
 
 	-- Fix directory path case-sensitivity
 	local searchDir = directory
@@ -284,42 +338,21 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 		local parent = directory:match("(.+)/[^/]+$") or "."
 		local base = directory:match("([^/]+)$")
 		if base then
-			local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
-			if pHandle then
-				local match = pHandle:read("*l")
-				if match then
-					searchDir = match
-				end
-				pHandle:close()
+			local match = findDirectoryIgnoringCase(parent, base)
+			if match then
+				searchDir = match
 			end
 		end
 	end
 
-	-- Use find command with pattern matching
-	-- Use -iname for case-insensitive pattern matching
-	-- -maxdepth is a global option, so it has to come before -iname
-	local name_pattern = pattern and pattern ~= "*" and string.format("-iname '%s'", pattern) or ""
-	if recursive then
-		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
-	else
-		cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
-	end
-
-	local handle = io.popen(cmd)
-	if handle then
-		for line in handle:lines() do
-			table.insert(files, line)
-		end
-		handle:close()
-	end
-
-	return files
+	local namePattern = pattern and pattern ~= "*" and getCaseInsensitiveLuaPattern(pattern) or nil
+	return addFiles(searchDir, {}, recursive, namePattern)
 end
 
-_G.VFS.MAP = 1
-_G.VFS.MOD = 2
-_G.VFS.BASE = 4
-_G.VFS_MODES = _G.VFS.MAP + _G.VFS.MOD + _G.VFS.BASE
+_G.VFS.MAP = "m"
+_G.VFS.MOD = "M"
+_G.VFS.BASE = "b"
+_G.VFS_MODES = _G.VFS.MAP .. _G.VFS.MOD .. _G.VFS.BASE
 
 -- The engine sets Json up globally in init.lua, so game code uses it without including it.
 _G.Json = _G.Json or require("common/luaUtilities/json")

@@ -25,9 +25,9 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 5.4,
-			buildinggrounddecalsizey = 5.4,
-			buildinggrounddecaltype = "decals/legjuno_aoplane.dds",
+			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecaltype = "decals/legjuno_5_5_aoplane.png",
 			model_author = "Georodin",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,

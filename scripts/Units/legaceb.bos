@@ -2,12 +2,11 @@
 #include "../recoil_common_includes.h"
 
 #define SIGNAL_BUILD 2
-#define SIGNAL_MOVE 1
 
 piece 	pelvis, aimy1, torso, aimx1, nanol, nanor, flare1, flare2, armor,
 		hingefl, hingeml, hingebl, hingefr, hingemr, hingebr, legfl, legml, legbl, legfr, legmr, legbr, footfl, footml, footbl, footfr, footmr, footbr;
 
-static-var  isMoving, building, moveSpeed, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, nanonozzle;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, nanonozzle;
 
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -362,7 +361,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
@@ -396,16 +394,12 @@ Create()
 	hide flare2;
 	nanonozzle = 0;
 	isMoving = FALSE;
-	building = 0;
-	moveSpeed = get MAX_SPEED;
-	currentSpeed = 100;
 	animSpeed = 4;
 }
 
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
-	building = 1;	
 	turn aimy1 to y-axis heading speed <250.0>;
 	turn aimx1 to x-axis 0-pitch speed <150.0>;
 	wait-for-turn aimy1 around y-axis;
@@ -422,7 +416,6 @@ StopBuilding()
 	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;	
 	set INBUILDSTANCE to 0;
-	building = 0;	
 	
 	turn aimy1 to y-axis <0.0> speed <250.0>;
 	turn aimx1 to x-axis <0.0> speed <50.0>;

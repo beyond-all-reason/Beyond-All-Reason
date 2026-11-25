@@ -63,14 +63,19 @@ local fontfileSize = 50
 local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.65
 local fontfileOutlineStrength2 = 10
+---@type boolean
+local useThickLeterring = false
 local font =
 	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
+-- only thick lettering prints with it; its wide blurred outline is costly to rasterize at high resolutions
+local shadowFont
+if useThickLeterring then
+	shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
+end
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 =
 	gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
-local useThickLeterring = false
 local fontSize = 18
 local fontShadow = true -- only shows if font has a white outline
 local shadowOpacity = 0.35
@@ -287,7 +292,7 @@ local function createCommanderNameList(name, teamID)
 			outlineColor = { 1, 1, 1, 1 }
 		end
 		if useThickLeterring then
-			if outlineColor[1] == 1 and fontShadow then
+			if outlineColor[1] == 1 and fontShadow and shadowFont then
 				glTranslate(0, -(usedFontSize / 44), 0)
 				shadowFont:Begin()
 				shadowFont:SetTextColor({ 0, 0, 0, shadowOpacity })
@@ -1068,7 +1073,7 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(32, 100, 25)
 	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
@@ -1089,8 +1094,11 @@ local function InitStartPolygons()
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO =
-		InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO, startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO, startConeVBOTable.instanceVBO),
+		false,
+		true
+	)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 
@@ -1176,7 +1184,9 @@ function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
-	gl.DeleteFont(shadowFont)
+	if shadowFont then
+		gl.DeleteFont(shadowFont)
+	end
 	WG.map_startbox = nil
 end
 
@@ -1310,7 +1320,7 @@ function widget:ViewResize(x, y)
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
-		gl.DeleteFont(shadowFont)
+		gl.DeleteFont(font2)
 		font = gl.LoadFont(
 			fontfile,
 			fontfileSize * fontfileScale,
@@ -1323,7 +1333,10 @@ function widget:ViewResize(x, y)
 			fontfileOutlineSize * fontfileScale,
 			fontfileOutlineStrength2
 		)
-		shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+		if shadowFont then
+			gl.DeleteFont(shadowFont)
+			shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+		end
 		createInfotextList()
 	end
 end

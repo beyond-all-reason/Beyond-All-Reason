@@ -122,7 +122,7 @@ return {
 				name = "Medium g2a Flak Blunderbuss",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 1125,
+				range = 1200,
 				reloadtime = 1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
@@ -146,6 +146,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LEGFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},

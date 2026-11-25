@@ -16,6 +16,7 @@ end
 
 local SetUnitNoSelect = Spring.SetUnitNoSelect
 local SetUnitNoGroup = Spring.SetUnitNoGroup
+local SetUnitIconDraw = Spring.SetUnitIconDraw
 
 local function setUnitNoGroup(_, unitID, noGroup)
 	SetUnitNoGroup(unitID, noGroup)
@@ -32,4 +33,5 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	SetUnitNoSelect(unitID, true)
 	SetUnitNoGroup(unitID, true)
+	SetUnitIconDraw(unitID, false)
 end

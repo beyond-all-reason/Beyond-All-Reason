@@ -93,7 +93,8 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
 local minFireSmokeParticles = 10000 -- before MaxParticles is added
-local MAX_PARTICLES = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
+-- MaxParticles went up by half for the engine's cheaper CEG particles; the / 1.5 keeps this effect's budget as it was.
+local MAX_PARTICLES = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
 
 local VBO_CAPACITY = MAX_PARTICLES -- fixed at init; VBO cannot be resized
 local PARTICLE_SIZE_MIN = 1
@@ -480,15 +481,15 @@ void main(void)
 local particleVBO = nil
 local particleShader = nil
 
--- Particle removal queue: [deathFrame] = {slot, ...} (1-based ring slots)
-local particleRemoveQueue = {}
+-- [deathFrame] = live particles expiring that frame
+local deathTally = {}
 
 --------------------------------------------------------------------------------
 -- Ring slot allocator
 --
 -- Particles are written straight into the VBO mirror at the next ring slot whose
 -- previous occupant has expired; the vertex shader already hides expired
--- particles, so a death only clears the slot's death frame. Consecutive slots
+-- particles, so a death only lowers the live count. Consecutive slots
 -- written since the last flush form one upload run.
 --------------------------------------------------------------------------------
 local RING_MAX_SKIPS = 64 -- alive slots skipped per spawn before giving up
@@ -500,7 +501,7 @@ local ring = {
 	shrinkWait = 0, -- frames the window has been oversized
 	drops = 0, -- spawns given up this frame (skip limit hit)
 	head = 0, -- next slot to try (0-based)
-	death = nil, -- [slot + 1] = death frame of the occupant, 0 when never used
+	death = nil, -- [slot + 1] = death frame of the last occupant, 0 when never used
 	live = 0, -- particles whose death frame has not been processed yet
 	runStart = -1, -- first slot of the pending upload run, -1 when empty
 	runEnd = -2, -- last slot of the pending upload run
@@ -511,7 +512,6 @@ local ring = {
 --
 -- High-allocation-rate code paths in this gadget:
 --   * trackedPieceProjectiles[proID] = { ... }    -- per new piece projectile
---   * particleRemoveQueue[deathFrame] = {}        -- per unique death frame
 --   * tracked.offscreenBuffer = {}                -- per piece going off-screen
 --
 -- With many unit deaths (e.g. 80+ flamethrowers shredding everything), the
@@ -522,8 +522,6 @@ local ring = {
 local pools = {
 	tracker = {},
 	trackerN = 0,
-	queue = {},
-	queueN = 0,
 	buffer = {},
 	bufferN = 0,
 }
@@ -562,27 +560,6 @@ function pools.releaseTracker(t)
 	local n = pools.trackerN + 1
 	pools.trackerN = n
 	pools.tracker[n] = t
-end
-
-function pools.acquireQueue()
-	local n = pools.queueN
-	if n > 0 then
-		local q = pools.queue[n]
-		pools.queue[n] = nil
-		pools.queueN = n - 1
-		return q
-	end
-	return {}
-end
-
-function pools.releaseQueue(q)
-	-- Truncate without holding references to the popped particleIDs.
-	for i = 1, #q do
-		q[i] = nil
-	end
-	local n = pools.queueN + 1
-	pools.queueN = n
-	pools.queue[n] = q
 end
 
 function pools.acquireBuffer()
@@ -653,6 +630,10 @@ local fastForward = false -- true when gamespeed > 1.5 or catching up (rejoining
 local visibilityState = {
 	allyTeamID = Spring.GetLocalAllyTeamID(),
 	fullView = select(2, Spring.GetSpectatingState()) or false,
+	---@type integer
+	replayBudget = 0, -- buffered off-screen positions left to replay this draw frame
+	replayDeferred = false, -- a replay ran out of budget, flush again next draw frame
+	flushCam = {}, -- camera position and direction at the last flush
 }
 
 --------------------------------------------------------------------------------
@@ -714,7 +695,7 @@ local function updateMaxParticles(gameFrame)
 		return
 	end -- re-read configint every ~3 seconds
 	visibilityState.nextMaxParticlesFrame = gameFrame + 90
-	local newMax = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles
+	local newMax = ((mathFloor(spGetConfigInt("MaxParticles", 15000) / 1.5) - 7000) * 2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then
 		return
@@ -811,9 +792,13 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	end
 	ring.head = (slot + 1 < window) and slot + 1 or 0
 	death[slot + 1] = deathFrame
-	-- The occupant expired but its removal queue has not run yet: uncount it now,
-	-- the queued entry no longer matches this slot's death frame.
-	ring.live = ring.live + (oldDeath > lastRemovedFrame and 0 or 1)
+	deathTally[deathFrame] = (deathTally[deathFrame] or 0) + 1
+	if oldDeath > lastRemovedFrame then
+		-- the occupant expired but is still counted: it hands its count to this particle
+		deathTally[oldDeath] = deathTally[oldDeath] - 1
+	else
+		ring.live = ring.live + 1
+	end
 	if slot >= particleVBO.usedElements then
 		particleVBO.usedElements = slot + 1
 	end
@@ -845,13 +830,6 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 	d[o + 14] = tb
 	d[o + 15] = tb
 	d[o + 16] = alphaMult
-
-	local queue = particleRemoveQueue[deathFrame]
-	if not queue then
-		queue = pools.acquireQueue()
-		particleRemoveQueue[deathFrame] = queue
-	end
-	queue[#queue + 1] = slot + 1
 end
 
 --------------------------------------------------------------------------------
@@ -885,6 +863,13 @@ local shaderSourceCache = {
 }
 
 local function initGL4()
+	-- load the textures now: the first draw's lazy load stalled that frame (BARFlame02.tga ~70 ms)
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(0, fireTexture)
+		glTexture(0, smokeTexture)
+		glTexture(0, false)
+	end))
+
 	particleShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	if not particleShader then
 		goodbye("Failed to compile particle shader")
@@ -994,23 +979,15 @@ local function DrawParticles()
 	glDepthTest(false)
 end
 
--- Frees the slots of particles that expired since the last call. A slot whose death
--- frame no longer matches was already reused (and uncounted) by spawnParticle.
+-- Uncounts the particles that expired since the last call; their slots are reusable
+-- as soon as the death frame has passed.
 local function removeExpiredParticles(gameFrame)
-	local death = ring.death
 	local live = ring.live
 	for f = lastRemovedFrame + 1, gameFrame do
-		local queue = particleRemoveQueue[f]
-		if queue then
-			for i = 1, #queue do
-				local s = queue[i]
-				if death[s] == f then
-					death[s] = 0
-					live = live - 1
-				end
-			end
-			particleRemoveQueue[f] = nil
-			pools.releaseQueue(queue)
+		local expired = deathTally[f]
+		if expired then
+			live = live - expired
+			deathTally[f] = nil
 		end
 	end
 	ring.live = live
@@ -1022,7 +999,15 @@ end
 function ring.updateWindow()
 	local window = ring.window
 	local live = ring.live
-	if (live * 2 > window or ring.drops > 0) and window < ring.capacity then
+	if live == 0 then
+		-- nothing alive: restart at slot 0 so idle frames draw nothing and the draw count regrows from there
+		ring.window = mathMin(ring.capacity, ring.minWindow)
+		ring.shrinkWait = 0
+		ring.head = 0
+		ring.runStart = -1
+		ring.runEnd = -2
+		particleVBO.usedElements = 0
+	elseif (live * 2 > window or ring.drops > 0) and window < ring.capacity then
 		ring.window = mathMin(ring.capacity, window * 2)
 		ring.shrinkWait = 0
 	elseif live * 8 < window and window > ring.minWindow then
@@ -1030,7 +1015,8 @@ function ring.updateWindow()
 		ring.shrinkWait = wait
 		if wait >= 300 then
 			ring.shrinkWait = 0
-			local half = window / 2
+			-- whole slots only: the capacity is not a power of two, so a capped window can be odd
+			local half = mathMax(ring.minWindow, mathFloor(window / 2))
 			local death = ring.death
 			local frame = cachedGameFrame
 			for i = half + 1, window do
@@ -1183,36 +1169,44 @@ local CRASH_BUFFER_MAX = 1050 -- 150 entries * 7 stride
 local offscreenBufferCount = 0
 
 -- Replay buffered off-screen piece frames retroactively.
--- Only replays the last few buffered positions (piece particles are short-lived,
--- so older entries would be dead on arrival anyway).
+-- Only replays the positions whose particles can still be alive. Returns false and keeps
+-- the buffer when this draw frame's replay budget is spent.
 local function replayPieceBuffer(tracked, gameFrame)
 	local buf = tracked.offscreenBuffer
 	local bufLen = tracked.bufferLen
 	if not buf or bufLen == 0 then
 		tracked.offscreenBuffer = nil
 		tracked.bufferLen = nil
-		return
+		return true
+	end
+	local budget = visibilityState.replayBudget
+	if budget <= 0 then
+		visibilityState.replayDeferred = true
+		return false
 	end
 
 	local preset = cachedPreset
 	local sc = tracked.sizeScale
 	local fi = tracked.fireIntensity
+	local lifeBias = tracked.lifeBias
 	local presetLifeMult = preset.lifetimeMult
 	local smokeSizeSc = sc * (fi > 0 and 1.0 or 0.75)
 	currentBudgetLimit = cachedBudgetNormal
 
-	-- Only replay recent entries that could still produce alive particles
-	local maxReplayAge = mathCeil(PIECE_LIFETIME_MAX * 2 * presetLifeMult) + 2
-	local startIdx = bufLen - 6
-	while startIdx > 1 do
-		local prevStart = startIdx - 7
-		if gameFrame - buf[prevStart] > maxReplayAge then
-			break
-		end
-		startIdx = prevStart
+	-- Skip entries older than this piece's longest smoke or fire lifetime
+	local maxLife = (PIECE_LIFETIME_MIN + (lifeBias + 0.3) * PIECE_LIFETIME_RANGE) * 2 * presetLifeMult
+	local fireMaxLife = (FIRE_LIFETIME_MIN + FIRE_LIFETIME_RANGE) * presetLifeMult * fi
+	if fireMaxLife > maxLife then
+		maxLife = fireMaxLife
 	end
+	local oldest = gameFrame - maxLife - 3
+	local startIdx, entries = bufLen - 6, 1
+	while startIdx > 1 and buf[startIdx - 7] > oldest do
+		startIdx = startIdx - 7
+		entries = entries + 1
+	end
+	visibilityState.replayBudget = budget - entries
 
-	local replayedCount = 0
 	for i = startIdx, bufLen, 7 do
 		local frame = buf[i]
 		local bpx, bpy, bpz = buf[i + 1], buf[i + 2], buf[i + 3]
@@ -1232,49 +1226,53 @@ local function replayPieceBuffer(tracked, gameFrame)
 				(PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult
 			)
 		)
+		-- A particle living no longer than this is already dead (spawnParticle would drop it)
+		local deadLife = gameFrame - frame - 3
 
 		for p = 1, spawnCount do
 			if mathRandom() > PIECE_SKIP_CHANCE then
 				local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
-				local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
-				spawnParticle(
-					bpx + mathRandom() - 0.5,
-					bpy + mathRandom(),
-					bpz + mathRandom() - 0.5,
-					vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-					vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
-					vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-					particleSize,
-					0,
-					(PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE)
-						* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
-						* smokeLifeBase,
-					(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase,
-					nil,
-					frame -- birthFrame override
-				)
-				replayedCount = replayedCount + 1
+				local life = (PIECE_LIFETIME_MIN + (lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE)
+					* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+					* smokeLifeBase
+				if life > deadLife then
+					spawnParticle(
+						bpx + mathRandom() - 0.5,
+						bpy + mathRandom(),
+						bpz + mathRandom() - 0.5,
+						vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+						vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+						vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+						(PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc,
+						0,
+						life,
+						(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase,
+						nil,
+						frame -- birthFrame override
+					)
+				end
 			end
 		end
 
 		if fi > 0 then
-			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
-			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
-			spawnParticle(
-				bpx + mathRandom() * 0.6 - 0.3,
-				bpy + mathRandom() * 0.5,
-				bpz + mathRandom() * 0.6 - 0.3,
-				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
-				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				particleSize,
-				1,
-				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
-				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
-				nil,
-				frame -- birthFrame override
-			)
-			replayedCount = replayedCount + 1
+			local life = (FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi
+			if life > deadLife then
+				local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
+				spawnParticle(
+					bpx + mathRandom() * 0.6 - 0.3,
+					bpy + mathRandom() * 0.5,
+					bpz + mathRandom() * 0.6 - 0.3,
+					vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+					vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
+					vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
+					(PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi,
+					1,
+					life,
+					(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
+					nil,
+					frame -- birthFrame override
+				)
+			end
 		end
 	end
 
@@ -1282,6 +1280,7 @@ local function replayPieceBuffer(tracked, gameFrame)
 	tracked.offscreenBuffer = nil
 	tracked.bufferLen = nil
 	offscreenBufferCount = offscreenBufferCount - 1
+	return true
 end
 
 local function releasePieceBuffer(proID, tracked)
@@ -1380,8 +1379,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	end
 
 	-- Transition to in-view: replay buffered particles
-	if tracked.offscreenBuffer then
-		replayPieceBuffer(tracked, gameFrame)
+	if tracked.offscreenBuffer and replayPieceBuffer(tracked, gameFrame) then
 		bufferedPieces[proID] = nil
 	end
 	tracked.offscreenSkip = nil
@@ -1580,11 +1578,17 @@ end
 -- Replay buffered off-screen crash frames retroactively.
 -- Since the vertex shader computes everything from birthFrame, particles pushed
 -- retroactively render at the correct age/position/size/color immediately.
+-- Returns false and keeps the buffer when this draw frame's replay budget is spent.
 local function replayCrashBuffer(tracked, gameFrame)
 	local buf = tracked.offscreenBuffer
 	local bufLen = tracked.bufferLen
 	if not buf or bufLen == 0 then
-		return
+		return true
+	end
+	local budget = visibilityState.replayBudget
+	if budget <= 0 then
+		visibilityState.replayDeferred = true
+		return false
 	end
 
 	local preset = cachedPreset
@@ -1598,8 +1602,15 @@ local function replayCrashBuffer(tracked, gameFrame)
 	local smokeSizeSc = sc * (fi > 0 and 1.0 or 0.75)
 	currentBudgetLimit = cachedBudgetEssential
 
-	local replayedCount = 0
-	for i = 1, bufLen, 7 do
+	-- Skip entries older than the longest smoke lifetime (outlives the fire)
+	local oldest = gameFrame - (CRASH_LIFETIME_MIN + CRASH_LIFETIME_RANGE) * 2 * presetLifeMult * unitLifeMult - 3
+	local startIdx = 1
+	while startIdx < bufLen and buf[startIdx] <= oldest do
+		startIdx = startIdx + 7
+	end
+
+	for i = startIdx, bufLen, 7 do
+		budget = budget - 1
 		local frame = buf[i]
 		local bpx, bpy, bpz = buf[i + 1], buf[i + 2], buf[i + 3]
 		local bvx, bvy, bvz = buf[i + 4], buf[i + 5], buf[i + 6]
@@ -1632,7 +1643,6 @@ local function replayCrashBuffer(tracked, gameFrame)
 				nil,
 				frame -- birthFrame override
 			)
-			replayedCount = replayedCount + 1
 		end
 
 		if fi > 0 then
@@ -1656,13 +1666,14 @@ local function replayCrashBuffer(tracked, gameFrame)
 				nil,
 				frame -- birthFrame override
 			)
-			replayedCount = replayedCount + 1
 		end
 	end
 
+	visibilityState.replayBudget = budget
 	tracked.offscreenBuffer = nil
 	tracked.bufferLen = nil
 	offscreenBufferCount = offscreenBufferCount - 1
+	return true
 end
 
 local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
@@ -2303,6 +2314,9 @@ function gadget:Update()
 end
 
 function gadget:DrawWorld()
+	-- Buffered off-screen positions replayed per draw frame: moving the camera onto a big
+	-- off-screen battle would otherwise replay thousands of piece buffers in one frame
+	visibilityState.replayBudget = 1000
 	visibilityState.fireSmokeDrawFrame = (visibilityState.fireSmokeDrawFrame or 0) + 1
 	do
 		local pendingFrame = visibilityState.pendingFireSmokeFrame
@@ -2315,24 +2329,45 @@ function gadget:DrawWorld()
 		end
 	end
 
-	-- Flush off-screen buffers that are now in view (works while paused too)
+	-- Flush off-screen buffers that are now in view (works while paused too). Only needed after
+	-- a camera move or a deferred replay: sim-frame visits catch pieces flying into view.
 	if offscreenBufferCount > 0 and particleVBO then
-		if crashingAircraftCount > 0 then
-			for unitID, tracked in pairs(trackedCrashingAircraft) do
-				if tracked.offscreenBuffer then
-					local px, py, pz = spGetUnitPosition(unitID)
-					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
-						replayCrashBuffer(tracked, cachedGameFrame)
+		local cam = visibilityState.flushCam
+		local cx, cy, cz = spGetCameraPosition()
+		local dx, dy, dz = Spring.GetCameraDirection()
+		if
+			visibilityState.replayDeferred
+			or cx ~= cam[1]
+			or cy ~= cam[2]
+			or cz ~= cam[3]
+			or dx ~= cam[4]
+			or dy ~= cam[5]
+			or dz ~= cam[6]
+		then
+			cam[1], cam[2], cam[3], cam[4], cam[5], cam[6] = cx, cy, cz, dx, dy, dz
+			visibilityState.replayDeferred = false
+
+			if crashingAircraftCount > 0 then
+				for unitID, tracked in pairs(trackedCrashingAircraft) do
+					if tracked.offscreenBuffer then
+						local px, py, pz = spGetUnitPosition(unitID)
+						if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+							replayCrashBuffer(tracked, cachedGameFrame)
+						end
 					end
 				end
 			end
-		end
 
-		for proID, tracked in pairs(bufferedPieces) do
-			local px, py, pz = spGetProjectilePosition(proID)
-			if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-				replayPieceBuffer(tracked, cachedGameFrame)
-				bufferedPieces[proID] = nil
+			for proID, tracked in pairs(bufferedPieces) do
+				if visibilityState.replayBudget <= 0 then
+					visibilityState.replayDeferred = true
+					break
+				end
+				local px, py, pz = spGetProjectilePosition(proID)
+				if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+					replayPieceBuffer(tracked, cachedGameFrame)
+					bufferedPieces[proID] = nil
+				end
 			end
 		end
 	end

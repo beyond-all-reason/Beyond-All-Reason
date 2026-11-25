@@ -131,7 +131,7 @@ local function cacheKey(modOptions)
 	return table.concat(parts, ";")
 end
 
-local function parse(modOptions)
+local function newDefsEnv(modOptions, holidays, gametypes)
 	local options = getUnitDefRequireModoptionDefaults()
 	for key, value in pairs(modOptions) do
 		options[key] = value
@@ -155,29 +155,52 @@ local function parse(modOptions)
 			GetConfigInt = function(_, default)
 				return default or 0
 			end,
+			TimeCheck = function(_, check)
+				return check()
+			end,
+			GetTeamList = function()
+				return { 0, 1, 2, 3 } -- Two players (0, 1), the scavenger team, and gaia.
+			end,
+		},
+		Engine = {
+			FeatureSupport = {},
+		},
+		Game = {
+			speedModClasses = { Tank = 0, KBot = 1, Hover = 2, Boat = 3, Ship = 3 },
+		},
+		math = {
+			clamp = function(value, low, high)
+				return math.min(math.max(value, low), high)
+			end,
 		},
 		BAR = {
 			Utilities = {
 				Gametype = {
 					IsScavengers = function()
-						return false
+						return gametypes.scavengers == true
 					end,
 					IsRaptors = function()
-						return false
+						return gametypes.raptors == true
 					end,
 					GetCurrentHolidays = function()
-						return {}
+						return holidays
 					end,
 				},
 			},
 		},
 		includes = {
+			["init.lua"] = true,
 			["gamedata/system.lua"] = function()
 				return systemStub(env)
 			end,
 		},
 	})
 
+	return env
+end
+
+local function parse(modOptions, holidays)
+	local env = newDefsEnv(modOptions, holidays, {})
 	local defs = SpecEnv.include(env, "gamedata/unitdefs.lua")
 	if type(defs) ~= "table" then
 		error("gamedata/unitdefs.lua did not return a table of unit defs", 0)
@@ -196,13 +219,15 @@ local parsed = {}
 
 ---The real unit defs by name. gamedata never fills UnitDefNames, so there are no numeric IDs.
 ---@param modOptions table|nil  merged over the defaults the def files require
+---@param holidays table<string, boolean>|nil  the holiday events running, as GetCurrentHolidays reports them
 ---@return table
-function RealUnitDefs.byName(modOptions)
+function RealUnitDefs.byName(modOptions, holidays)
 	modOptions = modOptions or {}
+	holidays = holidays or {}
 
-	local key = cacheKey(modOptions)
+	local key = cacheKey(modOptions) .. "|" .. cacheKey(holidays)
 	if parsed[key] == nil then
-		parsed[key] = parse(modOptions)
+		parsed[key] = parse(modOptions, holidays)
 	end
 
 	-- A copy, so a caller adding or dropping a def does not change what the next one gets.
@@ -212,6 +237,15 @@ function RealUnitDefs.byName(modOptions)
 	end
 
 	return byName
+end
+
+---Every def table, loaded through gamedata/defs.lua as the engine does. Not cached.
+---@param modOptions table|nil
+---@param gametypes { scavengers: boolean?, raptors: boolean? }|nil
+---@return { unitdefs: table, featuredefs: table, weapondefs: table, armordefs: table, movedefs: table }
+function RealUnitDefs.allDefs(modOptions, gametypes)
+	local env = newDefsEnv(modOptions or {}, {}, gametypes or {})
+	return SpecEnv.include(env, "gamedata/defs.lua")
 end
 
 return RealUnitDefs

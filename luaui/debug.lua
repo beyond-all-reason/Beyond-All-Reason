@@ -206,7 +206,8 @@ function PrintTeamInfo(teamID)
 end
 
 function PrintTeamResources(teamID, type)
-	local current, storage, pull, income, expense, share, sent, received = Spring.GetTeamResources(teamID, type)
+	local current, storage, pull, income, expense, share, sent, received =
+		BAR.Utilities.GetTeamRealResources(teamID, type)
 	if current ~= nil then
 		print("Team number: " .. teamID)
 		print("  " .. type .. ":           " .. current)

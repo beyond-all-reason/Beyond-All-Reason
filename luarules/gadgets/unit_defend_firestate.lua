@@ -60,7 +60,7 @@ local function addWeaponWatches(weaponDefIDs)
 		local refCount = (weaponWatchRefCount[weaponDefID] or 0) + 1
 		weaponWatchRefCount[weaponDefID] = refCount
 		if refCount == 1 then
-			Script.SetWatchAllowTarget(weaponDefID, true)
+			gadgetHandler:RegisterWeaponTarget(weaponDefID)
 		end
 	end
 end
@@ -71,7 +71,7 @@ local function removeWeaponWatches(weaponDefIDs)
 		local refCount = (weaponWatchRefCount[weaponDefID] or 0) - 1
 		if refCount <= 0 then
 			weaponWatchRefCount[weaponDefID] = nil
-			Script.SetWatchAllowTarget(weaponDefID, false)
+			gadgetHandler:DeregisterWeaponTarget(weaponDefID)
 		else
 			weaponWatchRefCount[weaponDefID] = refCount
 		end
@@ -247,6 +247,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+	gadgetHandler:RegisterWeaponTarget(Game.noneID) -- registration is dynamic
 	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs =
 		WeaponThreat.buildDefendData()
 

@@ -1,0 +1,6 @@
+Public domain statement by the author
+
+A file tagged LicenseRef-Public-Domain carries its author's own statement, in
+the file header, that the work is in the public domain ("Public Domain" or
+"PD"). The tag records that statement; it adds no terms of its own. The
+author's name and the statement stay in the header where they were written.

@@ -147,7 +147,8 @@ local function makeInstanceVBO(layout, vertexVBO, numVertices)
 	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO =
+		InstanceVBOTable.fillVAOSlots(InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO), false, true)
 	return vbo
 end
 

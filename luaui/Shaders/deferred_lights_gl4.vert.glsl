@@ -86,11 +86,11 @@ out DataVS {
     flat vec4 v_worldPosRad2;
     flat vec4 v_lightcolor;
     flat vec4 v_modelfactor_specular_scattering_lensflare;
-    vec4 v_depths_center_map_model_min;
     vec4 v_otherparams;
     vec4 v_position;
     vec4 v_noiseoffset;
     noperspective vec2 v_screenUV;
+    flat float v_sourceVisibility; // how much of a point or cone light's source is unoccluded, drives its lens flare
 };
 
 
@@ -100,22 +100,24 @@ uniform sampler2D modelDepths;
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-vec4 depthAtWorldPos(vec4 worldPosition){
-    // takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
-    // x: light pos depth, y: map depth, z: model depth, w: min(map, model)
-    vec4 screenPosition = cameraViewProj * worldPosition;
-    screenPosition.xyz = screenPosition.xyz / screenPosition.w;
-    // Transform from [-1,1] screen space into [0, 1] UV space
-    vec2 screenUV = clamp(SNORM2NORM(screenPosition.xy), 0.001, 0.999);
-    vec4 depths;
-   
-    depths.x = screenPosition.z ;
-    float mapdepth = texture(mapDepths, screenUV).x;
-    float modeldepth = texture(modelDepths, screenUV).x;
-    depths.y = mapdepth;
-    depths.z = modeldepth;
-    depths.w = min(mapdepth, modeldepth);
-    return depths;
+// Soft visibility of a world position against the scene depth, in [0, 1]. A bilinear 2x2 depth comparison with a
+// smooth band in view depth, so it changes continuously with sub-pixel camera motion instead of flipping.
+float softVisibilityAtWorldPos(vec3 worldPos){
+    vec4 clipPos = cameraViewProj * vec4(worldPos, 1.0);
+    float viewDepth = -(cameraView * vec4(worldPos, 1.0)).z; // not clipPos.w, which is always 1 for an orthographic projection
+    if (viewDepth <= 0.0) return 0.0; // behind the camera
+    vec2 uv = clamp(SNORM2NORM(clipPos.xy / clipPos.w), 0.0, 1.0);
+    vec2 subTexel = fract(uv * vec2(textureSize(mapDepths, 0)) - 0.5);
+    vec4 sceneDepths = min(textureGather(mapDepths, uv, 0), textureGather(modelDepths, uv, 0));
+    #if (DEPTH_CLIP01 == 0)
+        sceneDepths = sceneDepths * 2.0 - 1.0;
+    #endif
+    // to view depth: for perspective and orthographic projections the inverse's z and w rows do not depend on x and y
+    sceneDepths = abs((cameraProjInv[2][2] * sceneDepths + cameraProjInv[3][2]) / (cameraProjInv[2][3] * sceneDepths + cameraProjInv[3][3]));
+    float band = max(1.0, viewDepth * 0.003); // elmos, widening with distance as depth precision drops
+    vec4 visible = smoothstep(vec4(-band), vec4(band), sceneDepths - viewDepth + band);
+    // textureGather order is (0,1) (1,1) (1,0) (0,0)
+    return mix(mix(visible.w, visible.z, subTexel.x), mix(visible.x, visible.y, subTexel.x), subTexel.y);
 }
 
 
@@ -198,7 +200,7 @@ void main()
 
 
     v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
-    v_depths_center_map_model_min = vec4(1.0); // just a sanity init
+    v_sourceVisibility = 1.0;
     v_otherparams = otherparams;
    
     vec4 worldPos = vec4(1.0);
@@ -273,7 +275,7 @@ void main()
         }
 
 		v_worldPosRad.xyz = lightCenterPosition;
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
+		if (modelfactor_specular_scattering_lensflare.w > 0.0) v_sourceVisibility = softVisibilityAtWorldPos(lightCenterPosition);
 		v_position = vec4( lightVertexPosition, 1.0);
 		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesn't work
 	}
@@ -340,9 +342,7 @@ void main()
 
         // Place the box in the world
         worldPos.xyz += lightCenterPosition;
-       
-        v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
-       
+
         v_worldPosRad2.xyz = (placeInWorldMatrix * vec4(v_worldPosRad2.xyz, 1.0)).xyz;;
         v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
         v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
@@ -411,13 +411,27 @@ void main()
        
         // set the center pos of the light:
         v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;;
-        v_depths_center_map_model_min = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
-       
+
         v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
         v_worldPosRad2.xyz = normalize(worldposrad2.xyz); // normalize this here for sanity
        
         // Clear out the translation from the cone direction, and turn the cone according to the piece matrix
         v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
+
+        // Lens flare visibility. The apex usually sits on or inside the emitting piece, so also probe the first
+        // stretch of the beam and take the most visible point. Seen from behind, the beam probes would show the
+        // flare through the unit, so they fade out as the camera moves behind the source, and are skipped there.
+        if (modelfactor_specular_scattering_lensflare.w > 0.0) {
+            float sourcevisible = softVisibilityAtWorldPos(v_worldPosRad.xyz);
+            vec3 conedir = normalize(v_worldPosRad2.xyz);
+            float beamweight = smoothstep(-0.2, 0.2, dot(conedir, normalize(cameraViewInv[3].xyz - v_worldPosRad.xyz)));
+            if (sourcevisible < 1.0 && beamweight > 0.0) {
+                vec3 probestep = conedir * min(lightRadius * 0.25, 16.0) * 0.5;
+                float beamvisible = max(softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep), softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep * 2.0));
+                sourcevisible = max(sourcevisible, beamvisible * beamweight);
+            }
+            v_sourceVisibility = sourcevisible;
+        }
        
         v_position =  worldPos;
     }

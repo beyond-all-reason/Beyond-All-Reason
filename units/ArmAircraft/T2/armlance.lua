@@ -36,9 +36,10 @@ return {
 		wingangle = 0.06259,
 		wingdrag = 0.185,
 		customparams = {
-			areaattack_unlimited = true,
+			istorpedobomber = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			restrictions_inclusion = "_nosea_",
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "sub",

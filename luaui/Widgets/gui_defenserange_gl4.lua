@@ -1,5 +1,3 @@
-include("keysym.h.lua")
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -320,6 +318,8 @@ local function initUnitList()
 		legrampart = { weapons = { "nuke", "ground" } }, --rampart
 		leglht = { weapons = { "ground" } }, --llt
 		legtl = { weapons = { "ground" } }, --torpedo launcher
+		legctl = { weapons = { "ground" } }, --coastal torpedo launcher
+		legjuno = { weapons = { "ground" } },
 		legcluster = { weapons = { "cannon" } }, --short range arty T1
 		legacluster = { weapons = { "cannon" } }, --T2 arty
 		legdtr = { weapons = { "ground" } }, --dragons jaw
@@ -640,7 +640,7 @@ local function initGL4()
 			defenseRangeVAOs[defRangeClass].vertexVBO,
 			defenseRangeVAOs[defRangeClass].instanceVBO
 		)
-		defenseRangeVAOs[defRangeClass].VAO = newVAO
+		defenseRangeVAOs[defRangeClass].VAO = InstanceVBOTable.fillVAOSlots(newVAO, false, true)
 	end
 	return makeShaders()
 end
@@ -657,17 +657,16 @@ function widget:Initialize()
 	WG.defrange = {}
 	for _, ae in ipairs({ "ally", "enemy" }) do
 		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
-		for _, wt in ipairs({ "ground", "air", "nuke" }) do
-			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
+		for _, wt in ipairs({ "ground", "air", "nuke", "lrpc" }) do
+			local Wt = wt == "lrpc" and "LRPC" or (string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2))
 			WG.defrange["get" .. Ae .. Wt] = function()
 				return buttonConfig[ae][wt]
 			end
 			WG.defrange["set" .. Ae .. Wt] = function(value)
+				buttonConfig[ae][wt] = value
+				-- cannons count as ground defenses, as they do for /defrange
 				if wt == "ground" then
-					buttonConfig[ae].ground = value
-					buttonConfig[ae].lrpc = value
-				else
-					buttonConfig[ae][wt] = value
+					buttonConfig[ae].cannon = value
 				end
 				spEcho(string.format("Defense Range GL4 Setting %s%s to %s", Ae, Wt, value and "on" or "off"))
 				if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then

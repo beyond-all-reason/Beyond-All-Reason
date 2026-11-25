@@ -570,9 +570,12 @@ function gadget:GameFramePost(frame)
 end
 
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-	local params = weaponParams[weaponDefID]
-	if params then
-		addPenetratorProjectile(projectileID, ownerID, params)
+	addPenetratorProjectile(projectileID, ownerID, weaponParams[weaponDefID])
+end
+
+function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
+	if projectiles[projectileID] ~= nil then
+		projectiles[projectileID] = nil
 	end
 end
 
@@ -690,7 +693,8 @@ function gadget:Initialize()
 	end
 
 	for weaponDefID, params in pairs(weaponParams) do
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
+		gadgetHandler:RegisterExplosion(weaponDefID)
 	end
 
 	for unitDefID, unitDef in ipairs(UnitDefs) do

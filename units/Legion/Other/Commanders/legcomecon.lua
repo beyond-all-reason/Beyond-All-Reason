@@ -89,6 +89,7 @@ return {
 			[31] = "armgeo",
 		},
 		customparams = {
+			maxrange = 280,
 			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
@@ -175,6 +176,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				noselfdamage = true,
