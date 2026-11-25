@@ -23,8 +23,7 @@ local triggers = {
 	constructorSpawned = {
 		type = conditionTypes.UnitExists,
 		parameters = {
-			unitDefName = 'corck',
-			teamName = 'enemy',
+			includeUnit = { unitDefName = 'corck', teamName = 'enemy' },
 		},
 		actions = { 'setPassive' },
 	},
