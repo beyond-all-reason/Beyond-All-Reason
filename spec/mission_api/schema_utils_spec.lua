@@ -89,16 +89,23 @@ describe("mission_api.schema_utils", function()
 			assert.is_not_nil(schemas.conditions.UnitKilled)
 		end)
 
-		it("includes the fields of a unit filter", function()
+		it("includes the fields of a unit filter, with I18N keys for name and description", function()
 			GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
 			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
 
 			local schemas = schemaUtils.CollateSchemas()
 
-			assert.are.same(
-				MissionSpecEnv.include(env, "luarules/mission_api/unit_filter_schema.lua").UnitFilterFields,
-				schemas.unitFilterFields
-			)
+			local expectedFields = {}
+			local fields = MissionSpecEnv.include(env, "luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
+			for index, field in ipairs(fields) do
+				expectedFields[index] = {
+					name = field.name,
+					type = field.type,
+					i18nNameKey = "missionEditor.unitFilterFields." .. field.name .. ".name",
+					i18nDescriptionKey = "missionEditor.unitFilterFields." .. field.name .. ".description",
+				}
+			end
+			assert.are.same(expectedFields, schemas.unitFilterFields)
 		end)
 	end)
 end)
