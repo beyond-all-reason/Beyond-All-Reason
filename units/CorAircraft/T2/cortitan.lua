@@ -40,6 +40,7 @@ return {
 			istorpedobomber = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			restrictions_inclusion = "_nosea_",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "sub",
