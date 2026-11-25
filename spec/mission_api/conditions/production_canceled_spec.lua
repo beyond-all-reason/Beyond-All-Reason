@@ -33,7 +33,7 @@ describe("mission_api.conditions.production_canceled", function()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():WithInFactory(true):Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):WithInFactory(true):Build()
 		return context, context.timesFired
 	end
 
@@ -54,35 +54,34 @@ describe("mission_api.conditions.production_canceled", function()
 		for _, parameter in ipairs(productionCanceled.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamName)
+		assert.is_true(names.includeUnit)
+		assert.is_true(names.excludeUnit)
 		assert.is_true(names.factoryName)
 		assert.is_true(names.factoryDefName)
-		assert.are.same({ "unitName", "unitDefName" }, productionCanceled.parameters.requiresOneOf)
+		assert.is_nil(productionCanceled.parameters.requiresOneOf)
 	end)
 
 	it("filters by unitDefName", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar" }), context, 2, 0) -- unitDefID 2 = armwin
+		canceled(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 2, 0) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 9)
+		canceled(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when a unit in production is canceled", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0)
+		canceled(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire for a nanoframe shot down in the factory", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar" }), context, 1, 0, 42) -- a real weaponDefID
+		canceled(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 42) -- a real weaponDefID
 		assert.are.equal(0, fired())
 	end)
 
@@ -91,13 +90,13 @@ describe("mission_api.conditions.production_canceled", function()
 		context.IsBuildFrameOwner = function()
 			return false
 		end
-		canceled(trigger({ unitDefName = "armsolar", factoryDefName = "armlab" }), context, 1, 0)
+		canceled(trigger({ includeUnit = { unitDefName = { [1] = true } }, factoryDefName = "armlab" }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a buildee taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armsolar", teamName = 0 }), context, 1, 0, 9)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true }, teamName = 0 } }), context, 1, 0, 9)
 		assert.are.equal(1, fired())
 	end)
 
@@ -106,7 +105,7 @@ describe("mission_api.conditions.production_canceled", function()
 			return false
 		end
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armsolar" }), context, 1, 0, 9)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 9)
 		assert.are.equal(0, fired())
 	end)
 
@@ -115,7 +114,7 @@ describe("mission_api.conditions.production_canceled", function()
 		context.InFactory = function()
 			return false
 		end
-		taken(trigger({ unitDefName = "armsolar" }), context, 1, 0, 9)
+		taken(trigger({ includeUnit = { unitDefName = { [1] = true } } }), context, 1, 0, 9)
 		assert.are.equal(0, fired())
 	end)
 end)

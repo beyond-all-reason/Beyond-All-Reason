@@ -33,6 +33,17 @@ local triggers = {
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
 
+	stopFirstQueuedVoice = {
+		type = conditionTypes.TimeElapsed,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			seconds = 3.5,
+		},
+		actions = { 'stopVoiceQueued1' },
+	},
+
 	soundNotification = {
 		type = conditionTypes.TimeElapsed,
 		settings = {
@@ -96,6 +107,13 @@ local actions = {
 		},
 	},
 
+	stopVoiceQueued1 = {
+		type = actionTypes.StopPlayback,
+		parameters = {
+			soundFile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
+		},
+	},
+
 	playMusic = {
 		type = actionTypes.PlayMusic,
 		parameters = {
@@ -107,7 +125,7 @@ local actions = {
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Two voice sounds in succession",
+			messageKey = "Two voice sounds in succession, the first cut short",
 		},
 	},
 

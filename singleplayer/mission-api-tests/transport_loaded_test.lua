@@ -47,7 +47,7 @@ local triggers = {
 		type = conditionTypes.TransportUnloaded,
 		parameters = {
 			transportName = 'dropship',
-			unitName = 'passenger',
+			passengerName = 'passenger',
 		},
 		actions = { 'messageDropshipUnloaded' },
 	},

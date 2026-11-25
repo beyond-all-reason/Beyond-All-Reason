@@ -264,6 +264,7 @@ function i18n.loadFile(path)
 	local success, data = pcall(function()
 		local chunk = VFS.LoadFile(path, VFS.ZIP_FIRST)
 		x = assert(loadstring(chunk))
+		setfenv(x, {})
 		return x()
 	end)
 	if not success then

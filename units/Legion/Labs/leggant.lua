@@ -41,9 +41,7 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/leggant_aoplane.dds",
-			buildinggrounddecalsizey = 15,
-			buildinggrounddecalsizex = 15,
+			buildinggrounddecaltype = "decals/leggant_15_15_aoplane.png",
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "buildert3",
 			model_author = "Protar",

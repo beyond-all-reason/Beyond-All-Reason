@@ -7,7 +7,10 @@ local function issueOrders(unitName, orders, marching, direction)
 	local missionOrders = GG['MissionAPI'].Modules.Orders
 	local unitIDs = GG['MissionAPI'].trackedUnitIDs[unitName]
 	if marching then
-		missionOrders.GiveUnitOrders(GG['MissionAPI'].Modules.Marching.GetMarchingOrders(unitIDs, orders, direction))
+		local marchingModule = GG['MissionAPI'].Modules.Marching
+		local unitOrders = marchingModule.GetMarchingOrders(unitIDs, orders, direction)
+		missionOrders.GiveUnitOrders(unitOrders)
+		marchingModule.MatchSpeed(unitOrders)
 	else
 		missionOrders.GiveOrders(unitIDs, orders)
 	end

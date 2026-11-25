@@ -50,11 +50,13 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 	end)
 
 	local function squadTrigger()
-		return TriggerBuilder.new():WithParameters({ area = area, unitName = "squad", teamName = 0 }):Build()
+		return TriggerBuilder.new()
+			:WithParameters({ area = area, includeUnit = { unitName = "squad", teamName = 0 } })
+			:Build()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
@@ -80,12 +82,12 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 		callins.GameFrame(t, id or triggerID, context, frameNumber)
 	end
 
-	it("declares its type and parameters, all required", function()
+	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "UnitsGatheredInLocation",
 			area = "Area!",
-			unitName = "UnitName!",
-			teamName = "TeamName!",
+			includeUnit = "UnitFilter!",
+			excludeUnit = "UnitFilters",
 		}, summarizeSchema(unitsGathered))
 	end)
 

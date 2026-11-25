@@ -11,7 +11,11 @@ VFS.Include("common/wav.lua")
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+local stateCommands = VFS.Include("common/stateCommands.lua")
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
+
+local isCompactSequence = table.isCompactSequence
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -250,6 +254,22 @@ local function registerValueValidators(parameterValidators, context)
 		return results
 	end
 
+	-- One unit def name, or a list of them.
+	local validateUnitDefNameList =
+		getListValidator(parameterValidators[Types.UnitDefName], "unitDefName list is empty")
+	parameterValidators[Types.UnitDefNames] = function(unitDefNames)
+		if type(unitDefNames) == "string" then
+			return parameterValidators[Types.UnitDefName](unitDefNames)
+		end
+		if type(unitDefNames) ~= "table" then
+			return { { message = "Unexpected parameter type, expected string or table, got " .. type(unitDefNames) } }
+		end
+		if not isCompactSequence(unitDefNames) then
+			return { { message = "Expected a list of unit def names without gaps" } }
+		end
+		return validateUnitDefNameList(unitDefNames)
+	end
+
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
@@ -257,12 +277,8 @@ local function registerValueValidators(parameterValidators, context)
 	-- would leave its name unresolved and the trigger disabled on every difficulty.
 	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
 	parameterValidators[Types.Difficulties] = function(difficulties)
-		if type(difficulties) == "table" then
-			for key in pairs(difficulties) do
-				if type(key) ~= "number" then
-					return { { message = "Expected an array of difficulty names, got key: " .. tostring(key) } }
-				end
-			end
+		if type(difficulties) == "table" and not isCompactSequence(difficulties) then
+			return { { message = "Expected a list of difficulty names without gaps" } }
 		end
 		return validateDifficultyList(difficulties)
 	end
@@ -282,6 +298,17 @@ local function registerValueValidators(parameterValidators, context)
 						.. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'",
 				},
 			}
+		end
+	end
+
+	parameterValidators[Types.Resource] = function(resource)
+		local typeResult = validateString(resource)
+		if typeResult then
+			return typeResult
+		end
+
+		if not enums[Types.Resource][resource] then
+			return { { message = "Invalid resource: " .. resource .. ". Must be one of 'metal', 'energy'" } }
 		end
 	end
 
@@ -680,13 +707,6 @@ local function getNameValidator(nameKey, message)
 	end
 end
 
-local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, "number")
-	if luaTypeResult then
-		addResult(results, luaTypeResult, "[2]")
-	end
-end
-
 local function validateNoParams(params, results)
 	local luaTypeResult = validateLuaType(params, "table")
 	if luaTypeResult then
@@ -696,13 +716,28 @@ local function validateNoParams(params, results)
 	end
 end
 
-local function validateOnOffParam(params, results)
-	local value = params
-	if type(params) == "table" and #params == 1 then
-		value = params[1]
+-- One command's validator: it takes one of that command's states, bare or as {state}.
+local function getStateValidator(commandStates)
+	local allowed, named = {}, {}
+	for name, value in pairs(commandStates) do
+		named[#named + 1] = { name = name, value = value }
+		allowed[value] = true
 	end
-	if value ~= 0 and value ~= 1 then
-		addResult(results, "Parameter must be 0 (off) or 1 (on), as a number or {0} / {1}", "[2]")
+	table.sort(named, function(a, b)
+		return a.value < b.value
+	end)
+	for index, state in ipairs(named) do
+		named[index] = state.name .. " (" .. state.value .. ")"
+	end
+	local message = "Parameter must be one of: " .. table.concat(named, ", ")
+	return function(params, results)
+		local value = params
+		if type(params) == "table" and #params == 1 then
+			value = params[1]
+		end
+		if not allowed[value] then
+			addResult(results, message, "[2]")
+		end
 	end
 end
 
@@ -749,10 +784,6 @@ local validatorsByCommandName = {
 	SELFD = validateNoParams, -- a toggle: a second SELFD cancels the first
 	WAIT = validateNoParams, -- a toggle: a second WAIT cancels the first
 	GATHERWAIT = validateNoParams,
-	-- 0 (off) or 1 (on):
-	CLOAK = validateOnOffParam,
-	ONOFF = validateOnOffParam,
-	REPEAT = validateOnOffParam,
 	-- Wait parameters:
 	TIMEWAIT = validateSeconds,
 	SQUADWAIT = validateSquadSize,
@@ -781,10 +812,10 @@ local validatorsByCommandName = {
 	RESURRECT = validate4orFeatureName,
 	-- 4 number parameters, or either unit or feature name:
 	RECLAIM = validate4orEitherName,
-	-- Single number parameter:
-	FIRE_STATE = validateNumberParam,
-	MOVE_STATE = validateNumberParam,
 }
+for commandName, commandStates in pairs(stateCommands) do
+	validatorsByCommandName[commandName] = getStateValidator(commandStates)
+end
 
 local function validateOrderOptions(options, results)
 	if not options then
@@ -1166,6 +1197,71 @@ local function registerCameraValidators(parameterValidators, context)
 end
 
 --------------------------------------------------------------------------------
+-- Unit filter validators: UnitFilter and UnitFilters
+--------------------------------------------------------------------------------
+
+local function registerUnitFilterValidators(parameterValidators, context)
+	local Types = context.Types
+	local unitFilterFields, exclusiveFields = unitFilterSchema.UnitFilterFields, unitFilterSchema.AtMostOneOf
+
+	local fieldNames = {}
+	for index, field in ipairs(unitFilterFields) do
+		fieldNames[index] = field.name
+	end
+
+	local function validateUnitFilter(unitFilter)
+		local luaTypeResult = validateTableType(unitFilter)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+		-- Only a filter inside a list reaches this as a difficulties table.
+		if context.IsDifficultiesTable(unitFilter) then
+			return {
+				{
+					message = "Unit filter in a list cannot differ by difficulty, give the whole list per difficulty",
+				},
+			}
+		end
+
+		local results = {}
+		local fieldCount = 0
+		for _, field in ipairs(unitFilterFields) do
+			local value = unitFilter[field.name]
+			if context.IsDifficultiesTable(value) then
+				addResult(
+					results,
+					"Unit filter field cannot differ by difficulty, give the whole filter per difficulty",
+					"." .. field.name
+				)
+			elseif value ~= nil then
+				fieldCount = fieldCount + 1
+				appendResults(results, parameterValidators[field.type](value), "." .. field.name)
+			end
+		end
+
+		if fieldCount == 0 and #results == 0 then
+			addResult(results, "Unit filter is empty, give at least one of: " .. quotedList(fieldNames))
+		end
+
+		if countPresent(unitFilter, exclusiveFields) > 1 then
+			addResult(results, "Unit filter takes only one of: " .. quotedList(exclusiveFields))
+		end
+		return results
+	end
+
+	parameterValidators[Types.UnitFilter] = validateUnitFilter
+
+	local validateUnitFilterList = getListValidator(validateUnitFilter)
+	parameterValidators[Types.UnitFilters] = function(unitFilters)
+		local results = validateUnitFilterList(unitFilters)
+		if type(unitFilters) == "table" and not isCompactSequence(unitFilters) then
+			addResult(results, "Expected a list of unit filters without gaps")
+		end
+		return results
+	end
+end
+
+--------------------------------------------------------------------------------
 
 local function createParameterValidators(context)
 	local parameterValidators = {}
@@ -1176,6 +1272,7 @@ local function createParameterValidators(context)
 	registerOrderValidators(parameterValidators, context)
 	registerLoadoutValidators(parameterValidators, context)
 	registerCameraValidators(parameterValidators, context)
+	registerUnitFilterValidators(parameterValidators, context)
 
 	return parameterValidators
 end
