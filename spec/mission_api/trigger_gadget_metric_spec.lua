@@ -213,3 +213,53 @@ describe("mission_api trigger gadget event counting", function()
 		assert.are.equal(1, #fired)
 	end)
 end)
+
+describe("mission_api trigger gadget repeat limit", function()
+	before_each(function()
+		installMissionApi("secondStage")
+		loadGadget()
+	end)
+
+	local function repeatingTrigger(repeating, fired)
+		local trigger = eventTrigger({}, nil, {}, fired)
+		trigger.settings.repeating = repeating
+		return trigger
+	end
+
+	local function fireTimes(trigger, times)
+		for _ = 1, times do
+			activateTrigger(trigger)
+		end
+	end
+
+	it("fires a non-repeating trigger once", function()
+		local fired = {}
+		fireTimes(repeatingTrigger(false, fired), 5)
+
+		assert.are.equal(1, #fired)
+	end)
+
+	it("fires a trigger repeating without limit every time", function()
+		local fired = {}
+		fireTimes(repeatingTrigger(true, fired), 5)
+
+		assert.are.equal(5, #fired)
+	end)
+
+	it("fires a trigger repeating a number of times exactly that many times", function()
+		local fired = {}
+		fireTimes(repeatingTrigger(3, fired), 5)
+
+		assert.are.equal(3, #fired)
+	end)
+
+	-- The limit counts firings, not occurrences, so `count` and a limit combine.
+	it("fires a counted trigger the limited number of times", function()
+		local fired = {}
+		local trigger = eventTrigger({}, 2, {}, fired)
+		trigger.settings.repeating = 2
+		fireTimes(trigger, 8)
+
+		assert.are.equal(2, #fired)
+	end)
+end)

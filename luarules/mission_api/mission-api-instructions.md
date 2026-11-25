@@ -125,10 +125,12 @@ return {
 - Never fire actions yourself. `context.ActivateTrigger(trigger)` enforces the `settings` keys
   `active`, `prerequisites`, `stages`, `repeating`, `count`, and `difficulties` (see Objectives and
   stages, and Difficulty), and returns `false` when the trigger was not eligible: `active`,
-  `prerequisites`, and `stages` can pass later, a fired non-repeating trigger and `difficulties`
-  never will. Record a firing only on `true`, and decide what happens for each kind of refusal.
-- There is no repeat cap: a repeating trigger fires every time, so stop it with prerequisites,
-  stages, or an action.
+  `prerequisites`, and `stages` can pass later, a fired non-repeating trigger, a trigger that has
+  used up its repeats, and `difficulties` never will. Record a firing only on `true`, and decide what
+  happens for each kind of refusal.
+- `repeating = true` fires every time; `repeating = N` fires at most N times in total, counting
+  firings rather than `count` occurrences. Code that checks `not settings.repeating` still works,
+  as a number is truthy.
 - `context` is the only route to shared bookkeeping (`DoesUnitHaveName`, `DwellingUnitsInAreas`,
   `ConstructionState`, `IsBuildFrameOwner`, and more); extend `conditionContext` rather than reach
   into gadget locals or duplicate state per trigger.

@@ -763,8 +763,23 @@ describe("mission_api.validation.sections", function()
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected boolean, got string. Trigger: t, Setting: repeating"
+				"Unexpected parameter type, expected boolean or number, got string. Trigger: t, Setting: repeating"
 			)
+		end)
+
+		it("passes for repeating set to a number of activations", function()
+			V.assertValid(validateSettings({ repeating = 3 }))
+		end)
+
+		it("reports repeating set to a number that is not a whole number above zero", function()
+			for _, repeating in ipairs({ 0, -1, 1.5 }) do
+				V.assertMessage(
+					validateSettings({ repeating = repeating }),
+					"PositiveInteger must be a whole number > 0, got "
+						.. repeating
+						.. ". Trigger: t, Setting: repeating"
+				)
+			end
 		end)
 
 		-- maxRepeats was removed; a mission still using it should fail loudly rather than repeat forever.

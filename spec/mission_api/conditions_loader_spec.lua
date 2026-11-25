@@ -108,7 +108,7 @@ describe("mission_api.conditions_loader", function()
 
 			assert.are.same({
 				prerequisites = ParameterTypes.TriggerIDs,
-				repeating = ParameterTypes.Boolean,
+				repeating = ParameterTypes.Repeating,
 				difficulties = ParameterTypes.Difficulties,
 				coop = ParameterTypes.Boolean,
 				active = ParameterTypes.Boolean,

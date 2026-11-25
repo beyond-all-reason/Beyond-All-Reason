@@ -82,6 +82,9 @@ local types = {
 	-- Number-or-String-or-Table Validators:
 	FacingOrDirection = "FacingOrDirection",
 
+	-- Number-or-Boolean Validators:
+	Repeating = "Repeating",
+
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
 
