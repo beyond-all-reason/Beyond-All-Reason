@@ -122,6 +122,69 @@ local function getDimensions(scale)
 	return dimensions, largest
 end
 
+-- Recoil normalizes spheres, cylinders and very thin ellipsoids when loading a volume.
+-- Work from those effective dimensions so changing Y does not indirectly change X or Z.
+---@param scales string
+---@param volumeType string?
+local function getEffectiveVolumeDimensions(scales, volumeType)
+	local dim = getDimensions(scales) or {}
+	local x = math.max(1, dim[1] or 0)
+	local y = math.max(1, dim[2] or 0)
+	local z = math.max(1, dim[3] or 0)
+	local shape = string.lower(volumeType or "sphere")
+	local kind = shape:sub(1, 1)
+	local axis = kind == "c" and shape:sub(-1) or ""
+	if kind == "c" then
+		if axis == "x" then
+			y = math.max(y, z)
+			z = y
+		elseif axis == "y" then
+			x = math.max(x, z)
+			z = x
+		else
+			axis = "z"
+			x = math.max(x, y)
+			y = x
+		end
+	elseif kind == "e" then
+		if x == y and y == z then
+			kind = "s"
+		else
+			local minScale = math.max(x, y, z) * 0.02
+			x, y, z = math.max(x, minScale), math.max(y, minScale), math.max(z, minScale)
+		end
+	elseif kind ~= "b" then
+		kind = "s"
+		x = math.max(x, y, z)
+		y, z = x, x
+	end
+	return x, y, z, kind, axis
+end
+
+local function matchSelectionVolumeHeight(ud)
+	if not ud.collisionvolumescales or not ud.selectionvolumescales then
+		-- Stock units without explicit volumes already share the engine's model-based default.
+		return
+	end
+
+	local cx, y, cz = getEffectiveVolumeDimensions(ud.collisionvolumescales, ud.collisionvolumetype)
+	local x, oldY, z, kind, axis =
+		getEffectiveVolumeDimensions(ud.selectionvolumescales, ud.selectionvolumetype or ud.collisionvolumetype)
+	if oldY == y or (cx == 1 and y == 1 and cz == 1) or (x == 1 and oldY == 1 and z == 1) then
+		return
+	end
+
+	-- Keep spheres and horizontal cylinders unchanged: Recoil links their Y scale to X or Z.
+	if kind == "s" or axis == "x" or axis == "z" then
+		return
+	end
+	-- Recoil turns equal-axis ellipsoids into spheres and expands excessively thin ones.
+	if kind == "e" and ((x == y and y == z) or math.min(x, y, z) < math.max(x, y, z) * 0.02) then
+		return
+	end
+	ud.selectionvolumescales = x .. " " .. y .. " " .. z
+end
+
 local function enlargeSelectionVolumes()
 	local VISUALIZE_SELECTION_VOLUME = false
 	local CYL_SCALE = 1.1
@@ -192,6 +255,8 @@ local function enlargeSelectionVolumes()
 		else
 			ud.customparams.lua_selection_scale = scale -- Scale default colVol units in lua, where we can read their model radius.
 		end
+
+		matchSelectionVolumeHeight(ud)
 
 		if VISUALIZE_SELECTION_VOLUME then
 			if ud.selectionvolumescales then
