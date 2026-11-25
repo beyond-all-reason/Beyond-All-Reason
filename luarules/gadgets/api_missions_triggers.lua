@@ -256,6 +256,10 @@ end
 ----------------------------------------------------------------
 
 local function isFeatureInArea(featureID, area)
+	area = GG["MissionAPI"].Modules.Areas.ResolveArea(area) -- FIXME I AM GARBAGE AHH
+	if area == nil then
+		return false
+	end
 	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
 	return math.isPointInArea(featureX, featureZ, area)
 end

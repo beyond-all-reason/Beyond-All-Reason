@@ -102,7 +102,7 @@ end
 ---@class MissionDeathWaitInArea : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
 ---@field targetIDs table<integer, true>
----@field targetArea table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
+---@field targetArea table|string a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }, or an area name
 
 ---@class MissionDeathWaitOnUnitName : MissionWaitBase
 ---@field code 2 CMD.WAITCODE_DEATH
@@ -239,7 +239,8 @@ local function getExecutableOrders(orders, newWaits, unitDefID)
 end
 
 local function getDeathWaitTargets(wait, unitOrders)
-	local unitIDs = GG.MissionAPI.Modules.AreaTracking.GetUnitsInArea(wait.targetArea)
+	local area = GG.MissionAPI.Modules.Areas.ResolveArea(wait.targetArea)
+	local unitIDs = area and GG.MissionAPI.Modules.AreaTracking.GetUnitsInArea(area) or {}
 	local allyTeam = wait.allyTeam
 	local targetIDs = {}
 	-- Pick the same targets that a player-issued deathwait would.

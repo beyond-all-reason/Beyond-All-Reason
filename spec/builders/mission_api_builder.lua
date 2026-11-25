@@ -6,6 +6,7 @@ local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 local TRACKING_PATH = "luarules/mission_api/tracking.lua"
 local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
+local AREAS_PATH = "luarules/mission_api/areas.lua"
 local DIFFICULTIES_PATH = "luarules/mission_api/difficulties.json"
 
 local LOWEST_DIFFICULTY = table.reduce(Json.decode(VFS.LoadFile(DIFFICULTIES_PATH)), function(lowest, difficulty)
@@ -25,6 +26,7 @@ end, math.huge)
 ---@field trackedFeatureNames table<number, table<string, boolean>>
 ---@field markerNames table
 ---@field lineNames table<string, table[]>
+---@field areaNames table<string, table>
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
 ---@field Countdowns table<string, MissionCountdown>
@@ -485,6 +487,7 @@ function MB:Build(installed)
 		trackedFeatureNames = trackedFeatureNames,
 		markerNames = self.markerNames,
 		lineNames = self.lineNames,
+		areaNames = {},
 		soundFiles = self.soundFiles,
 		soundQueue = self.soundQueue,
 		Countdowns = self.countdowns,
@@ -572,6 +575,7 @@ local installedTable = nil
 
 ---The real modules, included once per env and kept, as the gadget includes them once.
 local unitQueryModules = {}
+local areasModules = {}
 
 ---Build the mock and install it as GG['MissionAPI'].
 ---@param env table? A SpecEnv to load the real modules into, so they read its globals.
@@ -601,6 +605,11 @@ function MB:Install(env)
 		local scope = env or _G
 		unitQueryModules[scope] = unitQueryModules[scope] or scope.VFS.Include(UNIT_QUERY_PATH)
 		target.Modules.UnitQuery = unitQueryModules[scope]
+	end
+	if not self.moduleOverrides.Areas then
+		local scope = env or _G
+		areasModules[scope] = areasModules[scope] or scope.VFS.Include(AREAS_PATH)
+		target.Modules.Areas = areasModules[scope]
 	end
 
 	return target

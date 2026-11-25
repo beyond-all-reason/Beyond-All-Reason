@@ -2,6 +2,9 @@
 --- Tracks units entering and leaving locations, defined by area parameters.
 --- Adds support for callbacks to act on units as they enter and leave areas.
 ---
+--- An area can be references by a name. Each update then reads its current shape.
+--- A name with no area cannot hold any units so effects and actions will ignore it.
+---
 --- Provides: onUnitsEntered, onUnitsLeft, onUnitsUpdated.
 --- When a tracker is started, it calls onUnitsEntered on all units within the area, before it returns.
 --- When a tracker is stopped, it calls onUnitsLeft on all units it had been tracking.
@@ -16,6 +19,10 @@ local table_keys = table.keys
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
+local areaNames = GG.MissionAPI.areaNames
+
+local EMPTY = {}
+
 ---@class AreaTracker
 ---@field trackedArea TrackedArea
 ---@field unitIDs table<integer, true> the snapshot this tracker was last delivered
@@ -26,7 +33,8 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
 ---@class TrackedArea
 ---@field key string
----@field area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
+---@field area table? a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
+---@field areaName string?
 ---@field teamID integer?
 ---@field unitIDs table<integer, true> the units inside at the last update
 ---@field trackers table<integer, AreaTracker?>
@@ -38,7 +46,9 @@ local trackerCount = 0
 
 local function getAreaKey(area, teamID)
 	local teamKey = teamID or "all"
-	if area.x1 then
+	if type(area) == "string" then
+		return "name:" .. area .. ":" .. teamKey
+	elseif area.x1 then
 		return "rectangle:" .. area.x1 .. ":" .. area.z1 .. ":" .. area.x2 .. ":" .. area.z2 .. ":" .. teamKey
 	end
 	return "circle:" .. area.x .. ":" .. area.z .. ":" .. area.radius .. ":" .. teamKey
@@ -57,7 +67,8 @@ end
 -- A callback may add or remove trackers, and always skips any trackers that have been stopped.
 -- The snapshot this builds is replaced before invocations, so any added callbacks also get it.
 local function updateTrackedArea(trackedArea)
-	local unitIDs = getUnitsInArea(trackedArea.area, trackedArea.teamID)
+	local area = trackedArea.area or areaNames[trackedArea.areaName]
+	local unitIDs = area and getUnitsInArea(area, trackedArea.teamID) or EMPTY
 	local insideNow = {}
 	for i = 1, #unitIDs do
 		insideNow[unitIDs[i]] = true
@@ -103,7 +114,7 @@ local function updateTrackedArea(trackedArea)
 	end
 end
 
----@param area table a rectangle { x1, z1, x2, z2 } or circle { x, z, radius }
+---@param area table|string a rectangle { x1, z1, x2, z2 }, circle { x, z, radius }, or an area name
 ---@param teamID integer? only this team's units
 ---@param owner any? defaults to the trackingID
 ---@param onUnitsEntered fun(unitIDs: integer[], owner: any)
@@ -118,7 +129,16 @@ local function trackUnitsInArea(area, teamID, owner, onUnitsEntered, onUnitsLeft
 	local trackedArea = trackedAreas[key]
 	local isNewArea = trackedArea == nil
 	if isNewArea then
-		trackedArea = { key = key, area = area, teamID = teamID, unitIDs = {}, trackers = {}, updatedList = {} }
+		local isAreaName = type(area) == "string"
+		trackedArea = {
+			key = key,
+			area = not isAreaName and area or nil,
+			areaName = isAreaName and area or nil,
+			teamID = teamID,
+			unitIDs = {},
+			trackers = {},
+			updatedList = {},
+		}
 		trackedAreas[key] = trackedArea
 	end
 	---@cast trackedArea -nil
