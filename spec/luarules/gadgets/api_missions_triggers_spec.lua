@@ -68,14 +68,17 @@ env.BAR = { Utilities = MissionSpecEnv.include(env, "common/springUtilities/faci
 describe("api_missions_triggers loadout names", function()
 	local missionApi, loadout ---@type table, table
 
-	local function unitsOwned(unitName, quantity)
+	local function unitsOwned(unitName, atLeast)
 		return {
 			type = UNITS_OWNED,
-			parameters = { teamName = 0, unitName = unitName, quantity = quantity },
+			parameters = { teamName = 0, unitName = unitName },
+			atLeast = atLeast,
 			settings = { active = true, prerequisites = {}, stages = {}, repeating = true },
 			actions = {},
 			triggered = false,
 			repeatCount = 0,
+			occurrences = 0,
+			metricSatisfied = false,
 		}
 	end
 
@@ -93,7 +96,11 @@ describe("api_missions_triggers loadout names", function()
 
 	before_each(function()
 		missionApi = MissionApiBuilder.new()
-			:WithConditionDefinitions({ Types = { UnitsOwned = UNITS_OWNED }, Callins = {} })
+			:WithConditionDefinitions({
+				Types = { UnitsOwned = UNITS_OWNED },
+				Kinds = { [UNITS_OWNED] = "metric" },
+				Callins = {},
+			})
 			:WithActionDefinitions({ Functions = {}, Parameters = {} })
 			:WithTrigger("oneOutpost", unitsOwned("outpost", 1))
 			:WithTrigger("twoOutposts", unitsOwned("outpost", 2))

@@ -28,7 +28,7 @@ local triggers = {
 	giftReceived = {
 		type = conditionTypes.UnitReceived,
 		parameters = {
-			unitName = 'gift',
+			includeUnit = { unitName = 'gift' },
 			oldTeamName = 'enemy',
 			newTeamName = 'player',
 			ignoreMissionActions = false,
@@ -40,7 +40,7 @@ local triggers = {
 	giftReceivedByDefault = {
 		type = conditionTypes.UnitReceived,
 		parameters = {
-			unitName = 'gift',
+			includeUnit = { unitName = 'gift' },
 		},
 		actions = { 'messageGiftReceivedByDefault' },
 	},
@@ -49,7 +49,7 @@ local triggers = {
 	giftCaptured = {
 		type = conditionTypes.UnitCaptured,
 		parameters = {
-			unitName = 'gift',
+			includeUnit = { unitName = 'gift' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageGiftCaptured' },
@@ -58,7 +58,7 @@ local triggers = {
 	spoilsCaptured = {
 		type = conditionTypes.UnitCaptured,
 		parameters = {
-			unitName = 'spoils',
+			includeUnit = { unitName = 'spoils' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageSpoilsCaptured' },
@@ -68,7 +68,7 @@ local triggers = {
 	spoilsReceived = {
 		type = conditionTypes.UnitReceived,
 		parameters = {
-			unitName = 'spoils',
+			includeUnit = { unitName = 'spoils' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageSpoilsReceived' },
@@ -77,7 +77,7 @@ local triggers = {
 	prizeCaptured = {
 		type = conditionTypes.UnitCaptured,
 		parameters = {
-			unitName = 'prize',
+			includeUnit = { unitName = 'prize' },
 		},
 		actions = { 'messagePrizeCaptured' },
 	},
@@ -86,7 +86,7 @@ local triggers = {
 	prizeReceived = {
 		type = conditionTypes.UnitReceived,
 		parameters = {
-			unitName = 'prize',
+			includeUnit = { unitName = 'prize' },
 		},
 		actions = { 'messagePrizeReceived' },
 	},
@@ -95,7 +95,7 @@ local triggers = {
 	windShared = {
 		type = conditionTypes.UnitReceived,
 		parameters = {
-			unitDefName = 'armwin',
+			includeUnit = { unitDefName = 'armwin' },
 			newTeamName = 'player',
 		},
 		actions = { 'messageWindShared' },

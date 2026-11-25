@@ -55,7 +55,6 @@ local triggers = {
 		type = conditionTypes.TotalUnitsKilled,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilled' },
 	},
@@ -65,7 +64,6 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'enemyBot',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilledNamed' },
 	},
@@ -75,7 +73,6 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'enemyScout',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsKilledAlias' },
 	},
@@ -84,7 +81,6 @@ local triggers = {
 		type = conditionTypes.TotalUnitsLost,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLost' },
 	},
@@ -94,7 +90,6 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLostNamed' },
 	},
@@ -104,7 +99,6 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyAce',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsLostAlias' },
 	},
@@ -113,7 +107,6 @@ local triggers = {
 		type = conditionTypes.TotalUnitsCaptured,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCaptured' },
 	},
@@ -123,7 +116,6 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'capturableSolar',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCapturedNamed' },
 	},
@@ -134,7 +126,6 @@ local triggers = {
 			teamName = 'player',
 			unitDefName = 'armsolar',
 			unitName = 'capturePrize',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsCapturedNamedByDef' },
 	},
@@ -143,7 +134,6 @@ local triggers = {
 		type = conditionTypes.TotalUnitsBuilt,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
 		actions = { 'messageTotalUnitsBuilt' },
 	},
@@ -154,8 +144,8 @@ local triggers = {
 		type = conditionTypes.UnitsOwned,
 		parameters = {
 			teamName = 'player',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwned' },
 	},
 
@@ -164,8 +154,8 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwnedByName' },
 	},
 
@@ -174,8 +164,8 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armck',
-			quantity = 4,
 		},
+		atLeast = 4,
 		actions = { 'messageUnitsOwnedByDef' },
 	},
 
@@ -190,8 +180,8 @@ local triggers = {
 		parameters = {
 			teamName = 'player',
 			unitDefName = 'armck',
-			quantity = 2,
 		},
+		atLeast = 2,
 		actions = { 'messageUnitsOwnedByDefRepeating' },
 	},
 
@@ -201,8 +191,8 @@ local triggers = {
 			teamName = 'player',
 			unitName = 'friendlyBot',
 			unitDefName = 'armwar',
-			quantity = 1,
 		},
+		atLeast = 1,
 		actions = { 'messageUnitsOwnedByNameAndDef' },
 	},
 }

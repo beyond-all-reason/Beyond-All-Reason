@@ -70,6 +70,13 @@ local function fmtNumber(n)
 	if n == floor(n) and n > -1e15 and n < 1e15 then
 		return format("%d", n)
 	end
+	-- Fewest decimals that read back as the same number: the engine's %g cuts small ones short
+	for decimals = 1, 12 do
+		local text = format("%." .. decimals .. "f", n)
+		if tonumber(text) == n then
+			return text
+		end
+	end
 	return format("%.7g", n)
 end
 MapExport.fmtNumber = fmtNumber

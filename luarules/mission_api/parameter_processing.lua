@@ -11,6 +11,7 @@ local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local conditionsSchemaParameters = GG["MissionAPI"].ConditionDefinitions.Parameters
 local unitEntryFields = VFS.Include("luarules/mission_api/loadout_schema.lua").UnitEntryFields
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 local teams = GG["MissionAPI"].Teams
 local alliances = GG["MissionAPI"].Alliances
 
@@ -82,6 +83,17 @@ local function processAllianceNames(allianceNames)
 	return allyTeamIDs
 end
 
+local function processUnitDefNames(unitDefNames)
+	if type(unitDefNames) == "string" then
+		unitDefNames = { unitDefNames }
+	end
+	local unitDefIDs = {}
+	for _, unitDefName in ipairs(unitDefNames) do
+		unitDefIDs[UnitDefNames[unitDefName].id] = true
+	end
+	return unitDefIDs
+end
+
 local processParameter ---@type function
 
 local function processUnitLoadout(unitLoadout)
@@ -91,6 +103,20 @@ local function processUnitLoadout(unitLoadout)
 				processParameter(unit, field)
 			end
 		end
+	end
+end
+
+local function processUnitFilter(unitFilter)
+	for _, field in ipairs(unitFilterFields) do
+		if internalTypes[field.type] then
+			processParameter(unitFilter, field)
+		end
+	end
+end
+
+local function processUnitFilters(unitFilters)
+	for _, unitFilter in ipairs(unitFilters) do
+		processUnitFilter(unitFilter)
 	end
 end
 
@@ -132,9 +158,12 @@ local processors = {
 	[ParameterTypes.TeamName] = processTeamName,
 	[ParameterTypes.AllianceName] = processAllianceName,
 	[ParameterTypes.AllianceNames] = processAllianceNames,
+	[ParameterTypes.UnitDefNames] = processUnitDefNames,
 	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 	[ParameterTypes.Color] = processColor,
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
+	[ParameterTypes.UnitFilter] = processUnitFilter,
+	[ParameterTypes.UnitFilters] = processUnitFilters,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet
@@ -193,18 +222,9 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, conditionsSchemaParameters)
 end
 
-local function processManagedObjectiveParameters(managedObjectives)
-	for conditionType, objectives in pairs(managedObjectives) do
-		for _, objective in ipairs(objectives) do
-			processSchemaParameters(objective.parameters, conditionsSchemaParameters[conditionType])
-		end
-	end
-end
-
 return {
 	ProcessValue = processValue,
 	ProcessParameter = processParameter,
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
-	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 }

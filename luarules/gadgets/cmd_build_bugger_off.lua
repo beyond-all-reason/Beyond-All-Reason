@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local math_abs = math.abs
-local math_max = math.max
+local math_floor = math.floor
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
 
@@ -33,6 +33,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local spPos2BuildPos = Spring.Pos2BuildPos
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spDestroyUnit = Spring.DestroyUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -40,11 +41,20 @@ local spTestMoveOrder = Spring.TestMoveOrder
 
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
+local squareSize = Game.squareSize
 
 local CMD_GUARD = CMD.GUARD
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
 local insertMoveParams = { 0, CMD.MOVE, CMD.OPT_INTERNAL, 0, 0, 0 }
+
+local isStateCommand = {}
+for commandName in pairs(VFS.Include("common/stateCommands.lua")) do
+	local commandID = CMD[commandName] or GameCMD[commandName]
+	if commandID then
+		isStateCommand[commandID] = true
+	end
+end
 
 local cachedUnitDefs = {}
 local unitSpeedMax = 0
@@ -61,8 +71,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			and unitDef.customParams.subfolder ~= "other/hats",
 		isBuilder = unitDef.isBuilder,
 		radius = unitDef.radius,
-		semiAxisX = unitDef.xsize * footprint * 0.5,
-		semiAxisZ = unitDef.zsize * footprint * 0.5,
+		xsizeBuild = unitDef.xsize,
+		zsizeBuild = unitDef.zsize,
+		xsizeMobile = unitDef.moveDef.xsize or unitDef.xsize,
+		zsizeMobile = unitDef.moveDef.zsize or unitDef.zsize,
 	}
 end
 
@@ -76,8 +88,6 @@ local needsUpdate = false
 local areaCommandCooldown = {}
 
 local FAST_UPDATE_RADIUS = 400
--- builders take about this much to enter build stance; determined empirically
-local BUILDER_DELAY_SECONDS = 3.3
 local BUILDER_BUILD_RADIUS = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
 -- Assume the units are super-fast and medium-sized.
 local SEARCH_RADIUS_OFFSET = unitSpeedMax + 2 * footprint
@@ -99,33 +109,18 @@ local PATH_CLEAR_SEARCH_EXTRA = 3 * footprint
 local PATH_CLEAR_FORWARD_EXTRA = 2 * footprint
 local PATH_CLEAR_LATERAL_EXTRA = footprint
 
-local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
-	local sx = ux - tx
-	local sz = uz - tz
+local function doesFootprintOverlap(x, z, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
+	local x1 = math_floor(x / squareSize) - math_floor(xsize / 2)
+	local z1 = math_floor(z / squareSize) - math_floor(zsize / 2)
+	return x1 < buildX2 and buildX1 < x1 + xsize and z1 < buildZ2 and buildZ1 < z1 + zsize
+end
 
-	-- If unit starts in area, allow to leave quickly; else, check over a long period.
-	local seconds = math_diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
-	local dx = ux + vx * seconds - tx
-	local dz = uz + vz * seconds - tz
-
-	if math_diag(dx, dz) <= maxDistance then
-		-- Unit ends within the area after `seconds`.
+local function willBeNearTarget(ux, uz, vx, vz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
+	if doesFootprintOverlap(ux, uz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2) then
 		return true
 	end
-
-	local ix = tx - ux
-	local iz = tz - uz
-
-	if math_diag(ix, iz) > maxDistance then
-		-- The unit starts within the area but does not end in it.
-		return false
-	else
-		-- Check whether or not the unit passes through the area.
-		local a = vx * vx + vz * vz
-		local b = (ix * vx + iz * vz) * 2
-		local c = ix * ix + iz * iz - maxDistance * maxDistance
-		return b * b - 4 * a * c >= 0
-	end
+	local frames = 2.25 * BUGGEROFF_LOOKAHEAD
+	return doesFootprintOverlap(ux + vx * frames, uz + vz * frames, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
 end
 
 local function isInTargetArea(unitID, x, z, radius)
@@ -259,7 +254,7 @@ function gadget:GameFrame(frame)
 	local deferSlowCount = 0
 
 	for builderID, _ in pairs(watchedBuilders) do
-		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
+		local cmdID, _, _, targetX, targetY, targetZ, targetFacing = spGetUnitCurrentCommand(builderID, 1)
 		local isBuilding = spGetUnitIsBuilding(builderID) ~= nil
 		local x, y, z = spGetUnitPosition(builderID)
 		local builderTeam = spGetUnitTeam(builderID)
@@ -315,6 +310,17 @@ function gadget:GameFrame(frame)
 				local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
 				local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
+				local buildXsize, buildZsize = buildUnitDefData.xsizeBuild, buildUnitDefData.zsizeBuild
+				if targetFacing and targetFacing % 2 == 1 then
+					buildXsize, buildZsize = buildZsize, buildXsize
+				end
+				local buildX, _, buildZ = spPos2BuildPos(-cmdID, targetX, targetY, targetZ, targetFacing)
+				local buggerOffSquares = math_floor(builderRadiusOffsets[builderID] / squareSize)
+				local buildX1 = math_floor(buildX / squareSize) - math_floor(buildXsize / 2) - buggerOffSquares
+				local buildZ1 = math_floor(buildZ / squareSize) - math_floor(buildZsize / 2) - buggerOffSquares
+				local buildX2 = buildX1 + buildXsize + 2 * buggerOffSquares
+				local buildZ2 = buildZ1 + buildZsize + 2 * buggerOffSquares
+
 				-- Make sure at least one builder per player is never told to move
 				if visitedTeams[builderTeam] == nil then
 					visitedTeams[builderTeam] = true
@@ -333,9 +339,20 @@ function gadget:GameFrame(frame)
 							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
 							if speedX then
 								local unitRadius = unitDefData.radius
-								local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
-
-								if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+								if
+									willBeNearTarget(
+										unitX,
+										unitZ,
+										speedX,
+										speedZ,
+										unitDefData.xsizeMobile,
+										unitDefData.zsizeMobile,
+										buildX1,
+										buildZ1,
+										buildX2,
+										buildZ2
+									)
+								then
 									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
 									local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
 									local sendX, sendZ =
@@ -469,6 +486,9 @@ function gadget:UnitCommand(
 	fromSynced,
 	fromLua
 )
+	if isStateCommand[cmdID] then
+		return
+	end
 	if cachedUnitDefs[unitDefID].isBuilder then
 		-- Throttle area command processing to avoid performance spikes with many builders
 		if cmdID < 0 then -- Build command

@@ -28,9 +28,7 @@ return {
 		yardmap = "h cbbbbbbc bssssssb bsssossb bsobbssb bssbbosb bssosssb bssssssb cbbbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 7.7,
-			buildinggrounddecalsizey = 7.7,
-			buildinggrounddecaltype = "decals/leganavalmex_aoplane.dds",
+			buildinggrounddecaltype = "decals/leganavalmex_7_7_aoplane.png",
 			cvbuildable = true,
 			metal_extractor = 4,
 			standardextractor = true,

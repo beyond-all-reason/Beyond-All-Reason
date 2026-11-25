@@ -110,6 +110,19 @@ local function archiveTable(fs, rel)
 end
 
 describe("map_export", function()
+	describe("fmtNumber", function()
+		it("writes numbers that read back the same", function()
+			for _, v in ipairs({ 0.02, 96.125, 0.015625, 0.000123456789, -1234.5 }) do
+				assert.are.equal(v, tonumber(MapExport.fmtNumber(v)))
+			end
+		end)
+
+		it("keeps short numbers short", function()
+			assert.are.equal("0.02", MapExport.fmtNumber(0.02))
+			assert.are.equal("96", MapExport.fmtNumber(96))
+		end)
+	end)
+
 	describe("serialize", function()
 		it("round-trips through loadTable with sorted keys", function()
 			local value = { b = 1, a = { 1, 2.5, "x" }, ["not ok"] = true, [0] = { z = -3 } }
