@@ -1245,8 +1245,8 @@ else -- UNSYNCED
 					p = p .. ".wav"
 				end
 				-- 0.7 = old fixed volume
-				local v = math.max(0, math.min(tonumber(vol) or 0.7, 1.0))
-				Spring.PlaySoundFile(p, v, "ui")
+				local volume = math.clamp(tonumber(vol) or 0.7, 0, 1.0)
+				Spring.PlaySoundFile(p, volume, "ui")
 			end
 			if text and text ~= "" then
 				local color = MODBROADCAST_COLORS[colorKey] or MODBROADCAST_COLORS.white
