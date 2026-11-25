@@ -20,7 +20,8 @@ end
 local math_abs = math.abs
 local math_floor = math.floor
 local math_diag = math.diag
-local math_pointOnCircle = math.closestPointOnCircle
+local math_max = math.max
+local math_min = math.min
 
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitStates = Spring.GetUnitStates
@@ -131,6 +132,26 @@ local function isInTargetArea(unitID, x, z, radius)
 		return false
 	end
 	return math_diag(ux - x, uz - z) <= radius
+end
+
+local function getPositionAwayFromSite(x, z, xsize, zsize, radius, buildX1, buildZ1, buildX2, buildZ2)
+	local centerX = (buildX1 + buildX2) * 0.5 * squareSize
+	local centerZ = (buildZ1 + buildZ2) * 0.5 * squareSize
+
+	-- Units can stop up to a square short of their move goal.
+	local halfX = ((buildX2 - buildX1 + xsize) * 0.5 + 1) * squareSize
+	local halfZ = ((buildZ2 - buildZ1 + zsize) * 0.5 + 1) * squareSize
+
+	local dx, dz = x - centerX, z - centerZ
+	local length = math_diag(dx, dz)
+	if length == 0 then
+		dx, dz, length = 1, 0, 1
+	end
+	dx, dz = dx / length, dz / length
+
+	local distanceFootprint = math_min(halfX / math_abs(dx), halfZ / math_abs(dz))
+	local distance = math_max(radius, distanceFootprint)
+	return centerX + dx * distance, centerZ + dz * distance
 end
 
 local function IsUnitRepeatOn(unitID)
@@ -347,15 +368,15 @@ function gadget:GameFrame(frame)
 						if unitX then
 							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
 							if speedX then
-								local unitRadius = unitDefData.radius
+								local unitXsize, unitZsize = unitDefData.xsizeMobile, unitDefData.zsizeMobile
 								if
 									willBeNearTarget(
 										unitX,
 										unitZ,
 										speedX,
 										speedZ,
-										unitDefData.xsizeMobile,
-										unitDefData.zsizeMobile,
+										unitXsize,
+										unitZsize,
 										buildX1,
 										buildZ1,
 										buildX2,
@@ -364,8 +385,17 @@ function gadget:GameFrame(frame)
 								then
 									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
 									local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-									local sendX, sendZ =
-										math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+									local sendX, sendZ = getPositionAwayFromSite(
+										predX,
+										predZ,
+										unitXsize,
+										unitZsize,
+										buggerOffRadius + unitDefData.radius,
+										buildX1,
+										buildZ1,
+										buildX2,
+										buildZ2
+									)
 
 									if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
 										moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
