@@ -1,9 +1,9 @@
 return {
-	name = "Beyond All Reason",
-	description = "Beyond All Reason",
-	shortName = "BYAR", -- 'BAR' is used by original bar project still
-	version = "$VERSION",
-	mutator = "Official",
+	name = "BAR Zombie Defense",
+	description = "Beyond All Reason Fork — Autonomous Military RTT vs Continuous Zombie Horde with Air Support & GL4 Tactical Laser Sights",
+	shortName = "BARZ",
+	version = "0.1",
+	mutator = "ZombieDefense",
 	game = "Beyond All Reason",
 	shortGame = "BYAR",
 	modtype = 1,

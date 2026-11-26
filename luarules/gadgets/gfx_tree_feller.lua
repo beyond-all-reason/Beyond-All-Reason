@@ -133,14 +133,14 @@ if gadgetHandler:IsSyncedCode() then
 	local maxFallFrames = 120
 	-- Hard cap on total lifetime from death frame to removal. Prevents any tree
 	-- (fire or non-fire) from persisting on the ground for an unreasonably long time.
-	local maxLifetimeFrames = 500
+	local maxLifetimeFrames = 3600
 	-- How long (frames) a burning tree takes to char from intact to (near) full
 	-- charcoal black. Drives the per-feature health fraction that the CUS GL4 tree
 	-- shader reads to darken the bark and add ember glow.
 	local charFrames = 180.0
 	local treeFireFadeFrames = 100
 	local treeFireExtinguishFrames = 130
-	local postFireGroundFrames = 100
+	local postFireGroundFrames = 2700
 	local treeSinkStartFrames = treeFireExtinguishFrames + postFireGroundFrames
 	local treeFireLifeMultBase = 2.0
 	local treeFireLifeRandFrac = 0.4
