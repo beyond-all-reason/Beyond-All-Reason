@@ -7,7 +7,8 @@ local MAX_CASCADE_ROUNDS = 100
 
 local inBatch = false
 local deferredCount = 0
-local deferredCalls, deferredFirstArguments, deferredSecondArguments = {}, {}, {}
+local deferredCalls = {} ---@type table<integer, function>
+local deferredFirstArguments, deferredSecondArguments = {}, {}
 local deferredThirdArguments, deferredFourthArguments = {}, {}
 local deferredSubjects = {}
 
@@ -40,11 +41,13 @@ local function runDeferredCalls()
 		-- What this round's calls defer runs in the next round.
 		local last = deferredCount
 		for i = first, last do
-			local call, a, b = deferredCalls[i], deferredFirstArguments[i], deferredSecondArguments[i]
+			local call = deferredCalls[i]
+			deferredCalls[i] = nil
+			-- PERF: This is faster and lighter than variadic args. We have no fifth argument to pass.
+			local a, b = deferredFirstArguments[i], deferredSecondArguments[i]
+			deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil
 			local c, d = deferredThirdArguments[i], deferredFourthArguments[i]
-			deferredCalls[i], deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil, nil
 			deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
-			---@cast call function
 			logFailure(pcall(call, a, b, c, d))
 		end
 		first = last + 1
