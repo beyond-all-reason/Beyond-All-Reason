@@ -1086,7 +1086,7 @@
 				},
 				{
 					"keyset": "Ctrl+sc_g",
-					"action": "factoryguard 1"
+					"action": "factoryguard 4"
 				},
 				{
 					"keyset": "Alt+sc_o",
@@ -2302,7 +2302,7 @@
 				},
 				{
 					"keyset": "Ctrl+sc_g",
-					"action": "factoryguard 1"
+					"action": "factoryguard 4"
 				},
 				{
 					"keyset": "Alt+sc_o",
