@@ -52,9 +52,10 @@ local function loadGadget(options, world)
 			end,
 		},
 		["luarules/mission_api/actions_loader.lua"] = { LoadActionDefinitions = noop, ProcessRawActions = noop },
-		["luarules/mission_api/triggers_loader.lua"] = {
-			LoadTriggerDefinitions = function()
+		["luarules/mission_api/conditions_loader.lua"] = {
+			LoadConditionDefinitions = function()
 				crashes("definitions")
+				return { Types = {} }
 			end,
 			ProcessRawTriggers = noop,
 		},
@@ -84,8 +85,9 @@ local function loadGadget(options, world)
 				SpawnFeatureLoadout = noop,
 			}
 		end,
-		["luarules/mission_api/objectives.lua"] = { ActivateStage = noop },
+		["luarules/mission_api/stages.lua"] = { SetInitialStage = noop, ActivateStage = noop, GetCurrentStageID = noop },
 		["luarules/mission_api/orders.lua"] = { UpdateWaits = noop, OnUnitFromFactory = noop },
+		["luarules/mission_api/marching.lua"] = { UpdateSpeeds = noop },
 		["luarules/mission_api/sounds.lua"] = { ProcessSoundQueue = noop },
 		["luarules/mission_api/area_tracking.lua"] = { UpdateTrackedAreas = noop },
 		["luarules/mission_api/parameter_types.lua"] = { Types = { EffectType = "EffectType" }, Enums = {} },

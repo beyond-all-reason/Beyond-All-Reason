@@ -2,13 +2,13 @@
 --- Test mission demonstrating UnitLoadout and FeatureLoadout.
 ---
 
-local triggerTypes   = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes   = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes    = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	intro = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 0,
 		},
@@ -16,7 +16,7 @@ local triggers = {
 	},
 
 	movePlayerCon = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -24,7 +24,7 @@ local triggers = {
 	},
 
 	destroyWreck = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 4,
 		},
@@ -32,7 +32,7 @@ local triggers = {
 	},
 
 	spawnReinforcements = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 7,
 		},
@@ -40,7 +40,7 @@ local triggers = {
 	},
 
 	actOnReinforcements = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -48,7 +48,7 @@ local triggers = {
 	},
 
 	victory = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -166,6 +166,14 @@ local actions = {
 }
 
 local unitLoadout    = {
+	-- Enemy team (team 1): stands next to the player's con without moving or firing.
+	{ unitDefName = 'corak', position = { x = 1650, z = 1850 }, facing = 'e', teamName = 'enemy',
+	  orders = {
+	    { CMD.MOVE_STATE, { CMD.MOVESTATE_HOLDPOS }, {} },
+	    { CMD.FIRE_STATE, { CMD.FIRESTATE_HOLDFIRE }, {} },
+	  },
+	},
+
 	-- Player team (team 0).
 	{ unitDefName = 'armck', position = { x = 1780, z = 1850 }, orientation = 'e', teamName = 'player', unitName = 'player-con' },
 	{ unitDefName = 'corck', position = { x = 1780, z = 1800 }, orientation = 'e', teamName = 'player',

@@ -1,5 +1,5 @@
 ---
---- Flattens an action/trigger definition into one comparable table, so specs can
+--- Flattens an action/condition definition into one comparable table, so specs can
 --- assert a whole schema in a single `assert.are.same`. A trailing '!' marks a
 --- required parameter.
 ---

@@ -34,6 +34,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
+			restrictions_inclusion = "_nosea_",
 			subfolder = "Legion/SeaDefenses",
 			unitgroup = "sub",
 			-- usebuildinggrounddecal = true,

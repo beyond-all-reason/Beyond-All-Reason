@@ -3,6 +3,7 @@
 ---
 
 local V = require("mission_api.validation.validation_spec_helper")
+local lfs = require("lfs")
 
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
@@ -58,6 +59,18 @@ local function mockCommands()
 	V.env.CMD.a = "ANY"
 	V.env.CMD.BUILD = "b"
 	V.env.CMD.b = "BUILD"
+	-- The state values mission files name.
+	for name, value in pairs({
+		MOVESTATE_HOLDPOS = 0,
+		MOVESTATE_MANEUVER = 1,
+		MOVESTATE_ROAM = 2,
+		FIRESTATE_HOLDFIRE = 0,
+		FIRESTATE_RETURNFIRE = 1,
+		FIRESTATE_FIREATWILL = 2,
+		FIRESTATE_FIREATNEUTRAL = 3,
+	}) do
+		V.env.CMD[name] = value
+	end
 	V.env.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = "AREA_ATTACK_GROUND" }
 end
 
@@ -84,15 +97,13 @@ V.env.VFS.UnpackU32 = V.env.VFS.UnpackU32
 	end
 
 local function getMissionFileNames()
-	local handle = io.popen("ls " .. missionDirectory)
 	local fileNames = {}
-	for fileName in handle:lines() do
-		---@cast fileName string
+	for fileName in lfs.dir(missionDirectory) do
 		if fileName:match("%.lua$") then
 			fileNames[#fileNames + 1] = fileName
 		end
 	end
-	handle:close()
+	table.sort(fileNames)
 	return fileNames
 end
 
@@ -100,7 +111,7 @@ local function validateMissionFile(fileName)
 	-- Mission files read the definitions from GG when they are included.
 	MissionApiBuilder.new()
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
-		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
+		:WithConditionDefinitions(V.definitions.ConditionDefinitions)
 		:Install()
 	-- As for a mission started with no options in its startscript.
 	GG["MissionAPI"].Options = {}

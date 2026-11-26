@@ -19,7 +19,7 @@ local function buildTarget(unitName, position, offset, relativeToHeading)
 	end
 
 	-- LuaUI only knows where units in LOS are, so it starts from where synced sees them.
-	local unitIDs = GG["MissionAPI"].Modules.UnitQuery.MatchingUnits(unitName)
+	local unitIDs = GG["MissionAPI"].Modules.UnitQuery.GetMatchingUnits(unitName)
 	local x, y, z = Spring.GetUnitArrayCentroid(unitIDs)
 	return {
 		unitIDs = unitIDs,

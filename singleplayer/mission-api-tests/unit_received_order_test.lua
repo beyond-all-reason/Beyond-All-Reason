@@ -1,10 +1,10 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnActors = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 1,
 		},
@@ -13,35 +13,35 @@ local triggers = {
 
 	-- Orders issued by the mission itself are not visible, by default.
 	botsOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 		},
 		actions = { 'messageBotsOrdered' },
 	},
 
 	-- Sometimes, though, we don't care who gave the order. See ignoreMissionActions below.
 	botsMoved = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'bots',
+			includeUnit = { unitName = 'bots' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageBotsMoved' },
 	},
 
 	missionMovesBots = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 8,
 		},
@@ -49,35 +49,35 @@ local triggers = {
 	},
 
 	conBuildOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.BUILD,
-			unitName = 'cons',
+			includeUnit = { unitName = 'cons' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageConBuildOrdered' },
 	},
 
 	conSolarOrdered = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = 'armsolar',
-			unitName = 'cons',
+			includeUnit = { unitName = 'cons' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageConSolarOrdered' },
 	},
 
 	missionOrdersSolar = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -85,35 +85,35 @@ local triggers = {
 	},
 
 	labRallied = {
-		type = triggerTypes.RallyOrdered,
+		type = conditionTypes.RallyOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'lab',
+			includeUnit = { unitName = 'lab' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabRallied' },
 	},
 
 	labExecuted = {
-		type = triggerTypes.UnitOrdered,
+		type = conditionTypes.UnitOrdered,
 		settings = {
 			repeating = true,
 			maxRepeats = 77,
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'lab',
+			includeUnit = { unitName = 'lab' },
 			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabExecuted' },
 	},
 
 	missionRalliesLab = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 22,
 		},
@@ -121,7 +121,7 @@ local triggers = {
 	},
 
 	missionTogglesLab = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 29,
 		},
@@ -129,7 +129,7 @@ local triggers = {
 	},
 
 	missionQueuesPawn = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 36,
 		},

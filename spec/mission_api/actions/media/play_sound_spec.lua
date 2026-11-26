@@ -17,7 +17,7 @@ describe("mission_api.actions.play_sound", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "PlaySound",
-			soundfile = "SoundFile!",
+			soundFile = "SoundFile!",
 			volume = "Number",
 			position = "Position",
 			enqueue = "Boolean",

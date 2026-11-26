@@ -10,6 +10,7 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
+local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -119,7 +120,7 @@ local function validateObjectiveEventReferences(context, report)
 						namedTriggerIDs[triggerID] = true
 
 						local trigger = context.Triggers[triggerID]
-						if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
+						if type(trigger) == "table" and trigger.type ~= context.ConditionTypes.Event then
 							report.Error(
 								SECTION,
 								"Objective",
@@ -137,7 +138,7 @@ local function validateObjectiveEventReferences(context, report)
 	for triggerID, trigger in pairs(context.Triggers) do
 		if
 			type(trigger) == "table"
-			and trigger.type == context.TriggerTypes.Event
+			and trigger.type == context.ConditionTypes.Event
 			and not namedTriggerIDs[triggerID]
 		then
 			report.Warn(SECTION, "Trigger", triggerID, "Event trigger has no owners, so it can never fire")
@@ -267,6 +268,57 @@ local function collectKeyframeNames(context, nameFields, parameterNames, actionI
 	end
 end
 
+--- The unit filter fields with a name of this type.
+local function getUnitFilterFieldsOfType(nameType)
+	local fields = {}
+	for _, field in ipairs(unitFilterFields) do
+		if field.type == nameType then
+			fields[#fields + 1] = field.name
+		end
+	end
+	return fields
+end
+
+--- A condition's unit filters refer to the names they ask a unit about.
+local function collectUnitFilterNames(
+	context,
+	nameFields,
+	filterNames,
+	filterListNames,
+	parameters,
+	source,
+	referencedNames
+)
+	local seen = {}
+	local function collect(unitFilter)
+		if type(unitFilter) ~= "table" then
+			return
+		end
+		for _, field in ipairs(nameFields) do
+			local name = unitFilter[field]
+			if type(name) == "string" and not seen[name] then
+				seen[name] = true
+				recordSource(referencedNames, name, source)
+			end
+		end
+	end
+
+	for _, parameterName in ipairs(filterNames or {}) do
+		for _, unitFilter in ipairs(context.PossibleValues(parameters[parameterName])) do
+			collect(unitFilter)
+		end
+	end
+	for _, parameterName in ipairs(filterListNames or {}) do
+		for _, unitFilters in ipairs(context.PossibleValues(parameters[parameterName])) do
+			if type(unitFilters) == "table" then
+				for _, unitFilter in ipairs(unitFilters) do
+					collect(unitFilter)
+				end
+			end
+		end
+	end
+end
+
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
 local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
@@ -332,7 +384,10 @@ end
 
 --- Triggers only ever refer to names, never create them.
 local function collectTriggerNames(context, nameKind, referencedNames)
-	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
+	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
+	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		local parameters = parametersOf(trigger)
@@ -344,23 +399,43 @@ local function collectTriggerNames(context, nameKind, referencedNames)
 				"trigger " .. triggerID,
 				referencedNames
 			)
+			collectUnitFilterNames(
+				context,
+				unitFilterNameFields,
+				filterNames[trigger.type],
+				filterListNames[trigger.type],
+				parameters,
+				"trigger " .. triggerID,
+				referencedNames
+			)
 		end
 	end
 end
 
---- An objective can hold a trigger inline, which refers to names as any other trigger does.
+--- An objective's condition is inline, and refers to names as any trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
-	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.ConditionParameters, nameKind.nameType)
+	local unitFilterNameFields = getUnitFilterFieldsOfType(nameKind.nameType)
+	local filterNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilter)
+	local filterListNames = getParameterNamesWithType(context.ConditionParameters, context.Types.UnitFilters)
 
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		local parameters = parametersOf(trigger)
+		local parameters = parametersOf(objective)
 		if parameters then
 			collectParameterNames(
 				context,
-				referencingParameterNames[trigger.type],
+				referencingParameterNames[objective.type],
 				parameters,
-				"objective " .. objectiveID .. " (trigger)",
+				"objective " .. objectiveID .. " (condition)",
+				referencedNames
+			)
+			collectUnitFilterNames(
+				context,
+				unitFilterNameFields,
+				filterNames[objective.type],
+				filterListNames[objective.type],
+				parameters,
+				"objective " .. objectiveID .. " (condition)",
 				referencedNames
 			)
 		end
@@ -416,20 +491,19 @@ local function validateCountdownIDReferences(context, report)
 		end
 	end
 
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CountdownID)
+	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.CountdownID)
 	for triggerID, trigger in pairs(context.Triggers) do
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+		if referencingConditionTypes[type(trigger) == "table" and trigger.type] then
 			for _, countdownID in ipairs(countdownIDsOf(parametersOf(trigger))) do
 				recordSource(referencedIDs, countdownID, "trigger " .. triggerID)
 			end
 		end
 	end
 
-	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
+	-- An objective's condition is inline, and refers to a countdown as any trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
-		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		for _, countdownID in ipairs(countdownIDsOf(parameters)) do
-			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (trigger)")
+		for _, countdownID in ipairs(countdownIDsOf(parametersOf(objective))) do
+			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -460,16 +534,15 @@ local function validateCutsceneIDReferences(context, report)
 		end
 	end
 
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CutsceneID)
+	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.CutsceneID)
 	for triggerID, trigger in pairs(context.Triggers) do
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+		if referencingConditionTypes[type(trigger) == "table" and trigger.type] then
 			recordCutsceneIDs(parametersOf(trigger), "trigger " .. triggerID)
 		end
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
-			recordCutsceneIDs(parametersOf(trigger), "objective " .. objectiveID .. " (trigger)")
+		if referencingConditionTypes[type(objective) == "table" and objective.type] then
+			recordCutsceneIDs(parametersOf(objective), "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
@@ -515,14 +588,20 @@ local function validateVariableReferences(context, report)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		recordKeys(parametersOf(trigger), "trigger " .. triggerID)
+		if type(trigger) == "table" then
+			recordKeys(
+				{ count = trigger.count, atLeast = trigger.atLeast, atMost = trigger.atMost },
+				"trigger " .. triggerID
+			)
+		end
 	end
 	for actionID, action in pairs(context.Actions) do
 		recordKeys(parametersOf(action), "action " .. actionID)
 	end
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objective) == "table" then
-			recordKeys(objective, "objective " .. objectiveID, "trigger")
-			recordKeys(parametersOf(objective.trigger), "objective " .. objectiveID .. " trigger")
+			recordKeys(objective, "objective " .. objectiveID, "parameters")
+			recordKeys(parametersOf(objective), "objective " .. objectiveID .. " condition")
 		end
 	end
 

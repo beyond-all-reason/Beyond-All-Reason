@@ -9,7 +9,7 @@ write it and is trying to work out whether a red test means their change is wron
 
 ## The gates that judge a spec
 
-The gate table, the pinned versions and the handoff rule live in `.github/agents.md` under "Before You Hand Work
+The gate table, the pinned versions and the handoff rule live in the root `AGENTS.md` under "Before You Hand Work
 Over". Three things about those gates are specific to `spec/` and are easy to get wrong.
 
 Two exemption lists apply here and they do not agree with each other. `.styluaignore` exempts nothing under `spec/`,

@@ -34,7 +34,7 @@ local function createValidationContext(mission, report)
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local difficulty = missionAPI.Modules.Difficulty
 	local variables = missionAPI.Modules.Variables
-	local triggerDefinitions = missionAPI.TriggerDefinitions
+	local conditionDefinitions = missionAPI.ConditionDefinitions
 	local actionDefinitions = missionAPI.ActionDefinitions
 
 	return {
@@ -76,9 +76,10 @@ local function createValidationContext(mission, report)
 		HasUnsetVariable = variables.HasUnsetVariable,
 		ResolveValue = variables.ResolveValue,
 
-		-- Trigger definitions:
-		TriggerTypes = triggerDefinitions.Types,
-		TriggerParameters = triggerDefinitions.Parameters,
+		-- Condition definitions:
+		ConditionTypes = conditionDefinitions.Types,
+		ConditionParameters = conditionDefinitions.Parameters,
+		ConditionKinds = conditionDefinitions.Kinds,
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,

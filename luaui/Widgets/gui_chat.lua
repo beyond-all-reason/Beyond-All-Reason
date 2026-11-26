@@ -724,6 +724,10 @@ local function setCurrentChatLine(line)
 	end
 end
 
+local function teamChatColor(allyTeamID)
+	return allyTeamID == myAllyTeamID and colorAllyStr or colorOtherAllyStr
+end
+
 local function addChatLine(
 	gameFrame,
 	lineType,
@@ -844,8 +848,25 @@ local function addChatLine(
 		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize, channelTagWidth)
 	end
 
-	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
+	local lineColor = ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1])
+	local teamChatAllyTeamID
+	if lineType == LineTypes.Player and channelScope == "TEAM" and playernames[name] then
+		local allyTeamID = playernames[name][1]
+		-- Processors may supply their own color. Only defer the normal team-chat color.
+		if lineColor == teamChatColor(allyTeamID) then
+			teamChatAllyTeamID = allyTeamID
+		end
+	end
 	for i, line in ipairs(wordwrappedText) do
+		local lineText = line
+		if teamChatAllyTeamID then
+			-- Wrapping can repeat the leading color when it splits a long word.
+			if ssub(line, 1, #lineColor) == lineColor then
+				lineText = ssub(line, #lineColor + 1)
+			end
+		elseif i > 1 then
+			lineText = lineColor .. line
+		end
 		chatLines[chatLineID] = {
 			startTime = startTime,
 			gameFrame = i == 1 and gameFrame,
@@ -862,7 +883,8 @@ local function addChatLine(
 				and playernames[name][5]
 				and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])
 			) or false,
-			text = (i > 1 and lineColor or "") .. line,
+			text = lineText,
+			teamChatAllyTeamID = teamChatAllyTeamID,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -964,7 +986,7 @@ state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitFor
 	state.mapmarkTriggerKey = triggerKey
 	state.mapmarkTriggerScanCode = triggerScanCode
 	state.mapmarkPressedKeys = waitForTriggerRelease and Spring.GetPressedKeys() or nil
-	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans and Spring.GetPressedScans() or nil
+	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans() or nil
 	state.mapmarkTriggerIdentityCaptured = triggerKey ~= nil
 		or triggerScanCode ~= nil
 		or (state.mapmarkPressedKeys and next(state.mapmarkPressedKeys) ~= nil)
@@ -998,7 +1020,7 @@ state.areMapmarkTriggerKeysPressed = function()
 		end
 	end
 
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	local pressedScans = Spring.GetPressedScans()
 	if state.mapmarkTriggerScanCode and pressedScans[state.mapmarkTriggerScanCode] then
 		return true
 	end
@@ -1157,6 +1179,13 @@ state.stopMapDraw = function()
 	state.mapDrawScanCode = nil
 	state.mapDrawLastX = nil
 	state.mapDrawLastZ = nil
+end
+
+state.isMapDrawKeyPressed = function()
+	if state.mapDrawKey and Spring.GetKeyState(state.mapDrawKey) then
+		return true
+	end
+	return state.mapDrawScanCode ~= nil and Spring.GetPressedScans()[state.mapDrawScanCode] and true or false
 end
 
 local function ensureInputHistoryDraft()
@@ -1509,7 +1538,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if channel == "allies" then
-			c = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
+			c = teamChatColor(playernames[name][1])
 		elseif channel == "spectators" then
 			c = colorSpecStr
 		else
@@ -2066,23 +2095,17 @@ drawChatLine = function(i)
 		)
 		return right, left
 	else
+		local allyTeamID = chatLines[i].teamChatAllyTeamID
+		local text = allyTeamID and teamChatColor(allyTeamID) .. chatLines[i].text or chatLines[i].text
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(
-				font,
-				chatLines[i].text,
-				textPosX,
-				fontHeightOffset,
-				usedFontSize,
-				"o",
-				{ 0, 0, 0, 1 }
-			)
+			ChatEmoji.DrawRichText(font, text, textPosX, fontHeightOffset, usedFontSize, "o", { 0, 0, 0, 1 })
 		else
 			font:Begin(true)
 			font:SetOutlineColor(0, 0, 0, 1)
-			font:Print(chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o")
+			font:Print(text, textPosX, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
-		return state.textRight(font, chatLines[i].text, textPosX, usedFontSize, chatLines[i].richText), left
+		return state.textRight(font, text, textPosX, usedFontSize, chatLines[i].richText), left
 	end
 end
 
@@ -2111,6 +2134,11 @@ end
 function widget:Update(dt)
 	if gameOver and not Spring.IsReplay() then
 		state.watchServerLink(dt)
+	end
+
+	-- The key's release can go to a text owner or RmlUi instead of reaching this widget.
+	if state.mapDrawActive and not state.isMapDrawKeyPressed() then
+		state.stopMapDraw()
 	end
 
 	if inputMode == "label" and state.mapmarkTriggerDown then
@@ -3831,7 +3859,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 						local command = ssub(inputText, 2)
 						if command == "lr" then
 							command = "luaui reload"
-						elseif command:lower():find("^take%f[%W]") and not BAR.Utilities.Gametype.IsSinglePlayer() then
+						elseif command:lower():find("^take%f[%W]") then
 							command = "luarules take2" .. ssub(command, 5)
 						else
 							local configKey, commandSuffix = command:match("^[sS][eE][tT]%s+(%S+)(.*)$")
@@ -4541,7 +4569,11 @@ end
 function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	local allyTeamID = Spring.GetLocalAllyTeamID()
+	if myAllyTeamID ~= allyTeamID then
+		myAllyTeamID = allyTeamID
+		state.uiDirty = true
+	end
 	if mySpec and inputMode == "a:" then
 		inputMode = "s:"
 	end

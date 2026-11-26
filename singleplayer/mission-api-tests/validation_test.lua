@@ -2,7 +2,7 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -10,12 +10,13 @@ local stages = {
 		objectives = {
 			'objectiveWithEmptyText',
 			'objectiveWithInvalidSchemaTypes',
-			'objectiveWithTriggerHavingSettings',
-			'objectiveWithInvalidTriggerType',
-			'objectiveWithMissingTriggerType',
+			'objectiveWithUnknownField',
+			'objectiveWithInvalidType',
+			'objectiveWithMissingType',
 			'objectiveWithInvalidNextStage',
-			'objectiveWithTriggerHavingActions',
-			'objectiveWithDifficultiesTrigger',
+			'objectiveWithWrongThresholdForKind',
+			'objectiveWithMissingMetricBound',
+			'objectiveWithDifficultiesType',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -32,52 +33,53 @@ local objectives = {
 
 	objectiveWithInvalidSchemaTypes = {
 		textKey = "schema_type_check",
-		amount = 'notANumber',   -- error: amount must be a number
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		count = 'notANumber',    -- error: count must be a positive integer
 		coop = 'notABoolean',    -- error: coop must be a boolean
 	},
 
-	objectiveWithTriggerHavingSettings = {
-		textKey = "trigger_must_not_have_settings",
-		trigger = {
-			settings = { repeating = true },  -- error: trigger must not have a settings field
-			type = triggerTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-		},
+	objectiveWithUnknownField = {
+		textKey = "unknown_field",
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		atMostt = 0,             -- error: unknown field (typo for atMost)
 	},
 
-	objectiveWithInvalidTriggerType = {
-		textKey = "trigger_with_invalid_type",
-		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
-		},
+	objectiveWithInvalidType = {
+		textKey = "invalid_type",
+		type = 'invalidType',    -- error: invalid condition type
 	},
 
-	objectiveWithMissingTriggerType = {
-		textKey = "trigger_with_missing_type",
-		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
-		},
+	objectiveWithMissingType = {
+		textKey = "missing_type",
+		parameters = { seconds = 100000000 },  -- error: parameters without a type
 	},
 
 	objectiveWithInvalidNextStage = {
 		textKey = "invalid_next_stage",
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
 		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
 	},
 
-	objectiveWithTriggerHavingActions = {
-		textKey = "trigger_must_not_have_actions",
-		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-			actions = { 'someAction' },  -- error: objective trigger must not have actions
-		},
+	objectiveWithWrongThresholdForKind = {
+		textKey = "wrong_threshold",
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		count = 3,               -- error: metrics use atLeast/atMost, not count
 	},
 
-	objectiveWithDifficultiesTrigger = {
-		textKey = "trigger_field_must_not_have_difficulties",
-		trigger = {
-			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
-		},
+	objectiveWithMissingMetricBound = {
+		textKey = "missing_bound",
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		-- error: metric conditions require atLeast and/or atMost
+	},
+
+	objectiveWithDifficultiesType = {
+		textKey = "type_must_not_have_difficulties",
+		type = { difficulties = { Easy = conditionTypes.TimeElapsed } },  -- error: type does not support difficulties
 	},
 }
 
@@ -93,7 +95,7 @@ local triggers = {
 
 	-- Valid: settings are optional in raw missions, the loader applies the defaults.
 	triggerWithoutSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -102,7 +104,7 @@ local triggers = {
 
 	-- error: settings must be a table
 	triggerWithNonTableSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = 'notATable',
 		parameters = {
 			seconds = 100000000,
@@ -112,7 +114,7 @@ local triggers = {
 
 	-- error: maxRepeats without repeating
 	triggerWithMaxRepeatsButNotRepeating = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			maxRepeats = 3,
 		},
@@ -123,7 +125,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -131,7 +133,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidTypesInSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
@@ -148,7 +150,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultiesValues = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = {
 				difficulties = {
@@ -161,7 +163,7 @@ local triggers = {
 	},
 
 	triggerWithExtraKeyBesideDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
 		},
@@ -169,7 +171,7 @@ local triggers = {
 	},
 
 	triggerWithEmptyDifficulties = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		parameters = {
 			seconds = { difficulties = {} },  -- error: difficulties table is empty
 		},
@@ -177,7 +179,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidDifficultyInGate = {
-		type = triggerTypes.TimeElapsed,
+		type = conditionTypes.TimeElapsed,
 		settings = {
 			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
@@ -188,7 +190,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllianceName = {
-		type = triggerTypes.UnitDetected,
+		type = conditionTypes.UnitDetected,
 		parameters = {
 			sensorAllianceName = 777,
 		},
@@ -196,7 +198,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAreaType = {
-		type = triggerTypes.FeatureCreated,
+		type = conditionTypes.FeatureCreated,
 		parameters = {
 			area = 'notATable',
 		},
@@ -204,42 +206,56 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSourcesType = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 10,
+			resource = 'metal',
 			sources = 'notATable',
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 
 	triggerWithInvalidResourceIncomeSources = {
-		type = triggerTypes.ResourceIncome,
+		type = conditionTypes.ResourceIncome,
 		parameters = {
 			teamName = 'player',
-			metal = 10,
+			resource = 'metal',
 			sources = { 'invalidSource1', false, 123 },
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 
 	triggerWithFractionOutOfRange = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			teamName = 'player',
-			unitDefName = 'armcom',
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 5.0, -- error: a fraction must be between 0 and 1
 		},
 		actions = { 'actionMissingType' },
 	},
 
 	triggerWithInvalidFractionType = {
-		type = triggerTypes.ConstructionProgress,
+		type = conditionTypes.ConstructionProgress,
 		parameters = {
-			teamName = 'player',
-			unitDefName = 'armcom',
+			includeUnit = { teamName = 'player', unitDefName = 'armcom' },
 			progress = 'notANumber',
 		},
+		actions = { 'actionMissingType' },
+	},
+	triggerWithInvertedBounds = {
+		type = conditionTypes.UnitsOwned,
+		parameters = { teamName = 'player', unitName = 'someUnits' },
+		atLeast = 5,
+		atMost = 2,   -- error: atLeast must not exceed atMost
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithUnknownKey = {
+		type = conditionTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		amount = 3,   -- error: unknown field
 		actions = { 'actionMissingType' },
 	},
 }
@@ -459,14 +475,14 @@ local actions = {
 	actionWithNonExistentSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'nonExistentSoundfile',
+			soundFile = 'nonExistentSoundfile',
 		},
 	},
 
 	actionWithNonWavSoundfile = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'README.md',
+			soundFile = 'README.md',
 		},
 	},
 
