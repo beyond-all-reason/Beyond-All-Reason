@@ -18,8 +18,13 @@ local POLYGON = { 0, 0, 128, 0, 128, 128, 0, 128 }
 
 describe("mission_api.actions.build_area", function()
 	local sent ---@type table[]
+	local logged ---@type string[]
 
 	before_each(function()
+		logged = {}
+		env.Spring.Log = function(_, _, message)
+			logged[#logged + 1] = message
+		end
 		MissionApiBuilder.new()
 			:WithModule("AreaPolygons", MissionSpecEnv.include(env, "luarules/mission_api/area_polygons.lua"))
 			:WithModule("BuildAreas", MissionSpecEnv.include(env, "luarules/mission_api/build_areas.lua"))
@@ -58,6 +63,20 @@ describe("mission_api.actions.build_area", function()
 		it("faces south and builds three at once unless told otherwise", function()
 			defineBuildArea.actionFunction("wall", TEAM_ID, AREA, "cordrag")
 			assert.are.same({ { 1, POLYGON, 7, 0, 3, TEAM_ID } }, sent)
+		end)
+
+		it("warns about more than ten builds at once, and still defines the area", function()
+			defineBuildArea.actionFunction("wall", TEAM_ID, AREA, "cordrag", nil, 11)
+			assert.are.same({ { 1, POLYGON, 7, 0, 11, TEAM_ID } }, sent)
+			assert.are.same(
+				{ "[Mission API] Build area builds 11 at once, which can wall its builders in: wall" },
+				logged
+			)
+		end)
+
+		it("does not warn about ten builds at once", function()
+			defineBuildArea.actionFunction("wall", TEAM_ID, AREA, "cordrag", nil, 10)
+			assert.are.same({}, logged)
 		end)
 
 		it("sends nothing for a unit that is not a structure", function()

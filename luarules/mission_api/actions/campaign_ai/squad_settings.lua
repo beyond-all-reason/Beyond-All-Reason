@@ -27,9 +27,17 @@ end
 local function setSquadEscort(squadName, unitName)
 	local unitID = getUnitID(unitName)
 	local squadID, teamID = GG["MissionAPI"].Modules.Squads.GetAssembled(squadName)
-	if squadID and unitID then
-		GG["CampaignAI"].SetSquadEscort(squadID, unitID, teamID)
+	if not squadID or not unitID then
+		return
 	end
+
+	if not Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), teamID) then
+		local message = "[Mission API] Squad escorts only a unit of its team or an ally, not " .. unitName .. ": "
+		Spring.Log("squad_settings.lua", LOG.WARNING, message .. squadName)
+		return
+	end
+
+	GG["CampaignAI"].SetSquadEscort(squadID, unitID, teamID)
 end
 
 return {

@@ -185,7 +185,6 @@ local enums = {
 
 	[types.SquadTask] = {
 		DEFEND = 1,
-		ATTACK = 4,
 	},
 }
 

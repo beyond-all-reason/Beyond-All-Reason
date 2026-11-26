@@ -96,7 +96,8 @@ local function defineRegion(regionName, teamID, polygon)
 	return regionID
 end
 
----@return string? regionName nil for a region that is not live
+--- A cleared region keeps its name here: the AI reports the squads inside it as leaving, after the clear.
+---@return string? regionName nil for an ID the team has not used
 local function getRegionName(teamID, regionID)
 	local region = regionsByID[teamID] and regionsByID[teamID][regionID]
 	return region and region.regionName
@@ -111,7 +112,6 @@ local function clearRegion(regionName)
 	end
 
 	regionsByName[regionName] = nil
-	regionsByID[region.teamID][region.regionID] = nil
 	for _, cell in ipairs(region.cells) do
 		cellRegions[region.teamID][cell] = nil
 	end

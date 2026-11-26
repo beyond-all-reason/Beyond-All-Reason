@@ -11,10 +11,14 @@ local setSquadRetreatThreshold, setSquadTarget, setSquadEscort = actions[1], act
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local TEAM_ID = 3
+local ALLY_TEAM_ID = 4
+local OTHER_TEAM_ID = 5
 
 describe("mission_api.actions.squad_settings", function()
 	local squads ---@type table
 	local sent ---@type table[]
+	local logged ---@type string[]
+	local unitTeams ---@type table<integer, integer>
 
 	local function assembledSquad(squadName)
 		local squadID = squads.Define(squadName, TEAM_ID)
@@ -29,6 +33,18 @@ describe("mission_api.actions.squad_settings", function()
 			:WithTrackedUnit("convoy", 202)
 			:WithTrackedUnit("convoy", 201)
 			:Install()
+
+		logged = {}
+		unitTeams = { [201] = TEAM_ID, [202] = TEAM_ID }
+		env.Spring.Log = function(_, _, message)
+			logged[#logged + 1] = message
+		end
+		env.Spring.GetUnitTeam = function(unitID)
+			return unitTeams[unitID]
+		end
+		env.Spring.AreTeamsAllied = function(teamID, otherTeamID)
+			return teamID ~= OTHER_TEAM_ID and otherTeamID ~= OTHER_TEAM_ID
+		end
 
 		sent = {}
 		GG.CampaignAI = {
@@ -119,6 +135,24 @@ describe("mission_api.actions.squad_settings", function()
 			local squadID = assembledSquad("raiders")
 			setSquadEscort.actionFunction("raiders", "convoy")
 			assert.are.same({ { "escort", squadID, 201, TEAM_ID } }, sent)
+		end)
+
+		it("has a squad escort a unit of an allied team", function()
+			local squadID = assembledSquad("raiders")
+			unitTeams[201] = ALLY_TEAM_ID
+			setSquadEscort.actionFunction("raiders", "convoy")
+			assert.are.same({ { "escort", squadID, 201, TEAM_ID } }, sent)
+		end)
+
+		it("sends nothing, with a warning, for a unit that is no ally of the squad", function()
+			assembledSquad("raiders")
+			unitTeams[201] = OTHER_TEAM_ID
+			setSquadEscort.actionFunction("raiders", "convoy")
+			assert.are.same({}, sent)
+			assert.are.same(
+				{ "[Mission API] Squad escorts only a unit of its team or an ally, not convoy: raiders" },
+				logged
+			)
 		end)
 
 		it("sends nothing to a squad that is still gathering", function()

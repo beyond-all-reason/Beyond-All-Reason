@@ -10,6 +10,8 @@
 ---   later the grunts stand together east of the lab, then walk west past it
 ---         a message says the raiders entered the west end, and they turn back east
 ---         a message says the raiders left the west end, and the region is cleared
+---         a message says the raiders entered the east end, which is cleared with them inside
+---         a message says the raiders left the east end, though they stand still
 ---
 
 local conditionTypes = GG['MissionAPI'].ConditionDefinitions.Types
@@ -47,7 +49,24 @@ local triggers = {
 		parameters = {
 			regionName = 'westEnd',
 		},
-		actions = { 'messageLeft', 'clearWestEnd' },
+		actions = { 'messageLeft', 'clearWestEnd', 'defineEastEnd' },
+	},
+
+	raidersEnteredEastEnd = {
+		type = conditionTypes.SquadEnteredRegion,
+		parameters = {
+			regionName = 'eastEnd',
+		},
+		actions = { 'messageEnteredEast', 'clearEastEnd' },
+	},
+
+	-- The AI reports the squads inside a cleared region as leaving it.
+	raidersLeftEastEnd = {
+		type = conditionTypes.SquadLeftRegion,
+		parameters = {
+			regionName = 'eastEnd',
+		},
+		actions = { 'messageLeftEast' },
 	},
 }
 
@@ -109,6 +128,36 @@ local actions = {
 		type = actionTypes.ClearAiRegion,
 		parameters = {
 			regionName = 'westEnd',
+		},
+	},
+
+	defineEastEnd = {
+		type = actionTypes.DefineAiRegion,
+		parameters = {
+			regionName = 'eastEnd',
+			teamName = 'enemy',
+			area = { x1 = 4650, z1 = 1300, x2 = 5300, z2 = 1800 },
+		},
+	},
+
+	messageEnteredEast = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "AI regions test: the raiders entered the east end, which is cleared.",
+		},
+	},
+
+	clearEastEnd = {
+		type = actionTypes.ClearAiRegion,
+		parameters = {
+			regionName = 'eastEnd',
+		},
+	},
+
+	messageLeftEast = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "AI regions test: the raiders left the east end, as it was cleared.",
 		},
 	},
 }

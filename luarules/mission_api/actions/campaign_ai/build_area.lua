@@ -1,6 +1,7 @@
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 local DEFAULT_BUILDS_AT_ONCE = 3 -- the AI's own default, 0, builds them all at once
+local MANY_BUILDS_AT_ONCE = 10 -- more can wall the builders in
 
 local function defineBuildArea(buildAreaName, teamID, area, unitDefName, facing, buildsAtOnce)
 	if not UnitDefNames[unitDefName].isImmobile then
@@ -19,6 +20,10 @@ local function defineBuildArea(buildAreaName, teamID, area, unitDefName, facing,
 	local unitDefID = UnitDefNames[unitDefName].id
 	facing = BAR.Utilities.FacingToNumber(facing or 0)
 	buildsAtOnce = buildsAtOnce or DEFAULT_BUILDS_AT_ONCE
+	if buildsAtOnce > MANY_BUILDS_AT_ONCE then
+		local message = "[Mission API] Build area builds " .. buildsAtOnce .. " at once, which can wall its builders in: "
+		Spring.Log("build_area.lua", LOG.WARNING, message .. buildAreaName)
+	end
 	GG["CampaignAI"].DefineBuildArea(buildAreaID, polygon, unitDefID, facing, buildsAtOnce, teamID)
 end
 

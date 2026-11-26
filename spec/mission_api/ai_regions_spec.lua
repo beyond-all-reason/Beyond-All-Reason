@@ -56,10 +56,10 @@ describe("mission_api.ai_regions", function()
 		assert.is_nil(regions.GetName(4, regionID))
 	end)
 
-	it("forgets a cleared region's name", function()
+	it("keeps a cleared region's name by its ID, for the squads the AI then reports leaving", function()
 		local regionID = regions.Define("first", 3, SQUARE)
 		regions.Clear("first")
-		assert.is_nil(regions.GetName(3, regionID))
+		assert.are.equal("first", regions.GetName(3, regionID))
 	end)
 
 	it("clears a region, returning its ID and team", function()

@@ -48,9 +48,9 @@ describe("mission_api.actions.set_squad_task", function()
 			local squadID = squads.Define("raiders", TEAM_ID)
 			squads.Assemble(TEAM_ID, squadID)
 
-			action.actionFunction("raiders", "ATTACK", POSITION, 400)
+			action.actionFunction("raiders", "DEFEND", POSITION, 400)
 
-			assert.are.same({ { squadID, 4, 4300, 1600, 400, TEAM_ID } }, runs)
+			assert.are.same({ { squadID, 1, 4300, 1600, 400, TEAM_ID } }, runs)
 		end)
 
 		it("sends nothing to a squad that is still gathering", function()

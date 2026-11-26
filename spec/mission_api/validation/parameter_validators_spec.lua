@@ -378,6 +378,10 @@ describe("mission_api.validation.parameter_validators", function()
 			V.assertMessage(validateTask("PATROL"), "Invalid task: PATROL. Action: a, Parameter: task")
 		end)
 
+		it("rejects a task of the AI that missions do not get", function()
+			V.assertMessage(validateTask("ATTACK"), "Invalid task: ATTACK. Action: a, Parameter: task")
+		end)
+
 		it("accepts a task by its name", function()
 			V.assertNoMessageContaining(validateTask("DEFEND"), "Parameter: task")
 		end)
