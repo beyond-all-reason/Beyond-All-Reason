@@ -175,7 +175,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 675, --1/2 of corcat
-				reloadtime = 15,
+				reloadtime = 8,
 				smoketrail = true,
 				smokePeriod = 4,
 				smoketime = 16,

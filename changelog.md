@@ -29,6 +29,11 @@
   - T2 ships now use heavy ship armor, and Scylla counts as a ship
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
   - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
+- [Extra Units]
+  - Quad Guard lasers reload 0.2-0.5s -> 0.47s, health 1670 -> 2390, cost 300 metal / 7000 energy -> 360 metal / 5100 energy
+  - Dragon's Rage reload 15s -> 8s
+  - Dragon's Constitution health 9600 -> 6200, metal cost 1250 -> 1120
+  - Obligator missile damage 255 -> 314
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
