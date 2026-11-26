@@ -200,6 +200,14 @@ if Engine.FeatureSupport.nanoParticlesGL4 then
 	end
 end
 
+if Spring.GetConfigInt("version", 0) < version then
+	version = 12
+	-- Music defaulted to the engine's 100, halve it!
+	if Spring.GetConfigInt("snd_volmusic", 100) >= 99 then
+		Spring.SetConfigInt("snd_volmusic", 50)
+	end
+end
+
 -- The interface reads ui_scale: the player's ui_scale_user (the options slider, 1 by default)
 -- times ui_scale_base, which only this file sets, to tune the overall interface size.
 local uiScaleBase = 0.95
