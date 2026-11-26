@@ -5,8 +5,7 @@
 
 local MAX_CASCADE_ROUNDS = 100
 
-local depth = 0
-local isRunningDeferredCalls = false
+local inBatch = false
 local deferredCount = 0
 local deferredCalls, deferredFirstArguments, deferredSecondArguments = {}, {}, {}
 local deferredThirdArguments, deferredFourthArguments = {}, {}
@@ -18,8 +17,13 @@ local function clearDeferredSubjects()
 	end
 end
 
+local function logFailure(ok, failure)
+	if not ok then
+		Spring.Log("batch.lua", LOG.ERROR, "[Mission API] " .. tostring(failure))
+	end
+end
+
 local function runDeferredCalls()
-	isRunningDeferredCalls = true
 	local first, rounds = 1, 0
 	while first <= deferredCount do
 		rounds = rounds + 1
@@ -40,7 +44,8 @@ local function runDeferredCalls()
 			local c, d = deferredThirdArguments[i], deferredFourthArguments[i]
 			deferredCalls[i], deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil, nil
 			deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
-			call(a, b, c, d)
+			---@cast call function
+			logFailure(pcall(call, a, b, c, d))
 		end
 		first = last + 1
 	end
@@ -49,29 +54,29 @@ local function runDeferredCalls()
 		deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
 	end
 	deferredCount = 0
-	isRunningDeferredCalls = false
 end
 
-local function startBatch()
-	depth = depth + 1
-end
-
-local function endBatch()
-	depth = depth - 1
-	if depth == 0 and not isRunningDeferredCalls then
+---Calls call(...) as one batch, or as part of the batch it is called in.
+local function runBatch(call, ...)
+	local wasInBatch = inBatch
+	inBatch = true
+	logFailure(pcall(call, ...))
+	if not wasInBatch then
 		runDeferredCalls()
+		inBatch = false
 	end
 end
 
 ---Calls call(a, b, c, d) when the batch ends, or at once outside of a batch.
 local function defer(call, a, b, c, d)
+	if not inBatch then
+		runBatch(call, a, b, c, d)
+		return
+	end
 	deferredCount = deferredCount + 1
 	deferredCalls[deferredCount], deferredFirstArguments[deferredCount], deferredSecondArguments[deferredCount] =
 		call, a, b
 	deferredThirdArguments[deferredCount], deferredFourthArguments[deferredCount] = c, d
-	if depth == 0 and not isRunningDeferredCalls then
-		runDeferredCalls()
-	end
 end
 
 local function callNetValue(call, subject)
@@ -87,22 +92,8 @@ local function deferNetValue(call, subject)
 	end
 end
 
----Drops every deferred call and closes the open batch.
-local function reset()
-	depth = 0
-	isRunningDeferredCalls = false
-	for i = 1, deferredCount do
-		deferredCalls[i], deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil, nil
-		deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
-	end
-	deferredCount = 0
-	clearDeferredSubjects()
-end
-
 return {
-	Start = startBatch,
-	End = endBatch,
+	Run = runBatch,
 	Defer = defer,
 	DeferNetValue = deferNetValue,
-	Reset = reset,
 }

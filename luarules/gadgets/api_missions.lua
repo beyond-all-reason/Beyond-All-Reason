@@ -213,15 +213,14 @@ function gadget:GamePreload()
 		return
 	end
 
-	local batch = GG["MissionAPI"].Modules.Batch
-	batch.Start()
-	local loadoutModule = GG["MissionAPI"].Modules.Loadout
-	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
-	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
+	GG["MissionAPI"].Modules.Batch.Run(function()
+		local loadoutModule = GG["MissionAPI"].Modules.Loadout
+		loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
+		loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	local stages = GG["MissionAPI"].Modules.Stages
-	stages.ActivateStage(stages.GetCurrentStageID())
-	batch.End()
+		local stages = GG["MissionAPI"].Modules.Stages
+		stages.ActivateStage(stages.GetCurrentStageID())
+	end)
 end
 
 function gadget:GameFrame(frameNumber)

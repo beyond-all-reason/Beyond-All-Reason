@@ -68,7 +68,11 @@ local function loadGadget(options, world)
 			ResolveCutscenes = noop,
 		},
 		["luarules/mission_api/variables.lua"] = { ResolveReferences = noop },
-		["luarules/mission_api/batch.lua"] = { Start = noop, End = noop },
+		["luarules/mission_api/batch.lua"] = {
+			Run = function(call)
+				call()
+			end,
+		},
 		["luarules/mission_api/parameter_processing.lua"] = {
 			ProcessValue = noop,
 			ProcessActionParameters = function()

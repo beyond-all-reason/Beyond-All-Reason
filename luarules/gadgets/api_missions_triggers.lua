@@ -27,7 +27,7 @@ local needsBuildStartSet = false
 
 local actionsDispatcher
 local batch ---@type table
-local startBatch, endBatch ---@type function, function
+local runBatch, deferBatch ---@type function, function
 local statistics ---@type table
 local countdowns
 local detectionLevels
@@ -149,7 +149,6 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	startBatch()
 	-- Objective conditions carry onActivate instead of actions: activation
 	-- completes the objective rather than invoking mission actions.
 	if trigger.onActivate then
@@ -159,7 +158,6 @@ local function activateTrigger(trigger)
 			actionsDispatcher.Invoke(actionID)
 		end
 	end
-	endBatch()
 	return true
 end
 
@@ -210,9 +208,9 @@ end
 ---A condition that needs the outcome passes onTryActivate(trigger, triggerID, context, argument, activated).
 local function deferActivation(trigger, onTryActivate, triggerID, argument)
 	if onTryActivate then
-		batch.Defer(activateTriggerAndReport, trigger, onTryActivate, triggerID, argument)
+		deferBatch(activateTriggerAndReport, trigger, onTryActivate, triggerID, argument)
 	else
-		batch.Defer(activateTrigger, trigger)
+		deferBatch(activateTrigger, trigger)
 	end
 end
 
@@ -237,12 +235,22 @@ end
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
 
+local table_pack = table.pack
+
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
 local function unpackCallinArgs(args, i)
 	i = i or 1
 
 	if i <= args.n then
 		return args[i], unpackCallinArgs(args, i + 1)
+	end
+end
+
+local function dispatchToHandlers(handlersByType, args)
+	for conditionType, handler in pairs(handlersByType) do
+		processTriggersOfType(conditionType, function(trigger, triggerID)
+			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
+		end)
 	end
 end
 
@@ -253,14 +261,7 @@ local function dispatchConditionCallin(callinName, ...)
 	if not handlersByType then
 		return
 	end
-	local args = table.pack(...)
-	startBatch()
-	for conditionType, handler in pairs(handlersByType) do
-		processTriggersOfType(conditionType, function(trigger, triggerID)
-			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
-		end)
-	end
-	endBatch()
+	runBatch(dispatchToHandlers, handlersByType, table_pack(...))
 end
 
 -- Location triggers share area tracking's per-frame poll, one per distinct area and team,
@@ -271,9 +272,7 @@ local function onUnitsEnteredArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
-		startBatch()
-		handler(trigger, triggerID, conditionContext, unitIDs)
-		endBatch()
+		runBatch(handler, trigger, triggerID, conditionContext, unitIDs)
 	end
 end
 
@@ -282,9 +281,7 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
-		startBatch()
-		handler(trigger, triggerID, conditionContext, unitIDs)
-		endBatch()
+		runBatch(handler, trigger, triggerID, conditionContext, unitIDs)
 	end
 end
 
@@ -343,8 +340,6 @@ function gadget:GameStart()
 end
 
 function gadget:GameFrame(frameNumber)
-	batch.Reset()
-
 	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
 		teamReclaimIncomeSnapshot = teamReclaimIncome
@@ -396,14 +391,13 @@ function gadget:TeamDied(teamID)
 	dispatchConditionCallin("TeamDied", teamID)
 end
 
-function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+local function onMetaUnitAdded(unitID, unitDefID, unitTeam)
 	-- Other gadgets may create units within a spawn action. Assign loadout names only to loadout units.
 	local mapi = GG.MissionAPI
 	if mapi.nameOfUnitBeingSpawned and mapi.unitIDBeingSpawned == nil then
 		mapi.unitIDBeingSpawned = unitID
 	end
 
-	startBatch()
 	dispatchConditionCallin("MetaUnitAdded", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
@@ -413,19 +407,22 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		unitNames[mapi.nameOfUnitBeingSpawned] = true
 	end
 	statistics.Increment(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
-	endBatch()
+end
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	runBatch(onMetaUnitAdded, unitID, unitDefID, unitTeam)
 end
 
-function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	startBatch()
+local function onMetaUnitRemoved(unitID, unitDefID, unitTeam)
 	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Decrement(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
-	endBatch()
 
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
+end
+function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	runBatch(onMetaUnitRemoved, unitID, unitDefID, unitTeam)
 end
 
 -- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
@@ -434,14 +431,15 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	return true
 end
 
-function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	startBatch()
+local function onUnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	dispatchConditionCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(conditionTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
-	endBatch()
+end
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	runBatch(onUnitTaken, unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -483,8 +481,7 @@ function gadget:UnitBuildStepPost(unitID)
 	dispatchConditionCallin("UnitBuildStepPost", unitID)
 end
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	startBatch()
+local function onUnitFinished(unitID, unitDefID, unitTeam)
 	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
@@ -496,11 +493,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local unitDefName = UnitDefs[unitDefID].name
 		statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 	end
-	endBatch()
+end
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	runBatch(onUnitFinished, unitID, unitDefID, unitTeam)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	startBatch()
+local function onUnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	dispatchConditionCallin(
 		"UnitDestroyed",
 		unitID,
@@ -530,7 +528,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
 	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
-	endBatch()
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	runBatch(onUnitDestroyed, unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -684,8 +685,6 @@ function gadget:Initialize()
 	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
-	batch = GG["MissionAPI"].Modules.Batch
-	startBatch, endBatch = batch.Start, batch.End
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
 	statistics.Init({

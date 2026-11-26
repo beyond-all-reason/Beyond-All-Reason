@@ -241,10 +241,10 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 	it("does not fire again for a value that leaves its range and comes back before the batch ends", function()
 		local trigger = satisfiedRepeatingTrigger()
 
-		batch.Start()
-		GG["MissionAPI"].EvaluateMetric(trigger, 3)
-		GG["MissionAPI"].EvaluateMetric(trigger, 7)
-		batch.End()
+		batch.Run(function()
+			GG["MissionAPI"].EvaluateMetric(trigger, 3)
+			GG["MissionAPI"].EvaluateMetric(trigger, 7)
+		end)
 
 		assert.are.equal(1, trigger.repeatCount)
 	end)
@@ -287,11 +287,11 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 			-- The specification: fire when the net value enters the range, re-arm when it leaves.
 			local netValueInRange, expectedRepeatCount = startsSatisfied, trigger.repeatCount
 			for batchIndex, samples in ipairs(batches) do
-				batch.Start()
-				for _, value in ipairs(samples) do
-					GG["MissionAPI"].EvaluateMetric(trigger, value)
-				end
-				batch.End()
+				batch.Run(function()
+					for _, value in ipairs(samples) do
+						GG["MissionAPI"].EvaluateMetric(trigger, value)
+					end
+				end)
 
 				local inRange = samples[#samples] >= trigger.atLeast
 				if inRange and not netValueInRange and (repeating or expectedRepeatCount == 0) then
@@ -317,9 +317,7 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 			end
 
 			-- Leaves the trigger out of range, so the gadget's list of refused triggers drops it on its next recheck.
-			batch.Start()
-			GG["MissionAPI"].EvaluateMetric(trigger, OUT_OF_RANGE)
-			batch.End()
+			batch.Run(GG["MissionAPI"].EvaluateMetric, trigger, OUT_OF_RANGE)
 		end
 
 		local function runBatches(batches, startsSatisfied, repeating)
