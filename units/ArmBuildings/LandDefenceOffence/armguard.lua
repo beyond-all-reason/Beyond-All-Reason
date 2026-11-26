@@ -119,7 +119,7 @@ return {
 				soundstart = "cannhvy5",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 420,
+				weaponvelocity = 430,
 				customparams = {
 					exclude_preaim = true,
 					norangering = 1,
@@ -152,7 +152,7 @@ return {
 				soundstart = "cannhvy5",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 420,
+				weaponvelocity = 430,
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
@@ -184,7 +184,7 @@ return {
 				soundstart = "cannhvy5",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 430,
 				customparams = {
 					bogus = 1,
 					exclude_preaim = true,
