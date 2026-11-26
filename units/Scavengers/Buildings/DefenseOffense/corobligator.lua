@@ -135,7 +135,6 @@ return {
 				},
 				damage = {
 					default = 314,
-					shields = 294,
 				},
 			},
 			obligator_rocket = {
