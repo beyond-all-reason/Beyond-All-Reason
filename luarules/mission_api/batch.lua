@@ -38,7 +38,7 @@ local function runDeferredCalls()
 			break
 		end
 
-		-- What this round's calls defer runs in the next round.
+		-- Anything deferred by the calls in this round will run in the next round.
 		local last = deferredCount
 		for i = first, last do
 			local call = deferredCalls[i]
@@ -59,7 +59,7 @@ local function runDeferredCalls()
 	deferredCount = 0
 end
 
----Calls call(...) as one batch, or as part of the batch it is called in.
+---Calls `call(...)` as one batch, or as part of the batch it is called in.
 local function runBatch(call, ...)
 	local wasInBatch = inBatch
 	inBatch = true
@@ -70,15 +70,15 @@ local function runBatch(call, ...)
 	end
 end
 
----Calls call(a, b, c, d) when the batch ends, or at once outside of a batch.
+---Calls `call(a, b, c, d)` when the batch ends, or immediately when not in a batch.
 local function defer(call, a, b, c, d)
 	if not inBatch then
 		runBatch(call, a, b, c, d)
 		return
 	end
 	deferredCount = deferredCount + 1
-	deferredCalls[deferredCount], deferredFirstArguments[deferredCount], deferredSecondArguments[deferredCount] =
-		call, a, b
+	deferredCalls[deferredCount] = call
+	deferredFirstArguments[deferredCount], deferredSecondArguments[deferredCount] = a, b
 	deferredThirdArguments[deferredCount], deferredFourthArguments[deferredCount] = c, d
 end
 
@@ -87,7 +87,7 @@ local function callNetValue(call, subject)
 	call(subject)
 end
 
----Like Defer, but makes one call per subject in a batch, so the call reads the subject's net value.
+---As `Defer`, but makes one call per subject in a batch, so the call reads the subject's net value.
 local function deferNetValue(call, subject)
 	if not deferredSubjects[subject] then
 		deferredSubjects[subject] = true
