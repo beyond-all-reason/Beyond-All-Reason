@@ -183,7 +183,6 @@ return {
 				},
 				damage = {
 					default = 671,
-					shields = 255,
 				},
 			},
 		},
