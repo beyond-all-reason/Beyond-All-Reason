@@ -681,6 +681,9 @@ function gadget:Initialize()
 
 	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
 
+	batch = GG["MissionAPI"].Modules.Batch
+	runBatch, deferBatch = batch.Run, batch.Defer
+
 	seismicContacts = GG["MissionAPI"].Modules.SeismicContacts
 	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
