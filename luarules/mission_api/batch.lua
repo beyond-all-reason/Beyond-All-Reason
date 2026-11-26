@@ -12,15 +12,13 @@ local deferredFirstArguments, deferredSecondArguments = {}, {}
 local deferredThirdArguments, deferredFourthArguments = {}, {}
 local deferredSubjects = {}
 
+local function logFailure(message)
+	Spring.Log("batch.lua", LOG.ERROR, "[Mission API] " .. tostring(message))
+end
+
 local function clearDeferredSubjects()
 	for subject in pairs(deferredSubjects) do
 		deferredSubjects[subject] = nil
-	end
-end
-
-local function logFailure(ok, failure)
-	if not ok then
-		Spring.Log("batch.lua", LOG.ERROR, "[Mission API] " .. tostring(failure))
 	end
 end
 
@@ -48,7 +46,10 @@ local function runDeferredCalls()
 			deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil
 			local c, d = deferredThirdArguments[i], deferredFourthArguments[i]
 			deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
-			logFailure(pcall(call, a, b, c, d))
+			local success, message = pcall(call, a, b, c, d))
+			if not success then
+				logFailure(message)
+			end
 		end
 		first = last + 1
 	end
@@ -63,7 +64,10 @@ end
 local function runBatch(call, ...)
 	local wasInBatch = inBatch
 	inBatch = true
-	logFailure(pcall(call, ...))
+	local success, message = pcall(call, ...)
+	if not success then
+		logFailure(message)
+	end
 	if not wasInBatch then
 		runDeferredCalls()
 		inBatch = false
