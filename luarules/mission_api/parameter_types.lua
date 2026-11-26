@@ -18,6 +18,7 @@ local types = {
 	Direction = "Direction",
 	UnitLoadout = "UnitLoadout",
 	FeatureLoadout = "FeatureLoadout",
+	UnitDefCounts = "UnitDefCounts",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
 	Color = "Color",
@@ -39,6 +40,7 @@ local types = {
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
 	TeamName = "TeamName",
+	AiTeamName = "AiTeamName",
 	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
@@ -54,7 +56,12 @@ local types = {
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
 	EffectName = "EffectName",
+	SquadName = "SquadName",
+	RegionName = "RegionName",
+	BuildAreaName = "BuildAreaName",
+	BasePlanName = "BasePlanName",
 	AiState = "AiState",
+	SquadTask = "SquadTask",
 
 	-- Number Validators:
 	Number = "Number",
@@ -93,6 +100,7 @@ local types = {
 -- Authored mission types may be processed into a different type internally.
 local internalTypes = {
 	[types.TeamName] = "TeamID",
+	[types.AiTeamName] = "TeamID",
 	[types.AllianceName] = "AllyTeamID",
 	[types.AllianceNames] = "AllyTeamIDs",
 	[types.UnitDefNames] = "UnitDefIDSet",
@@ -173,6 +181,10 @@ local enums = {
 		DEFENSIVE = 2,
 		NORMAL = 3,
 		AGGRESSIVE = 4,
+	},
+
+	[types.SquadTask] = {
+		DEFEND = 1,
 	},
 }
 

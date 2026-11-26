@@ -160,6 +160,10 @@ local function registerValueValidators(parameterValidators, context)
 		return enums[Types.AiState][state]
 	end)
 
+	parameterValidators[Types.SquadTask] = getLookupValidator(validateString, "task", function(task)
+		return enums[Types.SquadTask][task]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -193,6 +197,10 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
 	parameterValidators[Types.EffectName] = validateString
+	parameterValidators[Types.SquadName] = validateString
+	parameterValidators[Types.RegionName] = validateString
+	parameterValidators[Types.BuildAreaName] = validateString
+	parameterValidators[Types.BasePlanName] = validateString
 	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
 	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
 		return countdownID:sub(1, 2) ~= "__"
@@ -204,6 +212,18 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
 		return context.Teams[teamName]
 	end)
+	-- Synced code cannot read which skirmish AI runs a team, only that one does.
+	parameterValidators[Types.AiTeamName] = function(teamName)
+		local teamResult = parameterValidators[Types.TeamName](teamName)
+		if teamResult then
+			return teamResult
+		end
+
+		local teamID = context.Teams[teamName]
+		if not Spring.GetAIInfo(teamID) or (Spring.GetTeamLuaAI(teamID) or "") ~= "" then
+			return { { message = "Team is not run by a skirmish AI: " .. teamName } }
+		end
+	end
 	parameterValidators[Types.AllianceName] = getLookupValidator(validateString, "allianceName", function(allianceName)
 		return context.Alliances[allianceName]
 	end)
@@ -214,6 +234,25 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
+
+	parameterValidators[Types.UnitDefCounts] = function(unitDefCounts)
+		local luaTypeResult = validateTableType(unitDefCounts)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if next(unitDefCounts) == nil then
+			return { { message = "unitDefCounts table is empty" } }
+		end
+
+		local results = {}
+		for unitDefName, count in pairs(unitDefCounts) do
+			local suffix = "[" .. tostring(unitDefName) .. "]"
+			appendResults(results, parameterValidators[Types.UnitDefName](unitDefName), suffix)
+			appendResults(results, parameterValidators[Types.PositiveInteger](count), suffix)
+		end
+		return results
+	end
 
 	-- One unit def name, or a list of them.
 	local validateUnitDefNameList =

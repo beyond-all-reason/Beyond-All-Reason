@@ -28,6 +28,8 @@ local needsBuildStartSet = false
 local actionsDispatcher
 local statistics
 local countdowns
+local squads, aiRegions, aiSignals ---@type table, table, table
+local unknownAISignals = {}
 local detectionLevels
 local seismicContacts
 local seismicIntervalFrames ---@type integer
@@ -605,6 +607,38 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	untrackFeatureID(featureID)
 end
 
+function gadget:RecvLuaMsg(message, playerID)
+	local teamID, signal, id, detail = GG.CampaignAI.ReadSignal(message, playerID)
+	if not teamID then
+		return
+	end
+
+	if signal == aiSignals.SQUAD_FINISHED then
+		local squadName = squads.Assemble(teamID, id)
+		if squadName then
+			dispatchConditionCallin("SquadAssembled", squadName, teamID)
+		end
+	elseif signal == aiSignals.SQUAD_DISBANDED then
+		-- The AI says whether the squad gathers again, 1 or 0. The AI of engine 2026.11.02 does not say yet.
+		local squadName = squads.End(teamID, id, detail and detail == 1)
+		if squadName then
+			dispatchConditionCallin("SquadDisbanded", squadName, teamID)
+		end
+	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
+		local regionName = aiRegions.GetName(teamID, id)
+		local squadName = squads.GetName(teamID, detail)
+		if regionName and squadName then
+			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
+			dispatchConditionCallin(callin, regionName, squadName, teamID)
+		end
+	elseif not unknownAISignals[signal] then
+		unknownAISignals[signal] = true
+		Spring.Log("Mission API triggers", LOG.WARNING, "Unknown campaign AI signal: " .. signal)
+	end
+
+	return true
+end
+
 function gadget:Initialize()
 	if not Spring.GetGameRulesParam("inMission") then
 		gadgetHandler:RemoveGadget()
@@ -623,6 +657,9 @@ function gadget:Initialize()
 	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
+	squads = GG["MissionAPI"].Modules.Squads
+	aiRegions = GG["MissionAPI"].Modules.AiRegions
+	aiSignals = VFS.Include("luarules/Utilities/campaign_ai_msg.lua").Signal
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
 	statistics.Init({

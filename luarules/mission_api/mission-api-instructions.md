@@ -70,9 +70,17 @@ Nothing works outside this sequence, so start here when something reads as `nil`
 - `GG.CampaignAI` (`luarules/gadgets/api_campaign_ai.lua`) runs the `actions/campaign_ai/` actions by
   sending messages to a team's campaign AI. The engine creates the AI after the loadout spawns, so
   a message from before the game starts reaches it when the game starts. The AI's signals come
-  back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay. Synced code
-  cannot read which AI runs a team, so the gadget's unsynced half checks it on the AI's host
-  before it sends.
+  back through `ReadSignal` in `RecvLuaMsg`, so they are in sync and in the replay. Their team
+  parameters are `AiTeamName`: validation rejects a team that no skirmish AI runs. Synced code cannot
+  read which AI that is, so the gadget's unsynced half checks it on the AI's host before it sends.
+- `Modules.Squads` (`squads.lua`) knows each squad by the name a mission gave it and by the ID the
+  team's campaign AI has for it. A squad action asks it for that ID, with the function for the
+  squad states the AI takes its message in, and sends nothing when it gets none.
+- `Modules.AiRegions` (`ai_regions.lua`) does the same for the regions the AI watches its squads in,
+  and refuses one that shares a cell of the AI's grid with a live region. `Modules.BuildAreas`
+  (`build_areas.lua`) holds the areas the AI fills with a structure, `Modules.BasePlans`
+  (`base_plans.lua`) its build orders. `Modules.AreaPolygons`
+  (`area_polygons.lua`) turns an `Area` into the polygon the AI takes.
 - Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`)
   and send them with `SendToUnsynced("MissionCamera<Action>", params)`; the unsynced
   `api_mission_camera.lua` gadget passes them to `luaui/Widgets/api_mission_camera.lua`, which
@@ -119,8 +127,9 @@ return {
 - A type that overlaps an existing one becomes a parameter on it, or is narrowed until they differ.
   Add no type that no mission needs, or that only forwards a call-in.
 - The call-in key is one `api_missions_triggers.lua` already forwards, an engine call-in or a
-  synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`); otherwise add the gadget
-  call-in plus its `dispatchConditionCallin` line.
+  synthetic one (`DetectionUpdate`, `CountdownTick`, `CountdownEnded`, `SquadAssembled`,
+  `SquadDisbanded`, `SquadEnteredRegion`, `SquadLeftRegion`); otherwise add the gadget call-in plus
+  its `dispatchConditionCallin` line.
 - `dispatchConditionCallin` runs a handler once per trigger of its type, passing
   `(trigger, triggerID, context, ...call-in args)`, and does not filter for you. An omitted filter
   matches everything (hence `requiresOneOf`), and `teamName` means that team alone, not its allies.
@@ -221,7 +230,8 @@ return {
   one parameter taking both forms.
 - A list of records declares the record's fields in a schema file, as
   `camera_keyframe_schema.lua` does for camera keyframes, so the editor reads those too.
-- `validation/references.lua` cross-checks unit, feature, marker, line, and effect names and
+- `validation/references.lua` cross-checks unit, feature, marker, line, effect, squad, region, and
+  base plan names and
   countdown and cutscene IDs between creator and consumer; it reads the consuming types from the
   schemas, so a new parameter of one of those types needs no listing, and neither does a
   `UnitName` field of `camera_keyframe_schema.lua`.

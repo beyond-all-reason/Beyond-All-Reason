@@ -10,7 +10,7 @@ return {
 		type = "SetAiState",
 		parameters = {
 			{ name = "state", required = true, type = ParameterTypes.AiState },
-			{ name = "teamName", required = true, type = ParameterTypes.TeamName },
+			{ name = "teamName", required = true, type = ParameterTypes.AiTeamName },
 		},
 		actionFunction = setAiState,
 	},

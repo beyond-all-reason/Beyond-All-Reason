@@ -494,6 +494,100 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 
+	describe("squad names", function()
+		-- DefineSquad takes a team that an AI runs.
+		before_each(function()
+			V.env.Spring.GetAIInfo = function(teamID)
+				return 0, "AI", 0
+			end
+		end)
+
+		it("passes a squad that is defined, with a trigger waiting for it", function()
+			V.assertValid(V.validate(V.mission()
+				:WithTrigger("start", {
+					type = V.conditionTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "defineRaiders" },
+				})
+				:WithTrigger("raidersReady", {
+					type = V.conditionTypes.SquadAssembled,
+					parameters = { squadName = "raiders" },
+					actions = { "ok" },
+				})
+				:WithAction("defineRaiders", {
+					type = V.actionTypes.DefineSquad,
+					parameters = {
+						squadName = "raiders",
+						teamName = "player",
+						position = { x = 100, z = 100 },
+						gatherRange = 500,
+						composition = { armwar = 2 },
+					},
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })))
+		end)
+
+		it("warns about a squad a trigger refers to, but no action defines", function()
+			local result = V.validate(V.mission()
+				:WithTrigger("watchGhost", {
+					type = V.conditionTypes.SquadDisbanded,
+					parameters = { squadName = "ghost" },
+					actions = { "ok" },
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
+
+			V.assertMessage(
+				result,
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: trigger watchGhost"
+			)
+		end)
+
+		it("warns about a squad an action refers to, but no action defines", function()
+			local result = V.validate(V.mission():WithAction("runGhost", {
+				type = V.actionTypes.SetSquadTask,
+				parameters = { squadName = "ghost", task = "DEFEND", position = { x = 100, z = 100 } },
+			}))
+
+			V.assertMessage(
+				result,
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: action runGhost"
+			)
+		end)
+	end)
+
+	describe("region names", function()
+		it("warns about a region an action refers to, but no action defines", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction(
+						"clearGhost",
+						{ type = V.actionTypes.ClearAiRegion, parameters = { regionName = "ghost" } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Region name is referenced, but never created. Region name: ghost, Referenced in: action clearGhost"
+			)
+		end)
+	end)
+
+	describe("base plan names", function()
+		it("warns about a base plan an action cancels, but no action adds to", function()
+			local result = V.validate(
+				V.mission():WithAction(
+					"cancelGhost",
+					{ type = V.actionTypes.CancelBasePlan, parameters = { basePlanName = "ghost" } }
+				)
+			)
+
+			V.assertMessage(
+				result,
+				"Base plan name is referenced, but never created. Base plan name: ghost, Referenced in: action cancelGhost"
+			)
+		end)
+	end)
+
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.
 	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
 	describe("objective events", function()
