@@ -32,7 +32,7 @@
 - [Extra Units]
   - Quad Guard lasers reload 0.2-0.5s -> 0.47s, health 1670 -> 2390, cost 300 metal / 7000 energy -> 360 metal / 5100 energy
   - Dragon's Rage reload 15s -> 9s
-  - Dragon's Constitution health 9600 -> 6200, metal cost 1250 -> 1120
+  - Dragon's Constitution health 9600 -> 5600, metal cost 1250 -> 1060
   - Obligator missile damage 255 -> 314
 - [Fixed]
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
