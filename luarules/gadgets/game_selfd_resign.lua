@@ -135,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						if skippedUnitCount > skipResignAmount then
 							break
-						elseif selfdUnitCount >= triggerResignAmount then
+						elseif unitCount > 1 and selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
 							if not LuaAI or not (string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors")) then
 								handleMassSelfD(teamID, unitCount, selfdUnitCount)
