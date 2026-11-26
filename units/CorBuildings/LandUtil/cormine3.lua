@@ -2,7 +2,7 @@ return {
 	cormine3 = {
 		blocking = false,
 		buildpic = "CORMINE3.DDS",
-		buildtime = 600,
+		buildtime = 500,
 		canattack = false,
 		canguard = false,
 		canpatrol = false,
