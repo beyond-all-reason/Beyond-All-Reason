@@ -46,7 +46,7 @@ local function runDeferredCalls()
 			deferredFirstArguments[i], deferredSecondArguments[i] = nil, nil
 			local c, d = deferredThirdArguments[i], deferredFourthArguments[i]
 			deferredThirdArguments[i], deferredFourthArguments[i] = nil, nil
-			local success, message = pcall(call, a, b, c, d))
+			local success, message = pcall(call, a, b, c, d)
 			if not success then
 				logFailure(message)
 			end
