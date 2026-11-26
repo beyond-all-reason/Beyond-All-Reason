@@ -2,9 +2,12 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 local function onTryActivate(trigger, triggerID, context, unitID, activated)
+	if not activated then
+		return
+	end
 	local dwellingUnits = context.DwellingUnitsInAreas[triggerID]
 	-- Prevents a second activation for the same unit, unless it left the area before this one went through.
-	if activated and dwellingUnits and dwellingUnits[unitID] then
+	if dwellingUnits and dwellingUnits[unitID] ~= nil then
 		dwellingUnits[unitID] = -1
 	end
 end
