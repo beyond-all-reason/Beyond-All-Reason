@@ -682,8 +682,8 @@
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
-	"armcarry": {
-		"role": ["support", "heavy"],
+	"armantiship": {
+		"role": ["support"],
 		"retreat": 0.75
 	},
 	"armmship": {
@@ -945,7 +945,7 @@
 		"role": ["assault", "skirmish"],
 		"attribute": ["anti_sub"]
 	},
-	"corcarry": {
+	"corantiship": {
 		"role": ["support", "heavy"],
 		"retreat": 0.75
 	},
