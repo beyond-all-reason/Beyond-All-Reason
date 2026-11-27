@@ -21,7 +21,6 @@ local math_abs = math.abs
 local math_floor = math.floor
 local math_diag = math.diag
 local math_max = math.max
-local math_min = math.min
 
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitStates = Spring.GetUnitStates
@@ -155,7 +154,12 @@ local function getPositionAwayFromSite(x, z, xsize, zsize, radius)
 	end
 	dx, dz = dx / length, dz / length
 
-	local distanceFootprint = math_min(halfX / math_abs(dx), halfZ / math_abs(dz))
+	local distanceFootprint
+	if halfX * math_abs(dz) < halfZ * math_abs(dx) then
+		distanceFootprint = halfX / math_abs(dx)
+	else
+		distanceFootprint = halfZ / math_abs(dz)
+	end
 	local distance = math_max(radius, distanceFootprint)
 	return siteCenterX + dx * distance, siteCenterZ + dz * distance
 end
