@@ -411,5 +411,23 @@
     "proxy_submitter": "efrec",
     "proxy_status": "pending-author-confirmation",
     "confirmed_at": "2026-11-25T20:59:12.868Z"
+  },
+  {
+    "file": "icons/air_t15_trans.png",
+    "status": "intent",
+    "pr": 10248,
+    "github_username": "TheChronographer",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-27T03:23:30.152Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "icons/inverted/air_t15_trans.png",
+    "status": "intent",
+    "pr": 10248,
+    "github_username": "TheChronographer",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-27T03:23:30.152Z",
+    "source": "confirm-license-command"
   }
 ]
