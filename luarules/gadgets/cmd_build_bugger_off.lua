@@ -20,7 +20,7 @@ end
 local math_abs = math.abs
 local math_floor = math.floor
 local math_diag = math.diag
-local math_pointOnCircle = math.closestPointOnCircle
+local math_max = math.max
 
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitStates = Spring.GetUnitStates
@@ -80,12 +80,17 @@ end
 
 local gameFrame = 0
 local mostRecentCommandFrame = {}
-
+local areaCommandCooldown = {}
 local slowUpdateBuilders = {}
 local watchedBuilders = {}
 local builderRadiusOffsets = {}
+local builderTargetX = {}
+local builderTargetZ = {}
 local needsUpdate = false
-local areaCommandCooldown = {}
+
+local siteX1, siteZ1, siteX2, siteZ2 = 0.0, 0.0, 0.0, 0.0
+local siteCenterX, siteCenterZ = 0.0, 0.0
+local siteExtraRadius = 0.0
 
 local FAST_UPDATE_RADIUS = 400
 local BUILDER_BUILD_RADIUS = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
@@ -109,18 +114,24 @@ local PATH_CLEAR_SEARCH_EXTRA = 3 * footprint
 local PATH_CLEAR_FORWARD_EXTRA = 2 * footprint
 local PATH_CLEAR_LATERAL_EXTRA = footprint
 
-local function doesFootprintOverlap(x, z, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
-	local x1 = math_floor(x / squareSize) - math_floor(xsize / 2)
-	local z1 = math_floor(z / squareSize) - math_floor(zsize / 2)
-	return x1 < buildX2 and buildX1 < x1 + xsize and z1 < buildZ2 and buildZ1 < z1 + zsize
+local function doesFootprintOverlap(x, z, xsize, zsize)
+	local x1 = (math_floor(x / squareSize) - math_floor(xsize / 2)) * squareSize
+	local z1 = (math_floor(z / squareSize) - math_floor(zsize / 2)) * squareSize
+	return x1 < siteX2 and siteX1 < x1 + xsize * squareSize and z1 < siteZ2 and siteZ1 < z1 + zsize * squareSize
 end
 
-local function willBeNearTarget(ux, uz, vx, vz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
-	if doesFootprintOverlap(ux, uz, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2) then
+local function isNearSite(x, z, xsize, zsize)
+	if doesFootprintOverlap(x, z, xsize, zsize) then
 		return true
 	end
-	local frames = 2.25 * BUGGEROFF_LOOKAHEAD
-	return doesFootprintOverlap(ux + vx * frames, uz + vz * frames, xsize, zsize, buildX1, buildZ1, buildX2, buildZ2)
+	local dx = math_max(siteX1 - x, 0, x - siteX2)
+	local dz = math_max(siteZ1 - z, 0, z - siteZ2)
+	return math_diag(dx, dz) <= siteExtraRadius
+end
+
+local function willBeNearTarget(x, z, vx, vz, xsize, zsize)
+	local frames = 0.5 * FAST_UPDATE_FREQUENCY
+	return isNearSite(x, z, xsize, zsize) or isNearSite(x + vx * frames, z + vz * frames, xsize, zsize)
 end
 
 local function isInTargetArea(unitID, x, z, radius)
@@ -129,6 +140,28 @@ local function isInTargetArea(unitID, x, z, radius)
 		return false
 	end
 	return math_diag(ux - x, uz - z) <= radius
+end
+
+local function getPositionAwayFromSite(x, z, xsize, zsize, radius)
+	-- Units can stop up to a square short of their move goal.
+	local halfX = (siteX2 - siteX1 + xsize * squareSize) * 0.5 + squareSize + siteExtraRadius
+	local halfZ = (siteZ2 - siteZ1 + zsize * squareSize) * 0.5 + squareSize + siteExtraRadius
+
+	local dx, dz = x - siteCenterX, z - siteCenterZ
+	local length = math_diag(dx, dz)
+	if length == 0 then
+		dx, dz, length = 1, 0, 1
+	end
+	dx, dz = dx / length, dz / length
+
+	local distanceFootprint
+	if halfX * math_abs(dz) < halfZ * math_abs(dx) then
+		distanceFootprint = halfX / math_abs(dx)
+	else
+		distanceFootprint = halfZ / math_abs(dz)
+	end
+	local distance = math_max(radius, distanceFootprint)
+	return siteCenterX + dx * distance, siteCenterZ + dz * distance
 end
 
 local function IsUnitRepeatOn(unitID)
@@ -146,6 +179,8 @@ local function removeBuilder(builderID)
 	slowUpdateBuilders[builderID] = nil
 	watchedBuilders[builderID] = nil
 	builderRadiusOffsets[builderID] = nil
+	builderTargetX[builderID] = nil
+	builderTargetZ[builderID] = nil
 end
 
 local function slowWatchBuilder(builderID)
@@ -288,6 +323,11 @@ function gadget:GameFrame(frame)
 				deferSlowCount = deferSlowCount + 1
 				deferSlow[deferSlowCount] = builderID
 			elseif targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius then
+				if targetX ~= builderTargetX[builderID] or targetZ ~= builderTargetZ[builderID] then
+					builderTargetX[builderID], builderTargetZ[builderID] = targetX, targetZ
+					builderRadiusOffsets[builderID] = 0
+				end
+
 				local buildDefRadius = buildUnitDefData.radius
 				local searchRadius = SEARCH_RADIUS_OFFSET + buildDefRadius
 
@@ -315,11 +355,12 @@ function gadget:GameFrame(frame)
 					buildXsize, buildZsize = buildZsize, buildXsize
 				end
 				local buildX, _, buildZ = spPos2BuildPos(-cmdID, targetX, targetY, targetZ, targetFacing)
-				local buggerOffSquares = math_floor(builderRadiusOffsets[builderID] / squareSize)
-				local buildX1 = math_floor(buildX / squareSize) - math_floor(buildXsize / 2) - buggerOffSquares
-				local buildZ1 = math_floor(buildZ / squareSize) - math_floor(buildZsize / 2) - buggerOffSquares
-				local buildX2 = buildX1 + buildXsize + 2 * buggerOffSquares
-				local buildZ2 = buildZ1 + buildZsize + 2 * buggerOffSquares
+				siteX1 = (math_floor(buildX / squareSize) - math_floor(buildXsize / 2)) * squareSize
+				siteZ1 = (math_floor(buildZ / squareSize) - math_floor(buildZsize / 2)) * squareSize
+				siteX2 = siteX1 + buildXsize * squareSize
+				siteZ2 = siteZ1 + buildZsize * squareSize
+				siteCenterX, siteCenterZ = (siteX1 + siteX2) * 0.5, (siteZ1 + siteZ2) * 0.5
+				siteExtraRadius = builderRadiusOffsets[builderID]
 
 				-- Make sure at least one builder per player is never told to move
 				if visitedTeams[builderTeam] == nil then
@@ -338,25 +379,17 @@ function gadget:GameFrame(frame)
 						if unitX then
 							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
 							if speedX then
-								local unitRadius = unitDefData.radius
-								if
-									willBeNearTarget(
-										unitX,
-										unitZ,
-										speedX,
-										speedZ,
-										unitDefData.xsizeMobile,
-										unitDefData.zsizeMobile,
-										buildX1,
-										buildZ1,
-										buildX2,
-										buildZ2
-									)
-								then
+								local unitXsize, unitZsize = unitDefData.xsizeMobile, unitDefData.zsizeMobile
+								if willBeNearTarget(unitX, unitZ, speedX, speedZ, unitXsize, unitZsize) then
 									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
 									local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-									local sendX, sendZ =
-										math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+									local sendX, sendZ = getPositionAwayFromSite(
+										predX,
+										predZ,
+										unitXsize,
+										unitZsize,
+										buggerOffRadius + unitDefData.radius
+									)
 
 									if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
 										moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ

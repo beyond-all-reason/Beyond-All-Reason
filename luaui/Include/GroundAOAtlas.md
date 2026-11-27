@@ -26,8 +26,8 @@ the plate: a 3 by 3 footprint produces a 6 by 6 plate, named
 `my_model_6_6_aoplane.png`.
 
 Use RGBA PNGs with black RGB, occlusion/darkness in alpha, and transparent edges.
-Keep the existing AO plate orientation; the resolver handles the difference
-between legacy DDS manifest coordinates and runtime PNG coordinates.
+
+Draw the plate with the unit's front at the top of the image, as in the DDS atlas.
 
 Explicit parameters take precedence:
 

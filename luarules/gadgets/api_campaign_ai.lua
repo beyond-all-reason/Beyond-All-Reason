@@ -79,7 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
-	local function runSquad(squadID, task, x, z, attackRange, teamID)
+	local function setSquadTask(squadID, task, x, z, attackRange, teamID)
 		local message = newMessage()
 			:cmdValue(topics.SQUAD_ID, squadID)
 			:cmdValue(topics.SQUAD_TASK, task)
@@ -101,10 +101,10 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced(SYNC_ACTION, teamID, newMessage():cmdValue(topics.SQUAD_DISBAND, squadID):toString())
 	end
 
-	local function setSquadRepeat(squadID, isRepeating, teamID)
+	local function setSquadRegather(squadID, regathers, teamID)
 		local message = newMessage()
 			:cmdValue(topics.SQUAD_REQUEST_ID, squadID)
-			:cmdDictArray(topics.SQUAD_REQUEST_PARAMS, squadParams.REBUILD, { isRepeating and 1 or 0 })
+			:cmdDictArray(topics.SQUAD_REQUEST_PARAMS, squadParams.REBUILD, { regathers and 1 or 0 })
 		SendToUnsynced(SYNC_ACTION, teamID, message:toString())
 	end
 
@@ -195,10 +195,10 @@ if gadgetHandler:IsSyncedCode() then
 		SetMilitaryQuota = setMilitaryQuota,
 		SetUnitDefRetreat = setUnitDefRetreat,
 		DefineSquad = defineSquad,
-		RunSquad = runSquad,
+		SetSquadTask = setSquadTask,
 		CancelSquad = cancelSquad,
 		DisbandSquad = disbandSquad,
-		SetSquadRepeat = setSquadRepeat,
+		SetSquadRegather = setSquadRegather,
 		SetSquadRetreat = setSquadRetreat,
 		SetSquadTarget = setSquadTarget,
 		SetSquadEscort = setSquadEscort,
