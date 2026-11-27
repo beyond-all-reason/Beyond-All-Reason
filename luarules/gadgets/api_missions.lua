@@ -60,6 +60,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 	GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
+	GG["MissionAPI"].Modules.Batch = VFS.Include("luarules/mission_api/batch.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
@@ -217,12 +218,14 @@ function gadget:GamePreload()
 		return
 	end
 
-	local loadoutModule = GG["MissionAPI"].Modules.Loadout
-	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
-	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
+	GG["MissionAPI"].Modules.Batch.Run(function()
+		local loadoutModule = GG["MissionAPI"].Modules.Loadout
+		loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
+		loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	local stages = GG["MissionAPI"].Modules.Stages
-	stages.ActivateStage(stages.GetCurrentStageID())
+		local stages = GG["MissionAPI"].Modules.Stages
+		stages.ActivateStage(stages.GetCurrentStageID())
+	end)
 end
 
 function gadget:GameFrame(frameNumber)

@@ -36,7 +36,7 @@ describe("ConditionContextBuilder", function()
 			local context = ConditionContextBuilder.new():Build()
 			local trigger = TriggerBuilder.new():Build()
 
-			assert.is_true(context.ActivateTrigger(trigger))
+			context.ActivateTrigger(trigger)
 
 			assert.are.equal(1, context.timesFired())
 			assert.are.equal(trigger, context.calls.activateTrigger[1].trigger)
