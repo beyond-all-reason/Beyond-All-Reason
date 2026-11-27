@@ -11,6 +11,11 @@ local function defineBuildArea(buildAreaName, teamID, area, unitDefName, facing,
 	end
 
 	local modules = GG["MissionAPI"].Modules
+	area = modules.Areas.ResolveArea(area)
+	if not area then
+		return
+	end
+
 	local buildAreaID = modules.BuildAreas.Define(buildAreaName, teamID)
 	if not buildAreaID then
 		return
