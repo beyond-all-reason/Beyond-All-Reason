@@ -523,7 +523,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 local function inactivateFactory(unitID)
-	for _, transportID in ipairs(factoryToGuardingTransports[unitID]) do
+	for transportID in pairs(factoryToGuardingTransports[unitID]) do
 		inactivateTransport(transportID)
 	end
 
