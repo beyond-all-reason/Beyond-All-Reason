@@ -5,16 +5,16 @@ return {
 			forceResignMessage = "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 			topbar = {
 				button = {
-					quit = "Quit",
-					resign = "Resign",
-					lobby = "ZH在尊嚴和權", -- Chinese traditional
-					settings = "Settings",
-					changes = "интеллегам",
-					keys = "JP真ひげ登射", -- Japanese
-					scavengers = "ZH在尊严和权", -- Chinese simplified
-					stats = "âäçêëîşûÿİæœ",
-					graphs = "Graphs",
-					save = "KR하십시오", -- Korean
+					quit = "خروج",
+					resign = "استقالة",
+					lobby = "الردهة 2D",
+					settings = "الإعدادات 3.5",
+					changes = "تغييرات v2.0",
+					keys = "المفاتيح ١٢٣ ABC",
+					scavengers = "الكنّاسون 2024",
+					stats = "إحصائيات 50%",
+					graphs = "رسوم 4K",
+					save = "حفظ 10",
 				},
 				quit = {
 					stay = "Stay",
@@ -1833,7 +1833,7 @@ return {
 				lootdroppod_gold = "Drops LOOT in your battle",
 				lootdroppod_printer = "Drops PRINTER in your battle",
 				meteor = "Falls out of the sky and kills you",
-				mission_command_tower = "\0", -- ASCII NULL character, empty string crashes i18n
+				mission_command_tower = "\0",
 				raptor_queen_normal = "The Mother of Them ALL! ",
 				nuketest = "Spawning a new nuke",
 				nuketestcor = "Spawning a new nuke",
@@ -1848,7 +1848,7 @@ return {
 				scavdtf = "Flamethrower Turret",
 				scavdtl = "Lightning Turret",
 				scavempspawner = "Spawning a new nuke",
-				scavengerdroppod = "\0", --ASCII NULL character, empty string crashes i18n
+				scavengerdroppod = "\0",
 				scavengerdroppodbeacon = "Calls in Scavenger drops",
 				scavengerdroppodfriendly = "Spawning droppod for reinforments",
 				scavfort = "Fortification Wall",
@@ -1856,7 +1856,7 @@ return {
 				scavmistxl = "Heavy Scavenger Mist",
 				scavmistxxl = "Super Heavy Scavenger Mist",
 				scavsafeareabeacon = "Toxic cloud generator",
-				scavtacnukespawner = "\0", --ASCII NULL character, empty string crashes i18n
+				scavtacnukespawner = "\0",
 				raptor_queen_veryeasy = "The Mother of Them ALL! ",
 				raptor_queen_veryhard = "The Mother of Them ALL! ",
 				xmasball1_1 = "Xmas Bauble",
@@ -1934,7 +1934,7 @@ return {
 				crystalSapphire = "Sapphire Crystal",
 				smothtree123dead = "Tree Trunk",
 				geovent = "Geothermal Vent",
-				geocrack = "Visual Crack for Geovent", -- this one seems like it shouldn't have a tooltip
+				geocrack = "Visual Crack for Geovent",
 				heap = "Debris",
 			},
 		},
