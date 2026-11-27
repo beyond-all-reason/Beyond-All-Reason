@@ -12,11 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-local DelayRandomization = 2 -- frames
-local CommandUISoundDelayFrames = 1
-local CommandUnitSoundDelayFrames = 10 -- don't make it smaller than CommandUISoundDelayFrames
-local UnitBuildOrderSoundDelayFrames = 10
-local AllyCommandUnitDelayFrames = 1
+local delayRandomization = 2 -- frames
+local commandUISoundDelayFrames = 1
+local commandUnitSoundDelayFrames = 10 -- don't make it smaller than CommandUISoundDelayFrames
+local unitBuildOrderSoundDelayFrames = 10
+local allyCommandUnitDelayFrames = 1
 
 local math_random = math.random
 
@@ -43,10 +43,10 @@ local commandSoundTimer = 1 / Game.gameSpeed
 local commandSoundLimit = 20
 local commandSoundCount = commandSoundLimit
 
-local CommandUISoundDelayLastFrame = 0
-local CommandUnitSoundDelayLastFrame = 0
-local UnitBuildOrderSoundDelayLastFrame = 0
-local AllyCommandUnitDelayLastFrame = 0
+local commandUISoundDelayLastFrame = 0
+local commandUnitSoundDelayLastFrame = 0
+local unitBuildOrderSoundDelayLastFrame = 0
+local allyCommandUnitDelayLastFrame = 0
 
 local CommandSoundEffects = {
 	[CMD.GROUPSELECT] = { "cmd-reclaim", 0.8 }, -- not working yet
@@ -103,7 +103,7 @@ end
 local hasSound = isSoundEnabled()
 
 local function getRandomizedGameFrame()
-	return gameFrame + math_random(-DelayRandomization, DelayRandomization)
+	return gameFrame + math_random(-delayRandomization, delayRandomization)
 end
 
 local function getRandomSelectedUnitID()
@@ -136,14 +136,14 @@ end
 local function playSetTargetSounds(preferredUnitID, cmdID, forceUi)
 	gameFrame = spGetGameFrame()
 	local soundDef = CommandSoundEffects[cmdID] or CommandSoundEffects[CMD_UNIT_SET_TARGET]
-	if soundDef and (forceUi or gameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames) then
+	if soundDef and (forceUi or gameFrame >= commandUISoundDelayLastFrame + commandUISoundDelayFrames) then
 		spPlaySoundFile(soundDef[1], soundDef[2], "ui")
 		if not forceUi then
-			CommandUISoundDelayLastFrame = getRandomizedGameFrame()
+			commandUISoundDelayLastFrame = getRandomizedGameFrame()
 		end
 	end
 
-	if gameFrame < CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames then
+	if gameFrame < commandUnitSoundDelayLastFrame + commandUnitSoundDelayFrames then
 		return
 	end
 
@@ -170,7 +170,7 @@ local function playSetTargetSounds(preferredUnitID, cmdID, forceUi)
 				posz
 			)
 		then
-			CommandUnitSoundDelayLastFrame = getRandomizedGameFrame()
+			commandUnitSoundDelayLastFrame = getRandomizedGameFrame()
 		end
 	end
 end
@@ -275,16 +275,16 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 			local ValidCommandSound = false
 
-			if gameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then
+			if gameFrame >= commandUISoundDelayLastFrame + commandUISoundDelayFrames then
 				if CommandSoundEffects[cmdID] then
 					playCommandSound(cmdID, cmdParams)
-					CommandUISoundDelayLastFrame = getRandomizedGameFrame()
+					commandUISoundDelayLastFrame = getRandomizedGameFrame()
 					ValidCommandSound = true
 				elseif cmdID < 0 then -- unit build
 					local buildingSounds = GUIUnitSoundEffects[-cmdID] ---@as table?
 					if
 						buildingSounds
-						and gameFrame >= UnitBuildOrderSoundDelayLastFrame + UnitBuildOrderSoundDelayFrames
+						and gameFrame >= unitBuildOrderSoundDelayLastFrame + unitBuildOrderSoundDelayFrames
 						and playUnitSounds(
 							buildingSounds.BaseSoundSelectType,
 							0.3,
@@ -295,13 +295,13 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 							posz
 						)
 					then
-						UnitBuildOrderSoundDelayLastFrame = getRandomizedGameFrame()
+						unitBuildOrderSoundDelayLastFrame = getRandomizedGameFrame()
 					end
 				end
 			end
 
 			local tryUnitSound = ValidCommandSound
-				and gameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames
+				and gameFrame >= commandUnitSoundDelayLastFrame + commandUnitSoundDelayFrames
 			local unitSounds = tryUnitSound and GUIUnitSoundEffects[unitDefID] ---@as table?
 			if
 				unitSounds
@@ -316,7 +316,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 				)
 			then
 				usedFrame = gameFrame
-				CommandUnitSoundDelayLastFrame = getRandomizedGameFrame()
+				commandUnitSoundDelayLastFrame = getRandomizedGameFrame()
 			end
 		end
 	end
@@ -324,7 +324,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if unitTeam ~= myTeamID then
 		if spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
 			local unitSounds = GUIUnitSoundEffects[unitDefID] ---@as table?
-			if unitSounds and gameFrame >= AllyCommandUnitDelayLastFrame + AllyCommandUnitDelayFrames then
+			if unitSounds and gameFrame >= allyCommandUnitDelayLastFrame + allyCommandUnitDelayFrames then
 				local posx, posy, posz = spGetUnitPosition(unitID)
 				if
 					playUnitSounds(
@@ -337,7 +337,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 						posz
 					)
 				then
-					AllyCommandUnitDelayLastFrame = getRandomizedGameFrame()
+					allyCommandUnitDelayLastFrame = getRandomizedGameFrame()
 				end
 			end
 		end
