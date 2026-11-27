@@ -2129,7 +2129,7 @@ local unitGrids = {
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron" }, -- pop-up gauss, DDM, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "corbuzz", "corsilo" }, -- LRPC, ICBM, lolcannon
+			{ "corlrpc", "corbuzz", "corsilo" }, -- LRPC, ICBM, lolcannon
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud" }, -- adv radar, targeting facility, wall, adv jammer
@@ -2176,7 +2176,7 @@ local unitGrids = {
 		{
 			{ "armpb", "armanni", "armamb", "armemp" }, -- pop-up gauss, annihilator, pop-up artillery, EMP missile
 			{ "armflak", "armmercury", "armamd" }, -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armsilo", "armvulc" }, -- LRPC, ICBM, lolcannon
+			{ "armbrtha", "armvulc", "armsilo" }, -- LRPC, lolcannon, ICBM
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil" }, -- adv radar, targeting facility, wall, adv jammer
@@ -2845,9 +2845,9 @@ local unitGrids = {
 	--corprinter
 	corprinter = {
 		{
-			{ "corsolar", "cormex" },
+			{ "cormex", "corsolar" }, -- mex, solar
 			{},
-			{}, -- solar, mex
+			{},
 		},
 		{
 			{},
@@ -2928,8 +2928,8 @@ local unitGrids = {
 			{ "legnavaldefturret", "legfhive", "", "" },
 		},
 		{
-			{ "legfrad", "legarad" }, -- fl radar, adv radar
-			{ "legfdrag" }, -- shark's teeth
+			{ "legfrad", "legarad", "legfdrag" }, -- fl radar, adv radar, shark's teeth
+			{}, --
 			{ "corfmine3" }, -- naval mine
 		},
 		{
