@@ -3,16 +3,27 @@ local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
+	-- Three waves of con bots, nine seconds apart. TimeElapsed fires only once, so the first
+	-- wave starts a countdown, and each later wave restarts it.
 	spawnCons1 = {
 		type = conditionTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			maxRepeats = 3,
-		},
 		parameters = {
 			seconds = 0,
 		},
-		actions = { 'spawnCons1' },
+		actions = { 'spawnCons1', 'restartConsWaveCountdown' },
+	},
+
+	-- Repeats twice for the second and third waves. The countdown restarted by the third wave
+	-- then runs out with nothing left to fire.
+	spawnCons1Again = {
+		type = conditionTypes.CountdownFinished,
+		parameters = {
+			countdownID = 'consWave',
+		},
+		settings = {
+			repeating = 2,
+		},
+		actions = { 'spawnCons1', 'restartConsWaveCountdown' },
 	},
 
 	spawnEnergyGrid1 = {
@@ -103,6 +114,16 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'corck', position = { x = 1800, z = 1600 }, orientation = 'n', teamName = 'player', unitName = 'con-bots', quantity = 9, spacing = 32 },
 			},
+		},
+	},
+
+	-- Not displayed: the player has no use for this timer.
+	restartConsWaveCountdown = {
+		type = actionTypes.AddCountdown,
+		parameters = {
+			countdownID = 'consWave',
+			seconds = 9,
+			displayed = false,
 		},
 	},
 

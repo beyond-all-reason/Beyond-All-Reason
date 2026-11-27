@@ -60,8 +60,7 @@ describe("mission_api object schemas", function()
 	it("describes the settings every trigger shares", function()
 		assert.are.same({
 			prerequisites = Types.TriggerIDs,
-			repeating = Types.Boolean,
-			maxRepeats = Types.Quantity,
+			repeating = Types.Repeating,
 			difficulties = Types.Difficulties,
 			coop = Types.Boolean,
 			active = Types.Boolean,

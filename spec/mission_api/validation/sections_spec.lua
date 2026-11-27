@@ -763,20 +763,30 @@ describe("mission_api.validation.sections", function()
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected boolean, got string. Trigger: t, Setting: repeating"
+				"Unexpected parameter type, expected boolean or number, got string. Trigger: t, Setting: repeating"
 			)
 		end)
 
-		it("reports maxRepeats without repeating", function()
-			local result = validateSettings({ maxRepeats = 3 })
-
-			V.assertMessage(result, "Trigger has maxRepeats setting but is not set to repeating. Trigger: t")
+		it("passes for repeating set to a number of activations", function()
+			V.assertValid(validateSettings({ repeating = 3 }))
 		end)
 
-		it("reports a negative maxRepeats", function()
-			local result = validateSettings({ repeating = true, maxRepeats = -1 })
+		it("reports repeating set to a number that is not a whole number above zero", function()
+			for _, repeating in ipairs({ 0, -1, 1.5 }) do
+				V.assertMessage(
+					validateSettings({ repeating = repeating }),
+					"PositiveInteger must be a whole number > 0, got "
+						.. repeating
+						.. ". Trigger: t, Setting: repeating"
+				)
+			end
+		end)
 
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Setting: maxRepeats")
+		-- maxRepeats was removed; a mission still using it should fail loudly rather than repeat forever.
+		it("reports an unknown setting", function()
+			local result = validateSettings({ repeating = true, maxRepeats = 3 })
+
+			V.assertMessage(result, "Unknown setting. Trigger: t, Setting: maxRepeats")
 		end)
 
 		describe("prerequisites", function()

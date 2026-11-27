@@ -102,7 +102,7 @@ local function isTriggerValid(trigger)
 	if trigger.triggered and not settings.repeating then
 		return false
 	end
-	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
+	if type(settings.repeating) == "number" and trigger.repeatCount >= settings.repeating then
 		return false
 	end
 	if

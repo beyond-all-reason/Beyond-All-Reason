@@ -15,7 +15,6 @@ local triggers = {
 		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 		},
 		parameters = {
 			includeUnit = { unitName = 'bots', teamName = 'player', unitDefName = 'armpw' },
@@ -29,7 +28,6 @@ local triggers = {
 		type = conditionTypes.UnitDwellLocation,
 		settings = {
 			repeating = true,
-			maxRepeats = 77,
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {

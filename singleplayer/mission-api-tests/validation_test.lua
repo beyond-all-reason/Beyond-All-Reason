@@ -112,18 +112,6 @@ local triggers = {
 		actions = { 'actionMissingType' },
 	},
 
-	-- error: maxRepeats without repeating
-	triggerWithMaxRepeatsButNotRepeating = {
-		type = conditionTypes.TimeElapsed,
-		settings = {
-			maxRepeats = 3,
-		},
-		parameters = {
-			seconds = 100000000,
-		},
-		actions = { 'actionMissingType' },
-	},
-
 	triggerWithInvalidActionID = {
 		type = conditionTypes.TimeElapsed,
 		parameters = {
@@ -137,7 +125,6 @@ local triggers = {
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
-			maxRepeats = true,
 			difficulties = 0,
 			coop = 0,
 			active = 0,

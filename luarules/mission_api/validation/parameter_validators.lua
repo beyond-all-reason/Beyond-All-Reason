@@ -404,6 +404,15 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	-- `true` repeats without limit, a number caps the total number of activations.
+	parameterValidators[Types.Repeating] = function(value)
+		if type(value) == "number" then
+			return parameterValidators[Types.PositiveInteger](value)
+		elseif type(value) ~= "boolean" then
+			return { { message = "Unexpected parameter type, expected boolean or number, got " .. type(value) } }
+		end
+	end
+
 	parameterValidators[Types.AttributeValue] = function(value)
 		local valueType = type(value)
 		if valueType ~= "number" and valueType ~= "string" and valueType ~= "boolean" then
