@@ -23,6 +23,10 @@ function widget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	return false
+end
+
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort

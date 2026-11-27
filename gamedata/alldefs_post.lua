@@ -68,6 +68,22 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = require("gamedata/scavengers/weapondef_post").scavWeaponDefPost
+local tractorBeamMode = modOptions.beta_tractorbeam ~= "disabled" and modOptions.beta_tractorbeam or nil
+local tractorBeamEnabled = tractorBeamMode ~= nil
+local _tractorbeamDefs = tractorBeamMode
+		and VFS.Include("tractor_beams_temp_defs/transporter_defs_" .. tractorBeamMode .. ".lua")
+	or {}
+local transporterDefs = _tractorbeamDefs.transporters
+local transporterDefaults = _tractorbeamDefs.transporterDefaults
+local labBuildoptions = _tractorbeamDefs.labBuildoptions
+local knownTransporters = {}
+
+if transporterDefs then
+	-- Set of all transport names managed by transporter_defs (used to scrub factory buildoptions).
+	for k in pairs(transporterDefs) do
+		knownTransporters[k] = true
+	end
+end
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -253,6 +269,48 @@ local function unitDef_Post(name, uDef)
 	end
 
 	----------------------------------------------------------------------------------------------------------
+
+	--- beta tractorbeam mod option
+	if tractorBeamEnabled then
+		-- apply transporter overrides
+		local tentry = transporterDefs[name]
+		if tentry then
+			-- apply shared defaults
+			for k, v in pairs(transporterDefaults) do
+				uDef[k] = v
+			end
+			uDef.objectname = "units/" .. name .. "_tractorbeam.s3o"
+			-- apply per-unit top-level overrides (e.g. script for weaponized transports)
+			for k, v in pairs(tentry) do
+				if k ~= "customparams" then
+					uDef[k] = v
+				end
+			end
+			-- apply per-unit customparams
+			if tentry.customparams then
+				if not uDef.customparams then
+					uDef.customparams = {}
+				end
+				for k, v in pairs(tentry.customparams) do
+					uDef.customparams[k] = v
+				end
+			end
+		end
+		-- apply lab buildoptions: strip known transporters then re-add only the listed ones
+		local labOpts = labBuildoptions[name]
+		if labOpts ~= nil then
+			local filtered = {}
+			for _, unitName in pairs(buildoptions) do
+				if not knownTransporters[unitName] then
+					filtered[#filtered + 1] = unitName
+				end
+			end
+			for _, transportName in ipairs(labOpts) do
+				filtered[#filtered + 1] = transportName
+			end
+			uDef.buildoptions = filtered
+		end
+	end
 
 	if uDef.sounds then
 		if uDef.sounds.ok then

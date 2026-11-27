@@ -211,6 +211,18 @@ local options = {
 			},
 		},
 	},
+	{
+		key = "beta_tractorbeam",
+		name = "Tractor beams",
+		desc = "Experimental tractor beam transportation method",
+		type = "list",
+		def = "disabled",
+		section = "options_experimental",
+		items = {
+			{ key = "disabled", name = "Disabled", desc = "Disabled" },
+			{ key = "vanilla", name = "Vanilla-like", desc = "Tractor beam logic without balance adjustments" },
+		},
+	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{

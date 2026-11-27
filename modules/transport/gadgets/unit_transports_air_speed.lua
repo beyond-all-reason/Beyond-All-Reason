@@ -8,7 +8,8 @@ function gadget:GetInfo()
 		date = "2015",
 		license = "PD",
 		layer = 0,
-		enabled = Spring.GetModOptions().comm_trans_slow,
+		-- tractor beam transports carry their own commander penalty
+		enabled = Spring.GetModOptions().comm_trans_slow and Spring.GetModOptions().beta_tractorbeam == "disabled",
 	}
 end
 
