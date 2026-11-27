@@ -30,6 +30,7 @@
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
   - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
 - [Fixed]
+  - Transport load and unload orders are more reliable, and transports keep their command queues intact.
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
