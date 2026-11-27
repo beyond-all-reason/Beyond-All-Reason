@@ -1,4 +1,4 @@
-local TRANSLATION_ROOT = "missionEditor" -- from the editor's language/<language>/missionEditor.json
+local TRANSLATION_ROOT = "missionEditor" -- from language/<language>/missionEditor.json
 
 local function getTypesWithParameterType(schemaParameters, parameterType)
 	local typesWithParameter = {}
