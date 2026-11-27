@@ -3874,31 +3874,6 @@ local icontypes = {
 		size = 0.41999999,
 	},
 
-	-- T2 split
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	blank = {
 		bitmap = "icons/blank.png",
 		size = 1,
