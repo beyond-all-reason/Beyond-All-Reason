@@ -46,8 +46,6 @@ Click modifiers:
   If you screen-command an external unit, it will exclude the selected units.
 --]]------------------------------------------------------------------------------
 
-local tableInsert = table.insert
-local tableSort = table.sort
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local mathHuge = math.huge
@@ -137,7 +135,7 @@ local RANGE_REDUCED_CURSOR_GAP_FRACTION = 16 / 1080
 local RANGE_REDUCED_TEXT_PADDING_SCALE = 0.2
 
 local MAX_QUEUE_COMMANDS = 100
-local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+local DOUBLE_CLICK_TIME = spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 32 / 1080
 
 local doubleClickEnabled = true
@@ -148,6 +146,8 @@ local COMMAND_LIMIT_MAX = 4000
 local COMMAND_LIMIT_DEFAULT = 1500
 local commandLimit = COMMAND_LIMIT_DEFAULT
 local REACHABILITY_TEST_BUDGET = 3000
+local MAX_UNIT_ID = Game.maxUnits
+local AI_COMMAND_PACKET_LIMIT = 8000
 
 local myAllyTeamID
 local myTeamID
@@ -172,13 +172,13 @@ local rangeReducedTextTexture
 local rangeReducedTextWidth = 0
 local rangeReducedTextHeight = 0
 local rangeReducedTextBakeFailed = false
-local vsy = select(2, spring.GetViewGeometry())
-local doubleClickSnapRadius = vsy * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
+local viewHeight = select(2, spring.GetViewGeometry())
+local doubleClickSnapRadius = viewHeight * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
 local doubleClickSnapRadiusSq = doubleClickSnapRadius * doubleClickSnapRadius
 
 local function updateDoubleClickSnapRadius()
-	vsy = select(2, spring.GetViewGeometry())
-	doubleClickSnapRadius = vsy * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
+	viewHeight = select(2, spring.GetViewGeometry())
+	doubleClickSnapRadius = viewHeight * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
 	doubleClickSnapRadiusSq = doubleClickSnapRadius * doubleClickSnapRadius
 end
 
@@ -233,36 +233,40 @@ local function isPendingDoubleClickActive()
 end
 
 local function isFeatureTargetID(targetID)
-	-- Anything in the feature range is a feature; verify against the de-offset ID.
-	if targetID >= Game.maxUnits then
-		return spValidFeatureID(targetID - Game.maxUnits)
+	if targetID >= MAX_UNIT_ID then
+		if spValidFeatureID(targetID - MAX_UNIT_ID) then
+			return true
+		end
+		return false
 	end
-	-- Below the range it could still be a feature, so check explicitly.
-	if spValidFeatureID(targetID) and not spValidUnitID(targetID) then
+	if spValidUnitID(targetID) then
+		return false
+	end
+	if spValidFeatureID(targetID) then
 		return true
 	end
 	return false
 end
 
 local function getRawFeatureID(targetID)
-	-- Strip Game.maxUnits to recover the ID feature APIs expect.
-	if targetID >= Game.maxUnits then
-		return targetID - Game.maxUnits
+	if targetID >= MAX_UNIT_ID then
+		return targetID - MAX_UNIT_ID
 	end
 	return targetID
 end
 
 local function normalizeFeatureTargetID(featureID)
-	-- Inverse of getRawFeatureID: re-apply the offset so the ID is valid as a command parameter.
-	return featureID + Game.maxUnits
+	return featureID + MAX_UNIT_ID
 end
 
 local function toFeatureOrderParamID(targetID)
-	-- Unit targets pass through untouched; feature targets always carry the offset ID.
-	if not isFeatureTargetID(targetID) then
+	if targetID >= MAX_UNIT_ID then
 		return targetID
 	end
-	return getRawFeatureID(targetID) + Game.maxUnits
+	if spValidUnitID(targetID) or not spValidFeatureID(targetID) then
+		return targetID
+	end
+	return targetID + MAX_UNIT_ID
 end
 
 local function filterUnitsForCommand(selectedUnits, commandID)
@@ -275,7 +279,7 @@ local function filterUnitsForCommand(selectedUnits, commandID)
 		local unitDefID = spGetUnitDefID(unitID)
 		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
 		if metadata and metadata.commandCapabilities[commandID] then
-			tableInsert(filteredUnits, unitID)
+			filteredUnits[#filteredUnits + 1] = unitID
 		end
 	end
 	return filteredUnits
@@ -289,9 +293,9 @@ local function splitBuilderUnits(selectedUnits)
 		local unitDefID = spGetUnitDefID(unitID)
 		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
 		if metadata and metadata.isScreenSelectBuilder then
-			tableInsert(builderUnits, unitID)
+			builderUnits[#builderUnits + 1] = unitID
 		else
-			tableInsert(nonBuilderUnits, unitID)
+			nonBuilderUnits[#nonBuilderUnits + 1] = unitID
 		end
 	end
 	return builderUnits, nonBuilderUnits
@@ -352,7 +356,7 @@ local function filterTargetsByPredicate(targets, predicate)
 	for targetIndex = 1, #targets do
 		local targetID = targets[targetIndex]
 		if predicate(targetID) then
-			tableInsert(filteredTargets, targetID)
+			filteredTargets[#filteredTargets + 1] = targetID
 		end
 	end
 	return filteredTargets
@@ -426,13 +430,6 @@ local function getDoubleClickRadius()
 	return doubleClickRadiusFraction * longestViewDimension
 end
 
-local function getMassOrderCircleRadius()
-	if doubleClickRadiusFraction >= DOUBLE_CLICK_RADIUS_FRACTION_MAX then
-		return nil
-	end
-	return getDoubleClickRadius()
-end
-
 local function resolveClickScreenPosition(clickScreenX, clickScreenY)
 	if clickScreenX ~= nil and clickScreenY ~= nil then
 		return clickScreenX, clickScreenY
@@ -458,13 +455,11 @@ local function showRangeReducedNotice()
 	rangeReducedNotice = {
 		startTime = osClock(),
 	}
-	spring.Log(widget.GetInfo().name, LOG.WARNING, "Mass orders reduced to " .. commandLimit .. ". Zoom in or adjust limits in the settings menu")
-end
-
-local function refreshCirclePreview()
-	circlePreview = {
-		lastSetTime = osClock(),
-	}
+	spring.Log(
+		widget.GetInfo().name,
+		LOG.WARNING,
+		BAR.I18N("ui.screenSelectCommands.rangeReducedWarning", { limit = commandLimit })
+	)
 end
 
 local function targetWaterDepth(position)
@@ -538,7 +533,7 @@ local function filterTargetsReachableByUnitDef(unitDefID, targets, positionCache
 		local targetID = targets[targetIndex]
 		local position = getTargetPosition(targetID, positionCache)
 		if position and canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache) then
-			tableInsert(filteredTargets, targetID)
+			filteredTargets[#filteredTargets + 1] = targetID
 		end
 	end
 	return filteredTargets
@@ -551,7 +546,7 @@ local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionC
 		local unitDefID = spGetUnitDefID(selectedUnits[unitIndex])
 		if unitDefID and not seenUnitDefIDs[unitDefID] then
 			seenUnitDefIDs[unitDefID] = true
-			tableInsert(unitDefIDs, unitDefID)
+			unitDefIDs[#unitDefIDs + 1] = unitDefID
 		end
 	end
 	if #unitDefIDs == 0 then
@@ -564,7 +559,7 @@ local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionC
 		if position then
 			for unitDefIndex = 1, #unitDefIDs do
 				if canUnitDefReachPosition(unitDefIDs[unitDefIndex], targetID, position, reachabilityCache) then
-					tableInsert(filteredTargets, targetID)
+					filteredTargets[#filteredTargets + 1] = targetID
 					break
 				end
 			end
@@ -580,29 +575,33 @@ local function collectMoveDefGroups(selectedUnits)
 		local unitID = selectedUnits[unitIndex]
 		local unitDefID = spGetUnitDefID(unitID)
 		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
-		local moveDefName = metadata and metadata.moveDefName or ("unit:" .. tostring(unitDefID or 0))
-		local group = groupsByName[moveDefName]
+		local moveGroupKey = "unit:" .. tostring(unitDefID or 0)
+		if metadata then
+			moveGroupKey = metadata.moveDefName
+			if metadata.canFly then
+				moveGroupKey = moveGroupKey .. ":fly"
+			elseif metadata.isHover then
+				moveGroupKey = moveGroupKey .. ":hover"
+			elseif metadata.isShip then
+				moveGroupKey = moveGroupKey .. ":ship:" .. tostring(metadata.minWaterDepth)
+			else
+				moveGroupKey = moveGroupKey .. ":depth:" .. tostring(metadata.moveWaterDepth)
+			end
+		end
+		local group = groupsByName[moveGroupKey]
 		if not group then
 			group = {
-				moveDefName = moveDefName,
 				unitIDs = {},
 				representativeDefID = unitDefID,
 				canFly = metadata ~= nil and metadata.canFly == true,
 			}
-			groupsByName[moveDefName] = group
+			groupsByName[moveGroupKey] = group
 			groups[#groups + 1] = group
 		end
 		local unitIDs = group.unitIDs
 		unitIDs[#unitIDs + 1] = unitID
 	end
 	return groups
-end
-
-local function filterTargetsForMoveDefGroup(group, targets, positionCache, reachabilityCache)
-	if group.canFly or not group.representativeDefID then
-		return targets
-	end
-	return filterTargetsReachableByUnitDef(group.representativeDefID, targets, positionCache, reachabilityCache)
 end
 
 local function targetsLackOrders(targetsByUnit, unitIDs, targetIDs)
@@ -704,17 +703,6 @@ local function collectQueueEndPositions(selectedUnits)
 		end
 	end
 	return positions
-end
-
-local function seedUnitQueueEndPositions(selectedUnits, positionCache, queueEndByUnitID)
-	local unitPositions = queueEndByUnitID or collectQueueEndPositions(selectedUnits)
-	for unitIndex = 1, #selectedUnits do
-		local unitID = selectedUnits[unitIndex]
-		local queueEndPosition = unitPositions[unitID]
-		if queueEndPosition then
-			positionCache[unitID] = queueEndPosition
-		end
-	end
 end
 
 local function removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
@@ -842,216 +830,375 @@ local function giveOrders(commandID, selectedUnits, filteredTargets, options)
 	end
 end
 
-local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, distributeEvenly)
-	local function sortUnitTargets(unitID, unitTargets)
-		local sortedTargetCount = #unitTargets
-		if sortedTargetCount < 2 then
-			return
+local function optionBitsIncludeShift(optionBits)
+	local shiftBit = CMD.OPT_SHIFT
+	return optionBits % (shiftBit * 2) >= shiftBit
+end
+
+local function estimateOrderPacketSize(orders, orderStart, orderEnd)
+	local referenceOrder = orders[orderStart]
+	local referenceCommandID = referenceOrder[1]
+	local referenceOptionBits = referenceOrder[3]
+	local referenceParameterCount = #referenceOrder[2]
+	local sameCommandID = true
+	local sameOptionBits = true
+	local sameParameterCount = true
+	local totalParameters = 0
+	for orderIndex = orderStart, orderEnd do
+		local order = orders[orderIndex]
+		local parameterCount = #order[2]
+		totalParameters = totalParameters + parameterCount
+		if order[1] ~= referenceCommandID then
+			sameCommandID = false
 		end
-		local origin = getTargetPosition(unitID, positionCache)
-		local positions = {}
-		for targetIndex = 1, sortedTargetCount do
-			positions[targetIndex] = getTargetPosition(unitTargets[targetIndex], positionCache)
+		if order[3] ~= referenceOptionBits then
+			sameOptionBits = false
 		end
-		local used = {}
-		local orderedTargetIDs = {}
-		local cursorX = nil
-		local cursorZ = nil
-		if origin then
-			cursorX = origin.x
-			cursorZ = origin.z
-		end
-		for orderIndex = 1, sortedTargetCount do
-			local bestIndex = nil
-			local bestDistance = mathHuge
-			local bestTargetID = nil
-			for targetIndex = 1, sortedTargetCount do
-				if not used[targetIndex] then
-					local position = positions[targetIndex]
-					local targetID = unitTargets[targetIndex]
-					local distance = mathHuge
-					if position and cursorX then
-						distance = mathDistance2dSquared(cursorX, cursorZ, position.x, position.z)
-					end
-					if bestIndex == nil or distance < bestDistance or (distance == bestDistance and targetID < bestTargetID) then
-						bestDistance = distance
-						bestIndex = targetIndex
-						bestTargetID = targetID
-					end
-				end
-			end
-			used[bestIndex] = true
-			orderedTargetIDs[orderIndex] = bestTargetID
-			local bestPosition = positions[bestIndex]
-			if bestPosition then
-				cursorX = bestPosition.x
-				cursorZ = bestPosition.z
-			end
-		end
-		for targetIndex = 1, sortedTargetCount do
-			unitTargets[targetIndex] = orderedTargetIDs[targetIndex]
+		if parameterCount ~= referenceParameterCount then
+			sameParameterCount = false
 		end
 	end
-
-	local function trimUnitTargetsToBudget(targetsByUnit, unitIDs, orderBudget)
-		local totalOrders = 0
-		local orderCounts = {}
-		for unitIndex = 1, #unitIDs do
-			local orderCount = #(targetsByUnit[unitIDs[unitIndex]] or {})
-			orderCounts[unitIndex] = orderCount
-			totalOrders = totalOrders + orderCount
-		end
-		if totalOrders <= orderBudget then
-			return false
-		end
-		local excessOrders = totalOrders - orderBudget
-		while excessOrders > 0 do
-			local longestUnitIndex = 1
-			for unitIndex = 2, #unitIDs do
-				if orderCounts[unitIndex] > orderCounts[longestUnitIndex] then
-					longestUnitIndex = unitIndex
-				end
-			end
-			if orderCounts[longestUnitIndex] < 1 then
-				break
-			end
-			orderCounts[longestUnitIndex] = orderCounts[longestUnitIndex] - 1
-			excessOrders = excessOrders - 1
-		end
-		for unitIndex = 1, #unitIDs do
-			local targetIDs = targetsByUnit[unitIDs[unitIndex]]
-			if targetIDs then
-				local keepCount = orderCounts[unitIndex]
-				for targetIndex = keepCount + 1, #targetIDs do
-					targetIDs[targetIndex] = nil
-				end
-			end
-		end
-		return true
+	local optionalBytesPerCommand = 0
+	if not sameCommandID then
+		optionalBytesPerCommand = optionalBytesPerCommand + 4
 	end
+	if not sameOptionBits then
+		optionalBytesPerCommand = optionalBytesPerCommand + 1
+	end
+	if not sameParameterCount then
+		optionalBytesPerCommand = optionalBytesPerCommand + 2
+	end
+	local commandCount = orderEnd - orderStart + 1
+	return 19 + commandCount * optionalBytesPerCommand + totalParameters * 4
+end
 
-	local function issueUnitTargetOrders(commandID, unitID, orderedTargetIDs, options, positionCache)
-		local targetCount = #orderedTargetIDs
-		if targetCount < 1 then
-			return
+local function issueUnitTargetOrders(commandID, unitID, orderedTargetIDs, options, positionCache)
+	local targetCount = #orderedTargetIDs
+	if targetCount < 1 then
+		return
+	end
+	local orders = {}
+	local setTargetCommand = commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
+	if setTargetCommand or not options.meta then
+		local shiftedOptionBits = getCommandOptionBits(options, true)
+		local baseOptionBits = getCommandOptionBits(options, false)
+		for targetIndex = 1, targetCount do
+			local optionBits = baseOptionBits
+			if targetIndex > 1 or options.shift then
+				optionBits = shiftedOptionBits
+			end
+			orders[targetIndex] = {
+				commandID,
+				{ toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+				optionBits,
+			}
 		end
-		local orders = {}
-		local setTargetCommand = commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
-		if setTargetCommand or not options.meta then
-			local shiftedOptionBits = getCommandOptionBits(options, true)
-			local baseOptionBits = getCommandOptionBits(options, false)
-			for targetIndex = 1, targetCount do
-				local optionBits = baseOptionBits
-				if targetIndex > 1 or options.shift then
-					optionBits = shiftedOptionBits
-				end
-				orders[targetIndex] = {
-					commandID,
-					{ toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
-					optionBits,
+	else
+		local innerOptionBits = getCommandOptionBits(options, false)
+		local insertionPosition = 0
+		local reverseOrder = true
+		if options.shift then
+			local targetCentroid = getTargetCentroid(orderedTargetIDs, positionCache)
+			local queuedInsertionPosition = findQueueInsertionPosition(unitID, targetCentroid, positionCache)
+			if queuedInsertionPosition == nil then
+				insertionPosition = -1
+				reverseOrder = false
+			else
+				insertionPosition = queuedInsertionPosition
+			end
+		end
+		if reverseOrder then
+			local orderCount = 0
+			for targetIndex = targetCount, 1, -1 do
+				orderCount = orderCount + 1
+				orders[orderCount] = {
+					CMD.INSERT,
+					{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+					CMD.OPT_ALT,
 				}
 			end
 		else
-			local innerOptionBits = getCommandOptionBits(options, false)
-			local insertionPosition = 0
-			local reverseOrder = true
-			if options.shift then
-				local targetCentroid = getTargetCentroid(orderedTargetIDs, positionCache)
-				local queuedInsertionPosition = findQueueInsertionPosition(unitID, targetCentroid, positionCache)
-				if queuedInsertionPosition == nil then
-					insertionPosition = -1
-					reverseOrder = false
-				else
-					insertionPosition = queuedInsertionPosition
-				end
+			for targetIndex = 1, targetCount do
+				orders[targetIndex] = {
+					CMD.INSERT,
+					{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
+					CMD.OPT_ALT,
+				}
 			end
-			if reverseOrder then
-				local orderCount = 0
-				for targetIndex = targetCount, 1, -1 do
-					orderCount = orderCount + 1
-					orders[orderCount] = {
-						CMD.INSERT,
-						{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
-						CMD.OPT_ALT,
-					}
-				end
-			else
-				for targetIndex = 1, targetCount do
-					orders[targetIndex] = {
-						CMD.INSERT,
-						{ insertionPosition, commandID, innerOptionBits, toFeatureOrderParamID(orderedTargetIDs[targetIndex]) },
-						CMD.OPT_ALT,
-					}
-				end
-			end
-		end
-		local AI_COMMANDS_PACKET_LIMIT = 8000
-		local function shiftAlreadySet(optionBits)
-			local shiftBit = CMD.OPT_SHIFT
-			return optionBits % (shiftBit * 2) >= shiftBit
-		end
-		local function estimatePacketSize(orderList, orderStart, orderEnd)
-			local referenceOrder = orderList[orderStart]
-			local referenceCommandID = referenceOrder[1]
-			local referenceOptionBits = referenceOrder[3]
-			local referenceParameterCount = #referenceOrder[2]
-			local sameCommandID = true
-			local sameOptionBits = true
-			local sameParameterCount = true
-			local totalParameters = 0
-			for orderIndex = orderStart, orderEnd do
-				local order = orderList[orderIndex]
-				local parameterCount = #order[2]
-				totalParameters = totalParameters + parameterCount
-				if order[1] ~= referenceCommandID then
-					sameCommandID = false
-				end
-				if order[3] ~= referenceOptionBits then
-					sameOptionBits = false
-				end
-				if parameterCount ~= referenceParameterCount then
-					sameParameterCount = false
-				end
-			end
-			local optionalBytesPerCommand = 0
-			if not sameCommandID then
-				optionalBytesPerCommand = optionalBytesPerCommand + 4
-			end
-			if not sameOptionBits then
-				optionalBytesPerCommand = optionalBytesPerCommand + 1
-			end
-			if not sameParameterCount then
-				optionalBytesPerCommand = optionalBytesPerCommand + 2
-			end
-			local commandCount = orderEnd - orderStart + 1
-			local packetSize = 19 + commandCount * optionalBytesPerCommand + totalParameters * 4
-			return packetSize
-		end
-		local chunkStart = 1
-		local orderCount = #orders
-		while chunkStart <= orderCount do
-			local chunkEnd = chunkStart
-			while chunkEnd < orderCount do
-				local nextPacketSize = estimatePacketSize(orders, chunkStart, chunkEnd + 1)
-				if nextPacketSize > AI_COMMANDS_PACKET_LIMIT then
-					break
-				end
-				chunkEnd = chunkEnd + 1
-			end
-			local chunk = {}
-			for orderIndex = chunkStart, chunkEnd do
-				local order = orders[orderIndex]
-				local optionBits = order[3]
-				if chunkStart > 1 and order[1] ~= CMD.INSERT and not shiftAlreadySet(optionBits) then
-					optionBits = optionBits + CMD.OPT_SHIFT
-				end
-				chunk[#chunk + 1] = { order[1], order[2], optionBits }
-			end
-			spGiveOrderArrayToUnit(unitID, chunk)
-			chunkStart = chunkEnd + 1
 		end
 	end
+	local chunkStart = 1
+	local orderCount = #orders
+	while chunkStart <= orderCount do
+		local chunkEnd = chunkStart
+		local searchEnd = orderCount
+		while chunkEnd < searchEnd do
+			local mid = mathFloor((chunkEnd + searchEnd + 1) / 2)
+			if estimateOrderPacketSize(orders, chunkStart, mid) <= AI_COMMAND_PACKET_LIMIT then
+				chunkEnd = mid
+			else
+				searchEnd = mid - 1
+			end
+		end
+		local chunk = {}
+		for orderIndex = chunkStart, chunkEnd do
+			local order = orders[orderIndex]
+			local optionBits = order[3]
+			if chunkStart > 1 and order[1] ~= CMD.INSERT and not optionBitsIncludeShift(optionBits) then
+				optionBits = optionBits + CMD.OPT_SHIFT
+			end
+			chunk[#chunk + 1] = { order[1], order[2], optionBits }
+		end
+		spGiveOrderArrayToUnit(unitID, chunk)
+		chunkStart = chunkEnd + 1
+	end
+end
 
+local function unitTravelOrigin(unitID, positionCache, travelOriginByUnitID)
+	local travelOrigin = travelOriginByUnitID and travelOriginByUnitID[unitID]
+	if travelOrigin then
+		return travelOrigin
+	end
+	return getTargetPosition(unitID, positionCache)
+end
+
+local function sortUnitTargets(unitID, unitTargets, positionCache, travelOriginByUnitID)
+	local sortedTargetCount = #unitTargets
+	if sortedTargetCount < 2 then
+		return
+	end
+	local origin = unitTravelOrigin(unitID, positionCache, travelOriginByUnitID)
+	local positions = {}
+	local hasCursor = origin ~= nil
+	local cursorX = nil
+	local cursorZ = nil
+	if hasCursor then
+		cursorX = origin.x
+		cursorZ = origin.z
+	end
+	for targetIndex = 1, sortedTargetCount do
+		positions[targetIndex] = getTargetPosition(unitTargets[targetIndex], positionCache)
+	end
+	local used = {}
+	local orderedTargetIDs = {}
+	for orderIndex = 1, sortedTargetCount do
+		local bestIndex = nil
+		local bestDistance = mathHuge
+		local bestTargetID = nil
+		for targetIndex = 1, sortedTargetCount do
+			if not used[targetIndex] then
+				local position = positions[targetIndex]
+				local targetID = unitTargets[targetIndex]
+				local distance = mathHuge
+				if position and hasCursor then
+					distance = mathDistance2dSquared(cursorX, cursorZ, position.x, position.z)
+				end
+				if bestIndex == nil or distance < bestDistance or (distance == bestDistance and targetID < bestTargetID) then
+					bestDistance = distance
+					bestIndex = targetIndex
+					bestTargetID = targetID
+				end
+			end
+		end
+		used[bestIndex] = true
+		orderedTargetIDs[orderIndex] = bestTargetID
+		local bestPosition = positions[bestIndex]
+		if bestPosition then
+			cursorX = bestPosition.x
+			cursorZ = bestPosition.z
+			hasCursor = true
+		end
+	end
+	for targetIndex = 1, sortedTargetCount do
+		unitTargets[targetIndex] = orderedTargetIDs[targetIndex]
+	end
+end
+
+local function trimUnitTargetsToBudget(targetsByUnit, unitIDs, orderBudget)
+	local totalOrders = 0
+	local orderCounts = {}
+	for unitIndex = 1, #unitIDs do
+		local orderCount = #(targetsByUnit[unitIDs[unitIndex]] or {})
+		orderCounts[unitIndex] = orderCount
+		totalOrders = totalOrders + orderCount
+	end
+	if totalOrders <= orderBudget then
+		return
+	end
+	local excessOrders = totalOrders - orderBudget
+	while excessOrders > 0 do
+		local longestUnitIndex = 1
+		for unitIndex = 2, #unitIDs do
+			if orderCounts[unitIndex] > orderCounts[longestUnitIndex] then
+				longestUnitIndex = unitIndex
+			end
+		end
+		if orderCounts[longestUnitIndex] < 1 then
+			break
+		end
+		orderCounts[longestUnitIndex] = orderCounts[longestUnitIndex] - 1
+		excessOrders = excessOrders - 1
+	end
+	for unitIndex = 1, #unitIDs do
+		local targetIDs = targetsByUnit[unitIDs[unitIndex]]
+		if targetIDs then
+			local keepCount = orderCounts[unitIndex]
+			for targetIndex = keepCount + 1, #targetIDs do
+				targetIDs[targetIndex] = nil
+			end
+		end
+	end
+end
+
+local function buildPlaneCoordinates(pointIDs, pointCount, positionCache, travelOriginByUnitID)
+	local planeX = {}
+	local planeZ = {}
+	local missingIndexes = {}
+	local centroidX = 0
+	local centroidZ = 0
+	local centroidCount = 0
+	for pointIndex = 1, pointCount do
+		local position = unitTravelOrigin(pointIDs[pointIndex], positionCache, travelOriginByUnitID)
+		if position then
+			planeX[pointIndex] = position.x
+			planeZ[pointIndex] = position.z
+			centroidX = centroidX + position.x
+			centroidZ = centroidZ + position.z
+			centroidCount = centroidCount + 1
+		else
+			missingIndexes[#missingIndexes + 1] = pointIndex
+		end
+	end
+	if centroidCount > 0 then
+		centroidX = centroidX / centroidCount
+		centroidZ = centroidZ / centroidCount
+	end
+	for missingIndex = 1, #missingIndexes do
+		local pointIndex = missingIndexes[missingIndex]
+		planeX[pointIndex] = centroidX
+		planeZ[pointIndex] = centroidZ
+	end
+	return planeX, planeZ
+end
+
+local function assignUnitGroup(unitIDs, targetIDs, positionCache, reachabilityCache, useReachabilityClaim, orderBudget, distributeEvenly, targetsByUnit, keepExistingOrders, travelOriginByUnitID)
+	local groupUnitCount = #unitIDs
+	local groupTargetCount = #targetIDs
+	if orderBudget == nil then
+		orderBudget = commandLimit
+	end
+	if groupUnitCount < 1 or groupTargetCount < 1 or orderBudget < 1 then
+		return 0
+	end
+	local agentX, agentZ = buildPlaneCoordinates(unitIDs, groupUnitCount, positionCache, travelOriginByUnitID)
+	local targetX, targetZ = buildPlaneCoordinates(targetIDs, groupTargetCount, positionCache, nil)
+	local agentUnitDefIDs = {}
+	local agentCanFly = {}
+	for unitIndex = 1, groupUnitCount do
+		local unitDefID = spGetUnitDefID(unitIDs[unitIndex])
+		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+		agentUnitDefIDs[unitIndex] = unitDefID
+		agentCanFly[unitIndex] = metadata ~= nil and metadata.canFly == true
+	end
+	local assignmentTargetX = targetX
+	local assignmentTargetZ = targetZ
+	local assignmentTargetIDs = targetIDs
+	local assignmentTargetCount = groupTargetCount
+	local canClaim = nil
+	if useReachabilityClaim then
+		local sharedDefID = agentUnitDefIDs[1]
+		local uniformDef = true
+		for agentIndex = 2, groupUnitCount do
+			if agentUnitDefIDs[agentIndex] ~= sharedDefID then
+				uniformDef = false
+				break
+			end
+		end
+		if uniformDef and agentCanFly[1] then
+			canClaim = nil
+		elseif uniformDef and sharedDefID and assignmentTargetCount <= REACHABILITY_TEST_BUDGET then
+			local filteredIDs = {}
+			local filteredX = {}
+			local filteredZ = {}
+			local filteredCount = 0
+			for targetIndex = 1, assignmentTargetCount do
+				local targetID = assignmentTargetIDs[targetIndex]
+				local position = getTargetPosition(targetID, positionCache)
+				if position and canUnitDefReachPosition(sharedDefID, targetID, position, reachabilityCache) then
+					filteredCount = filteredCount + 1
+					filteredIDs[filteredCount] = targetID
+					filteredX[filteredCount] = assignmentTargetX[targetIndex]
+					filteredZ[filteredCount] = assignmentTargetZ[targetIndex]
+				end
+			end
+			assignmentTargetIDs = filteredIDs
+			assignmentTargetX = filteredX
+			assignmentTargetZ = filteredZ
+			assignmentTargetCount = filteredCount
+		else
+			local reachabilityTests = 0
+			canClaim = function(agentIndex, targetIndex)
+				if agentCanFly[agentIndex] then
+					return true
+				end
+				local unitDefID = agentUnitDefIDs[agentIndex]
+				local targetID = assignmentTargetIDs[targetIndex]
+				if not unitDefID then
+					return false
+				end
+				local position = getTargetPosition(targetID, positionCache)
+				if not position then
+					return false
+				end
+				local unitDefCache = reachabilityCache[unitDefID]
+				if unitDefCache ~= nil and unitDefCache[targetID] ~= nil then
+					return unitDefCache[targetID]
+				end
+				if reachabilityTests >= REACHABILITY_TEST_BUDGET then
+					return false
+				end
+				reachabilityTests = reachabilityTests + 1
+				return canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
+			end
+		end
+	end
+	if assignmentTargetCount < 1 then
+		return 0
+	end
+	local result = TargetAssignment.assignRoundRobinNearest({
+		agentX = agentX,
+		agentY = agentZ,
+		agentCount = groupUnitCount,
+		targetX = assignmentTargetX,
+		targetY = assignmentTargetZ,
+		targetCount = assignmentTargetCount,
+		orderBudget = orderBudget,
+		exclusive = distributeEvenly == true,
+		canClaim = canClaim,
+	})
+	for agentIndex = 1, groupUnitCount do
+		local sourceIndexes = result.assignments[agentIndex]
+		local unitTargets = {}
+		if keepExistingOrders then
+			unitTargets = targetsByUnit[unitIDs[agentIndex]] or unitTargets
+		end
+		local existingCount = #unitTargets
+		local sourceCount = 0
+		if sourceIndexes then
+			sourceCount = #sourceIndexes
+		end
+		for orderIndex = 1, sourceCount do
+			unitTargets[existingCount + orderIndex] = assignmentTargetIDs[sourceIndexes[orderIndex]]
+		end
+		if not keepExistingOrders then
+			sortUnitTargets(unitIDs[agentIndex], unitTargets, positionCache, travelOriginByUnitID)
+		end
+		targetsByUnit[unitIDs[agentIndex]] = unitTargets
+	end
+	return result.totalOrders or 0
+end
+
+local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, distributeEvenly, travelOriginByUnitID)
 	local unitCount = #selectedUnits
 	local targetCount = #filteredTargets
 	if unitCount < 1 or targetCount < 1 then
@@ -1059,180 +1206,12 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 	end
 	local needsReachability = reachabilityCache and COMMANDS_REQUIRING_CAPABILITY[commandID]
 	local targetsByUnit = {}
-	local ordersWereTrimmed = false
-	local assignedByMoveDef = false
-	local wantedOrders = unitCount * targetCount
-	local function assignUnitGroup(unitIDs, targetIDs, useReachabilityClaim, orderBudget, keepExistingOrders)
-		local unitCount = #unitIDs
-		local targetCount = #targetIDs
-		if orderBudget == nil then
-			orderBudget = commandLimit
-		end
-		if unitCount < 1 or targetCount < 1 or orderBudget < 1 then
-			return false, 0
-		end
-		local agentX = {}
-		local agentY = {}
-		local agentUnitDefIDs = {}
-		local agentCanFly = {}
-		local missingAgentIndexes = {}
-		local centroidX = 0
-		local centroidZ = 0
-		local centroidCount = 0
-		for unitIndex = 1, unitCount do
-			local unitID = unitIDs[unitIndex]
-			local unitDefID = spGetUnitDefID(unitID)
-			local metadata = unitDefID and unitDefMetadataByID[unitDefID]
-			agentUnitDefIDs[unitIndex] = unitDefID
-			agentCanFly[unitIndex] = metadata ~= nil and metadata.canFly == true
-			local position = getTargetPosition(unitID, positionCache)
-			if position then
-				agentX[unitIndex] = position.x
-				agentY[unitIndex] = position.z
-				centroidX = centroidX + position.x
-				centroidZ = centroidZ + position.z
-				centroidCount = centroidCount + 1
-			else
-				missingAgentIndexes[#missingAgentIndexes + 1] = unitIndex
-			end
-		end
-		if centroidCount > 0 then
-			centroidX = centroidX / centroidCount
-			centroidZ = centroidZ / centroidCount
-		end
-		for missingIndex = 1, #missingAgentIndexes do
-			local unitIndex = missingAgentIndexes[missingIndex]
-			agentX[unitIndex] = centroidX
-			agentY[unitIndex] = centroidZ
-		end
-		local targetX = {}
-		local targetY = {}
-		local missingTargetIndexes = {}
-		local targetCentroidX = 0
-		local targetCentroidZ = 0
-		local targetCentroidCount = 0
-		for targetIndex = 1, targetCount do
-			local position = getTargetPosition(targetIDs[targetIndex], positionCache)
-			if position then
-				targetX[targetIndex] = position.x
-				targetY[targetIndex] = position.z
-				targetCentroidX = targetCentroidX + position.x
-				targetCentroidZ = targetCentroidZ + position.z
-				targetCentroidCount = targetCentroidCount + 1
-			else
-				missingTargetIndexes[#missingTargetIndexes + 1] = targetIndex
-			end
-		end
-		if targetCentroidCount > 0 then
-			targetCentroidX = targetCentroidX / targetCentroidCount
-			targetCentroidZ = targetCentroidZ / targetCentroidCount
-		end
-		for missingIndex = 1, #missingTargetIndexes do
-			local targetIndex = missingTargetIndexes[missingIndex]
-			targetX[targetIndex] = targetCentroidX
-			targetY[targetIndex] = targetCentroidZ
-		end
-		local assignmentTargetX = targetX
-		local assignmentTargetY = targetY
-		local assignmentTargetIDs = targetIDs
-		local assignmentTargetCount = targetCount
-		local canClaim = nil
-		if useReachabilityClaim then
-			local sharedDefID = agentUnitDefIDs[1]
-			local uniformDef = true
-			for agentIndex = 2, unitCount do
-				if agentUnitDefIDs[agentIndex] ~= sharedDefID then
-					uniformDef = false
-					break
-				end
-			end
-			if uniformDef and agentCanFly[1] then
-				canClaim = nil
-			elseif uniformDef and sharedDefID and assignmentTargetCount <= REACHABILITY_TEST_BUDGET then
-				local filteredIDs = {}
-				local filteredX = {}
-				local filteredY = {}
-				local filteredCount = 0
-				for targetIndex = 1, assignmentTargetCount do
-					local targetID = assignmentTargetIDs[targetIndex]
-					local position = getTargetPosition(targetID, positionCache)
-					if position and canUnitDefReachPosition(sharedDefID, targetID, position, reachabilityCache) then
-						filteredCount = filteredCount + 1
-						filteredIDs[filteredCount] = targetID
-						filteredX[filteredCount] = assignmentTargetX[targetIndex]
-						filteredY[filteredCount] = assignmentTargetY[targetIndex]
-					end
-				end
-				assignmentTargetIDs = filteredIDs
-				assignmentTargetX = filteredX
-				assignmentTargetY = filteredY
-				assignmentTargetCount = filteredCount
-			else
-				local reachabilityTests = 0
-				canClaim = function(agentIndex, targetIndex)
-					if agentCanFly[agentIndex] then
-						return true
-					end
-					local unitDefID = agentUnitDefIDs[agentIndex]
-					local targetID = assignmentTargetIDs[targetIndex]
-					if not unitDefID then
-						return false
-					end
-					local position = getTargetPosition(targetID, positionCache)
-					if not position then
-						return false
-					end
-					local unitDefCache = reachabilityCache[unitDefID]
-					if unitDefCache ~= nil and unitDefCache[targetID] ~= nil then
-						return unitDefCache[targetID]
-					end
-					if reachabilityTests >= REACHABILITY_TEST_BUDGET then
-						return false
-					end
-					reachabilityTests = reachabilityTests + 1
-					return canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
-				end
-			end
-		end
-		if assignmentTargetCount < 1 then
-			return false, 0
-		end
-		local result = TargetAssignment.assign({
-			agentX = agentX,
-			agentY = agentY,
-			agentCount = unitCount,
-			targetX = assignmentTargetX,
-			targetY = assignmentTargetY,
-			targetCount = assignmentTargetCount,
-			orderBudget = orderBudget,
-			exclusive = distributeEvenly == true,
-			canClaim = canClaim,
-		})
-		for agentIndex = 1, unitCount do
-			local sourceIndexes = result.assignments[agentIndex]
-			local unitTargets = {}
-			if keepExistingOrders then
-				unitTargets = targetsByUnit[unitIDs[agentIndex]] or unitTargets
-			end
-			local existingCount = #unitTargets
-			local sourceCount = sourceIndexes and #sourceIndexes or 0
-			for orderIndex = 1, sourceCount do
-				unitTargets[existingCount + orderIndex] = assignmentTargetIDs[sourceIndexes[orderIndex]]
-			end
-			if not keepExistingOrders then
-				sortUnitTargets(unitIDs[agentIndex], unitTargets)
-			end
-			targetsByUnit[unitIDs[agentIndex]] = unitTargets
-		end
-		return result.trimmed == true, result.totalOrders or 0
-	end
 	local fullCoverage = not distributeEvenly and (unitCount * targetCount) <= commandLimit
 	if fullCoverage then
 		local reachableTargetsByDefID = nil
 		if needsReachability then
 			reachableTargetsByDefID = {}
 		end
-		wantedOrders = 0
 		for unitIndex = 1, unitCount do
 			local unitID = selectedUnits[unitIndex]
 			local sourceTargets = filteredTargets
@@ -1246,11 +1225,10 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			end
 			local unitTargets = {}
 			local sourceCount = #sourceTargets
-			wantedOrders = wantedOrders + sourceCount
 			for targetIndex = 1, sourceCount do
 				unitTargets[targetIndex] = sourceTargets[targetIndex]
 			end
-			sortUnitTargets(unitID, unitTargets)
+			sortUnitTargets(unitID, unitTargets, positionCache, travelOriginByUnitID)
 			targetsByUnit[unitID] = unitTargets
 		end
 	else
@@ -1259,14 +1237,15 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 			moveDefGroups = collectMoveDefGroups(selectedUnits)
 		end
 		if moveDefGroups and #moveDefGroups > 1 then
-			assignedByMoveDef = true
 			local reachableTargetsByGroup = {}
 			local targetOwnerCount = {}
-			wantedOrders = 0
 			for groupIndex = 1, #moveDefGroups do
-				local groupTargets = filterTargetsForMoveDefGroup(moveDefGroups[groupIndex], filteredTargets, positionCache, reachabilityCache)
+				local group = moveDefGroups[groupIndex]
+				local groupTargets = filteredTargets
+				if not group.canFly and group.representativeDefID then
+					groupTargets = filterTargetsReachableByUnitDef(group.representativeDefID, filteredTargets, positionCache, reachabilityCache)
+				end
 				reachableTargetsByGroup[groupIndex] = groupTargets
-				wantedOrders = wantedOrders + #moveDefGroups[groupIndex].unitIDs * #groupTargets
 				for targetIndex = 1, #groupTargets do
 					local targetID = groupTargets[targetIndex]
 					targetOwnerCount[targetID] = (targetOwnerCount[targetID] or 0) + 1
@@ -1287,11 +1266,11 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 						sharedTargets[#sharedTargets + 1] = targetID
 					end
 				end
-				group.sharedTargets = sharedTargets
-				local _, exclusiveOrders = assignUnitGroup(group.unitIDs, exclusiveTargets, false, remainingBudget, true)
+				local exclusiveOrders = assignUnitGroup(group.unitIDs, exclusiveTargets, positionCache, reachabilityCache, false, remainingBudget, distributeEvenly, targetsByUnit, true, travelOriginByUnitID)
 				remainingBudget = remainingBudget - exclusiveOrders
 				if #sharedTargets > 0 then
 					sharedGroupIndexes[#sharedGroupIndexes + 1] = groupIndex
+					group.sharedTargets = sharedTargets
 				end
 			end
 			local unitsLeft = 0
@@ -1304,39 +1283,29 @@ local function giveDistributedOrders(commandID, selectedUnits, filteredTargets, 
 				if sharedIndex < #sharedGroupIndexes and unitsLeft > 0 then
 					groupBudget = mathFloor(remainingBudget * #group.unitIDs / unitsLeft)
 				end
-				local _, sharedOrders = assignUnitGroup(group.unitIDs, group.sharedTargets, false, groupBudget, true)
+				local sharedOrders = assignUnitGroup(group.unitIDs, group.sharedTargets, positionCache, reachabilityCache, false, groupBudget, distributeEvenly, targetsByUnit, true, travelOriginByUnitID)
 				remainingBudget = remainingBudget - sharedOrders
 				unitsLeft = unitsLeft - #group.unitIDs
 			end
 			for unitIndex = 1, #selectedUnits do
 				local unitTargets = targetsByUnit[selectedUnits[unitIndex]]
 				if unitTargets and #unitTargets > 1 then
-					sortUnitTargets(selectedUnits[unitIndex], unitTargets)
+					sortUnitTargets(selectedUnits[unitIndex], unitTargets, positionCache, travelOriginByUnitID)
 				end
 			end
 		else
-			local groupTrimmed = assignUnitGroup(selectedUnits, filteredTargets, needsReachability == true)
-			ordersWereTrimmed = groupTrimmed
+			assignUnitGroup(selectedUnits, filteredTargets, positionCache, reachabilityCache, needsReachability == true, nil, distributeEvenly, targetsByUnit, false, travelOriginByUnitID)
 		end
 	end
-	if trimUnitTargetsToBudget(targetsByUnit, selectedUnits, commandLimit) and not assignedByMoveDef then
-		ordersWereTrimmed = true
-	end
+	trimUnitTargetsToBudget(targetsByUnit, selectedUnits, commandLimit)
 	local totalAssignedOrders = 0
-	local assignedCounts = {}
 	for unitIndex = 1, unitCount do
 		local unitTargets = targetsByUnit[selectedUnits[unitIndex]]
-		local assignedCount = 0
 		if unitTargets then
-			assignedCount = #unitTargets
+			totalAssignedOrders = totalAssignedOrders + #unitTargets
 		end
-		assignedCounts[unitIndex] = assignedCount
-		totalAssignedOrders = totalAssignedOrders + assignedCount
 	end
-	if assignedByMoveDef then
-		ordersWereTrimmed = totalAssignedOrders >= commandLimit and targetsLackOrders(targetsByUnit, selectedUnits, filteredTargets)
-	end
-	spring.Echo("screen select units", unitCount, "targets", targetCount, "wanted orders", wantedOrders, "issued orders", totalAssignedOrders, "orders per unit", table.concat(assignedCounts, " "))
+	local ordersWereTrimmed = totalAssignedOrders >= commandLimit and targetsLackOrders(targetsByUnit, selectedUnits, filteredTargets)
 	for unitIndex = 1, unitCount do
 		local unitID = selectedUnits[unitIndex]
 		local unitTargets = targetsByUnit[unitID]
@@ -1405,7 +1374,10 @@ local function buildUnitDefMetadata()
 		local isHover = hoverSpeedClass ~= nil and speedClass == hoverSpeedClass
 		local isShip = (shipSpeedClass ~= nil and speedClass == shipSpeedClass) or (boatSpeedClass ~= nil and speedClass == boatSpeedClass)
 		local minWaterDepth = unitDef.minWaterDepth or 0
-		local moveWaterDepth = (moveDef and moveDef.depth) or unitDef.maxWaterDepth or 0
+		local moveWaterDepth = unitDef.maxWaterDepth or 0
+		if moveDef and moveDef.depth ~= nil then
+			moveWaterDepth = moveDef.depth
+		end
 		local moveDefName = moveDef and (moveDef.name or (moveDef.id and ("id:" .. moveDef.id)))
 		if not moveDefName then
 			if canFly then
@@ -1516,7 +1488,7 @@ local function collectVisibleUnits(unitDefID, targetAllegiance, teamID)
 			and (not targetAllegiance or unitMatchesAllegiance(unitID, targetAllegiance))
 			and (not teamID or spGetUnitTeam(unitID) == teamID)
 		then
-			tableInsert(filteredTargets, unitID)
+			filteredTargets[#filteredTargets + 1] = unitID
 		end
 	end
 	return filteredTargets
@@ -1531,7 +1503,7 @@ local function collectVisibleFeaturesByPredicate(shouldIncludeFeature)
 	for featureIndex = 1, #visibleFeatures do
 		local featureID = visibleFeatures[featureIndex]
 		if shouldIncludeFeature(featureID) then
-			tableInsert(filteredTargets, normalizeFeatureTargetID(featureID))
+			filteredTargets[#filteredTargets + 1] = normalizeFeatureTargetID(featureID)
 		end
 	end
 	return filteredTargets
@@ -1655,7 +1627,7 @@ local function filterTargetsInsideScreenCircle(targets, centerX, centerY, radius
 		if screenX then
 			local screenDistanceSquared = mathDistance2dSquared(screenX, screenY, centerX, centerY)
 			if not radiusSquared or screenDistanceSquared <= radiusSquared then
-				tableInsert(filteredTargets, targetID)
+				filteredTargets[#filteredTargets + 1] = targetID
 			end
 		end
 	end
@@ -1667,11 +1639,11 @@ local function filterTargetsBySelectionMembership(targets, selectionSet, targetI
 	for targetIndex = 1, #targets do
 		local targetID = targets[targetIndex]
 		if isFeatureTargetID(targetID) then
-			tableInsert(filteredTargets, targetID)
+			filteredTargets[#filteredTargets + 1] = targetID
 		elseif targetInSelection and selectionSet[targetID] then
-			tableInsert(filteredTargets, targetID)
+			filteredTargets[#filteredTargets + 1] = targetID
 		elseif not targetInSelection and not selectionSet[targetID] then
-			tableInsert(filteredTargets, targetID)
+			filteredTargets[#filteredTargets + 1] = targetID
 		end
 	end
 	return filteredTargets
@@ -1760,14 +1732,17 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	local filteredTargets = collectMassOrderTargets(issueCommandID, referenceTargetID, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	local centerX, centerY = resolveClickScreenPosition(clickScreenX, clickScreenY)
-	local circleRadius = getMassOrderCircleRadius()
+	local circleRadius = nil
+	if doubleClickRadiusFraction < DOUBLE_CLICK_RADIUS_FRACTION_MAX then
+		circleRadius = getDoubleClickRadius()
+	end
 	filteredTargets = filterTargetsInsideScreenCircle(filteredTargets, centerX, centerY, circleRadius)
 	local positionCache = {}
 	local reachabilityCache = {}
 	rememberLandMoveTestPolicy(selectedUnits, reachabilityCache)
-	local useQueueEndReference = options.shift == true
-	if useQueueEndReference then
-		seedUnitQueueEndPositions(selectedUnits, positionCache, queueEndByUnitID)
+	local travelOriginByUnitID = nil
+	if options.shift == true then
+		travelOriginByUnitID = queueEndByUnitID or collectQueueEndPositions(selectedUnits)
 	end
 	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
@@ -1786,7 +1761,7 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	if queueEndByUnitID and options.shift then
 		removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
 	end
-	local ordersWereTrimmed = giveDistributedOrders(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, options.alt == true)
+	local ordersWereTrimmed = giveDistributedOrders(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache, options.alt == true, travelOriginByUnitID)
 	if ordersWereTrimmed then
 		showRangeReducedNotice()
 	end
@@ -1833,7 +1808,7 @@ local function resolveScreenSelectCommandID(commandID)
 	return nil
 end
 
-local function allowsDefaultCommandDoubleRightClick(options)
+local function doubleClickMassOrderAllowed(options)
 	if not options.right then
 		return true
 	end
@@ -1841,7 +1816,7 @@ local function allowsDefaultCommandDoubleRightClick(options)
 end
 
 local function consumePendingDoubleClickClick(options, effectiveCommandID, clickScreenX, clickScreenY)
-	if not doubleClickEnabled or not allowsDefaultCommandDoubleRightClick(options) or not isPendingDoubleClickActive() then
+	if not doubleClickEnabled or not doubleClickMassOrderAllowed(options) or not isPendingDoubleClickActive() then
 		return false
 	end
 	if pendingDoubleClick.right ~= options.right then
@@ -1894,7 +1869,7 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 	end
 
 	if doubleClickEnabled then
-		if not allowsDefaultCommandDoubleRightClick(options) then
+		if not doubleClickMassOrderAllowed(options) then
 			if isPendingDoubleClickActive() then
 				clearDoubleClickPending()
 			end
@@ -1958,7 +1933,7 @@ function widget:MousePress(mouseX, mouseY, button)
 		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
-		if not allowsDefaultCommandDoubleRightClick(options) then
+		if not doubleClickMassOrderAllowed(options) then
 			return false
 		end
 		if options.right and not screenSelectKeyHeld then
@@ -1979,7 +1954,7 @@ function widget:MousePress(mouseX, mouseY, button)
 		armPendingDoubleClick(effectiveCommandID, targetID, options, false)
 		return false
 	end
-	if not allowsDefaultCommandDoubleRightClick(options) then
+	if not doubleClickMassOrderAllowed(options) then
 		clearDoubleClickPending()
 		return false
 	end
@@ -2027,7 +2002,9 @@ end
 local function setDoubleClickRadiusFraction(value, showPreview)
 	doubleClickRadiusFraction = clampDoubleClickRadiusFraction(value)
 	if showPreview ~= false then
-		refreshCirclePreview()
+		circlePreview = {
+			lastSetTime = osClock(),
+		}
 	end
 end
 
@@ -2112,7 +2089,7 @@ local function createCircleShader()
 		fragment = CIRCLE_SHADER_FRAGMENT,
 	})
 	if not circleShader then
-		spring.Echo("Screen Select Commands: circle shader failed to compile: " .. tostring(gl.GetShaderLog()))
+		spring.Echo(BAR.I18N("ui.screenSelectCommands.circleShaderFailed", { shaderLog = tostring(gl.GetShaderLog()) }))
 		return
 	end
 	circleShaderCenterLocation = gl.GetUniformLocation(circleShader, "center")
@@ -2139,10 +2116,6 @@ function circleRender.quadraticFadeAlpha(elapsedSeconds, durationSeconds, peakAl
 	end
 	local remainingFraction = 1 - (elapsedSeconds / durationSeconds)
 	return remainingFraction * remainingFraction * peakAlpha
-end
-
-function circleRender.circleFadeAlpha(elapsedSeconds)
-	return circleRender.quadraticFadeAlpha(elapsedSeconds, CIRCLE_FLASH_SECONDS, CIRCLE_PEAK_ALPHA)
 end
 
 function circleRender.rangeReducedTextAlpha(elapsedSeconds)
@@ -2244,7 +2217,7 @@ function circleRender.drawCommandCircleFlash()
 	if not circleFlash then
 		return
 	end
-	local alpha = circleRender.circleFadeAlpha(osClock() - circleFlash.startTime)
+	local alpha = circleRender.quadraticFadeAlpha(osClock() - circleFlash.startTime, CIRCLE_FLASH_SECONDS, CIRCLE_PEAK_ALPHA)
 	if alpha <= 0 then
 		circleFlash = nil
 		return
@@ -2256,7 +2229,7 @@ function circleRender.drawCirclePreview()
 	if not circlePreview then
 		return
 	end
-	local alpha = circleRender.circleFadeAlpha(osClock() - circlePreview.lastSetTime - CIRCLE_PREVIEW_HOLD_SECONDS)
+	local alpha = circleRender.quadraticFadeAlpha(osClock() - circlePreview.lastSetTime - CIRCLE_PREVIEW_HOLD_SECONDS, CIRCLE_FLASH_SECONDS, CIRCLE_PEAK_ALPHA)
 	if alpha <= 0 then
 		circlePreview = nil
 		return
@@ -2358,7 +2331,7 @@ function circleRender.drawRangeReducedNotice()
 	end
 	local mouseX, mouseY = spring.GetMouseState()
 	local left = mouseX - (rangeReducedTextWidth * 0.5)
-	local bottom = mouseY + (vsy * RANGE_REDUCED_CURSOR_GAP_FRACTION)
+	local bottom = mouseY + (viewHeight * RANGE_REDUCED_CURSOR_GAP_FRACTION)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

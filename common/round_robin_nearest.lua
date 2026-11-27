@@ -72,25 +72,24 @@ local function sortSlice(indexOrder, startIndex, endIndex, axis, pointX, pointY)
 	end
 end
 
+local function noop()
+end
+
+local function nearestNone()
+	return nil
+end
+
+local function countNone()
+	return 0
+end
+
 local function emptySpatialIndex()
-	local function nearest()
-		return nil
-	end
-	local function claim()
-	end
-	local function unclaim()
-	end
-	local function resetClaims()
-	end
-	local function unclaimedCount()
-		return 0
-	end
 	return {
-		nearest = nearest,
-		claim = claim,
-		unclaim = unclaim,
-		resetClaims = resetClaims,
-		unclaimedCount = unclaimedCount,
+		nearest = nearestNone,
+		claim = noop,
+		unclaim = noop,
+		resetClaims = noop,
+		unclaimedCount = countNone,
 	}
 end
 
@@ -260,9 +259,13 @@ local function buildKdTree(pointX, pointY, pointCount)
 	end
 
 	local function resetClaims()
-		for node = 1, nodeCount do
-			nodeClaimed[node] = false
-			nodeUnclaimed[node] = nodeSubtree[node]
+		for stateIndex = 1, claimStateCount do
+			local stateBase = (stateIndex - 1) * nodeCount
+			for node = 1, nodeCount do
+				local slot = stateBase + node
+				nodeClaimed[slot] = false
+				nodeUnclaimed[slot] = nodeSubtree[node]
+			end
 		end
 	end
 
@@ -374,21 +377,6 @@ local function buildKdTree(pointX, pointY, pointCount)
 		return claimedNow
 	end
 
-	local function unclaimInState(state, pointIndex)
-		local previousBase = activeStateBase
-		useClaimState(state)
-		unclaim(pointIndex)
-		activeStateBase = previousBase
-	end
-
-	local function unclaimedCountInState(state)
-		local previousBase = activeStateBase
-		useClaimState(state)
-		local count = unclaimedCount()
-		activeStateBase = previousBase
-		return count
-	end
-
 	return {
 		nearest = nearest,
 		claim = claim,
@@ -398,8 +386,6 @@ local function buildKdTree(pointX, pointY, pointCount)
 		addClaimState = addClaimState,
 		nearestInState = nearestInState,
 		claimInState = claimInState,
-		unclaimedCountInState = unclaimedCountInState,
-		unclaimInState = unclaimInState,
 	}
 end
 
@@ -504,28 +490,21 @@ local function assignRoundRobinNearest(request)
 		phase = PHASE_COVER
 	end
 	local acceptPoint = nil
-	if perAgentClaims then
+	local filterRoundTaken = perAgentClaims
+	local filterAgentPairs = not perAgentClaims and (canClaim ~= nil or not permanentClaims)
+	if filterRoundTaken or filterAgentPairs then
 		acceptPoint = function(targetIndex)
-			if roundTaken[targetIndex] then
+			if filterRoundTaken then
+				if roundTaken[targetIndex] then
+					return false
+				end
+			elseif alreadyAssigned[currentAgentIndex][targetIndex] then
 				return false
 			end
 			if claimCount[targetIndex] >= claimCap then
 				return false
 			end
-			if phase ~= PHASE_FILL and claimCount[targetIndex] > 0 then
-				return false
-			end
-			return true
-		end
-	elseif canClaim ~= nil or not permanentClaims then
-		acceptPoint = function(targetIndex)
-			if alreadyAssigned[currentAgentIndex][targetIndex] then
-				return false
-			end
-			if claimCount[targetIndex] >= claimCap then
-				return false
-			end
-			if skipStamp[targetIndex] == skipGeneration then
+			if filterAgentPairs and skipStamp[targetIndex] == skipGeneration then
 				return false
 			end
 			if phase ~= PHASE_FILL and claimCount[targetIndex] > 0 then
@@ -629,24 +608,17 @@ local function assignRoundRobinNearest(request)
 				end
 			end
 		end
-		if perAgentClaims then
-			for claimIndex = 1, roundClaimCount do
-				roundTaken[roundClaimIndexes[claimIndex]] = nil
-				roundClaimIndexes[claimIndex] = nil
+		local releaseSpatialClaims = phase == PHASE_FILL and not permanentClaims and not perAgentClaims
+		for claimIndex = 1, roundClaimCount do
+			local targetIndex = roundClaimIndexes[claimIndex]
+			if perAgentClaims then
+				roundTaken[targetIndex] = nil
+			elseif releaseSpatialClaims then
+				spatialIndex.unclaim(targetIndex)
 			end
-			roundClaimCount = 0
-		elseif phase == PHASE_FILL and not permanentClaims then
-			for claimIndex = 1, roundClaimCount do
-				spatialIndex.unclaim(roundClaimIndexes[claimIndex])
-				roundClaimIndexes[claimIndex] = nil
-			end
-			roundClaimCount = 0
-		else
-			for claimIndex = 1, roundClaimCount do
-				roundClaimIndexes[claimIndex] = nil
-			end
-			roundClaimCount = 0
+			roundClaimIndexes[claimIndex] = nil
 		end
+		roundClaimCount = 0
 		if not assignedThisRound then
 			if phase == PHASE_COVER then
 				phase = PHASE_COVER_RESCUE
@@ -700,7 +672,6 @@ local function assignRoundRobinNearest(request)
 end
 
 return {
-	assign = assignRoundRobinNearest,
 	assignRoundRobinNearest = assignRoundRobinNearest,
 	buildKdTree = buildKdTree,
 }

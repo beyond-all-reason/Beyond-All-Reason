@@ -6,7 +6,9 @@
 			"loaded": "Loaded"
 		},
 		"screenSelectCommands": {
-			"rangeReduced": "reduced"
+			"rangeReduced": "reduced",
+			"rangeReducedWarning": "Mass orders reduced to %{limit}. Zoom in or adjust limits in the settings menu",
+			"circleShaderFailed": "Screen Select Commands: circle shader failed to compile: %{shaderLog}"
 		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
