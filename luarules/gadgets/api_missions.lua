@@ -37,8 +37,7 @@ local function setUpMissionAPI(gameSetup)
 
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
-	GG["MissionAPI"].Variables = gameSetup.variables
-	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].SavedVariables = gameSetup.savedVariables
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].Alliances = gameSetup.alliances
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
@@ -62,6 +61,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 	GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
+	GG["MissionAPI"].Modules.Batch = VFS.Include("luarules/mission_api/batch.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
@@ -74,6 +74,11 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.Squads = VFS.Include("luarules/mission_api/squads.lua")
+	GG["MissionAPI"].Modules.AreaPolygons = VFS.Include("luarules/mission_api/area_polygons.lua")
+	GG["MissionAPI"].Modules.AiRegions = VFS.Include("luarules/mission_api/ai_regions.lua")
+	GG["MissionAPI"].Modules.BuildAreas = VFS.Include("luarules/mission_api/build_areas.lua")
+	GG["MissionAPI"].Modules.BasePlans = VFS.Include("luarules/mission_api/base_plans.lua")
 	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
 	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
 	GG["MissionAPI"].Modules.Camera = VFS.Include("luarules/mission_api/camera.lua")
@@ -119,6 +124,11 @@ local function loadMission(gameSetup)
 		failMission(reason)
 		return
 	end
+
+	local variables = GG["MissionAPI"].Modules.Variables
+	GG["MissionAPI"].Variables =
+		variables.GetStartingValues(mission.Variables, mission.PersistentVariables, GG["MissionAPI"].SavedVariables)
+	GG["MissionAPI"].PersistentVariableKeys = variables.GetPersistentKeys(mission.PersistentVariables)
 
 	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
@@ -215,12 +225,14 @@ function gadget:GamePreload()
 		return
 	end
 
-	local loadoutModule = GG["MissionAPI"].Modules.Loadout
-	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
-	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
+	GG["MissionAPI"].Modules.Batch.Run(function()
+		local loadoutModule = GG["MissionAPI"].Modules.Loadout
+		loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
+		loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	local stages = GG["MissionAPI"].Modules.Stages
-	stages.ActivateStage(stages.GetCurrentStageID())
+		local stages = GG["MissionAPI"].Modules.Stages
+		stages.ActivateStage(stages.GetCurrentStageID())
+	end)
 end
 
 function gadget:GameFrame(frameNumber)

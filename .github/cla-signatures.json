@@ -345,5 +345,89 @@
     "signed_at": "2026-11-19T11:37:27.847Z",
     "source": "confirm-license-command",
     "confirmed_at": "2026-11-20T16:35:13.990Z"
+  },
+  {
+    "file": "icons/armmygalomorph.png",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "icons/inverted/armmygalomorph.png",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armmygalomorph.s3o",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "objects3d/Units/armmygalomorph_dead.s3o",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "unitpics/armmygalomorph.dds",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "unitpics/scavengers/armmygalomorph.dds",
+    "status": "intent",
+    "pr": 9392,
+    "github_username": "Egzothicki",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T19:28:47.686Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "unittextures/decals/armwar_10.5_10.5_aoplane.png",
+    "status": "confirmed",
+    "pr": 10230,
+    "github_username": "Beherith",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-25T20:43:11.327Z",
+    "source": "confirm-license-command",
+    "proxy_submitter": "efrec",
+    "proxy_status": "pending-author-confirmation",
+    "confirmed_at": "2026-11-25T20:59:12.868Z"
+  },
+  {
+    "file": "icons/air_t15_trans.png",
+    "status": "intent",
+    "pr": 10248,
+    "github_username": "TheChronographer",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-27T03:23:30.152Z",
+    "source": "confirm-license-command"
+  },
+  {
+    "file": "icons/inverted/air_t15_trans.png",
+    "status": "intent",
+    "pr": 10248,
+    "github_username": "TheChronographer",
+    "license": "LicenseRef-BAR-CLA-1.0",
+    "signed_at": "2026-11-27T03:23:30.152Z",
+    "source": "confirm-license-command"
   }
 ]

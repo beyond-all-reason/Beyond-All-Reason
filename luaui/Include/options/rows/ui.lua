@@ -93,13 +93,15 @@ return function(model)
 			name = BAR.I18N("ui.settings.option.uiscale"),
 			type = "slider",
 			min = 0.8,
-			max = 1.3,
+			max = 1.4,
 			step = 0.01,
-			value = Spring.GetConfigFloat("ui_scale", 1),
+			value = Spring.GetConfigFloat("ui_scale_user", 1),
 			description = "",
 			onchange = function(option, value, force)
 				if force then
-					Spring.SetConfigFloat("ui_scale", value)
+					-- springconfig.lua sets ui_scale_base; ui_scale is what the interface reads
+					Spring.SetConfigFloat("ui_scale_user", value)
+					Spring.SetConfigFloat("ui_scale", value * Spring.GetConfigFloat("ui_scale_base", 1))
 					Spring.SendCommands("luarules reloadluaui")
 				else
 					model.scheduledApply = { os.clock() + 1.5, "uiscale" }

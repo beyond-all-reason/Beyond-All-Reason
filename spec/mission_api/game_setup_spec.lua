@@ -79,7 +79,7 @@ describe("mission_api.game_setup", function()
 	end)
 
 	describe("Read", function()
-		it("reads the entry point, options and persistent variables from missionoptions", function()
+		it("reads the entry point, options and saved variables from missionoptions", function()
 			withGameSetup({
 				modOptions = {
 					missionoptions = encodeMissionOptions(
@@ -94,8 +94,7 @@ describe("mission_api.game_setup", function()
 
 			assert.are.equal("missions/landfall/mission.lua", gameSetup.entryPoint)
 			assert.are.same({ fogOfWar = true }, gameSetup.options)
-			assert.are.same({ totalKills = 123, foundPortal = true }, gameSetup.variables)
-			assert.are.same({ totalKills = true, foundPortal = true }, gameSetup.persistentVariables)
+			assert.are.same({ totalKills = 123, foundPortal = true }, gameSetup.savedVariables)
 		end)
 
 		it("reads the difficulty name from missionoptions", function()
@@ -120,8 +119,7 @@ describe("mission_api.game_setup", function()
 			local gameSetup = readGameSetup()
 
 			assert.are.same({}, gameSetup.options)
-			assert.are.same({}, gameSetup.variables)
-			assert.are.same({}, gameSetup.persistentVariables)
+			assert.are.same({}, gameSetup.savedVariables)
 		end)
 
 		it("maps team and alliance names to IDs and back, skipping sections without a name", function()

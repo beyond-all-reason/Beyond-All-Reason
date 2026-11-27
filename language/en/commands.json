@@ -32,7 +32,12 @@
 		"guard": "Guard",
 		"guard_tooltip": "Guard another unit against enemy units attacking it",
 		"factoryguard": "Factory Guard",
-		"factoryguard_tooltip": "Builders produced by this factory will automatically guard it",
+		"factoryguard_0": "Factory Guard 0/4",
+		"factoryguard_1": "Factory Guard 1/4",
+		"factoryguard_2": "Factory Guard 2/4",
+		"factoryguard_3": "Factory Guard 3/4",
+		"factoryguard_4": "Factory Guard 4/4",
+		"factoryguard_tooltip": "Builders produced by this factory will automatically guard it: 0/4 (none) to 4/4 (all) of them",
 		"wait": "Wait",
 		"wait_tooltip": "Pause a unit/factory on processing command/build queues",
 		"repair": "Repair",
@@ -200,7 +205,10 @@
 			"factoryModeQuota": "Factory mode: Quota",
 			"factoryGuard": "Toggle factory guard",
 			"factoryGuardOff": "Factory guard off",
-			"factoryGuardOn": "Factory guard on"
+			"factoryGuardOn": "Factory guard on (4/4 of builders)",
+			"factoryGuard1": "Factory guard: 1/4 of builders",
+			"factoryGuard2": "Factory guard: 2/4 of builders",
+			"factoryGuard3": "Factory guard: 3/4 of builders"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",

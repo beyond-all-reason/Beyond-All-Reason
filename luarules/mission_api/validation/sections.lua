@@ -63,7 +63,7 @@ local function createValueValidators(context, parameterValidators)
 	end
 
 	--- The value is checked as the variables are at the start of the mission. While any is
-	--- unset it can't be checked, and references.lua warns about that variable instead.
+	--- undeclared it can't be checked, and references.lua reports that variable instead.
 	local function validateValueWithVariables(valueType, value)
 		if not context.HasVariableReference(value) then
 			return validateValue(valueType, value)
@@ -75,7 +75,7 @@ local function createValueValidators(context, parameterValidators)
 				results[#results + 1] = { message = "Variable key must be a string, got " .. type(key) }
 			end
 		end)
-		if #results > 0 or context.HasUnsetVariable(value) then
+		if #results > 0 or context.HasUndeclaredVariable(value) then
 			return results
 		end
 		return validateValue(valueType, context.ResolveValue(value))
@@ -415,6 +415,23 @@ local function validateUnitFilterExclusions(context, reporter, id, trigger)
 	end
 end
 
+local function validateVariableValueCondition(context, reporter, id, condition)
+	if condition.type ~= context.ConditionTypes.VariableValue or type(condition.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(condition.parameters.key)) do
+		local value = context.Variables[key]
+		if value ~= nil and type(value) ~= "number" then
+			reporter.Error(
+				id,
+				"Variable '" .. key .. "' is a " .. type(value) .. ", so VariableValue cannot check it",
+				"Parameter: key"
+			)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline conditions
 --------------------------------------------------------------------------------
@@ -452,6 +469,7 @@ local function validateObjectiveCondition(
 	validateConditionThreshold(context, objectiveReport, objectiveID, objective, validateValue)
 	validateStockpileTrigger(context, objectiveReport, objectiveID, objective)
 	validateUnitFilterExclusions(context, objectiveReport, objectiveID, objective)
+	validateVariableValueCondition(context, objectiveReport, objectiveID, objective)
 end
 
 local function validateObjectivesSection(context, report, validateFieldValue, validateEntry, validateSchema)
@@ -584,6 +602,7 @@ local function validateTriggersSection(
 			)
 			validateStockpileTrigger(context, triggerReport, triggerID, trigger)
 			validateUnitFilterExclusions(context, triggerReport, triggerID, trigger)
+			validateVariableValueCondition(context, triggerReport, triggerID, trigger)
 		end
 	end
 end
@@ -770,6 +789,51 @@ local function validateFollowCameraEnding(context, actionReport, actionID, actio
 	end
 end
 
+-- A variable keeps the type of its starting value.
+local function validateWriteVariableAction(context, actionReport, actionID, action)
+	if action.type ~= context.ActionTypes.WriteVariable or type(action.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(action.parameters.key)) do
+		local current = context.Variables[key]
+		if current ~= nil then
+			for _, value in ipairs(context.PossibleValues(action.parameters.value)) do
+				if value ~= nil and type(value) ~= type(current) then
+					actionReport.Error(
+						actionID,
+						"Variable '"
+							.. key
+							.. "' is a "
+							.. type(current)
+							.. ", so WriteVariable cannot write a "
+							.. type(value)
+							.. " to it",
+						"Parameter: value"
+					)
+				end
+			end
+		end
+	end
+end
+
+local function validateAddToVariableAction(context, actionReport, actionID, action)
+	if action.type ~= context.ActionTypes.AddToVariable or type(action.parameters) ~= "table" then
+		return
+	end
+
+	for _, key in ipairs(context.PossibleValues(action.parameters.key)) do
+		local current = context.Variables[key]
+		if current ~= nil and type(current) ~= "number" then
+			actionReport.Error(
+				actionID,
+				"Variable '" .. key .. "' is a " .. type(current) .. ", so AddToVariable cannot add to it",
+				"Parameter: key"
+			)
+		end
+	end
+end
+
 local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
@@ -782,6 +846,8 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			validateIssueOrdersAction(context, actionReport, actionID, action)
 			validateAddBuildOptionAction(context, actionReport, actionID, action)
 			validateFollowCameraEnding(context, actionReport, actionID, action)
+			validateWriteVariableAction(context, actionReport, actionID, action)
+			validateAddToVariableAction(context, actionReport, actionID, action)
 		end
 	end
 end
@@ -834,6 +900,57 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 end
 
 --------------------------------------------------------------------------------
+-- Variables: the mission's variables and their starting values
+--------------------------------------------------------------------------------
+
+local function validateVariablesSection(context, report, parameterValidators)
+	local variableReport = reporterFor(report, SECTIONS.Variables, "Variable")
+	local validateVariableType = parameterValidators[context.Types.VariableType]
+	local declarations = {
+		{ field = "Variables", values = context.DeclaredVariables },
+		{ field = "PersistentVariables", values = context.DeclaredPersistentVariables },
+	}
+
+	for _, declaration in ipairs(declarations) do
+		for key, value in pairs(declaration.values) do
+			local id = tostring(key)
+			if type(key) ~= "string" then
+				variableReport.Error(
+					id,
+					"Variable key must be a string, got " .. type(key),
+					"In: " .. declaration.field
+				)
+			end
+			for _, result in ipairs(validateVariableType(value) or {}) do
+				variableReport.Error(
+					id .. (result.parameterNameSuffix or ""),
+					result.message,
+					"In: " .. declaration.field
+				)
+			end
+		end
+	end
+
+	for key, value in pairs(context.DeclaredPersistentVariables) do
+		if context.DeclaredVariables[key] ~= nil then
+			variableReport.Error(tostring(key), "Variable is declared in both Variables and PersistentVariables")
+		end
+		local savedValue = context.SavedVariables[key]
+		if savedValue ~= nil and type(savedValue) ~= type(value) then
+			variableReport.Warn(
+				tostring(key),
+				"Saved value is a "
+					.. type(savedValue)
+					.. ", but the variable is a "
+					.. type(value)
+					.. ", so the saved value is ignored",
+				"In: PersistentVariables"
+			)
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 
 local function validate(context, report, parameterValidators)
 	local validateValue, validateValueWithDifficulties, validateValueWithDifficultiesAndVariables =
@@ -857,6 +974,7 @@ local function validate(context, report, parameterValidators)
 	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	validateCutscenesSection(context, report, validateValueWithDifficulties, validateEntry)
 	validateLoadoutsSection(context, report, parameterValidators)
+	validateVariablesSection(context, report, parameterValidators)
 end
 
 return {

@@ -8,7 +8,7 @@
 -- is also how a test varies an answer part-way through.
 
 ---@class ConditionContextMock
----@field ActivateTrigger fun(trigger: table): boolean
+---@field ActivateTrigger fun(trigger: table, onTryActivate: function?, triggerID: string?, argument: any?)
 ---@field EvaluateMetric fun(trigger: table, value: number)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
 ---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
@@ -52,6 +52,7 @@ end
 function TCB.new()
 	return setmetatable({
 		inFactory = false,
+		activationResult = true,
 	}, TCB)
 end
 
@@ -61,6 +62,15 @@ end
 ---@return ConditionContextBuilder
 function TCB:WithInFactory(value)
 	self.inFactory = value
+	return self
+end
+
+---Whether a trigger's activation goes through.
+---@param self ConditionContextBuilder
+---@param value boolean|fun(trigger: table): boolean
+---@return ConditionContextBuilder
+function TCB:WithActivationResult(value)
+	self.activationResult = value
 	return self
 end
 
@@ -78,6 +88,7 @@ end
 function TCB:Build()
 	local instance = self
 
+	local getActivationResult = asFunction(instance.activationResult)
 	local activateCalls = {}
 	local evaluateCalls = {}
 	-- A copy of `constructionStarts` and its claim and check functions in api_missions_triggers.lua:
@@ -85,11 +96,16 @@ function TCB:Build()
 	-- keep both of them in step.
 	local constructionStarts = {}
 
-	---@type ConditionContextMock
-	local context = {
-		ActivateTrigger = function(trigger)
-			activateCalls[#activateCalls + 1] = { trigger = trigger }
-			return true
+	local context ---@type ConditionContextMock
+	context = {
+		ActivateTrigger = function(trigger, onTryActivate, triggerID, argument)
+			local activated = getActivationResult(trigger)
+			if activated then
+				activateCalls[#activateCalls + 1] = { trigger = trigger }
+			end
+			if onTryActivate then
+				onTryActivate(trigger, triggerID, context, argument, activated)
+			end
 		end,
 		-- Metric conditions only report what they sampled; the gadget compares it
 		-- with the trigger's bounds, so the mock records the value and nothing more.
@@ -182,7 +198,7 @@ function TCB:Build()
 		return true
 	end
 
-	---How many times a handler asked this context to activate its trigger.
+	---How many times this context activated a trigger.
 	context.timesFired = function()
 		return #activateCalls
 	end

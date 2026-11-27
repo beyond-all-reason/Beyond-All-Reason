@@ -43,12 +43,12 @@ describe("mission_api.actions.unitdef_enabled", function()
 		assert.are.same({
 			type = "EnableUnitDef",
 			unitDefName = "UnitDefName!",
-			teamName = "TeamName!",
+			teamName = "AiTeamName!",
 		}, summarizeSchema(actionOfType("EnableUnitDef")))
 		assert.are.same({
 			type = "DisableUnitDef",
 			unitDefName = "UnitDefName!",
-			teamName = "TeamName!",
+			teamName = "AiTeamName!",
 		}, summarizeSchema(actionOfType("DisableUnitDef")))
 	end)
 

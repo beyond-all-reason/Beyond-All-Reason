@@ -76,7 +76,7 @@ local function fixture(options)
 		if options.queryError then
 			error("unknown image")
 		end
-		return 0.1, 0.4, 0.2, 0.8, 0
+		return 0.1, 0.4, 0.2, 0.7, 0
 	end
 	env.gl.DeleteTextureAtlas = function(atlas)
 		calls.deleted[#calls.deleted + 1] = atlas
@@ -140,7 +140,7 @@ describe("ground AO atlas", function()
 		equal(128, atlas.plates[2].sizeX)
 		equal(160, atlas.plates[2].sizeZ)
 		equal(1, atlas.plates[2].atlasIndex)
-		equalUV({ 0.1, 0.4, 0.2, 0.8 }, atlas.plates[2].uv)
+		equalUV({ 0.1, 0.4, 0.2, 0.7 }, atlas.plates[2].uv)
 		atlas:Delete()
 		atlas:Delete()
 		equal(1, #calls.deleted)
@@ -647,7 +647,7 @@ describe("ground AO widget integration", function()
 			equal(128, instances[102][2])
 			equal(42, instances[102][7])
 			equal(widgetKind == "feature" and 0.66 or 1, instances[102][9])
-			equalUV({ 0.4, 0.1, 0.2, 0.8 }, { unpack(instances[102], 11, 14) })
+			equalUV({ 0.4, 0.1, 0.7, 0.2 }, { unpack(instances[102], 11, 14) })
 			widget:DrawWorldPreUnit()
 			equal(1, #draws)
 			equal(2, draws[1].count)
