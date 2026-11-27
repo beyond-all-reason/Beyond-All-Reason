@@ -49,7 +49,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	if isParatrooper[unitDefID] then
 		--commandos are given a move order to the location of the ground below where the transport died; remove it
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		if isDeadOrCrashing(transportID) then
+			Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		end
 		return
 	end
 
