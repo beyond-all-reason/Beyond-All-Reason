@@ -8,6 +8,7 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 
 #define SIGNAL_AIM1 256
+#define SIGNAL_SPIN 512
 #define SIGNAL_BUILD 2
 #define SIGNAL_AIM_TRACKER 16384
 
@@ -418,7 +419,7 @@ RestoreAfterDelay()
 	lastWorldHeading = -1000000;
 	lastTargetID = -4;
 
-	if (DEPLOYED)
+	if (deploy_state)
 	{
 		sleep 500;
 		turn sleeve to x-axis <-200> speed <225.0>;
@@ -447,6 +448,7 @@ AimWeapon1(heading, pitch)
 	// customparams.reaimtime = 2 requires this call-in to return immediately.
 	// Cancel the old restore timer, but do not block on any piece animation.
 	signal SIGNAL_AIM1;
+	signal SIGNAL_SPIN;
 	start-script BarrelSpin();
 
 	if(pitch < <-20>) pitch = <-20>; // angle clamp
@@ -507,13 +509,14 @@ AimWeapon1(heading, pitch)
 
 	// DeploySleeve animation
 
-	if (DEPLOYING)
+	if (deploy_state)
 	{
-		turn sleeve to x-axis <160> speed <225.0>;
+		// turn sleeve to x-axis <160> speed <225.0>;
 
 			if (!aimReady)
 			{
-				wait-for-turn sleeve around x-axis;
+				// turn sleeve to y-axis <-160> speed <225.0>;
+				// wait-for-turn sleeve around x-axis;
 				aimReady = 1;
 			}
 	}
@@ -524,7 +527,7 @@ AimWeapon1(heading, pitch)
 
 	// These turns are refreshed on every reaim call, including while walking.
 	
-	if(DEPLOYING)
+	if(deploy_state)
 	{
 		turn turret to y-axis turretHeading speed <300.0>;
 		turn sleeve to x-axis sleevePitch speed <225.0>;
@@ -553,6 +556,9 @@ AimWeapon1(heading, pitch)
 
 BarrelSpin()
 {
+	signal SIGNAL_SPIN;
+	set-signal-mask SIGNAL_SPIN;
+
 	while (deploy_state == DEPLOYED)
 	{
 		spin barrel around y-axis speed <400.0>;
