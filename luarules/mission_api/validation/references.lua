@@ -1,6 +1,6 @@
 ---
---- Checks references: objective events, actions, unit, feature, marker and line names,
---- countdown IDs, cutscene IDs and variables.
+--- Checks references: objective events, actions, unit, feature, marker, line, squad, region and
+--- base plan names, countdown IDs, cutscene IDs, variables, and thresholds that read written variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -11,6 +11,7 @@ local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
+local thresholdFields = VFS.Include("luarules/mission_api/objectives_loader.lua").ThresholdFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -458,56 +459,56 @@ local function validateNameReferences(context, report, nameKind)
 end
 
 --------------------------------------------------------------------------------
--- Countdown ID references
+-- Countdown ID and squad, region and base plan name references
 --------------------------------------------------------------------------------
 
---- A countdown that is added and then simply left to run out is fine, so unlike the
---- names above there is no warning for one that is added but never referenced.
-local function validateCountdownIDReferences(context, report)
-	local addedIDs = {}
-	local referencedIDs = {}
+--- For a name that one action creates and others refer to. A created name need not be referred
+--- to, so only a reference to a name that nothing creates warns.
+local function validateCreatedNameReferences(context, report, label, parameterName, parameterType, creatingActionType)
+	local createdNames = {}
+	local referencedNames = {}
 
-	-- AddCountdown takes a countdownID too, but it creates the countdown rather than referring to one.
-	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, context.Types.CountdownID)
-	referencingActionTypes[context.ActionTypes.AddCountdown] = nil
+	-- The creating action takes the name too, but it creates rather than refers to one.
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, parameterType)
+	referencingActionTypes[creatingActionType] = nil
 
-	local function countdownIDsOf(parameters)
-		local countdownIDs = {}
-		for _, countdownID in ipairs(context.PossibleValues(parameters and parameters.countdownID)) do
-			if type(countdownID) == "string" then
-				countdownIDs[#countdownIDs + 1] = countdownID
+	local function namesOf(parameters)
+		local names = {}
+		for _, name in ipairs(context.PossibleValues(parameters and parameters[parameterName])) do
+			if type(name) == "string" then
+				names[#names + 1] = name
 			end
 		end
-		return countdownIDs
+		return names
 	end
 
 	for actionID, action in pairs(context.Actions) do
-		for _, countdownID in ipairs(countdownIDsOf(parametersOf(action))) do
-			if action.type == context.ActionTypes.AddCountdown then
-				addedIDs[countdownID] = true
+		for _, name in ipairs(namesOf(parametersOf(action))) do
+			if action.type == creatingActionType then
+				createdNames[name] = true
 			elseif referencingActionTypes[action.type] then
-				recordSource(referencedIDs, countdownID, "action " .. actionID)
+				recordSource(referencedNames, name, "action " .. actionID)
 			end
 		end
 	end
 
-	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, context.Types.CountdownID)
+	local referencingConditionTypes = getTypesWithParameterType(context.ConditionParameters, parameterType)
 	for triggerID, trigger in pairs(context.Triggers) do
 		if referencingConditionTypes[type(trigger) == "table" and trigger.type] then
-			for _, countdownID in ipairs(countdownIDsOf(parametersOf(trigger))) do
-				recordSource(referencedIDs, countdownID, "trigger " .. triggerID)
+			for _, name in ipairs(namesOf(parametersOf(trigger))) do
+				recordSource(referencedNames, name, "trigger " .. triggerID)
 			end
 		end
 	end
 
-	-- An objective's condition is inline, and refers to a countdown as any trigger does.
+	-- An objective's condition is inline, and refers to a name as any trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
-		for _, countdownID in ipairs(countdownIDsOf(parametersOf(objective))) do
-			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (condition)")
+		for _, name in ipairs(namesOf(parametersOf(objective))) do
+			recordSource(referencedNames, name, "objective " .. objectiveID .. " (condition)")
 		end
 	end
 
-	reportUncreatedNames(report, "Countdown", addedIDs, referencedIDs)
+	reportUncreatedNames(report, label, createdNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
@@ -568,9 +569,6 @@ end
 -- Variable references
 --------------------------------------------------------------------------------
 
---- Only the startscript sets variables before the mission starts. A value that reads an unset
---- variable can't be checked, and is missing until an action writes the variable, which may
---- well be intended. So it warns rather than errors.
 local function validateVariableReferences(context, report)
 	local referencedKeys = {}
 
@@ -607,14 +605,59 @@ local function validateVariableReferences(context, report)
 
 	for key, sources in pairs(referencedKeys) do
 		if context.Variables[key] == nil then
-			report.Warn(
+			report.Error(
 				SECTION,
 				"Variable",
 				key,
-				"Variable has no value at the start of the mission",
+				"Variable is not declared",
 				"Referenced in: " .. describeSources(sources)
 			)
 		end
+	end
+end
+
+local function validateThresholdVariableReferences(context, report)
+	local actionTypes = context.ActionTypes
+	local writtenKeys = {}
+	for _, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters and (action.type == actionTypes.WriteVariable or action.type == actionTypes.AddToVariable) then
+			for _, key in ipairs(context.PossibleValues(parameters.key)) do
+				writtenKeys[key] = true
+			end
+		end
+	end
+	if next(writtenKeys) == nil then
+		return
+	end
+
+	local function checkThresholdField(value, fieldName, label, id)
+		context.CallOnVariableKeys(value, function(key)
+			if writtenKeys[key] then
+				report.Error(
+					SECTION,
+					label,
+					id,
+					"Threshold reads variable '" .. tostring(key) .. "', which the mission writes",
+					"Field: " .. fieldName
+				)
+			end
+		end)
+	end
+
+	local function checkThresholds(condition, label, id)
+		if type(condition) == "table" then
+			for _, fieldName in ipairs(thresholdFields) do
+				checkThresholdField(condition[fieldName], fieldName, label, id)
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		checkThresholds(trigger, "Trigger", triggerID)
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		checkThresholds(objective, "Objective", objectiveID)
 	end
 end
 
@@ -666,9 +709,34 @@ local function validate(context, report)
 		creatingActionTypes = { [actionTypes.CreateFeatures] = true },
 	})
 
-	validateCountdownIDReferences(context, report)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Countdown",
+		"countdownID",
+		Types.CountdownID,
+		actionTypes.AddCountdown
+	)
+	validateCreatedNameReferences(context, report, "Squad name", "squadName", Types.SquadName, actionTypes.DefineSquad)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Region name",
+		"regionName",
+		Types.RegionName,
+		actionTypes.DefineAiRegion
+	)
+	validateCreatedNameReferences(
+		context,
+		report,
+		"Base plan name",
+		"basePlanName",
+		Types.BasePlanName,
+		actionTypes.AddToBasePlan
+	)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
+	validateThresholdVariableReferences(context, report)
 end
 
 return {

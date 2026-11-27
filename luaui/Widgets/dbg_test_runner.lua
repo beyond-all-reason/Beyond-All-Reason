@@ -1055,7 +1055,13 @@ local function initializeTestEnvironment()
 		env[k] = v
 	end
 
-	return env
+	-- The widgethandler's setfenv replaces only an environment that newfenv makes:
+	local testEnvironment = newfenv() ---@diagnostic disable-line: undefined-global
+	for k, v in pairs(env) do
+		testEnvironment[k] = v
+	end
+
+	return testEnvironment
 end
 
 local function loadTestFromFile(filename)

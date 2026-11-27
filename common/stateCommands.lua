@@ -25,7 +25,8 @@ return {
 	},
 	WANT_CLOAK = OFF_ON,
 	PRIORITY = { LOW = 0, HIGH = 1 },
-	FACTORY_GUARD = OFF_ON,
+	-- N in every 4 of a factory's builders guard it.
+	FACTORY_GUARD = { OFF = 0, ONE_IN_4 = 1, TWO_IN_4 = 2, THREE_IN_4 = 3, ALL = 4 },
 	QUOTA_BUILD_TOGGLE = { NORMAL = 0, QUOTA = 1 },
 	CARRIER_SPAWN_ONOFF = OFF_ON,
 	SMART_TOGGLE = { LOW = 0, HIGH = 1, AUTO = 2 },

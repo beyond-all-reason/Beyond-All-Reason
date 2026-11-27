@@ -200,18 +200,20 @@ describe("mission_api.conditions.construction_started", function()
 	end)
 
 	it("does not claim a buildee when the activation is refused", function()
-		local context, fired = newContext()
+		local valid = false
+		local context = ConditionContextBuilder.new()
+			:WithEnv(env)
+			:WithActivationResult(function()
+				return valid
+			end)
+			:Build()
 		local watchTheSolar = trigger({ includeUnit = { unitDefName = { [1] = true } } })
-		local activateTrigger = context.ActivateTrigger
 
-		context.ActivateTrigger = function()
-			return false
-		end
 		created(watchTheSolar, context, 1, 0, 10)
-		assert.are.equal(0, fired())
+		assert.are.equal(0, context.timesFired())
 
-		context.ActivateTrigger = activateTrigger
+		valid = true
 		assisted(watchTheSolar, context, 1, 0, 11)
-		assert.are.equal(1, fired())
+		assert.are.equal(1, context.timesFired())
 	end)
 end)

@@ -160,6 +160,10 @@ local function registerValueValidators(parameterValidators, context)
 		return enums[Types.AiState][state]
 	end)
 
+	parameterValidators[Types.SquadTask] = getLookupValidator(validateString, "task", function(task)
+		return enums[Types.SquadTask][task]
+	end)
+
 	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
 		return context.Stages[stageID]
 	end)
@@ -193,6 +197,10 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
 	parameterValidators[Types.EffectName] = validateString
+	parameterValidators[Types.SquadName] = validateString
+	parameterValidators[Types.RegionName] = validateString
+	parameterValidators[Types.BuildAreaName] = validateString
+	parameterValidators[Types.BasePlanName] = validateString
 	-- IDs starting with __ are the Mission API's own (TimeElapsed's countdowns).
 	parameterValidators[Types.CountdownID] = getLookupValidator(validateString, "countdownID", function(countdownID)
 		return countdownID:sub(1, 2) ~= "__"
@@ -204,6 +212,18 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TeamName] = getLookupValidator(validateString, "teamName", function(teamName)
 		return context.Teams[teamName]
 	end)
+	-- Synced code cannot read which skirmish AI runs a team, only that one does.
+	parameterValidators[Types.AiTeamName] = function(teamName)
+		local teamResult = parameterValidators[Types.TeamName](teamName)
+		if teamResult then
+			return teamResult
+		end
+
+		local teamID = context.Teams[teamName]
+		if not Spring.GetAIInfo(teamID) or (Spring.GetTeamLuaAI(teamID) or "") ~= "" then
+			return { { message = "Team is not run by a skirmish AI: " .. teamName } }
+		end
+	end
 	parameterValidators[Types.AllianceName] = getLookupValidator(validateString, "allianceName", function(allianceName)
 		return context.Alliances[allianceName]
 	end)
@@ -214,6 +234,25 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
+
+	parameterValidators[Types.UnitDefCounts] = function(unitDefCounts)
+		local luaTypeResult = validateTableType(unitDefCounts)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if next(unitDefCounts) == nil then
+			return { { message = "unitDefCounts table is empty" } }
+		end
+
+		local results = {}
+		for unitDefName, count in pairs(unitDefCounts) do
+			local suffix = "[" .. tostring(unitDefName) .. "]"
+			appendResults(results, parameterValidators[Types.UnitDefName](unitDefName), suffix)
+			appendResults(results, parameterValidators[Types.PositiveInteger](count), suffix)
+		end
+		return results
+	end
 
 	-- One unit def name, or a list of them.
 	local validateUnitDefNameList =
@@ -234,8 +273,6 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
 		return enums[Types.Difficulty][difficulty]
 	end)
-	-- Must be an array: difficulty.lua resolves the names with ipairs, so any other key
-	-- would leave its name unresolved and the trigger disabled on every difficulty.
 	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
 	parameterValidators[Types.Difficulties] = function(difficulties)
 		if type(difficulties) == "table" and not isCompactSequence(difficulties) then
@@ -374,8 +411,8 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
-	--- Variables hold plain values, or tables of them nested to any depth.
-	local function validateVariableValue(value)
+	--- Variables contain plain values, or tables of them nested to any depth.
+	local function validateVariableType(value)
 		local valueType = type(value)
 		if valueType == "number" or valueType == "string" or valueType == "boolean" then
 			return
@@ -394,11 +431,22 @@ local function registerValueValidators(parameterValidators, context)
 					parameterNameSuffix = "." .. tostring(key),
 				}
 			end
-			appendResults(results, validateVariableValue(entry), "." .. tostring(key))
+			appendResults(results, validateVariableType(entry), "." .. tostring(key))
 		end
 		return results
 	end
-	parameterValidators[Types.VariableValue] = validateVariableValue
+	parameterValidators[Types.VariableType] = validateVariableType
+
+	parameterValidators[Types.VariableKey] = function(key)
+		local typeResult = validateString(key)
+		if typeResult then
+			return typeResult
+		end
+
+		if context.Variables[key] == nil then
+			return { { message = "Variable is not declared: " .. key } }
+		end
+	end
 
 	parameterValidators[Types.Color] = function(color)
 		local luaTypeResult = validateTableType(color)
@@ -431,6 +479,17 @@ local function registerValueValidators(parameterValidators, context)
 
 		if quantity < 0 then
 			return { { message = "Quantity must be >= 0, got " .. quantity } }
+		end
+	end
+
+	parameterValidators[Types.Integer] = function(value)
+		local luaTypeResult = parameterValidators[Types.Number](value)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if value % 1 ~= 0 then
+			return { { message = "Integer must be a whole number, got " .. value } }
 		end
 	end
 
