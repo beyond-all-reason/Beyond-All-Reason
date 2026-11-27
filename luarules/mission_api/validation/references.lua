@@ -1,6 +1,6 @@
 ---
 --- Checks references: objective events, actions, unit, feature, marker, line, squad, region and
---- base plan names, countdown IDs, cutscene IDs and variables.
+--- base plan names, countdown IDs, cutscene IDs, variables, and thresholds that read written variables.
 --- Malformed entries are skipped, as sections.lua already reports them. A value that differs
 --- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
@@ -11,6 +11,7 @@ local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 local unitFilterFields = VFS.Include("luarules/mission_api/unit_filter_schema.lua").UnitFilterFields
+local thresholdFields = VFS.Include("luarules/mission_api/objectives_loader.lua").ThresholdFields
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -568,9 +569,6 @@ end
 -- Variable references
 --------------------------------------------------------------------------------
 
---- Only the startscript sets variables before the mission starts. A value that reads an unset
---- variable can't be checked, and is missing until an action writes the variable, which may
---- well be intended. So it warns rather than errors.
 local function validateVariableReferences(context, report)
 	local referencedKeys = {}
 
@@ -607,14 +605,59 @@ local function validateVariableReferences(context, report)
 
 	for key, sources in pairs(referencedKeys) do
 		if context.Variables[key] == nil then
-			report.Warn(
+			report.Error(
 				SECTION,
 				"Variable",
 				key,
-				"Variable has no value at the start of the mission",
+				"Variable is not declared",
 				"Referenced in: " .. describeSources(sources)
 			)
 		end
+	end
+end
+
+local function validateThresholdVariableReferences(context, report)
+	local actionTypes = context.ActionTypes
+	local writtenKeys = {}
+	for _, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters and (action.type == actionTypes.WriteVariable or action.type == actionTypes.AddToVariable) then
+			for _, key in ipairs(context.PossibleValues(parameters.key)) do
+				writtenKeys[key] = true
+			end
+		end
+	end
+	if next(writtenKeys) == nil then
+		return
+	end
+
+	local function checkThresholdField(value, fieldName, label, id)
+		context.CallOnVariableKeys(value, function(key)
+			if writtenKeys[key] then
+				report.Error(
+					SECTION,
+					label,
+					id,
+					"Threshold reads variable '" .. tostring(key) .. "', which the mission writes",
+					"Field: " .. fieldName
+				)
+			end
+		end)
+	end
+
+	local function checkThresholds(condition, label, id)
+		if type(condition) == "table" then
+			for _, fieldName in ipairs(thresholdFields) do
+				checkThresholdField(condition[fieldName], fieldName, label, id)
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		checkThresholds(trigger, "Trigger", triggerID)
+	end
+	for objectiveID, objective in pairs(context.Objectives) do
+		checkThresholds(objective, "Objective", objectiveID)
 	end
 end
 
@@ -693,6 +736,7 @@ local function validate(context, report)
 	)
 	validateCutsceneIDReferences(context, report)
 	validateVariableReferences(context, report)
+	validateThresholdVariableReferences(context, report)
 end
 
 return {

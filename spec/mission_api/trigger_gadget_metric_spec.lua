@@ -34,6 +34,7 @@ local function installMissionApi(currentStageID)
 			AreaTracking = { TrackUnitsInArea = function() end },
 			DetectionLevels = {},
 			Batch = VFS.Include("luarules/mission_api/batch.lua"),
+			Variables = { ReportVariableWrites = function() end },
 			Stages = {
 				GetCurrentStageID = function()
 					return GG["MissionAPI"].CurrentStageID
@@ -316,7 +317,7 @@ describe("mission_api trigger gadget metric samples within one batch", function(
 				end
 			end
 
-			-- Leaves the trigger out of range, so the gadget's list of refused triggers drops it on its next recheck.
+			-- Leaves the trigger out of range, so the gadget's pending triggers drop it when they are next evaluated.
 			batch.Run(GG["MissionAPI"].EvaluateMetric, trigger, OUT_OF_RANGE)
 		end
 

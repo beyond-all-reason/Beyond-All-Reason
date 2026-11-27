@@ -62,6 +62,7 @@ local types = {
 	BasePlanName = "BasePlanName",
 	AiState = "AiState",
 	SquadTask = "SquadTask",
+	VariableKey = "VariableKey",
 
 	-- Number Validators:
 	Number = "Number",
@@ -72,6 +73,7 @@ local types = {
 	CompassAngle = "CompassAngle",
 	Elevation = "Elevation",
 	MessageType = "MessageType",
+	Integer = "Integer",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
@@ -93,7 +95,7 @@ local types = {
 	AttributeValue = "AttributeValue",
 
 	-- Number-or-String-or-Boolean-or-Table Validators:
-	VariableValue = "VariableValue",
+	VariableType = "VariableType",
 
 }
 

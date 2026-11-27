@@ -413,8 +413,8 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
-	--- Variables hold plain values, or tables of them nested to any depth.
-	local function validateVariableValue(value)
+	--- Variables contain plain values, or tables of them nested to any depth.
+	local function validateVariableType(value)
 		local valueType = type(value)
 		if valueType == "number" or valueType == "string" or valueType == "boolean" then
 			return
@@ -433,11 +433,22 @@ local function registerValueValidators(parameterValidators, context)
 					parameterNameSuffix = "." .. tostring(key),
 				}
 			end
-			appendResults(results, validateVariableValue(entry), "." .. tostring(key))
+			appendResults(results, validateVariableType(entry), "." .. tostring(key))
 		end
 		return results
 	end
-	parameterValidators[Types.VariableValue] = validateVariableValue
+	parameterValidators[Types.VariableType] = validateVariableType
+
+	parameterValidators[Types.VariableKey] = function(key)
+		local typeResult = validateString(key)
+		if typeResult then
+			return typeResult
+		end
+
+		if context.Variables[key] == nil then
+			return { { message = "Variable is not declared: " .. key } }
+		end
+	end
 
 	parameterValidators[Types.Color] = function(color)
 		local luaTypeResult = validateTableType(color)
@@ -470,6 +481,17 @@ local function registerValueValidators(parameterValidators, context)
 
 		if quantity < 0 then
 			return { { message = "Quantity must be >= 0, got " .. quantity } }
+		end
+	end
+
+	parameterValidators[Types.Integer] = function(value)
+		local luaTypeResult = parameterValidators[Types.Number](value)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if value % 1 ~= 0 then
+			return { { message = "Integer must be a whole number, got " .. value } }
 		end
 	end
 

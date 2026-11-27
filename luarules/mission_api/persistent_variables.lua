@@ -3,8 +3,9 @@
 ---
 
 local function collectPersistentVariables()
-	local values = {}
-	for key in pairs(GG["MissionAPI"].PersistentVariables) do
+	-- Saved values that this mission doesn't declare are written back unchanged.
+	local values = table.copy(GG["MissionAPI"].SavedVariables)
+	for key in pairs(GG["MissionAPI"].PersistentVariableKeys) do
 		values[key] = GG["MissionAPI"].Variables[key]
 	end
 	return values
