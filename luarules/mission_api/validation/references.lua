@@ -757,7 +757,6 @@ local function validate(context, report)
 		creatingActionTypes = { [actionTypes.CreateFeatures] = true },
 	})
 
-	validateCountdownIDReferences(context, report)
 	validateAreaNameReferences(context, report)
 	validateCreatedNameReferences(
 		context,
