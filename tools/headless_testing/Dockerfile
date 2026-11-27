@@ -8,8 +8,9 @@ ENV BAR_CONFIG_ENV=./config.env
 
 ARG CUSTOM_ENGINE_URL=""
 
+# spring-headless links libsdl2, maybe remove once the engine patches up.
 RUN apt-get update && \
-    apt-get install -y curl jq p7zip-full && \
+    apt-get install -y curl jq p7zip-full libsdl2-2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p maps games engine
