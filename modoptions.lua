@@ -1916,28 +1916,6 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "techsplit",
-		name = "Tech Split",
-		desc = "Adds a new tier between T1 and T2 for bots and vehicles",
-		type = "bool",
-		hidden = true,
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "techsplit_balance",
-		name = "Tech Split Balance Test",
-		desc = "Adjusts the balance of units in the proposed tech split.",
-		type = "bool",
-		hidden = true,
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
 		key = "experimental_defend_firestate",
 		name = "Defend Combat Stance",
 		desc = "Replaces Return Fire with the new Defend combat stance.\nDefending units will shoot threats to themselves when they become threats on a 1v1 basis.",

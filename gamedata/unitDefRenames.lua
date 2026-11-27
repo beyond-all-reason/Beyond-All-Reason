@@ -53,7 +53,6 @@ return {
 	armfast = "armada_sprinter",
 	armfboy = "armada_fatboy",
 	armfido = "armada_hound",
-	armhack = "armada_experimentalbutler", -- shares display name with armfark
 	armmark = "armada_compass",
 	armmav = "armada_gunslinger",
 	armscab = "armada_umbrella",
@@ -106,10 +105,6 @@ return {
 	armalab = "armada_advancedbotlab",
 	armap = "armada_aircraftplant",
 	armavp = "armada_advancedvehicleplant",
-	armhaap = "armada_experimentalaircraftplant2", -- shares display name with armapt3
-	armhaapuw = "armada_navaladvancedaircraftplant", -- shares display name with armaap
-	armhalab = "armada_experimentalbotlab",
-	armhavp = "armada_experimentalvehicleplant",
 	armhp = "armada_hovercraftplatform",
 	armlab = "armada_botlab",
 	armshltx = "armada_experimentalgantry",
@@ -159,7 +154,6 @@ return {
 	armamsub = "armada_amphibiouscomplex",
 	armasy = "armada_advancedshipyard",
 	armfhp = "armada_navalhovercraftplatform",
-	armhasy = "armada_experimentalshipyard",
 	armplat = "armada_seaplaneplatform",
 	armshltxuw = "armada_navalexperimentalgantry", -- shares display name with armshltx
 	armsy = "armada_shipyard",
@@ -189,7 +183,6 @@ return {
 	armsh = "armada_seeker",
 	-- units/ArmSeaplanes
 	armcsa = "armada_constructionseaplane",
-	armhaca = "armada_experimentalconstructionaircraft",
 	armsaber = "armada_sabre",
 	armsb = "armada_tsunami",
 	armseap = "armada_puffin",
@@ -215,7 +208,6 @@ return {
 	armdronecarry = "armada_nexus",
 	armepoch = "armada_epoch",
 	armexcalibur = "armada_excalibur",
-	armhacs = "armada_experimentalvoyager", -- shares display name with armmls
 	armlship = "armada_maelstrom",
 	armmls = "armada_voyager",
 	armmship = "armada_longbow",
@@ -242,7 +234,6 @@ return {
 	armconsul = "armada_consul",
 	armcroc = "armada_turtle",
 	armgremlin = "armada_gremlin",
-	armhacv = "armada_experimentalconsul", -- shares display name with armconsul
 	armjam = "armada_umbra",
 	armlatnk = "armada_jaguar",
 	armmanni = "armada_starlight",
@@ -283,7 +274,6 @@ return {
 	corcan = "cortex_sumo",
 	cordecom = "cortex_decoycommander",
 	corfast = "cortex_twitcher",
-	corhack = "cortex_experimentaltwitcher", -- shares display name with corfast
 	corhrk = "cortex_arbiter",
 	cormando = "cortex_commando",
 	cormort = "cortex_sheldon",
@@ -339,14 +329,9 @@ return {
 	corap = "cortex_aircraftplant",
 	coravp = "cortex_advancedvehicleplant",
 	corgant = "cortex_experimentalgantry",
-	corhaap = "cortex_experimentalaircraftplant2", -- shares display name with corapt3
-	corhaapuw = "cortex_navaladvancedaircraftplant", -- shares display name with coraap
-	corhalab = "cortex_experimentalbotlab",
-	corhavp = "cortex_experimentalvehicleplant",
 	corhp = "cortex_hovercraftplatform",
 	corlab = "cortex_botlab",
 	corvp = "cortex_vehicleplant",
-	leghaap = "legion_experimentalaircraftplant",
 	-- units/CorBuildings/LandUtil
 	corarad = "cortex_advancedradartower",
 	cordrag = "cortex_dragonsteeth",
@@ -393,7 +378,6 @@ return {
 	corasy = "cortex_advancedshipyard",
 	corfhp = "cortex_navalhovercraftplatform",
 	corgantuw = "cortex_navalexperimentalgantry", -- shares display name with corgant
-	corhasy = "cortex_experimentalshipyard",
 	corplat = "cortex_seaplaneplatform",
 	corsy = "cortex_shipyard",
 	-- units/CorBuildings/SeaUtil
@@ -424,13 +408,11 @@ return {
 	-- units/CorSeaplanes
 	corcsa = "cortex_constructionseaplane",
 	corcut = "cortex_cutlass",
-	corhaca = "cortex_experimentalconstructionaircraft",
 	corhunt = "cortex_watcher",
 	corsb = "cortex_dambuster",
 	corseap = "cortex_monsoon",
 	corsfig = "cortex_bat",
 	corsfig2 = "cortex_bat2", -- shares display name with corsfig
-	leghaca = "legion_experimentalconstructionaircraft",
 	-- units/CorShips
 	corcs = "cortex_constructionship",
 	coresupp = "cortex_supporter",
@@ -450,7 +432,6 @@ return {
 	cordesolator = "cortex_desolator",
 	cordronecarry = "cortex_disperser",
 	corfship = "cortex_brimstone",
-	corhacs = "cortex_experimentalpathfinder", -- shares display name with cormls
 	cormls = "cortex_pathfinder",
 	cormship = "cortex_messenger",
 	coronager = "cortex_onager",
@@ -476,7 +457,6 @@ return {
 	corban = "cortex_banisher",
 	coreter = "cortex_obscurer",
 	corgol = "cortex_tzar",
-	corhacv = "cortex_experimentalprinter", -- shares display name with corprinter, corvac
 	cormabm = "cortex_saviour",
 	cormart = "cortex_quaker",
 	corparrow = "cortex_poisonarrow",
@@ -488,7 +468,7 @@ return {
 	corsent = "cortex_fury",
 	corsiegebreaker = "cortex_siegebreaker",
 	cortrem = "cortex_tremor",
-	corvac = "cortex_printer2", -- shares display name with corhacv, corprinter
+	corvac = "cortex_printer2", -- shares display name with corprinter
 	corvacct = "cortex_printerct", -- TODO no display name
 	corvrad = "cortex_omen",
 	corvroc = "cortex_negotiator",
@@ -550,8 +530,6 @@ return {
 	legch = "legion_constructionhovercraft",
 	legck = "legion_constructionbot",
 	legcv = "legion_constructionvehicle",
-	leghack = "legion_experimentalprometheus", -- shares display name with legaheattank
-	leghacv = "legion_experimentalaceso", -- shares display name with legafcv
 	legnavyconship = "legion_constructionship",
 	legotter = "legion_otter",
 	legspcon = "legion_constructionseaplane",
@@ -616,8 +594,6 @@ return {
 	legfhp = "legion_navalhovercraftplatform",
 	leggant = "legion_experimentalgantry",
 	leggantuw = "legion_navalexperimentalgantry", -- shares display name with leggant
-	leghalab = "legion_experimentalbotlab",
-	leghavp = "legion_experimentalvehicleplant",
 	leghp = "legion_hovercraftplatform",
 	leglab = "legion_botlab",
 	legsplab = "legion_seaplaneplatform",
