@@ -2737,7 +2737,7 @@ local unitGrids = {
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud" }, -- adv radar, camera, wall, adv jammer
 			{}, --
-			{ "cormine2" }, -- med mine
+			{ "", "cormine2" }, -- med mine
 		},
 		{
 			{ "corlab", "corck" }, -- bot lab, bot con
@@ -2809,7 +2809,7 @@ local unitGrids = {
 		{
 			{ "armarad", "armeyes", "armfort", "armveil" }, -- adv radar, camera, wall, adv jammer
 			{}, --
-			{ "armmine2" }, -- med. mine
+			{ "", "armmine2" }, -- med. mine
 		},
 		{
 			{ "armcv", "armvp" }, -- T1 veh con, vehicle lab
@@ -2826,14 +2826,14 @@ local unitGrids = {
 			{}, --
 		},
 		{
-			{ "cormaw" }, -- flame turret
-			{}, --
+			{ "", "cormine2", "", "cormaw" }, -- med. mine, flame turret
+			{ "", "corvalk" }, -- transport
 			{}, --
 		},
 		{
-			{ "cormine2", "coreyes", "cordrag", "corjamt" }, -- commando mine, camera, dragon's teeth, jammer
-			{ "corvalk" }, -- transport
-			{ "corfink" }, -- scout plane
+			{ "", "coreyes", "cordrag", "corjamt" }, -- camera, dragon's teeth, jammer
+			{ "corfink", "corvalk" }, -- scout place, transport
+			{ "", "cormine2" }, -- med. mine
 		},
 		{
 			{}, --
@@ -2882,7 +2882,7 @@ local unitGrids = {
 		{
 			{ "armfrad", "armarad" }, -- fl radar, adv radar
 			{}, --
-			{ "armfmine3" }, -- naval mine
+			{ "", "armfmine3" }, -- naval mine
 		},
 		{
 			{ "armsy", "armcs" }, -- shipyard, sea con
@@ -2906,7 +2906,7 @@ local unitGrids = {
 		{
 			{ "corfrad", "corarad" }, -- fl radar, adv radar
 			{}, --
-			{ "corfmine3" }, -- naval mine
+			{ "", "corfmine3" }, -- naval mine
 		},
 		{
 			{ "corsy", "corcs" }, -- shipyard, sea con
@@ -2930,7 +2930,7 @@ local unitGrids = {
 		{
 			{ "legfrad", "legarad" }, -- fl radar, adv radar
 			{ "legfdrag" }, -- shark's teeth
-			{ "corfmine3" }, -- naval mine
+			{ "", "corfmine3" }, -- naval mine
 		},
 		{
 			{ "legsy", "legnavyconship" }, -- shipyard, sea con
