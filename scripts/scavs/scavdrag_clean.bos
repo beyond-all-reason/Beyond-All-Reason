@@ -1,7 +1,0 @@
-#include "../recoil_common_includes.h"
-
-
-Create()
-{
-	return (0);
-}

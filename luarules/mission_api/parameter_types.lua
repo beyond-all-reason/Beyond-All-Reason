@@ -1,0 +1,209 @@
+---
+--- Data types for Mission API action and trigger parameters.
+---
+
+local types = {
+
+	-- Table Validators:
+	Table = "Table",
+	Position = "Position",
+	Positions = "Positions",
+	AllianceNames = "AllianceNames",
+	TriggerIDs = "TriggerIDs",
+	StageIDs = "StageIDs",
+	ObjectiveIDs = "ObjectiveIDs",
+	Difficulties = "Difficulties",
+	Orders = "Orders",
+	Area = "Area",
+	Direction = "Direction",
+	UnitLoadout = "UnitLoadout",
+	FeatureLoadout = "FeatureLoadout",
+	UnitDefCounts = "UnitDefCounts",
+	ResourceIncomeSources = "ResourceIncomeSources",
+	SensorTypes = "SensorTypes",
+	Color = "Color",
+	CameraKeyframes = "CameraKeyframes",
+	UnitFilter = "UnitFilter",
+	UnitFilters = "UnitFilters",
+
+	-- String Validators:
+	String = "String",
+	StageID = "StageID",
+	ObjectiveID = "ObjectiveID",
+	CountdownID = "CountdownID",
+	TriggerID = "TriggerID",
+	CutsceneID = "CutsceneID",
+	CutsceneScriptID = "CutsceneScriptID",
+	UnitName = "UnitName",
+	FeatureName = "FeatureName",
+	UnitDefName = "UnitDefName",
+	FeatureDefName = "FeatureDefName",
+	WeaponDefName = "WeaponDefName",
+	TeamName = "TeamName",
+	AiTeamName = "AiTeamName",
+	AllianceName = "AllianceName",
+	Facing = "Facing",
+	SoundFile = "SoundFile",
+	Resource = "Resource",
+	VideoFile = "VideoFile",
+	SkyboxFile = "SkyboxFile",
+	Difficulty = "Difficulty",
+	CameraEasing = "CameraEasing",
+	CameraSequenceEnd = "CameraSequenceEnd",
+	CameraPath = "CameraPath",
+	CameraClock = "CameraClock",
+	UnitAttribute = "UnitAttribute",
+	WeaponAttribute = "WeaponAttribute",
+	EffectType = "EffectType",
+	EffectName = "EffectName",
+	SquadName = "SquadName",
+	RegionName = "RegionName",
+	BuildAreaName = "BuildAreaName",
+	BasePlanName = "BasePlanName",
+	AiState = "AiState",
+	SquadTask = "SquadTask",
+
+	-- Number Validators:
+	Number = "Number",
+	Quantity = "Quantity",
+	PositiveInteger = "PositiveInteger",
+	Fraction = "Fraction",
+	TimeOfDay = "TimeOfDay",
+	CompassAngle = "CompassAngle",
+	Elevation = "Elevation",
+	MessageType = "MessageType",
+
+	-- Boolean Validators:
+	Boolean = "Boolean",
+
+	-- Function Validators:
+	Function = "Function",
+
+	-- Number-or-String Validators:
+	Command = "Command",
+	WeaponNumber = "WeaponNumber",
+
+	-- String-or-Table Validators:
+	UnitDefNames = "UnitDefNames",
+
+	-- Number-or-String-or-Table Validators:
+	FacingOrDirection = "FacingOrDirection",
+
+	-- Number-or-String-or-Boolean Validators:
+	AttributeValue = "AttributeValue",
+
+	-- Number-or-String-or-Boolean-or-Table Validators:
+	VariableValue = "VariableValue",
+
+}
+
+-- Authored mission types may be processed into a different type internally.
+local internalTypes = {
+	[types.TeamName] = "TeamID",
+	[types.AiTeamName] = "TeamID",
+	[types.AllianceName] = "AllyTeamID",
+	[types.AllianceNames] = "AllyTeamIDs",
+	[types.UnitDefNames] = "UnitDefIDSet",
+}
+
+-- Difficulties are read by the client, so must be available in JSON
+local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
+local difficulties = Json.decode(difficultiesJSON)
+
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+
+local enums = {
+	[types.Facing] = {
+		[0] = true,
+		[1] = true,
+		[2] = true,
+		[3] = true,
+		n = true,
+		s = true,
+		e = true,
+		w = true,
+		north = true,
+		south = true,
+		east = true,
+		west = true,
+	},
+	-- A metric must yield a single measured value, so resource-based metrics
+	-- select one resource rather than accepting metal and energy together.
+	[types.Resource] = { metal = true, energy = true },
+
+	[types.Difficulty] = difficulties,
+
+	[types.MessageType] = {
+		Briefing = 1,
+		Message = 2,
+		Objective = 3,
+		Notification = 4,
+		Dialogue = 5,
+	},
+
+	-- The Easings of common/camera_math.lua
+	[types.CameraEasing] = {
+		linear = true,
+		inSine = true,
+		outSine = true,
+		inOutSine = true,
+		inQuad = true,
+		outQuad = true,
+		inOutQuad = true,
+		inCubic = true,
+		outCubic = true,
+		inOutCubic = true,
+		smoothstep = true,
+		cut = true,
+	},
+
+	[types.CameraSequenceEnd] = {
+		release = true,
+		restore = true,
+		hold = true,
+	},
+
+	[types.CameraPath] = {
+		linear = true,
+		spline = true,
+	},
+
+	-- real: seconds of real time, also while the game is paused; game: game seconds
+	[types.CameraClock] = {
+		real = true,
+		game = true,
+	},
+
+	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
+
+	[types.AiState] = {
+		PASSIVE = 1,
+		DEFENSIVE = 2,
+		NORMAL = 3,
+		AGGRESSIVE = 4,
+	},
+
+	[types.SquadTask] = {
+		DEFEND = 1,
+	},
+}
+
+local enumSets = {
+	[types.ResourceIncomeSources] = { "extractor", "production", "reclaim", "transfer" },
+	[types.SensorTypes] = { "vision", "radar", "seismic" },
+}
+
+for enumSetName, enumSetValues in pairs(enumSets) do
+	local valueSet = {}
+	for _, value in ipairs(enumSetValues) do
+		valueSet[value] = true
+	end
+	enums[enumSetName] = valueSet
+end
+
+return {
+	Types = types,
+	InternalTypes = internalTypes,
+	Enums = enums,
+	EnumSets = enumSets,
+}

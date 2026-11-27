@@ -26,19 +26,17 @@ legR3_3,
 nano, heatrayaimflare; //empties
 
 
-static-var  isMoving, restore_delay, maxSpeed, animFramesPerKeyframe, animSpeed, wpn1_lasthead, wpn2_lasthead;
+static-var  isMoving, restore_delay, maxSpeed, animFramesPerKeyframe, animSpeed, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
-#define SIG_MOVE 8
-#define SIG_BUILD 16
-
-Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbaking.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+Walk()
+{
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:6
-			//move body to z-axis [0.287877] speed [8.636310] / animSpeed; 
-			//move body to y-axis [0.978963] speed [29.368887] / animSpeed; 
 			move headleft to z-axis [-0.258045] speed [7.741363] / animSpeed; 
 			move headright to z-axis [-0.258046] speed [7.741392] / animSpeed; 
 			turn legL1_1 to x-axis <0.696244> speed <20.887316> / animSpeed; 
@@ -96,7 +94,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 	}
 	while(isMoving) {
 		if (isMoving) { //Frame:8
-			//move body to z-axis [-0.225051] speed [15.387851] / animSpeed; 
 			turn legL1_1 to x-axis <-13.466239> speed <424.874479> / animSpeed; 
 			turn legL1_1 to z-axis <-17.365889> speed <551.129035> / animSpeed; 
 			turn legL1_1 to y-axis <2.199095> speed <74.974032> / animSpeed; 
@@ -150,8 +147,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:10
-			//move body to z-axis [-0.658220] speed [12.995063] / animSpeed; 
-			//move body to y-axis [1.229358] speed [6.206188] / animSpeed; 
 			turn legL1_1 to x-axis <-39.345878> speed <776.389191> / animSpeed; 
 			turn legL1_1 to z-axis <-30.411383> speed <391.364819> / animSpeed; 
 			turn legL1_1 to y-axis <-29.476672> speed <950.272999> / animSpeed; 
@@ -208,7 +203,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:12
-			//move body to z-axis [-0.106477] speed [16.552296] / animSpeed; 
 			turn legL1_1 to x-axis <-27.238120> speed <363.232756> / animSpeed; 
 			turn legL1_1 to z-axis <-12.672123> speed <532.177818> / animSpeed; 
 			turn legL1_1 to y-axis <-16.948459> speed <375.846390> / animSpeed; 
@@ -260,8 +254,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:14
-			//move body to z-axis [0.287877] speed [11.830618] / animSpeed; 
-			//move body to y-axis [0.978963] speed [10.448227] / animSpeed; 
 			turn legL1_1 to x-axis <0.696244> speed <838.030914> / animSpeed; 
 			turn legL1_1 to z-axis <1.005079> speed <410.316036> / animSpeed; 
 			turn legL1_1 to y-axis <-0.300040> speed <499.452576> / animSpeed; 
@@ -319,7 +311,6 @@ Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbak
 		}
 	}
 }
-// Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 	move body to y-axis [0.000000] speed [146.844435] / animSpeed;
@@ -380,7 +371,6 @@ StopWalking() {
 	turn legR3_3 to y-axis <0.000000> speed <1485.181690> / animSpeed;
 	turn legR3_3 to z-axis <0.000000> speed <5350.540018> / animSpeed;
 }
-// REMEMBER TO animspeed = 2 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
@@ -389,24 +379,25 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<4) animSpeed=4;
 		if (animspeed>8) animSpeed=8;
 		sleep 65;
 	}
 }
-StartMoving(){
+StartMoving(reversing)
+{
 	signal SIGNAL_MOVE;
-	isMoving=TRUE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
 	start-script Walk();
 }
-StopMoving(){
+
+StopMoving()
+{
 	signal SIGNAL_MOVE;
-	isMoving=FALSE;
+	isMoving = FALSE;
 	call-script StopWalking();
 }
-
-
 
 #define BASEPIECE body
 #define HITSPEED <55.0>
@@ -414,7 +405,7 @@ StopMoving(){
 #define UNITSIZE 8
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var last_nano_heading;
 Create()
@@ -430,53 +421,40 @@ Create()
 }
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano;
+	pieceIndex = nano;
 }
 
-
-
-BuildAnim(){
-	set-signal-mask SIG_BUILD;
-
+BuildAnim()
+{
+	set-signal-mask SIGNAL_BUILD;
 }
 
 
 StartBuilding(heading, pitch)
 {
-    show nano;
-	signal SIG_BUILD;
+	show nano;
+	signal SIGNAL_BUILD;
 	last_nano_heading = heading;
-	turn body to y-axis heading speed <240.000000>;
-	//turn aimx1 to x-axis <-50> - pitch speed <240.0>;
+	turn body to y-axis heading speed <240.0>;
 	wait-for-turn body around y-axis;
 	set INBUILDSTANCE to 1;
-	start-script BuildAnim();	
+	start-script BuildAnim();
 }
 
 StopBuilding()
 {
-    hide nano;
-	signal SIG_BUILD;	
-	turn body to y-axis 0 speed <160.000000>;
+	hide nano;
+	signal SIGNAL_BUILD;
+	turn body to y-axis 0 speed <160.0>;
 	last_nano_heading = 0;
-	set-signal-mask SIG_BUILD;
-
+	set-signal-mask SIGNAL_BUILD;
 }
 
-
-
-
-
-SweetSpot(piecenum)
+SetMaxReloadTime(reloadMS)
 {
-	piecenum = body;
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -485,13 +463,12 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	move headleft to x-axis [0] speed <500>; 
-	move headright to x-axis [0] speed <500>; 
-	turn head to y-axis <0.000000> speed <90.000000>;
-	turn heatray to x-axis <0.000000> speed <90.000000>;
+	move headleft to x-axis [0] speed <500>;
+	move headright to x-axis [0] speed <500>;
+	turn head to y-axis <0.0> speed <90.0>;
+	turn heatray to x-axis <0.0> speed <90.0>;
 	wait-for-turn heatray around y-axis;
 	wpn1_lasthead = 1000000;
-	//wpn2_lasthead = 1000000;
 }
 SetStunned(State)
 {
@@ -502,18 +479,18 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	move headleft to x-axis [-0.5] speed <500>; 
-	move headright to x-axis [0.5] speed <500>; 
-	turn head to y-axis heading - last_nano_heading speed <180.000000>;
-	turn heatray to x-axis <0.000000> - pitch speed <110.000000>;
+	signal SIGNAL_AIM1;
+	move headleft to x-axis [-0.5] speed <500>;
+	move headright to x-axis [0.5] speed <500>;
+	turn head to y-axis heading - last_nano_heading speed <180.0>;
+	turn heatray to x-axis <0.0> - pitch speed <110.0>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -525,30 +502,19 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary() {
-
-//		move barrel1 to z-axis [-2.000000] speed [400.000000];
-//		wait-for-move barrel1 along z-axis;
-//		move barrel1 to z-axis [0.000000] speed [3.000000];
-//
-//	return (0);
-	return(1);
+FireWeapon1()
+{
+	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-
-	piecenum = heatray;
-
+	pieceIndex = heatray;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-
-		piecenum = heatrayaimflare;
-		return (0);
-
-
+	pieceIndex = heatrayaimflare;
 }
 
 Killed(severity, corpsetype)
@@ -557,63 +523,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg6b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg3b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg1b type BITMAPONLY | NOHEATCLOUD;
-		//explode leg2a type BITMAPONLY | NOHEATCLOUD;
-		//explode leg2b type BITMAPONLY | NOHEATCLOUD;
 		explode heatray type BITMAPONLY | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		//explode leg5a type FALL | NOHEATCLOUD;
-		//explode leg5b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2b type FALL | NOHEATCLOUD;
 		explode heatray type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3a type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode heatray type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -631,7 +555,5 @@ Killed(severity, corpsetype)
 		explode legR2_2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode legR2_3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode heatray type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

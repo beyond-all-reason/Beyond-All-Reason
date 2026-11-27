@@ -179,6 +179,9 @@ local state = {
 	prevGameID = nil,
 	prevOrgLines = nil,
 	gameOver = false,
+	serverGone = false --[[@as boolean]], -- after game over: chat reaches nobody anymore
+	serverTraffic = -1,
+	serverSilence = 0,
 	textInputDlist = nil,
 	updateTextInputDlist = true,
 	textCursorRect = nil,
@@ -599,6 +602,7 @@ function widget:LanguageChanged()
 		label = BAR.I18N("ui.chat.label"),
 		spectators = BAR.I18N("ui.chat.spectators"),
 		cmd = BAR.I18N("ui.chat.cmd"),
+		noConnection = BAR.I18N("ui.chat.noConnection.mode"),
 		shortcut = BAR.I18N("ui.chat.shortcut"),
 		nohistory = BAR.I18N("ui.chat.nohistory"),
 		scroll = BAR.I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
@@ -718,6 +722,10 @@ local function setCurrentChatLine(line)
 		end
 		i = i - 1
 	end
+end
+
+local function teamChatColor(allyTeamID)
+	return allyTeamID == myAllyTeamID and colorAllyStr or colorOtherAllyStr
 end
 
 local function addChatLine(
@@ -840,8 +848,25 @@ local function addChatLine(
 		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize, channelTagWidth)
 	end
 
-	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
+	local lineColor = ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1])
+	local teamChatAllyTeamID
+	if lineType == LineTypes.Player and channelScope == "TEAM" and playernames[name] then
+		local allyTeamID = playernames[name][1]
+		-- Processors may supply their own color. Only defer the normal team-chat color.
+		if lineColor == teamChatColor(allyTeamID) then
+			teamChatAllyTeamID = allyTeamID
+		end
+	end
 	for i, line in ipairs(wordwrappedText) do
+		local lineText = line
+		if teamChatAllyTeamID then
+			-- Wrapping can repeat the leading color when it splits a long word.
+			if ssub(line, 1, #lineColor) == lineColor then
+				lineText = ssub(line, #lineColor + 1)
+			end
+		elseif i > 1 then
+			lineText = lineColor .. line
+		end
 		chatLines[chatLineID] = {
 			startTime = startTime,
 			gameFrame = i == 1 and gameFrame,
@@ -858,7 +883,8 @@ local function addChatLine(
 				and playernames[name][5]
 				and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])
 			) or false,
-			text = (i > 1 and lineColor or "") .. line,
+			text = lineText,
+			teamChatAllyTeamID = teamChatAllyTeamID,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -960,7 +986,7 @@ state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitFor
 	state.mapmarkTriggerKey = triggerKey
 	state.mapmarkTriggerScanCode = triggerScanCode
 	state.mapmarkPressedKeys = waitForTriggerRelease and Spring.GetPressedKeys() or nil
-	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans and Spring.GetPressedScans() or nil
+	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans() or nil
 	state.mapmarkTriggerIdentityCaptured = triggerKey ~= nil
 		or triggerScanCode ~= nil
 		or (state.mapmarkPressedKeys and next(state.mapmarkPressedKeys) ~= nil)
@@ -994,7 +1020,7 @@ state.areMapmarkTriggerKeysPressed = function()
 		end
 	end
 
-	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	local pressedScans = Spring.GetPressedScans()
 	if state.mapmarkTriggerScanCode and pressedScans[state.mapmarkTriggerScanCode] then
 		return true
 	end
@@ -1153,6 +1179,13 @@ state.stopMapDraw = function()
 	state.mapDrawScanCode = nil
 	state.mapDrawLastX = nil
 	state.mapDrawLastZ = nil
+end
+
+state.isMapDrawKeyPressed = function()
+	if state.mapDrawKey and Spring.GetKeyState(state.mapDrawKey) then
+		return true
+	end
+	return state.mapDrawScanCode ~= nil and Spring.GetPressedScans()[state.mapDrawScanCode] and true or false
 end
 
 local function ensureInputHistoryDraft()
@@ -1505,7 +1538,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if channel == "allies" then
-			c = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
+			c = teamChatColor(playernames[name][1])
 		elseif channel == "spectators" then
 			c = colorSpecStr
 		else
@@ -1843,6 +1876,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		return
 	end
 
+	-- units shared by the Share Unit command (luarules/gadgets/cmd_share_unit.lua) aren't announced
+	-- when used as part of a factory rally. Otherwise, it would spam the chat.
+	if Spring.GetUnitRulesParam(unitID, "isRallyShare") then
+		return
+	end
+
 	if not lastUnitShare then
 		lastUnitShare = {}
 	end
@@ -2056,23 +2095,17 @@ drawChatLine = function(i)
 		)
 		return right, left
 	else
+		local allyTeamID = chatLines[i].teamChatAllyTeamID
+		local text = allyTeamID and teamChatColor(allyTeamID) .. chatLines[i].text or chatLines[i].text
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(
-				font,
-				chatLines[i].text,
-				textPosX,
-				fontHeightOffset,
-				usedFontSize,
-				"o",
-				{ 0, 0, 0, 1 }
-			)
+			ChatEmoji.DrawRichText(font, text, textPosX, fontHeightOffset, usedFontSize, "o", { 0, 0, 0, 1 })
 		else
 			font:Begin(true)
 			font:SetOutlineColor(0, 0, 0, 1)
-			font:Print(chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o")
+			font:Print(text, textPosX, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
-		return state.textRight(font, chatLines[i].text, textPosX, usedFontSize, chatLines[i].richText), left
+		return state.textRight(font, text, textPosX, usedFontSize, chatLines[i].richText), left
 	end
 end
 
@@ -2082,7 +2115,32 @@ function widget:GameFrame(gameFrame)
 	addLastUnitShareMessage(gameFrame)
 end
 
+-- After game over the engine stops watching the connection, and chat sent over a closed one just vanishes.
+-- The server sends each player's info every 2 seconds, also while paused: silence means it is gone.
+function state.watchServerLink(dt)
+	local traffic = Spring.GetPlayerTraffic(Spring.GetMyPlayerID())
+	if traffic ~= state.serverTraffic then
+		state.serverTraffic, state.serverSilence = traffic, 0
+	else
+		state.serverSilence = state.serverSilence + dt
+	end
+	local gone = traffic > 0 and state.serverSilence > 6
+	if gone ~= state.serverGone then
+		state.serverGone = gone
+		updateTextInputDlist = true
+	end
+end
+
 function widget:Update(dt)
+	if gameOver and not Spring.IsReplay() then
+		state.watchServerLink(dt)
+	end
+
+	-- The key's release can go to a text owner or RmlUi instead of reaching this widget.
+	if state.mapDrawActive and not state.isMapDrawKeyPressed() then
+		state.stopMapDraw()
+	end
+
 	if inputMode == "label" and state.mapmarkTriggerDown then
 		if state.areMapmarkTriggerKeysPressed() == false then
 			state.finishMapmarkTriggerWait()
@@ -2320,11 +2378,14 @@ drawChatInput = function()
 		local usedFont = isCmd and font3 or font
 		local inputBottom = activationArea[2] + chatlogHeightDiff - distance - inputHeight
 		local inputTop = activationArea[2] + chatlogHeightDiff - distance
+		local noConnection = state.serverGone and not isLabel and not isCmd
 		local modeText = i18nStrings.everyone
 		if isLabel then
 			modeText = i18nStrings.label
 		elseif isCmd then
 			modeText = i18nStrings.cmd
+		elseif noConnection then
+			modeText = i18nStrings.noConnection
 		elseif inputMode == "a:" then
 			modeText = i18nStrings.allies
 		elseif inputMode == "s:" then
@@ -2385,6 +2446,8 @@ drawChatInput = function()
 			}
 			if isCmd then
 				r, g, b = 0, 0, 0
+			elseif noConnection then
+				r, g, b = 0.16, 0, 0
 			elseif inputMode == "a:" then
 				r, g, b = 0, 0.1, 0
 			elseif inputMode == "s:" then
@@ -2421,6 +2484,8 @@ drawChatInput = function()
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
+			elseif noConnection then
+				r, g, b = 0.9, 0.4, 0.4
 			elseif inputMode == "a:" then
 				r, g, b = 0.55, 0.72, 0.55
 			elseif inputMode == "s:" then
@@ -2439,7 +2504,9 @@ drawChatInput = function()
 
 			-- colon
 			if not isCmd then
-				if inputMode == "a:" then
+				if noConnection then
+					r, g, b = 0.8, 0.36, 0.36
+				elseif inputMode == "a:" then
 					r, g, b = 0.53, 0.66, 0.53
 				elseif inputMode == "s:" then
 					r, g, b = 0.66, 0.66, 0.5
@@ -2489,6 +2556,8 @@ drawChatInput = function()
 			-- text message
 			if isCmd then
 				r, g, b = 0.85, 0.85, 0.85
+			elseif noConnection then
+				r, g, b = 0.6, 0.6, 0.6
 			elseif inputMode == "a:" then
 				r, g, b = 0.2, 1, 0.2
 			elseif inputMode == "s:" then
@@ -3790,6 +3859,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 						local command = ssub(inputText, 2)
 						if command == "lr" then
 							command = "luaui reload"
+						elseif command:lower():find("^take%f[%W]") then
+							command = "luarules take2" .. ssub(command, 5)
 						else
 							local configKey, commandSuffix = command:match("^[sS][eE][tT]%s+(%S+)(.*)$")
 							if configKey then
@@ -3821,6 +3892,15 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 								Spring.SendSpectatorChat(inputText)
 							else
 								Spring.SendPublicChat(inputText)
+							end
+							if state.serverGone then
+								addChatLine(
+									Spring.GetGameFrame(),
+									LineTypes.System,
+									"Connection",
+									"\255\255\000\000" .. BAR.I18N("ui.chat.noConnection.prefix"),
+									BAR.I18N("ui.chat.noConnection.message")
+								)
 							end
 						end
 						lastMessage = inputText
@@ -3857,6 +3937,16 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 
 		updateTextInputDlist = true
 		return true
+	end
+
+	-- history view: PGUP/PGDN page through it, HOME/END jump to its oldest/newest line
+	-- (while typing HOME/END move the text cursor, so there it takes CTRL + HOME/END)
+	if historyMode then
+		local page = key == 280 or key == 281
+		if page or ((key == 278 or key == 279) and (ctrl or not showTextInput)) then
+			state.scrollHistory(key == 280 or key == 278, page and maxLinesScroll or math.huge)
+			return true
+		end
 	end
 
 	if not showTextInput then
@@ -4310,57 +4400,50 @@ function widget:MouseRelease(x, y, button)
 	return true
 end
 
-function widget:MouseWheel(up, value)
-	if historyMode and not Spring.IsGUIHidden() then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if historyMode == "chat" then
-			local scrollCount = 0
-			local scrollAmount = (shift and maxLinesScroll or (ctrl and 3 or 1))
-			local i = currentChatLine
-			while i > 0 and i <= #chatLines do
-				i = i + (up and -1 or 1)
-				if chatLines[i] and not chatLines[i].ignore then
-					currentChatLine = i
-					scrollCount = scrollCount + 1
-					if scrollCount == scrollAmount then
-						break
-					end
+-- scrolls the history view by scrollAmount lines (math.huge: to its oldest/newest line)
+function state.scrollHistory(up, scrollAmount)
+	if historyMode == "chat" then
+		local scrollCount = 0
+		local i = currentChatLine
+		while i > 0 and i <= #chatLines do
+			i = i + (up and -1 or 1)
+			if chatLines[i] and not chatLines[i].ignore then
+				currentChatLine = i
+				scrollCount = scrollCount + 1
+				if scrollCount == scrollAmount then
+					break
 				end
 			end
-			if currentChatLine < maxLinesScroll then
-				currentChatLine = maxLinesScroll
-			end
-		else
-			if up then
-				currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
-				if currentConsoleLine < maxLinesScroll then
-					currentConsoleLine = maxLinesScroll
-					if currentConsoleLine > #consoleLines then
-						currentConsoleLine = #consoleLines
-					end
-				end
-			else
-				currentConsoleLine = currentConsoleLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
+		end
+		if currentChatLine < maxLinesScroll then
+			currentChatLine = maxLinesScroll
+		end
+	else
+		if up then
+			currentConsoleLine = currentConsoleLine - scrollAmount
+			if currentConsoleLine < maxLinesScroll then
+				currentConsoleLine = maxLinesScroll
 				if currentConsoleLine > #consoleLines then
 					currentConsoleLine = #consoleLines
 				end
-				currentChatLine = currentChatLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
-				if currentChatLine > #chatLines then
-					currentChatLine = #chatLines
-				end
 			end
-			--if up then
-			--	currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
-			--else
-			--	currentConsoleLine = currentConsoleLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
-			--end
-			--if currentConsoleLine < maxLinesScroll then
-			--	currentConsoleLine = maxLinesScroll
-			--end
-			--if currentConsoleLine > #consoleLines then
-			--	currentConsoleLine = #consoleLines
-			--end
+		else
+			currentConsoleLine = currentConsoleLine + scrollAmount
+			if currentConsoleLine > #consoleLines then
+				currentConsoleLine = #consoleLines
+			end
+			currentChatLine = currentChatLine + scrollAmount
+			if currentChatLine > #chatLines then
+				currentChatLine = #chatLines
+			end
 		end
+	end
+end
+
+function widget:MouseWheel(up, value)
+	if historyMode and not Spring.IsGUIHidden() then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		state.scrollHistory(up, shift and maxLinesScroll or (ctrl and 3 or 1))
 		return true
 	else
 		return false
@@ -4474,7 +4557,7 @@ function widget:ViewResize()
 
 	local chatPanelWidth = activationArea[3] - activationArea[1]
 	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
-	local chatTextEndMargin = floor(38 * widgetScale)
+	local chatTextEndMargin = floor(48 * widgetScale) -- clear of the history view's scrollbar
 	lineMaxWidth =
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
@@ -4486,7 +4569,11 @@ end
 function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	local allyTeamID = Spring.GetLocalAllyTeamID()
+	if myAllyTeamID ~= allyTeamID then
+		myAllyTeamID = allyTeamID
+		state.uiDirty = true
+	end
 	if mySpec and inputMode == "a:" then
 		inputMode = "s:"
 	end
@@ -4587,6 +4674,7 @@ local function preventhistorymodeCmd(_, _, params)
 end
 
 function widget:Initialize()
+	gameOver = Spring.IsGameOver()
 	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	-- Ensure ColorString and ColorIsDark are initialized

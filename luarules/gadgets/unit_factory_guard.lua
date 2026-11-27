@@ -29,6 +29,8 @@ local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
 
+-- state N has N in every 4 of the builders guard (0: off, 4: all of them); names are translation keys
+local MAX_STATE = 4
 local factoryGuardCmdDesc = {
 	id = CMD_FACTORY_GUARD,
 	type = CMDTYPE.ICON_MODE,
@@ -36,7 +38,7 @@ local factoryGuardCmdDesc = {
 	name = "factoryguard",
 	cursor = "cursornormal",
 	action = "factoryguard",
-	params = { 0, "factoryguard", "factoryguard" }, -- named like this for translation - 0 is off, 1 is on
+	params = { 0, "factoryguard_0", "factoryguard_1", "factoryguard_2", "factoryguard_3", "factoryguard_4" },
 }
 
 local isFactory = {}
@@ -60,18 +62,26 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local guardState = {} -- factoryID -> its state, absent while off
+local buildersOut = {} -- factoryID -> builders without orders it made since its state was set
+
 local function setFactoryGuardState(unitID, state)
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_FACTORY_GUARD)
 	if cmdDescID then
 		factoryGuardCmdDesc.params[1] = state
 		spEditUnitCmdDesc(unitID, cmdDescID, { params = factoryGuardCmdDesc.params })
+		guardState[unitID] = state > 0 and state or nil
+		buildersOut[unitID] = nil -- (the next builder guards)
 	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	--accepts: CMD_FACTORY_GUARD
 	if isFactory[unitDefID] then
-		setFactoryGuardState(unitID, cmdParams[1])
+		local state = cmdParams[1]
+		if state and state >= 0 and state <= MAX_STATE and state % 1 == 0 then
+			setFactoryGuardState(unitID, state)
+		end
 		return false -- command was used
 	end
 	return true -- command was not used
@@ -80,16 +90,7 @@ end
 --------------------------------------------------------------------------------
 -- Guard Command Handling
 
-local function GuardFactory(unitID, unitDefID, factID, factDefID)
-	if not isFactory[factDefID] then
-		-- is this a factory?
-		return
-	end
-	if not isAssistBuilder[unitDefID] then
-		-- can this unit assist?
-		return
-	end
-
+local function GuardFactory(unitID, unitDefID, factID)
 	local x, y, z = spGetUnitPosition(factID)
 	if not x then
 		return
@@ -144,15 +145,17 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	if userOrders then
 		return -- already has user assigned orders
 	end
-
-	local factoryGuardCmdDescID = Spring.FindUnitCmdDesc(factID, CMD_FACTORY_GUARD) -- get CmdDescID
-	local cmdDesc = Spring.GetUnitCmdDescs(factID, factoryGuardCmdDescID)[1] -- use CmdDescID to get state of that cmd (comes back as a table, we get the first element)
-	local factoryGuardEnabled = cmdDesc.params[1] == "1"
-	if not cmdDesc or not factoryGuardEnabled then -- if state is missing or false, do nothing
+	local share = guardState[factID]
+	if not share or not isAssistBuilder[unitDefID] then
 		return
 	end
-
-	GuardFactory(unitID, unitDefID, factID, factDefID)
+	-- `share` of every 4 guard, spread out and the first one guarding (1/4: G..., 2/4: G.G., 3/4: G.GG);
+	-- the others are left free
+	local out = buildersOut[factID] or 0
+	buildersOut[factID] = (out + 1) % MAX_STATE
+	if (out * share) % MAX_STATE < share then
+		GuardFactory(unitID, unitDefID, factID)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -163,6 +166,11 @@ function gadget:UnitCreated(unitID, unitDefID, _)
 		factoryGuardCmdDesc.params[1] = 0
 		spInsertUnitCmdDesc(unitID, factoryGuardCmdDesc)
 	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	guardState[unitID] = nil
+	buildersOut[unitID] = nil
 end
 
 function gadget:Initialize()

@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
--- Bail early if no shader support
 if not gl.CreateShader then
 	return
 end
@@ -24,10 +23,9 @@ if not LuaShader or not InstanceVBOTable then
 	return
 end
 
--- Certify outgoing messages with the $c$ prefix while cheat is enabled, so the
--- synced gadget accepts them and demos of an editor session still replay (live
--- cheat is always false in replay). The gadget rejects an uncertified message
--- outside cheat, so a modified client cannot forge overlay activation.
+-- Prefix $c$ while cheat is on. The synced gadget accepts a message under live
+-- cheat, or a $c$ one inside a map-editor session (where /cheat can be toggled
+-- off mid-stream); everything else is rejected.
 local function sendOverlayMsg(msg)
 	if Spring.IsCheatingEnabled() then
 		Spring.SendLuaRulesMsg("$c$" .. msg)
@@ -45,21 +43,27 @@ local planeVAO ---@type VAO?
 local planeVBO, planeIndexVBO ---@type VBO?, VBO?
 local engineWaterHidden = false
 
+---@type number
 local lavaLevel = 0
 local tideLevel = 0.0 -- set in DrawWorldPreUnit, reused by the fog pass in DrawWorld
 local targetLevel = 0
+---@type number
 local currentLevel = 0
+---@type number
 local baseWaterLevel = 0 -- engine water plane at activation time
 local LERP_SPEED = 4.0 -- controls ease-out convergence rate
+---@type number
 local heatdistortx = 0
+---@type number
 local heatdistortz = 0
+---@type number
 local smoothFPS = 30
 local tideAmplitude = 2
 local tidePeriod = 200
 
 local allowDeferredMapRendering = (Spring.GetConfigInt("AllowDeferredMapRendering") == 1)
 
--- Check if the real lava gadget is active (don't overlay on actual lava maps)
+-- Never overlay a map that already runs the real lava gadget.
 local springLava = BAR.Lava
 local isRealLavaMap = springLava and springLava.isLavaMap
 
@@ -246,7 +250,6 @@ local function activateOverlay(typeName)
 		return
 	end
 
-	-- Apply type-specific params
 	local tp = typeParams[typeName] or typeParams.lava
 	tideAmplitude = tp.tideAmplitude
 	tidePeriod = tp.tidePeriod
@@ -283,7 +286,6 @@ local function deactivateOverlay()
 	sendOverlayMsg("wateroverlay:deactivate")
 end
 
--- Expose API via WG
 function widget:Initialize()
 	if isRealLavaMap then
 		Spring.Echo("[WaterOverlay] Real lava map detected, overlay disabled")
@@ -359,7 +361,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	-- Update heat distortion
+	-- Heat distortion drifts against the camera direction, frozen while paused.
 	local _, _, isPaused = Spring.GetGameSpeed()
 	if not isPaused then
 		local camX, camY, camZ = Spring.GetCameraDirection()
@@ -369,7 +371,7 @@ function widget:DrawWorldPreUnit()
 		heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 	end
 
-	-- Smooth interpolation: ease-out toward target level
+	-- Ease out toward the target level so level changes glide instead of jumping.
 	local goal = baseWaterLevel + targetLevel
 	local dt = 1.0 / math.max(smoothFPS, 15)
 	local diff = goal - currentLevel
@@ -380,7 +382,6 @@ function widget:DrawWorldPreUnit()
 	end
 	lavaLevel = currentLevel
 
-	-- Animate tide
 	tideLevel = math.sin(Spring.GetGameFrame() / tidePeriod) * tideAmplitude + lavaLevel
 
 	lavaShader:Activate()

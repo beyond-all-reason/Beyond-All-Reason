@@ -8,11 +8,6 @@ static-var  restore_delay, resourceRate, gun_1, Stunned;
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-Stop()
-{
-	stop-spin column around y-axis decelerate <0.5>;
-}
-
 Create()
 {
 	hide flare1;
@@ -42,9 +37,9 @@ SetMaxReloadTime(reloadMS)
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
+	if (Stunned) {
+		return (1);
+	}
 	turn turret to y-axis <0> speed <300>;
 	turn turret to x-axis <0.0> speed <300>;
 }
@@ -53,7 +48,7 @@ SetStunned(State)
 {
 	Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+		start-script ExecuteRestoreAfterDelay();
 	}
 }
 

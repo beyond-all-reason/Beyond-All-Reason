@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+name: CLA Check
+
+# Calls the shared CLA workflow; rules for this repository live in
+# .github/licensing.json. The job grants the four write scopes the called
+# workflow narrows per job.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+  issue_comment:
+    types: [created]
+
+jobs:
+  cla:
+    uses: beyond-all-reason/licensing/.github/workflows/cla-check.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
+      statuses: write
+      issues: write
+    secrets:
+      CLA_BOT_TOKEN: ${{ secrets.CLA_BOT_TOKEN }}
+      CLA_PUSH_SSH_KEY: ${{ secrets.ACTION_RUNNER_PRIVATE }}

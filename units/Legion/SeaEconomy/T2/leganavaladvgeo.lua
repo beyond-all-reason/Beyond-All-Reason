@@ -7,7 +7,7 @@ return {
 		energycost = 27000,
 		metalcost = 1500,
 		buildpic = "leganavaladvgeo.DDS",
-		buildtime = 32000,
+		buildtime = 49950,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "106 60 106",
