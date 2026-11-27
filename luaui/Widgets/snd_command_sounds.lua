@@ -88,10 +88,10 @@ end
 GUIUnitSoundEffects = newGUIUnitSoundEffects
 newGUIUnitSoundEffects = nil
 
-local myTeamID = Spring.GetLocalTeamID()
+local myTeamID = spGetMyTeamID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local spectator, fullview = Spring.GetSpectatingState()
-local gameFrame = Spring.GetGameFrame()
+local gameFrame = spGetGameFrame()
 local usedFrame = gameFrame - 1
 local unitsAllyTeam = {}
 
