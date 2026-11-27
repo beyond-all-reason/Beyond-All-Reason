@@ -104,7 +104,6 @@ return {
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
 				startvelocity = 200,
-				--texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
 				tolerance = 60000,
 				tracks = true,
@@ -120,6 +119,9 @@ return {
 				burst = 2,
 				burstrate = 0.01,
 				reloadtime = 5,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 1000,

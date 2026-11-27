@@ -108,7 +108,6 @@ return {
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
 				startvelocity = 200,
-				--texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
 				tolerance = 60000,
 				tracks = true,
