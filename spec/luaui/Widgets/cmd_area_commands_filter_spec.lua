@@ -19,7 +19,7 @@ describe("Area Command Filter drag origin", function()
 		orders, orderDetails, held = {}, {}, true
 		traceType, traceID, activeCommand = "unit", 101, 20
 		widget = {}
-		local defs = { [101] = 1, [102] = 1, [103] = 2 }
+		local defs = { [1] = 3, [2] = 3, [101] = 1, [102] = 1, [103] = 2 }
 		env = setmetatable({
 			widget = widget,
 			table = setmetatable({
@@ -47,7 +47,17 @@ describe("Area Command Filter drag origin", function()
 					return VFS.Include(path, env, mode)
 				end,
 			},
-			UnitDefs = {},
+			UnitDefs = {
+				[3] = {
+					canAttack = true,
+					canReclaim = true,
+					canResurrect = true,
+					maxWeaponRange = 100,
+					customParams = {},
+					weapons = { { weaponDef = 1, slavedTo = 0 } },
+				},
+			},
+			WeaponDefs = { [1] = { type = "Cannon", range = 100 } },
 			UnitDefNames = {
 				t1 = { customParams = { techlevel = "1" } },
 				t2 = { customParams = { techlevel = "2" } },
