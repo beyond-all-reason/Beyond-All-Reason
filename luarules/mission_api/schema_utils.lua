@@ -1,5 +1,13 @@
 local TRANSLATION_ROOT = "missionEditor" -- from language/<language>/missionEditor.json
 
+local SETTINGS_SCHEMA_FILES = {
+	triggerSettings = "luarules/mission_api/triggers_schema.lua",
+	objectiveSettings = "luarules/mission_api/objectives_schema.lua",
+	stageSettings = "luarules/mission_api/stages_schema.lua",
+	cutsceneSettings = "luarules/mission_api/cutscenes_schema.lua",
+	countdownSettings = "luarules/mission_api/countdowns_schema.lua",
+}
+
 local function getTypesWithParameterType(schemaParameters, parameterType)
 	local typesWithParameter = {}
 
@@ -49,47 +57,49 @@ local function getTypesWithParameterName(schemaParameters, parameterName)
 	return typesWithParameter
 end
 
-local function setTranslationKeys(entry, translationKey)
+local function setTranslationKeys(entry, path)
+	local translationKey = TRANSLATION_ROOT .. "." .. path
 	entry.i18nNameKey = translationKey .. ".name"
 	entry.i18nDescriptionKey = translationKey .. ".description"
 end
 
-local function getTranslationKeysByName(names, translationKey)
-	local translationKeys = {}
-	for name in pairs(names) do
-		translationKeys[name] = {}
-		setTranslationKeys(translationKeys[name], translationKey .. "." .. name)
-	end
-	return translationKeys
-end
-
-local function getEnumTranslationKeys(enums, translationKey)
-	local translationKeys = {}
-	for enumType, values in pairs(enums) do
-		translationKeys[enumType] = getTranslationKeysByName(values, translationKey .. "." .. enumType)
-	end
-	return translationKeys
-end
-
-local function collateRows(rows, translationKey)
+local function collateNames(names, path)
 	local collated = {}
-	for index, row in ipairs(rows) do
-		collated[index] = table.copy(row)
-		setTranslationKeys(collated[index], translationKey .. "." .. row.name)
+	for name in pairs(names) do
+		collated[name] = {}
+		setTranslationKeys(collated[name], path .. "." .. name)
 	end
 	return collated
 end
 
-local function collateObjectSchemas(definitions, translationKey)
+local function collateSettings(settings, path)
+	local collated = {}
+	for name, parameterType in pairs(settings) do
+		collated[name] = { type = parameterType }
+		setTranslationKeys(collated[name], path .. "." .. name)
+	end
+	return collated
+end
+
+local function collateRows(rows, path)
+	local collated = {}
+	for index, row in ipairs(rows) do
+		collated[index] = table.copy(row)
+		setTranslationKeys(collated[index], path .. "." .. row.name)
+	end
+	return collated
+end
+
+local function collateObjectSchemas(definitions, path)
 	local schemas = {}
 	for objectType, typeID in pairs(definitions.Types) do
 		local parameters = definitions.Parameters[typeID]
-		local objectKey = translationKey .. "." .. objectType
+		local objectPath = path .. "." .. objectType
 		schemas[objectType] = {
-			parameters = collateRows(parameters, objectKey .. ".parameters"),
+			parameters = collateRows(parameters, objectPath .. ".parameters"),
 			requiresOneOf = table.copy(parameters.requiresOneOf or {}),
 		}
-		setTranslationKeys(schemas[objectType], objectKey)
+		setTranslationKeys(schemas[objectType], objectPath)
 	end
 	return schemas
 end
@@ -100,56 +110,28 @@ local function collateSchemas()
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
 	local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
-	local triggerSettings = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
-	local objectiveSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
-	local stageSettings = VFS.Include("luarules/mission_api/stages_schema.lua").Settings
-	local cutsceneSettings = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
-	local countdownSettings = VFS.Include("luarules/mission_api/countdowns_schema.lua").Settings
 	local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
-	return {
-		conditions = collateObjectSchemas(missionAPI.ConditionDefinitions, TRANSLATION_ROOT .. ".conditions"),
-		triggerSettings = table.copy(triggerSettings),
-		triggerSettingTranslationKeys = getTranslationKeysByName(
-			triggerSettings,
-			TRANSLATION_ROOT .. ".triggerSettings"
-		),
-		actions = collateObjectSchemas(missionAPI.ActionDefinitions, TRANSLATION_ROOT .. ".actions"),
-		objectiveSettings = table.copy(objectiveSettings),
-		objectiveSettingTranslationKeys = getTranslationKeysByName(
-			objectiveSettings,
-			TRANSLATION_ROOT .. ".objectiveSettings"
-		),
-		stageSettings = table.copy(stageSettings),
-		stageSettingTranslationKeys = getTranslationKeysByName(stageSettings, TRANSLATION_ROOT .. ".stageSettings"),
-		cutsceneSettings = table.copy(cutsceneSettings),
-		cutsceneSettingTranslationKeys = getTranslationKeysByName(
-			cutsceneSettings,
-			TRANSLATION_ROOT .. ".cutsceneSettings"
-		),
-		countdownSettings = table.copy(countdownSettings),
-		countdownSettingTranslationKeys = getTranslationKeysByName(
-			countdownSettings,
-			TRANSLATION_ROOT .. ".countdownSettings"
-		),
-		unitEntryFields = collateRows(loadoutSchema.UnitEntryFields, TRANSLATION_ROOT .. ".unitEntryFields"),
-		featureEntryFields = collateRows(loadoutSchema.FeatureEntryFields, TRANSLATION_ROOT .. ".featureEntryFields"),
-		unitFilterFields = collateRows(unitFilterSchema.UnitFilterFields, TRANSLATION_ROOT .. ".unitFilterFields"),
+
+	local schemas = {
+		conditions = collateObjectSchemas(missionAPI.ConditionDefinitions, "conditions"),
+		actions = collateObjectSchemas(missionAPI.ActionDefinitions, "actions"),
+		unitEntryFields = collateRows(loadoutSchema.UnitEntryFields, "unitEntryFields"),
+		featureEntryFields = collateRows(loadoutSchema.FeatureEntryFields, "featureEntryFields"),
+		unitFilterFields = collateRows(unitFilterSchema.UnitFilterFields, "unitFilterFields"),
 		unitFilterAtMostOneOf = table.copy(unitFilterSchema.AtMostOneOf),
-		cameraKeyframeSettings = table.copy(cameraKeyframeSchema.Settings),
-		cameraKeyframeSettingTranslationKeys = getTranslationKeysByName(
-			cameraKeyframeSchema.Settings,
-			TRANSLATION_ROOT .. ".cameraKeyframeSettings"
-		),
+		cameraKeyframeSettings = collateSettings(cameraKeyframeSchema.Settings, "cameraKeyframeSettings"),
 		cameraKeyframeExactlyOneOf = table.copy(cameraKeyframeSchema.ExactlyOneOf),
 		cameraKeyframeAtMostOneOf = table.copy(cameraKeyframeSchema.AtMostOneOf),
-		parameterTypes = table.copy(parameterTypes.Types),
-		parameterTypeTranslationKeys = getTranslationKeysByName(
-			parameterTypes.Types,
-			TRANSLATION_ROOT .. ".parameterTypes"
-		),
-		enums = table.copy(parameterTypes.Enums),
-		enumTranslationKeys = getEnumTranslationKeys(parameterTypes.Enums, TRANSLATION_ROOT .. ".enums"),
+		parameterTypes = collateNames(parameterTypes.Types, "parameterTypes"),
+		enums = {},
 	}
+	for section, schemaFile in pairs(SETTINGS_SCHEMA_FILES) do
+		schemas[section] = collateSettings(VFS.Include(schemaFile).Settings, section)
+	end
+	for enumType, values in pairs(parameterTypes.Enums) do
+		schemas.enums[enumType] = collateNames(values, "enums." .. enumType)
+	end
+	return schemas
 end
 
 return {

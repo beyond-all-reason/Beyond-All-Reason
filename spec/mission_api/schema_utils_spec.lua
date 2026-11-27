@@ -76,16 +76,22 @@ describe("mission_api.schema_utils", function()
 	end)
 
 	describe("CollateSchemas", function()
-		it("includes the settings every trigger shares", function()
+		it("includes the settings every trigger shares, with I18N keys for name and description", function()
 			GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
 			GG["MissionAPI"].ActionDefinitions = { Types = {}, Parameters = {} }
 
 			local schemas = schemaUtils.CollateSchemas()
 
-			assert.are.same(
-				MissionSpecEnv.include(env, "luarules/mission_api/triggers_schema.lua").Settings,
-				schemas.triggerSettings
-			)
+			local expectedSettings = {}
+			local settings = MissionSpecEnv.include(env, "luarules/mission_api/triggers_schema.lua").Settings
+			for name, parameterType in pairs(settings) do
+				expectedSettings[name] = {
+					type = parameterType,
+					i18nNameKey = "missionEditor.triggerSettings." .. name .. ".name",
+					i18nDescriptionKey = "missionEditor.triggerSettings." .. name .. ".description",
+				}
+			end
+			assert.are.same(expectedSettings, schemas.triggerSettings)
 			assert.is_not_nil(schemas.conditions.UnitKilled)
 		end)
 
