@@ -124,8 +124,7 @@ end
 
 local function getValidRallyCommandDestination(unitID)
 	local cmdID, options, tag, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(unitID, 2)
-	local cmdValid = cmdID == CMD.MOVE or cmdID < 0
-	if cmdID == nil or not cmdValid then
+	if cmdID == nil or (cmdID ~= CMD.MOVE and cmdID >= 0) then
 		return nil
 	end
 
