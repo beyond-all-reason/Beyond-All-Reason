@@ -1,4 +1,198 @@
+# November
+- [T2 Artillery (Mauser, Quaker)]
+  - -20% metalcost
+  - -12 speed
+  - +10% health
+  - +5% DPS
+  - 180 → 140 degree firing arc
+  - Edgeeffectiveness 0.5 → 0.15
+  - accurate vs immobile targets
+- [Rattlesnake, Persecutor]
+  - Impulse 0.5 → 1.0 (low traj), 0.5 → 1.5 (high traj)
+  - Edgeeffectiveness 0.4 → 0.15
+  - 600 → 450 projectile speed, and removal of custom gravity in high trajectory → lower arc, longer flight time
+- [Agitator, Gauntlet]
+  - 1250m / 12500e / 19300 bt → 1100m / 12000 / 21000 bt cost, 3050 → 3400 (Armada)
+  - 1300m / 13500e / 17400 bt → 1150m / 13000 / 22000 bt cost, 3250 → 3800 health (Cortex)
+  - Impulse 0.5 → 1.0 (low traj)
+  - Edgeeffectiveness 0.4 → 0.15
+  - 450 → 430 projectile speed in low trajectory
+  - 600 → 430 projectile speed, and removal of custom gravity in high trajectory → lower arc, longer flight time
+- [Cerberus] 0.85 → 0.15 edgeeffectiveness, 192 → 200 AoE, +10% DPS
+- [Vanguard] 0.65 → 0.15 Edgeeffectiveness, 192 → 220 AoE, +3% DPS
+- [Catapult] 0.65 → 0.5 Edgeeffectiveness, 96 → 104 AoE
+- [Banisher] 0.55 → 0.5 Edgeeffectiveness, 128 → 130 AoE
+- [Recluse] 0.65 → 0.5 Edgeeffectiveness, 90 → 100 AoE, -4% DPS
+- [Janus] 0.15 → 0.5 Edgeeffectiveness, 128 → 108 AoE
+- [Wasp] 0.15 → 0.5 Edgeeffectiveness, 128 → 108 AoE
+- [Karganeth] 0.15 → 0.5 Edgeeffectiveness, 64 → 56 AoE
+- [LPRCs] Impulse 1.1x → 1.5x
+- [Kraken] Impulse added
+- [Pitbull] Impulse added, damage reduction vs ships removed, targetmoveerror removed
+- [Scorpion] Damage reduction vs ships removed, targetmoveerror removed
+- [Pounder]
+  - -11% damage
+  - +11% impulse modifier → impulse strength is unchanged
+- [Crawling bombs]
+  - -11% speed
+- [Hound] 
+  - 1138 → 900 turnrate
+  - -5% DPS
+  - +5% m/e/bt cost
+- [Gunslinger]
+  - 24 → 36 AoE
+  - +13% DPS
+- [Fatboy] 
+  - 300 → 280 AoE
+  - 100 leadlimit (won't lead when aiming at a moving target, more than that from its current position → less friendly fire)
+- [Jaguar]
+  - 1060 → 1150 health
+- [Bull] 
+  - Predictboost 0 → 0.4 (better accuracy vs moving targets)
+  - 4650 → 5100 health
+  - 950 → 1000 m
+  - 13000 → 14000 e
+  - 23000 → 25000 bt cost
+- [Tremor]
+  - 3000 → 5000 health
+  - 40.5 → 41 speed
+  - higher weaponvelocity / arc, removed custom mygravity → similar flight time (fixes weapon bugging out when firing uphill sometimes)
+- [Tzar] 
+  - 292 → 260 AoE
+  - 100 leadlimit (won't lead when aiming at a moving target, more than that from its current position)
+  - 7800 → 10000 health
+  - 1650 → 2000 m
+  - 28000 → 30000 e
+  - 40000 → 50000 bt cost
+- [Flak Trucks]
+  - 619 → 400 turnrate
+  - -9% DPS
+- [Shiva] 
+    - 48 → 45 speed 
+    - 9400 → 10000 health
+    - 2s → 2.2s reloadtime, 100 leadlimit (cannon)
+    - 800 → 900 range, 750 → 850 damage (missile)
+    - 1700 → 1900 m
+    - 23000 → 28000 e
+    - 40000 → 60000 bt cost
+- [Marauder]
+    - 94.5 → 92 speed
+    - turnrate 1214 → 800
+    - 12 → 36 AoE
+    - Impulse added
+    - Improved accuracy (predictboost 0.3, remove targetmoveerror)
+- [Razorback]
+    - 69 → 66 speed
+    - 13300 → 11000 health
+    - -20% DPS
+    - 3800 → 3000m
+    - 68000 → 60000e
+    - 120000 → 100000bt cost
+- [Juggernaut]
+    - 0.12 → 0.04 acceleration
+    - 437 → 400 turnrate
+    - 112 →100 AoE, 0.65 → 0.9 edgeeffectiveness, 1x →2x impulse (Cannon)
+    - 950 → 1100 missile range
+- [Titan]
+    - 45.6 → 45 speed
+    - 0.12 → 0.04 acceleration
+    - 1214 → 500 turnrate
+    - 860 → 1000 missile range
+- [Buccaneer]
+  - 54 -> 58 speed
+- [Paladin]
+  - 60 -> 64 speed
+  - Gets weapon matching with Turtle's gauss cannon:
+  - 16 → 64 AoE
+  - Impulse added
+  - 500 → 480 range
+  - +6% DPS
+  - 550 → 600 weaponvelocity
+- [Missile Ships]
+  - 61.4 → 40 Speed
+  - 3350 → 5000 health
+  - 10000 → 30000 energycost, 24000 → 40000 buildtime
+  - 68 AoE / 0.15 EE → 68 AoE / 0.5 EE (Cortex)
+  - 75 AoE / 0.65 EE → 68 AoE / 0.5 EE (Armada) (Previously Armada ship just had much better AoE, despite the ships having same cost and DPS. There is also no way to see those stats ingame so hard to notice)
+- [Despot]
+  - 53.1 → 42 speed
+  - 950 → 1050 range, -10% DPS (cannon)
+  - 51000 → 75000 buildtime
+- [Dreadnought]
+  - 57.9 → 46 speed
+  - 9800 → 10000 health
+  - 880 → 1000 range, 140 → 120 AoE
+  - 50000 → 70000 buildtime
+- [Black Hydra]
+  - 310 000 → 450 000 buildtime
+  - 190 000 → 250 000 energycost
+  - 49.5 → 41 speed
+  - 0.008 → 0.01 acceleration/deceleration
+- [Epoch]
+  - 310 000 → 450 000 buildtime
+  - 190 000 → 250 000 energycost
+  - 53.8 → 45 speed
+- [Minelayers]
+    - Able to reclaim
+    - 65m → 95m cost, 450 → 600 health (Cortex)
+    - 57m → 90m cost, 335 → 450 health (Armada)
+    - 52m → 85m cost, 210 → 350 health (Legion)
+    - Heavy mine 2800e / 700 bt → 2500e / 500 bt
+- [T1 vehicle constructors]
+    - -15% health
+- [T2 mexes]
+    - Standardised across factions
+    - 620m / 7700e / 14900bt → 640m / 9000e / 15000bt (Armada)
+    - 640m / 8100e / 14100bt → 640m / 9000e / 15000bt (Cortex / Legion)
+    - 2800 → 2400 health (Armada)
+    - 3900 → 2400 health (Cortex)
+- [T2 shipyards]
+    - Cheaper to match the cost of land T2 factories
+    - 2900m / 9700e / 24000 bt → 2600m / 15000e / 27000bt
+- [Zombies]
+  - Zombies that can cloak will now cloak and uncloak from intermittently.
+  - Spidergeddon is removed for being too spooky.
+  - Complete rework of Wraiths. They're now created when a unit, corpse, or debris is overkilled leaving nothing behind. The Wraith appears, moves away from its killer, and seeks a free space to place debris. That debris will only ever spawn 1 unit.
+  - Wraiths are immune to EMP.
+  - Debris in all zombie modes now becomes a corpse after 2x the zombie resurrection time. Debris -> corpse -> zombie takes 3x the normal resurrection time in total.
+  - Resurrection time, pack size, and veterancy now follow the clock and the wreck's power. Cheap wrecks rise sooner and roll more copies. Expensive wrecks rise later and roll fewer. Player tech no longer holds that back.
+  - Hydra mode packs now start at 2-6 and escalate over the course of the game.
+  - Veterancy is 0 before minute 25 and reaches 0.8 at minute 45 for every unit.
+  - Resurrection times start between 45 and 120 seconds, by wreck power, and shorten after minute 45. Debris still waits twice that unit's time.
+- [Controls]
+  - Share Unit can be queued. Shift+Share Unit from a factory queues that command on produced units, instead of sharing the factory.
+  - Pressing a command key or starting the drag of an area or line exits a current selection drag.
+- [Navy units] Matching land units: Mine uncloak distance 8 -> 30. Radar health 110 -> 180. Nuke subs damage and falloff match silos.
+- [Legion]
+  - Caught up to Season 3 buildtimes: Proteus 9500 -> 11660, Belcher 10000 -> 12925, Aceso 4000 -> 5145, Artifex 4800 -> 6045, Triton 12000 -> 15750, Keres 60000 -> 76650, Daedalus 125000 -> 165250, Advanced Underwater Geothermal Powerplant 32000 -> 49950
+  - Snapper buildtime 9260 -> 8000, Fortification Wall buildtime 1000 -> 900
+  - Amphibious Complex buildpower 150 -> 300, Experimental Aircraft Plant buildpower 600 -> 1800
+  - Aegis health 3650 -> 3300, Lupara range 1125 -> 1200, Legion Vehicle Plant energy cost 1650 -> 1550
+  - Decoy commander and Stronghold now fully EMP immune, Cetus EMP resist reduced 87.5% -> 80%
+  - Constructor LoS raised: T1 bot 299 -> 380, T1 vehicle and Otter 260 -> 330, T1 aircraft 351 -> 430, T2 bot 318 -> 380, T2 vehicle 295 -> 330, T2 aircraft 383 -> 430
+  - Stronghold LoS 430 -> 520, Phalanx LoS 350 -> 380
+  - Glaucus damage to aircraft 60 -> 12, Ketea autoheal removed
+  - Ladon speed 273 -> 220, Euclid speed 45 -> 38, Salacia missile speed 480 -> 400
+  - Argus, Auscultor, and Dolus now die to Juno, Hera and Hecate stun time no longer capped
+  - Supernova, Olympus, and Starfall impulse 0.5 -> 1.1
+  - Faster reaim on Wheelie, Goblin, Amputator, Eviscerator, and Hippocampus. Wheelie now stompable.
+  - T2 ships now use heavy ship armor, and Scylla counts as a ship
+  - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
+  - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
+- [Fixed]
+  - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
+  - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
+  - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
+  - Spies stun scavenger anti-nukes for the full 20 seconds, the same as normal anti-nukes.
+  - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
+  - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
+  - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
+  - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
+  - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
+  - Scavenger constructors and factories show the normal grid menu layout in games with ruins or zombies, not only against the Scavengers AI.
+
 # October
+- [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
   - Fixed a bug where zombie rez speed regressed to a flat value at minute 45 regardless of tech. Rez speed now follows tech for the whole game.
@@ -6,9 +200,10 @@
   - Every difficulty leaves a zombie's wreck behind. Draugr mode has been removed.
   - Wraith respawns no longer have a 1/3rd chance to drop a queued zombie spawn. Each wave drops its lowest-value third instead.
   - Wraith health 500 -> 100
-- [Commands]
+- [Controls]
   - Shift+Space area commands give your units a faster path to travel. Large areas can take 20%–70% less travel time.
   - Area commands (with and without Shift+Space) no longer drop targets past the 2,000 command limit. Your unit selection gets split into groups that take their own targets, with no targets dropped.
+  - Clicking an idle builder icon now selects the builder closest to the center of your view. Repeated clicks cycle through them, nearest first.
 - [Zombies]
   - Added a limited time Spidergeddon mode
   - Difficulty levels have been replaced with modes you can mix and match:
@@ -33,9 +228,7 @@
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
-  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. Missile launcher buildings keep the new flight path.
-  - ~~Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.~~
-  - ~~Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.~~
+  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. The missiles follow a higher trajectory than pre-patch. Missile launcher buildings keep the new flight path.
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
@@ -61,6 +254,7 @@
   - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
   - Better Martyr and Phoenix aiming. Martyr used to require a skill shot with manual attack timing. It is more reliable.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Naval Balance Tweaks] No longer removes the floating HLT units from T1 constructors.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Over-large area attacks no longer send only 30 units to Attack and the rest to Fight. They split your selection into squads that Attack all the targets in one "lane" through the full area. Bomber behavior especially was non-functional with large area attacks; this is fixed.
@@ -73,6 +267,7 @@
   - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
   - Defenses that open and close cannot fire during their open or close animations.
   - Lens flares of searchlights, headlights and other unit lights no longer flicker.
+  - `select` filters and their inverses can be used together without one being wrong.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
