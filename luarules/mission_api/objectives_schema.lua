@@ -10,6 +10,7 @@ local Types = VFS.Include("luarules/mission_api/parameter_types.lua").Types
 --- validated against the condition schemas instead.
 local fields = {
 	textKey = Types.String,
+	image = Types.ImageFile,
 	nextStage = Types.StageID,
 	coop = Types.Boolean,
 	hidden = Types.Boolean,

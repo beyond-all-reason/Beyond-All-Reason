@@ -173,6 +173,39 @@ describe("mission_api.validation.sections", function()
 			)
 		end)
 
+		it("accepts an image that exists", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "luaui/images/mission/base.png"
+			end
+
+			local result = validateObjective({ textKey = "ok", image = "luaui/images/mission/base.png" })
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertValid(result)
+		end)
+
+		it("checks each difficulty's image", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "a.png"
+			end
+
+			local result = validateObjective({
+				textKey = "ok",
+				image = { difficulties = { Easy = "a.png", Hard = "missing.png" } },
+			})
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertMessage(
+				result,
+				"Invalid imageFile: missing.png. File does not exist. Objective: o, Field: image.difficulties.Hard"
+			)
+			V.assertNoMessageContaining(result, "a.png")
+		end)
+
 		it("reports a nextStage that does not exist", function()
 			local result = V.validate(
 				V.mission()

@@ -3,6 +3,7 @@ local stagesLoader = VFS.Include("luarules/mission_api/stages_loader.lua")
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
+		image = "luaui/images/mission/objective_base.png", -- optional
 
 		-- The condition, written exactly as on a trigger. Leave it out for an objective
 		-- that only actions complete (CompleteObjective, UpdateObjective):

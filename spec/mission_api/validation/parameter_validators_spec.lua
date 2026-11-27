@@ -623,6 +623,54 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("ImageFile", function()
+		--- No action takes an image, so the objective's image field carries the type.
+		local function validateImage(image)
+			return V.validate(V.mission():WithObjective("o", { textKey = "ok", image = image }))
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(
+				validateImage(5),
+				"Unexpected parameter type, expected string, got number. Objective: o, Field: image"
+			)
+		end)
+
+		it("rejects a file that is not an image", function()
+			V.assertMessage(
+				validateImage("videos/intro.mp4"),
+				"Invalid imageFile: videos/intro.mp4. Expected a file of type: png, jpg, jpeg, tga, dds. Objective: o, Field: image"
+			)
+		end)
+
+		it("rejects a path with no extension", function()
+			V.assertMessage(
+				validateImage("maps/v1.2/base"),
+				"Invalid imageFile: maps/v1.2/base. Expected a file of type: png, jpg, jpeg, tga, dds. Objective: o, Field: image"
+			)
+		end)
+
+		it("rejects a file that does not exist", function()
+			V.assertMessage(
+				validateImage("luaui/images/missing.png"),
+				"Invalid imageFile: luaui/images/missing.png. File does not exist. Objective: o, Field: image"
+			)
+		end)
+
+		it("accepts an existing image whatever the case of its extension", function()
+			local originalFileExists = V.env.VFS.FileExists
+			V.env.VFS.FileExists = function(path)
+				return path == "luaui/images/Base.PNG"
+			end
+
+			local result = validateImage("luaui/images/Base.PNG")
+
+			V.env.VFS.FileExists = originalFileExists
+
+			V.assertValid(result)
+		end)
+	end)
+
 	--- Validates the area parameter of the trigger under test.
 	local function validateArea(area)
 		return V.validateTrigger(V.trigger(V.conditionTypes.UnitEnteredLocation, { area = area, unitName = "x" }))

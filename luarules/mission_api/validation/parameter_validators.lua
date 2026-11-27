@@ -325,6 +325,14 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	local function validateFileExtension(label, file, extensions)
+		local extension = file:match("%.([^%./]+)$")
+		if not extension or not table.contains(extensions, extension:lower()) then
+			local expected = table.concat(extensions, ", ")
+			return { { message = "Invalid " .. label .. ": " .. file .. ". Expected a file of type: " .. expected } }
+		end
+	end
+
 	-- TODO: Whatever our file extensions are:
 	local videoFileExtensions = { "mp4", "webm" }
 
@@ -334,10 +342,9 @@ local function registerValueValidators(parameterValidators, context)
 			return luaTypeResult
 		end
 
-		local extension = videoFile:match("%.([^%./]+)$")
-		if not extension or not table.contains(videoFileExtensions, extension:lower()) then
-			local expected = table.concat(videoFileExtensions, ", ")
-			return { { message = "Invalid videoFile: " .. videoFile .. ". Expected a file of type: " .. expected } }
+		local extensionResult = validateFileExtension("videoFile", videoFile, videoFileExtensions)
+		if extensionResult then
+			return extensionResult
 		end
 
 		-- TODO: Read the video file as well.
@@ -359,6 +366,24 @@ local function registerValueValidators(parameterValidators, context)
 
 		if not VFS.FileExists(skyboxFile) then
 			return { { message = "Invalid skyboxFile: " .. skyboxFile .. ". File does not exist" } }
+		end
+	end
+
+	local imageFileExtensions = { "png", "jpg", "jpeg", "tga", "dds" }
+
+	parameterValidators[Types.ImageFile] = function(imageFile)
+		local luaTypeResult = validateString(imageFile)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local extensionResult = validateFileExtension("imageFile", imageFile, imageFileExtensions)
+		if extensionResult then
+			return extensionResult
+		end
+
+		if not VFS.FileExists(imageFile) then
+			return { { message = "Invalid imageFile: " .. imageFile .. ". File does not exist" } }
 		end
 	end
 

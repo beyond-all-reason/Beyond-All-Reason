@@ -38,6 +38,7 @@ describe("mission_api object schemas", function()
 	it("describes an objective's fields", function()
 		assert.are.same({
 			textKey = Types.String,
+			image = Types.ImageFile,
 			nextStage = Types.StageID,
 			coop = Types.Boolean,
 			hidden = Types.Boolean,

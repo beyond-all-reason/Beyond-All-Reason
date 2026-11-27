@@ -334,6 +334,8 @@ return {
   condition record as `settings.stages`; `stages_loader` is otherwise a pass-through.
 - `objective.textKey` is an I18N key with no LuaUI consumer yet; `objectives.lua` only
   `Spring.Echo`s updates, so do not assume a UI reads it.
+- `objective.image` is an optional path to a png, jpg, jpeg, tga or dds image in the game, map or
+  mission archive (`Types.ImageFile`). Like `textKey`, nothing reads it yet.
 
 ## Difficulty
 
