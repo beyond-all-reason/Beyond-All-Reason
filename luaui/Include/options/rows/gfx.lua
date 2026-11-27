@@ -1164,8 +1164,8 @@ return function(model)
 			type = "slider",
 			min = 15000,
 			max = 60000,
-			step = 1500,
-			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 22500),
+			step = 1000,
+			value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 35000),
 			description = BAR.I18N("ui.settings.option.particles_descr"),
 			onchange = function(option, value)
 				Spring.SetConfigInt("MaxParticles", value)

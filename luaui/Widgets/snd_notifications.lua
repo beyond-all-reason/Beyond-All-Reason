@@ -53,7 +53,11 @@ end
 
 --------------------------------------------------------------------------------
 
-local wavFileLengths = require("sounds/sound_file_lengths")
+-- lowercase keys: some files differ in case from their notification id
+local wavFileLengths = {}
+for path, length in pairs(require("sounds/sound_file_lengths")) do
+	wavFileLengths[path:lower()] = length
+end
 
 local voiceSet = Spring.GetConfigString("voiceset", defaultVoiceSet)
 if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
@@ -917,7 +921,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 end
 
 local function getSoundDuration(soundFile)
-	return wavFileLengths[string.sub(soundFile, 8)] or 3
+	return wavFileLengths[string.sub(soundFile, 8):lower()] or 3
 end
 
 local function playNextSound()
@@ -993,6 +997,20 @@ function widget:Update(dt)
 			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
+		-- greet ahead of anything queued during loading (draft mode queues ChooseStartLoc right away)
+		if not playedWelcome then
+			local event = playWelcome and "Welcome" or "WelcomeShort"
+			if playWelcome then
+				Spring.SetConfigInt("WelcomeMessagePlayed", 1)
+			end
+			queueNotification(event, true)
+			if #soundQueue > 1 and soundQueue[#soundQueue] == event then
+				table.insert(soundQueue, 1, table.remove(soundQueue))
+			end
+			playWelcome = false
+			playedWelcome = true
+		end
+
 		-- process sound queue
 		if sec >= nextSoundQueued and sec >= suspendUntilSec then
 			playNextSound()
@@ -1012,16 +1030,6 @@ function widget:Update(dt)
 		--end
 		if WG.rejoin and WG.rejoin.showingRejoining() then
 			isIdle = true
-		end
-
-		if playWelcome then
-			Spring.SetConfigInt("WelcomeMessagePlayed", 1)
-			queueNotification("Welcome", true)
-			playWelcome = false
-			playedWelcome = true
-		elseif not playedWelcome then
-			queueNotification("WelcomeShort", true)
-			playedWelcome = true
 		end
 	end
 end

@@ -143,6 +143,11 @@ if Spring.GetConfigInt("version", 0) < version then
 
 	Spring.SetConfigInt("VSyncGame", -1)
 	Spring.SetConfigInt("CamMode", 3)
+
+
+	Spring.SetConfigInt("MaxParticles", 30000)
+	Spring.SetConfigFloat("EdgeMoveWidth", 0.02)
+	Spring.SetConfigInt("EdgeMoveDynamic", 1)
 end
 version = 5
 if Spring.GetConfigInt("version", 0) < version then
@@ -195,8 +200,8 @@ if Engine.FeatureSupport.nanoParticlesGL4 then
 	if Spring.GetConfigInt("version", 0) < version then
 		Spring.SetConfigInt("version", version)
 
-		Spring.SetConfigInt("MaxParticles", math.floor(Spring.GetConfigInt("MaxParticles", 10000) * 1.5))
-		Spring.SetConfigInt("MaxNanoParticles", Spring.GetConfigInt("MaxParticles", 15000) * 0.6)
+		Spring.SetConfigInt("MaxParticles", math.floor(Spring.GetConfigInt("MaxParticles", 30000) * 1.5))
+		Spring.SetConfigInt("MaxNanoParticles", Spring.GetConfigInt("MaxParticles", 30000) * 0.6)
 	end
 end
 
