@@ -51,9 +51,8 @@ function radius(k, n, b)
 end
 
 function widget:CommandNotify(id, params, options)
-	if id == CMD.UNLOAD_UNITS then
+	if id == CMD_UNLOAD_UNITS then
 		if params[4] and params[4] >= 64 then
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
 			--if (2 * mathPi * ray*ray)/(#units) >= 128*128 then -- Surface check to prevent clumping (needs GUI before enabling check)
@@ -62,15 +61,16 @@ function widget:CommandNotify(id, params, options)
 			local phi = (math_sqrt(5) + 1) / 2
 			local theta, r, x, y, z
 			for k = 1, #units do
-				if not shift then
-					spGiveOrderToUnit(units[k], CMD.STOP, {}, 0)
-				end
 				r = radius(k, #units, b)
 				theta = 2 * mathPi * k / (phi * phi)
 				x = params[1] + r * math.cos(theta) * ray
 				z = params[3] + r * math.sin(theta) * ray
 				y = Spring.GetGroundHeight(x, z)
-				spGiveOrderToUnit(units[k], CMD.UNLOAD_UNIT, { x, y, z }, { "shift" })
+				if options.meta and not options.shift then
+					spGiveOrderToUnit(units[k], CMD.INSERT, { 0, CMD.UNLOAD_UNIT, options.coded, x, y, z }, CMD.OPT_ALT)
+				else
+					spGiveOrderToUnit(units[k], CMD.UNLOAD_UNIT, { x, y, z }, options.coded)
+				end
 			end
 			--end
 			return true

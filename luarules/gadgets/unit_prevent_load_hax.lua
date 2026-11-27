@@ -27,10 +27,16 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GetGameFrame = Spring.GetGameFrame
 local GetUnitCommands = Spring.GetUnitCommands
+local GetUnitCommandCount = Spring.GetUnitCommandCount
 local GetUnitTeam = Spring.GetUnitTeam
+
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_MOVE = CMD.MOVE
 local CMD_REMOVE = CMD.REMOVE
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+
+local giveInsertOrderToUnit = Game.Commands.GiveInsertOrderToUnit
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -40,6 +46,69 @@ local watchList = {}
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
 	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
+end
+
+local function getInsertIndex(unitID, cmdTag, fromInsert)
+	if fromInsert.alt then
+		local queueSize = GetUnitCommandCount(unitID)
+		local index = math.modf(cmdTag)
+		if index < 0 then
+			index = index + queueSize + 1
+		end
+		return math.min(math.max(index, 0), queueSize)
+	end
+	local queue = GetUnitCommands(unitID, -1)
+	for i = 1, #queue do
+		if queue[i].tag == cmdTag then
+			return fromInsert.right and i or i - 1
+		end
+	end
+end
+
+local function giveMoveThenLoad(unitID, moveX, moveY, moveZ, cmdParams, cmdOptions, cmdTag, fromInsert)
+	if not fromInsert then
+		GiveOrderToUnit(unitID, CMD_MOVE, { moveX, moveY, moveZ }, cmdOptions.coded)
+		GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, CMD_OPT_SHIFT)
+		return
+	end
+	local index = getInsertIndex(unitID, cmdTag, fromInsert)
+	if index then
+		giveInsertOrderToUnit(unitID, CMD_MOVE, { moveX, moveY, moveZ }, cmdOptions, index, CMD_OPT_ALT)
+		giveInsertOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, cmdOptions, index + 1, CMD_OPT_ALT)
+	end
+end
+
+local function allowLoadUnits(unitID, cmdParams, cmdOptions, cmdTag, fromInsert)
+	if cmdParams[4] then
+		local tx, ty, tz = GetUnitPosition(unitID)
+		local dist =
+			math.sqrt(((cmdParams[1] - tx) * (cmdParams[1] - tx)) + ((cmdParams[3] - tz) * (cmdParams[3] - tz)))
+		if dist < math.max(100, cmdParams[4]) then
+			local angle = (math.random() * 6.28) - 3.14
+			local moveX, moveZ = cmdParams[1] + (math.sin(angle) * 120), cmdParams[3] + (math.cos(angle) * 120)
+			giveMoveThenLoad(unitID, moveX, ty, moveZ, cmdParams, cmdOptions, cmdTag, fromInsert)
+			watchList[unitID] = GetGameFrame() + 45
+			return false
+		else
+			return true
+		end
+	else
+		local dist = GetUnitSeparation(unitID, cmdParams[1])
+		if not dist then
+			return false
+		end
+		if (dist < 80) and (GetUnitTeam(unitID) ~= GetUnitTeam(cmdParams[1])) then
+			local tx, ty, tz = GetUnitPosition(unitID)
+			local ux, _, uz = GetUnitPosition(cmdParams[1])
+			local angle = math.atan2((tx - ux), (tz - uz))
+			local moveX, moveZ = ux + (math.sin(angle) * 100), uz + (math.cos(angle) * 100)
+			giveMoveThenLoad(unitID, moveX, ty, moveZ, cmdParams, cmdOptions, cmdTag, fromInsert)
+			watchList[unitID] = GetGameFrame() + 45
+			return false
+		else
+			return true
+		end
+	end
 end
 
 function gadget:AllowCommand(
@@ -63,20 +132,7 @@ function gadget:AllowCommand(
 			return false
 		end
 		if cmdID == CMD_LOAD_UNITS then
-			fromInsert = nil
-			return gadget:AllowCommand(
-				unitID,
-				unitDefID,
-				teamID,
-				cmdID,
-				cmdParams,
-				cmdOptions,
-				cmdTag,
-				playerID,
-				fromSynced,
-				fromLua,
-				fromInsert
-			)
+			return allowLoadUnits(unitID, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
 		local cQueue = GetUnitCommands(unitID, 20)
 		if #cQueue > 0 then
@@ -103,48 +159,7 @@ function gadget:AllowCommand(
 			end
 		end
 	elseif cmdID == CMD_LOAD_UNITS then
-		if cmdParams[4] then
-			local tx, ty, tz = GetUnitPosition(unitID)
-			local dist =
-				math.sqrt(((cmdParams[1] - tx) * (cmdParams[1] - tx)) + ((cmdParams[3] - tz) * (cmdParams[3] - tz)))
-			if dist < math.max(100, cmdParams[4]) then
-				local angle = (math.random() * 6.28) - 3.14
-				GiveOrderToUnit(
-					unitID,
-					CMD_MOVE,
-					{ cmdParams[1] + (math.sin(angle) * 120), ty, cmdParams[3] + (math.cos(angle) * 120) },
-					cmdOptions.coded
-				)
-				GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, { "shift" })
-				watchList[unitID] = GetGameFrame() + 45
-				return false
-			else
-				return true
-			end
-		else
-			local dist = GetUnitSeparation(unitID, cmdParams[1])
-			if not dist then
-				return false
-			end
-			if (dist < 80) and (GetUnitTeam(unitID) ~= GetUnitTeam(cmdParams[1])) then
-				local tx, ty, tz = GetUnitPosition(unitID)
-				local ux, _, uz = GetUnitPosition(cmdParams[1])
-				local angle = math.atan2((tx - ux), (tz - uz))
-				if cmdTag ~= "nr" then
-					GiveOrderToUnit(
-						unitID,
-						CMD_MOVE,
-						{ ux + (math.sin(angle) * 100), ty, uz + (math.cos(angle) * 100) },
-						cmdOptions.coded
-					)
-					GiveOrderToUnit(unitID, CMD_LOAD_UNITS, cmdParams, { "shift" })
-					watchList[unitID] = GetGameFrame() + 45
-				end
-				return false
-			else
-				return true
-			end
-		end
+		return allowLoadUnits(unitID, cmdParams, cmdOptions)
 	end
 	return true
 end

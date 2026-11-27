@@ -84,7 +84,7 @@ local function resolveTriggers(triggers)
 
 		local triggerDifficulties = trigger.settings.difficulties
 		if triggerDifficulties ~= nil then
-			for i, difficultyName in ipairs(triggerDifficulties) do
+			for i, difficultyName in pairs(triggerDifficulties) do
 				triggerDifficulties[i] = difficulties[difficultyName]
 			end
 		end
