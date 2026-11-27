@@ -11,7 +11,7 @@
 	to fixed lengths, a slider's raw value is the light value times its FIELDS scale.
 -->
 <body data-model="light_editor_model">
-<div id="le-root" class="le-root widget-shadow rounded-md bg-darkest">
+<div id="le-root" class="le-root widget-shadow rounded-md bg-darkest" data-class-paused="paused">
 	<div class="le-head">
 		<div id="le-handle" class="le-handle" data-event-dragstart="dragStart()" data-event-drag="dragMove()" data-event-dragend="dragEnd()">
 			<div class="le-gem"></div><div class="le-title-main">LIGHT</div><div class="le-title-accent">EDITOR</div>
@@ -26,6 +26,7 @@
 		<div class="le-rail-text" data-event-click="act('copy')" data-event-mouseover="tip('copy')">COPY</div>
 		<div class="le-rail-spacer"></div>
 		<div class="le-rail-sep"></div>
+		<div id="le-pause-btn" class="le-head-btn le-pause-btn" data-class-active="paused" data-event-click="act('pause')" data-event-mouseover="tip('pause')"><img class="le-icon-md" src="/luaui/images/terraform_brush/passthrough_pause.png" data-attr-src="paused ? '/luaui/images/terraform_brush/passthrough_play.png' : '/luaui/images/terraform_brush/passthrough_pause.png'" /></div>
 		<div id="le-focus-btn" class="le-head-btn le-focus-btn" data-class-active="focus" data-event-click="act('focus')" data-event-mouseover="tip('focus')"><img class="le-icon-md" src="/luaui/images/terraform_brush/eye.png" data-attr-src="focus ? '/luaui/images/terraform_brush/eye_slash.png' : '/luaui/images/terraform_brush/eye.png'" /></div>
 		<div id="le-keys-btn" class="le-head-btn" data-class-active="keysOpen" data-event-click="act('keys')" data-event-mouseover="tip('keys')"><div class="le-head-btn-text">KEYS</div></div>
 	</div>
@@ -52,6 +53,8 @@
 	</div>
 	<div class="le-strip">
 		<div class="le-strip-sum" data-if="status == ''">
+			<div class="le-strip-pause" data-if="paused">PAUSED</div>
+			<div class="le-strip-sep" data-if="paused">|</div>
 			<div class="le-strip-unit">{{unitName}}</div>
 			<div class="le-strip-sep">|</div>
 			<div class="le-strip-val">{{countLabel}}</div>
@@ -408,6 +411,7 @@
 			<div class="le-key-row"><div class="le-key-badge">Ctrl+D</div><div class="le-key-action">Duplicate the selection</div></div>
 			<div class="le-key-row"><div class="le-key-badge">Delete</div><div class="le-key-action">Delete the selection</div></div>
 			<div class="le-key-row"><div class="le-key-badge">F5</div><div class="le-key-action">Leave focus mode (the eye button starts it)</div></div>
+			<div class="le-key-row"><div class="le-key-badge">Pause button</div><div class="le-key-action">Give the game the mouse to move units; play resumes</div></div>
 			<div class="le-key-row"><div class="le-key-badge">Esc</div><div class="le-key-action">End piece picking</div></div>
 			<div class="le-key-sep"><div class="le-key-sep-label">IN A NUMBER BOX</div><div class="le-key-sep-line"></div></div>
 			<div class="le-key-row"><div class="le-key-badge">Up / Down</div><div class="le-key-action">Step the value</div></div>

@@ -86,6 +86,30 @@ body {
 	image-color: #ffd88f;
 }
 
+/* Paused: teal like the brush's passthrough, the game has the mouse */
+.le-pause-btn {
+	padding: 0 3dp;
+}
+
+.le-rail .le-pause-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+}
+
+.le-pause-btn.active img {
+	image-color: #40e0c0;
+}
+
+.le-root.paused .le-body {
+	opacity: 0.6;
+}
+
+.le-strip-pause {
+	font-size: 1rem;
+	font-weight: bold;
+	color: #40e0c0;
+}
+
 /* === Side windows (keybinds, colour): the widget docks them beside the panel === */
 .le-side {
 	position: absolute;

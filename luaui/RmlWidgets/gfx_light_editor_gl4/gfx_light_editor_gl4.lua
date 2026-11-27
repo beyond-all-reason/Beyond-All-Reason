@@ -173,6 +173,7 @@ local HINTS = {
 	colorset = "Named colours from DeferredLightsGL4WeaponsConfig.lua. Click one to set red, green and blue. Team follows the team colour.",
 	night = "Dim the sun to see the lights as at night. Only this view changes, nothing is saved.",
 	keys = "Show the mouse and key controls of the editor.",
+	pause = "Pause: give the mouse, camera and selection back to the game, to move units around. The lights keep their edits. Click play to go on with the selected unit.",
 	focus = "Focus: hide the game interface (like F5). The editor stays: its windows, light markers, gizmo and labels. Click again or press F5 to bring the interface back.",
 	flat = "FLAT: show this unit as plain grey clay, so lights and markers read clearly. Only this view changes.",
 	canvas = "CANVAS: hide the world behind a dark grid. A ground disc under the unit stays and shows the light falling on it. Only this view changes.",
@@ -290,6 +291,7 @@ local S = {
 	basisCache = {}, -- piece name (0 = unit base) to its basis table
 	ringCache = {}, -- light name to its ring table
 	focus = false, -- game interface hidden, editor left alive
+	paused = false, -- the game has the mouse, camera and selection back
 	flat = false, -- the unit drawn as grey clay
 	canvas = false, -- the world replaced by a grid canvas and a ground disc
 }
@@ -2507,6 +2509,7 @@ function F.refreshModel(dm)
 	dm.orbit = S.cam ~= nil
 	dm.keysOpen = S.keysOpen == true
 	dm.focus = S.focus == true
+	dm.paused = S.paused == true
 	dm.flat = S.flat == true
 	dm.canvas = S.canvas == true
 
@@ -2988,6 +2991,8 @@ function F.act(action, arg)
 		S.keysOpen = not S.keysOpen
 	elseif action == "focus" then
 		F.setFocus(not S.focus)
+	elseif action == "pause" then
+		F.setPaused(not S.paused)
 	elseif action == "flat" then
 		S.flat = arg == "on" or (arg == "toggle" and not S.flat)
 	elseif action == "canvas" then
@@ -2995,8 +3000,10 @@ function F.act(action, arg)
 	elseif action == "pivot" then
 		F.setPivot(arg)
 	elseif action == "piecepick" then
+		F.setPaused(false)
 		F.setPickMode(S.pickMode ~= arg and arg or nil)
 	elseif action == "camera" then
+		F.setPaused(false)
 		if arg == "orbit" then
 			F.camBegin()
 		else
@@ -4113,6 +4120,41 @@ function F.setFocus(on)
 	S.refresh = true
 end
 
+-- Pause: the game gets the mouse, camera and selection; the panel and the edited lights stay.
+function F.setPaused(on)
+	on = on == true
+	if on == S.paused then
+		return
+	end
+	S.paused = on
+	if on then
+		F.endStep()
+		if S.drag then
+			S.drag = nil
+			Gizmo.endDrag()
+		end
+		if S.cpDrag then
+			F.cpRelease()
+		end
+		S.ringDrag = nil
+		F.setPickMode(nil)
+		S.pausedOrbit = S.cam ~= nil
+		F.camEnd(0.4)
+		F.holdHover(false)
+		S.hover, S.ringHover, S.gizmoHover, S.pickHover, S.pieceHover = nil, nil, nil, nil, nil
+	else
+		local selection = Spring.GetSelectedUnits()
+		if selection[1] then
+			F.setUnit(selection[1])
+		end
+		if S.pausedOrbit and S.unitID then
+			F.camBegin()
+		end
+		S.pausedOrbit = nil
+	end
+	S.refresh = true
+end
+
 -- The interface came back from outside (F5): drop the flag so the eye reads right.
 function F.syncFocus()
 	if not S.focus or Spring.DiffTimers(Spring.GetTimer(), S.focusTimer) < 0.5 then
@@ -4238,7 +4280,7 @@ function widget:Shutdown()
 end
 
 function widget:SelectionChanged(selection)
-	if selection and selection[1] then
+	if selection and selection[1] and not S.paused then
 		F.setUnit(selection[1])
 	end
 end
@@ -4254,7 +4296,7 @@ function widget:Update(dt)
 		widgetHandler:RemoveWidget()
 		return
 	end
-	F.holdHover(true)
+	F.holdHover(not S.paused)
 	F.syncFocus()
 	F.syncFire()
 	F.previewStep()
@@ -4291,7 +4333,7 @@ function widget:Update(dt)
 	if S.gizmoReady then
 		F.updateGizmo()
 	end
-	if not S.drag and not S.ringDrag and not (S.cam and S.cam.drag) then
+	if not S.paused and not S.drag and not S.ringDrag and not (S.cam and S.cam.drag) then
 		local mx, my = Spring.GetMouseState()
 		local hover, part, gizmoHover, ringHover, pickHover
 		local overPanel = F.overPanel(mx, my)
@@ -4323,7 +4365,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if not S.unitID or not Spring.ValidUnitID(S.unitID) then
+	if S.paused or not S.unitID or not Spring.ValidUnitID(S.unitID) then
 		return
 	end
 	F.drawMarkers()
@@ -4335,7 +4377,7 @@ end
 
 -- Runs for each water side and mirror pass: the main view is the above water one.
 function widget:DrawWorldPreParticles(drawAboveWater, _, drawReflection, drawRefraction)
-	if not (S.flat or S.canvas) or not drawAboveWater or drawReflection or drawRefraction then
+	if S.paused or not (S.flat or S.canvas) or not drawAboveWater or drawReflection or drawRefraction then
 		return
 	end
 	if S.unitID and Spring.ValidUnitID(S.unitID) then
@@ -4351,7 +4393,7 @@ function widget:DrawScreenEffects()
 		gl.Text(S.hover, mx + 20, my + 4, 20, "o")
 		gl.Color(1, 1, 1, 1)
 	end
-	if S.unitID then
+	if S.unitID and not S.paused then
 		F.drawPieceLabel()
 	end
 end
@@ -4359,6 +4401,9 @@ end
 function widget:MousePress(mx, my, button)
 	if S.drag or S.ringDrag then
 		return true
+	end
+	if S.paused then
+		return false
 	end
 	if button == 2 or button == 3 then
 		if F.overPanel(mx, my) or not F.camBegin() then
@@ -4419,11 +4464,12 @@ end
 
 function widget:MouseWheel(up)
 	local mx, my = Spring.GetMouseState()
-	if F.overPanel(mx, my) or not F.camBegin() then
+	if S.paused or F.overPanel(mx, my) or not F.camBegin() then
 		return false
 	end
+	-- the game camera's way: "up" with a positive ScrollWheelSpeed zooms out
 	local turn = up and 1 or -1
-	F.camZoom(turn * Spring.GetConfigInt("ScrollWheelSpeed", 25) > 0 and 1 or -1)
+	F.camZoom(turn * Spring.GetConfigInt("ScrollWheelSpeed", 25) > 0 and -1 or 1)
 	return true
 end
 
@@ -4449,7 +4495,7 @@ end
 local KEY = { z = 122, y = 121, s = 115, d = 100, delete = 127, up = 273, down = 274, escape = 27 }
 
 function widget:KeyPress(key, mods)
-	if not S.unitID then
+	if S.paused or not S.unitID then
 		return false
 	end
 	if key == KEY.escape and S.pickMode then
