@@ -300,7 +300,8 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 				end
 			end
 
-			local tryUnitSound = ValidCommandSound and gameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames
+			local tryUnitSound = ValidCommandSound
+				and gameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames
 			local unitSounds = tryUnitSound and GUIUnitSoundEffects[unitDefID] ---@as table?
 			if
 				unitSounds
