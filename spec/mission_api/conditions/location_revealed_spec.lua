@@ -97,19 +97,22 @@ describe("mission_api.conditions.location_revealed", function()
 	end)
 
 	it("fires once it becomes eligible while the position is already in LOS", function()
-		local context, fired = newContext()
+		local valid = false
+		local context = Builders.ConditionContext
+			.new()
+			:WithActivationResult(function()
+				return valid
+			end)
+			:Build()
+		context.RevealedLocations = {}
 		local t = trigger({ position = position, sensorAllianceName = SENSOR_ALLY })
 		inLos = true
 
-		local activate = context.ActivateTrigger
-		context.ActivateTrigger = Builders.ConditionContext.ReportsActivation(context, function()
-			return false
-		end)
 		onGameFrame(t, "t", context, CHECK_FRAME)
 
-		context.ActivateTrigger = activate
+		valid = true
 		onGameFrame(t, "t", context, 2 * CHECK_FRAME)
-		assert.are.equal(1, fired())
+		assert.are.equal(1, context.timesFired())
 	end)
 
 	it("leaves a fired trigger that does not repeat to ActivateTrigger", function()

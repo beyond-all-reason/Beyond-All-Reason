@@ -761,7 +761,7 @@ function gadget:Initialize()
 	statistics.Init({
 		processTriggersOfType = processTriggersOfType,
 		activateTrigger = activateTrigger,
-		evaluateMetric = evaluateMetric,
+		evaluateLastValue = evaluateLastValue,
 		conditionKinds = GG["MissionAPI"].ConditionDefinitions.Kinds,
 		batch = batch,
 	})

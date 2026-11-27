@@ -122,12 +122,10 @@ local function loadMission(gameSetup)
 		return
 	end
 
-	GG["MissionAPI"].Variables, GG["MissionAPI"].PersistentVariableKeys =
-		GG["MissionAPI"].Modules.Variables.GetStartingValues(
-			mission.Variables,
-			mission.PersistentVariables,
-			GG["MissionAPI"].SavedVariables
-		)
+	local variables = GG["MissionAPI"].Modules.Variables
+	GG["MissionAPI"].Variables =
+		variables.GetStartingValues(mission.Variables, mission.PersistentVariables, GG["MissionAPI"].SavedVariables)
+	GG["MissionAPI"].PersistentVariableKeys = variables.GetPersistentKeys(mission.PersistentVariables)
 
 	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)

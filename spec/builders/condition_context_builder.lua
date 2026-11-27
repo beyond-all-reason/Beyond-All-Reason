@@ -37,17 +37,6 @@
 local TCB = {}
 TCB.__index = TCB
 
----An ActivateTrigger that asks decide(trigger) whether the activation goes through.
----It reports the outcome to onTryActivate, as the gadget does when the batch ends.
-function TCB.ReportsActivation(context, decide)
-	return function(trigger, onTryActivate, triggerID, argument)
-		local activated = decide(trigger)
-		if onTryActivate then
-			onTryActivate(trigger, triggerID, context, argument, activated)
-		end
-	end
-end
-
 ---Constant values are wrapped, so `:WithInFactory(true)` and
 ---`:WithInFactory(function(id) ... end)` both work.
 local function asFunction(value)
@@ -63,6 +52,7 @@ end
 function TCB.new()
 	return setmetatable({
 		inFactory = false,
+		activationResult = true,
 	}, TCB)
 end
 
@@ -72,6 +62,15 @@ end
 ---@return ConditionContextBuilder
 function TCB:WithInFactory(value)
 	self.inFactory = value
+	return self
+end
+
+---Whether a trigger's activation goes through.
+---@param self ConditionContextBuilder
+---@param value boolean|fun(trigger: table): boolean
+---@return ConditionContextBuilder
+function TCB:WithActivationResult(value)
+	self.activationResult = value
 	return self
 end
 
@@ -89,6 +88,7 @@ end
 function TCB:Build()
 	local instance = self
 
+	local getActivationResult = asFunction(instance.activationResult)
 	local activateCalls = {}
 	local evaluateCalls = {}
 	-- A copy of `constructionStarts` and its claim and check functions in api_missions_triggers.lua:
@@ -99,9 +99,12 @@ function TCB:Build()
 	local context ---@type ConditionContextMock
 	context = {
 		ActivateTrigger = function(trigger, onTryActivate, triggerID, argument)
-			activateCalls[#activateCalls + 1] = { trigger = trigger }
+			local activated = getActivationResult(trigger)
+			if activated then
+				activateCalls[#activateCalls + 1] = { trigger = trigger }
+			end
 			if onTryActivate then
-				onTryActivate(trigger, triggerID, context, argument, true)
+				onTryActivate(trigger, triggerID, context, argument, activated)
 			end
 		end,
 		-- Metric conditions only report what they sampled; the gadget compares it
@@ -195,7 +198,7 @@ function TCB:Build()
 		return true
 	end
 
-	---How many times a handler asked this context to activate its trigger.
+	---How many times this context activated a trigger.
 	context.timesFired = function()
 		return #activateCalls
 	end

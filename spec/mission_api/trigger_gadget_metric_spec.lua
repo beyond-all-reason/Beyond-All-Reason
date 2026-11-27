@@ -1,6 +1,6 @@
 ---
 --- Covers the trigger gadget's metric evaluation and event counting.
---- `evaluateMetric` and `activateTrigger` are file locals, handed out through
+--- `evaluateLastValue` and `activateTrigger` are file locals, handed out through
 --- the dependency table the gadget injects into the statistics module. Stubbing
 --- that module out captures the real functions and lets them be called directly.
 ---
@@ -14,7 +14,12 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local STATISTICS_PATH = "luarules/mission_api/statistics.lua"
 
-local evaluateMetric, activateTrigger
+local evaluateLastValue, activateTrigger
+
+local function evaluateMetric(trigger, value)
+	trigger.lastValue = value
+	evaluateLastValue(trigger)
+end
 
 local function installMissionApi(currentStageID)
 	GG["MissionAPI"] = {
@@ -74,10 +79,10 @@ local function loadGadget()
 		includes = {
 			-- The real dispatcher needs loaded action definitions, and no action fires here.
 			["luarules/mission_api/actions_dispatcher.lua"] = { Invoke = function() end },
-			-- Hand back a statistics stub whose Init keeps the injected evaluateMetric.
+			-- Hand back a statistics stub whose Init keeps the injected functions.
 			[STATISTICS_PATH] = {
 				Init = function(dependencies)
-					evaluateMetric = dependencies.evaluateMetric
+					evaluateLastValue = dependencies.evaluateLastValue
 					activateTrigger = dependencies.activateTrigger
 				end,
 				Increment = function() end,
@@ -112,8 +117,8 @@ describe("mission_api trigger gadget metric evaluation", function()
 		loadGadget()
 	end)
 
-	it("exposes evaluateMetric through the statistics injection", function()
-		assert.is_function(evaluateMetric)
+	it("exposes evaluateLastValue through the statistics injection", function()
+		assert.is_function(evaluateLastValue)
 	end)
 
 	it("reports progress for a metric in the current stage", function()
