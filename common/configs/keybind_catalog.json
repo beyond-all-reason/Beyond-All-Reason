@@ -420,6 +420,21 @@
 			},
 			{
 				"action": "factoryguard 1",
+				"label": "actions.unitStates.factoryGuard1",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 2",
+				"label": "actions.unitStates.factoryGuard2",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 3",
+				"label": "actions.unitStates.factoryGuard3",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 4",
 				"label": "actions.unitStates.factoryGuardOn",
 				"description": "commands.factoryguard_tooltip"
 			}
