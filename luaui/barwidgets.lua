@@ -1096,6 +1096,8 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.RmlUi = grantUserRmlUi() and RmlUi or nil
 end
 
+local releaseRefusedWidget ---@type function
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
@@ -1182,6 +1184,7 @@ function widgetHandler:Initialize()
 			local ki = self.knownWidgets[name]
 			ki.active, ki.replacedBy = false, by
 			self.orderList[name] = 0
+			releaseRefusedWidget(self, w)
 			spEcho(string.format("Not loading widget %-18s  <%s>  (replaced by %s)", name, basename, by))
 		else
 			local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
@@ -1341,6 +1344,8 @@ end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
+local forgetPausingWidget ---@type function
+local pauseOwners = {} ---@type table<string, table>
 
 -- User widgets can read its own environment and an env it builds. Everything else returns its own env.
 -- Weak values too: a widget's own entry points at itself, and Lua 5.1 keeps a weak key alive
@@ -1368,8 +1373,12 @@ end
 local userWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, true>
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+local retiredWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- Weak values. The proxy's closures hold references to the widget. In 5.1, this prevents collection.
+local widgetProxies = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
+local widgetActionProxies = setmetatable({}, { __mode = "kv" }) ---@type table<table, table>
 
 local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1444,6 +1453,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		end
 		setfenv(chunk, widget)
 		local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
+		releaseRefusedWidget(self, widget)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -1465,9 +1475,11 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	setfenv(chunk, widget)
 	local success, err = runWidgetChunk(chunk, widget, fromZip, basename)
 	if not success then
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, err)
 	end
 	if err == false then
+		releaseRefusedWidget(self, widget)
 		return nil -- widget asked for a silent death
 	end
 
@@ -1487,6 +1499,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	if zipOnly[name] and not fromZip then
 		spEcho("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		releaseRefusedWidget(self, widget)
 		return nil
 	end
 
@@ -1503,11 +1516,13 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	err = self:ValidateWidget(widget)
 	if err then
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, err)
 	end
 
 	if widget.GetInfo == nil then
 		-- Do not keep widgets known but unregistered (active, no order entry)
+		releaseRefusedWidget(self, widget)
 		return loadFailed(basename, "no GetInfo() call")
 	end
 
@@ -1529,6 +1544,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	if knownInfo and not reload then
 		if knownInfo.active then
+			releaseRefusedWidget(self, widget)
 			return loadFailed(basename, "duplicate name")
 		end
 	else
@@ -1585,6 +1601,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	else
 		self.orderList[name] = 0
 		self.knownWidgets[name].active = false
+		releaseRefusedWidget(self, widget)
 		return nil
 	end
 
@@ -1725,6 +1742,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	widgetProxies[widget] = wh
 	widget.canControlUnits = canControlUnits
 	local includeMode = fromZip and vfsZip or vfsRawFirst
 	widget.include = function(f)
@@ -1843,7 +1861,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		end
 	end
 	wh.OwnText = function(_)
-		if self.textOwner then
+		if self.textOwner or retiredWidgets[widget] then
 			return false
 		end
 
@@ -1925,6 +1943,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 
 	-- Modal windows (see the "Modal windows" block further down)
 	wh.RegisterModalWindow = function(_, isOpen)
+		if retiredWidgets[widget] then
+			return false
+		end
 		return self:RegisterModalWindow(widget, isOpen)
 	end
 	wh.DeregisterModalWindow = function(_)
@@ -1960,12 +1981,18 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	-- user widgets cannot hide other widgets or stop keybinds, nor release what a game widget asked for
 	if fromZip then
 		wh.HideInterface = function(_, reason, keep)
+			if retiredWidgets[widget] then
+				return false
+			end
 			return self:HideInterface(widget, reason, keep)
 		end
 		wh.ShowInterface = function(_, reason)
 			return self:ShowInterface(reason)
 		end
 		wh.LockKeyboard = function(_, reason, pass)
+			if retiredWidgets[widget] then
+				return false
+			end
 			return self:LockKeyboard(widget, reason, pass)
 		end
 		wh.UnlockKeyboard = function(_, reason)
@@ -1974,11 +2001,20 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	-- see widgetHandler:Pause
 	wh.Pause = function(_, source)
-		return self:Pause(source)
+		if retiredWidgets[widget] then
+			return false
+		end
+		local paused = self:Pause(source)
+		if paused then
+			pauseOwners[source] = widget
+		end
+		return paused
 	end
 	wh.Unpause = function(_, source)
 		return self:Unpause(source)
 	end
+
+	widgetActionProxies[widget] = wh.actionHandler
 
 	if not fromZip then
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
@@ -2405,8 +2441,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 		spEcho("Blocked loading: a widget that was not loaded from a file")
 		return
 	end
-	if self:FindWidget(widget.whInfo.name) then
+	local running = self:FindWidget(widget.whInfo.name)
+	if running then
 		spEcho("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		if running ~= widget then
+			releaseRefusedWidget(self, widget)
+		end
 		return
 	end
 	if not platformCheck(widget.whInfo.depends) then
@@ -2416,6 +2456,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		end
 		spEcho("Missing capabilities:  " .. name .. ". Disabling.")
 		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
+		releaseRefusedWidget(self, widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
@@ -2433,6 +2474,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 				true
 			)
 		end
+		releaseRefusedWidget(self, widget)
 		return
 	end
 
@@ -2468,6 +2510,61 @@ function widgetHandler:InsertWidgetRaw(widget)
 	end
 end
 
+local function forgetWidgetRegistrations(handler, widget)
+	handler:ForgetWidgetState(widget)
+	forgetPausingWidget(handler, widget)
+	handler:RemoveWidgetGlobals(widget)
+	handler.actionHandler:RemoveWidgetActions(widget)
+end
+
+local retiredProxyNames = setmetatable({}, { __mode = "k" }) ---@type table<table, string|false>
+local RetiredProxyMeta = {
+	__index = function(proxy, key)
+		local name = retiredProxyNames[proxy]
+		if name then
+			retiredProxyNames[proxy] = false
+			spLog(
+				"barwidgets.lua",
+				LOG.WARNING,
+				name .. " is not running, so widgetHandler." .. tostring(key) .. " does nothing"
+			)
+		end
+		return unavailableFunction
+	end,
+}
+
+-- Keeps the widget from being reinserted through some cleverness.
+-- Empties the proxy so closures that survive cleanup cannot use it.
+local function retireProxy(widget)
+	loadedWidgets[widget] = nil
+	retiredWidgets[widget] = true
+	local wh = widgetProxies[widget]
+	if not wh then
+		return
+	end
+	local info = rawget(widget, "whInfo")
+	local name = tostring(info and info.name or "A widget")
+	local actions = widgetActionProxies[widget]
+	local customCommands = rawget(wh, "customCommands")
+	for key in pairs(wh) do
+		wh[key] = nil
+	end
+	if customCommands then
+		rawset(wh, "customCommands", {})
+	end
+	if actions then
+		for key in pairs(actions) do
+			actions[key] = nil
+		end
+		pcall(setmetatable, actions, RetiredProxyMeta)
+		retiredProxyNames[actions] = name
+		rawset(wh, "actionHandler", actions)
+	end
+	pcall(setmetatable, wh, RetiredProxyMeta)
+	retiredProxyNames[wh] = name
+	rawset(widget, "widgetHandler", wh) -- takes back the real handler if LoadWidget granted it
+end
+
 function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
 		return
@@ -2488,14 +2585,30 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		end
 	end
 	ArrayRemove(self.widgets, widget)
-	self:ForgetWidgetState(widget)
-	self:RemoveWidgetGlobals(widget)
-	self.actionHandler:RemoveWidgetActions(widget)
+	forgetWidgetRegistrations(self, widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
+	retireProxy(widget)
 	self:UpdateCallIns()
 	self.widgetsRevision = self.widgetsRevision + 1
+end
+
+releaseRefusedWidget = function(handler, widget)
+	-- Its queued calls would otherwise add it to call-in lists nobody can see or clear.
+	for i = #reorderQueue, 1, -1 do
+		for _, arg in pairs(reorderQueue[i]) do
+			if arg == widget then
+				table.remove(reorderQueue, i)
+				break
+			end
+		end
+	end
+	forgetWidgetRegistrations(handler, widget)
+	if memoryGuard then
+		memoryGuard.release(widget)
+	end
+	retireProxy(widget)
 end
 
 --------------------------------------------------------------------------------
@@ -2998,8 +3111,8 @@ function widgetHandler:DeregisterModalWindow(widget)
 	ModalAllowWidget(widget, modalExempt[widget] == true)
 end
 
--- Called from InsertWidgetRaw/RemoveWidgetRaw, which are defined above this block and
--- so reach the state through the handler rather than as upvalues.
+-- Called from InsertWidgetRaw, which is defined above this block and so reaches the
+-- state through the handler rather than as upvalues.
 function widgetHandler:ApplyModalExempt(widget)
 	if widget.whInfo and widget.whInfo.modalExempt then
 		modalExempt[widget] = true
@@ -3302,6 +3415,7 @@ function widgetHandler:Pause(source)
 		end
 	end
 	pauseSources[source] = true
+	pauseOwners[source] = nil
 	return true
 end
 
@@ -3310,6 +3424,7 @@ end
 function widgetHandler:Unpause(source)
 	if pauseSources[source] then
 		pauseSources[source] = nil
+		pauseOwners[source] = nil
 		if next(pauseSources) == nil then
 			if widgetPaused and isClientPaused() then
 				if inGadgetPause() then
@@ -3329,6 +3444,14 @@ function widgetHandler:Unpause(source)
 		return true
 	end
 	return false
+end
+
+forgetPausingWidget = function(handler, widget)
+	for source, owner in pairs(pauseOwners) do
+		if owner == widget then
+			handler:Unpause(source)
+		end
+	end
 end
 
 local function gameUnpausing()
