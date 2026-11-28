@@ -2882,7 +2882,7 @@ local unitGrids = {
 		{
 			{ "armfrad", "armarad" }, -- fl radar, adv radar
 			{}, --
-			{ "", "armfmine3" }, -- naval mine
+			{ "", "", "", "armfmine3" }, -- naval mine
 		},
 		{
 			{ "armsy", "armcs" }, -- shipyard, sea con
@@ -2906,7 +2906,7 @@ local unitGrids = {
 		{
 			{ "corfrad", "corarad" }, -- fl radar, adv radar
 			{}, --
-			{ "", "corfmine3" }, -- naval mine
+			{ "", "", "", "corfmine3" }, -- naval mine
 		},
 		{
 			{ "corsy", "corcs" }, -- shipyard, sea con
@@ -2930,7 +2930,7 @@ local unitGrids = {
 		{
 			{ "legfrad", "legarad" }, -- fl radar, adv radar
 			{ "legfdrag" }, -- shark's teeth
-			{ "", "corfmine3" }, -- naval mine
+			{ "", "", "", "corfmine3" }, -- naval mine
 		},
 		{
 			{ "legsy", "legnavyconship" }, -- shipyard, sea con
