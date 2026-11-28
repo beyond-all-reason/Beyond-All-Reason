@@ -7,12 +7,25 @@ local LOG_TAG = "module_handler.lua"
 
 local MODULES_DIR = "modules/"
 
+-- The engine runs Lua in handles, and every handle is synced or unsynced: LuaRules and LuaGaia are a pair, one of
+-- each; LuaUI is unsynced. Some Spring functions exist in one kind of handle only, so a module file says by its
+-- name and place which kind it runs in:
+--   synced:    api_synced.lua, synced.lua
+--   unsynced:  api_unsynced.lua, unsynced.lua, widgets/, rml_widgets/
+--   both:      gadgets/, each saying for itself which half is which
+--   any:       api.lua, policies/, lib/ and every other file, so they call only what every handle offers
+-- units/ and modoptions.lua are not handle code: a LuaParser state reads them, with no Spring in it.
+-- A file requires nothing declared for the other handle, and a file for any handle requires only files for any.
+-- The loader cannot see a require, so it does not enforce this at run time; spec/modules/handles_spec.lua does.
 local LAYOUT = {
 	manifest = "manifest.lua",
 	widgets = "widgets/",
 	rmlWidgets = "rml_widgets/",
 	gadgets = "gadgets/",
 	scripts = "scripts/",
+	units = "units/",
+	language = "language/",
+	tests = "tests/",
 	modOptions = "modoptions.lua",
 }
 
@@ -121,7 +134,7 @@ function ModuleHandler.Resolve(manifests, onLoadFailed)
 		if errors[name] == nil then
 			-- marked before descending so a requires-cycle terminates; its members stay loadable
 			errors[name] = false
-			for _, reqMod in ipairs(manifests[name].requires) do
+			for _, reqMod in ipairs(manifests[name].requires or {}) do
 				if not manifests[reqMod] then
 					errors[name] = string.format("Module %q requires missing module %q; not loaded", name, reqMod)
 					break
@@ -177,6 +190,24 @@ end
 ---@return string[]
 function ModuleHandler.ScriptDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.scripts, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' unit def directories, read after units/
+function ModuleHandler.UnitDefDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.units, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' language directories, each holding a directory per language code as language/ does
+function ModuleHandler.LanguageDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.language, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' headless test directories
+function ModuleHandler.TestDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.tests, vfsMode)
 end
 
 ---@param vfsMode string?

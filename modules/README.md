@@ -32,12 +32,12 @@ If you make a `modoptions.lua`, the loader will add its contents to the base mod
 
 Module-scoped state and variables should be placed here. This file should declare a big struct with all the module's state and return it.
 Consumers access this state by including state.lua, like so:
-`local MyModuleState = VFS.Include("modules/<module>/state.lua")`
+`local MyModuleState = require("modules/<module>/state")`
 
 A state.lua looks like this:
 ```lua
-local ModuleHandler = VFS.Include("modules/module_handler.lua")
-local Modules = VFS.Include("modules/enums.lua").Modules
+local ModuleHandler = require("modules/module_handler")
+local Modules = require("modules/enums").Modules
 
 -- Type annotations for the type checker
 ---@class MyModuleState

@@ -43,6 +43,13 @@ end
 --
 
 local luaFiles = VFS.DirList("units/", "*.lua", nil, true)
+-- a module's units come with it: delete the module and they are gone
+local ModuleHandler = require("modules/module_handler")
+for _, dir in ipairs(ModuleHandler.UnitDefDirs()) do
+	for _, filename in ipairs(VFS.DirList(dir, "*.lua", nil, true)) do
+		luaFiles[#luaFiles + 1] = filename
+	end
+end
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 local scavengersEnabled = BAR.Utilities.Gametype.IsScavengers()
