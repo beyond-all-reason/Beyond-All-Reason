@@ -41,6 +41,7 @@
   - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
   - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
   - Scavenger constructors and factories show the normal grid menu layout in games with ruins or zombies, not only against the Scavengers AI.
+  - Zombie wrecks sometimes rose as a whole pack again instead of a single unit, most visibly with commanders.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
