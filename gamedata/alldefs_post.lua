@@ -1053,26 +1053,6 @@ local function weaponDef_Post(name, wDef)
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 
-		-- Standard Gravity
-		local gravityOverwriteExemptions =
-			{ --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
-				"cormship_",
-				"armmship_",
-			}
-		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
-			local isExempt = false
-
-			for _, exemption in ipairs(gravityOverwriteExemptions) do
-				if string.find(name, exemption) then
-					isExempt = true
-					break
-				end
-			end
-			if not isExempt then
-				wDef.mygravity = 0.1445
-			end
-		end
-
 		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
 			wDef.impactonly = nil
 			wDef.areaofeffect = 11
