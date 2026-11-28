@@ -1046,6 +1046,11 @@ local function CreateSandboxedSystem()
 	sandboxedSpring.Start = refuseEngineRestart
 	sandboxedSpring.Restart = refuseEngineRestart
 	sandboxedSpring.Reload = refuseEngineRestart
+	-- Would steer an AI that this player hosts, such as a mission's campaign AI.
+	function sandboxedSpring.SendSkirmishAIMessage()
+		warnOnce("User widgets cannot send messages to a skirmish AI")
+		return false
+	end
 	sandboxedSpring.GetModOptions = BAR.GetModOptionsCopy
 	local sandboxedGame
 	if not allowunitcontrolwidgets then
