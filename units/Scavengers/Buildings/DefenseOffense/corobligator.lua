@@ -134,8 +134,7 @@ return {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 255,
-					shields = 239,
+					default = 314,
 				},
 			},
 			obligator_rocket = {
@@ -184,7 +183,6 @@ return {
 				},
 				damage = {
 					default = 671,
-					shields = 255,
 				},
 			},
 		},

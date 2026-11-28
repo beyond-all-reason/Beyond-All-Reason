@@ -175,7 +175,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 675, --1/2 of corcat
-				reloadtime = 15,
+				reloadtime = 9,
 				smoketrail = true,
 				smokePeriod = 4,
 				smoketime = 16,
@@ -189,7 +189,7 @@ return {
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				trajectoryheight = 3,
-				turnrate = 5000,
+				turnrate = 2000,
 				turret = true,
 				weaponacceleration = 100,
 				weapontimer = 6,
