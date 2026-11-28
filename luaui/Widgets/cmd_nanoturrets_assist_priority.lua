@@ -13,42 +13,58 @@ end
 
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitsInSphere = Spring.GetUnitsInSphere
-local GetUnitCommands = Spring.GetUnitCommands
+local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitDefID = Spring.GetUnitDefID
-local UnitDefs = UnitDefs
+local GetUnitBuildeeRadius = Spring.GetUnitBuildeeRadius
+
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
+local CMD_INSERT = CMD.INSERT
+
 local myTeam = Spring.GetLocalTeamID()
 
 local nanoDefs = {}
-
+local buildDistanceMax = 0
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
+	if unitDef.isBuilder and unitDef.isImmobile and not unitDef.isFactory then
 		nanoDefs[unitDefID] = unitDef.buildDistance
+		buildDistanceMax = math.max(buildDistanceMax, unitDef.buildDistance)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam ~= myTeam then
+local insertParams = { 0, CMD_REPAIR, 0, 0 }
+local insertOptions = CMD.OPT_ALT
+
+local function shouldAssist(builderID, x, y, z, buildeeRadius)
+	local buildDistance = nanoDefs[GetUnitDefID(builderID)]
+	if buildDistance == nil then
 		return
 	end
-	if nanoDefs[unitDefID] ~= nil then
-		-- Echo(turretCreatedMessage .. ": " .. unitID)
-		local pos = { GetUnitPosition(unitID) }
-		local unitsNear = GetUnitsInSphere(pos[1], pos[2], pos[3], nanoDefs[unitDefID], -3)
-		-- Echo("found units nearby: " .. unitsNear)
-		for _, id in ipairs(unitsNear) do
-			if nanoDefs[GetUnitDefID(id)] ~= nil then
-				local commandQueue = GetUnitCommands(id, 10)
-				if
-					(commandQueue[2] ~= nil and commandQueue[2].id == CMD_FIGHT)
-					or (commandQueue[1] ~= nil and commandQueue[1].id == CMD_FIGHT)
-					or commandQueue[1] == nil
-				then
-					-- Echo("giving repair command to " .. id)
-					GiveOrderToUnit(id, CMD_REPAIR, unitID, {})
-				end
+	local builderX, builderY, builderZ = GetUnitPosition(builderID)
+	local dx, dy, dz = builderX - x, builderY - y, builderZ - z
+	local range = buildDistance + buildeeRadius
+	return dx * dx + dy * dy + dz * dz <= range * range
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if unitTeam ~= myTeam or nanoDefs[unitDefID] == nil then
+		return
+	end
+
+	local x, y, z = GetUnitPosition(unitID)
+	local buildeeRadius = GetUnitBuildeeRadius(unitID)
+	if not buildeeRadius then
+		return
+	end
+
+	insertParams[4] = unitID
+
+	for _, allyID in ipairs(GetUnitsInSphere(x, y, z, buildDistanceMax + buildeeRadius, -3)) do
+		if allyID ~= unitID and shouldAssist(allyID, x, y, z, buildeeRadius) then
+			local inCommand = GetUnitCurrentCommand(allyID, 1)
+			if inCommand == nil or inCommand == CMD_FIGHT or GetUnitCurrentCommand(allyID, 2) == CMD_FIGHT then
+				GiveOrderToUnit(allyID, CMD_INSERT, insertParams, insertOptions)
 			end
 		end
 	end
