@@ -1,0 +1,3838 @@
+{
+	"missionEditor": {
+		"actions": {
+			"ActivateAI": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ActivateObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddBuildOption": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"buildMenuPosition": {
+						"name": "",
+						"description": ""
+					},
+					"builderDefName": {
+						"name": "",
+						"description": ""
+					},
+					"builtDefName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddCountdown": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					},
+					"displayed": {
+						"name": "",
+						"description": ""
+					},
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddMapMarker": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"label": {
+						"name": "",
+						"description": ""
+					},
+					"markerName": {
+						"name": "",
+						"description": ""
+					},
+					"markerType": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddResources": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"energy": {
+						"name": "",
+						"description": ""
+					},
+					"metal": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddResourcesPerSecond": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"energy": {
+						"name": "",
+						"description": ""
+					},
+					"metal": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddTime": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					},
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddToBasePlan": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"basePlanName": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"rebuild": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddToVariable": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"amount": {
+						"name": "",
+						"description": ""
+					},
+					"key": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"AddUnitMarker": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"markerType": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ApplyStatusEffect": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"effectName": {
+						"name": "",
+						"description": ""
+					},
+					"effectType": {
+						"name": "",
+						"description": ""
+					},
+					"strength": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CancelBasePlan": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"basePlanName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CancelCountdown": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CancelObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CancelSquad": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ChangeStage": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"stageID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ChangeTeam": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"newTeamName": {
+						"name": "",
+						"description": ""
+					},
+					"oldTeamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearAiRegion": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"regionName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearStatusEffect": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"effectName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitDefAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitDefModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitDefWeaponAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitDefWeaponModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitWeaponAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ClearUnitWeaponModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CompleteObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CreateFeatures": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"featureLoadout": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Custom": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"function": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DeactivateAI": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Defeat": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"allianceNames": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DefineAiRegion": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"regionName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DefineBuildArea": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"buildAreaName": {
+						"name": "",
+						"description": ""
+					},
+					"buildsAtOnce": {
+						"name": "",
+						"description": ""
+					},
+					"facing": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DefineSquad": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attackRange": {
+						"name": "",
+						"description": ""
+					},
+					"composition": {
+						"name": "",
+						"description": ""
+					},
+					"gatherRange": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DespawnUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DestroyFeatures": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"featureName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DestroyUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableBuildOption": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"builderDefName": {
+						"name": "",
+						"description": ""
+					},
+					"builtDefName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableProduction": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableSquadRegather": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableTrigger": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"triggerID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableUnitDef": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisableUnitsControl": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DisbandSquad": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"DrawLines": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"lineName": {
+						"name": "",
+						"description": ""
+					},
+					"positions": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableBuildOption": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"builderDefName": {
+						"name": "",
+						"description": ""
+					},
+					"builtDefName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableProduction": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableSquadRegather": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableTrigger": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"triggerID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableUnitDef": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"EnableUnitsControl": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"FailObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"FollowCamera": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"clock": {
+						"name": "",
+						"description": ""
+					},
+					"distance": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"easing": {
+						"name": "",
+						"description": ""
+					},
+					"ending": {
+						"name": "",
+						"description": ""
+					},
+					"fov": {
+						"name": "",
+						"description": ""
+					},
+					"pitch": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"releaseDuration": {
+						"name": "",
+						"description": ""
+					},
+					"releaseEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreDuration": {
+						"name": "",
+						"description": ""
+					},
+					"restoreEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreSlot": {
+						"name": "",
+						"description": ""
+					},
+					"smoothing": {
+						"name": "",
+						"description": ""
+					},
+					"transitionDuration": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"yaw": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"HideHint": {
+				"name": "",
+				"description": ""
+			},
+			"HideObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"IssueOrders": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"direction": {
+						"name": "",
+						"description": ""
+					},
+					"marching": {
+						"name": "",
+						"description": ""
+					},
+					"orders": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"LockPlayerInput": {
+				"name": "",
+				"description": ""
+			},
+			"MoveUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"direction": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"NameUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"OrbitCamera": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"clock": {
+						"name": "",
+						"description": ""
+					},
+					"degrees": {
+						"name": "",
+						"description": ""
+					},
+					"distance": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"easing": {
+						"name": "",
+						"description": ""
+					},
+					"ending": {
+						"name": "",
+						"description": ""
+					},
+					"fov": {
+						"name": "",
+						"description": ""
+					},
+					"pitch": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"releaseDuration": {
+						"name": "",
+						"description": ""
+					},
+					"releaseEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreDuration": {
+						"name": "",
+						"description": ""
+					},
+					"restoreEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreSlot": {
+						"name": "",
+						"description": ""
+					},
+					"startYaw": {
+						"name": "",
+						"description": ""
+					},
+					"transitionDuration": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Pause": {
+				"name": "",
+				"description": ""
+			},
+			"PauseCountdown": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"PlayCameraSequence": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"clock": {
+						"name": "",
+						"description": ""
+					},
+					"ending": {
+						"name": "",
+						"description": ""
+					},
+					"keyframes": {
+						"name": "",
+						"description": ""
+					},
+					"releaseDuration": {
+						"name": "",
+						"description": ""
+					},
+					"releaseEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreDuration": {
+						"name": "",
+						"description": ""
+					},
+					"restoreEasing": {
+						"name": "",
+						"description": ""
+					},
+					"restoreSlot": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"PlayMusic": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"soundfile": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"PlaySound": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"enqueue": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"soundFile": {
+						"name": "",
+						"description": ""
+					},
+					"volume": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ReclaimUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"reclaimerTeamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveAllLines": {
+				"name": "",
+				"description": ""
+			},
+			"RemoveAllMapMarkers": {
+				"name": "",
+				"description": ""
+			},
+			"RemoveBuildOption": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"builderDefName": {
+						"name": "",
+						"description": ""
+					},
+					"builtDefName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveLine": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"lineName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveMapMarker": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"markerName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveTime": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					},
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveUnitMarker": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"markerType": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RemoveUnitTypeLimit": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ResetMapLighting": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"transitionDuration": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RestoreCamera": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"clock": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"easing": {
+						"name": "",
+						"description": ""
+					},
+					"slot": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RotateUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"direction": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SaveCamera": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"slot": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SelfDestructUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SendMessage": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"messageData": {
+						"name": "",
+						"description": ""
+					},
+					"messageKey": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetAiMexCap": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countsAllies": {
+						"name": "",
+						"description": ""
+					},
+					"share": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetAiMilitaryQuota": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attackPower": {
+						"name": "",
+						"description": ""
+					},
+					"raidPower": {
+						"name": "",
+						"description": ""
+					},
+					"scouts": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetAiState": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"state": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetMapLighting": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"brightness": {
+						"name": "",
+						"description": ""
+					},
+					"groundAmbientColor": {
+						"name": "",
+						"description": ""
+					},
+					"groundDiffuseColor": {
+						"name": "",
+						"description": ""
+					},
+					"groundShadowDensity": {
+						"name": "",
+						"description": ""
+					},
+					"groundSpecularColor": {
+						"name": "",
+						"description": ""
+					},
+					"sunAzimuth": {
+						"name": "",
+						"description": ""
+					},
+					"sunElevation": {
+						"name": "",
+						"description": ""
+					},
+					"tint": {
+						"name": "",
+						"description": ""
+					},
+					"transitionDuration": {
+						"name": "",
+						"description": ""
+					},
+					"unitAmbientColor": {
+						"name": "",
+						"description": ""
+					},
+					"unitDiffuseColor": {
+						"name": "",
+						"description": ""
+					},
+					"unitShadowDensity": {
+						"name": "",
+						"description": ""
+					},
+					"unitSpecularColor": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetMapSkybox": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"rotation": {
+						"name": "",
+						"description": ""
+					},
+					"texture": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetMapTimeOfDay": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"dayLength": {
+						"name": "",
+						"description": ""
+					},
+					"hour": {
+						"name": "",
+						"description": ""
+					},
+					"transitionDuration": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetSquadEscort": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetSquadRetreatThreshold": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"threshold": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetSquadTarget": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetSquadTask": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attackRange": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"task": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetTime": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					},
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"value": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitDefAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"value": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitDefModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"multiplier": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitDefRetreatThreshold": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"threshold": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitDefWeaponAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"value": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitDefWeaponModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"multiplier": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"multiplier": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitTypeLimit": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"limit": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitWeaponAttribute": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"value": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SetUnitWeaponModifier": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"attribute": {
+						"name": "",
+						"description": ""
+					},
+					"multiplier": {
+						"name": "",
+						"description": ""
+					},
+					"source": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					},
+					"weapon": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ShakeCamera": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"clock": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"falloff": {
+						"name": "",
+						"description": ""
+					},
+					"frequency": {
+						"name": "",
+						"description": ""
+					},
+					"magnitude": {
+						"name": "",
+						"description": ""
+					},
+					"rampUp": {
+						"name": "",
+						"description": ""
+					},
+					"rotationMagnitude": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ShowHint": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"messageData": {
+						"name": "",
+						"description": ""
+					},
+					"messageKey": {
+						"name": "",
+						"description": ""
+					},
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ShowObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SpawnExplosion": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"direction": {
+						"name": "",
+						"description": ""
+					},
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"weaponDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SpawnUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"unitLoadout": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"StartCutscene": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"cutsceneID": {
+						"name": "",
+						"description": ""
+					},
+					"skippable": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"StopCamera": {
+				"name": "",
+				"description": ""
+			},
+			"StopPlayback": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"soundFile": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TransferUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"captured": {
+						"name": "",
+						"description": ""
+					},
+					"newTeamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitSelectable": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"selectable": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitTargetable": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"targetable": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnlockPlayerInput": {
+				"name": "",
+				"description": ""
+			},
+			"UnnameUnits": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Unpause": {
+				"name": "",
+				"description": ""
+			},
+			"UnpauseCountdown": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UpdateObjective": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"objectiveID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Victory": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"allianceNames": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"WriteVariable": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"key": {
+						"name": "",
+						"description": ""
+					},
+					"value": {
+						"name": "",
+						"description": ""
+					}
+				}
+			}
+		},
+		"cameraKeyframeSettings": {
+			"duration": {
+				"name": "",
+				"description": ""
+			},
+			"easing": {
+				"name": "",
+				"description": ""
+			},
+			"fov": {
+				"name": "",
+				"description": ""
+			},
+			"hold": {
+				"name": "",
+				"description": ""
+			},
+			"lookAtPosition": {
+				"name": "",
+				"description": ""
+			},
+			"lookAtUnitName": {
+				"name": "",
+				"description": ""
+			},
+			"offsetX": {
+				"name": "",
+				"description": ""
+			},
+			"offsetY": {
+				"name": "",
+				"description": ""
+			},
+			"offsetZ": {
+				"name": "",
+				"description": ""
+			},
+			"path": {
+				"name": "",
+				"description": ""
+			},
+			"pitch": {
+				"name": "",
+				"description": ""
+			},
+			"position": {
+				"name": "",
+				"description": ""
+			},
+			"relativeToHeading": {
+				"name": "",
+				"description": ""
+			},
+			"roll": {
+				"name": "",
+				"description": ""
+			},
+			"unitName": {
+				"name": "",
+				"description": ""
+			},
+			"yaw": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"conditions": {
+			"ConstructionCanceled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ConstructionFinished": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ConstructionProgress": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"progress": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ConstructionStarted": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"builderDefName": {
+						"name": "",
+						"description": ""
+					},
+					"builderName": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CountdownFinished": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"CountdownReached": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"countdownID": {
+						"name": "",
+						"description": ""
+					},
+					"timeRemaining": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"Event": {
+				"name": "",
+				"description": ""
+			},
+			"FeatureCreated": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"featureDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"FeatureDestroyed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"allianceName": {
+						"name": "",
+						"description": ""
+					},
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"featureDefName": {
+						"name": "",
+						"description": ""
+					},
+					"featureName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"FeatureReclaimed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"featureDefName": {
+						"name": "",
+						"description": ""
+					},
+					"featureName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"LocationRevealed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"position": {
+						"name": "",
+						"description": ""
+					},
+					"sensorAllianceName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"MissionStarted": {
+				"name": "",
+				"description": ""
+			},
+			"ProductionCanceled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"factoryDefName": {
+						"name": "",
+						"description": ""
+					},
+					"factoryName": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ProductionOrdered": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"buildDefName": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ProductionStarted": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"factoryDefName": {
+						"name": "",
+						"description": ""
+					},
+					"factoryName": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"RallyOrdered": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"command": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ResourceIncome": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"resource": {
+						"name": "",
+						"description": ""
+					},
+					"sources": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ResourcePull": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"resource": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"ResourceStored": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"resource": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SquadAssembled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SquadDisbanded": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SquadEnteredRegion": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"regionName": {
+						"name": "",
+						"description": ""
+					},
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"SquadLeftRegion": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"regionName": {
+						"name": "",
+						"description": ""
+					},
+					"squadName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"StockpileCount": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"count": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"StockpileProgress": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"progress": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TeamDestroyed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TimeElapsed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"seconds": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TotalUnitsBuilt": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TotalUnitsCaptured": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TotalUnitsKilled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TotalUnitsLost": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TransportLoaded": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"passengerDefName": {
+						"name": "",
+						"description": ""
+					},
+					"passengerName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"transportDefName": {
+						"name": "",
+						"description": ""
+					},
+					"transportName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"TransportUnloaded": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"passengerDefName": {
+						"name": "",
+						"description": ""
+					},
+					"passengerName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"transportDefName": {
+						"name": "",
+						"description": ""
+					},
+					"transportName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitAttacked": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitCaptured": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"newTeamName": {
+						"name": "",
+						"description": ""
+					},
+					"oldTeamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitDetected": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"sensorAllianceName": {
+						"name": "",
+						"description": ""
+					},
+					"sensorTypes": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitDwellLocation": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"duration": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitEnteredLocation": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitExists": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitIdled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitKilled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitLeftLocation": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitLoaded": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"passengerDefName": {
+						"name": "",
+						"description": ""
+					},
+					"passengerName": {
+						"name": "",
+						"description": ""
+					},
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"transportDefName": {
+						"name": "",
+						"description": ""
+					},
+					"transportName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitNotExists": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitOrdered": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"command": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitReceived": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"newTeamName": {
+						"name": "",
+						"description": ""
+					},
+					"oldTeamName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitReclaimed": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"ignoreMissionActions": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitResurrected": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"featureName": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitUndetected": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"sensorAllianceName": {
+						"name": "",
+						"description": ""
+					},
+					"sensorTypes": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitUnidled": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitUnloaded": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"transportDefName": {
+						"name": "",
+						"description": ""
+					},
+					"transportName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitsGatheredInLocation": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"area": {
+						"name": "",
+						"description": ""
+					},
+					"excludeUnit": {
+						"name": "",
+						"description": ""
+					},
+					"includeUnit": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"UnitsOwned": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"teamName": {
+						"name": "",
+						"description": ""
+					},
+					"unitDefName": {
+						"name": "",
+						"description": ""
+					},
+					"unitName": {
+						"name": "",
+						"description": ""
+					}
+				}
+			},
+			"VariableValue": {
+				"name": "",
+				"description": "",
+				"parameters": {
+					"key": {
+						"name": "",
+						"description": ""
+					}
+				}
+			}
+		},
+		"countdownSettings": {
+			"displayed": {
+				"name": "",
+				"description": ""
+			},
+			"id": {
+				"name": "",
+				"description": ""
+			},
+			"paused": {
+				"name": "",
+				"description": ""
+			},
+			"timeRemaining": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"cutsceneSettings": {
+			"script": {
+				"name": "",
+				"description": ""
+			},
+			"videoFile": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"enums": {
+			"AiState": {
+				"AGGRESSIVE": {
+					"name": "",
+					"description": ""
+				},
+				"DEFENSIVE": {
+					"name": "",
+					"description": ""
+				},
+				"NORMAL": {
+					"name": "",
+					"description": ""
+				},
+				"PASSIVE": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"CameraClock": {
+				"game": {
+					"name": "",
+					"description": ""
+				},
+				"real": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"CameraEasing": {
+				"cut": {
+					"name": "",
+					"description": ""
+				},
+				"inCubic": {
+					"name": "",
+					"description": ""
+				},
+				"inOutCubic": {
+					"name": "",
+					"description": ""
+				},
+				"inOutQuad": {
+					"name": "",
+					"description": ""
+				},
+				"inOutSine": {
+					"name": "",
+					"description": ""
+				},
+				"inQuad": {
+					"name": "",
+					"description": ""
+				},
+				"inSine": {
+					"name": "",
+					"description": ""
+				},
+				"linear": {
+					"name": "",
+					"description": ""
+				},
+				"outCubic": {
+					"name": "",
+					"description": ""
+				},
+				"outQuad": {
+					"name": "",
+					"description": ""
+				},
+				"outSine": {
+					"name": "",
+					"description": ""
+				},
+				"smoothstep": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"CameraPath": {
+				"linear": {
+					"name": "",
+					"description": ""
+				},
+				"spline": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"CameraSequenceEnd": {
+				"hold": {
+					"name": "",
+					"description": ""
+				},
+				"release": {
+					"name": "",
+					"description": ""
+				},
+				"restore": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"Difficulty": {
+				"Easy": {
+					"name": "",
+					"description": ""
+				},
+				"Hard": {
+					"name": "",
+					"description": ""
+				},
+				"Medium": {
+					"name": "",
+					"description": ""
+				},
+				"Story": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"Facing": {
+				"0": {
+					"name": "",
+					"description": ""
+				},
+				"1": {
+					"name": "",
+					"description": ""
+				},
+				"2": {
+					"name": "",
+					"description": ""
+				},
+				"3": {
+					"name": "",
+					"description": ""
+				},
+				"e": {
+					"name": "",
+					"description": ""
+				},
+				"east": {
+					"name": "",
+					"description": ""
+				},
+				"n": {
+					"name": "",
+					"description": ""
+				},
+				"north": {
+					"name": "",
+					"description": ""
+				},
+				"s": {
+					"name": "",
+					"description": ""
+				},
+				"south": {
+					"name": "",
+					"description": ""
+				},
+				"w": {
+					"name": "",
+					"description": ""
+				},
+				"west": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"MessageType": {
+				"Briefing": {
+					"name": "",
+					"description": ""
+				},
+				"Dialogue": {
+					"name": "",
+					"description": ""
+				},
+				"Message": {
+					"name": "",
+					"description": ""
+				},
+				"Notification": {
+					"name": "",
+					"description": ""
+				},
+				"Objective": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"Resource": {
+				"energy": {
+					"name": "",
+					"description": ""
+				},
+				"metal": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"ResourceIncomeSources": {
+				"extractor": {
+					"name": "",
+					"description": ""
+				},
+				"production": {
+					"name": "",
+					"description": ""
+				},
+				"reclaim": {
+					"name": "",
+					"description": ""
+				},
+				"transfer": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"SensorTypes": {
+				"radar": {
+					"name": "",
+					"description": ""
+				},
+				"seismic": {
+					"name": "",
+					"description": ""
+				},
+				"vision": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"SquadTask": {
+				"DEFEND": {
+					"name": "",
+					"description": ""
+				}
+			},
+			"WeaponNumber": {
+				"explode": {
+					"name": "",
+					"description": ""
+				},
+				"selfDestruct": {
+					"name": "",
+					"description": ""
+				}
+			}
+		},
+		"featureEntryFields": {
+			"featureDefName": {
+				"name": "",
+				"description": ""
+			},
+			"featureName": {
+				"name": "",
+				"description": ""
+			},
+			"orientation": {
+				"name": "",
+				"description": ""
+			},
+			"position": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"objectiveSettings": {
+			"coop": {
+				"name": "",
+				"description": ""
+			},
+			"hidden": {
+				"name": "",
+				"description": ""
+			},
+			"nextStage": {
+				"name": "",
+				"description": ""
+			},
+			"onActivated": {
+				"name": "",
+				"description": ""
+			},
+			"onCanceled": {
+				"name": "",
+				"description": ""
+			},
+			"onCompleted": {
+				"name": "",
+				"description": ""
+			},
+			"onFailed": {
+				"name": "",
+				"description": ""
+			},
+			"onHidden": {
+				"name": "",
+				"description": ""
+			},
+			"onProgress": {
+				"name": "",
+				"description": ""
+			},
+			"onShown": {
+				"name": "",
+				"description": ""
+			},
+			"textKey": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"parameterTypes": {
+			"AiState": {
+				"name": "",
+				"description": ""
+			},
+			"AiTeamName": {
+				"name": "",
+				"description": ""
+			},
+			"AllianceName": {
+				"name": "",
+				"description": ""
+			},
+			"AllianceNames": {
+				"name": "",
+				"description": ""
+			},
+			"Area": {
+				"name": "",
+				"description": ""
+			},
+			"AttributeValue": {
+				"name": "",
+				"description": ""
+			},
+			"BasePlanName": {
+				"name": "",
+				"description": ""
+			},
+			"Boolean": {
+				"name": "",
+				"description": ""
+			},
+			"BuildAreaName": {
+				"name": "",
+				"description": ""
+			},
+			"CameraClock": {
+				"name": "",
+				"description": ""
+			},
+			"CameraEasing": {
+				"name": "",
+				"description": ""
+			},
+			"CameraKeyframes": {
+				"name": "",
+				"description": ""
+			},
+			"CameraPath": {
+				"name": "",
+				"description": ""
+			},
+			"CameraSequenceEnd": {
+				"name": "",
+				"description": ""
+			},
+			"Color": {
+				"name": "",
+				"description": ""
+			},
+			"Command": {
+				"name": "",
+				"description": ""
+			},
+			"CompassAngle": {
+				"name": "",
+				"description": ""
+			},
+			"CountdownID": {
+				"name": "",
+				"description": ""
+			},
+			"CutsceneID": {
+				"name": "",
+				"description": ""
+			},
+			"CutsceneScriptID": {
+				"name": "",
+				"description": ""
+			},
+			"Difficulties": {
+				"name": "",
+				"description": ""
+			},
+			"Difficulty": {
+				"name": "",
+				"description": ""
+			},
+			"Direction": {
+				"name": "",
+				"description": ""
+			},
+			"EffectName": {
+				"name": "",
+				"description": ""
+			},
+			"EffectType": {
+				"name": "",
+				"description": ""
+			},
+			"Elevation": {
+				"name": "",
+				"description": ""
+			},
+			"Facing": {
+				"name": "",
+				"description": ""
+			},
+			"FacingOrDirection": {
+				"name": "",
+				"description": ""
+			},
+			"FeatureDefName": {
+				"name": "",
+				"description": ""
+			},
+			"FeatureLoadout": {
+				"name": "",
+				"description": ""
+			},
+			"FeatureName": {
+				"name": "",
+				"description": ""
+			},
+			"Fraction": {
+				"name": "",
+				"description": ""
+			},
+			"Function": {
+				"name": "",
+				"description": ""
+			},
+			"Integer": {
+				"name": "",
+				"description": ""
+			},
+			"MessageType": {
+				"name": "",
+				"description": ""
+			},
+			"Number": {
+				"name": "",
+				"description": ""
+			},
+			"ObjectiveID": {
+				"name": "",
+				"description": ""
+			},
+			"ObjectiveIDs": {
+				"name": "",
+				"description": ""
+			},
+			"Orders": {
+				"name": "",
+				"description": ""
+			},
+			"Position": {
+				"name": "",
+				"description": ""
+			},
+			"Positions": {
+				"name": "",
+				"description": ""
+			},
+			"PositiveInteger": {
+				"name": "",
+				"description": ""
+			},
+			"Quantity": {
+				"name": "",
+				"description": ""
+			},
+			"RegionName": {
+				"name": "",
+				"description": ""
+			},
+			"Resource": {
+				"name": "",
+				"description": ""
+			},
+			"ResourceIncomeSources": {
+				"name": "",
+				"description": ""
+			},
+			"SensorTypes": {
+				"name": "",
+				"description": ""
+			},
+			"SkyboxFile": {
+				"name": "",
+				"description": ""
+			},
+			"SoundFile": {
+				"name": "",
+				"description": ""
+			},
+			"SquadName": {
+				"name": "",
+				"description": ""
+			},
+			"SquadTask": {
+				"name": "",
+				"description": ""
+			},
+			"StageID": {
+				"name": "",
+				"description": ""
+			},
+			"StageIDs": {
+				"name": "",
+				"description": ""
+			},
+			"String": {
+				"name": "",
+				"description": ""
+			},
+			"Table": {
+				"name": "",
+				"description": ""
+			},
+			"TeamName": {
+				"name": "",
+				"description": ""
+			},
+			"TimeOfDay": {
+				"name": "",
+				"description": ""
+			},
+			"TriggerID": {
+				"name": "",
+				"description": ""
+			},
+			"TriggerIDs": {
+				"name": "",
+				"description": ""
+			},
+			"UnitAttribute": {
+				"name": "",
+				"description": ""
+			},
+			"UnitDefCounts": {
+				"name": "",
+				"description": ""
+			},
+			"UnitDefName": {
+				"name": "",
+				"description": ""
+			},
+			"UnitDefNames": {
+				"name": "",
+				"description": ""
+			},
+			"UnitFilter": {
+				"name": "",
+				"description": ""
+			},
+			"UnitFilters": {
+				"name": "",
+				"description": ""
+			},
+			"UnitLoadout": {
+				"name": "",
+				"description": ""
+			},
+			"UnitName": {
+				"name": "",
+				"description": ""
+			},
+			"VariableKey": {
+				"name": "",
+				"description": ""
+			},
+			"VariableType": {
+				"name": "",
+				"description": ""
+			},
+			"VideoFile": {
+				"name": "",
+				"description": ""
+			},
+			"WeaponAttribute": {
+				"name": "",
+				"description": ""
+			},
+			"WeaponDefName": {
+				"name": "",
+				"description": ""
+			},
+			"WeaponNumber": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"stageSettings": {
+			"objectives": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"triggerSettings": {
+			"active": {
+				"name": "",
+				"description": ""
+			},
+			"coop": {
+				"name": "",
+				"description": ""
+			},
+			"difficulties": {
+				"name": "",
+				"description": ""
+			},
+			"maxRepeats": {
+				"name": "",
+				"description": ""
+			},
+			"prerequisites": {
+				"name": "",
+				"description": ""
+			},
+			"repeating": {
+				"name": "",
+				"description": ""
+			},
+			"stages": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"unitEntryFields": {
+			"construction": {
+				"name": "",
+				"description": ""
+			},
+			"neutral": {
+				"name": "",
+				"description": ""
+			},
+			"orders": {
+				"name": "",
+				"description": ""
+			},
+			"orientation": {
+				"name": "",
+				"description": ""
+			},
+			"position": {
+				"name": "",
+				"description": ""
+			},
+			"quantity": {
+				"name": "",
+				"description": ""
+			},
+			"spacing": {
+				"name": "",
+				"description": ""
+			},
+			"teamName": {
+				"name": "",
+				"description": ""
+			},
+			"unitDefName": {
+				"name": "",
+				"description": ""
+			},
+			"unitName": {
+				"name": "",
+				"description": ""
+			}
+		},
+		"unitFilterFields": {
+			"allianceName": {
+				"name": "",
+				"description": ""
+			},
+			"teamName": {
+				"name": "",
+				"description": ""
+			},
+			"unitDefName": {
+				"name": "",
+				"description": ""
+			},
+			"unitName": {
+				"name": "",
+				"description": ""
+			}
+		}
+	}
+}
