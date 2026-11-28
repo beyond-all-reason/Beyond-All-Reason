@@ -1,0 +1,39 @@
+[game]
+{
+	mapname=Comet Catcher Remake 1.8;
+	gametype=Beyond All Reason $VERSION;
+	myplayername=AimFit;
+	ishost=1;
+	hostip=127.0.0.1;
+	hostport=0;
+	startpostype=0;
+	gamestartdelay=0;
+	fixedrngseed=1;
+	nohelperais=0;
+	recorddemo=0;
+
+	[modoptions]
+	{
+		deathmode=neverend;
+		aimfit_roster=1;
+	}
+
+	[allyteam0]
+	{
+		numallies=0;
+	}
+
+	[team0]
+	{
+		teamleader=0;
+		allyteam=0;
+		startposx=512;
+		startposz=512;
+	}
+
+	[player0]
+	{
+		team=0;
+		name=AimFit;
+	}
+}
