@@ -8,7 +8,7 @@ return {
 		metalcost = 850,
 		buildpic = "LEGCLUSTER.DDS",
 		buildtime = 17400,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
@@ -27,6 +27,8 @@ return {
 		sightdistance = 455,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legcluster_aoplane.dds",
 			buildinggrounddecalsizey = 8,

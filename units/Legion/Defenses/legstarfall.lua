@@ -7,7 +7,7 @@ return {
 		metalcost = 63000,
 		buildpic = "legstarfall.DDS",
 		buildtime = 1400000,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "125 135 120",
 		collisionvolumetype = "CylY",
@@ -27,6 +27,8 @@ return {
 		sightdistance = 700,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legstarfall_aoplane.dds",
 			buildinggrounddecalsizey = 8,
