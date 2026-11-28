@@ -104,8 +104,7 @@ return {
 				customparams = {
 					land_damage_mult = 0.2,
 					norangering = 1,
-					speceffect = "torpwaterpen",
-					tracking_turn_radius = 500,
+					torpedo_guidance = "water_entry",
 				},
 				damage = {
 					default = 375,

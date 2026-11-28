@@ -93,8 +93,7 @@ return {
 				weaponvelocity = 200,
 				customparams = {
 					land_damage_mult = 0.2,
-					speceffect = "torpwaterpen",
-					tracking_turn_radius = 700,
+					torpedo_guidance = "water_entry",
 				},
 				damage = {
 					commanders = 30,
