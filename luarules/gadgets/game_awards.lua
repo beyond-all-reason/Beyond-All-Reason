@@ -22,7 +22,7 @@ if gadgetHandler:IsSyncedCode() then
 	local coopInfo = {}
 	local present = {}
 
-	-- economy structures (energy generators, geothermals and converters), derived from def
+	-- economy structures (metal extractors, energy generators, geothermals and converters), derived from def
 	-- properties; storage produces nothing and drops out naturally, lootboxes and scav
 	-- beacons are excluded via their paratrooper tag.
 	-- thresholds mirror the economy classification in snd_notifications.lua: every dedicated
@@ -38,6 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 				and (not ud.energyUpkeep or ud.energyUpkeep < MAX_GENERATOR_ENERGY_UPKEEP)
 			if
 				isGenerator
+				or ud.extractsMetal > 0
 				or ud.windGenerator > 0
 				or ud.tidalGenerator > 0
 				or cp.solar
