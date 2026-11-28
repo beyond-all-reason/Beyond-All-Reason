@@ -1,4 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
 -- Fires when a position comes into the vision of an alliance, such as a wreck or a cache.
 -- The engine has no call-in for a position entering line of sight, so the position is polled.
@@ -7,8 +8,15 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 -- Half a second is soon enough for a line of dialogue, at one LOS read per trigger.
 local CHECK_INTERVAL_FRAMES = math.floor(0.5 * Game.gameSpeed)
 
+local function revealLocation(trigger, triggerID, context, argument, activated)
+	if activated then
+		context.RevealedLocations[triggerID] = true
+	end
+end
+
 return {
 	type = 'LocationRevealed',
+	kind = ConditionKinds.Event,
 	parameters = {
 		{ name = 'position',           required = true, type = ParameterTypes.Position },
 		{ name = 'sensorAllianceName', required = true, type = ParameterTypes.AllianceName },
@@ -22,8 +30,8 @@ return {
 			local position = parameters.position
 			if not Spring.IsPosInLos(position.x, position.y, position.z, parameters.sensorAllianceName) then
 				context.RevealedLocations[triggerID] = nil
-			elseif not context.RevealedLocations[triggerID] and context.ActivateTrigger(trigger) then
-				context.RevealedLocations[triggerID] = true
+			elseif not context.RevealedLocations[triggerID] then
+				context.ActivateTrigger(trigger, revealLocation, triggerID)
 			end
 		end,
 	},

@@ -78,6 +78,7 @@ end
 
 local function doesUnitHaveName(unitID, name)
 	return doesEntityHaveName(unitID, name, trackedUnitIDs)
+		or (unitID == GG["MissionAPI"].unitIDBeingSpawned and name == GG["MissionAPI"].nameOfUnitBeingSpawned)
 end
 
 local function untrackUnitID(unitID)

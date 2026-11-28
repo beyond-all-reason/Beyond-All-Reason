@@ -8906,9 +8906,15 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	-- For build commands (negative cmdID), don't check for units at the position
 	-- We want to build AT the position, not command any unit that might be there
-	-- Also for PATROL and FIGHT, always target ground position instead of units
+	-- Also for PATROL, FIGHT, and unloads, always target ground position instead of units
 	local id = nil
-	if cmdID > 0 and cmdID ~= CMD.PATROL and cmdID ~= CMD.FIGHT then
+	if
+		cmdID > 0
+		and cmdID ~= CMD.PATROL
+		and cmdID ~= CMD.FIGHT
+		and cmdID ~= CMD.UNLOAD_UNIT
+		and cmdID ~= CMD.UNLOAD_UNITS
+	then
 		id = GetIDAtPoint(wx, wz)
 
 		-- For ATTACK command, only target if it's an enemy unit

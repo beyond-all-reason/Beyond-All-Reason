@@ -254,7 +254,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armantiship", "armmship", "armbats", "armepoch"],
 
 		"water": {
 			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.00,      0.20,        0.10,        0.00],
@@ -326,12 +326,12 @@
 	
 			"income_tier": [20, 45],
 	
-			"unit":      ["armbeaver", "armpincer", "armcroc", "armamph", "armaak"],
+			"unit":      ["armbeaver", "armpincer", "armcroc", "armjeth", "armaak", "armdecom"],
 	
 			"land": {
-				"tier0": [ 0.10,    	0.40,     	0.00,         0.20,     0.01],
-				"tier1": [ 0.10,    	0.00,     	0.20,         0.40,     0.01],
-				"tier2": [ 0.0,   		0.00,    	0.20,         0.40,     0.01]
+				"tier0": [ 0.10,    	0.40,     	0.00,         0.20,     0.01,     0.01],
+				"tier1": [ 0.10,    	0.00,     	0.20,         0.40,     0.01,     0.01],
+				"tier2": [ 0.0,   		0.00,    	0.20,         0.40,     0.01,     0.01]
 			
 			},
 			"air": {
@@ -617,7 +617,7 @@
 
 		"income_tier": [50, 100],
 
-		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corantiship", "cormship", "corbats", "corblackhy"],
 
 		"land": {
 			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],

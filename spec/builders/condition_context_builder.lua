@@ -8,9 +8,10 @@
 -- is also how a test varies an answer part-way through.
 
 ---@class ConditionContextMock
----@field ActivateTrigger fun(trigger: table): boolean
+---@field ActivateTrigger fun(trigger: table, onTryActivate: function?, triggerID: string?, argument: any?)
+---@field EvaluateMetric fun(trigger: table, value: number)
 ---@field DoesUnitHaveName fun(unitID: number, name: string): boolean
----@field DoesUnitMatch fun(unitID: number, unitName: string?, unitDefName: string?): boolean
+---@field IsUnitIncluded fun(unitID: number, parameters: table, unitDefID: number?, teamID: number?): boolean
 ---@field DoesFeatureHaveName fun(featureID: number, name: string): boolean
 ---@field IsBuildFrameOwner fun(unbuiltID: number, builderName: string?, builderDefName: string?): boolean
 ---@field InFactory fun(buildeeID: number): boolean
@@ -25,10 +26,12 @@
 ---@field GetReclaimIncomeSnapshot fun(teamID: number): table?
 ---@field calls ConditionContextMockCalls
 ---@field timesFired fun(): number
+---@field sampledValues fun(): number[]
 
 --- Recorded calls, keyed by the context function that produced them.
 ---@class ConditionContextMockCalls
 ---@field activateTrigger table
+---@field evaluateMetric table
 
 ---@class ConditionContextBuilder
 local TCB = {}
@@ -49,6 +52,7 @@ end
 function TCB.new()
 	return setmetatable({
 		inFactory = false,
+		activationResult = true,
 	}, TCB)
 end
 
@@ -61,25 +65,54 @@ function TCB:WithInFactory(value)
 	return self
 end
 
+---Whether a trigger's activation goes through.
+---@param self ConditionContextBuilder
+---@param value boolean|fun(trigger: table): boolean
+---@return ConditionContextBuilder
+function TCB:WithActivationResult(value)
+	self.activationResult = value
+	return self
+end
+
+---Where IsUnitIncluded looks up a unit's def and team: the spec's UnitDefs and Spring.
+---@param self ConditionContextBuilder
+---@param env table
+---@return ConditionContextBuilder
+function TCB:WithEnv(env)
+	self.env = env
+	return self
+end
+
 ---@param self ConditionContextBuilder
 ---@return ConditionContextMock
 function TCB:Build()
 	local instance = self
 
+	local getActivationResult = asFunction(instance.activationResult)
 	local activateCalls = {}
+	local evaluateCalls = {}
 	-- A copy of `constructionStarts` and its claim and check functions in api_missions_triggers.lua:
 	-- one claim per buildee and trigger. The gadget keeps them local, so we cannot grab the real ones;
 	-- keep both of them in step.
 	local constructionStarts = {}
 
-	---@type ConditionContextMock
-	local context = {
-		ActivateTrigger = function(trigger)
-			activateCalls[#activateCalls + 1] = { trigger = trigger }
-			return true
+	local context ---@type ConditionContextMock
+	context = {
+		ActivateTrigger = function(trigger, onTryActivate, triggerID, argument)
+			local activated = getActivationResult(trigger)
+			if activated then
+				activateCalls[#activateCalls + 1] = { trigger = trigger }
+			end
+			if onTryActivate then
+				onTryActivate(trigger, triggerID, context, argument, activated)
+			end
+		end,
+		-- Metric conditions only report what they sampled; the gadget compares it
+		-- with the trigger's bounds, so the mock records the value and nothing more.
+		EvaluateMetric = function(trigger, value)
+			evaluateCalls[#evaluateCalls + 1] = { trigger = trigger, value = value }
 		end,
 		DoesUnitHaveName = asFunction(true),
-		DoesUnitMatch = asFunction(true),
 		DoesFeatureHaveName = asFunction(true),
 		IsBuildFrameOwner = asFunction(true),
 		InFactory = asFunction(instance.inFactory),
@@ -108,12 +141,75 @@ function TCB:Build()
 		--- Recorded context calls, keyed by the function they came from.
 		calls = {
 			activateTrigger = activateCalls,
+			evaluateMetric = evaluateCalls,
 		},
 	}
 
-	---How many times a handler asked this context to activate its trigger.
+	-- A copy of getUnitFilterMatch and isUnitIncluded in unit_query.lua, over this context's
+	-- DoesUnitHaveName and the spec's Spring; keep them in step.
+	local function getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+		local Spring = instance.env.Spring
+		if unitFilter.teamName ~= nil then
+			teamID = teamID or Spring.GetUnitTeam(unitID)
+			if teamID ~= unitFilter.teamName then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		if unitFilter.allianceName ~= nil then
+			if allyTeamID == nil then
+				if teamID ~= nil then
+					allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+				else
+					allyTeamID = Spring.GetUnitAllyTeam(unitID)
+				end
+			end
+			if allyTeamID ~= unitFilter.allianceName then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		if unitFilter.unitDefName ~= nil then
+			unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+			if not unitFilter.unitDefName[unitDefID] then
+				return false, unitDefID, teamID, allyTeamID
+			end
+		end
+		return unitFilter.unitName == nil or context.DoesUnitHaveName(unitID, unitFilter.unitName),
+			unitDefID,
+			teamID,
+			allyTeamID
+	end
+
+	context.IsUnitIncluded = function(unitID, parameters, unitDefID, teamID)
+		local matches, allyTeamID
+		if parameters.includeUnit ~= nil then
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, parameters.includeUnit, unitDefID, teamID, nil)
+			if not matches then
+				return false
+			end
+		end
+		for _, unitFilter in ipairs(parameters.excludeUnit or {}) do
+			matches, unitDefID, teamID, allyTeamID =
+				getUnitFilterMatch(unitID, unitFilter, unitDefID, teamID, allyTeamID)
+			if matches then
+				return false
+			end
+		end
+		return true
+	end
+
+	---How many times this context activated a trigger.
 	context.timesFired = function()
 		return #activateCalls
+	end
+
+	---The values a metric handler sampled, in the order it reported them.
+	context.sampledValues = function()
+		local values = {}
+		for index, call in ipairs(evaluateCalls) do
+			values[index] = call.value
+		end
+		return values
 	end
 
 	return context

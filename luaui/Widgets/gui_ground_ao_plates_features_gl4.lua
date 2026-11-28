@@ -56,9 +56,6 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	local additionalheight = 0
 
 	local p, q, s, t = unpack(decalInfo.uv)
-	if decalInfo.atlasIndex == 1 then
-		s, t = 1 - s, 1 - t -- runtime atlas images use the opposite Y orientation
-	end
 	--spEcho (featureDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
 
 	pushElementInstance(

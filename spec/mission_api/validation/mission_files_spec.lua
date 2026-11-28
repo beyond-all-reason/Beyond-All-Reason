@@ -3,6 +3,7 @@
 ---
 
 local V = require("mission_api.validation.validation_spec_helper")
+local lfs = require("lfs")
 
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 
@@ -96,15 +97,13 @@ V.env.VFS.UnpackU32 = V.env.VFS.UnpackU32
 	end
 
 local function getMissionFileNames()
-	local handle = io.popen("ls " .. missionDirectory)
 	local fileNames = {}
-	for fileName in handle:lines() do
-		---@cast fileName string
+	for fileName in lfs.dir(missionDirectory) do
 		if fileName:match("%.lua$") then
 			fileNames[#fileNames + 1] = fileName
 		end
 	end
-	handle:close()
+	table.sort(fileNames)
 	return fileNames
 end
 
@@ -136,6 +135,12 @@ describe("mission_api mission files", function()
 		V.missionAPI().Alliances = { players = 0, enemies = 1, [0] = "players", [1] = "enemies" }
 		V.env.Spring.GetTeamInfo = function(teamID)
 			return teamID, 0, false, false
+		end
+		-- The campaign AI missions run with startscript_mission_api_campaign_ai_quicksilver.txt, where an AI runs the enemy.
+		V.env.Spring.GetAIInfo = function(teamID)
+			if teamID == 1 then
+				return 0, "Enemy", 0
+			end
 		end
 	end)
 

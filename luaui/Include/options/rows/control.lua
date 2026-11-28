@@ -321,7 +321,7 @@ return function(model)
 			id = "screenedgemovedynamic",
 			parent = "screenedgemove",
 			group = "control",
-			category = types.advanced,
+			category = types.basic,
 			name = BAR.I18N("ui.settings.option.screenedgemovedynamic"),
 			type = "bool",
 			value = true,

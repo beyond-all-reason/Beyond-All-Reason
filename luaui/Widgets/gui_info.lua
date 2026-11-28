@@ -2773,26 +2773,14 @@ function widget:MouseRelease(x, y, button)
 						local x, y, z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
-							if cmdQueue[1] then
-								if
-									cmdQueue[#cmdQueue]
-									and cmdQueue[#cmdQueue].id == CMD.MOVE
-									and cmdQueue[#cmdQueue].params[3]
-								then
-									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
+							local commandCount = Spring.GetUnitCommandCount(displayUnitID)
+							if commandCount > 0 then
+								local cmdID, _, cmdTag, moveX, _, moveZ =
+									Spring.GetUnitCurrentCommand(displayUnitID, commandCount)
+								if cmdID == CMD.MOVE and moveZ then
+									x, z = moveX, moveZ
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
-									for c = 1, #cmdQueue do
-										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(
-												displayUnitID,
-												cmdQueue[c].id,
-												cmdQueue[c].params,
-												shiftTable
-											)
-										end
-									end
+									Spring.GiveOrderToUnit(displayUnitID, CMD.REMOVE, cmdTag)
 								end
 							end
 						end

@@ -1,3 +1,23 @@
+local lfs = require("lfs")
+
+local function isDirectory(path)
+	return lfs.attributes(path, "mode") == "directory"
+end
+
+local function getSortedSubdirectories(directory)
+	local paths = {}
+	if isDirectory(directory) then
+		for name in lfs.dir(directory) do
+			local path = directory .. "/" .. name
+			if name ~= "." and name ~= ".." and isDirectory(path) then
+				paths[#paths + 1] = path
+			end
+		end
+	end
+	table.sort(paths)
+	return paths
+end
+
 -- Discover spec roots generically: the repo spec/ tree plus any module that
 -- ships its own spec/ dir (modules are self-contained; no per-module entries).
 -- SPEC_SKIP lists spec/ dirs to ignore, split on `, `, e.g. SPEC_SKIP=mission_api.
@@ -11,21 +31,17 @@ local function specRoots()
 	if next(skip) == nil then
 		roots[1] = "spec/"
 	else
-		local dirs = io.popen("find spec -mindepth 1 -maxdepth 1 -type d | sort")
-		for dir in dirs:lines() do
+		for _, dir in ipairs(getSortedSubdirectories("spec")) do
 			if not skip[dir:match("[^/]+$")] then
 				roots[#roots + 1] = dir .. "/"
 			end
 		end
-		dirs:close()
 	end
 
-	local find = io.popen("find modules -mindepth 2 -maxdepth 2 -type d -name spec 2>/dev/null")
-	if find then
-		for dir in find:lines() do
-			roots[#roots + 1] = dir .. "/"
+	for _, module in ipairs(getSortedSubdirectories("modules")) do
+		if isDirectory(module .. "/spec") then
+			roots[#roots + 1] = module .. "/spec/"
 		end
-		find:close()
 	end
 	return roots
 end

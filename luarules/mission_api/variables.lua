@@ -4,11 +4,15 @@
 --- Parameters and fields in mission scripts can receive values like { variable = <key> }.
 --- References resolve in-place after difficulties do and before any other parameter changes.
 --- Action and trigger paramters then re-resolve whenever their variables are written into,
---- so trigger and action code receive plain values. Objective fields populate only at init.
+--- so trigger and action code receive plain values. Objective fields and condition thresholds
+--- (count, atLeast, atMost) populate only at init.
 ---
+
+local objectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
 
 local referencingParameters = {} ---@type table<string, { parameters:table, name:string, type:string, raw:any }?>
 local processParameterValue ---@type (fun(parameterType:string, value:any):any)?
+local onVariableWritten
 
 local function isVariableReference(value)
 	return type(value) == "table" and value.variable ~= nil
@@ -52,14 +56,14 @@ local function resolveValue(value)
 	return resolved
 end
 
-local function hasUnsetVariable(value)
+local function hasUndeclaredVariable(value)
 	if isVariableReference(value) then
 		return GG["MissionAPI"].Variables[value.variable] == nil
 	elseif type(value) ~= "table" then
 		return false
 	end
 	for _, nested in pairs(value) do
-		if hasUnsetVariable(nested) then
+		if hasUndeclaredVariable(nested) then
 			return true
 		end
 	end
@@ -92,33 +96,25 @@ local function registerParameters(parameters, schema, registered)
 	end
 end
 
---- Objective fields resolve once. objectives_loader ran before validation, when amount was not
---- resolvable yet, so the maxRepeats it derives from amount is filled in here for synthesized triggers.
+--- Objective fields and condition thresholds resolve once, when the mission starts.
+--- objectives_loader built each objective's condition record before variables were
+--- known, so the resolved threshold is copied onto it here.
 local function resolveObjectiveFields(objectives, triggers)
 	for objectiveID, objective in pairs(objectives) do
-		local amountIsReference = hasVariableReference(objective.amount)
 		for fieldName, value in pairs(objective) do
-			if fieldName ~= "trigger" and hasVariableReference(value) then
+			if fieldName ~= "parameters" and hasVariableReference(value) then
 				objective[fieldName] = resolveValue(value)
 			end
 		end
-
-		if amountIsReference and type(objective.amount) == "number" then
-			local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
-			local trigger = triggerID and triggers[triggerID]
-			if trigger then
-				trigger.settings.maxRepeats = objective.amount > 1 and (objective.amount - 1) or nil
-			end
-		end
+		objectivesLoader.ApplyThresholds(objectiveID, objective, triggers)
 	end
+end
 
-	for _, managedObjectives in pairs(GG["MissionAPI"].ManagedObjectives) do
-		for _, metadata in ipairs(managedObjectives) do
-			if hasVariableReference(metadata.amount) then
-				metadata.amount = resolveValue(metadata.amount)
-			end
-			if hasVariableReference(metadata.nextStage) then
-				metadata.nextStage = resolveValue(metadata.nextStage)
+local function resolveTriggerThresholds(triggers)
+	for _, trigger in pairs(triggers) do
+		for _, fieldName in ipairs(objectivesLoader.ThresholdFields) do
+			if hasVariableReference(trigger[fieldName]) then
+				trigger[fieldName] = resolveValue(trigger[fieldName])
 			end
 		end
 	end
@@ -139,13 +135,37 @@ local function resolveReferences(triggers, actions, objectives, processValue)
 		registerParameters(action.parameters, actionSchema[action.type], registered)
 	end
 	for _, objective in pairs(objectives) do
-		local trigger = objective.trigger
-		if type(trigger) == "table" then
-			registerParameters(trigger.parameters, conditionSchema[trigger.type], registered)
-		end
+		registerParameters(objective.parameters, conditionSchema[objective.type], registered)
 	end
 
+	resolveTriggerThresholds(triggers)
 	resolveObjectiveFields(objectives, triggers)
+end
+
+--- Variables start at their declared values. Persistent variables start at the saved value instead,
+--- when the save has one of the declared value's type.
+local function getStartingValues(declared, declaredPersistent, saved)
+	local values = {}
+	for key, value in pairs(type(declared) == "table" and declared or {}) do
+		values[key] = type(value) == "table" and table.copy(value) or value
+	end
+	for key, value in pairs(type(declaredPersistent) == "table" and declaredPersistent or {}) do
+		local savedValue = saved[key]
+		if savedValue ~= nil and type(savedValue) == type(value) then
+			value = savedValue
+		end
+		values[key] = type(value) == "table" and table.copy(value) or value
+	end
+	return values
+end
+
+--- @return table<string, true>
+local function getPersistentKeys(declaredPersistent)
+	local persistentKeys = {}
+	for key in pairs(type(declaredPersistent) == "table" and declaredPersistent or {}) do
+		persistentKeys[key] = true
+	end
+	return persistentKeys
 end
 
 local function getVariable(key)
@@ -166,15 +186,27 @@ local function setVariable(key, value)
 		end
 		reference.parameters[reference.name] = resolved
 	end
+
+	if onVariableWritten then
+		onVariableWritten(key)
+	end
+end
+
+--- Calls onVariableWritten(key) after each write.
+local function reportVariableWrites(callback)
+	onVariableWritten = callback
 end
 
 return {
 	IsVariableReference = isVariableReference,
 	HasVariableReference = hasVariableReference,
 	CallOnVariableKeys = callOnVariableKeys,
-	HasUnsetVariable = hasUnsetVariable,
+	HasUndeclaredVariable = hasUndeclaredVariable,
 	ResolveValue = resolveValue,
 	ResolveReferences = resolveReferences,
+	GetStartingValues = getStartingValues,
+	GetPersistentKeys = getPersistentKeys,
 	Get = getVariable,
 	Set = setVariable,
+	ReportVariableWrites = reportVariableWrites,
 }

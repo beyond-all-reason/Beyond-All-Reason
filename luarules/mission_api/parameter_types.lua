@@ -18,10 +18,13 @@ local types = {
 	Direction = "Direction",
 	UnitLoadout = "UnitLoadout",
 	FeatureLoadout = "FeatureLoadout",
+	UnitDefCounts = "UnitDefCounts",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
 	Color = "Color",
 	CameraKeyframes = "CameraKeyframes",
+	UnitFilter = "UnitFilter",
+	UnitFilters = "UnitFilters",
 
 	-- String Validators:
 	String = "String",
@@ -37,9 +40,11 @@ local types = {
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",
 	TeamName = "TeamName",
+	AiTeamName = "AiTeamName",
 	AllianceName = "AllianceName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	Resource = "Resource",
 	VideoFile = "VideoFile",
 	SkyboxFile = "SkyboxFile",
 	Difficulty = "Difficulty",
@@ -51,7 +56,13 @@ local types = {
 	WeaponAttribute = "WeaponAttribute",
 	EffectType = "EffectType",
 	EffectName = "EffectName",
+	SquadName = "SquadName",
+	RegionName = "RegionName",
+	BuildAreaName = "BuildAreaName",
+	BasePlanName = "BasePlanName",
 	AiState = "AiState",
+	SquadTask = "SquadTask",
+	VariableKey = "VariableKey",
 
 	-- Number Validators:
 	Number = "Number",
@@ -62,6 +73,7 @@ local types = {
 	CompassAngle = "CompassAngle",
 	Elevation = "Elevation",
 	MessageType = "MessageType",
+	Integer = "Integer",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
@@ -73,6 +85,9 @@ local types = {
 	Command = "Command",
 	WeaponNumber = "WeaponNumber",
 
+	-- String-or-Table Validators:
+	UnitDefNames = "UnitDefNames",
+
 	-- Number-or-String-or-Table Validators:
 	FacingOrDirection = "FacingOrDirection",
 
@@ -80,15 +95,17 @@ local types = {
 	AttributeValue = "AttributeValue",
 
 	-- Number-or-String-or-Boolean-or-Table Validators:
-	VariableValue = "VariableValue",
+	VariableType = "VariableType",
 
 }
 
 -- Authored mission types may be processed into a different type internally.
 local internalTypes = {
 	[types.TeamName] = "TeamID",
+	[types.AiTeamName] = "TeamID",
 	[types.AllianceName] = "AllyTeamID",
 	[types.AllianceNames] = "AllyTeamIDs",
+	[types.UnitDefNames] = "UnitDefIDSet",
 }
 
 -- Difficulties are read by the client, so must be available in JSON
@@ -112,6 +129,9 @@ local enums = {
 		east = true,
 		west = true,
 	},
+	-- A metric must yield a single measured value, so resource-based metrics
+	-- select one resource rather than accepting metal and energy together.
+	[types.Resource] = { metal = true, energy = true },
 
 	[types.Difficulty] = difficulties,
 
@@ -163,6 +183,10 @@ local enums = {
 		DEFENSIVE = 2,
 		NORMAL = 3,
 		AGGRESSIVE = 4,
+	},
+
+	[types.SquadTask] = {
+		DEFEND = 1,
 	},
 }
 

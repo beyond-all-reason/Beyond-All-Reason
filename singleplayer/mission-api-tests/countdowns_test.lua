@@ -30,11 +30,9 @@ local objectives = {
 
 	surviveAlpha = {
 		textKey = 'survive_alpha_countdown',
-		trigger = {
-			type = conditionTypes.CountdownFinished,
-			parameters = {
-				countdownID = 'alpha',
-			},
+		type = conditionTypes.CountdownFinished,
+		parameters = {
+			countdownID = 'alpha',
 		},
 	},
 }

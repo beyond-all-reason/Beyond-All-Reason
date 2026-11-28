@@ -78,7 +78,6 @@ describe("mission_api difficulty pipeline", function()
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
 			ConditionDefinitions = conditionDefinitions,
-			ManagedObjectives = {},
 			ObjectiveTriggers = {},
 			ObjectiveStages = {},
 		}
@@ -111,26 +110,31 @@ describe("mission_api difficulty pipeline", function()
 		return {
 			InitialStage = "s1",
 			Stages = {
-				s1 = { objectives = { "surviveTimer", "killBots" } },
+				s1 = { objectives = { "surviveTimer", "killBots", "holdBots" } },
 				s2 = { objectives = { "surviveTimer" } },
 			},
 			Objectives = {
 				surviveTimer = {
 					textKey = "survive",
-					amount = { difficulties = { Easy = 2, Hard = 4 } },
-					trigger = {
-						type = conditionTypes.TimeElapsed,
-						parameters = { seconds = { difficulties = { Easy = 90, Hard = 45 } } },
+					type = conditionTypes.TotalUnitsBuilt,
+					parameters = {
+						teamName = "player",
+						unitDefName = { difficulties = { Easy = "armwar", Hard = "armpw" } },
 					},
+					count = { difficulties = { Easy = 2, Hard = 4 } },
 				},
 				killBots = {
 					textKey = "kill",
-					amount = { difficulties = { Easy = 3, Hard = 6 } },
+					type = conditionTypes.TotalUnitsKilled,
+					parameters = { teamName = "player", unitName = "bot" },
+					count = { difficulties = { Easy = 3, Hard = 6 } },
 					nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
-					trigger = {
-						type = conditionTypes.TotalUnitsKilled,
-						parameters = { teamName = "player", unitName = "bot" },
-					},
+				},
+				holdBots = {
+					textKey = "hold",
+					type = conditionTypes.UnitsOwned,
+					parameters = { teamName = "player", unitName = "bot" },
+					atLeast = { difficulties = { Easy = 1, Hard = 2 } },
 				},
 			},
 			Triggers = {
@@ -205,35 +209,30 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.equal(2, #missionApi.Actions.spawnBots.parameters.unitLoadout)
 	end)
 
-	it("resolves objective fields, the synthesized trigger, and managed metadata", function()
+	it("resolves objective fields and copies thresholds onto the condition records", function()
 		local missionApi = loadMission(wrappedMission(), HARD)
 
-		assert.are.equal(4, missionApi.Objectives.surviveTimer.amount)
-		assert.are.equal(6, missionApi.Objectives.killBots.amount)
+		assert.are.equal(4, missionApi.Objectives.surviveTimer.target)
+		assert.are.equal(6, missionApi.Objectives.killBots.target)
 		assert.are.equal("s2", missionApi.Objectives.killBots.nextStage)
+		assert.are.equal(2, missionApi.Objectives.holdBots.target)
 
-		---@type { settings: { repeating: boolean, maxRepeats: number }, parameters: { seconds: number } }
-		local synthesized = missionApi.Triggers.__objective_surviveTimer
-		assert.is_true(synthesized.settings.repeating)
-		assert.are.equal(3, synthesized.settings.maxRepeats)
-		assert.are.equal(45, synthesized.parameters.seconds)
-
-		---@type { amount: number, nextStage: string, parameters: table }
-		local metadata = missionApi.ManagedObjectives[conditionTypes.TotalUnitsKilled][1]
-		assert.are.equal(6, metadata.amount)
-		assert.are.equal("s2", metadata.nextStage)
-		assert.are.equal(missionApi.Objectives.killBots.trigger.parameters, metadata.parameters)
+		---@type { count: number, parameters: { unitDefName: string } }
+		local surviveRecord = missionApi.Triggers.__objective_surviveTimer
+		assert.are.equal(4, surviveRecord.count)
+		assert.are.equal("armpw", surviveRecord.parameters.unitDefName)
+		assert.are.equal(6, missionApi.Triggers.__objective_killBots.count)
+		assert.are.equal(2, missionApi.Triggers.__objective_holdBots.atLeast)
 	end)
 
 	it("resolves the same mission differently on another difficulty", function()
 		local missionApi = loadMission(wrappedMission(), EASY)
 		assert.are.equal(120, missionApi.Triggers.wave.parameters.seconds)
 		assert.are.equal(1, #missionApi.Actions.spawnBots.parameters.unitLoadout)
-		assert.are.equal(2, missionApi.Objectives.surviveTimer.amount)
-		assert.are.equal(1, missionApi.Triggers.__objective_surviveTimer.settings.maxRepeats)
-		---@type { nextStage: string }
-		local metadata = missionApi.ManagedObjectives[conditionTypes.TotalUnitsKilled][1]
-		assert.are.equal("s1", metadata.nextStage)
+		assert.are.equal(2, missionApi.Objectives.surviveTimer.target)
+		assert.are.equal(2, missionApi.Triggers.__objective_surviveTimer.count)
+		assert.are.equal("s1", missionApi.Objectives.killBots.nextStage)
+		assert.are.equal(1, missionApi.Triggers.__objective_holdBots.atLeast)
 	end)
 
 	it("validates and resolves the difficulties_test dev mission cleanly", function()
@@ -243,7 +242,7 @@ describe("mission_api difficulty pipeline", function()
 
 		assert.are.same({}, logged)
 		assert.are.equal(8, missionApi.Triggers.spawnWave.parameters.seconds)
-		assert.are.equal(4, missionApi.Objectives.surviveWaves.amount)
+		assert.are.equal(4, missionApi.Objectives.surviveWaves.target)
 		assert.are.same({ MEDIUM, HARD }, missionApi.Triggers.hardOnly.settings.difficulties)
 	end)
 

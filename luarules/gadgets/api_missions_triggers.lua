@@ -17,7 +17,7 @@ end
 local INCOME_ON_FULL_UNIT_RECLAIM = Game.reclaimUnitMethod == 1 and Game.reclaimUnitDrainHealth
 local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency
 
-local conditionTypes, triggers, conditionContext ---@type table, table<string, table>, table
+local conditionTypes, triggers, triggersByType, conditionContext ---@type table, table<string, table>, table, table
 
 local callins ---@type table
 local unitsEnteredAreaHandlers ---@type table<string, function?>
@@ -26,15 +26,20 @@ local needsBuildOwnerMap = false
 local needsBuildStartSet = false
 
 local actionsDispatcher
-local statistics
+local batch ---@type table
+local runBatch, deferBatch ---@type function, function
+local statistics ---@type table
 local countdowns
+local squads, aiRegions, aiSignals ---@type table, table, table
+local unknownAISignals = {}
 local detectionLevels
-local seismicContacts
+local seismicContacts ---@type table
 local seismicIntervalFrames ---@type integer
 
 local trackedUnitNames
 local doesUnitHaveName
-local doesUnitMatch ---@type function
+local isUnitMatch ---@type function
+local isUnitIncluded ---@type function
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
@@ -59,15 +64,24 @@ local detectionCount = 0
 local undetectedUnits = {}
 local capturedUnits = {}
 
+local pendingTriggers = {}
+local triggersToEvaluate = {}
+local evaluatePendingTriggers
+
 ----------------------------------------------------------------
 --- Trigger Functions:
 ----------------------------------------------------------------
 
+-- Iterates only the triggers of the given type, using the load-time index so
+-- that per-frame call-ins do not scan every trigger in the mission.
 local function processTriggersOfType(conditionType, func)
-	for triggerID, trigger in pairs(triggers) do
-		if trigger.type == conditionType then
-			func(trigger, triggerID)
-		end
+	local ofType = triggersByType[conditionType]
+	if not ofType then
+		return
+	end
+	for i = 1, #ofType do
+		local entry = ofType[i]
+		func(entry.trigger, entry.id)
 	end
 end
 
@@ -114,23 +128,139 @@ local function isTriggerValid(trigger)
 end
 
 local function activateTrigger(trigger)
+	-- Event conditions tally occurrences and fire once per `count` of them, so
+	-- `count = 4` fires on the 4th, then the 8th when repeating. `count` is nil
+	-- or 1 for the common "every occurrence" case.
+	-- The tally runs even while the trigger is blocked by its stage or
+	-- prerequisites, so what the player already did still counts once it opens.
+	local count = trigger.count
+	local isTallied = count and count > 1
+	if isTallied then
+		trigger.occurrences = (trigger.occurrences or 0) + 1
+	end
+
 	if not isTriggerValid(trigger) then
 		return false
+	end
+
+	if isTallied then
+		if trigger.occurrences < (trigger.repeatCount + 1) * count then
+			if trigger.onProgress then
+				trigger.onProgress(trigger.occurrences)
+			end
+			return false
+		end
 	end
 
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionID in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionID)
+	-- Objective conditions carry onActivate instead of actions: activation
+	-- completes the objective rather than invoking mission actions.
+	if trigger.onActivate then
+		trigger.onActivate(trigger)
+	else
+		for _, actionID in ipairs(trigger.actions) do
+			actionsDispatcher.Invoke(actionID)
+		end
+	end
+	if next(pendingTriggers) then
+		batch.DeferNetValue(evaluatePendingTriggers, pendingTriggers)
 	end
 
 	return true
 end
 
+local function isMetricSatisfied(trigger, value)
+	return (trigger.atLeast == nil or value >= trigger.atLeast) and (trigger.atMost == nil or value <= trigger.atMost)
+end
+
+-- Metric conditions compare a sampled value against `atLeast`/`atMost`. They are
+-- edge triggered: firing once when the value enters the satisfied range, and
+-- re-arming only once it leaves again, so a condition that stays true does not
+-- fire every sample.
+--
+-- The edge is only consumed once the condition actually fires. A trigger that is
+-- satisfied but currently blocked -- by an unmet prerequisite, the wrong stage or
+-- difficulty -- keeps its edge and fires as soon as it becomes valid. Otherwise
+-- "energy >= 3500 once metal >= 1800" would silently never fire when energy
+-- happened to arrive first.
+local function evaluateMetric(trigger, value)
+	trigger.lastValue = value
+
+	if not isMetricSatisfied(trigger, value) then
+		trigger.metricSatisfied = false
+		if trigger.onProgress and isTriggerValid(trigger) then
+			trigger.onProgress(value)
+		end
+		return false
+	end
+
+	if trigger.metricSatisfied then
+		return false
+	end
+
+	-- Marked first, so that the trigger's actions cannot activate it again.
+	trigger.metricSatisfied = true
+	local activated = activateTrigger(trigger)
+	if not activated then
+		trigger.metricSatisfied = false
+		pendingTriggers[trigger] = true
+	end
+	return activated
+end
+
+evaluatePendingTriggers = function()
+	local count = 0
+	for trigger in pairs(pendingTriggers) do
+		count = count + 1
+		triggersToEvaluate[count] = trigger
+	end
+	for i = 1, count do
+		local trigger = triggersToEvaluate[i]
+		triggersToEvaluate[i] = nil
+		pendingTriggers[trigger] = nil
+		evaluateMetric(trigger, trigger.lastValue)
+	end
+end
+
+local function activateTriggerAndReport(trigger, onTryActivate, triggerID, argument)
+	local activated = activateTrigger(trigger)
+	onTryActivate(trigger, triggerID, conditionContext, argument, activated)
+end
+
+---Activates the trigger when the batch ends, and returns nothing.
+---A condition that needs the outcome passes onTryActivate(trigger, triggerID, context, argument, activated).
+local function deferActivation(trigger, onTryActivate, triggerID, argument)
+	if onTryActivate then
+		deferBatch(activateTriggerAndReport, trigger, onTryActivate, triggerID, argument)
+	else
+		deferBatch(activateTrigger, trigger)
+	end
+end
+
+local function evaluateLastValue(trigger)
+	evaluateMetric(trigger, trigger.lastValue)
+end
+
+---Evaluates the metric against its net value when the batch ends.
+local function deferEvaluation(trigger, value)
+	local satisfied = isMetricSatisfied(trigger, value)
+	if not satisfied and not trigger.metricSatisfied then
+		evaluateMetric(trigger, value)
+	else
+		trigger.lastValue = value
+		if satisfied ~= trigger.metricSatisfied then
+			batch.DeferNetValue(evaluateLastValue, trigger)
+		end
+	end
+end
+
 ----------------------------------------------------------------
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
+
+local table_pack = table.pack
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
 local function unpackCallinArgs(args, i)
@@ -141,6 +271,14 @@ local function unpackCallinArgs(args, i)
 	end
 end
 
+local function dispatchToHandlers(handlersByType, args)
+	for conditionType, handler in pairs(handlersByType) do
+		processTriggersOfType(conditionType, function(trigger, triggerID)
+			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
+		end)
+	end
+end
+
 -- Dispatches a logical call-in to every per-trigger handler registered for it.
 -- Each handler receives (trigger, triggerID, conditionContext, ...call-in args).
 local function dispatchConditionCallin(callinName, ...)
@@ -148,12 +286,7 @@ local function dispatchConditionCallin(callinName, ...)
 	if not handlersByType then
 		return
 	end
-	local args = table.pack(...)
-	for conditionType, handler in pairs(handlersByType) do
-		processTriggersOfType(conditionType, function(trigger, triggerID)
-			handler(trigger, triggerID, conditionContext, unpackCallinArgs(args))
-		end)
-	end
+	runBatch(dispatchToHandlers, handlersByType, table_pack(...))
 end
 
 -- Location triggers share area tracking's per-frame poll, one per distinct area and team,
@@ -164,7 +297,7 @@ local function onUnitsEnteredArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsEnteredAreaHandlers[trigger.type]
 	if handler then
-		handler(trigger, triggerID, conditionContext, unitIDs)
+		runBatch(handler, trigger, triggerID, conditionContext, unitIDs)
 	end
 end
 
@@ -173,8 +306,16 @@ local function onUnitsLeftArea(unitIDs, triggerID)
 	local trigger = triggers[triggerID]
 	local handler = unitsLeftAreaHandlers[trigger.type]
 	if handler then
-		handler(trigger, triggerID, conditionContext, unitIDs)
+		runBatch(handler, trigger, triggerID, conditionContext, unitIDs)
 	end
+end
+
+local function dispatchVariableWritten(key)
+	dispatchConditionCallin("VariableWritten", key)
+end
+
+local function onVariableWritten(key)
+	batch.DeferNetValue(dispatchVariableWritten, key)
 end
 
 local function markDetectionDirty(unitID)
@@ -199,7 +340,7 @@ local function isBuildFrameOwner(buildeeID, builderName, builderDefName)
 		return true
 	end
 	local builder = buildFrameOwners[buildeeID] ---@as table?
-	return builder ~= nil and doesUnitMatch(builder.id, builderName, builderDefName)
+	return builder ~= nil and isUnitMatch(builder.id, builderName, builderDefName)
 end
 
 local function inFactory(buildeeID)
@@ -228,6 +369,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:GameStart()
+	dispatchConditionCallin("VariablesInitialized")
 	dispatchConditionCallin("GameStart")
 end
 
@@ -283,7 +425,7 @@ function gadget:TeamDied(teamID)
 	dispatchConditionCallin("TeamDied", teamID)
 end
 
-function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+local function onMetaUnitAdded(unitID, unitDefID, unitTeam)
 	-- Other gadgets may create units within a spawn action. Assign loadout names only to loadout units.
 	local mapi = GG.MissionAPI
 	if mapi.nameOfUnitBeingSpawned and mapi.unitIDBeingSpawned == nil then
@@ -300,8 +442,11 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 	statistics.Increment(conditionTypes.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	runBatch(onMetaUnitAdded, unitID, unitDefID, unitTeam)
+end
 
-function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+local function onMetaUnitRemoved(unitID, unitDefID, unitTeam)
 	dispatchConditionCallin("MetaUnitRemoved", unitID, unitDefID, unitTeam)
 
 	local unitDefName = UnitDefs[unitDefID].name
@@ -310,6 +455,9 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	-- Don't untrack unit here, as other call-ins run after this one (UnitDestroyed, UnitTaken, ...)
 end
+function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	runBatch(onMetaUnitRemoved, unitID, unitDefID, unitTeam)
+end
 
 -- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
@@ -317,12 +465,15 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	return true
 end
 
-function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+local function onUnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	dispatchConditionCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(conditionTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+end
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	runBatch(onUnitTaken, unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -364,27 +515,24 @@ function gadget:UnitBuildStepPost(unitID)
 	dispatchConditionCallin("UnitBuildStepPost", unitID)
 end
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+local function onUnitFinished(unitID, unitDefID, unitTeam)
 	dispatchConditionCallin("UnitFinished", unitID, unitDefID, unitTeam)
 
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
 	wasUnderConstruction[unitID] = nil
 
-	-- Don't count units spawned by SpawnUnits action
-	if GG["MissionAPI"].spawningUnit then
-		return
+	-- Don't count units spawned by SpawnUnits action, nor starting commanders, initial loadout, wildlife, etc.
+	if not GG["MissionAPI"].spawningUnit and Spring.GetGameFrame() > 0 then
+		local unitDefName = UnitDefs[unitDefID].name
+		statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 	end
-	-- Don't count starting commanders, initial loadout, wildlife, etc.
-	if Spring.GetGameFrame() <= 0 then
-		return
-	end
-
-	local unitDefName = UnitDefs[unitDefID].name
-	statistics.Increment(conditionTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+end
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	runBatch(onUnitFinished, unitID, unitDefID, unitTeam)
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+local function onUnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	dispatchConditionCallin(
 		"UnitDestroyed",
 		unitID,
@@ -414,6 +562,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
 	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
+end
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	runBatch(onUnitDestroyed, unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -538,6 +689,38 @@ function gadget:FeatureDestroyed(featureID, attackerAllyTeamID)
 	untrackFeatureID(featureID)
 end
 
+function gadget:RecvLuaMsg(message, playerID)
+	local teamID, signal, id, detail = GG.CampaignAI.ReadSignal(message, playerID)
+	if not teamID then
+		return
+	end
+
+	if signal == aiSignals.SQUAD_FINISHED then
+		local squadName = squads.Assemble(teamID, id)
+		if squadName then
+			dispatchConditionCallin("SquadAssembled", squadName, teamID)
+		end
+	elseif signal == aiSignals.SQUAD_DISBANDED then
+		-- The AI says whether the squad gathers again, 1 or 0. The AI of engine 2026.11.02 does not say yet.
+		local squadName = squads.End(teamID, id, detail and detail == 1)
+		if squadName then
+			dispatchConditionCallin("SquadDisbanded", squadName, teamID)
+		end
+	elseif signal == aiSignals.REGION_ENTER or signal == aiSignals.REGION_EXIT then
+		local regionName = aiRegions.GetName(teamID, id)
+		local squadName = squads.GetName(teamID, detail)
+		if regionName and squadName then
+			local callin = signal == aiSignals.REGION_ENTER and "SquadEnteredRegion" or "SquadLeftRegion"
+			dispatchConditionCallin(callin, regionName, squadName, teamID)
+		end
+	elseif not unknownAISignals[signal] then
+		unknownAISignals[signal] = true
+		Spring.Log("Mission API triggers", LOG.WARNING, "Unknown campaign AI signal: " .. signal)
+	end
+
+	return true
+end
+
 function gadget:Initialize()
 	if not Spring.GetGameRulesParam("inMission") then
 		gadgetHandler:RemoveGadget()
@@ -545,21 +728,46 @@ function gadget:Initialize()
 	end
 
 	conditionTypes = GG["MissionAPI"].ConditionDefinitions.Types
-	callins = GG["MissionAPI"].ConditionDefinitions.Callins
 	triggers = GG["MissionAPI"].Triggers
+	triggersByType = VFS.Include("luarules/mission_api/conditions_loader.lua").IndexTriggersByType(triggers)
 	trackedUnitNames = GG["MissionAPI"].trackedUnitNames
+	callins = {}
+	for callinName, handlersByType in pairs(GG["MissionAPI"].ConditionDefinitions.Callins) do
+		local handlersWithTriggers = {}
+		for conditionType, handler in pairs(handlersByType) do
+			if triggersByType[conditionType] then
+				handlersWithTriggers[conditionType] = handler
+			end
+		end
+		if next(handlersWithTriggers) then
+			callins[callinName] = handlersWithTriggers
+		end
+	end
 
 	actionsDispatcher = VFS.Include("luarules/mission_api/actions_dispatcher.lua")
+
+	batch = GG["MissionAPI"].Modules.Batch
+	runBatch, deferBatch = batch.Run, batch.Defer
 
 	seismicContacts = GG["MissionAPI"].Modules.SeismicContacts
 	seismicIntervalFrames = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 	countdowns = GG["MissionAPI"].Modules.Countdowns
+	squads = GG["MissionAPI"].Modules.Squads
+	aiRegions = GG["MissionAPI"].Modules.AiRegions
+	aiSignals = VFS.Include("luarules/Utilities/campaign_ai_msg.lua").Signal
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
-	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+	statistics.Init({
+		processTriggersOfType = processTriggersOfType,
+		activateTrigger = activateTrigger,
+		evaluateLastValue = evaluateLastValue,
+		conditionKinds = GG["MissionAPI"].ConditionDefinitions.Kinds,
+		batch = batch,
+	})
 	-- TODO: Resolve flat globals vs imports vs the DI pattern (above).
-	GG["MissionAPI"].ActivateTrigger = activateTrigger
+	GG["MissionAPI"].ActivateTrigger = deferActivation
+	GG["MissionAPI"].EvaluateMetric = deferEvaluation
 
 	local tracking = GG["MissionAPI"].Modules.Tracking
 	doesUnitHaveName = tracking.DoesUnitHaveName
@@ -567,12 +775,16 @@ function gadget:Initialize()
 	doesFeatureHaveName = tracking.DoesFeatureHaveName
 	untrackFeatureID = tracking.UntrackFeatureID
 
-	doesUnitMatch = GG["MissionAPI"].Modules.UnitQuery.DoesUnitMatch
+	isUnitMatch = GG["MissionAPI"].Modules.UnitQuery.IsUnitMatch
+	isUnitIncluded = GG["MissionAPI"].Modules.UnitQuery.IsUnitIncluded
+
+	GG["MissionAPI"].Modules.Variables.ReportVariableWrites(onVariableWritten)
 
 	conditionContext = {
-		ActivateTrigger = activateTrigger,
+		ActivateTrigger = deferActivation,
+		EvaluateMetric = deferEvaluation,
 		DoesUnitHaveName = doesUnitHaveName,
-		DoesUnitMatch = doesUnitMatch,
+		IsUnitIncluded = isUnitIncluded,
 		DoesFeatureHaveName = doesFeatureHaveName,
 		IsBuildFrameOwner = isBuildFrameOwner,
 		InFactory = inFactory,
@@ -598,7 +810,7 @@ function gadget:Initialize()
 			local parameters = trigger.parameters
 			areaTracking.TrackUnitsInArea(
 				parameters.area,
-				parameters.teamName,
+				parameters.includeUnit.teamName,
 				triggerID,
 				onUnitsEnteredArea,
 				onUnitsLeftArea

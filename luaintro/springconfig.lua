@@ -143,14 +143,11 @@ if Spring.GetConfigInt("version", 0) < version then
 
 	Spring.SetConfigInt("VSyncGame", -1)
 	Spring.SetConfigInt("CamMode", 3)
-end
-version = 4
-if Spring.GetConfigInt("version", 0) < version then
-	Spring.SetConfigInt("version", version)
 
-	if Spring.GetConfigFloat("ui_scale", 1) == 1 then
-		Spring.SetConfigFloat("ui_scale", 0.94)
-	end
+
+	Spring.SetConfigInt("MaxParticles", 30000)
+	Spring.SetConfigFloat("EdgeMoveWidth", 0.02)
+	Spring.SetConfigInt("EdgeMoveDynamic", 1)
 end
 version = 5
 if Spring.GetConfigInt("version", 0) < version then
@@ -203,10 +200,35 @@ if Engine.FeatureSupport.nanoParticlesGL4 then
 	if Spring.GetConfigInt("version", 0) < version then
 		Spring.SetConfigInt("version", version)
 
-		Spring.SetConfigInt("MaxParticles", math.floor(Spring.GetConfigInt("MaxParticles", 10000) * 1.5))
-		Spring.SetConfigInt("MaxNanoParticles", Spring.GetConfigInt("MaxParticles", 15000) * 0.6)
+		Spring.SetConfigInt("MaxParticles", math.floor(Spring.GetConfigInt("MaxParticles", 30000) * 1.5))
+		Spring.SetConfigInt("MaxNanoParticles", Spring.GetConfigInt("MaxParticles", 30000) * 0.6)
 	end
 end
+
+if Spring.GetConfigInt("version", 0) < version then
+	version = 12
+	-- Music defaulted to the engine's 100, halve it!
+	if Spring.GetConfigInt("snd_volmusic", 100) >= 99 then
+		Spring.SetConfigInt("snd_volmusic", 50)
+	end
+end
+
+-- The interface reads ui_scale: the player's ui_scale_user (the options slider, 1 by default)
+-- times ui_scale_base, which only this file sets, to tune the overall interface size.
+local uiScaleBase = 0.95
+Spring.SetConfigFloat("ui_scale_base", uiScaleBase)
+local uiScaleUser = Spring.GetConfigFloat("ui_scale_user", -1)
+if uiScaleUser < 0 then
+	-- First launch with the split: the old 0.94 default becomes 1, a chosen scale keeps its size.
+	local uiScale = Spring.GetConfigFloat("ui_scale", -1)
+	if uiScale < 0 or math.abs(uiScale - 0.94) < 0.001 then
+		uiScaleUser = 1
+	else
+		uiScaleUser = math.clamp(math.round(uiScale / uiScaleBase, 2), 0.8, 1.4)
+	end
+	Spring.SetConfigFloat("ui_scale_user", uiScaleUser)
+end
+Spring.SetConfigFloat("ui_scale", uiScaleUser * uiScaleBase)
 
 Spring.SetConfigInt("NanoParticleMode", 1)
 Spring.SetConfigInt("UnitIconsSortedByDepth", 1)

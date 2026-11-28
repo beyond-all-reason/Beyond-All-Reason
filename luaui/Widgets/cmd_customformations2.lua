@@ -195,6 +195,7 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 local keyShift = 304
 local selectedUnits = spGetSelectedUnits()
 local selectedUnitsCount = spGetSelectedUnitsCount()
+local selectedTransportsCount = 0
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -406,6 +407,9 @@ end
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 	selectedUnitsCount = spGetSelectedUnitsCount()
+	if #fNodes > 0 and usingCmd == CMD_UNLOADUNIT then
+		selectedTransportsCount = #GetExecutingUnits(usingCmd)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -469,6 +473,9 @@ function widget:MousePress(mx, my, mButton)
 	-- Without this, the unloads issued will use the area of the last area unload
 	if usingCmd == CMD_UNLOADUNITS then
 		usingCmd = CMD_UNLOADUNIT
+	end
+	if usingCmd == CMD_UNLOADUNIT then
+		selectedTransportsCount = #GetExecutingUnits(usingCmd)
 	end
 
 	-- Is this command eligible for a custom formation ?
@@ -653,7 +660,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 		if
 			fDists[#fNodes] < adjustedMinFormationLength
-			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
+			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedTransportsCount - 1))
 		then
 			-- We should check if any units are able to execute it,
 			-- but the order is small enough network-wise that the tiny bug potential isn't worth it.
@@ -808,7 +815,7 @@ local function DrawFormationDots(zoomY)
 	local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
 	local dotSize = sqrt(zoomY * 0.24)
 	SetColor(usingCmd, 1)
-	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
+	if (usingCmd == CMD.UNLOAD_UNIT) and (lineLength < 64 * (selectedTransportsCount - 1)) then
 		glColor(1.0, 0.3, 0.0, 1.0)
 	end
 	glDepthTest(false)
@@ -1406,6 +1413,9 @@ function widget:Initialize()
 
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
+		if usingCmd == CMD_UNLOADUNIT then
+			selectedTransportsCount = #GetExecutingUnits(usingCmd)
+		end
 		usingRMB = true
 		inMinimap = fromMinimap or false
 
@@ -1510,7 +1520,7 @@ function widget:Initialize()
 
 			if
 				fDists[#fNodes] < adjustedMinFormationLength
-				or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
+				or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedTransportsCount - 1))
 			then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then

@@ -58,7 +58,8 @@ describe("mission_api.validation.references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {
 				type = V.conditionTypes.TotalUnitsKilled,
-				parameters = { teamName = "player", quantity = 1, unitName = "bot" },
+				parameters = { teamName = "player", unitName = "bot" },
+				count = 1,
 				actions = { "spawn", "create", "delete", "add", "remove" },
 			})
 			:WithAction("spawn", spawnUnits("bot"))
@@ -96,15 +97,18 @@ describe("mission_api.validation.references", function()
 			})))
 	end)
 
-	it("treats inline objective triggers as name references", function()
+	it("treats objective conditions as name references", function()
 		V.assertValid(V.validate(V.mission()
 			:WithObjective("watchBot", {
 				textKey = "watch bot",
-				trigger = { type = V.conditionTypes.UnitsOwned, parameters = { teamName = "player", unitName = "bot" } },
+				type = V.conditionTypes.UnitsOwned,
+				parameters = { teamName = "player", unitName = "bot" },
+				atLeast = 1,
 			})
 			:WithObjective("watchRock", {
 				textKey = "watch rock",
-				trigger = { type = V.conditionTypes.FeatureDestroyed, parameters = { featureName = "rock" } },
+				type = V.conditionTypes.FeatureDestroyed,
+				parameters = { featureName = "rock" },
 			})
 			:WithTrigger("t", {
 				type = V.conditionTypes.TimeElapsed,
@@ -385,10 +389,8 @@ describe("mission_api.validation.references", function()
 					V.mission()
 						:WithObjective("surviveBomb", {
 							textKey = "survive",
-							trigger = {
-								type = V.conditionTypes.CountdownFinished,
-								parameters = { countdownID = "bomb" },
-							},
+							type = V.conditionTypes.CountdownFinished,
+							parameters = { countdownID = "bomb" },
 						})
 						:WithTrigger("start", {
 							type = V.conditionTypes.TimeElapsed,
@@ -477,16 +479,111 @@ describe("mission_api.validation.references", function()
 			)
 		end)
 
-		it("warns about a countdown an inline objective trigger refers to, but no action adds", function()
+		it("warns about a countdown an objective condition refers to, but no action adds", function()
 			local result = V.validate(V.mission():WithObjective("surviveGhost", {
 				textKey = "survive",
-				trigger = { type = V.conditionTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
+				type = V.conditionTypes.CountdownFinished,
+				parameters = { countdownID = "ghost" },
 			}))
 
 			V.assertMessage(
 				result,
 				"Countdown is referenced, but never created. Countdown: ghost, "
-					.. "Referenced in: objective surviveGhost (trigger)"
+					.. "Referenced in: objective surviveGhost (condition)"
+			)
+		end)
+	end)
+
+	describe("squad names", function()
+		-- DefineSquad takes a team that an AI runs.
+		before_each(function()
+			V.env.Spring.GetAIInfo = function(teamID)
+				return 0, "AI", 0
+			end
+		end)
+
+		it("passes a squad that is defined, with a trigger waiting for it", function()
+			V.assertValid(V.validate(V.mission()
+				:WithTrigger("start", {
+					type = V.conditionTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "defineRaiders" },
+				})
+				:WithTrigger("raidersReady", {
+					type = V.conditionTypes.SquadAssembled,
+					parameters = { squadName = "raiders" },
+					actions = { "ok" },
+				})
+				:WithAction("defineRaiders", {
+					type = V.actionTypes.DefineSquad,
+					parameters = {
+						squadName = "raiders",
+						teamName = "player",
+						position = { x = 100, z = 100 },
+						gatherRange = 500,
+						composition = { armwar = 2 },
+					},
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })))
+		end)
+
+		it("warns about a squad a trigger refers to, but no action defines", function()
+			local result = V.validate(V.mission()
+				:WithTrigger("watchGhost", {
+					type = V.conditionTypes.SquadDisbanded,
+					parameters = { squadName = "ghost" },
+					actions = { "ok" },
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
+
+			V.assertMessage(
+				result,
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: trigger watchGhost"
+			)
+		end)
+
+		it("warns about a squad an action refers to, but no action defines", function()
+			local result = V.validate(V.mission():WithAction("runGhost", {
+				type = V.actionTypes.SetSquadTask,
+				parameters = { squadName = "ghost", task = "DEFEND", position = { x = 100, z = 100 } },
+			}))
+
+			V.assertMessage(
+				result,
+				"Squad name is referenced, but never created. Squad name: ghost, Referenced in: action runGhost"
+			)
+		end)
+	end)
+
+	describe("region names", function()
+		it("warns about a region an action refers to, but no action defines", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction(
+						"clearGhost",
+						{ type = V.actionTypes.ClearAiRegion, parameters = { regionName = "ghost" } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Region name is referenced, but never created. Region name: ghost, Referenced in: action clearGhost"
+			)
+		end)
+	end)
+
+	describe("base plan names", function()
+		it("warns about a base plan an action cancels, but no action adds to", function()
+			local result = V.validate(
+				V.mission():WithAction(
+					"cancelGhost",
+					{ type = V.actionTypes.CancelBasePlan, parameters = { basePlanName = "ghost" } }
+				)
+			)
+
+			V.assertMessage(
+				result,
+				"Base plan name is referenced, but never created. Base plan name: ghost, Referenced in: action cancelGhost"
 			)
 		end)
 	end)
@@ -619,7 +716,7 @@ describe("mission_api.validation.references", function()
 		end)
 	end)
 	describe("variables", function()
-		it("warns about a variable with no value at the start of the mission", function()
+		it("reports a variable that is not declared", function()
 			V.missionAPI().Variables = { waveSize = 3 }
 			local result = V.validate(V.mission()
 				:WithTrigger("t", {
@@ -631,13 +728,12 @@ describe("mission_api.validation.references", function()
 					type = V.actionTypes.SendMessage,
 					parameters = { messageKey = "ok" },
 				})
-				:WithObjective("o", { textKey = "ok", amount = { variable = "delay" } }))
+				:WithObjective("o", { textKey = "ok", count = { variable = "delay" } }))
 
 			assert.are.same({
-				"Variable has no value at the start of the mission. Variable: delay, "
-					.. "Referenced in: objective o (amount), trigger t (seconds)",
-			}, result.warnings)
-			assert.is_true(result.ok)
+				"Variable is not declared. Variable: delay, "
+					.. "Referenced in: objective o (count), trigger t (seconds)",
+			}, result.errors)
 		end)
 	end)
 end)

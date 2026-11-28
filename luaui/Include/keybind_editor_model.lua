@@ -102,6 +102,18 @@ local catalogAny, catalogAnyPrefixes = {}, {}
 local L = {}
 model.L = L
 
+-- How the presets read. A surface that names them otherwise overrides these on its own copy of this module (each
+-- require gets one): a shipped preset's shown name and description, and the strings once they are read.
+function model.presetLabel(name)
+	return name
+end
+
+function model.presetDescription(builtin)
+	return builtin.description and BAR.I18N(builtin.description) or nil
+end
+
+function model.adjustStrings(strings) end
+
 local colorText = "\255\235\235\235"
 -- The font is shared with every other widget, some of which set an outline and leave it set.
 local outline = { 0, 0, 0, 0.4 }
@@ -202,7 +214,8 @@ local function buildPresetOptions()
 
 	model.presetOptions = {}
 	for _, b in ipairs(profiles.builtins) do
-		local label = (model.dirty and b.name == active) and (b.name .. " *") or b.name
+		local shown = model.presetLabel(b.name)
+		local label = (model.dirty and b.name == active) and (shown .. " *") or shown
 		model.presetOptions[#model.presetOptions + 1] =
 			{ label = label, name = b.name, tag = L.defaultTag, group = "default" }
 	end
@@ -217,6 +230,11 @@ end
 -- Shipped profiles can be copied but not renamed or deleted.
 function model.activeIsOwn()
 	return profiles.get(profiles.activeName()) ~= nil
+end
+
+-- Whether the player picked a preset; without a pick the first shipped one applies.
+function model.presetPicked()
+	return profiles.getActive() ~= nil
 end
 
 -- Single source for whether a button is live, so it cannot draw enabled and do nothing.
@@ -505,6 +523,7 @@ local function buildResolvedCatalog()
 	L.applyFailedTitle = BAR.I18N("ui.keybinds.editor.applyFailedTitle")
 	L.accept = BAR.I18N("ui.keybinds.editor.accept")
 	L.cancel = BAR.I18N("ui.keybinds.editor.cancel")
+	model.adjustStrings(L)
 end
 
 -- The modifier names a search can name, off the same list the chips are printed from.
@@ -1154,7 +1173,7 @@ function model.rebuildRows()
 		else
 			model.rows[1] = {
 				type = "note",
-				text = BAR.I18N("ui.keybinds.editor.changedNothing", { name = model.base.name }),
+				text = BAR.I18N("ui.keybinds.editor.changedNothing", { name = model.presetLabel(model.base.name) }),
 			}
 		end
 	end
@@ -1168,7 +1187,8 @@ function model.compareOptions()
 	local options = { { label = L.compareNone or "None", none = true } }
 	for _, b in ipairs(profiles.builtins) do
 		if b.name ~= active then
-			options[#options + 1] = { label = b.name, name = b.name, tag = L.defaultTag, group = "default" }
+			options[#options + 1] =
+				{ label = model.presetLabel(b.name), name = b.name, tag = L.defaultTag, group = "default" }
 		end
 	end
 	-- The store lists its profiles by name.
@@ -1285,7 +1305,7 @@ end
 local function applyActiveProfile(name, fromName)
 	Spring.SetConfigString("KeybindingFile", customKeysFile)
 	if fromName and fromName ~= name then
-		Spring.Echo("Keybind profile: " .. fromName .. " -> " .. name)
+		Spring.Echo("Keybind profile: " .. model.presetLabel(fromName) .. " -> " .. model.presetLabel(name))
 	end
 	toggleMenu(wantsGridMenu(name))
 
@@ -1556,11 +1576,11 @@ end
 local function selectProfile(name, fromName, offPanel)
 	if not profiles.materialize(name) then
 		if offPanel then
-			Spring.Echo("Keybind profile: could not apply " .. name)
+			Spring.Echo("Keybind profile: could not apply " .. model.presetLabel(name))
 		else
 			openDialog({
 				title = L.applyFailedTitle,
-				message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
+				message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = model.presetLabel(name) }),
 				accept = function() end,
 			})
 		end
@@ -1695,7 +1715,7 @@ function model.startDuplicate()
 	local from = profiles.activeName()
 	openDialog({
 		title = L.duplicateTitle,
-		initial = profiles.uniqueName(from),
+		initial = profiles.uniqueName(model.presetLabel(from)),
 		accept = function(name)
 			-- Copies what is on screen rather than what was last saved, so pending edits come along.
 			local base = profiles.baseOf(from)
@@ -1713,7 +1733,7 @@ function model.startClipboard(exporting)
 		Spring.SetClipboard(profiles.exportText({ name = name, binds = stagedBinds(), fakeMeta = activeFakeMeta() }))
 		openDialog({
 			title = L.export,
-			message = BAR.I18N("ui.keybinds.editor.exportDone", { name = name }),
+			message = BAR.I18N("ui.keybinds.editor.exportDone", { name = model.presetLabel(name) }),
 			info = true,
 			acceptLabel = L.ok,
 			accept = function() end,
@@ -1748,7 +1768,7 @@ function model.startClipboard(exporting)
 		initial = profiles.uniqueName(stamped or L.newProfile),
 		preview = { lines = lines, scroll = 0, summary = "" },
 		choice = { label = L.importAsNew, on = whole or not own, locked = not own },
-		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = from }),
+		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = model.presetLabel(from) }),
 		nameless = false,
 		blocked = false,
 		acceptLabel = L.import,
@@ -1937,7 +1957,9 @@ function model.applyProfile(name)
 	-- Can arrive from the console or another widget while the panel is open, so it declines
 	-- rather than discarding edits the player never answered for.
 	if model.dirty then
-		Spring.Echo("Keybind profile: save or discard your keybind changes before switching to " .. name)
+		Spring.Echo(
+			"Keybind profile: save or discard your keybind changes before switching to " .. model.presetLabel(name)
+		)
 
 		return false
 	end
@@ -2836,17 +2858,18 @@ end
 function model.presetTip(name)
 	local builtin = profiles.isBuiltin(name)
 	if builtin then
-		return { text = builtin.description and BAR.I18N(builtin.description) or nil, note = L.presetDefault }
+		return { text = model.presetDescription(builtin), note = L.presetDefault }
 	end
 	local base = profiles.baseOf(name)
 
-	return { note = base and BAR.I18N("ui.keybinds.editor.presetBasedOn", { name = base.name }) or L.presetOwn }
+	local basedOn = base and BAR.I18N("ui.keybinds.editor.presetBasedOn", { name = model.presetLabel(base.name) })
+	return { note = basedOn or L.presetOwn }
 end
 
 -- The column's Changed entry.
 function model.changedTip()
 	if model.base then
-		return { text = BAR.I18N("ui.keybinds.editor.changedTooltip", { name = model.base.name }) }
+		return { text = BAR.I18N("ui.keybinds.editor.changedTooltip", { name = model.presetLabel(model.base.name) }) }
 	end
 
 	return { note = L.changedNoneTooltip }
@@ -2879,10 +2902,13 @@ function model.rowTip(row, zone, group)
 	end
 	if row.change and model.base then
 		if #row.change > 0 then
-			notes[#notes + 1] =
-				BAR.I18N("ui.keybinds.editor.defaultIn", { name = model.base.name, keys = model.changeKeys(row) })
+			notes[#notes + 1] = BAR.I18N(
+				"ui.keybinds.editor.defaultIn",
+				{ name = model.presetLabel(model.base.name), keys = model.changeKeys(row) }
+			)
 		else
-			notes[#notes + 1] = BAR.I18N("ui.keybinds.editor.defaultNone", { name = model.base.name })
+			notes[#notes + 1] =
+				BAR.I18N("ui.keybinds.editor.defaultNone", { name = model.presetLabel(model.base.name) })
 		end
 	end
 	if notes[1] then

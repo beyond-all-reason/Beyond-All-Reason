@@ -30,6 +30,7 @@
   - Support units stay on hold position when their lab is on maneuver or roam: Ballista, Barrage, Belcher, Inferno, Medusa, Salacia, Hippocampus, Lance, Wheelie
   - Commander D-Gun damage to raptor queens 99999 -> 10, scav bosses 1000 -> 10
 - [Fixed]
+  - Transport load and unload orders are more reliable, and transports keep their command queues intact.
   - Custom widgets now use the same takeover logic as the player list in multiplayer.
   - Taking an inactive team also transfers its unused unit capacity, including from empty teams.
   - Taken teams start receiving unit capacity back after the first allied unit share.
@@ -38,11 +39,13 @@
   - Rejoining a match in progress after having units taken no longer leaves you stuck with a unit limit of zero.
   - Capturing or sharing carriers and drones checks your current unit limit and handles the transfer correctly.
   - Allied AI can be taken in singleplayer again, but not in multiplayer. Work continues with the take command.
+  - Spies stun scavenger anti-nukes for the full 20 seconds, the same as normal anti-nukes.
   - Resigning during a pause would turn players into spectators who could not unpause, and the game would never end.
   - DGun Stall Assist is much better at clearing Wait commands on constructors and factories after you DGun.
   - Prevented an uncommon crash caused by units being deleted mid-update when a team is wiped out after losing.
   - A bug in the animation compiler caused some calls to start or stop an animation also to begin their reverse animation. For example, stopping a radar dish from spinning also started the spin, and vice versa.
   - Shields block explosions and projectiles by the same rules. Applies mostly to FFA. Non-allied damage is always blocked, even against other non-allies.
+  - Scavenger constructors and factories show the normal grid menu layout in games with ruins or zombies, not only against the Scavengers AI.
 
 # October
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.

@@ -4,7 +4,7 @@
 
 This file lists the recorded license, contributor, and source PR for every art asset under `unittextures/` that has passed through the BAR CLA bot. Assets not yet processed through the CLA flow are not listed here — they fall under the project policy in [legal/POLICY_PROJECT_LICENSE.md](../legal/POLICY_PROJECT_LICENSE.md).
 
-Total assets recorded: **1005**
+Total assets recorded: **1006**
 
 | File | License | Contributor | PR | Date |
 |---|---|---|---|---|
@@ -198,6 +198,7 @@ Total assets recorded: **1005**
 | `decals/armveil_aoplane.dds` | `LicenseRef-BAR-CLA-1.0` | Beherith | manual-audit | 2026-06-16 |
 | `decals/armvp_aoplane.dds` | `LicenseRef-BAR-CLA-1.0` | Beherith | manual-audit | 2026-06-16 |
 | `decals/armvulc_aoplane.dds` | `LicenseRef-BAR-CLA-1.0` | Beherith | manual-audit | 2026-06-16 |
+| `decals/armwar_10.5_10.5_aoplane.png` | `LicenseRef-BAR-CLA-1.0` | Beherith (submitted by efrec) | #10230 | 2026-11-25 |
 | `decals/armwar_8_8_aoplane.png` | `LicenseRef-BAR-CLA-1.0` | Beherith | #10166 | 2026-11-20 |
 | `decals/armwin_aoplane.dds` | `LicenseRef-BAR-CLA-1.0` | Beherith | manual-audit | 2026-06-16 |
 | `decals/armwint2_aoplane.dds` | `CC-BY-SA-4.0` | Cremuss | manual-audit | 2026-11-07 |

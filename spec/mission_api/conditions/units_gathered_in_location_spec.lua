@@ -50,29 +50,29 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 	end)
 
 	local function squadTrigger()
-		return TriggerBuilder.new():WithParameters({ area = area, unitName = "squad", teamName = 0 }):Build()
+		return TriggerBuilder.new()
+			:WithParameters({ area = area, includeUnit = { unitName = "squad", teamName = 0 } })
+			:Build()
 	end
 
 	local function newContext()
-		local context = ConditionContextBuilder.new():Build()
+		local context = ConditionContextBuilder.new():WithEnv(env):Build()
 		return context, context.timesFired
 	end
 
 	-- Refuses a trigger that fired and does not repeat, as the gadget's ActivateTrigger does.
 	local function gatedContext()
-		local context = newContext()
-		local fires = 0
-		context.ActivateTrigger = function(t)
-			if t.triggered and not t.settings.repeating then
-				return false
-			end
-			t.triggered = true
-			fires = fires + 1
-			return true
-		end
-		return context, function()
-			return fires
-		end
+		local context = ConditionContextBuilder.new()
+			:WithEnv(env)
+			:WithActivationResult(function(t)
+				if t.triggered and not t.settings.repeating then
+					return false
+				end
+				t.triggered = true
+				return true
+			end)
+			:Build()
+		return context, context.timesFired
 	end
 
 	local function frame(t, context, id)
@@ -80,12 +80,12 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 		callins.GameFrame(t, id or triggerID, context, frameNumber)
 	end
 
-	it("declares its type and parameters, all required", function()
+	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "UnitsGatheredInLocation",
 			area = "Area!",
-			unitName = "UnitName!",
-			teamName = "TeamName!",
+			includeUnit = "UnitFilter!",
+			excludeUnit = "UnitFilters",
 		}, summarizeSchema(unitsGathered))
 	end)
 
@@ -251,15 +251,14 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 
 	it("asks a refused trigger again half a second later while they are all inside", function()
 		local t = squadTrigger()
-		local context = newContext()
-		local valid, asks, fires = false, 0, 0
-		context.ActivateTrigger = function()
-			asks = asks + 1
-			if valid then
-				fires = fires + 1
-			end
-			return valid
-		end
+		local valid, asks = false, 0
+		local context = ConditionContextBuilder.new()
+			:WithEnv(env)
+			:WithActivationResult(function()
+				asks = asks + 1
+				return valid
+			end)
+			:Build()
 		callins.UnitsEnteredArea(t, triggerID, context, { 100, 101, 102 })
 		frame(t, context)
 		valid = true
@@ -267,12 +266,12 @@ describe("mission_api.conditions.units_gathered_in_location", function()
 			frame(t, context)
 		end
 		assert.are.equal(1, asks)
-		assert.are.equal(0, fires)
+		assert.are.equal(0, context.timesFired())
 
 		frame(t, context)
 		frame(t, context)
 		assert.are.equal(2, asks)
-		assert.are.equal(1, fires)
+		assert.are.equal(1, context.timesFired())
 	end)
 
 	it("keeps each trigger to itself", function()

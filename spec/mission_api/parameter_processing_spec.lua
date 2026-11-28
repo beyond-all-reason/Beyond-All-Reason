@@ -8,6 +8,7 @@ local conditionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/c
 	.LoadConditionDefinitions()
 GG["MissionAPI"].ActionDefinitions = actionDefinitions
 GG["MissionAPI"].ConditionDefinitions = conditionDefinitions
+GG["MissionAPI"].Teams = { player = 0, [0] = "player" }
 local parameterProcessing = MissionSpecEnv.include(env, "luarules/mission_api/parameter_processing.lua")
 GG["MissionAPI"] = nil
 
@@ -110,7 +111,7 @@ describe("mission_api.parameter_processing", function()
 		it("records the length of the sound file", function()
 			processAction({
 				type = actionTypes.PlaySound,
-				parameters = { soundfile = "sounds/beep.wav" },
+				parameters = { soundFile = "sounds/beep.wav" },
 			})
 
 			assert.are.equal(1.5, (GG["MissionAPI"] --[[@as table<string, any>]]).soundFiles["sounds/beep.wav"])
@@ -153,6 +154,28 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("UnitFilter", function()
+		it("turns the team name into its team ID and the unit def name into a set of its ID", function()
+			local unitFilter = parameterProcessing.ProcessValue(
+				parameterTypes.Types.UnitFilter,
+				{ unitName = "commander", unitDefName = "armwar", teamName = "player" }
+			)
+
+			assert.are.same({ unitName = "commander", unitDefName = { [7] = true }, teamName = 0 }, unitFilter)
+		end)
+	end)
+
+	describe("UnitFilters", function()
+		it("turns the team name of every unit filter into its team ID", function()
+			local unitFilters = parameterProcessing.ProcessValue(
+				parameterTypes.Types.UnitFilters,
+				{ { teamName = "player" }, { unitName = "pawn" } }
+			)
+
+			assert.are.same({ { teamName = 0 }, { unitName = "pawn" } }, unitFilters)
+		end)
+	end)
+
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({
@@ -167,7 +190,7 @@ describe("mission_api.parameter_processing", function()
 	it("leaves parameters the mission did not set alone", function()
 		local parameters = processAction({
 			type = actionTypes.PlaySound,
-			parameters = { soundfile = "sounds/beep.wav" },
+			parameters = { soundFile = "sounds/beep.wav" },
 		})
 
 		assert.is_nil(parameters.enqueue)

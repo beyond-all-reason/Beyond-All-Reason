@@ -85,12 +85,6 @@ local function toReversibleMap(namesByID)
 	return table.merge(namesByID, table.invert(namesByID))
 end
 
-local function toKeySet(tbl)
-	return table.map(tbl, function()
-		return true
-	end)
-end
-
 ----------------------------------------------------------------
 --- Module exports ---------------------------------------------
 
@@ -98,8 +92,7 @@ end
 ---@field entryPoint string
 ---@field difficulty string?
 ---@field options table
----@field variables table
----@field persistentVariables table<string, true> the keys of the variables that came from the save
+---@field savedVariables table the persistent variables in the campaign's save
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID, Gaia's team as "gaia"
 ---@field alliances table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID, Gaia's allyteam as "gaia"
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
@@ -112,14 +105,12 @@ end
 
 local teamNames, dummyTeams, errors = readTeams()
 local allyTeamNames = readAllyTeamNames(errors)
-local variables = missionOptions.variables or {}
 
 return {
 	entryPoint = missionOptions.entryPoint,
 	difficulty = missionOptions.difficulty,
 	options = missionOptions.options or {},
-	variables = variables,
-	persistentVariables = toKeySet(variables),
+	savedVariables = missionOptions.variables or {},
 	teams = toReversibleMap(teamNames),
 	alliances = toReversibleMap(allyTeamNames),
 	dummyTeams = dummyTeams,

@@ -19,6 +19,8 @@ local validationReport = VFS.Include("luarules/mission_api/validation/report.lua
 local loadReport = validationReport.Create()
 
 local missionLoaded = true
+-- Marching units get their own speed back within half a second of their march order going.
+local MARCH_UPDATE_FRAMES = math.floor(Game.gameSpeed / 2)
 local missionLoadError
 local missionLoadStep
 
@@ -35,8 +37,7 @@ local function setUpMissionAPI(gameSetup)
 
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
-	GG["MissionAPI"].Variables = gameSetup.variables
-	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].SavedVariables = gameSetup.savedVariables
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].Alliances = gameSetup.alliances
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
@@ -51,13 +52,14 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].effectNames = {}
-	GG["MissionAPI"].ManagedObjectives = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.ConditionKinds = VFS.Include("luarules/mission_api/condition_kinds.lua")
+	GG["MissionAPI"].Modules.Batch = VFS.Include("luarules/mission_api/batch.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Variables = VFS.Include("luarules/mission_api/variables.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
@@ -70,6 +72,11 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.Stages = VFS.Include("luarules/mission_api/stages.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.Squads = VFS.Include("luarules/mission_api/squads.lua")
+	GG["MissionAPI"].Modules.AreaPolygons = VFS.Include("luarules/mission_api/area_polygons.lua")
+	GG["MissionAPI"].Modules.AiRegions = VFS.Include("luarules/mission_api/ai_regions.lua")
+	GG["MissionAPI"].Modules.BuildAreas = VFS.Include("luarules/mission_api/build_areas.lua")
+	GG["MissionAPI"].Modules.BasePlans = VFS.Include("luarules/mission_api/base_plans.lua")
 	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
 	GG["MissionAPI"].Modules.Cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
 	GG["MissionAPI"].Modules.Camera = VFS.Include("luarules/mission_api/camera.lua")
@@ -88,9 +95,6 @@ local function setUpMissionAPI(gameSetup)
 
 	conditionsController = VFS.Include("luarules/mission_api/conditions_loader.lua")
 	GG["MissionAPI"].ConditionDefinitions = conditionsController.LoadConditionDefinitions()
-	-- The mission editor writes TriggerDefinitions.Types into every mission it exports, so the old name
-	-- stays for a release or two to keep those missions loading.
-	GG["MissionAPI"].TriggerDefinitions = GG["MissionAPI"].ConditionDefinitions
 
 	GG["MissionAPI"].EffectDefinitions = VFS.Include("luarules/mission_api/effects_loader.lua").LoadEffectDefinitions()
 	local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
@@ -117,6 +121,11 @@ local function loadMission(gameSetup)
 		failMission(reason)
 		return
 	end
+
+	local variables = GG["MissionAPI"].Modules.Variables
+	GG["MissionAPI"].Variables =
+		variables.GetStartingValues(mission.Variables, mission.PersistentVariables, GG["MissionAPI"].SavedVariables)
+	GG["MissionAPI"].PersistentVariableKeys = variables.GetPersistentKeys(mission.PersistentVariables)
 
 	missionLoadStep = "validating " .. gameSetup.entryPoint
 	local validationResult = validateMission(mission)
@@ -161,7 +170,6 @@ local function loadMission(gameSetup)
 	)
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
-	parameterProcessing.ProcessManagedObjectiveParameters(GG["MissionAPI"].ManagedObjectives)
 	if GG["MissionAPI"].UnitLoadout then
 		parameterProcessing.ProcessValue(
 			GG["MissionAPI"].Modules.ParameterTypes.Types.UnitLoadout,
@@ -214,12 +222,14 @@ function gadget:GamePreload()
 		return
 	end
 
-	local loadoutModule = GG["MissionAPI"].Modules.Loadout
-	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
-	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
+	GG["MissionAPI"].Modules.Batch.Run(function()
+		local loadoutModule = GG["MissionAPI"].Modules.Loadout
+		loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
+		loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	local stages = GG["MissionAPI"].Modules.Stages
-	stages.ActivateStage(stages.GetCurrentStageID())
+		local stages = GG["MissionAPI"].Modules.Stages
+		stages.ActivateStage(stages.GetCurrentStageID())
+	end)
 end
 
 function gadget:GameFrame(frameNumber)
@@ -234,6 +244,9 @@ function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
+	if frameNumber % MARCH_UPDATE_FRAMES == 0 then
+		GG["MissionAPI"].Modules.Marching.UpdateSpeeds()
+	end
 end
 
 function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factoryID)

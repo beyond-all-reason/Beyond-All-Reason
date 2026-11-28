@@ -33,6 +33,17 @@ local triggers = {
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
 
+	stopFirstQueuedVoice = {
+		type = conditionTypes.TimeElapsed,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			seconds = 3.5,
+		},
+		actions = { 'stopVoiceQueued1' },
+	},
+
 	soundNotification = {
 		type = conditionTypes.TimeElapsed,
 		settings = {
@@ -67,7 +78,7 @@ local actions = {
 	playSoundPosition = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/weapons-mult/mgun12.wav',
+			soundFile = 'sounds/weapons-mult/mgun12.wav',
 			volume = 3.5,
 			position = { x = 1800, z = 1600 },
 		},
@@ -83,7 +94,7 @@ local actions = {
 	playVoiceQueued1 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
+			soundFile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
 			enqueue = true,
 		},
 	},
@@ -91,8 +102,15 @@ local actions = {
 	playVoiceQueued2 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/winter/EnemyCommanderDied.wav',
+			soundFile = 'sounds/voice/en/winter/EnemyCommanderDied.wav',
 			enqueue = true,
+		},
+	},
+
+	stopVoiceQueued1 = {
+		type = actionTypes.StopPlayback,
+		parameters = {
+			soundFile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
 		},
 	},
 
@@ -107,7 +125,7 @@ local actions = {
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Two voice sounds in succession",
+			messageKey = "Two voice sounds in succession, the first cut short",
 		},
 	},
 

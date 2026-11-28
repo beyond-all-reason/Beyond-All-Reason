@@ -1,11 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ConditionKinds = GG['MissionAPI'].Modules.ConditionKinds
 
-local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
+local function matchesBuild(trigger, context, unitID, unitDefID, unitTeam, builderID)
 	local parameters = trigger.parameters
-	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
-		return false
-	end
-	if parameters.teamName and unitTeam ~= parameters.teamName then
+	if not context.IsUnitIncluded(unitID, parameters, unitDefID, unitTeam) then
 		return false
 	end
 	if parameters.builderName and not context.DoesUnitHaveName(builderID, parameters.builderName) then
@@ -17,19 +15,26 @@ local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
 	return true
 end
 
+local function claimBuildee(trigger, triggerID, context, buildeeID, activated)
+	if activated then
+		context.ClaimConstructionStart(buildeeID, triggerID)
+	end
+end
+
 -- ConstructionStarted activates once per buildee: on its own build frame, or on the first
 -- build-assist the filters take. Only an activation that goes through claims the buildee.
 local function startConstruction(trigger, triggerID, context, buildeeID)
-	if not context.HasConstructionStarted(buildeeID, triggerID) and context.ActivateTrigger(trigger) then
-		context.ClaimConstructionStart(buildeeID, triggerID)
+	if not context.HasConstructionStarted(buildeeID, triggerID) then
+		context.ActivateTrigger(trigger, claimBuildee, triggerID, buildeeID)
 	end
 end
 
 return {
 	type = 'ConstructionStarted',
+	kind = ConditionKinds.Event,
 	parameters = {
-		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
+		{ name = 'includeUnit',    required = true,  type = ParameterTypes.UnitFilter },
+		{ name = 'excludeUnit',    required = false, type = ParameterTypes.UnitFilters },
 		{ name = 'builderName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
 	},
@@ -39,14 +44,14 @@ return {
 			if not (builderID or GG['MissionAPI'].spawnedUnitIsBeingBuilt) or not Spring.GetUnitIsBeingBuilt(unitID) then
 				return
 			end
-			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
+			if not matchesBuild(trigger, context, unitID, unitDefID, unitTeam, builderID) then
 				return
 			end
 			startConstruction(trigger, triggerID, context, unitID)
 		end,
 		-- The triggers gadget resolves matching build placements into potential trigger subjects.
 		BuildAssisted = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, builderID)
-			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
+			if not matchesBuild(trigger, context, unitID, unitDefID, unitTeam, builderID) then
 				return
 			end
 			startConstruction(trigger, triggerID, context, unitID)

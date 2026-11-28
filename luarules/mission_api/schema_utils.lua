@@ -68,6 +68,7 @@ local function collateSchemas()
 	local missionAPI = GG["MissionAPI"]
 	local parameterTypes = missionAPI.Modules.ParameterTypes
 	local loadoutSchema = VFS.Include("luarules/mission_api/loadout_schema.lua")
+	local unitFilterSchema = VFS.Include("luarules/mission_api/unit_filter_schema.lua")
 	return {
 		conditions = collateObjectSchemas(missionAPI.ConditionDefinitions),
 		triggerSettings = table.copy(VFS.Include("luarules/mission_api/triggers_schema.lua").Settings),
@@ -75,6 +76,8 @@ local function collateSchemas()
 		objectiveSettings = table.copy(VFS.Include("luarules/mission_api/objectives_schema.lua").Settings),
 		unitEntryFields = table.copy(loadoutSchema.UnitEntryFields),
 		featureEntryFields = table.copy(loadoutSchema.FeatureEntryFields),
+		unitFilterFields = table.copy(unitFilterSchema.UnitFilterFields),
+		unitFilterAtMostOneOf = table.copy(unitFilterSchema.AtMostOneOf),
 		parameterTypes = table.copy(parameterTypes.Types),
 		enums = table.copy(parameterTypes.Enums),
 	}

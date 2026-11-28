@@ -1294,8 +1294,8 @@ function model.syncValues(isHeld)
 	local resolution = getOption("resolution")
 	if resolution and resolution.onload then
 		local before = resolution.options[resolution.value]
-		resolution.onload(resolution)
-		changes = changes or resolution.options[resolution.value] ~= before
+		local moved = resolution.onload(resolution) -- true: the window went to another display
+		changes = changes or moved or resolution.options[resolution.value] ~= before
 	end
 	if rereadBound(isHeld) then
 		changes = true

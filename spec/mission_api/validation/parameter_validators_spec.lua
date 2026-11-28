@@ -67,7 +67,7 @@ describe("mission_api.validation.parameter_validators", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
 				type = V.actionTypes.PlaySound,
-				parameters = { soundfile = "x", enqueue = "bad" },
+				parameters = { soundFile = "x", enqueue = "bad" },
 			})
 
 			V.assertMessage(
@@ -90,13 +90,12 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Quantity", function()
 		it("rejects a negative number", function()
-			local result = V.validateTrigger(V.trigger(V.conditionTypes.UnitsOwned, {
-				teamName = "player",
-				quantity = -1,
-				unitDefName = "armwar",
-			}))
+			local result = V.validateAction({
+				type = V.actionTypes.AddCountdown,
+				parameters = { countdownID = "c", seconds = -1 },
+			})
 
-			V.assertMessage(result, "Quantity must be >= 0, got -1. Trigger: t, Parameter: quantity")
+			V.assertMessage(result, "Quantity must be >= 0, got -1. Action: a, Parameter: seconds")
 		end)
 	end)
 
@@ -323,6 +322,71 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("UnitDefCounts", function()
+		-- DefineSquad takes a team that an AI runs.
+		before_each(function()
+			V.env.Spring.GetAIInfo = function(teamID)
+				return 0, "AI", 0
+			end
+		end)
+
+		local function validateComposition(composition)
+			return V.validateAction({
+				type = V.actionTypes.DefineSquad,
+				parameters = {
+					squadName = "raiders",
+					teamName = "player",
+					position = { x = 0, z = 0 },
+					gatherRange = 600,
+					composition = composition,
+				},
+			})
+		end
+
+		it("rejects an empty table", function()
+			V.assertMessage(validateComposition({}), "unitDefCounts table is empty. Action: a, Parameter: composition")
+		end)
+
+		it("rejects a unit def that does not exist", function()
+			V.assertMessage(
+				validateComposition({ noSuch = 2 }),
+				"Invalid unitDefName: noSuch. Action: a, Parameter: composition[noSuch]"
+			)
+		end)
+
+		it("rejects a count that is not a whole number above zero", function()
+			V.assertMessage(
+				validateComposition({ armwar = 0 }),
+				"PositiveInteger must be a whole number > 0, got 0. Action: a, Parameter: composition[armwar]"
+			)
+		end)
+
+		it("accepts unit def names with their counts", function()
+			V.assertValid(validateComposition({ armwar = 3 }))
+		end)
+	end)
+
+	describe("SquadTask", function()
+		local function validateTask(task)
+			return V.validateAction({
+				type = V.actionTypes.SetSquadTask,
+				parameters = { squadName = "raiders", task = task, position = { x = 0, z = 0 } },
+			})
+		end
+
+		it("rejects a task the campaign AI's squads do not have", function()
+			V.assertMessage(validateTask("PATROL"), "Invalid task: PATROL. Action: a, Parameter: task")
+		end)
+
+		it("rejects a task of the AI that missions do not get", function()
+			V.assertMessage(validateTask("ATTACK"), "Invalid task: ATTACK. Action: a, Parameter: task")
+		end)
+
+		it("accepts a task by its name", function()
+			V.assertNoMessageContaining(validateTask("DEFEND"), "Parameter: task")
+		end)
+	end)
+
 	describe("FeatureDefName", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({
@@ -483,23 +547,23 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("SoundFile", function()
 		it("rejects the wrong type", function()
-			local result = V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundfile = 123 } })
+			local result = V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundFile = 123 } })
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected string, got number. Action: a, Parameter: soundfile"
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: soundFile"
 			)
 		end)
 
 		it("rejects a file that does not exist", function()
 			local result = V.validateAction({
 				type = V.actionTypes.PlaySound,
-				parameters = { soundfile = "nonexistent/file.wav" },
+				parameters = { soundFile = "nonexistent/file.wav" },
 			})
 
 			V.assertMessage(
 				result,
-				"Invalid soundfile: nonexistent/file.wav. File does not exist. Action: a, Parameter: soundfile"
+				"Invalid soundfile: nonexistent/file.wav. File does not exist. Action: a, Parameter: soundFile"
 			)
 		end)
 
@@ -514,14 +578,14 @@ describe("mission_api.validation.parameter_validators", function()
 			end
 
 			local result =
-				V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundfile = "dummy.wav" } })
+				V.validateAction({ type = V.actionTypes.PlaySound, parameters = { soundFile = "dummy.wav" } })
 
 			V.env.VFS.FileExists = originalFileExists
 			V.env.ReadWAV = originalReadWAV
 
 			V.assertMessage(
 				result,
-				"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundfile"
+				"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundFile"
 			)
 		end)
 	end)
@@ -830,6 +894,47 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("AiTeamName", function()
+		local function validateAiTeamName(teamName)
+			return V.validateAction({ type = V.actionTypes.ActivateAI, parameters = { teamName = teamName } })
+		end
+
+		before_each(function()
+			V.missionAPI().Teams =
+				{ rebels = 0, [0] = "rebels", loyalists = 1, [1] = "loyalists", raptors = 2, [2] = "raptors" }
+			V.env.Spring.GetAIInfo = function(teamID)
+				if teamID > 0 then
+					return teamID, "AI", 0
+				end
+			end
+			V.env.Spring.GetTeamLuaAI = function(teamID)
+				return teamID == 2 and "RaptorsAI" or nil
+			end
+		end)
+
+		it("accepts a team that a skirmish AI runs", function()
+			V.assertNoMessageContaining(validateAiTeamName("loyalists"), "Parameter:")
+		end)
+
+		it("rejects a team without an AI", function()
+			V.assertMessage(
+				validateAiTeamName("rebels"),
+				"Team is not run by a skirmish AI: rebels. Action: a, Parameter: teamName"
+			)
+		end)
+
+		it("rejects a team that a Lua AI runs", function()
+			V.assertMessage(
+				validateAiTeamName("raptors"),
+				"Team is not run by a skirmish AI: raptors. Action: a, Parameter: teamName"
+			)
+		end)
+
+		it("rejects an unknown team name", function()
+			V.assertMessage(validateAiTeamName("nobody"), "Invalid teamName: nobody. Action: a, Parameter: teamName")
+		end)
+	end)
+
 	describe("Gaia's team", function()
 		it("is a team name a loadout entry can use", function()
 			V.missionAPI().Teams = { rebels = 0, [0] = "rebels", gaia = 1, [1] = "gaia" }
@@ -843,8 +948,9 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
-	describe("VariableValue", function()
+	describe("VariableType", function()
 		local function validateValue(value)
+			V.missionAPI().Variables = { k = value }
 			return V.validateAction({ type = V.actionTypes.WriteVariable, parameters = { key = "k", value = value } })
 		end
 
@@ -1232,7 +1338,9 @@ describe("mission_api.validation.parameter_validators", function()
 
 	--- Validates the command parameter of a Command-typed trigger.
 	local function validateCommand(command)
-		return V.validateTrigger(V.trigger(V.conditionTypes.UnitOrdered, { command = command, unitName = "x" }))
+		return V.validateTrigger(
+			V.trigger(V.conditionTypes.UnitOrdered, { command = command, includeUnit = { unitName = "x" } })
+		)
 	end
 
 	describe("Command", function()
