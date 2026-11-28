@@ -58,7 +58,9 @@ local function loadGadget(world)
 end
 
 describe("unit_corpse_link", function()
-	local world, gadget, getCorpsePriorUnitID
+	local world ---@type table
+	local gadget ---@type table
+	local getCorpsePriorUnitID ---@type fun(featureID: integer): integer?
 
 	before_each(function()
 		world = { units = { [DYING_COMMANDER] = { x = 100, z = 100 } }, features = {} }
