@@ -459,6 +459,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local debugcommands = nil
 	function gadget:Initialize()
+		-- widgets check this before sending |vol=
+		Spring.SetGameRulesParam("modbroadcast_volume", 1)
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
 			local debugString = Spring.GetModOptions().debugcommands
 
@@ -731,7 +733,13 @@ if gadgetHandler:IsSyncedCode() then
 		elseif cmd == "modbroadcast" then
 			local colorKey, soundID, text = msg:match("modbroadcast:([^:]*):([^:]*):(.*)$")
 			if colorKey and (soundID and soundID ~= "" or text and text ~= "") then
-				SendToUnsynced("modbroadcast", colorKey, soundID, text)
+				-- optional "|vol=<hundredths>" suffix on the sound id
+				local baseID, volText = (soundID or ""):match("^(.-)|vol=(%d+)$")
+				if baseID then
+					soundID = baseID
+				end
+				local volume = volText and tonumber(volText) / 100 or 0.7
+				SendToUnsynced("modbroadcast", colorKey, soundID, text, volume)
 			end
 		end
 	end
@@ -1227,7 +1235,7 @@ else -- UNSYNCED
 			end
 		end)
 		-- soundID normalized and played directly; text sets draw state for DrawScreen.
-		gadgetHandler:AddSyncAction("modbroadcast", function(_, colorKey, soundID, text)
+		gadgetHandler:AddSyncAction("modbroadcast", function(_, colorKey, soundID, text, vol)
 			if soundID and soundID ~= "" then
 				local p = soundID
 				if p:sub(1, 7) ~= "sounds/" then
@@ -1236,7 +1244,9 @@ else -- UNSYNCED
 				if not p:find("%.[%a%d]+$") then
 					p = p .. ".wav"
 				end
-				Spring.PlaySoundFile(p, 0.7, "ui")
+				-- 0.7 = old fixed volume
+				local volume = math.clamp(tonumber(vol) or 0.7, 0, 1.0)
+				Spring.PlaySoundFile(p, volume, "ui")
 			end
 			if text and text ~= "" then
 				local color = MODBROADCAST_COLORS[colorKey] or MODBROADCAST_COLORS.white
