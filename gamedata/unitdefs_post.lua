@@ -220,13 +220,12 @@ local function enlargeSelectionVolumes()
 						.. math.ceil(y * scale)
 						.. " "
 						.. math.ceil(z * scale)
+					matchSelectionVolumeHeight(ud)
 				end
 			end
 		else
 			ud.customparams.lua_selection_scale = scale -- Scale default colVol units in lua, where we can read their model radius.
 		end
-
-		matchSelectionVolumeHeight(ud)
 
 		if VISUALIZE_SELECTION_VOLUME then
 			if ud.selectionvolumescales then
