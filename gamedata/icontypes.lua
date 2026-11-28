@@ -204,11 +204,11 @@ local icontypes = {
 		size = 1.36499989,
 	},
 	armhvytrans = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t15_trans.png",
 		size = 1.5,
 	},
 	corhvytrans = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t15_trans.png",
 		size = 1.5,
 	},
 	armavp = {
@@ -336,7 +336,7 @@ local icontypes = {
 		size = 1.46999991,
 	},
 	armdfly = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t2_trans.png",
 		size = 1.83749986,
 	},
 	armdl = {
@@ -2105,7 +2105,7 @@ local icontypes = {
 		size = 1.46999991,
 	},
 	corseah = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t2_trans.png",
 		size = 1.83749986,
 	},
 	corseal = {
@@ -2545,7 +2545,7 @@ local icontypes = {
 		size = 0.85000002,
 	},
 	legatrans = {
-		bitmap = "icons/air_trans.png",
+		bitmap = "icons/air_t15_trans.png",
 		size = 1.5,
 	},
 	legavantinuke = {
