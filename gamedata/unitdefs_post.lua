@@ -122,6 +122,43 @@ local function getDimensions(scale)
 	return dimensions, largest
 end
 
+local function isSelectionHeightUnscaled(volumeType)
+	local kind = volumeType:sub(1, 1)
+	return kind == "b" or (kind == "c" and volumeType:sub(-1) == "y")
+end
+
+local function matchSelectionVolumeHeight(ud)
+	local collisionType = string.lower(ud.collisionvolumetype or "sphere")
+	local selectionType = string.lower(ud.selectionvolumetype or collisionType)
+	if not isSelectionHeightUnscaled(selectionType) then
+		return
+	end
+
+	local col, colMax = getDimensions(ud.collisionvolumescales)
+	local sel, selMax = getDimensions(ud.selectionvolumescales)
+	-- Recoil uses a model-based volume when all three scales are at most 1.
+	if not col or not sel or colMax <= 1 or selMax <= 1 then
+		return
+	end
+
+	---@type number
+	local height = math.max(1, col[2] or 0)
+	local kind, axis = collisionType:sub(1, 1), collisionType:sub(-1)
+	if kind == "c" and axis ~= "y" then
+		-- A horizontal cylinder's two cross-section axes share the larger scale.
+		height = math.max(height, col[axis == "x" and 3 or 1] or 0)
+	elseif kind == "e" then
+		height = math.max(height, colMax * 0.02)
+	elseif kind ~= "b" and kind ~= "c" then
+		height = colMax
+	end
+
+	local x, z = sel[1] or 1, sel[3] or 1
+	if height ~= math.max(1, sel[2] or 0) and math.max(x, height, z) > 1 then
+		ud.selectionvolumescales = x .. " " .. height .. " " .. z
+	end
+end
+
 local function enlargeSelectionVolumes()
 	local VISUALIZE_SELECTION_VOLUME = false
 	local CYL_SCALE = 1.1
@@ -144,11 +181,9 @@ local function enlargeSelectionVolumes()
 
 			if ud.selectionvolumescales then
 				local dim = getDimensions(ud.selectionvolumescales)
-				ud.selectionvolumescales = math.ceil(dim[1] * scale)
-					.. " "
-					.. math.ceil(dim[2] * scale)
-					.. " "
-					.. math.ceil(dim[3] * scale)
+				local selectionType = string.lower(ud.selectionvolumetype or ud.collisionvolumetype or "sphere")
+				local y = isSelectionHeightUnscaled(selectionType) and dim[2] or math.ceil(dim[2] * scale)
+				ud.selectionvolumescales = math.ceil(dim[1] * scale) .. " " .. y .. " " .. math.ceil(dim[3] * scale)
 			else
 				local size = math.max(ud.footprintx or 0, ud.footprintz or 0) * 15
 				if size > 0 then
@@ -187,6 +222,7 @@ local function enlargeSelectionVolumes()
 						.. math.ceil(y * scale)
 						.. " "
 						.. math.ceil(z * scale)
+					matchSelectionVolumeHeight(ud)
 				end
 			end
 		else
