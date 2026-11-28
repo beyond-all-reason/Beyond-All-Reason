@@ -47,6 +47,7 @@ local types = {
 	Resource = "Resource",
 	VideoFile = "VideoFile",
 	SkyboxFile = "SkyboxFile",
+	ImageFile = "ImageFile",
 	Difficulty = "Difficulty",
 	CameraEasing = "CameraEasing",
 	CameraSequenceEnd = "CameraSequenceEnd",
