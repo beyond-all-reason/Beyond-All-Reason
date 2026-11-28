@@ -328,7 +328,7 @@ UnitSpeed()
 		animSpeed = (maxSpeed * 5) / animSpeed; 
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
-		sleep 164;
+		sleep 50;
 	}
 }
 
@@ -580,6 +580,10 @@ AimWeapon2(heading, pitch)
 
 	signal SIGNAL_AIM2;
 	isAiming = TRUE;
+	
+	wait-for-turn torso around y-axis;
+	
+	turn lshoulder to y-axis <-5> speed <25>;
 
 	// Restrict secondary weapons firing angles relative to the primary weapons heading
 	relativeHeading = WRAPDELTA(heading - torsoHeading);
@@ -599,6 +603,9 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
+
+	isAiming = TRUE;
+
 	if(gun_1)
 	{
 		emit-sfx 1024 + 0 from lflare1;
@@ -607,11 +614,36 @@ FireWeapon2()
 	{
 		emit-sfx 1024 + 0 from lflare2;
 	}
-	move lbarrel to z-axis [-6] now;
-	move lbarrel to z-axis [0] speed [3];
-	
+
+	start-script ShotgunRetraction();
+
+
 	gun_1 = !gun_1;
 	
+}
+
+ShotgunRetraction()
+{
+	move lbarrel to z-axis [-2] speed [120];
+	sleep 350;
+	
+	start-script FireSecondBarrel();
+
+	move lbarrel to z-axis [-5] speed [120];
+	sleep 250;
+	move lbarrel to z-axis [0] speed [120];
+}
+
+FireSecondBarrel()
+{
+	if(gun_1)
+	{
+		emit-sfx 1024 + 0 from lflare2;
+	}
+	else
+	{
+		emit-sfx 1024 + 0 from lflare1;
+	}
 }
 
 //use call-script DeathAnim(); from Killed()

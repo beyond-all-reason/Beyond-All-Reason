@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "30 34 30",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Sphere",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		explodeas = "smallExplosionGeneric",
