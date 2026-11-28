@@ -2638,7 +2638,6 @@ local unitGrids = {
 		{
 			{ "armllt" }, -- LLT
 			{ "armrl" }, -- basic AA
-			{ "armmine1", "armmine2", "armmine3" }, -- light mine, med mine, heavy mine
 			{}, --
 		},
 		{
@@ -2662,7 +2661,6 @@ local unitGrids = {
 		{
 			{ "corllt" }, -- LLT
 			{ "corrl" }, -- basic AA
-			{ "cormine1", "cormine2", "cormine3" }, -- light mine, med mine, heavy mine
 			{}, --
 		},
 		{
@@ -2686,7 +2684,6 @@ local unitGrids = {
 		{
 			{ "leglht" }, -- LLT
 			{ "legrl" }, -- basic AA
-			{ "legmine1", "legmine2", "legmine3" }, -- light mine, med mine, heavy mine
 			{}, --
 		},
 		{
