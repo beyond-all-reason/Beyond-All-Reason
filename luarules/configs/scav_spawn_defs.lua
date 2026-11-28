@@ -416,6 +416,7 @@ local LandUnitsList = {
 			armrattet4_scav = 2,
 			armvadert4_scav = 2,
 			armsptkt4_scav = 2,
+			armscorp_scav = 2,
 			--Cortex
 			corjugg_scav = 2,
 			corkorg_scav = 2,
@@ -1494,6 +1495,7 @@ scavBehaviours = {
 		[UnitDefNames.squadarmpwt4_scav.id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames.squadcorakt4_scav.id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames.squadarmsptkt4_scav.id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames.squadarmscorp_scav.id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames.squadcorkarganetht4_scav.id] = { distance = 500, chance = 0.001 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
@@ -1753,6 +1755,7 @@ scavBehaviours = {
 		[UnitDefNames.squadarmpwt4_scav.id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames.squadcorakt4_scav.id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames.squadarmsptkt4_scav.id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames.squadarmscorp_scav.id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames.squadcorkarganetht4_scav.id] = { distance = 500, chance = 0.1 },
 
 		[UnitDefNames.scavengerbossv4_veryeasy.id] = {
@@ -1898,6 +1901,7 @@ scavBehaviours = {
 		[UnitDefNames.squadarmpwt4_scav.id] = true,
 		[UnitDefNames.squadcorakt4_scav.id] = true,
 		[UnitDefNames.squadarmsptkt4_scav.id] = true,
+		[UnitDefNames.squadarmscorp_scav.id] = true,
 		[UnitDefNames.squadcorkarganetht4_scav.id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy

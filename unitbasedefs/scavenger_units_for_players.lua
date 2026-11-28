@@ -56,9 +56,10 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
 		buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
-		buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
-		buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
-		buildoptions[numBuildoptions + 5] = "armdronecarryland" -- Nexus Terra - Drone Carrier
+		buildoptions[numBuildoptions + 3] = "armscorp" -- Scorpion
+		buildoptions[numBuildoptions + 4] = "armpwt4" -- Epic Pawn
+		buildoptions[numBuildoptions + 5] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
+		buildoptions[numBuildoptions + 6] = "armdronecarryland" -- Nexus Terra - Drone Carrier
 	end
 
 	-- Armada T3 Underwater Gantry
@@ -66,8 +67,9 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
 		buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
-		buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
-		buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
+		buildoptions[numBuildoptions + 3] = "armscorp" -- Scorpion
+		buildoptions[numBuildoptions + 4] = "armpwt4" -- Epic Pawn
+		buildoptions[numBuildoptions + 5] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 	end
 
 	-- Cortex T1 Bots Factory

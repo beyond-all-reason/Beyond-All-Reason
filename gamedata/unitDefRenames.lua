@@ -831,6 +831,7 @@ return {
 	armmeatball = "armada_meatball",
 	armpwt4 = "armada_epicpawn",
 	armsptkt4 = "armada_epicrecluse",
+	armscorp = "armada_scorpion",
 	corakt4 = "cortex_epicgrunt",
 	cordeadeye = "cortex_deadeye",
 	corkarganetht4 = "cortex_epickarganeth",
