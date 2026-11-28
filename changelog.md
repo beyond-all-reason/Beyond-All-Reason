@@ -1,4 +1,5 @@
 # November
+- [Aircraft] Aircraft shot while landed use their normal death explosion damage and radius. Aircraft shot in flight use their full crash explosion by default.
 - [Zombies]
   - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.
