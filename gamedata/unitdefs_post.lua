@@ -122,12 +122,15 @@ local function getDimensions(scale)
 	return dimensions, largest
 end
 
+local function isSelectionHeightUnscaled(volumeType)
+	local kind = volumeType:sub(1, 1)
+	return kind == "b" or (kind == "c" and volumeType:sub(-1) == "y")
+end
+
 local function matchSelectionVolumeHeight(ud)
 	local collisionType = string.lower(ud.collisionvolumetype or "sphere")
 	local selectionType = string.lower(ud.selectionvolumetype or collisionType)
-	local isBox = selectionType:sub(1, 1) == "b"
-	local isVerticalCylinder = selectionType:sub(1, 1) == "c" and selectionType:sub(-1) == "y"
-	if not isBox and not isVerticalCylinder then
+	if not isSelectionHeightUnscaled(selectionType) then
 		return
 	end
 
@@ -138,6 +141,7 @@ local function matchSelectionVolumeHeight(ud)
 		return
 	end
 
+	---@type number
 	local height = math.max(1, col[2] or 0)
 	local kind, axis = collisionType:sub(1, 1), collisionType:sub(-1)
 	if kind == "c" and axis ~= "y" then
@@ -177,9 +181,11 @@ local function enlargeSelectionVolumes()
 
 			if ud.selectionvolumescales then
 				local dim = getDimensions(ud.selectionvolumescales)
+				local selectionType = string.lower(ud.selectionvolumetype or ud.collisionvolumetype or "sphere")
+				local y = isSelectionHeightUnscaled(selectionType) and dim[2] or math.ceil(dim[2] * scale)
 				ud.selectionvolumescales = math.ceil(dim[1] * scale)
 					.. " "
-					.. math.ceil(dim[2] * scale)
+					.. y
 					.. " "
 					.. math.ceil(dim[3] * scale)
 			else
