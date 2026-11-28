@@ -729,8 +729,8 @@ describe("mission_api.validation.parameter_validators", function()
 	describe("Area", function()
 		it("rejects the wrong type", function()
 			V.assertMessage(
-				validateArea("bad"),
-				"Unexpected parameter type, expected table, got string. Trigger: t, Parameter: area"
+				validateArea(5),
+				"Unexpected parameter type, expected table, got number. Trigger: t, Parameter: area"
 			)
 		end)
 

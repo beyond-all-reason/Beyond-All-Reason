@@ -234,11 +234,9 @@ return {
   one parameter taking both forms.
 - A list of records declares the record's fields in a schema file, as
   `camera_keyframe_schema.lua` does for camera keyframes, so the editor reads those too.
-- `validation/references.lua` cross-checks unit, feature, marker, line, effect, squad, region, and
-  base plan names and
-  countdown and cutscene IDs between creator and consumer; it reads the consuming types from the
-  schemas, so a new parameter of one of those types needs no listing, and neither does a
-  `UnitName` field of `camera_keyframe_schema.lua`.
+- `validation/references.lua` cross-checks identifiers between creator and consumer; it reads the
+  consuming types from the schemas, so a new parameter of one of those types needs no listing, and
+  neither does e.g. a `UnitName` field of `camera_keyframe_schema.lua`.
 - Types and validators are generic, so neither the name nor the comments mention the action that
   prompted one.
 - Parameter names follow the existing ones (`teamName`, `unitName`, `markerName`), take the more

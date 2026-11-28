@@ -2,6 +2,11 @@ local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 local function defineAiRegion(regionName, teamID, area)
 	local modules = GG["MissionAPI"].Modules
+	area = modules.Areas.ResolveArea(area)
+	if not area then
+		return
+	end
+
 	local polygon = modules.AreaPolygons.FromArea(area)
 	local regionID = modules.AiRegions.Define(regionName, teamID, polygon)
 	if regionID then

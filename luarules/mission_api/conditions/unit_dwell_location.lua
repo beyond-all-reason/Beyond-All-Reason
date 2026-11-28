@@ -16,8 +16,6 @@ return {
 	type = 'UnitDwellLocation',
 	kind = ConditionKinds.Event,
 	parameters = {
-		-- Rectangle: { x1 = 0, z1 = 0, x2 = 123, z2 = 123 } with x1 < x2 and z1 < z2
-		-- Circle: { x = 0, z = 0, radius = 123 }
 		{ name = 'area',        required = true,  type = ParameterTypes.Area },
 		{ name = 'duration',    required = true,  type = ParameterTypes.Number },
 		{ name = 'includeUnit', required = true,  type = ParameterTypes.UnitFilter },

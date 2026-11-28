@@ -102,6 +102,7 @@ local function loadGadget(options, world)
 		["luarules/mission_api/orders.lua"] = { UpdateWaits = noop, OnUnitFromFactory = noop },
 		["luarules/mission_api/marching.lua"] = { UpdateSpeeds = noop },
 		["luarules/mission_api/sounds.lua"] = { ProcessSoundQueue = noop },
+		["luarules/mission_api/areas.lua"] = { UpdateReshapes = noop },
 		["luarules/mission_api/area_tracking.lua"] = { UpdateTrackedAreas = noop },
 		["luarules/mission_api/parameter_types.lua"] = { Types = { EffectType = "EffectType" }, Enums = {} },
 		["luarules/mission_api/effects.lua"] = { ClearExpiredEffects = noop },

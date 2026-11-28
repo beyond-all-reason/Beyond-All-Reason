@@ -1,6 +1,13 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function nameUnits(unitName, teamID, unitDefName, area)
+	if area then
+		area = GG['MissionAPI'].Modules.Areas.ResolveArea(area)
+		if not area then
+			return
+		end
+	end
+
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	local hasFilterOtherThanTeamID = unitDefName or area
 

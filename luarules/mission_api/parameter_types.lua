@@ -36,6 +36,7 @@ local types = {
 	CutsceneScriptID = "CutsceneScriptID",
 	UnitName = "UnitName",
 	FeatureName = "FeatureName",
+	AreaName = "AreaName",
 	UnitDefName = "UnitDefName",
 	FeatureDefName = "FeatureDefName",
 	WeaponDefName = "WeaponDefName",

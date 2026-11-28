@@ -196,6 +196,7 @@ local function registerValueValidators(parameterValidators, context)
 	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
+	parameterValidators[Types.AreaName] = validateString
 	parameterValidators[Types.EffectName] = validateString
 	parameterValidators[Types.SquadName] = validateString
 	parameterValidators[Types.RegionName] = validateString
@@ -584,6 +585,10 @@ local function registerSpatialValidators(parameterValidators, context)
 	end
 
 	parameterValidators[Types.Area] = function(area)
+		if type(area) == "string" then
+			return parameterValidators[Types.AreaName](area)
+		end
+
 		local luaTypeResult = validateTableType(area)
 		if luaTypeResult then
 			return luaTypeResult

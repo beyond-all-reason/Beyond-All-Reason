@@ -46,12 +46,14 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
+	GG["MissionAPI"].areaNames = {}
+	GG["MissionAPI"].areaReshapes = {}
+	GG["MissionAPI"].effectNames = {}
 	GG["MissionAPI"].markerNames = {}
 	GG["MissionAPI"].lineNames = {}
 	GG["MissionAPI"].unitMarkers = {}
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
-	GG["MissionAPI"].effectNames = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
@@ -84,6 +86,7 @@ local function setUpMissionAPI(gameSetup)
 	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+	GG["MissionAPI"].Modules.Areas = VFS.Include("luarules/mission_api/areas.lua")
 	GG["MissionAPI"].Modules.AreaTracking = VFS.Include("luarules/mission_api/area_tracking.lua")
 	GG["MissionAPI"].Modules.Effects = VFS.Include("luarules/mission_api/effects.lua")
 
@@ -242,6 +245,7 @@ function gadget:GameFrame(frameNumber)
 
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 	GG["MissionAPI"].Modules.Effects.ClearExpiredEffects(frameNumber)
+	GG["MissionAPI"].Modules.Areas.UpdateReshapes(frameNumber)
 	GG["MissionAPI"].Modules.AreaTracking.UpdateTrackedAreas()
 	GG["MissionAPI"].Modules.Orders.UpdateWaits(frameNumber)
 	if frameNumber % MARCH_UPDATE_FRAMES == 0 then
