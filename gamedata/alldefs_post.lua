@@ -57,8 +57,6 @@ local junoReworkTweaks = require("unitbasedefs/juno_rework").Tweaks
 local navalBalanceTweaks = require("unitbasedefs/naval_balance_tweaks").Tweaks
 local skyshiftUnitTweaks = require("unitbasedefs/skyshiftunits_post").skyshiftUnitTweaks
 local proposed_unit_reworksTweaks = require("unitbasedefs/proposed_unit_reworks_defs").proposed_unit_reworksTweaks
-local techsplitTweaks = require("unitbasedefs/techsplit_defs").techsplitTweaks
-local techsplit_balanceTweaks = require("unitbasedefs/techsplit_balance_defs").techsplit_balanceTweaks
 
 local airRework = require("unitbasedefs/air_rework_defs")
 local airReworkUnitTweaks = airRework.UnitTweaks
@@ -656,18 +654,6 @@ local function unitDef_Post(name, uDef)
 	-- Factory costs test
 
 	if modOptions.factory_costs == true then
-	end
-
-	----------------
-	-- Tech Split --
-	----------------
-
-	if modOptions.techsplit == true then
-		uDef = techsplitTweaks(name, uDef)
-	end
-
-	if modOptions.techsplit_balance == true then
-		uDef = techsplit_balanceTweaks(name, uDef)
 	end
 
 	-- Multipliers Modoptions

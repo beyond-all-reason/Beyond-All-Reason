@@ -4440,14 +4440,6 @@
 			"name": "Changelog",
 			"desc": "Easy Tax v2 description."
 		},
-		"techsplit": {
-			"name": "Tech Split",
-			"desc": "Adds a new tier between T1 and T2 for bots and vehicles"
-		},
-		"techsplit_balance": {
-			"name": "Tech Split Balance Test",
-			"desc": "Adjusts the balance of units in the proposed tech split."
-		},
 		"experimental_defend_firestate": {
 			"name": "Defend Combat Stance",
 			"desc": "Replaces Return Fire with the new Defend combat stance.\nDefending units will shoot threats to themselves when they become threats on a 1v1 basis."

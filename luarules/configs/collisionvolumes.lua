@@ -625,7 +625,6 @@ end
 -- TODO: copied collision volumes should be declarative
 
 staticPieceCollisionVolume.corgolt4 = staticPieceCollisionVolume.corgol
-staticPieceCollisionVolume.corhalab = staticPieceCollisionVolume.corhal
 staticPieceCollisionVolume.leggatet3 = staticPieceCollisionVolume.leggat
 staticPieceCollisionVolume.leginfestor = staticPieceCollisionVolume.leginf
 staticPieceCollisionVolume.legsrailt4 = staticPieceCollisionVolume.legsrail
