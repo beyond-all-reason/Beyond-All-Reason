@@ -4,10 +4,6 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.fronttospeed = 0.05
 	end
 
-	if uDef.mygravity == nil then
-		uDef.mygravity = 0.25
-	end
-
 	if uDef.canfly == true and uDef.hoverattack ~= true then
 		uDef.maxdec = 0.12
 	end

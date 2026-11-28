@@ -623,6 +623,12 @@ local function unitDef_Post(name, uDef)
 		uDef.idletime = 1800
 	end
 
+	-- myGravity for air units is a multiplier of the map/global gravity.
+	-- Base gravity is set in modrules, system.forcedMapGravityStrength = 130
+	if uDef.canfly == true and uDef.mygravity == nil then
+		uDef.mygravity = 0.3
+	end
+
 	--Juno Rework
 	if modOptions.junorework == true then
 		junoReworkTweaks(name, uDef)
