@@ -4,6 +4,7 @@ local function loadTargetGadget()
 	local rules = {}
 	local events = {}
 	local checks = {}
+	local assigned = {}
 	local deadTargets = {}
 	local crashingTargets = {}
 	local canTarget = function(_targetID)
@@ -50,6 +51,7 @@ local function loadTargetGadget()
 		},
 		WeaponDefs = { { type = "Cannon", range = 1000, customParams = {} } },
 		Spring = {
+			InsertUnitCmdDesc = function() end,
 			ValidUnitID = function()
 				return true
 			end,
@@ -57,10 +59,10 @@ local function loadTargetGadget()
 				return 1
 			end,
 			GetUnitTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitID <= 2 and 1 or 2
 			end,
 			GetUnitAllyTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitID <= 2 and 1 or 2
 			end,
 			AreTeamsAllied = function(a, b)
 				return a == b
@@ -78,6 +80,12 @@ local function loadTargetGadget()
 				checks[#checks + 1] = targetID
 				return canTarget(targetID)
 			end,
+			GetUnitWeaponTestRange = function()
+				return true
+			end,
+			GetUnitWeaponHaveFreeLineOfFire = function()
+				return true
+			end,
 			GetUnitWeaponTestTarget = function()
 				return true
 			end,
@@ -89,7 +97,8 @@ local function loadTargetGadget()
 			GetUnitStates = function()
 				return 2
 			end,
-			SetUnitTarget = function(_, newTarget)
+			SetUnitTarget = function(owner, newTarget)
+				assigned[owner] = newTarget
 				target = newTarget
 			end,
 			SetUnitRulesParam = function(_, key, value)
@@ -133,6 +142,7 @@ local function loadTargetGadget()
 	return {
 		env = env,
 		checks = checks,
+		assigned = assigned,
 		deadTargets = deadTargets,
 		crashingTargets = crashingTargets,
 		canTarget = function(fn)
@@ -209,6 +219,56 @@ describe("Set Target invalid-target cleanup", function()
 		g.update(1)
 		assert.is_nil(g.target())
 		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+	end)
+end)
+
+describe("Set Target ghost transitions", function()
+	local function observer()
+		local g = loadTargetGadget()
+		local contact
+		g.env.Spring.GetGhostPosition = function(_, allyTeam)
+			if allyTeam == 1 then
+				return 15, 80, 30, contact
+			end
+		end
+		return g,
+			function(visible)
+				contact = visible and 10 or nil
+				local callback = visible and g.env.gadget.UnitEnteredRadar or g.env.gadget.UnitLeftLos
+				callback(g.env.gadget, 10, 2, 1, 1, 1, 1048576)
+			end
+	end
+
+	it("updates the builder and its product independently at each contact transition", function()
+		local g, update = observer()
+		g.set(10)
+		g.env.gadget:UnitCreated(2, 1, 1, 1)
+		for _, visible in ipairs({ false, true, false }) do
+			update(visible)
+			for _, id in ipairs({ 1, 2 }) do
+				local list = g.env.GG.GetUnitTargetList(id)
+				assert.same(visible and 10 or { 15, 80, 30 }, list[1].target)
+				assert.equals(visible and 10 or 15, g.assigned[id])
+			end
+		end
+		g.env.gadget:UnitCreated(3, 1, 2, 1)
+		assert.is_nil(g.env.GG.GetUnitTargetList(3))
+	end)
+
+	it("keeps the first priority slot when a ghost resolves to an already listed unit", function()
+		local g, update = observer()
+		g.set(10)
+		update(false)
+		g.set(20, true)
+		g.set(10, true)
+		assert.equals(3, #g.env.GG.GetUnitTargetList(1))
+		update(true)
+		local list = g.env.GG.GetUnitTargetList(1)
+		assert.equals(2, #list)
+		assert.equals(10, list[1].target)
+		assert.equals(20, list[2].target)
+		g.set(10, true)
+		assert.equals(2, #list)
 	end)
 end)
 

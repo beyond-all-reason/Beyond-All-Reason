@@ -54,6 +54,7 @@ local function unpackInsertParams(cmdParams)
 	local band = bit_and
 	local innerOptions = {
 		coded = innerOptionBits,
+		keepheight = CMD.OPT_KEEP_HEIGHT and 0 ~= band(innerOptionBits, CMD.OPT_KEEP_HEIGHT),
 		internal = 0 ~= band(innerOptionBits, OPT_INTERNAL),
 		alt = 0 ~= band(innerOptionBits, OPT_ALT),
 		ctrl = 0 ~= band(innerOptionBits, OPT_CTRL),

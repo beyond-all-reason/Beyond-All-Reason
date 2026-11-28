@@ -361,6 +361,7 @@ local callInLists = {
 	-- Unsynced CallIns
 	"Update",
 	"DefaultCommand",
+	"DrawGhost",
 	"DrawGenesis",
 	"DrawWorld",
 	"DrawWorldPreUnit",
@@ -414,6 +415,7 @@ local callInLists = {
 
 local headlessDisabledCallIns = {
 	DrawProjectile = true,
+	DrawGhost = true,
 	ViewResize = true,
 	DrawGenesis = true,
 	DrawWorld = true,
@@ -2434,33 +2436,33 @@ function gadgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	for _, g in ipairs(self.UnitEnteredRadarList) do
-		g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	return
 end
 
-function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	tracyZoneBeginN("G:UnitEnteredLos")
 	for _, g in ipairs(self.UnitEnteredLosList) do
-		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	tracyZoneEnd()
 	return
 end
 
-function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	for _, g in ipairs(self.UnitLeftRadarList) do
-		g:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	return
 end
 
-function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	tracyZoneBeginN("G:UnitLeftLos")
 	for _, g in ipairs(self.UnitLeftLosList) do
-		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID, ghostID)
 	end
 	tracyZoneEnd()
 	return
@@ -2777,6 +2779,16 @@ end
 function gadgetHandler:CommandNotify(id, params, options)
 	for _, g in ipairs(self.CommandNotifyList) do
 		if g:CommandNotify(id, params, options) then
+			return true
+		end
+	end
+	return false
+end
+
+function gadgetHandler:DrawGhost(info)
+	local list = self.DrawGhostList
+	for i = #list, 1, -1 do
+		if list[i]:DrawGhost(info) then
 			return true
 		end
 	end

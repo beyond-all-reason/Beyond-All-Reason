@@ -90,6 +90,10 @@ local function GetUnitOrFeaturePosition(id)
 end
 
 local function GetCommandPos(id, p1, p2, p3) --- get the command position
+	if id == GameCMD.GHOST_ATTACK or id == GameCMD.GHOST_SET_TARGET then
+		local x, y, z = Spring.GetGhostPosition(p1)
+		return x or -10, y or -10, z or -10
+	end
 	if
 		id < 0
 		or id == CMD.MOVE
