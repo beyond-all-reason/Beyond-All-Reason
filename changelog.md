@@ -43,6 +43,7 @@
   - Scavenger constructors and factories show the normal grid menu layout in games with ruins or zombies, not only against the Scavengers AI.
 
 # October
+- [Anti-air] With engine support, mobile AA can prioritize aircraft independently of automatic movement targets. Enabled for static AA and AA weapons on mixed-role units as well.
 - [Lava] will now damage unit wrecks, rocks, and other metal containing features.
 - [Zombies]
   - Zombie factories expire 5 minutes after rising. Expiring zombie buildings now self-destruct instead of vanishing.
