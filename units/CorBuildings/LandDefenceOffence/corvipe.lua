@@ -119,7 +119,6 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "SabotFire",
 				startvelocity = 570,
-				targetmoveerror = 0.2,
 				texture1 = "null",
 				texture2 = "railguntrail",
 				tolerance = 8000,
@@ -137,7 +136,6 @@ return {
 				},
 				damage = {
 					default = 825,
-					hvyboats = 577.5,
 					subs = 5,
 					vtol = 26,
 				},

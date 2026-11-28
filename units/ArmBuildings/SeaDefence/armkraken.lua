@@ -90,7 +90,7 @@ return {
 		},
 		weapondefs = {
 			armmech_cannon = {
-				areaofeffect = 12,
+				areaofeffect = 24,
 				avoidfeature = false,
 				cegtag = "arty-small",
 				craterareaofeffect = 0,
@@ -100,7 +100,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				name = "Rapid-fire gauss cannon",
 				noselfdamage = true,
 				range = 800,

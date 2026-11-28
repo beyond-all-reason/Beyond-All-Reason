@@ -1,4 +1,154 @@
 # November
+- [T2 Artillery (Mauser, Quaker)]
+  - -20% metalcost
+  - -12 speed
+  - +10% health
+  - +5% DPS
+  - 180 → 140 degree firing arc
+  - Edgeeffectiveness 0.5 → 0.15
+  - accurate vs immobile targets
+- [Rattlesnake, Persecutor]
+  - Impulse 0.5 → 1.0 (low traj), 0.5 → 1.5 (high traj)
+  - Edgeeffectiveness 0.4 → 0.15
+  - 600 → 450 projectile speed, and removal of custom gravity in high trajectory → lower arc, longer flight time
+- [Agitator, Gauntlet]
+  - 1250m / 12500e / 19300 bt → 1100m / 12000 / 21000 bt cost, 3050 → 3400 (Armada)
+  - 1300m / 13500e / 17400 bt → 1150m / 13000 / 22000 bt cost, 3250 → 3800 health (Cortex)
+  - Impulse 0.5 → 1.0 (low traj)
+  - Edgeeffectiveness 0.4 → 0.15
+  - 450 → 430 projectile speed in low trajectory
+  - 600 → 430 projectile speed, and removal of custom gravity in high trajectory → lower arc, longer flight time
+- [Cerberus] 0.85 → 0.15 edgeeffectiveness, 192 → 200 AoE, +10% DPS
+- [Vanguard] 0.65 → 0.15 Edgeeffectiveness, 192 → 220 AoE, +3% DPS
+- [Catapult] 0.65 → 0.5 Edgeeffectiveness, 96 → 104 AoE
+- [Banisher] 0.55 → 0.5 Edgeeffectiveness, 128 → 130 AoE
+- [Recluse] 0.65 → 0.5 Edgeeffectiveness, 90 → 100 AoE, -4% DPS
+- [Janus] 0.15 → 0.5 Edgeeffectiveness, 128 → 108 AoE
+- [Wasp] 0.15 → 0.5 Edgeeffectiveness, 128 → 108 AoE
+- [Karganeth] 0.15 → 0.5 Edgeeffectiveness, 64 → 56 AoE
+- [LPRCs] Impulse 1.1x → 1.5x
+- [Kraken] Impulse added
+- [Pitbull] Impulse added, damage reduction vs ships removed, targetmoveerror removed
+- [Scorpion] Damage reduction vs ships removed, targetmoveerror removed
+- [Pounder]
+  - -11% damage
+  - +11% impulse modifier → impulse strength is unchanged
+- [Crawling bombs]
+  - -11% speed
+- [Hound] 
+  - 1138 → 900 turnrate
+  - -5% DPS
+  - +5% m/e/bt cost
+- [Gunslinger]
+  - 24 → 36 AoE
+  - +13% DPS
+- [Fatboy] 
+  - 300 → 280 AoE
+  - 100 leadlimit (won't lead when aiming at a moving target, more than that from its current position → less friendly fire)
+- [Jaguar]
+  - 1060 → 1150 health
+- [Bull] 
+  - Predictboost 0 → 0.4 (better accuracy vs moving targets)
+  - 4650 → 5100 health
+  - 950 → 1000 m
+  - 13000 → 14000 e
+  - 23000 → 25000 bt cost
+- [Tremor]
+  - 3000 → 5000 health
+  - 40.5 → 41 speed
+  - higher weaponvelocity / arc, removed custom mygravity → similar flight time (fixes weapon bugging out when firing uphill sometimes)
+- [Tzar] 
+  - 292 → 260 AoE
+  - 100 leadlimit (won't lead when aiming at a moving target, more than that from its current position)
+  - 7800 → 10000 health
+  - 1650 → 2000 m
+  - 28000 → 30000 e
+  - 40000 → 50000 bt cost
+- [Flak Trucks]
+  - 619 → 400 turnrate
+  - -9% DPS
+- [Shiva] 
+    - 48 → 45 speed 
+    - 9400 → 10000 health
+    - 2s → 2.2s reloadtime, 100 leadlimit (cannon)
+    - 800 → 900 range, 750 → 850 damage (missile)
+    - 1700 → 1900 m
+    - 23000 → 28000 e
+    - 40000 → 60000 bt cost
+- [Marauder]
+    - 94.5 → 92 speed
+    - turnrate 1214 → 800
+    - 12 → 36 AoE
+    - Impulse added
+    - Improved accuracy (predictboost 0.3, remove targetmoveerror)
+- [Razorback]
+    - 69 → 66 speed
+    - 13300 → 11000 health
+    - -20% DPS
+    - 3800 → 3000m
+    - 68000 → 60000e
+    - 120000 → 100000bt cost
+- [Juggernaut]
+    - 0.12 → 0.04 acceleration
+    - 437 → 400 turnrate
+    - 112 →100 AoE, 0.65 → 0.9 edgeeffectiveness, 1x →2x impulse (Cannon)
+    - 950 → 1100 missile range
+- [Titan]
+    - 45.6 → 45 speed
+    - 0.12 → 0.04 acceleration
+    - 1214 → 500 turnrate
+    - 860 → 1000 missile range
+- [Buccaneer]
+  - 54 -> 58 speed
+- [Paladin]
+  - 60 -> 64 speed
+  - Gets weapon matching with Turtle's gauss cannon:
+  - 16 → 64 AoE
+  - Impulse added
+  - 500 → 480 range
+  - +6% DPS
+  - 550 → 600 weaponvelocity
+- [Missile Ships]
+  - 61.4 → 40 Speed
+  - 3350 → 5000 health
+  - 10000 → 30000 energycost, 24000 → 40000 buildtime
+  - 68 AoE / 0.15 EE → 68 AoE / 0.5 EE (Cortex)
+  - 75 AoE / 0.65 EE → 68 AoE / 0.5 EE (Armada) (Previously Armada ship just had much better AoE, despite the ships having same cost and DPS. There is also no way to see those stats ingame so hard to notice)
+- [Despot]
+  - 53.1 → 42 speed
+  - 950 → 1050 range, -10% DPS (cannon)
+  - 51000 → 75000 buildtime
+- [Dreadnought]
+  - 57.9 → 46 speed
+  - 9800 → 10000 health
+  - 880 → 1000 range, 140 → 120 AoE
+  - 50000 → 70000 buildtime
+- [Black Hydra]
+  - 310 000 → 450 000 buildtime
+  - 190 000 → 250 000 energycost
+  - 49.5 → 41 speed
+  - 0.008 → 0.01 acceleration/deceleration
+- [Epoch]
+  - 310 000 → 450 000 buildtime
+  - 190 000 → 250 000 energycost
+  - 53.8 → 45 speed
+- [Minelayers]
+    - Able to reclaim
+    - 65m → 95m cost, 450 → 600 health (Cortex)
+    - 57m → 90m cost, 335 → 450 health (Armada)
+    - 52m → 85m cost, 210 → 350 health (Legion)
+    - Heavy mine 2800e / 700 bt → 2500e / 500 bt
+- [T1 vehicle constructors]
+    - -15% health
+- [T2 mexes]
+    - Standardised across factions
+    - 620m / 7700e / 14900bt → 640m / 9000e / 15000bt (Armada)
+    - 640m / 8100e / 14100bt → 640m / 9000e / 15000bt (Cortex / Legion)
+    - 2800 → 2400 health (Armada)
+    - 3900 → 2400 health (Cortex)
+- [T2 shipyards]
+    - Cheaper to match the cost of land T2 factories
+    - 2900m / 9700e / 24000 bt → 2600m / 15000e / 27000bt
 - [Zombies]
   - Zombies that can cloak will now cloak and uncloak from intermittently.
   - Spidergeddon is removed for being too spooky.
@@ -79,9 +229,7 @@
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
-  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. Missile launcher buildings keep the new flight path.
-  - ~~Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.~~
-  - ~~Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.~~
+  - October 20th: Mobile units reverted to using old flight path behavior with linear descent. Flight speeds changed accordingly. The missiles follow a higher trajectory than pre-patch. Missile launcher buildings keep the new flight path.
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added

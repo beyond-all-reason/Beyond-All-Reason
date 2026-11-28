@@ -1094,8 +1094,6 @@ for weaponDefID = 0, #WeaponDefs do
 			waterDepthRatio = 5
 		elseif string.find(weaponDef.name, "vipersabot") then -- viper has very tiny AoE
 			radius = (radius * 4)
-		elseif string.find(weaponDef.name, "armmav_weapon") then -- armmav has very tiny AoE
-			radius = (radius * 6)
 		elseif string.find(weaponDef.name, "corkorg_fire") then -- Juggernaut has lots of decals on shotgun
 			alphadecay = 0.004
 		elseif string.find(weaponDef.name, "exp_heavyrocket") then -- Catapult has lower AoE but big explo

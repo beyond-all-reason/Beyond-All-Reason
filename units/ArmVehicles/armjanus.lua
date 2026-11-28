@@ -33,7 +33,7 @@ return {
 		trackwidth = 29,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 1.29228,
+		turninplacespeedlimit = 1.3,
 		turnrate = 271,
 		usepiececollisionvolumes = 1,
 		customparams = {
@@ -96,16 +96,16 @@ return {
 		},
 		weapondefs = {
 			janus_rocket = {
-				areaofeffect = 128,
+				areaofeffect = 108,
 				avoidfeature = false,
 				castshadow = true,
 				cegtag = "missiletrailsmall-red",
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				firestarter = 70,
-				impulsefactor = 1.015,
+				impulsefactor = 1,
 				model = "catapultmissile.s3o",
 				name = "Heavy g2g dual-missile launcher",
 				noselfdamage = true,

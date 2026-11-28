@@ -15,7 +15,7 @@ return {
 		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
-		health = 1430,
+		health = 1250,
 		leavetracks = true,
 		maxacc = 0.03049,
 		maxdec = 0.12198,

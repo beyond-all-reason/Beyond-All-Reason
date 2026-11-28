@@ -30,7 +30,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
-		turnrate = 525.84998,
+		turnrate = 525,
 		upright = true,
 		customparams = {
 			model_author = "FireStorm",
@@ -99,7 +99,7 @@ return {
 		},
 		weapondefs = {
 			exp_heavyrocket = {
-				areaofeffect = 96,
+				areaofeffect = 104,
 				avoidfeature = false,
 				burst = 20,
 				burstrate = 0.1,
@@ -107,11 +107,11 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				dance = 24,
-				edgeeffectiveness = 0.65,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
 				flighttime = 3.2,
-				impulsefactor = 0.6,
+				impulsefactor = 1,
 				metalpershot = 0,
 				model = "catapultmissile.s3o",
 				movingaccuracy = 600,

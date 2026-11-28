@@ -109,6 +109,7 @@ return {
 			arm_triton = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				cegtag = "impulse-trail",
 				craterareaofeffect = 64,
 				craterboost = 0,
 				cratermult = 0,

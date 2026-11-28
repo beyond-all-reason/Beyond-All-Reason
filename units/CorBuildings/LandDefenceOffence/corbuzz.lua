@@ -111,7 +111,7 @@ return {
 				energypershot = 18000,
 				explosiongenerator = "custom:genericshellexplosion-huge",
 				gravityaffected = "true",
-				impulsefactor = 1.1,
+				impulsefactor = 1.5,
 				name = "Rapid-fire long-range plasma cannon",
 				noselfdamage = true,
 				range = 6100,
