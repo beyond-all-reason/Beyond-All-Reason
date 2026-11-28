@@ -19,6 +19,7 @@ end
 
 local CORPSE_LINK_TIMEOUT = Game.gameSpeed * 3 -- should be longer than the longest death animation
 local UPDATE_INTERVAL = Game.gameSpeed
+local SPOT_SEARCH_RADIUS = 1
 
 -- unitDefID -> { [unitID] = { x, y, z, timeout } }
 local corpseRegistryByDefID = {}
@@ -47,6 +48,25 @@ local function GetFeatureResurrectDefID(featureID)
 	return unitDef.id
 end
 
+local function GetFeatureSourceUnitDefID(featureID)
+	return GetFeatureResurrectDefID(featureID) or sourceUnitDefIDByFeatureDefID[Spring.GetFeatureDefID(featureID)]
+end
+
+-- A heap or wreck that replaces another feature is created on its exact spot while that feature still exists.
+local function ReplacesAnotherCorpse(featureID, sourceUnitDefID, x, z)
+	local featuresOnSpot = Spring.GetFeaturesInCylinder(x, z, SPOT_SEARCH_RADIUS)
+	for index = 1, #featuresOnSpot do
+		local otherFeatureID = featuresOnSpot[index]
+		if otherFeatureID ~= featureID and GetFeatureSourceUnitDefID(otherFeatureID) == sourceUnitDefID then
+			local otherX, _, otherZ = Spring.GetFeaturePosition(otherFeatureID)
+			if otherX == x and otherZ == z then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 ---Returns the unitID the corpse feature was created from, consuming the link so
 ---each corpse resolves at most once.
 ---@param featureID FeatureID
@@ -54,8 +74,7 @@ end
 local function GetCorpsePriorUnitID(featureID)
 	-- Technically features can rez into something else than they died as,
 	-- or even be rezzable without ever dying, but let's assume they don't
-	local sourceUnitDefID = GetFeatureResurrectDefID(featureID)
-		or sourceUnitDefIDByFeatureDefID[Spring.GetFeatureDefID(featureID)]
+	local sourceUnitDefID = GetFeatureSourceUnitDefID(featureID)
 
 	local unitDefLink = corpseRegistryByDefID[sourceUnitDefID]
 	if not unitDefLink then
@@ -64,6 +83,10 @@ local function GetCorpsePriorUnitID(featureID)
 
 	local x, y, z = Spring.GetFeaturePosition(featureID)
 	if not x then
+		return
+	end
+
+	if ReplacesAnotherCorpse(featureID, sourceUnitDefID, x, z) then
 		return
 	end
 
