@@ -50,6 +50,8 @@ local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitTeam = Spring.GetUnitTeam
 local spIsUnitInLos = Spring.IsUnitInLos
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 local glUniformInt = gl.UniformInt
@@ -148,6 +150,53 @@ end
 --------------------------------------------------------------------------------
 
 local unitJetKeys = {} ---@type table<number, string[]> -- unitID -> instance keys of its jets
+
+-- Engines with the agile flight regime report it for planes: while maneuvering (gunship-like,
+-- around the base) the jets only glimmer, in cruise they are full size and stretch with speed.
+-- Other engines and other aircraft never report a regime, and then none of this runs.
+---@class AirJetThrustState
+---@field unitDefID integer
+---@field speed number
+---@field accel number
+---@field length number
+---@field width number
+---@field pushedLength number
+
+local maneuveringPlanes = {} ---@type table<UnitID, boolean> -- unitID -> true while in the agile regime
+local thrustPlanes = {} ---@type table<UnitID, AirJetThrustState> -- unitID -> jet state, only for planes that report one
+
+-- What the jets show for those planes. The stock look scales jet length with vertical speed alone,
+-- so a cruising plane that merely descends loses two thirds of its jet; this shows the throttle:
+--   maneuvering            a glimmer, with a small kick when it accelerates
+--   cruise, steady speed   a stable jet, longer the faster it flies
+--   cruise, accelerating   clearly longer and a little wider (full burn)
+--   cruise, slowing down   clearly shorter (throttled back)
+local THRUST_TICK_FRAMES = 3 -- sample velocity at 10 Hz
+local THRUST_ACCEL_SMOOTHING = 0.4 -- per tick, takes the frame-to-frame noise out of the acceleration
+local THRUST_SIZE_SMOOTHING = 0.35 -- per tick, how fast the jet follows (about a third of a second)
+local THRUST_PUSH_THRESHOLD = 0.03 -- only touch the VBO when the visible size really changed
+
+local thrustDefs = {} -- unitDefID -> {maxAcc, maxSpeed} in elmos per frame
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isStrafingAirUnit then
+		thrustDefs[unitDefID] =
+			{ maxAcc = math.max(unitDef.maxAcc or 0.1, 0.01), maxSpeed = math.max((unitDef.speed or 30) / 30, 0.1) }
+	end
+end
+
+---@param state AirJetThrustState
+---@param def { maxAcc: number, maxSpeed: number }
+---@param maneuvering boolean?
+local function thrustTarget(state, def, maneuvering)
+	local speedFraction = math.min(state.speed / def.maxSpeed, 1.0)
+	local burn = math.max(state.accel, 0.0)
+	local throttledBack = math.max(-state.accel, 0.0)
+	if maneuvering then
+		return 0.16 + 0.22 * burn, 0.45 + 0.1 * burn
+	end
+	local length = 0.55 + 0.45 * speedFraction + 0.9 * burn - 0.5 * throttledBack
+	return math.min(math.max(length, 0.25), 2.0), math.min(0.85 + 0.15 * speedFraction + 0.2 * burn, 1.2)
+end
 
 local spec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
@@ -492,8 +541,9 @@ local function Activate(unitID, unitDefID, noUpload)
 			end
 		end
 		local emitVector = effectDef.emitVector
-		instanceData[1] = effectDef.width * 0.4
-		instanceData[2] = effectDef.length
+		local thrust = thrustPlanes[unitID]
+		instanceData[1] = effectDef.width * 0.4 * (thrust and thrust.width or 1)
+		instanceData[2] = effectDef.length * (thrust and thrust.length or 1)
 		instanceData[3] = 0 -- spawn frame, for the fade-in
 		instanceData[4] = emitVector[1]
 		instanceData[5] = emitVector[2]
@@ -506,17 +556,81 @@ local function Activate(unitID, unitDefID, noUpload)
 		instanceData[12] = 0
 		instanceData[13] = 0
 		instanceData[14] = 0 -- this is needed to keep the lua copy of the vbo the correct size
-		instanceData[15] = effectDef.xzVelSizeMult
-		instanceData[16] = effectDef.yVelSizeMult
+		-- (the thrust model already accounts for velocity, so the shader must not scale again)
+		instanceData[15] = thrust and 0 or effectDef.xzVelSizeMult
+		instanceData[16] = thrust and 0 or effectDef.yVelSizeMult
 		instanceData[17] = effectDef.jetType
 		local key = unitID .. "_" .. effectDef.piecenum
 		keys[i] = key
 		pushElementInstance(jetInstanceVBO, instanceData, key, true, noUpload, unitID)
 	end
 	unitJetKeys[unitID] = keys
+
+	-- only planes whose engine reports a flight regime get the thrust model
+	if thrustDefs[unitDefID] and not thrustPlanes[unitID] then
+		---@type table<string, any>|nil
+		local moveTypeData = spGetUnitMoveTypeData(unitID)
+		if moveTypeData and moveTypeData.flightRegime ~= nil then
+			-- planes that were already flying when this widget loaded never sent us an event
+			maneuveringPlanes[unitID] = (moveTypeData.flightRegime == "agile") or nil
+			local _, _, _, speed = spGetUnitVelocity(unitID)
+			thrustPlanes[unitID] = {
+				unitDefID = unitDefID,
+				speed = speed or 0,
+				accel = 0,
+				length = 0.16,
+				width = 0.45,
+				pushedLength = 0.16,
+			}
+		end
+	end
+end
+
+-- the engine tells us the moment a plane changes regime; its jets follow on the next tick
+function widget:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
+	if thrustPlanes[unitID] then
+		maneuveringPlanes[unitID] = (regime == "agile") or nil
+	end
+end
+
+local lastThrustFrame = 0
+local function UpdateThrust(gameFrame)
+	local elapsed = gameFrame - lastThrustFrame
+	if elapsed < THRUST_TICK_FRAMES then
+		return
+	end
+	lastThrustFrame = gameFrame
+
+	local pushed = false
+	for unitID, state in pairs(thrustPlanes) do
+		local def = thrustDefs[state.unitDefID]
+		local _, _, _, speed = spGetUnitVelocity(unitID)
+		if def and speed and unitJetKeys[unitID] then
+			-- acceleration as a fraction of what the plane can do, positive is speeding up
+			local accel = math.min(math.max((speed - state.speed) / (elapsed * def.maxAcc), -1.5), 1.5)
+			state.accel = state.accel + (accel - state.accel) * THRUST_ACCEL_SMOOTHING
+			state.speed = speed
+
+			local length, width = thrustTarget(state, def, maneuveringPlanes[unitID])
+			state.length = state.length + (length - state.length) * THRUST_SIZE_SMOOTHING
+			state.width = state.width + (width - state.width) * THRUST_SIZE_SMOOTHING
+
+			if math.abs(state.length - state.pushedLength) > THRUST_PUSH_THRESHOLD then
+				state.pushedLength = state.length
+				Activate(unitID, state.unitDefID, true) -- re-push the jets in place, one upload below
+				pushed = true
+			end
+		end
+	end
+	if pushed then
+		uploadAllElements(jetInstanceVBO)
+	end
 end
 
 local function RemoveUnit(unitID)
+	maneuveringPlanes[unitID] = nil
+	thrustPlanes[unitID] = nil
+
 	local keys = unitJetKeys[unitID]
 	if keys then
 		unitJetKeys[unitID] = nil
@@ -531,6 +645,8 @@ end
 
 local function reInitialize()
 	unitJetKeys = {}
+	maneuveringPlanes = {}
+	thrustPlanes = {}
 	gl.InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
 	for _, teamID in ipairs(spGetTeamList()) do
@@ -604,6 +720,7 @@ end
 
 local configCheckFrame = 0
 function widget:DrawWorld()
+	UpdateThrust(spGetGameFrame())
 	-- polled here instead of in an Update callin
 	configCheckFrame = configCheckFrame + 1
 	if configCheckFrame >= 30 then
