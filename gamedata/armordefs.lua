@@ -388,6 +388,7 @@ local armorDefs = {
 		"corgatreap",
 
 		"armpwt4",
+		"armmygalomorph",
 		"armrattet4",
 		"armvadert4",
 		"corkarganetht4",

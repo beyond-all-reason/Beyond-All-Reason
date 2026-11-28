@@ -829,6 +829,7 @@ return {
 	armassimilator = "armada_assimilator",
 	armlunchbox = "armada_lunchbox",
 	armmeatball = "armada_meatball",
+	armmygalomorph = "armada_mygalomorph",
 	armpwt4 = "armada_epicpawn",
 	armsptkt4 = "armada_epicrecluse",
 	corakt4 = "cortex_epicgrunt",
