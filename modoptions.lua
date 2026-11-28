@@ -71,6 +71,33 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "restrictedspectators",
+		name = "Spectator Vision After Elimination",
+		desc = "Choose what players can see after resigning or being eliminated. Players who start as spectators retain full vision.",
+		type = "list",
+		def = "full",
+		section = "options_main",
+		items = {
+			{
+				key = "allied",
+				name = "Locked Allied Vision (Tournament)",
+				desc = "Keep your side's view until the game ends. Opposing teams' chat and map marks stay hidden.",
+			},
+			{
+				key = "optin",
+				name = "Allied Vision with Full View Button",
+				desc = "Start with your side's view. Choose Full View to see all teams, including their chat and map marks.",
+			},
+			{
+				key = "full",
+				name = "Full View",
+				desc = "See all teams immediately.",
+			},
+		},
+	},
+
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
 		key = "allowuserwidgets",
 		name = "Allow Custom Widgets",
 		desc = "Allow custom user widgets or disallow them",

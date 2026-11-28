@@ -131,6 +131,15 @@ end
 local function updateTrackingButtonAvailability()
 	local humanPlayers = 0
 	playersList = spGetPlayerList()
+	if isSpec and not Spring.CanSpectateAllTeams() then
+		local myAllyTeam = Spring.GetMyAllyTeamID()
+		for i = #playersList, 1, -1 do
+			local _, _, spec, _, allyTeam = spGetPlayerInfo(playersList[i], false)
+			if spec or allyTeam ~= myAllyTeam then
+				table.remove(playersList, i)
+			end
+		end
+	end
 	for i = 1, #playersList do
 		local playerID = playersList[i]
 		local _, _, spec, team = spGetPlayerInfo(playerID, false)
@@ -388,6 +397,11 @@ local function refreshUiDrawing()
 		end
 
 		-- Player Viewpoint Button
+		if not Spring.CanSpectateAllTeams() then
+			toggleButton2 = nil
+			font:End()
+			return
+		end
 		if not toggled2 then
 			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerView") .. "   "
 			color1 = { 0.6 * mult, 0.6 * mult, 0.6 * mult, buttonOpacity }
@@ -482,6 +496,9 @@ local function refreshUiDrawing()
 	end
 	drawlist[3] = gl.CreateList(function()
 		-- Player Viewpoint Button highlight
+		if not toggleButton2 then
+			return
+		end
 		if toggled2 then
 			gl.Color(0.85 * mult, 0.2 * mult, 0.2 * mult, 0.4 * mult)
 		else
@@ -675,6 +692,10 @@ end
 local function switchPlayerCam()
 	nextTrackingPlayerChange = os.clock() + playerChangeDelay
 	local tsOrderedPlayerCount = #tsOrderedPlayers
+	if tsOrderedPlayerCount == 1 then
+		SelectTrackingPlayer(tsOrderedPlayers[1][2])
+		return
+	end
 	local scope = 1 + mathFloor(1 + tsOrderedPlayerCount / 1.33)
 	if tsOrderedPlayerCount <= 2 then
 		scope = 2
@@ -1053,6 +1074,9 @@ local function togglePlayerCamera()
 end
 
 local function togglePlayerView(state)
+	if isSpec and not Spring.CanSpectateAllTeams() then
+		return
+	end
 	prevOrderID = nil
 	currentTrackedPlayer = nil
 	toggled2 = (state ~= nil and state or not toggled2)

@@ -64,7 +64,7 @@ local lastMoveFrame = 0
 local myAllyID = Spring.GetLocalAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local allTeams = Spring.GetTeamList()
-local amSpectating = Spring.GetSpectatingState()
+local amSpectating = Spring.CanSpectateAllTeams()
 local previousAllyID = nil
 local allyColors = {}
 
@@ -470,7 +470,7 @@ function gadget:Initialize()
 	gadgetHandler:AddSyncAction("InitializeConfigs", HandleInitializeConfigs)
 	gadgetHandler:AddSyncAction("UpdateGridSquare", HandleUpdateGridSquare)
 
-	amSpectating = Spring.GetSpectatingState()
+	amSpectating = Spring.CanSpectateAllTeams()
 	myAllyID = Spring.GetLocalAllyTeamID()
 	initializeAllyColors()
 
@@ -515,7 +515,7 @@ local function updateGridSquareColor(gridData)
 end
 
 local function processSpectatorModeChange()
-	local currentSpectating = Spring.GetSpectatingState()
+	local currentSpectating = Spring.CanSpectateAllTeams()
 	local currentAllyID = Spring.GetLocalAllyTeamID()
 
 	if currentSpectating ~= amSpectating or (previousAllyID and currentAllyID ~= previousAllyID) then

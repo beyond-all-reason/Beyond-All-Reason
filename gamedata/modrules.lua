@@ -20,6 +20,14 @@ XPValues = {
 	reloadScale = 1.25,
 }
 
+local vision = VFS.Include("common/spectatorVision.lua")
+if
+	vision.lobbyMode(Spring.GetModOptions().restrictedspectators) ~= vision.full
+	and not Engine.FeatureSupport.gameControlledSpectators
+then
+	error("Restricted spectator vision requires an engine with game-controlled spectator access.")
+end
+
 local modrules = {
 
 	construction = {

@@ -14,6 +14,7 @@
 				"teamResign": "Call for team resign."
 			},
 			"button": {
+				"fullView": "Full View",
 				"quit": "Quit",
 				"resign": "Resign",
 				"lobby": "Lobby",
@@ -2613,6 +2614,10 @@
 				"loadscreen_tips_descr": "Show tips at the startup load screen",
 				"networksmoothing": "Network smoothing",
 				"networksmoothing_descr": "Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection",
+				"eliminatedSpectatorVision": "My vision after elimination",
+				"eliminatedSpectatorVision_descr": "Choose what you see the next time you resign or are eliminated, including team chat and map marks. The stricter of your preference and the lobby setting applies.",
+				"eliminatedSpectatorVision_allied": "Always allied vision",
+				"eliminatedSpectatorVision_lobby": "Use lobby setting",
 				"autoquit": "Auto quit",
 				"autoquit_descr": "Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.",
 				"quickstartsuggestions": "Auto-generate Quick Start suggestions",
@@ -3645,6 +3650,24 @@
 		"ranked_game": {
 			"name": "Ranked Game",
 			"desc": "Should game results affect OpenSkill. Note that games with AI or games that are not balanced are always unranked."
+		},
+		"restrictedspectators": {
+			"name": "Spectator Vision After Elimination",
+			"desc": "Choose what players can see after resigning or being eliminated. Players who start as spectators retain full vision.",
+			"items": {
+				"full": {
+					"name": "Full View",
+					"desc": "See all teams immediately."
+				},
+				"optin": {
+					"name": "Allied Vision with Full View Button",
+					"desc": "Start with your side's view. Choose Full View to see all teams, including their chat and map marks."
+				},
+				"allied": {
+					"name": "Locked Allied Vision (Tournament)",
+					"desc": "Keep your side's view until the game ends. Opposing teams' chat and map marks stay hidden."
+				}
+			}
 		},
 		"allowuserwidgets": {
 			"name": "Allow Custom Widgets",

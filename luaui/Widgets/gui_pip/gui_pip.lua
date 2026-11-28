@@ -6625,6 +6625,10 @@ local function GetPlayerSkill(playerID)
 	return 0
 end
 
+local function CanFollowPlayerAllyTeam(allyTeamID)
+	return not Spring.GetSpectatingState() or Spring.CanSpectateAllTeams() or allyTeamID == Spring.GetMyAllyTeamID()
+end
+
 -- Helper function to get alive teammates (excluding self and AI)
 function GetAliveTeammates(out)
 	out = out or {}
@@ -6704,7 +6708,11 @@ local function UpdatePlayerTracking()
 	end
 
 	-- Check if the tracked player has become a spectator or left
-	local playerName, active, isSpec = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	local playerName, active, isSpec, _, allyTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	if not CanFollowPlayerAllyTeam(allyTeamID) then
+		ClearTrackingApi()
+		return
+	end
 	if not playerName then
 		-- Player left the game, try to find next best player on the same team
 		local nextPlayerID = FindNextBestTeamPlayer(interactionState.trackingPlayerID)
@@ -9382,8 +9390,8 @@ function TrackPlayerApi(playerID, transitionTime)
 		return false
 	end
 
-	local name, _, isSpec = spFunc.GetPlayerInfo(playerID, false)
-	if not name or isSpec then
+	local name, _, isSpec, _, allyTeamID = spFunc.GetPlayerInfo(playerID, false)
+	if not name or isSpec or not CanFollowPlayerAllyTeam(allyTeamID) then
 		return false
 	end
 
@@ -17636,6 +17644,10 @@ end
 local function ShouldShowLOS()
 	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local mySpec, fullview = Spring.GetSpectatingState()
+
+	if mySpec and not Spring.CanSpectateAllTeams() then
+		return true, myAllyTeam
+	end
 
 	-- If tracking a player's camera, use their allyteam (priority over LOS view)
 	if interactionState.trackingPlayerID then

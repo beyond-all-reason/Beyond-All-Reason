@@ -39,6 +39,7 @@ local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numPlayers = BAR.Utilities.GetPlayerCount()
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local _modOpts = Spring.GetModOptions()
+local fullViewButtonOffered = false
 local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
 local gameStarted = (Spring.GetGameFrame() > 0)
@@ -220,6 +221,8 @@ local function updateButtons()
 	end
 	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
 		addButton("resign", BAR.I18N("ui.topbar.button.resign"))
+	elseif spec and widgetHandler:CanOptIntoFullView() then
+		addButton("fullView", BAR.I18N("ui.topbar.button.fullView"))
 	end
 
 	if WG.options then
@@ -1012,6 +1015,8 @@ local function applyButtonAction(button)
 				showQuitscreen = now
 			end
 		end
+	elseif button == "fullView" then
+		widgetHandler:OptIntoFullView()
 	elseif button == "options" then
 		toggleWindow("options")
 	elseif button == "save" then
@@ -1454,6 +1459,11 @@ local function overStrip(x, y)
 end
 
 function widget:Update(dt)
+	local offered = widgetHandler:CanOptIntoFullView()
+	if offered ~= fullViewButtonOffered then
+		fullViewButtonOffered = offered
+		refreshButtons = true
+	end
 	now = osClock()
 
 	provideTopBarFallbacks()

@@ -612,6 +612,7 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "keyreload", 1, true) ~= nil
 		or stringFind(command, "keysave", 1, true) ~= nil
 		or stringFind(command, "keybindingfile", 1, true) ~= nil
+		or stringFind(command, "eliminatedspectatorvision", 1, true) ~= nil
 		or stringFind(command, "factoryreset", 1, true) ~= nil
 		or stringFind(command, "userwidgets", 1, true) ~= nil
 		or stringFind(command, "runtests", 1, true) ~= nil
@@ -1006,7 +1007,7 @@ local function CreateSandboxedSystem()
 			spSendCommands(allowed)
 		end
 	end
-	local sandboxConfigKeys = { keybindingfile = true, userwidgetmemorylimits = true }
+	local sandboxConfigKeys = { keybindingfile = true, userwidgetmemorylimits = true, eliminatedspectatorvision = true }
 	local function refuseSandboxConfig(setterName, key)
 		if type(key) == "string" and sandboxConfigKeys[stringLower(key)] then
 			warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. setterName .. " " .. key)
@@ -2659,6 +2660,24 @@ function widgetHandler:ToggleWidgetRaw(name)
 end
 
 --------------------------------------------------------------------------------
+
+-- Private handshake with unsynced LuaRules. The sandbox only exposes registered widget globals.
+-- A UI reload discards pending clicks. LuaRules owns the permission for the whole spectator session.
+local spectatorButtonOffered, spectatorButtonPressed = false, false
+function BARSpectatorFullViewButton()
+	spectatorButtonOffered = true
+	local pressed = spectatorButtonPressed
+	spectatorButtonPressed = false
+	return pressed
+end
+
+function widgetHandler:CanOptIntoFullView()
+	return spectatorButtonOffered and spGetSpectatingState() and not Spring.CanSpectateAllTeams()
+end
+
+function widgetHandler:OptIntoFullView()
+	spectatorButtonPressed = self:CanOptIntoFullView()
+end
 
 local function FindWidgetIndex(t, w)
 	for k, v in ipairs(t) do
@@ -4354,6 +4373,9 @@ function widgetHandler:PlayerRemoved(playerID, reason)
 end
 
 function widgetHandler:PlayerChanged(playerID)
+	if playerID == Spring.GetMyPlayerID() and (not spGetSpectatingState() or Spring.CanSpectateAllTeams()) then
+		spectatorButtonOffered, spectatorButtonPressed = false, false
+	end
 	if anonymousMode ~= "disabled" and not spGetSpectatingState() then
 		Spring.SendCommands("info 0")
 	end

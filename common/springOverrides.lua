@@ -1,3 +1,14 @@
+if Spring.GetSpectatorFullCommunications then
+	Spring.CanSpectateAllTeams = Spring.GetSpectatorFullCommunications
+	if Script.GetName() == "LuaUI" and Spring.SetSpectatorFullCommunications then
+		VFS.Include("common/spectatorVision.lua").installWidgetControls(Spring)
+	end
+elseif Spring.GetSpectatingState and not Spring.CanSpectateAllTeams then
+	Spring.CanSpectateAllTeams = function()
+		return (Spring.GetSpectatingState())
+	end
+end
+
 if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions()
 	local modOptionsFile = require("modoptions")

@@ -351,6 +351,14 @@ local function rereadBound(isHeld)
 	return changed
 end
 
+-- Custom widget options can also bind engine configuration keys.
+local function saveConfigValue(option, setter, key, value)
+	if key == "EliminatedSpectatorVision" and option ~= getOption("eliminatedSpectatorVision") then
+		return
+	end
+	setter(key, value)
+end
+
 local function saveBoundValue(option)
 	local config = option.widgetConfig
 	if config then
@@ -358,12 +366,17 @@ local function saveBoundValue(option)
 		saveOptionValue(config[1], config.api, config.set, boundPath(config), option.value, param)
 	elseif option.configInt and option.type == "color" then
 		for i, key in ipairs(option.configInt) do
-			Spring.SetConfigInt(key, option.value[i])
+			saveConfigValue(option, Spring.SetConfigInt, key, option.value[i])
 		end
 	elseif option.configInt then
-		Spring.SetConfigInt(option.configInt, option.type == "bool" and (option.value and 1 or 0) or option.value)
+		saveConfigValue(
+			option,
+			Spring.SetConfigInt,
+			option.configInt,
+			option.type == "bool" and (option.value and 1 or 0) or option.value
+		)
 	elseif option.configFloat then
-		Spring.SetConfigFloat(option.configFloat, option.value)
+		saveConfigValue(option, Spring.SetConfigFloat, option.configFloat, option.value)
 	end
 end
 
@@ -1421,7 +1434,7 @@ function model.api()
 			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' not found")
 			return
 		end
-		if option.widget then
+		if option.widget or id == "eliminatedSpectatorVision" then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' denied by sandboxing")
 			return
 		end
