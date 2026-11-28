@@ -197,6 +197,10 @@ describe("mission_api.conditions_loader", function()
 			assert.is_function(C.UnitFinished[T.UnitsGatheredInLocation])
 			assert.is_function(C.UnitDestroyed[T.UnitsGatheredInLocation])
 			assert.is_function(C.UnitGiven[T.UnitsGatheredInLocation])
+			assert.is_function(C.UnitsEnteredArea[T.AreaCleared])
+			assert.is_function(C.UnitsLeftArea[T.AreaCleared])
+			assert.is_function(C.GameFrame[T.AreaCleared])
+			assert.is_function(C.UnitGiven[T.AreaCleared])
 
 			-- Event-driven triggers:
 			assert.is_function(C.MetaUnitAdded[T.UnitExists])
