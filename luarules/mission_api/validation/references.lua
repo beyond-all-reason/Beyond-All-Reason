@@ -105,34 +105,41 @@ end
 --------------------------------------------------------------------------------
 
 --- The objective fields that name an Event trigger, raised when the objective reaches
---- that state. sections.lua checks each names an existing trigger; here we check the
---- named trigger is an Event, and that every Event trigger has an owner to raise it.
+--- that state. sections.lua checks each names an existing trigger.
 local objectiveEventFields =
 	{ "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed", "onHidden", "onShown" }
 
-local function validateObjectiveEventReferences(context, report)
+--- Whatever names an Event trigger must name an Event, and every Event needs an owner.
+local function validateEventReferences(context, report)
 	local namedTriggerIDs = {}
+
+	local function checkEventTrigger(value, label, id, message, fieldName)
+		for _, triggerID in ipairs(context.PossibleValues(value)) do
+			if type(triggerID) == "string" then
+				namedTriggerIDs[triggerID] = true
+
+				local trigger = context.Triggers[triggerID]
+				if type(trigger) == "table" and trigger.type ~= context.ConditionTypes.Event then
+					local field = fieldName and ("Field: " .. fieldName .. ", ") or ""
+					report.Error(SECTION, label, id, message, field .. "Trigger: " .. triggerID)
+				end
+			end
+		end
+	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objective) == "table" then
 			for _, fieldName in ipairs(objectiveEventFields) do
-				for _, triggerID in ipairs(context.PossibleValues(objective[fieldName])) do
-					if type(triggerID) == "string" then
-						namedTriggerIDs[triggerID] = true
-
-						local trigger = context.Triggers[triggerID]
-						if type(trigger) == "table" and trigger.type ~= context.ConditionTypes.Event then
-							report.Error(
-								SECTION,
-								"Objective",
-								objectiveID,
-								"Objective event must name an Event trigger",
-								"Field: " .. fieldName .. ", Trigger: " .. triggerID
-							)
-						end
-					end
-				end
+				local message = "Objective event must name an Event trigger"
+				checkEventTrigger(objective[fieldName], "Objective", objectiveID, message, fieldName)
 			end
+		end
+	end
+
+	for actionID, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		if parameters and action.type == context.ActionTypes.RaiseEvent then
+			checkEventTrigger(parameters.triggerID, "Action", actionID, "RaiseEvent must name an Event trigger")
 		end
 	end
 
@@ -668,7 +675,7 @@ local function validate(context, report)
 	local Types = context.Types
 
 	validateActionReferences(context, report)
-	validateObjectiveEventReferences(context, report)
+	validateEventReferences(context, report)
 	validateDrawnNameReferences(
 		context,
 		report,
