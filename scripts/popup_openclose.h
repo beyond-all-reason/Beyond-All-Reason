@@ -11,8 +11,8 @@
 //    Either can be killed partway by the other script which moves and turns in reverse.
 // 3. `start-script RequestOpen()` and `RequestClose()` from aiming, restore, and stun code.
 // 4. Popups built in an open pose sets isOpen = TRUE and wantOpen = TRUE in its Create().
-//    One built partly open closes with `start-script CloseBuildPost()`, not `RequestClose()`.
-// 5. isOpen is TRUE only once fully opened. Weapons block shots with `return (!isOpen)`.
+//    One built partly open closes with `start-script CloseBuildPose()`, not `RequestClose()`.
+// 5. isOpen is TRUE only once fully opened. Weapons block shots with `block = !isOpen;` in BlockShot.
 
 #ifndef SIGNAL_OPENCLOSE
 	#define SIGNAL_OPENCLOSE 131072 // Check your free bits.
