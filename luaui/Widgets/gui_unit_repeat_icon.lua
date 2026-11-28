@@ -291,3 +291,6 @@ function widget:Shutdown()
 		repeatShader = nil
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

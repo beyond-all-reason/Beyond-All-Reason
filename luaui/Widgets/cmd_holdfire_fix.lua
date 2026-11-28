@@ -59,3 +59,6 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 		DropCurrentTarget(unitID)
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

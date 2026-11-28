@@ -45,6 +45,10 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 	end
 
+	function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+		return not empUnits[unitDefID]
+	end
+
 	function gadget:AllowCommand(
 		unitID,
 		unitDefID,

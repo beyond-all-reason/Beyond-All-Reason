@@ -3417,3 +3417,6 @@ function widget:Shutdown()
 	end
 	WG.buildmenu = nil
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

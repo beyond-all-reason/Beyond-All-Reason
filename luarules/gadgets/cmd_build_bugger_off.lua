@@ -503,6 +503,10 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	areaCommandCooldown[unitID] = nil
 end
 
+function gadget:UnitCommandBatch(unitID, unitDefID, teamID)
+	self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD.ANY)
 end

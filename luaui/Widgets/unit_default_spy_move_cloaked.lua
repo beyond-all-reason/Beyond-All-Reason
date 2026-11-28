@@ -94,3 +94,6 @@ function widget:DefaultCommand()
 		return CMD_MOVE
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

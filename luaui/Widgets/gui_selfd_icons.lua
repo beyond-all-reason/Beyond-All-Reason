@@ -353,3 +353,9 @@ end
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	forgetUnit(unitID)
 end
+
+function widget:WantsUnitCommandBatch(unitID)
+	return not queuedSelfD[unitID]
+end
+
+function widget:UnitCommandBatch() end
