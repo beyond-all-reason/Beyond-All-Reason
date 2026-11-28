@@ -3292,7 +3292,29 @@ local unitDistortions = {
 		-- },
 	},
 
-	scavengerbossv4_normal = {
+	scavengerbossv5 = {
+		chestshimmer = {
+			distortionType = "point",
+			pieceName = "eaterbeam",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 10,
+				radius = 18,
+				pos2x = 0,
+				pos2y = 6,
+				pos2z = 0.1,
+				noiseStrength = 2,
+				noiseScaleSpace = -0.6,
+				distanceFalloff = 1.0,
+				windAffected = -1,
+				effectStrength = 1.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+	scavengerbossv4 = {
 		distortionbeam = {
 			distortionType = "point",
 			pieceName = "head",
@@ -4378,6 +4400,162 @@ local unitEventDistortionsNames = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptDistortions = {
+		scavengerbossv5 = {
+			[1] = {
+				-- feeding aura
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5feeding",
+				pieceName = "eaterbeam",
+				distortionConfig = {
+					posx = 0,
+					posy = 0,
+					posz = 10,
+					radius = 55,
+					noiseStrength = 2,
+					noiseScaleSpace = -0.6,
+					distanceFalloff = 1.0,
+					windAffected = -1,
+					effectStrength = 1.5,
+					lifeTime = 650,
+					rampUp = 60,
+					decay = 100,
+					effectType = 0,
+				},
+			},
+			[2] = {
+				-- shield charge
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5shieldcharge",
+				pieceName = "base",
+				distortionConfig = {
+					posx = 0,
+					posy = 85,
+					posz = 0,
+					radius = 250,
+					noiseStrength = 1.5,
+					noiseScaleSpace = -0.4,
+					distanceFalloff = 0.6,
+					effectStrength = 1.2,
+					lifeTime = 160,
+					rampUp = 90,
+					decay = 30,
+					effectType = 0,
+				},
+			},
+			[3] = {
+				-- shield pop
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5shieldpop",
+				pieceName = "base",
+				distortionConfig = {
+					posx = 0,
+					posy = 85,
+					posz = 0,
+					radius = 250,
+					noiseStrength = 2.5,
+					noiseScaleSpace = -0.4,
+					distanceFalloff = 0.6,
+					effectStrength = 2,
+					lifeTime = 40,
+					rampUp = 4,
+					decay = 30,
+					effectType = 0,
+				},
+			},
+			[4] = {
+				-- close turbo, left front hinge
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5turboleft",
+				pieceName = "flhinge",
+				distortionConfig = {
+					posx = 0,
+					posy = 0,
+					posz = 0,
+					radius = 45,
+					noiseStrength = 2,
+					noiseScaleSpace = -0.6,
+					distanceFalloff = 1.0,
+					windAffected = -1,
+					effectStrength = 1.5,
+					lifeTime = 750,
+					rampUp = 30,
+					decay = 60,
+					effectType = 0,
+				},
+			},
+			[5] = {
+				-- close turbo, right front hinge
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5turboright",
+				pieceName = "frhinge",
+				distortionConfig = {
+					posx = 0,
+					posy = 0,
+					posz = 0,
+					radius = 45,
+					noiseStrength = 2,
+					noiseScaleSpace = -0.6,
+					distanceFalloff = 1.0,
+					windAffected = -1,
+					effectStrength = 1.5,
+					lifeTime = 750,
+					rampUp = 30,
+					decay = 60,
+					effectType = 0,
+				},
+			},
+			[6] = {
+				-- stomp ripple
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5stomp",
+				pieceName = "base",
+				distortionConfig = {
+					posx = 0,
+					posy = 0,
+					posz = 0,
+					radius = 600,
+					noiseStrength = 2,
+					noiseScaleSpace = 0.10,
+					effectStrength = 1.5,
+					lifeTime = 20,
+					decay = 10,
+					rampUp = 10,
+					shockWidth = 6,
+					refractiveIndex = -2.1,
+					startRadius = 0.16,
+					effectType = "groundShockwave",
+				},
+			},
+			[7] = {
+				-- overheat shockwave ripple
+				alwaysVisible = true,
+				distortionType = "point",
+				distortionName = "scavengerbossv5shockwave",
+				pieceName = "base",
+				distortionConfig = {
+					posx = 0,
+					posy = 0,
+					posz = 0,
+					radius = 900,
+					noiseStrength = 2,
+					noiseScaleSpace = 0.10,
+					effectStrength = 2,
+					lifeTime = 30,
+					decay = 15,
+					rampUp = 10,
+					shockWidth = 12,
+					refractiveIndex = -2.1,
+					startRadius = 0.16,
+					effectType = "groundShockwave",
+				},
+			},
+		},
 
 		corkorg = {
 			[1] = {
@@ -5035,16 +5213,6 @@ local legComTable = {
 	"legdecomlvl10",
 }
 DuplicateDistortions("legcom", legComTable)
-
---duplicate distortions from scavengerbossv4_normal for all scavengerbossv4 variants
-local scavengerBossV4Table = {
-	"scavengerbossv4_veryeasy",
-	"scavengerbossv4_easy",
-	"scavengerbossv4_hard",
-	"scavengerbossv4_veryhard",
-	"scavengerbossv4_epic",
-}
-DuplicateDistortions("scavengerbossv4_normal", scavengerBossV4Table)
 
 --AND THE REST
 ---unitEventDistortionsNames -> unitEventDistortions

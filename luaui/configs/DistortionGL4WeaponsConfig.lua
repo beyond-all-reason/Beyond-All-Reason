@@ -3141,31 +3141,21 @@ projectileDefDistortionsNames.legerailtank_t3_rail_accelerator =
 	GetDistortionClass("RailgunTrailProjectile", "Femto", {})
 
 local scavbosses = {
-	"veryeasy",
-	"easy",
-	"normal",
-	"hard",
-	"veryhard",
-	"epic",
-	"veryeasy_scav",
-	"easy_scav",
-	"normal_scav",
-	"hard_scav",
-	"veryhard_scav",
-	"epic_scav",
+	"scavengerbossv4",
+	"scavengerbossv4_scav",
 }
 
 for i, name in pairs(scavbosses) do
-	muzzleFlashDistortionsNames["scavengerbossv4_" .. name .. "_shoulderturrets"] = {
+	muzzleFlashDistortionsNames[name .. "_shoulderturrets"] = {
 		GetDistortionClass("MuzzleShockWaveXS", "Nano"),
 	}
-	muzzleFlashDistortionsNames["scavengerbossv4_" .. name .. "_turbo_shoulderturrets"] = {
+	muzzleFlashDistortionsNames[name .. "_turbo_shoulderturrets"] = {
 		GetDistortionClass("MuzzleShockWaveXS", "Tiny"),
 	}
-	explosionDistortionsNames["scavengerbossv4_" .. name .. "_missilelauncher"] = {
+	explosionDistortionsNames[name .. "_missilelauncher"] = {
 		GetDistortionClass("AirShockWave", "Smallest"),
 	}
-	explosionDistortionsNames["scavengerbossv4_" .. name .. "_turbo_missilelauncher"] = {
+	explosionDistortionsNames[name .. "_turbo_missilelauncher"] = {
 		GetDistortionClass("AirShockWave", "Smaller"),
 	}
 end

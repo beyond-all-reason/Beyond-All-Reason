@@ -31,12 +31,8 @@ local queenUnitDefs = {
 	raptor_matriarch_basic = true,
 	raptor_matriarch_fire = true,
 
-	scavengerbossv4_veryeasy_scav = true,
-	scavengerbossv4_easy_scav = true,
-	scavengerbossv4_normal_scav = true,
-	scavengerbossv4_hard_scav = true,
-	scavengerbossv4_veryhard_scav = true,
-	scavengerbossv4_epic_scav = true,
+	scavengerbossv4_scav = true,
+	scavengerbossv5_scav = true,
 }
 
 local queenUnits = {}
