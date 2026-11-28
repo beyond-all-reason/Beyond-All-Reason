@@ -11,8 +11,17 @@ describe("Area Command Filter drag origin", function()
 	---@type { units: integer[], command: integer, options: string[] }[]
 	local orderDetails
 	local traceType, traceID, activeCommand, held
+	local expectedCommand
 	local function notify(options, params, command)
-		return widget:CommandNotify(command or 20, params or { 100, 0, 100, 200 }, options or { alt = true })
+		command = command or env.CMD.ATTACK
+		if command == env.CMD.ATTACK then
+			expectedCommand = env.GameCMD.ATTACK_TARGETS
+		elseif command == env.GameCMD.UNIT_SET_TARGET then
+			expectedCommand = env.GameCMD.UNIT_SET_TARGETS
+		else
+			expectedCommand = command
+		end
+		return widget:CommandNotify(command, params or { 100, 0, 100, 200 }, options or { alt = true })
 	end
 
 	before_each(function()
@@ -54,8 +63,27 @@ describe("Area Command Filter drag origin", function()
 			},
 			Engine = { FeatureSupport = {} },
 			Game = { maxUnits = 32000 },
-			CMD = { ATTACK = 20, CAPTURE = 21, GUARD = 25, REPAIR = 40, RECLAIM = 90, LOAD_UNITS = 75, RESURRECT = 125 },
-			GameCMD = { UNIT_SET_TARGET = 34923, UNIT_SET_TARGET_NO_GROUND = 34924 },
+			CMD = {
+				ATTACK = 20,
+				CAPTURE = 21,
+				GUARD = 25,
+				REPAIR = 40,
+				RECLAIM = 90,
+				LOAD_UNITS = 75,
+				RESURRECT = 125,
+				INSERT = 1,
+				OPT_SHIFT = 32,
+				OPT_CTRL = 64,
+				OPT_ALT = 128,
+				OPT_RIGHT = 16,
+				OPT_META = 4,
+			},
+			GameCMD = {
+				UNIT_SET_TARGET = 34923,
+				UNIT_SET_TARGET_NO_GROUND = 34924,
+				ATTACK_TARGETS = 34927,
+				UNIT_SET_TARGETS = 34926,
+			},
 			Spring = {
 				ENEMY_UNITS = -4,
 				ALLY_UNITS = -2,
@@ -108,9 +136,17 @@ describe("Area Command Filter drag origin", function()
 				GetFeaturePosition = function(id)
 					return id, 0, 0
 				end,
+				GiveOrderArrayToUnitArray = function(_, commands)
+					for _, command in ipairs(commands) do
+						orders[#orders + 1] = command[2][1]
+					end
+				end,
 				GiveOrderToUnitArray = function(units, command, params, options)
+					assert.equal(expectedCommand, command)
 					orderDetails[#orderDetails + 1] = { units = units, command = command, options = options }
-					orders[#orders + 1] = params[1]
+					for _, targetID in ipairs(params) do
+						orders[#orders + 1] = targetID
+					end
 				end,
 			},
 		}, { __index = _G })
@@ -154,6 +190,12 @@ describe("Area Command Filter drag origin", function()
 		assert.same({}, orders)
 	end)
 
+	it("leaves Ctrl removal to the engine", function()
+		widget:MousePress(10, 20, 1)
+		assert.is_false(notify({ ctrl = true }))
+		assert.same({}, orders)
+	end)
+
 	it("preserves Ctrl's all-types behavior", function()
 		activeCommand = 34923
 		widget:MousePress(10, 20, 1)
@@ -169,12 +211,12 @@ describe("Area Command Filter drag origin", function()
 		assert.same({ 101, 102 }, orders)
 	end)
 
-	it("leaves direct clicks and unmodified areas alone", function()
+	it("leaves direct clicks alone and batches unmodified areas", function()
 		widget:MousePress(10, 20, 1)
 		assert.is_false(notify({ alt = true }, { 101 }))
 		widget:MousePress(10, 20, 1)
-		assert.is_false(notify({}))
-		assert.same({}, orders)
+		assert.is_true(notify({}))
+		assert.same({ 101, 102, 103 }, orders)
 	end)
 
 	it("expires a cancelled gesture after release", function()

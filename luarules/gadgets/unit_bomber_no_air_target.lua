@@ -34,6 +34,20 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+	GG.AttackListMatchesBomberTargets = function(unitDefID, targetIDs)
+		if isBomber[unitDefID] then
+			for _, targetID in ipairs(targetIDs) do
+				if isAir[Spring.GetUnitDefID(targetID)] then
+					return false
+				end
+			end
+		end
+		return true
+	end
+end
+
+function gadget:Shutdown()
+	GG.AttackListMatchesBomberTargets = nil
 end
 
 function gadget:AllowCommand(

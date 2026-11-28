@@ -33,6 +33,7 @@ local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
@@ -106,9 +107,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
+	-- Limit raw circular and rectangular Attack orders; compact target lists bypass this gate.
 	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.
-	if cmdID ~= CMD_ATTACK or #cmdParams ~= 4 or cmdParams[4] <= 0 then
+	if cmdID ~= CMD_ATTACK or (#cmdParams ~= 4 and #cmdParams ~= 6) or (#cmdParams == 4 and cmdParams[4] <= 0) then
 		return
 	end
 
@@ -129,11 +130,23 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		opts = opts + CMD.OPT_RIGHT
 	end
 
-	local ax, az, areaRadius = cmdParams[1], cmdParams[3], cmdParams[4]
+	local ax, az = cmdParams[1], cmdParams[3]
 	local handled = false
 
 	CallAsTeam(Spring.GetLocalTeamID(), function()
-		local targets = spGetUnitsInCylinder(ax, az, areaRadius, ENEMY_UNITS)
+		local targets
+		if #cmdParams == 6 then
+			local bx, bz = cmdParams[4], cmdParams[6]
+			targets = spGetUnitsInRectangle(
+				math_min(ax, bx),
+				math_min(az, bz),
+				math.max(ax, bx),
+				math.max(az, bz),
+				ENEMY_UNITS
+			)
+		else
+			targets = spGetUnitsInCylinder(ax, az, cmdParams[4], ENEMY_UNITS)
+		end
 
 		local total = 0 -- TODO: Wall exclusion should be absorbed into other widgets. The separate/double handling is a pain.
 		for i = 1, #targets do
