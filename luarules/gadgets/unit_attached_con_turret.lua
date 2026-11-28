@@ -221,6 +221,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 		return true
 	end
 	return BAR.Utilities.CanTeamReceiveUnits(newTeam, 2)
+		or (GG.CanShareUnitCap and GG.CanShareUnitCap(oldTeam, newTeam, 2))
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -276,6 +277,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not nanoID then
 		-- unit limit hit or invalid spawn surface
 		return
+	end
+	if GG.SetTakenUnitOrigin then
+		GG.SetTakenUnitOrigin(nanoID, Spring.GetUnitRulesParam(unitID, "takenFromTeam"))
 	end
 	Spring.UnitAttach(unitID, nanoID, piece, true)
 	-- makes the attached con turret as non-interacting as possible
