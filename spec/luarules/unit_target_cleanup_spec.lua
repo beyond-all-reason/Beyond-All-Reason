@@ -11,7 +11,7 @@ local function loadTargetGadget()
 	end
 	local env = {
 		gadget = {},
-		GG = { Crashing = crashingTargets },
+		GG = { Crashing = crashingTargets, IsUnitDead = deadTargets },
 		gadgetHandler = {
 			IsSyncedCode = function()
 				return true
@@ -64,9 +64,6 @@ local function loadTargetGadget()
 			end,
 			AreTeamsAllied = function(a, b)
 				return a == b
-			end,
-			GetUnitIsDead = function(unitID)
-				return deadTargets[unitID] or false
 			end,
 			GetUnitLosState = function()
 				return 3

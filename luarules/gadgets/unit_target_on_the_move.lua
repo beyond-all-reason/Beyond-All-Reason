@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetUnitTarget = Spring.SetUnitTarget
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitIsDead = Spring.GetUnitIsDead
+	local isUnitDead = table.ensureTable(GG, "IsUnitDead")
 	local crashing = table.ensureTable(GG, "Crashing")
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spGetUnitTeam = Spring.GetUnitTeam
@@ -259,7 +259,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function isDeadOrCrashing(target)
-		if spGetUnitIsDead(target) ~= false then
+		if isUnitDead[target] then
 			return true
 		end
 		return crashing[target] ~= nil
