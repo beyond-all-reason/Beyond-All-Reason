@@ -183,11 +183,7 @@ local function enlargeSelectionVolumes()
 				local dim = getDimensions(ud.selectionvolumescales)
 				local selectionType = string.lower(ud.selectionvolumetype or ud.collisionvolumetype or "sphere")
 				local y = isSelectionHeightUnscaled(selectionType) and dim[2] or math.ceil(dim[2] * scale)
-				ud.selectionvolumescales = math.ceil(dim[1] * scale)
-					.. " "
-					.. y
-					.. " "
-					.. math.ceil(dim[3] * scale)
+				ud.selectionvolumescales = math.ceil(dim[1] * scale) .. " " .. y .. " " .. math.ceil(dim[3] * scale)
 			else
 				local size = math.max(ud.footprintx or 0, ud.footprintz or 0) * 15
 				if size > 0 then
