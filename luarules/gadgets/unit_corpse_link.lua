@@ -19,7 +19,7 @@ end
 
 local CORPSE_LINK_TIMEOUT = Game.gameSpeed * 3 -- should be longer than the longest death animation
 local UPDATE_INTERVAL = Game.gameSpeed
-local SAME_SPOT_RADIUS = 1
+local SPOT_SEARCH_RADIUS = 1
 
 -- unitDefID -> { [unitID] = { x, y, z, timeout } }
 local corpseRegistryByDefID = {}
@@ -53,8 +53,8 @@ local function GetFeatureSourceUnitDefID(featureID)
 end
 
 -- A heap or wreck that replaces another feature is created on its exact spot while that feature still exists.
-local function ReplacesFeatureOfSameUnit(featureID, sourceUnitDefID, x, z)
-	local featuresOnSpot = Spring.GetFeaturesInCylinder(x, z, SAME_SPOT_RADIUS)
+local function ReplacesAnotherCorpse(featureID, sourceUnitDefID, x, z)
+	local featuresOnSpot = Spring.GetFeaturesInCylinder(x, z, SPOT_SEARCH_RADIUS)
 	for index = 1, #featuresOnSpot do
 		local otherFeatureID = featuresOnSpot[index]
 		if otherFeatureID ~= featureID and GetFeatureSourceUnitDefID(otherFeatureID) == sourceUnitDefID then
@@ -86,7 +86,7 @@ local function GetCorpsePriorUnitID(featureID)
 		return
 	end
 
-	if ReplacesFeatureOfSameUnit(featureID, sourceUnitDefID, x, z) then
+	if ReplacesAnotherCorpse(featureID, sourceUnitDefID, x, z) then
 		return
 	end
 

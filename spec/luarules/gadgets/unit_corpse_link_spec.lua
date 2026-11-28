@@ -5,6 +5,12 @@ local COMMANDER_DEF_ID = 1
 local WRECK_DEF_ID = 10
 local HEAP_DEF_ID = 11
 
+local DYING_COMMANDER = 1
+local ITS_OWN_WRECK = 20
+local ITS_OWN_HEAP = 21
+local OLDER_WRECK = 30
+local HEAP_OF_OLDER_WRECK = 31
+
 local function loadGadget(world)
 	local env = SpecEnv.new({
 		gadget = {},
@@ -13,7 +19,6 @@ local function loadGadget(world)
 				return true
 			end,
 		},
-		Engine = { FeatureSupport = {} },
 		Game = { gameSpeed = 30 },
 		UnitDefNames = { armcom = { id = COMMANDER_DEF_ID } },
 		FeatureDefs = {
@@ -56,31 +61,31 @@ describe("unit_corpse_link", function()
 	local world, gadget, getCorpsePriorUnitID
 
 	before_each(function()
-		world = { units = { [1] = { x = 100, z = 100 } }, features = {} }
+		world = { units = { [DYING_COMMANDER] = { x = 100, z = 100 } }, features = {} }
 		gadget, getCorpsePriorUnitID = loadGadget(world)
-		gadget:UnitDestroyed(1, COMMANDER_DEF_ID)
+		gadget:UnitDestroyed(DYING_COMMANDER, COMMANDER_DEF_ID)
 	end)
 
 	it("links a wreck to the unit that died there", function()
-		world.features[20] = { defID = WRECK_DEF_ID, x = 102, z = 101 }
+		world.features[ITS_OWN_WRECK] = { defID = WRECK_DEF_ID, x = 102, z = 101 }
 
-		assert.equal(1, getCorpsePriorUnitID(20))
+		assert.equal(DYING_COMMANDER, getCorpsePriorUnitID(ITS_OWN_WRECK))
 	end)
 
 	it("links a heap to the unit that died there when no wreck came first", function()
-		world.features[20] = { defID = HEAP_DEF_ID, x = 100, z = 100 }
+		world.features[ITS_OWN_HEAP] = { defID = HEAP_DEF_ID, x = 100, z = 100 }
 
-		assert.equal(1, getCorpsePriorUnitID(20))
+		assert.equal(DYING_COMMANDER, getCorpsePriorUnitID(ITS_OWN_HEAP))
 	end)
 
 	it("leaves the link for the dying unit's own wreck when a heap replaces another wreck", function()
-		world.features[30] = { defID = WRECK_DEF_ID, x = 300, z = 300 }
-		world.features[31] = { defID = HEAP_DEF_ID, x = 300, z = 300 }
+		world.features[OLDER_WRECK] = { defID = WRECK_DEF_ID, x = 300, z = 300 }
+		world.features[HEAP_OF_OLDER_WRECK] = { defID = HEAP_DEF_ID, x = 300, z = 300 }
 
-		assert.is_nil(getCorpsePriorUnitID(31))
+		assert.is_nil(getCorpsePriorUnitID(HEAP_OF_OLDER_WRECK))
 
-		world.features[20] = { defID = WRECK_DEF_ID, x = 100, z = 100 }
+		world.features[ITS_OWN_WRECK] = { defID = WRECK_DEF_ID, x = 100, z = 100 }
 
-		assert.equal(1, getCorpsePriorUnitID(20))
+		assert.equal(DYING_COMMANDER, getCorpsePriorUnitID(ITS_OWN_WRECK))
 	end)
 end)
