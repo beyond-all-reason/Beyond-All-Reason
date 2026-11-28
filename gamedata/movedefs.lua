@@ -314,7 +314,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthmodparams = depthModGeneric,
 	},
-	-- corshiva armmar armbanth legjav
+	-- corshiva armmar legjav
 	HABOT5 = {
 		crushstrength = CRUSH.HEAVY + 2,
 		depthmod = 0,
@@ -331,7 +331,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthmodparams = depthModGeneric,
 	},
-	-- corkorg legeheatraymech
+	-- corkorg armbanth legeheatraymech
 	VBOT6 = {
 		crushstrength = CRUSH.HUGE,
 		depthmod = 0,
