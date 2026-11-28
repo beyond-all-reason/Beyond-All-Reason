@@ -281,6 +281,10 @@ local function registerValueValidators(parameterValidators, context)
 		return validateDifficultyList(difficulties)
 	end
 
+	parameterValidators[Types.MessageType] = getLookupValidator(validateString, "messageType", function(messageType)
+		return enums[Types.MessageType][messageType]
+	end)
+
 	parameterValidators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)

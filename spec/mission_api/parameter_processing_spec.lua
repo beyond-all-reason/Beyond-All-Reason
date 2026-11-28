@@ -176,6 +176,19 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("MessageType", function()
+		it("turns the message type name into its value", function()
+			local parameters = processAction({
+				type = actionTypes.SendMessage,
+				parameters = { messageKey = "mission.intro", messageType = "Notification" },
+			})
+
+			local messageTypes =
+				MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua").Enums.MessageType
+			assert.are.equal(messageTypes.Notification, parameters.messageType)
+		end)
+	end)
+
 	describe("enum sets", function()
 		it("turns the list of values into a set", function()
 			local parameters = processTrigger({

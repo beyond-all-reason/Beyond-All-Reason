@@ -6,6 +6,7 @@ VFS.Include("common/wav.lua")
 
 local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 local internalTypes = GG["MissionAPI"].Modules.ParameterTypes.InternalTypes
+local enums = GG["MissionAPI"].Modules.ParameterTypes.Enums
 local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
@@ -135,6 +136,10 @@ local function processCameraKeyframes(keyframes)
 	end
 end
 
+local function processMessageType(messageType)
+	return enums[ParameterTypes.MessageType][messageType]
+end
+
 local function processEnumSet(values)
 	local valueSet = {}
 	for _, value in ipairs(values) do
@@ -165,6 +170,7 @@ local processors = {
 	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
 	[ParameterTypes.UnitFilter] = processUnitFilter,
 	[ParameterTypes.UnitFilters] = processUnitFilters,
+	[ParameterTypes.MessageType] = processMessageType,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet

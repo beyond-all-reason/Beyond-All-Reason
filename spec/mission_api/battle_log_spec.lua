@@ -10,22 +10,16 @@ describe("mission_api.battle_log", function()
 	local rulesParams
 	---@type string[]
 	local syncActions
-	---@type string[]
-	local echoes
 
 	before_each(function()
 		GG["MissionAPI"] = { BattleLogRaw = {} }
 		rulesParams = {}
 		syncActions = {}
-		echoes = {}
 		env.Spring.SetGameRulesParam = function(name, value)
 			rulesParams[name] = value
 		end
 		env.SendToUnsynced = function(action)
 			syncActions[#syncActions + 1] = action
-		end
-		env.Spring.Echo = function(message)
-			echoes[#echoes + 1] = message
 		end
 	end)
 
@@ -60,12 +54,6 @@ describe("mission_api.battle_log", function()
 			battleLog.AddMessage(MessageTypes.Objective, "mission.escort")
 
 			assert.are.same({ "MissionBattleLogChanged", "MissionBattleLogChanged" }, syncActions)
-		end)
-
-		it("echoes the message key until a widget displays the log", function()
-			battleLog.AddMessage(MessageTypes.Message, "mission.intro")
-
-			assert.are.same({ "mission.intro" }, echoes)
 		end)
 	end)
 end)

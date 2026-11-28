@@ -22,8 +22,6 @@ local function addMessage(messageType, messageKey, messageData)
 	Spring.SetGameRulesParam(ENTRY_PARAM_PREFIX .. #log, Json.encode(entry))
 	Spring.SetGameRulesParam(COUNT_PARAM, #log)
 	SendToUnsynced(SYNC_ACTION)
-
-	Spring.Echo(messageKey) -- placeholder until a widget displays the log
 end
 
 return {

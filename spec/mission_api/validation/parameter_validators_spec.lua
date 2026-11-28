@@ -52,6 +52,26 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("MessageType", function()
+		it("rejects a name that is not a message type", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SendMessage,
+				parameters = { messageKey = "mission.intro", messageType = "Shout" },
+			})
+
+			V.assertMessage(result, "Invalid messageType: Shout. Action: a, Parameter: messageType")
+		end)
+
+		it("accepts a message type name", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SendMessage,
+				parameters = { messageKey = "mission.intro", messageType = "Notification" },
+			})
+
+			V.assertValid(result)
+		end)
+	end)
+
 	describe("Number", function()
 		it("rejects the wrong type", function()
 			local result = V.validateTrigger(V.trigger(V.conditionTypes.TimeElapsed, { seconds = "bad" }))
