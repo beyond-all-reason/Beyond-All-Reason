@@ -1,8 +1,12 @@
 #version 420
+//__DEFINES__
 
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
+#ifdef MAP_REGIONS
+	uniform vec4 regionBounds; // x0, z0, x1, z1 of the viewed region; zero width disables clipping
+#endif
 uniform float drawPass; // 0 = above-water only, 1 = underwater only
 uniform float waterLevel; // dynamic water/lava surface level in elmos
 // SPDX-License-Identifier: MIT
@@ -18,6 +22,9 @@ out DataVS {
 	float circlealpha;
 	vec4 v_targetcolor;
 	vec4 v_uvcoords;
+	#ifdef MAP_REGIONS
+		vec2 v_worldXZ;
+	#endif
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -40,6 +47,15 @@ float heightAtWorldPos(vec2 w){
 
 void main()
 {
+	#ifdef MAP_REGIONS
+		// Cull the entire spot, including its billboard, when it lies in another region.
+		if (regionBounds.z > regionBounds.x &&
+			(any(lessThan(worldpos_radius.xz, regionBounds.xy)) ||
+			 any(greaterThanEqual(worldpos_radius.xz, regionBounds.zw)))) {
+			gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+			return;
+		}
+	#endif
 	circlealpha = mix(
 		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
 		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
@@ -80,6 +96,9 @@ void main()
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
+	#ifdef MAP_REGIONS
+		v_worldXZ = vertexWorldPos.xz;
+	#endif
 
 	v_targetcolor = vec4(vec3(1),circlealpha);
 	
@@ -104,6 +123,9 @@ void main()
 		mat3 rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 		bbpos.xyz =  (rotY * bbpos.xyz * 0.25 + worldXYZ) ;
 		gl_Position = cameraViewProj * bbpos;
+		#ifdef MAP_REGIONS
+			v_worldXZ = bbpos.xz;
+		#endif
 		// interpolate the goddamned uvs here:
 		if (localpos_dir_angle.x <= 0) v_uvcoords.x = uvcoords.x;
 		else v_uvcoords.x = uvcoords.y;

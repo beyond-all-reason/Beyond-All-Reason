@@ -71,11 +71,15 @@ local CIRCLE_SSBO_BINDING = 5
 local circleSSBO = nil ---@type VBO?
 local circleSSBOCapacity = 0
 
+-- Region clipping is compiled in only on multi-region maps.
+local hasMapRegions = VFS.Include("common/map_regions.lua") ~= nil
+
 local circleShaderSourceCache = {
 	shaderName = "Radar Ranges Circles GL4",
 	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = {
+		MAP_REGIONS = hasMapRegions and 1 or nil,
 		VSX = vsx,
 		VSY = vsy,
 		PADDING = 1,
@@ -383,6 +387,10 @@ function widget:DrawWorld()
 	gl.StencilMask(15) -- Only check the first bit of the stencil buffer
 
 	radarCircleShader:Activate()
+	if hasMapRegions then
+		local r = WG.MapRegionView and WG.MapRegionView.rect
+		radarCircleShader:SetUniform("regionBounds", r and r.x0 or 0, r and r.z0 or 0, r and r.x1 or 0, r and r.z1 or 0)
+	end
 	gl.Texture(0, "$heightmap") -- Bind the heightmap texture
 
 	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity)

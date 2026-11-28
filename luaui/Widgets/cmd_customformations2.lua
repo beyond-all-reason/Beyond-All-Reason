@@ -877,9 +877,13 @@ function widget:DrawWorld()
 end
 
 --TODO maybe include minimap drawing again
-function widget:DrawInMiniMap()
+function widget:DrawInMiniMap(xSize, ySize, cropped)
 	glPushMatrix()
-	glLoadIdentity()
+	if cropped then
+		gl.Scale(xSize, ySize, 1)
+	else
+		glLoadIdentity()
+	end
 
 	local currRot = getCurrentMiniMapRotationOption()
 	if currRot == ROTATION.DEG_0 then
