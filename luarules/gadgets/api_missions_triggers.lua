@@ -42,6 +42,7 @@ local isUnitMatch ---@type function
 local isUnitIncluded ---@type function
 local untrackUnitID
 local doesFeatureHaveName
+local trackFeature ---@type function
 local untrackFeatureID
 
 -- Shared trigger state (exposed to per-trigger handlers via conditionContext):
@@ -667,6 +668,14 @@ end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
+
+	-- Other gadgets may create features within a spawn action. Assign loadout names only to loadout features.
+	local mapi = GG.MissionAPI
+	if mapi.defIDOfFeatureBeingSpawned == featureDefID then
+		trackFeature(mapi.nameOfFeatureBeingSpawned, featureID)
+		mapi.defIDOfFeatureBeingSpawned = nil
+	end
+
 	dispatchConditionCallin("FeatureCreated", featureID, featureDefID)
 end
 
@@ -773,6 +782,7 @@ function gadget:Initialize()
 	doesUnitHaveName = tracking.DoesUnitHaveName
 	untrackUnitID = tracking.UntrackUnitID
 	doesFeatureHaveName = tracking.DoesFeatureHaveName
+	trackFeature = tracking.TrackFeature
 	untrackFeatureID = tracking.UntrackFeatureID
 
 	isUnitMatch = GG["MissionAPI"].Modules.UnitQuery.IsUnitMatch
