@@ -16,7 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          sparse-checkout: recoil-lua-library
+          sparse-checkout: |
+            recoil-lua-library
+            .github/scripts
+            common/recoil
           submodules: 'true'
           # https://stackoverflow.com/a/77212392/317135
           fetch-depth: 0
@@ -24,10 +27,19 @@ jobs:
       - name: Pull latest submodule
         run: |
           git submodule update --remote --merge recoil-lua-library
+      # What each Lua handle registers, from the library just pulled: it moves with the pin, in the same commit.
+      - name: Generate the names per handle
+        env:
+          EMMYLUA_VERSION: 0.24.0
+        run: |
+          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/emmylua_doc_cli-linux-x64.tar.gz"
+          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/emmylua_doc_cli
+          python3 .github/scripts/recoil_names.py
       - name: Push updated submodule
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          file_pattern: recoil-lua-library
+          file_pattern: recoil-lua-library common/recoil/names.lua
           commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           commit_message: |
             Update Lua libary submodule
