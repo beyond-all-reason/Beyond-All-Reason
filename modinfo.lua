@@ -7,5 +7,6 @@ return {
 	game = "Beyond All Reason",
 	shortGame = "BYAR",
 	modtype = 1,
+	depend = { 'Beyond All Reason Assets test-7-828e532' },
 	url = "https://www.beyondallreason.info",
 }
