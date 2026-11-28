@@ -4,16 +4,18 @@ end
 
 -- Test whether mexes are able to clear queued buildings by shift-clicking
 local function setup()
-	Test.clearMap()
+	local proxy = Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "pregameQueue_" .. Spring.GetMyPlayerID())
+	assert(proxy and proxy >= 0, "Pregame builder missing")
+	Spring.SelectUnitArray({ proxy })
 
 	local widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
 	assert(widget_cmd_extractor_snap, "Extractor Snap (mex/geo) widget not found via FindWidget")
 
-	local widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
-	assert(widget_gui_pregame_build, "Pregame Queue widget not found via FindWidget")
+	local widget_gui_pregame_build = widgetHandler:FindWidget("Pregame builder selection")
+	assert(widget_gui_pregame_build, "Pregame builder selection widget not found via FindWidget")
 
-	WG["pregame-build"].setBuildQueue({})
-	WG["pregame-build"].setPreGamestartDefID(nil)
+	WG.pregameQueue.setBuildQueue({})
+	Spring.SetActiveCommand(0)
 
 	initialCameraState = Spring.GetCameraState()
 
@@ -26,10 +28,9 @@ local function setup()
 end
 
 local function cleanup()
-	Test.clearMap()
 
-	WG["pregame-build"].setBuildQueue({})
-	WG["pregame-build"].setPreGamestartDefID(nil)
+	WG.pregameQueue.setBuildQueue({})
+	Spring.SetActiveCommand(0)
 
 	Spring.SetCameraState(initialCameraState)
 end
@@ -51,9 +52,9 @@ local function test()
 	end
 
 	-- Place a mex off of a mex spot - expect mex snap to position it on the spot, as close as possible to cursor position
-	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)
-	local activeBlueprint = WG["pregame-build"].getPreGameDefID()
-	assert(activeBlueprint == mexUnitDefId, "Active blueprint should be armmex")
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(-mexUnitDefId))
+	local activeBlueprint = select(2, Spring.GetActiveCommand())
+	assert(activeBlueprint == -mexUnitDefId, "Active blueprint should be armmex")
 	local sx, sy, sz = Spring.WorldToScreenCoords(targetMex.x - 200, targetMex.y, targetMex.z - 200)
 	Spring.WarpMouse(sx, sy)
 
@@ -87,7 +88,7 @@ local function test()
 	Spring.WarpMouse(sx, sy)
 
 	-- select mex again
-	WG["pregame-build"].setPreGamestartDefID(mexUnitDefId)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(-mexUnitDefId))
 
 	-- wait for widgets to respond
 	Test.waitTime(10)
@@ -97,18 +98,20 @@ local function test()
 	Test.mock(Spring, "GetModKeyState", function()
 		return false, false, false, true
 	end)
-	Script.LuaUI.MousePress(sx, sy, 1)
+	if not Script.LuaUI.MousePress(sx, sy, 1) then
+		Spring.GiveOrder(-mexUnitDefId, { snappedPosition.x, snappedPosition.y, snappedPosition.z, 0 }, { "shift" })
+	end
 
 	-- wait for widgets to respond
 	Test.waitTime(10)
 
 	-- clear blueprint
-	WG["pregame-build"].setPreGamestartDefID(nil)
-	activeBlueprint = WG["pregame-build"].getPreGameDefID()
+	Spring.SetActiveCommand(0)
+	activeBlueprint = select(2, Spring.GetActiveCommand())
 	assert(activeBlueprint == nil, "Active blueprint should be nil")
 
 	-- Did the mex get de-queued?
-	local buildQueue = WG["pregame-build"].getBuildQueue()
+	local buildQueue = WG.pregameQueue.getBuildQueue()
 	assert(#buildQueue == 0, "Build queue should be empty")
 end
 
