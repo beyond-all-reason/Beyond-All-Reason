@@ -2882,6 +2882,8 @@ local function FreeTextures() -- pre we are using 2200mb
 	end
 end
 
+local RefreshUnit -- defined with UpdateUnit below
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -2906,7 +2908,13 @@ function gadget:Initialize()
 	GG.CUSGL4.GetShader = GetShader
 	GG.CUSGL4.GetShaderName = GetShaderName
 	GG.CUSGL4.SetShaderUniforms = SetShaderUniforms
+	GG.CUSGL4.RefreshUnit = RefreshUnit
 	GG.CUSGL4.enabled = true
+
+	-- Features without a team read the last palette slot (2047)
+	if Spring.SetCustomPaletteColor and Engine.maxCustomPaletteID then
+		Spring.SetCustomPaletteColor(Engine.maxCustomPaletteID, 0, 0, 0)
+	end
 end
 
 function gadget:Shutdown()
@@ -2992,6 +3000,15 @@ local function UpdateUnit(unitID, flag)
 	numdestroyedUnits = numdestroyedUnits + 1
 	destroyedUnitIDs[numdestroyedUnits] = unitID
 	destroyedUnitDrawFlags[numdestroyedUnits] = flag
+end
+
+-- Uploads a drawn unit's instance data again, e.g. for a new palette index.
+RefreshUnit = function(unitID)
+	local flag = Spring.GetUnitDrawFlag(unitID)
+	if flag > 0 and flag < 128 then
+		UpdateUnit(unitID, 0)
+		UpdateUnit(unitID, flag)
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)

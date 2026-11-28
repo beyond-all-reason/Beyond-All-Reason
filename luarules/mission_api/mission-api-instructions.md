@@ -87,6 +87,10 @@ Nothing works outside this sequence, so start here when something reads as `nil`
   calls `WG.cinematicCamera`. `LockPlayerInput` and `UnlockPlayerInput` set the
   `playerInputLock` game rules param, which `luaui/Widgets/api_player_input_lock.lua` follows.
   Both act on every client, and their defaults live in the widgets.
+- `Modules.UnitColor.Set(unitID, color)` publishes a unit's own color as the `mission_unit_color`
+  unit rules param (`R * 65536 + G * 256 + B`, 0 for the team's) and sends `MissionUnitColor` to the
+  unsynced `api_mission_unit_color.lua` gadget, which gives the unit a custom palette slot
+  (`Spring.SetUnitPaletteIndex`). Only the unit's model changes color: icons, bars and rings keep the team's.
 - Camera durations are real seconds, so a sequence also plays while the game is paused, unless
   `clock = 'game'` runs it on game time, in step with `TimeElapsed`.
 

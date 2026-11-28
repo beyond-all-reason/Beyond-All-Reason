@@ -105,10 +105,27 @@ local function ConvertColor(r, g, b)
 	return colorIndicator .. schar(r, g, b)
 end
 
+local function ChannelToByte(c)
+	-- Clamps a 0-1 float channel and rounds it to 0-255.
+	return floor(math.max(0, math.min(1, c)) * 255 + 0.5)
+end
+
+local function ColorToInt(r, g, b)
+	-- Packs 0-1 float RGB into one integer: R * 65536 + G * 256 + B, channels 0-255.
+	return ChannelToByte(r) * 65536 + ChannelToByte(g) * 256 + ChannelToByte(b)
+end
+
+local function IntToColor(packed)
+	-- Unpacks a ToInt integer into 0-1 float RGB.
+	return floor(packed / 65536) / 255, floor(packed / 256) % 256 / 255, packed % 256 / 255
+end
+
 return {
 	ToString = ColorString,
 	ToStringEx = ColorStringEx,
 	ToIntArray = ColorArray,
+	ToInt = ColorToInt,
+	FromInt = IntToColor,
 	ColorIsDark = ColorIsDark,
 	ConvertColor = ConvertColor,
 }
