@@ -44,7 +44,7 @@ local factoryGuardCmdDesc = {
 local isFactory = {}
 local isAssistBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isFactory then
+	if unitDef.isFactory and unitDef.canBeAssisted then
 		local buildOptions = unitDef.buildOptions
 
 		for i = 1, #buildOptions do
