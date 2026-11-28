@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		cantbetransported = false,
 		collide = true,
-		cruisealtitude = 78,
+		cruisealtitude = 88,
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 1,
 		footprintz = 1,
@@ -31,6 +31,7 @@ return {
 		turnrate = 1100,
 		upright = true,
 		usesmoothmesh = 0,
+		verticalspeed = 4,
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",

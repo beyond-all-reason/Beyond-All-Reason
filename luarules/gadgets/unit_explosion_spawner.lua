@@ -61,6 +61,8 @@ local GAME_SPEED = Game.gameSpeed
 local TAU = 2 * math.pi
 local PRIVATE = { private = true }
 local CMD_WAIT = CMD.WAIT
+local CMD_IDLEMODE = CMD.IDLEMODE
+local IDLEMODE_FLY = 0
 local EMPTY_TABLE = {}
 
 local noCreate = false
@@ -103,9 +105,11 @@ for weaponDefID = 0, #WeaponDefs do
 end
 
 local droneUnitNames = {}
+local flyingDroneNames = {}
 for _, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.drone then
 		droneUnitNames[unitDef.name] = true
+		flyingDroneNames[unitDef.name] = unitDef.isAirUnit
 	end
 end
 
@@ -251,6 +255,9 @@ local function SpawnUnit(spawnData)
 			if droneUnitNames[spawnUnitName] then
 				spSetUnitNoSelect(unitID, true)
 				SendToUnsynced("setUnitNoGroup", unitID, true)
+				if flyingDroneNames[spawnUnitName] then
+					spGiveOrderToUnit(unitID, CMD_IDLEMODE, IDLEMODE_FLY, 0)
+				end
 			end
 
 			if spawnDef.expire then
