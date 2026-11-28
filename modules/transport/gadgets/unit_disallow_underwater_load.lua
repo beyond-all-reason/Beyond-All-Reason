@@ -1,3 +1,4 @@
+if not gadgetHandler:IsSyncedCode() then return end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -12,59 +13,64 @@ function gadget:GetInfo()
 	}
 end
 
-if gadgetHandler:IsSyncedCode() then
-	function gadget:AllowUnitTransport(
-		transporterID,
-		transporterUnitDefID,
-		transporterTeam,
-		transporteeID,
-		transporteeUnitDefID,
-		transporteeTeam
-	)
-		local _, y, _ = Spring.GetUnitPosition(transporteeID)
-		local height = Spring.GetUnitHeight(transporteeID)
-		if not height or y + height < 0 then
-			return false
-		else
-			return true
-		end
-	end
 
-	function gadget:AllowUnitTransportUnload(
-		transporterID,
-		transporterUnitDefID,
-		transporterTeam,
-		transporteeID,
-		transporteeUnitDefID,
-		transporteeTeam,
-		x,
-		y,
-		z
-	) -- disallow unloading underwater
-		local height = Spring.GetUnitHeight(transporteeID)
-		if not height or y + height < 0 then
-			return false
-		else
-			return true
-		end
-	end
 
-	function gadget:AllowUnitTransportLoad(
-		transporterID,
-		transporterUnitDefID,
-		transporterTeam,
-		transporteeID,
-		transporteeUnitDefID,
-		transporteeTeam,
-		x,
-		y,
-		z
-	) -- disallow unloading underwater
-		local height = Spring.GetUnitHeight(transporteeID)
-		if not height or y + height < 0 then
-			return false
-		else
-			return true
-		end
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	Spring.Echo("Custom transports enabled via modoption, skipping gadget"..gadget:GetInfo().name)
+	return false
+end
+
+function gadget:AllowUnitTransport(
+	transporterID,
+	transporterUnitDefID,
+	transporterTeam,
+	transporteeID,
+	transporteeUnitDefID,
+	transporteeTeam
+)
+	local _, y, _ = Spring.GetUnitPosition(transporteeID)
+	local height = Spring.GetUnitHeight(transporteeID)
+	if not height or y + height < 0 then
+		return false
+	else
+		return true
+	end
+end
+
+function gadget:AllowUnitTransportUnload(
+	transporterID,
+	transporterUnitDefID,
+	transporterTeam,
+	transporteeID,
+	transporteeUnitDefID,
+	transporteeTeam,
+	x,
+	y,
+	z
+) -- disallow unloading underwater
+	local height = Spring.GetUnitHeight(transporteeID)
+	if not height or y + height < 0 then
+		return false
+	else
+		return true
+	end
+end
+
+function gadget:AllowUnitTransportLoad(
+transporterID,
+transporterUnitDefID,
+	transporterTeam,
+	transporteeID,
+	transporteeUnitDefID,
+	transporteeTeam,
+	x,
+	y,
+	z
+) -- disallow loading underwater
+	local height = Spring.GetUnitHeight(transporteeID)
+	if not height or y + height < 0 then
+		return false
+	else
+		return true
 	end
 end
